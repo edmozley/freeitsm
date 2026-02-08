@@ -25,6 +25,8 @@ $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
         body {
             background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
             min-height: 100vh;
+            height: auto;
+            overflow: auto;
             display: flex;
             flex-direction: column;
         }
