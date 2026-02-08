@@ -16,6 +16,7 @@ set_error_handler(function($severity, $message, $file, $line) {
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/encryption.php';
 
 header('Content-Type: application/json');
 
@@ -121,6 +122,7 @@ function getMailboxForTicket($conn, $ticketId) {
     $mailbox = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($mailbox) {
+        $mailbox = decryptMailboxRow($mailbox);
         $mailbox['is_active'] = (bool)$mailbox['is_active'];
         $mailbox['mark_as_read'] = (bool)$mailbox['mark_as_read'];
     }

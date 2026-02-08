@@ -9,6 +9,7 @@
  */
 
 require_once 'config.php';
+require_once 'includes/encryption.php';
 
 // Check if we received an authorization code
 if (!isset($_GET['code'])) {
@@ -84,7 +85,8 @@ function getMailboxConfig($conn, $mailboxId) {
     $sql = "SELECT * FROM target_mailboxes WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$mailboxId]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
+    $mailbox = $stmt->fetch(PDO::FETCH_ASSOC);
+    return decryptMailboxRow($mailbox);
 }
 
 /**

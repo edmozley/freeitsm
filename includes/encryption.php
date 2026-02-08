@@ -9,7 +9,7 @@
  * The ENC: prefix allows gradual migration - unencrypted values pass through unchanged.
  */
 
-define('ENCRYPTION_KEY_PATH', 'D:\\encryption_keys\\sdtickets.key');
+define('ENCRYPTION_KEY_PATH', 'c:\\wamp64\\encryption_keys\\sdtickets.key');
 define('ENCRYPTION_CIPHER', 'aes-256-gcm');
 define('ENCRYPTION_IV_LENGTH', 12);   // 96-bit nonce (recommended for GCM)
 define('ENCRYPTION_TAG_LENGTH', 16);  // 128-bit auth tag
@@ -25,6 +25,18 @@ define('ENCRYPTED_SETTING_KEYS', [
     'vcenter_password',
     'knowledge_ai_api_key',
     'knowledge_openai_api_key',
+]);
+
+/**
+ * target_mailboxes columns that should be encrypted at rest.
+ */
+define('ENCRYPTED_MAILBOX_COLUMNS', [
+    'azure_tenant_id',
+    'azure_client_id',
+    'azure_client_secret',
+    'oauth_redirect_uri',
+    'imap_server',
+    'target_mailbox',
 ]);
 
 /**
@@ -140,5 +152,23 @@ function decryptValue($encrypted) {
     }
 
     return $plaintext;
+}
+
+/**
+ * Decrypt all encrypted columns in a target_mailboxes row.
+ *
+ * @param array|null $row A single row from the target_mailboxes table
+ * @return array|null The row with encrypted columns decrypted
+ */
+function decryptMailboxRow($row) {
+    if (!$row) {
+        return $row;
+    }
+    foreach (ENCRYPTED_MAILBOX_COLUMNS as $col) {
+        if (isset($row[$col])) {
+            $row[$col] = decryptValue($row[$col]);
+        }
+    }
+    return $row;
 }
 ?>

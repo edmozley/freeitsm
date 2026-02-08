@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/encryption.php';
 
 header('Content-Type: application/json');
 
@@ -31,6 +32,9 @@ try {
 
     // Convert fields to proper types
     foreach ($mailboxes as &$mailbox) {
+        // Decrypt encrypted columns
+        $mailbox = decryptMailboxRow($mailbox);
+
         // Convert numeric fields to integers
         $mailbox['id'] = (int)$mailbox['id'];
         $mailbox['imap_port'] = (int)$mailbox['imap_port'];

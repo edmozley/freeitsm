@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/encryption.php';
 
 header('Content-Type: application/json');
 
@@ -159,7 +160,7 @@ function sendMailboxEmail($conn, $mailboxId, $toEmail, $subject, $htmlBody, $pdf
     $sql = "SELECT * FROM target_mailboxes WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$mailboxId]);
-    $mailbox = $stmt->fetch(PDO::FETCH_ASSOC);
+    $mailbox = decryptMailboxRow($stmt->fetch(PDO::FETCH_ASSOC));
 
     if (!$mailbox) {
         return ['success' => false, 'error' => 'Mailbox not found'];

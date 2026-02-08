@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/encryption.php';
 
 header('Content-Type: application/json');
 
@@ -36,15 +37,15 @@ try {
 
     $id = $data['id'] ?? null;
     $name = $data['name'];
-    $azure_tenant_id = $data['azure_tenant_id'];
-    $azure_client_id = $data['azure_client_id'];
+    $azure_tenant_id = encryptValue($data['azure_tenant_id']);
+    $azure_client_id = encryptValue($data['azure_client_id']);
     $azure_client_secret = $data['azure_client_secret'] ?? '';
-    $oauth_redirect_uri = $data['oauth_redirect_uri'];
+    $oauth_redirect_uri = encryptValue($data['oauth_redirect_uri']);
     $oauth_scopes = $data['oauth_scopes'] ?? 'openid email offline_access Mail.Read Mail.ReadWrite Mail.Send';
-    $imap_server = $data['imap_server'] ?? 'outlook.office365.com';
+    $imap_server = encryptValue($data['imap_server'] ?? 'outlook.office365.com');
     $imap_port = $data['imap_port'] ?? 993;
     $imap_encryption = $data['imap_encryption'] ?? 'ssl';
-    $target_mailbox = $data['target_mailbox'];
+    $target_mailbox = encryptValue($data['target_mailbox']);
     $email_folder = $data['email_folder'] ?? 'INBOX';
     $max_emails_per_check = $data['max_emails_per_check'] ?? 10;
     $mark_as_read = isset($data['mark_as_read']) ? ($data['mark_as_read'] ? 1 : 0) : 0;
@@ -69,6 +70,7 @@ try {
                 $is_active, $id
             ];
         } else {
+            $azure_client_secret = encryptValue($azure_client_secret);
             $sql = "UPDATE target_mailboxes SET
                         name = ?, azure_tenant_id = ?, azure_client_id = ?,
                         azure_client_secret = ?, oauth_redirect_uri = ?, oauth_scopes = ?,
@@ -99,6 +101,8 @@ try {
             echo json_encode(['success' => false, 'error' => 'Client secret is required for new mailboxes']);
             exit;
         }
+
+        $azure_client_secret = encryptValue($azure_client_secret);
 
         $sql = "INSERT INTO target_mailboxes (
                     name, azure_tenant_id, azure_client_id, azure_client_secret,

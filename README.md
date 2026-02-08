@@ -40,9 +40,9 @@ A comprehensive web-based IT Service Management (ITSM) platform with 9 integrate
 
 4. **Set up encryption key** (for sensitive settings)
    ```bash
-   mkdir D:\encryption_keys
+   mkdir C:\wamp64\encryption_keys
    # Generate a random 256-bit key (64 hex characters)
-   php -r "echo bin2hex(random_bytes(32));" > D:\encryption_keys\sdtickets.key
+   php -r "echo bin2hex(random_bytes(32));" > C:\wamp64\encryption_keys\sdtickets.key
    ```
 
 5. **Configure web server**
@@ -220,10 +220,10 @@ To add a new module, add an entry to the `$modules` array and corresponding CSS 
 ### Encryption (`includes/encryption.php`)
 AES-256-GCM authenticated encryption for sensitive database values.
 
-- **Key file**: `D:\encryption_keys\sdtickets.key` (outside web root)
+- **Key file**: `C:\wamp64\encryption_keys\sdtickets.key` (outside web root)
 - **Format**: Encrypted values stored as `ENC:` + base64(IV + auth tag + ciphertext)
 - **Migration**: Values without the `ENC:` prefix pass through unchanged, allowing gradual rollout
-- **Encrypted settings**: Defined in `ENCRYPTED_SETTING_KEYS` constant
+- **Encrypted settings**: Defined in `ENCRYPTED_SETTING_KEYS` and `ENCRYPTED_MAILBOX_COLUMNS` constants
 
 ```php
 // Encrypt before saving to DB
@@ -232,13 +232,17 @@ $encrypted = encryptValue($plaintext);
 // Decrypt after reading from DB
 $plaintext = decryptValue($encrypted);
 
-// Check if a setting key should be encrypted
-if (isEncryptedSettingKey($key)) { ... }
+// Decrypt all sensitive columns in a mailbox row
+$mailbox = decryptMailboxRow($mailbox);
 ```
 
-Currently encrypted:
+Currently encrypted in `system_settings`:
 - `vcenter_server`, `vcenter_user`, `vcenter_password`
 - `knowledge_ai_api_key`, `knowledge_openai_api_key`
+
+Currently encrypted in `target_mailboxes`:
+- `azure_tenant_id`, `azure_client_id`, `azure_client_secret`
+- `oauth_redirect_uri`, `imap_server`, `target_mailbox`
 
 ### Functions (`includes/functions.php`)
 Contains `connectToDatabase()` which returns a PDO connection. Tries multiple ODBC drivers in order: ODBC Driver 17, ODBC Driver 18, SQL Server Native Client 11.0, and legacy SQL Server.
@@ -477,10 +481,12 @@ Key-value store for all configuration. Sensitive values are encrypted with AES-2
 
 #### target_mailboxes
 ```sql
-id, name, target_mailbox, azure_tenant_id, azure_client_id, azure_client_secret,
-oauth_redirect_uri, oauth_scopes, email_folder, max_emails_per_check, mark_as_read,
+id, name, target_mailbox*, azure_tenant_id*, azure_client_id*, azure_client_secret*,
+oauth_redirect_uri*, oauth_scopes, imap_server*, imap_port, imap_encryption,
+email_folder, max_emails_per_check, mark_as_read,
 token_data (JSON), is_active, created_datetime, last_checked_datetime
 ```
+\* *Encrypted at rest with AES-256-GCM*
 
 ### Asset Tables
 
@@ -534,7 +540,7 @@ Many-to-many relationships for team-based access control. Analysts only see tick
 ## Security
 
 ### Implemented
-- AES-256-GCM encryption for sensitive settings (API keys, credentials) with key stored outside web root
+- AES-256-GCM encryption for sensitive settings and mailbox credentials with key stored outside web root
 - Bcrypt password hashing (`PASSWORD_DEFAULT`)
 - Session-based authentication on all pages and API endpoints
 - PDO prepared statements throughout (SQL injection prevention)
@@ -548,7 +554,7 @@ Many-to-many relationships for team-based access control. Analysts only see tick
 
 ### Encryption Details
 - **Algorithm**: AES-256-GCM (authenticated encryption — provides confidentiality + integrity)
-- **Key**: 256-bit random key stored at `D:\encryption_keys\sdtickets.key`
+- **Key**: 256-bit random key stored at `C:\wamp64\encryption_keys\sdtickets.key`
 - **Nonce**: 96-bit random IV per encryption (same value encrypted twice produces different ciphertext)
 - **Auth tag**: 128-bit — detects any tampering with encrypted data
 - **Prefix**: `ENC:` allows coexistence of encrypted and plaintext values during migration
@@ -634,7 +640,7 @@ The `emails.exchange_message_id` column does NOT allow NULL. Manual tickets must
 |------------|------------|
 | Add a new module | Module folder + `api/` + `includes/waffle-menu.php` + `index.php` |
 | Change database connection | `config.php`, `includes/functions.php` |
-| Add an encrypted setting | `includes/encryption.php` → `ENCRYPTED_SETTING_KEYS` |
+| Add an encrypted setting | `includes/encryption.php` → `ENCRYPTED_SETTING_KEYS` or `ENCRYPTED_MAILBOX_COLUMNS` |
 | Modify cross-module navigation | `includes/waffle-menu.php` |
 | Change the landing page | `index.php` |
 | Modify ticket inbox | `tickets/index.php`, `assets/js/inbox.js` |
