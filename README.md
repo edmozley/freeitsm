@@ -1,6 +1,6 @@
 # FreeITSM - Open Source Service Desk Platform
 
-A comprehensive web-based IT Service Management (ITSM) platform with 9 integrated modules covering tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, and dynamic forms.
+A comprehensive web-based IT Service Management (ITSM) platform with 10 integrated modules covering tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, and system administration. Includes analyst account management with password reset and TOTP multi-factor authentication.
 
 ## 🚀 Quick Start
 
@@ -116,8 +116,9 @@ sdtickets/
 │
 ├── includes/                         # Shared PHP components
 │   ├── functions.php                 # Database connection helper
-│   ├── waffle-menu.php               # Cross-module navigation menu
-│   └── encryption.php                # AES-256-GCM encryption/decryption
+│   ├── waffle-menu.php               # Cross-module navigation menu + user account menu
+│   ├── encryption.php                # AES-256-GCM encryption/decryption
+│   └── totp.php                      # Pure PHP TOTP (RFC 6238) for MFA
 │
 ├── assets/                           # Static assets
 │   ├── css/
@@ -132,6 +133,7 @@ sdtickets/
 │   │   ├── calendar.js               # Calendar logic
 │   │   ├── change-management.js      # Change management logic
 │   │   ├── itsm_calendar.js          # ITSM calendar logic
+│   │   ├── qrcode.min.js             # Client-side QR code generator (for MFA setup)
 │   │   └── tinymce/                  # Rich text editor library
 │   └── images/
 │       └── CompanyLogo.png           # Company logo (replace with your own)
@@ -205,7 +207,7 @@ sdtickets/
 │   ├── create_tables.sql             # Database schema
 │   └── includes/
 │
-├── api/                              # REST API endpoints (~112 total)
+├── api/                              # REST API endpoints (~118 total)
 │   ├── tickets/                      # ~48 endpoints
 │   ├── assets/                       # 8 endpoints (inc. vCenter sync)
 │   ├── knowledge/                    # 16 endpoints (inc. AI chat)
@@ -217,6 +219,7 @@ sdtickets/
 │   ├── forms/                        # 7 endpoints
 │   ├── settings/                     # 2 endpoints
 │   ├── system/                       # 4 endpoints (encryption, module access)
+│   ├── myaccount/                    # 6 endpoints (password, MFA setup/verify/disable)
 │   └── external/                     # External API (software inventory)
 │
 └── database/                         # SQL schema scripts
@@ -229,10 +232,25 @@ sdtickets/
 
 ## Shared Components
 
-### Waffle Menu (`includes/waffle-menu.php`)
+### Waffle Menu & User Account Menu (`includes/waffle-menu.php`)
 A cross-module navigation component inspired by Microsoft 365's app launcher. Appears in every module's header, allowing quick switching between all modules. Each module is registered here with its name, path, icon, and colour gradient. Respects `$_SESSION['allowed_modules']` to filter visible modules per analyst.
 
+Also contains the **user account menu** — an initials avatar circle in the top-right of every page. Clicking opens a dropdown with:
+- **Change Password** — modal to update password (validates current password, minimum 8 characters)
+- **Multi-Factor Authentication** — modal to set up or disable TOTP-based MFA (generates QR code for authenticator apps)
+- **Logout** — with confirmation prompt
+
 To add a new module, add an entry to the `$modules` array and corresponding CSS classes.
+
+### TOTP Library (`includes/totp.php`)
+Pure PHP implementation of RFC 6238 (TOTP) and RFC 4226 (HOTP) for multi-factor authentication. No external dependencies — uses PHP's built-in `hash_hmac()` and `random_bytes()`.
+
+- **Secret generation**: 20 random bytes → Base32 encoded (32-character string)
+- **Code generation**: HMAC-SHA1 with 30-second time steps, dynamic truncation → 6-digit code
+- **Verification**: Checks ±1 time window (90-second tolerance) using `hash_equals()` for timing-safe comparison
+- **URI format**: `otpauth://totp/FreeITSM:{username}?secret={base32}&issuer=FreeITSM`
+
+TOTP secrets are encrypted at rest using AES-256-GCM via `encryptValue()` before being stored in the `analysts.totp_secret` column.
 
 ### Encryption (`includes/encryption.php`)
 AES-256-GCM authenticated encryption for sensitive database values.
@@ -269,7 +287,7 @@ Each module has its own `includes/header.php` that:
 1. Checks session authentication (redirects to login if not logged in)
 2. Sets `$current_module` for waffle menu highlighting
 3. Renders the header bar with the module's colour gradient
-4. Includes the waffle menu button, nav tabs, and logout button
+4. Includes the waffle menu button, nav tabs, and user account avatar menu
 
 ---
 
@@ -464,6 +482,17 @@ if (!isset($_SESSION['analyst_id'])) {
 | `get_system_settings.php` | GET | Get all settings (auto-decrypts sensitive keys) |
 | `save_system_settings.php` | POST | Save settings (auto-encrypts sensitive keys) |
 
+### My Account (`api/myaccount/`)
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `change_password.php` | POST | Validate current password, update to new (min 8 chars) |
+| `get_mfa_status.php` | GET | Return `{ mfa_enabled: bool }` for current analyst |
+| `setup_mfa.php` | POST | Generate TOTP secret, return secret + otpauth URI for QR |
+| `verify_mfa.php` | POST | Verify OTP against pending secret, encrypt and enable MFA |
+| `disable_mfa.php` | POST | Verify password and disable MFA for current analyst |
+| `verify_login_otp.php` | POST | Verify OTP during login MFA challenge, complete login |
+
 ### Other Module APIs
 
 - `api/change-management/` — 8 endpoints for change CRUD and attachments
@@ -501,8 +530,11 @@ $newId = (int)$stmt->fetch(PDO::FETCH_ASSOC)['id'];
 
 #### analysts
 ```sql
-id, username, password_hash, full_name, email, is_active, created_datetime, last_login_datetime
+id, username, password_hash, full_name, email, is_active, totp_secret, totp_enabled,
+created_datetime, last_modified_datetime, last_login_datetime
 ```
+- `totp_secret`: AES-256-GCM encrypted TOTP secret (NULL when MFA not set up)
+- `totp_enabled`: BIT flag indicating whether MFA is active for this analyst
 
 #### tickets
 ```sql
@@ -593,8 +625,9 @@ Controls which modules an analyst can access. No rows = full access to all modul
 ## Security
 
 ### Implemented
-- AES-256-GCM encryption for sensitive settings and mailbox credentials with key stored outside web root
+- AES-256-GCM encryption for sensitive settings, mailbox credentials, and TOTP secrets with key stored outside web root
 - Bcrypt password hashing (`PASSWORD_DEFAULT`)
+- TOTP multi-factor authentication (RFC 6238) — optional per analyst, enforced at login
 - Session-based authentication on all pages and API endpoints
 - PDO prepared statements throughout (SQL injection prevention)
 - Output encoding with `htmlspecialchars()` (XSS prevention)
@@ -605,6 +638,7 @@ Controls which modules an analyst can access. No rows = full access to all modul
 - Audit logging for all ticket changes
 - Login attempt logging with IP and user agent
 - Credential masking in UI (`****` + last 4 characters)
+- Password required to disable MFA (prevents unauthorized deactivation)
 
 ### Encryption Details
 - **Algorithm**: AES-256-GCM (authenticated encryption — provides confidentiality + integrity)
@@ -622,6 +656,18 @@ Controls which modules an analyst can access. No rows = full access to all modul
 2. For each active mailbox: refreshes OAuth token, calls Graph API, imports new emails
 3. Creates/matches tickets based on subject/requester
 4. Downloads attachments, logs results
+
+### MFA Login Flow
+MFA is optional and per-analyst. Analysts with MFA disabled log in with just username and password as normal. When an analyst enables MFA, subsequent logins require a second verification step:
+
+1. Analyst enters username and password on `login.php`
+2. Password verified → MFA pending state stored in session (`mfa_pending_analyst_id` etc.) — **`analyst_id` is NOT set yet**
+3. Login page renders OTP form (shield icon, 6-digit input, auto-submit)
+4. Analyst enters code from authenticator app → JS calls `api/myaccount/verify_login_otp.php`
+5. Server decrypts stored TOTP secret, verifies code (±1 time window)
+6. On success: `$_SESSION['analyst_id']` is set, pending state cleared, redirected to `index.php`
+
+The "Cancel and return to login" link clears the pending state so a different analyst (who may not have MFA) can log in on the same browser.
 
 ### Team-Based Filtering
 1. Analyst's team memberships stored in session at login
@@ -704,6 +750,9 @@ The `emails.exchange_message_id` column does NOT allow NULL. Manual tickets must
 | View form submissions | `forms/submissions.php`, `api/forms/get_submissions.php` |
 | Manage encryption key | `system/encryption/`, `api/system/check_encryption.php` |
 | Configure module access | `system/modules/`, `api/system/save_analyst_modules.php` |
+| Account menu (avatar/password/MFA) | `includes/waffle-menu.php` → `renderHeaderRight()`, `api/myaccount/` |
+| MFA login challenge | `login.php`, `api/myaccount/verify_login_otp.php` |
+| TOTP implementation | `includes/totp.php` |
 
 ---
 

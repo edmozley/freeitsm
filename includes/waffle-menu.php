@@ -314,18 +314,679 @@ function renderWaffleMenuJS() {
 }
 
 function renderHeaderRight($analyst_name, $path_prefix) {
+    // Extract initials from analyst name
+    $parts = explode(' ', trim($analyst_name));
+    $initials = strtoupper(substr($parts[0], 0, 1));
+    if (count($parts) > 1) {
+        $initials .= strtoupper(substr(end($parts), 0, 1));
+    }
+    $analyst_username = $_SESSION['analyst_username'] ?? '';
     ?>
+    <style>
+        /* Avatar & User Menu */
+        .header-right { position: relative; }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: #546e7a;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.3);
+            transition: border-color 0.15s;
+            user-select: none;
+        }
+
+        .user-avatar:hover {
+            border-color: rgba(255,255,255,0.6);
+        }
+
+        .user-menu-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 1099;
+            display: none;
+        }
+
+        .user-menu-overlay.active { display: block; }
+
+        .user-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 8px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 6px 30px rgba(0,0,0,0.25);
+            min-width: 240px;
+            z-index: 1100;
+            display: none;
+            overflow: hidden;
+        }
+
+        .user-menu.active { display: block; }
+
+        .user-menu-header {
+            padding: 16px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .user-menu-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .user-menu-username {
+            font-size: 12px;
+            color: #999;
+            margin-top: 2px;
+        }
+
+        .user-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 11px 16px;
+            cursor: pointer;
+            font-size: 13px;
+            color: #333;
+            transition: background 0.15s;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+        }
+
+        .user-menu-item:hover { background: #f5f5f5; }
+
+        .user-menu-item svg {
+            width: 16px;
+            height: 16px;
+            color: #666;
+            flex-shrink: 0;
+        }
+
+        .user-menu-divider {
+            height: 1px;
+            background: #eee;
+            margin: 0;
+        }
+
+        .user-menu-item.logout-item {
+            color: #d32f2f;
+        }
+
+        .user-menu-item.logout-item svg { color: #d32f2f; }
+
+        .mfa-badge {
+            margin-left: auto;
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 3px;
+        }
+
+        .mfa-badge.enabled { background: #e8f5e9; color: #2e7d32; }
+        .mfa-badge.disabled { background: #f5f5f5; color: #999; }
+
+        /* Account modals */
+        .account-modal {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .account-modal.active { display: flex; }
+
+        .account-modal-box {
+            background: #fff;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 460px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+        }
+
+        .account-modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .account-modal-close {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: #999;
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .account-modal-close:hover { color: #333; }
+
+        .account-modal-body { padding: 24px; }
+
+        .account-modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .acct-form-group { margin-bottom: 16px; }
+
+        .acct-form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #333;
+            font-size: 13px;
+        }
+
+        .acct-form-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .acct-form-input:focus { outline: none; border-color: #546e7a; }
+
+        .acct-btn {
+            padding: 9px 18px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+
+        .acct-btn-primary { background: #546e7a; color: #fff; }
+        .acct-btn-primary:hover { background: #455a64; }
+        .acct-btn-secondary { background: #e0e0e0; color: #333; }
+        .acct-btn-secondary:hover { background: #d0d0d0; }
+        .acct-btn-danger { background: #fff; color: #d32f2f; border: 1px solid #d32f2f; }
+        .acct-btn-danger:hover { background: #ffebee; }
+        .acct-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .acct-msg {
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .acct-msg.success { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
+        .acct-msg.error { display: block; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+
+        /* MFA specific */
+        .mfa-status-card {
+            padding: 16px;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .mfa-status-card.enabled {
+            background: #e8f5e9;
+            border: 1px solid #c8e6c9;
+        }
+
+        .mfa-status-card.not-enabled {
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+        }
+
+        .mfa-status-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .mfa-status-desc {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .mfa-setup-area { margin-top: 16px; }
+
+        .qr-container {
+            text-align: center;
+            padding: 16px;
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: 6px;
+            margin-bottom: 16px;
+        }
+
+        .qr-container img { image-rendering: pixelated; }
+
+        .secret-display {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        .secret-display code {
+            background: #f5f5f5;
+            padding: 8px 14px;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: 'Consolas', monospace;
+            letter-spacing: 2px;
+            user-select: all;
+        }
+
+        .secret-display p {
+            font-size: 11px;
+            color: #999;
+            margin-top: 6px;
+        }
+
+        .verify-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .verify-row .acct-form-group { flex: 1; margin-bottom: 0; }
+
+        .otp-input {
+            font-size: 18px;
+            letter-spacing: 6px;
+            text-align: center;
+            font-family: 'Consolas', monospace;
+        }
+
+        .mfa-disable-area { margin-top: 16px; }
+    </style>
+
     <div class="header-right">
-        <div class="user-info">Welcome, <?php echo htmlspecialchars($analyst_name); ?></div>
-        <button class="nav-btn logout" onclick="if(confirm('Are you sure you want to logout?')) window.location.href='<?php echo $path_prefix; ?>analyst_logout.php';" title="Logout">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                <polyline points="16 17 21 12 16 7"></polyline>
-                <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            <span>Logout</span>
-        </button>
+        <div class="user-menu-overlay" id="userMenuOverlay" onclick="closeUserMenu()"></div>
+        <div class="user-avatar" onclick="toggleUserMenu()" title="<?php echo htmlspecialchars($analyst_name); ?>">
+            <?php echo htmlspecialchars($initials); ?>
+        </div>
+        <div class="user-menu" id="userMenu">
+            <div class="user-menu-header">
+                <div class="user-menu-name"><?php echo htmlspecialchars($analyst_name); ?></div>
+                <div class="user-menu-username"><?php echo htmlspecialchars($analyst_username); ?></div>
+            </div>
+            <button class="user-menu-item" onclick="openPasswordModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span>Change Password</span>
+            </button>
+            <button class="user-menu-item" onclick="openMfaModal()">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                <span>Multi-Factor Auth</span>
+                <span class="mfa-badge disabled" id="mfaBadgeMenu">Off</span>
+            </button>
+            <div class="user-menu-divider"></div>
+            <button class="user-menu-item logout-item" onclick="if(confirm('Are you sure you want to logout?')) window.location.href='<?php echo $path_prefix; ?>analyst_logout.php';">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                <span>Logout</span>
+            </button>
+        </div>
     </div>
+
+    <!-- Change Password Modal -->
+    <div class="account-modal" id="passwordModal">
+        <div class="account-modal-box">
+            <div class="account-modal-header">
+                Change Password
+                <button class="account-modal-close" onclick="closePasswordModal()">&times;</button>
+            </div>
+            <div class="account-modal-body">
+                <div id="pwMsg" class="acct-msg"></div>
+                <div class="acct-form-group">
+                    <label class="acct-form-label">Current Password</label>
+                    <input type="password" class="acct-form-input" id="pwCurrent" autocomplete="current-password">
+                </div>
+                <div class="acct-form-group">
+                    <label class="acct-form-label">New Password</label>
+                    <input type="password" class="acct-form-input" id="pwNew" autocomplete="new-password">
+                </div>
+                <div class="acct-form-group">
+                    <label class="acct-form-label">Confirm New Password</label>
+                    <input type="password" class="acct-form-input" id="pwConfirm" autocomplete="new-password">
+                </div>
+            </div>
+            <div class="account-modal-footer">
+                <button class="acct-btn acct-btn-secondary" onclick="closePasswordModal()">Cancel</button>
+                <button class="acct-btn acct-btn-primary" id="pwSaveBtn" onclick="savePassword()">Change Password</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MFA Modal -->
+    <div class="account-modal" id="mfaModal">
+        <div class="account-modal-box">
+            <div class="account-modal-header">
+                Multi-Factor Authentication
+                <button class="account-modal-close" onclick="closeMfaModal()">&times;</button>
+            </div>
+            <div class="account-modal-body">
+                <div id="mfaMsg" class="acct-msg"></div>
+                <div id="mfaContent">Loading...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="<?php echo $path_prefix; ?>assets/js/qrcode.min.js"></script>
+    <script>
+    const _pathPrefix = '<?php echo $path_prefix; ?>';
+
+    /* --- User Menu --- */
+    function toggleUserMenu() {
+        const menu = document.getElementById('userMenu');
+        const overlay = document.getElementById('userMenuOverlay');
+        const active = menu.classList.contains('active');
+        closeWaffleMenu();
+        if (active) {
+            closeUserMenu();
+        } else {
+            menu.classList.add('active');
+            overlay.classList.add('active');
+            loadMfaBadge();
+        }
+    }
+
+    function closeUserMenu() {
+        document.getElementById('userMenu').classList.remove('active');
+        document.getElementById('userMenuOverlay').classList.remove('active');
+    }
+
+    /* --- Password Modal --- */
+    function openPasswordModal() {
+        closeUserMenu();
+        document.getElementById('pwCurrent').value = '';
+        document.getElementById('pwNew').value = '';
+        document.getElementById('pwConfirm').value = '';
+        hidePwMsg();
+        document.getElementById('passwordModal').classList.add('active');
+        setTimeout(() => document.getElementById('pwCurrent').focus(), 100);
+    }
+
+    function closePasswordModal() {
+        document.getElementById('passwordModal').classList.remove('active');
+    }
+
+    function hidePwMsg() {
+        const el = document.getElementById('pwMsg');
+        el.className = 'acct-msg';
+        el.textContent = '';
+    }
+
+    function showPwMsg(msg, type) {
+        const el = document.getElementById('pwMsg');
+        el.className = 'acct-msg ' + type;
+        el.textContent = msg;
+    }
+
+    async function savePassword() {
+        hidePwMsg();
+        const btn = document.getElementById('pwSaveBtn');
+        btn.disabled = true;
+
+        const current = document.getElementById('pwCurrent').value;
+        const newPw = document.getElementById('pwNew').value;
+        const confirm = document.getElementById('pwConfirm').value;
+
+        if (!current || !newPw || !confirm) {
+            showPwMsg('All fields are required', 'error');
+            btn.disabled = false;
+            return;
+        }
+
+        try {
+            const resp = await fetch(_pathPrefix + 'api/myaccount/change_password.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ current_password: current, new_password: newPw, confirm_password: confirm })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                showPwMsg('Password changed successfully', 'success');
+                document.getElementById('pwCurrent').value = '';
+                document.getElementById('pwNew').value = '';
+                document.getElementById('pwConfirm').value = '';
+                setTimeout(() => closePasswordModal(), 1500);
+            } else {
+                showPwMsg(data.error, 'error');
+            }
+        } catch (e) {
+            showPwMsg('Failed to change password', 'error');
+        }
+        btn.disabled = false;
+    }
+
+    /* --- MFA Badge --- */
+    async function loadMfaBadge() {
+        try {
+            const resp = await fetch(_pathPrefix + 'api/myaccount/get_mfa_status.php');
+            const data = await resp.json();
+            const badge = document.getElementById('mfaBadgeMenu');
+            if (data.success && data.mfa_enabled) {
+                badge.className = 'mfa-badge enabled';
+                badge.textContent = 'On';
+            } else {
+                badge.className = 'mfa-badge disabled';
+                badge.textContent = 'Off';
+            }
+        } catch (e) {}
+    }
+
+    /* --- MFA Modal --- */
+    let mfaEnabled = false;
+
+    async function openMfaModal() {
+        closeUserMenu();
+        document.getElementById('mfaMsg').className = 'acct-msg';
+        document.getElementById('mfaContent').innerHTML = 'Loading...';
+        document.getElementById('mfaModal').classList.add('active');
+        await loadMfaContent();
+    }
+
+    function closeMfaModal() {
+        document.getElementById('mfaModal').classList.remove('active');
+    }
+
+    function showMfaMsg(msg, type) {
+        const el = document.getElementById('mfaMsg');
+        el.className = 'acct-msg ' + type;
+        el.textContent = msg;
+    }
+
+    async function loadMfaContent() {
+        try {
+            const resp = await fetch(_pathPrefix + 'api/myaccount/get_mfa_status.php');
+            const data = await resp.json();
+            mfaEnabled = data.success && data.mfa_enabled;
+            renderMfaContent();
+        } catch (e) {
+            document.getElementById('mfaContent').innerHTML = '<p>Failed to load MFA status</p>';
+        }
+    }
+
+    function renderMfaContent() {
+        const container = document.getElementById('mfaContent');
+        if (mfaEnabled) {
+            container.innerHTML = `
+                <div class="mfa-status-card enabled">
+                    <div class="mfa-status-title" style="color:#2e7d32;">MFA is enabled</div>
+                    <div class="mfa-status-desc">Your account is protected with a time-based one-time password (TOTP). You will be asked for a code from your authenticator app each time you log in.</div>
+                </div>
+                <div class="mfa-disable-area">
+                    <p style="font-size:13px;color:#666;margin:0 0 12px 0;">To disable MFA, enter your password below:</p>
+                    <div class="acct-form-group">
+                        <input type="password" class="acct-form-input" id="mfaDisablePw" placeholder="Enter your password">
+                    </div>
+                    <button class="acct-btn acct-btn-danger" onclick="disableMfa()">Disable MFA</button>
+                </div>
+            `;
+        } else {
+            container.innerHTML = `
+                <div class="mfa-status-card not-enabled">
+                    <div class="mfa-status-title">MFA is not enabled</div>
+                    <div class="mfa-status-desc">Add an extra layer of security by setting up a time-based one-time password (TOTP) with an authenticator app like Google Authenticator or Microsoft Authenticator.</div>
+                </div>
+                <button class="acct-btn acct-btn-primary" onclick="startMfaSetup()">Set Up MFA</button>
+            `;
+        }
+    }
+
+    async function startMfaSetup() {
+        const container = document.getElementById('mfaContent');
+        container.innerHTML = '<p style="color:#888;">Generating secret...</p>';
+
+        try {
+            const resp = await fetch(_pathPrefix + 'api/myaccount/setup_mfa.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            });
+            const data = await resp.json();
+            if (!data.success) {
+                showMfaMsg(data.error, 'error');
+                renderMfaContent();
+                return;
+            }
+
+            // Generate QR code
+            let qrHtml = '';
+            try {
+                const qr = qrcode(0, 'M');
+                qr.addData(data.uri);
+                qr.make();
+                qrHtml = qr.createImgTag(5, 0);
+            } catch (e) {
+                qrHtml = '<p style="color:#c62828;">QR generation failed. Use the manual key below.</p>';
+            }
+
+            container.innerHTML = `
+                <p style="font-size:13px;color:#333;margin:0 0 16px 0;"><strong>Step 1:</strong> Scan this QR code with your authenticator app</p>
+                <div class="qr-container">${qrHtml}</div>
+                <div class="secret-display">
+                    <code>${data.secret}</code>
+                    <p>Or enter this key manually in your authenticator app</p>
+                </div>
+                <p style="font-size:13px;color:#333;margin:0 0 12px 0;"><strong>Step 2:</strong> Enter the 6-digit code from your app to verify</p>
+                <div class="verify-row">
+                    <div class="acct-form-group">
+                        <input type="text" class="acct-form-input otp-input" id="mfaVerifyCode" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">
+                    </div>
+                    <button class="acct-btn acct-btn-primary" id="mfaVerifyBtn" onclick="verifyMfaSetup()" style="margin-bottom:0;height:40px;">Verify</button>
+                </div>
+            `;
+            setTimeout(() => document.getElementById('mfaVerifyCode').focus(), 100);
+        } catch (e) {
+            showMfaMsg('Failed to start MFA setup', 'error');
+            renderMfaContent();
+        }
+    }
+
+    async function verifyMfaSetup() {
+        const code = document.getElementById('mfaVerifyCode').value.trim();
+        if (!code || code.length !== 6) {
+            showMfaMsg('Please enter a 6-digit code', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('mfaVerifyBtn');
+        btn.disabled = true;
+
+        try {
+            const resp = await fetch(_pathPrefix + 'api/myaccount/verify_mfa.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: code })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                showMfaMsg('MFA has been enabled successfully', 'success');
+                mfaEnabled = true;
+                loadMfaBadge();
+                setTimeout(() => {
+                    document.getElementById('mfaMsg').className = 'acct-msg';
+                    renderMfaContent();
+                }, 2000);
+            } else {
+                showMfaMsg(data.error, 'error');
+                btn.disabled = false;
+            }
+        } catch (e) {
+            showMfaMsg('Verification failed', 'error');
+            btn.disabled = false;
+        }
+    }
+
+    async function disableMfa() {
+        const pw = document.getElementById('mfaDisablePw').value;
+        if (!pw) {
+            showMfaMsg('Password is required', 'error');
+            return;
+        }
+
+        try {
+            const resp = await fetch(_pathPrefix + 'api/myaccount/disable_mfa.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ password: pw })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                showMfaMsg('MFA has been disabled', 'success');
+                mfaEnabled = false;
+                loadMfaBadge();
+                setTimeout(() => {
+                    document.getElementById('mfaMsg').className = 'acct-msg';
+                    renderMfaContent();
+                }, 2000);
+            } else {
+                showMfaMsg(data.error, 'error');
+            }
+        } catch (e) {
+            showMfaMsg('Failed to disable MFA', 'error');
+        }
+    }
+
+    /* --- Keyboard & click handlers --- */
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeUserMenu();
+            closePasswordModal();
+            closeMfaModal();
+        }
+    });
+
+    document.getElementById('passwordModal').addEventListener('click', function(e) {
+        if (e.target === this) closePasswordModal();
+    });
+
+    document.getElementById('mfaModal').addEventListener('click', function(e) {
+        if (e.target === this) closeMfaModal();
+    });
+    </script>
     <?php
 }
 ?>

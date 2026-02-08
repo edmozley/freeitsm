@@ -5,6 +5,7 @@
  */
 session_start();
 require_once 'config.php';
+require_once 'includes/waffle-menu.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['analyst_id'])) {
@@ -58,27 +59,6 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
             display: flex;
             align-items: center;
             gap: 20px;
-        }
-
-        .user-info {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .logout-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .logout-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
         }
 
         .landing-container {
@@ -190,11 +170,9 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
 <body>
     <div class="landing-header">
         <h1>Service Desk</h1>
-        <div class="header-right">
-            <span class="user-info">Welcome, <?php echo htmlspecialchars($analyst_name); ?></span>
-            <a href="analyst_logout.php" class="logout-btn" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
-        </div>
+        <?php renderHeaderRight($analyst_name, ''); ?>
     </div>
+    <script>function closeWaffleMenu() {}</script>
 
     <div class="landing-container">
         <img src="assets/images/CompanyLogo.png" alt="Company Logo" class="company-logo">

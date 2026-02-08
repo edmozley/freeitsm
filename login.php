@@ -34,7 +34,19 @@ if (isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// Handle MFA cancellation
+if (isset($_GET['cancel_mfa'])) {
+    unset($_SESSION['mfa_pending_analyst_id']);
+    unset($_SESSION['mfa_pending_username']);
+    unset($_SESSION['mfa_pending_name']);
+    unset($_SESSION['mfa_pending_email']);
+    unset($_SESSION['mfa_pending_allowed_modules']);
+    header('Location: login.php');
+    exit;
+}
+
 $error = '';
+$mfa_required = isset($_SESSION['mfa_pending_analyst_id']);
 
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -71,32 +83,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 throw new Exception('Database connection failed: ' . $lastException->getMessage());
             }
 
-            // Query for user
-            $sql = "SELECT id, username, password_hash, full_name, email FROM analysts WHERE username = ? AND is_active = 1";
+            // Query for user (include MFA fields)
+            $sql = "SELECT id, username, password_hash, full_name, email, totp_enabled FROM analysts WHERE username = ? AND is_active = 1";
             $stmt = $conn->prepare($sql);
             $stmt->execute([$username]);
             $analyst = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($analyst && password_verify($password, $analyst['password_hash'])) {
-                // Login successful
-                $_SESSION['analyst_id'] = $analyst['id'];
-                $_SESSION['analyst_username'] = $analyst['username'];
-                $_SESSION['analyst_name'] = $analyst['full_name'];
-                $_SESSION['analyst_email'] = $analyst['email'];
+                // Check if MFA is enabled
+                if (!empty($analyst['totp_enabled'])) {
+                    // MFA required - store pending state, don't complete login yet
+                    $_SESSION['mfa_pending_analyst_id'] = $analyst['id'];
+                    $_SESSION['mfa_pending_username'] = $analyst['username'];
+                    $_SESSION['mfa_pending_name'] = $analyst['full_name'];
+                    $_SESSION['mfa_pending_email'] = $analyst['email'];
+                    $_SESSION['mfa_pending_allowed_modules'] = getAnalystAllowedModules($conn, $analyst['id']);
 
-                // Update last login time
-                $updateSql = "UPDATE analysts SET last_login_datetime = GETDATE() WHERE id = ?";
-                $updateStmt = $conn->prepare($updateSql);
-                $updateStmt->execute([$analyst['id']]);
+                    // Log successful password step
+                    logLoginAttempt($conn, $analyst['id'], $username, true);
 
-                // Load module permissions
-                $_SESSION['allowed_modules'] = getAnalystAllowedModules($conn, $analyst['id']);
+                    // Flag so the HTML below renders the MFA form on this same request
+                    $mfa_required = true;
+                } else {
+                    // No MFA - complete login directly
+                    $_SESSION['analyst_id'] = $analyst['id'];
+                    $_SESSION['analyst_username'] = $analyst['username'];
+                    $_SESSION['analyst_name'] = $analyst['full_name'];
+                    $_SESSION['analyst_email'] = $analyst['email'];
 
-                // Log successful login
-                logLoginAttempt($conn, $analyst['id'], $username, true);
+                    // Update last login time
+                    $updateSql = "UPDATE analysts SET last_login_datetime = GETDATE() WHERE id = ?";
+                    $updateStmt = $conn->prepare($updateSql);
+                    $updateStmt->execute([$analyst['id']]);
 
-                header('Location: index.php');
-                exit;
+                    // Load module permissions
+                    $_SESSION['allowed_modules'] = getAnalystAllowedModules($conn, $analyst['id']);
+
+                    // Log successful login
+                    logLoginAttempt($conn, $analyst['id'], $username, true);
+
+                    header('Location: index.php');
+                    exit;
+                }
             } else {
                 // Log failed login
                 logLoginAttempt($conn, null, $username, false);
@@ -212,32 +240,162 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .login-button:active {
             transform: translateY(0);
         }
+
+        /* MFA challenge styles */
+        .mfa-icon {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .mfa-icon svg {
+            width: 48px;
+            height: 48px;
+            color: #667eea;
+        }
+
+        .mfa-subtitle {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
+        .otp-input-field {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 24px;
+            text-align: center;
+            letter-spacing: 8px;
+            font-family: 'Consolas', 'Courier New', monospace;
+            transition: border-color 0.3s;
+        }
+
+        .otp-input-field:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .mfa-cancel {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: #999;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .mfa-cancel:hover { color: #666; }
+
+        .mfa-error {
+            background: #fee;
+            color: #c33;
+            padding: 10px 14px;
+            border-radius: 5px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            border-left: 4px solid #c33;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="login-container">
         <div class="login-header">
             <img src="assets/images/CompanyLogo.png" alt="Company Logo">
-            <h1>ITSM Login</h1>
+            <?php if ($mfa_required): ?>
+                <h1>Verification</h1>
+            <?php else: ?>
+                <h1>ITSM Login</h1>
+            <?php endif; ?>
         </div>
 
-        <?php if ($error): ?>
-            <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
+        <?php if ($mfa_required): ?>
+            <!-- MFA Challenge Form -->
+            <div class="mfa-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+            </div>
+            <p class="mfa-subtitle">Enter the 6-digit code from your authenticator app</p>
+            <div id="mfaError" class="mfa-error"></div>
+            <div class="form-group">
+                <input type="text" id="otpCode" class="otp-input-field" maxlength="6" inputmode="numeric" autocomplete="one-time-code" autofocus placeholder="------">
+            </div>
+            <button type="button" class="login-button" id="verifyBtn" onclick="verifyOtp()">Verify</button>
+            <a href="login.php?cancel_mfa=1" class="mfa-cancel">Cancel and return to login</a>
+
+            <script>
+            // Auto-submit when 6 digits entered
+            document.getElementById('otpCode').addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+                if (this.value.length === 6) {
+                    verifyOtp();
+                }
+            });
+
+            // Enter key submits
+            document.getElementById('otpCode').addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') verifyOtp();
+            });
+
+            async function verifyOtp() {
+                const code = document.getElementById('otpCode').value.trim();
+                if (code.length !== 6) return;
+
+                const btn = document.getElementById('verifyBtn');
+                const errEl = document.getElementById('mfaError');
+                btn.disabled = true;
+                btn.textContent = 'Verifying...';
+                errEl.style.display = 'none';
+
+                try {
+                    const resp = await fetch('api/myaccount/verify_login_otp.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: code })
+                    });
+                    const data = await resp.json();
+                    if (data.success) {
+                        window.location.href = 'index.php';
+                    } else {
+                        errEl.textContent = data.error;
+                        errEl.style.display = 'block';
+                        document.getElementById('otpCode').value = '';
+                        document.getElementById('otpCode').focus();
+                        btn.disabled = false;
+                        btn.textContent = 'Verify';
+                    }
+                } catch (e) {
+                    errEl.textContent = 'Verification failed. Please try again.';
+                    errEl.style.display = 'block';
+                    btn.disabled = false;
+                    btn.textContent = 'Verify';
+                }
+            }
+            </script>
+        <?php else: ?>
+            <!-- Standard Login Form -->
+            <?php if ($error): ?>
+                <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
+            <?php endif; ?>
+
+            <form method="POST" action="">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <button type="submit" class="login-button">Sign In</button>
+            </form>
         <?php endif; ?>
-
-        <form method="POST" action="">
-            <div class="form-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required autofocus>
-            </div>
-
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-
-            <button type="submit" class="login-button">Sign In</button>
-        </form>
     </div>
 </body>
 </html>
