@@ -75,6 +75,7 @@ php_errors.log
 # Log files
 *.log
 logs/
+!reporting/logs/
 
 # Temporary files
 *.tmp

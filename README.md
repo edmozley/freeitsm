@@ -173,8 +173,11 @@ sdtickets/
 │   └── includes/
 │
 ├── reporting/                        # Reporting Module
-│   ├── index.php                     # Reports dashboard
-│   ├── logs.php                      # System logs & audit trails
+│   ├── index.php                     # Reporting landing page (area selection)
+│   ├── logs/
+│   │   └── index.php                 # System logs (logins, email imports)
+│   ├── tickets/
+│   │   └── index.php                 # Ticket dashboards (coming soon)
 │   └── includes/
 │
 ├── software/                         # Software Module

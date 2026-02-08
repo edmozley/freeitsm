@@ -3,10 +3,10 @@
  * System Logs - View login attempts, email imports, etc.
  */
 session_start();
-require_once '../config.php';
+require_once '../../config.php';
 
 $current_page = 'logs';
-$path_prefix = '../';
+$path_prefix = '../../';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -14,8 +14,14 @@ $path_prefix = '../';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - System Logs</title>
-    <link rel="stylesheet" href="../assets/css/inbox.css">
+    <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
+        .logs-outer {
+            flex: 1;
+            overflow-y: auto;
+            background: #f5f7fa;
+        }
+
         .logs-container {
             max-width: 1400px;
             margin: 30px auto;
@@ -55,12 +61,12 @@ $path_prefix = '../';
         }
 
         .log-tab:hover {
-            color: #0078d4;
+            color: #ca5010;
         }
 
         .log-tab.active {
-            color: #0078d4;
-            border-bottom-color: #0078d4;
+            color: #ca5010;
+            border-bottom-color: #ca5010;
         }
 
         .logs-content {
@@ -158,7 +164,7 @@ $path_prefix = '../';
             width: 40px;
             height: 40px;
             border: 4px solid #f3f3f3;
-            border-top: 4px solid #0078d4;
+            border-top: 4px solid #ca5010;
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
@@ -189,7 +195,7 @@ $path_prefix = '../';
 
         .pagination button:hover:not(:disabled) {
             background: #f0f0f0;
-            border-color: #0078d4;
+            border-color: #ca5010;
         }
 
         .pagination button:disabled {
@@ -203,7 +209,7 @@ $path_prefix = '../';
         }
 
         .refresh-btn {
-            background: #0078d4;
+            background: #ca5010;
             color: white;
             border: none;
             padding: 8px 16px;
@@ -213,10 +219,10 @@ $path_prefix = '../';
         }
 
         .refresh-btn:hover {
-            background: #005a9e;
+            background: #a5410a;
         }
 
-        /* JSON Modal styles with fade animation */
+        /* JSON Modal */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -305,7 +311,7 @@ $path_prefix = '../';
         }
 
         .logs-table tbody tr:hover {
-            background: #e8f4fd;
+            background: #fff3e0;
         }
     </style>
 </head>
@@ -325,34 +331,36 @@ $path_prefix = '../';
         </div>
     </div>
 
-    <div class="logs-container">
-        <div class="logs-header">
-            <h2>System Logs</h2>
-            <button class="refresh-btn" onclick="loadLogs()">Refresh</button>
-        </div>
+    <div class="main-container logs-outer">
+        <div class="logs-container">
+            <div class="logs-header">
+                <h2>System Logs</h2>
+                <button class="refresh-btn" onclick="loadLogs()">Refresh</button>
+            </div>
 
-        <div class="log-tabs">
-            <button class="log-tab active" onclick="switchLogType('login')">User Logins</button>
-            <button class="log-tab" onclick="switchLogType('email_import')">Email Imports</button>
-        </div>
+            <div class="log-tabs">
+                <button class="log-tab active" onclick="switchLogType('login')">User Logins</button>
+                <button class="log-tab" onclick="switchLogType('email_import')">Email Imports</button>
+            </div>
 
-        <div class="logs-content">
-            <div id="logsTableContainer">
-                <div class="loading">
-                    <div class="spinner"></div>
-                    <div>Loading logs...</div>
+            <div class="logs-content">
+                <div id="logsTableContainer">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <div>Loading logs...</div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
     <script>
-        const API_BASE = '../api/reporting/';
+        const API_BASE = '../../api/reporting/';
         let currentLogType = 'login';
         let currentOffset = 0;
         const limit = 50;
         let totalLogs = 0;
-        let currentLogs = []; // Store logs for modal lookup
+        let currentLogs = [];
 
         document.addEventListener('DOMContentLoaded', function() {
             loadLogs();
@@ -362,7 +370,6 @@ $path_prefix = '../';
             currentLogType = type;
             currentOffset = 0;
 
-            // Update tab UI
             document.querySelectorAll('.log-tab').forEach(tab => tab.classList.remove('active'));
             event.target.classList.add('active');
 
@@ -379,7 +386,7 @@ $path_prefix = '../';
 
                 if (data.success) {
                     totalLogs = data.total;
-                    currentLogs = data.logs; // Store for modal lookup
+                    currentLogs = data.logs;
                     renderLogs(data.logs);
                 } else {
                     container.innerHTML = `<div class="empty-state">Error loading logs: ${data.error}</div>`;
@@ -405,7 +412,6 @@ $path_prefix = '../';
                 tableHtml = renderEmailImportLogs(logs);
             }
 
-            // Add pagination
             const totalPages = Math.ceil(totalLogs / limit);
             const currentPage = Math.floor(currentOffset / limit) + 1;
 
@@ -554,17 +560,12 @@ $path_prefix = '../';
             document.getElementById('jsonModal').classList.remove('active');
         }
 
-        // Close modal on escape key or clicking outside
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                closeJsonModal();
-            }
+            if (e.key === 'Escape') closeJsonModal();
         });
 
         document.getElementById('jsonModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeJsonModal();
-            }
+            if (e.target === this) closeJsonModal();
         });
     </script>
 </body>
