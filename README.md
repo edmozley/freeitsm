@@ -179,6 +179,8 @@ sdtickets/
 │
 ├── software/                         # Software Module
 │   ├── index.php                     # Software inventory dashboard
+│   ├── licences/
+│   │   └── index.php                 # Licence management (CRUD, search, CSV export)
 │   └── includes/
 │
 ├── forms/                            # Forms Module
@@ -318,6 +320,13 @@ Software inventory tracking across the estate.
 
 - External API endpoint for automated inventory submission
 - Per-machine software mapping
+- **Licences** (`software/licences/`): Software licence management database
+  - Record licences against applications in the software inventory
+  - Licence types: Per User, Per Device, Site, Concurrent, Subscription, Other
+  - Track renewal dates with colour-coded warnings (overdue/approaching/ok)
+  - Store licence keys, costs, portal URLs, vendor contacts, and notes
+  - Searchable and sortable table with status badges (Active/Expired/Cancelled)
+  - CSV export of all licence data
 
 ### Forms (`forms/`)
 Dynamic form builder and submission system.
@@ -431,7 +440,7 @@ if (!isset($_SESSION['analyst_id'])) {
 - `api/calendar/` — 7 endpoints for events and categories
 - `api/morning-checks/` — 7 endpoints for check definitions, results, and charts
 - `api/reporting/` — 2 endpoints for system logs
-- `api/software/` — 2 endpoints for software inventory
+- `api/software/` — 5 endpoints for software inventory and licence management
 - `api/external/software-inventory/submit/` — External API for automated inventory collection
 
 ---
