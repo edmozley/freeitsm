@@ -139,44 +139,106 @@ $path_prefix = '../';
             text-align: center;
         }
 
-        /* Expand chevron */
-        .expand-icon {
-            display: inline-block;
-            margin-right: 8px;
-            color: #999;
-            font-size: 11px;
-            transition: transform 0.2s;
-        }
-
-        .app-row.expanded .expand-icon {
-            transform: rotate(90deg);
-            color: #5c6bc0;
-        }
-
-        /* Accordion detail row */
-        .software-table tbody tr.detail-row {
+        /* Modal overlay */
+        .detail-overlay {
             display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 60px 20px;
         }
 
-        .software-table tbody tr.detail-row.visible {
-            display: table-row;
+        .detail-overlay.open {
+            display: flex;
         }
 
-        .software-table tbody tr.detail-row td {
-            padding: 0;
-            background-color: #fafafa;
-            border-bottom: 2px solid #e0e0e0;
+        .detail-box {
+            background: #fff;
+            border-radius: 8px;
+            width: 100%;
+            max-width: 800px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
         }
 
-        .detail-content {
-            padding: 15px 20px 15px 48px;
+        .detail-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 24px;
+            border-bottom: 1px solid #e0e0e0;
+            background: linear-gradient(135deg, #5c6bc0, #3f51b5);
+            border-radius: 8px 8px 0 0;
+            color: white;
         }
 
-        .detail-content h4 {
-            margin: 0 0 10px 0;
-            font-size: 13px;
-            color: #555;
+        .detail-header h3 {
+            margin: 0;
+            font-size: 16px;
             font-weight: 600;
+        }
+
+        .detail-close {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-close:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .detail-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 24px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #f8f9fa;
+        }
+
+        .detail-toolbar .machine-count {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .export-btn {
+            background: #5c6bc0;
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .export-btn:hover {
+            background: #3f51b5;
+        }
+
+        .detail-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
         }
 
         .machine-table {
@@ -294,11 +356,32 @@ $path_prefix = '../';
         </div>
     </div>
 
+    <!-- Machine Detail Modal -->
+    <div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
+        <div class="detail-box">
+            <div class="detail-header">
+                <h3 id="modalTitle">Application</h3>
+                <button class="detail-close" onclick="closeDetail()">&times;</button>
+            </div>
+            <div class="detail-toolbar" id="modalToolbar" style="display:none">
+                <span class="machine-count" id="modalCount"></span>
+                <button class="export-btn" onclick="exportCSV()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Export CSV
+                </button>
+            </div>
+            <div class="detail-body" id="modalBody">
+                <div class="detail-loading">Loading machines...</div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '../api/software/';
         let allApps = [];
         let filteredApps = [];
-        let expandedAppId = null;
+        let currentModalApp = null;
+        let currentMachines = [];
         let searchTimeout = null;
         let sortColumn = 'display_name';
         let sortDirection = 'asc';
@@ -338,7 +421,6 @@ $path_prefix = '../';
                         (app.publisher || '').toLowerCase().includes(search)
                     );
                 }
-                expandedAppId = null;
                 applySortAndRender();
             }, 300);
         }
@@ -382,47 +464,34 @@ $path_prefix = '../';
                 return;
             }
 
-            tbody.innerHTML = filteredApps.map(app => {
-                const isExpanded = expandedAppId == app.id;
-                return `
-                    <tr class="app-row ${isExpanded ? 'expanded' : ''}" onclick="toggleDetail(${app.id})">
-                        <td>
-                            <span class="expand-icon">&#9654;</span>${escapeHtml(app.display_name)}
-                        </td>
-                        <td>${escapeHtml(app.publisher || '\u2014')}</td>
-                        <td><span class="install-count-badge">${app.install_count}</span></td>
-                    </tr>
-                    <tr class="detail-row ${isExpanded ? 'visible' : ''}" id="detail-${app.id}">
-                        <td colspan="3">
-                            <div class="detail-content" id="detail-content-${app.id}">
-                                <div class="detail-loading">Loading machines...</div>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
+            tbody.innerHTML = filteredApps.map(app => `
+                <tr class="app-row" onclick="showDetail(${app.id}, '${escapeHtml(app.display_name).replace(/'/g, "\\'")}')">
+                    <td>${escapeHtml(app.display_name)}</td>
+                    <td>${escapeHtml(app.publisher || '\u2014')}</td>
+                    <td><span class="install-count-badge">${app.install_count}</span></td>
+                </tr>
+            `).join('');
         }
 
-        async function toggleDetail(appId) {
-            if (expandedAppId === appId) {
-                expandedAppId = null;
-                renderTable();
-                return;
-            }
+        async function showDetail(appId, appName) {
+            currentModalApp = appName;
+            currentMachines = [];
 
-            expandedAppId = appId;
-            renderTable();
+            document.getElementById('modalTitle').textContent = appName;
+            document.getElementById('modalToolbar').style.display = 'none';
+            document.getElementById('modalBody').innerHTML = '<div class="detail-loading">Loading machines...</div>';
+            document.getElementById('detailOverlay').classList.add('open');
 
             try {
                 const response = await fetch(API_BASE + 'get_app_machines.php?app_id=' + appId);
                 const data = await response.json();
-                const container = document.getElementById('detail-content-' + appId);
-
-                if (!container) return;
 
                 if (data.success && data.machines.length > 0) {
-                    container.innerHTML = `
-                        <h4>Installed on ${data.machines.length} machine${data.machines.length !== 1 ? 's' : ''}</h4>
+                    currentMachines = data.machines;
+                    document.getElementById('modalCount').textContent =
+                        'Installed on ' + data.machines.length + ' machine' + (data.machines.length !== 1 ? 's' : '');
+                    document.getElementById('modalToolbar').style.display = 'flex';
+                    document.getElementById('modalBody').innerHTML = `
                         <table class="machine-table">
                             <thead>
                                 <tr>
@@ -444,18 +513,58 @@ $path_prefix = '../';
                             </tbody>
                         </table>
                     `;
-                } else if (data.success && data.machines.length === 0) {
-                    container.innerHTML = '<div class="detail-loading">No machines found for this application</div>';
+                } else if (data.success) {
+                    document.getElementById('modalBody').innerHTML =
+                        '<div class="detail-loading">No machines found for this application</div>';
                 } else {
-                    container.innerHTML = '<div class="detail-loading">Error loading machine data</div>';
+                    document.getElementById('modalBody').innerHTML =
+                        '<div class="detail-loading">Error loading machine data</div>';
                 }
             } catch (error) {
                 console.error('Error loading machines:', error);
-                const container = document.getElementById('detail-content-' + appId);
-                if (container) {
-                    container.innerHTML = '<div class="detail-loading">Failed to load machine data</div>';
-                }
+                document.getElementById('modalBody').innerHTML =
+                    '<div class="detail-loading">Failed to load machine data</div>';
             }
+        }
+
+        function closeDetail() {
+            document.getElementById('detailOverlay').classList.remove('open');
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeDetail();
+        });
+
+        function csvCell(text) {
+            text = String(text);
+            if (text.includes(',') || text.includes('"') || text.includes('\n')) {
+                return '"' + text.replace(/"/g, '""') + '"';
+            }
+            return text;
+        }
+
+        function exportCSV() {
+            if (!currentMachines.length) return;
+
+            const rows = [['Hostname', 'Version', 'Install Date', 'Last Seen'].map(h => csvCell(h)).join(',')];
+
+            currentMachines.forEach(m => {
+                rows.push([
+                    csvCell(m.hostname || ''),
+                    csvCell(m.display_version || ''),
+                    csvCell(m.install_date || ''),
+                    csvCell(m.last_seen || '')
+                ].join(','));
+            });
+
+            const csv = '\uFEFF' + rows.join('\r\n');
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = (currentModalApp || 'software').replace(/[^a-zA-Z0-9 _-]/g, '') + ' - Machines.csv';
+            a.click();
+            URL.revokeObjectURL(url);
         }
 
         function updateSortIndicators() {
