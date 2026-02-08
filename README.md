@@ -293,6 +293,11 @@ Change request tracking and approval workflows.
 ### Calendar (`calendar/`)
 Event calendar with configurable categories.
 
+- Month, week, and day views
+- Drag-and-drop to move events between days in month view
+- Category colour coding and filtering
+- Events visible in adjacent-month cells for context
+
 ### Morning Checks (`morning-checks/`)
 Daily infrastructure health check recording.
 

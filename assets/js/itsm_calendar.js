@@ -10,6 +10,7 @@ let events = [];
 let categories = [];
 let selectedCategories = new Set();
 let currentEventId = null;
+let draggedEventId = null;
 
 // Day names
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -166,9 +167,8 @@ function getDateRange() {
     if (currentView === 'month') {
         start = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
         start.setDate(start.getDate() - start.getDay()); // Start from Sunday of first week
-        end = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-        end.setDate(end.getDate() + (6 - end.getDay())); // End on Saturday of last week
-        end.setDate(end.getDate() + 1); // Include the last day
+        end = new Date(start);
+        end.setDate(end.getDate() + 42); // 6 weeks = 42 days to cover the full grid
     } else if (currentView === 'week') {
         start = getWeekStart(currentDate);
         end = new Date(start);
@@ -194,9 +194,9 @@ function getWeekStart(date) {
     return d;
 }
 
-// Format date for API
+// Format date for API using local time
 function formatDateForAPI(date) {
-    return date.toISOString().slice(0, 19).replace('T', ' ');
+    return formatLocalDatetime(date);
 }
 
 // Render month view
@@ -233,14 +233,16 @@ function renderMonthView(container) {
         if (isOtherMonth) classes += ' other-month';
         if (isToday) classes += ' today';
 
-        html += `<div class="${classes}" onclick="openEventModal(null, '${dateStr}')">`;
+        html += `<div class="${classes}" data-date="${dateStr}" onclick="openEventModal(null, '${dateStr}')"
+                      ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop('${dateStr}', event)">`;
         html += `<div class="day-number">${current.getDate()}</div>`;
         html += '<div class="day-events">';
 
         const maxDisplay = 3;
         dayEvents.slice(0, maxDisplay).forEach(event => {
             const color = event.category_color || '#ef6c00';
-            html += `<div class="event-pill" style="background-color: ${color}"
+            html += `<div class="event-pill" style="background-color: ${color}" draggable="true"
+                         ondragstart="handleDragStart(${event.id}, event)" ondragend="handleDragEnd(event)"
                          onclick="event.stopPropagation(); showEventPopup(${event.id}, event)">
                          ${escapeHtml(event.title)}</div>`;
         });
@@ -403,9 +405,12 @@ function getEventHour(datetime) {
     return parseInt(parts.split(':')[0], 10);
 }
 
-// Format date for comparison (YYYY-MM-DD)
+// Format date for comparison (YYYY-MM-DD) using local time
 function formatDateForCompare(date) {
-    return date.toISOString().slice(0, 10);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
 }
 
 // Format event time for display
@@ -666,6 +671,124 @@ document.addEventListener('click', function(e) {
         closeEventPopup();
     }
 });
+
+// Drag and drop handlers for month view
+function handleDragStart(eventId, e) {
+    draggedEventId = eventId;
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', eventId.toString());
+    e.target.classList.add('dragging');
+}
+
+function handleDragEnd(e) {
+    e.target.classList.remove('dragging');
+    document.querySelectorAll('.month-day.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+    draggedEventId = null;
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    const dayCell = e.target.closest('.month-day');
+    if (dayCell && !dayCell.classList.contains('drag-over')) {
+        document.querySelectorAll('.month-day.drag-over').forEach(el => {
+            el.classList.remove('drag-over');
+        });
+        dayCell.classList.add('drag-over');
+    }
+}
+
+function handleDragLeave(e) {
+    const dayCell = e.target.closest('.month-day');
+    const relatedCell = e.relatedTarget ? e.relatedTarget.closest('.month-day') : null;
+    if (dayCell && dayCell !== relatedCell) {
+        dayCell.classList.remove('drag-over');
+    }
+}
+
+async function handleDrop(newDateStr, e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    document.querySelectorAll('.month-day.drag-over').forEach(el => {
+        el.classList.remove('drag-over');
+    });
+
+    const eventId = draggedEventId || parseInt(e.dataTransfer.getData('text/plain'), 10);
+    if (!eventId) return;
+
+    const evt = events.find(ev => ev.id == eventId);
+    if (!evt) return;
+
+    // Parse old start date
+    const oldStartDate = evt.start_datetime.slice(0, 10);
+
+    // If dropped on the same date, do nothing
+    if (oldStartDate === newDateStr) {
+        draggedEventId = null;
+        return;
+    }
+
+    // Calculate day difference
+    const oldDate = new Date(oldStartDate + 'T00:00:00');
+    const newDate = new Date(newDateStr + 'T00:00:00');
+    const diffDays = Math.round((newDate - oldDate) / (1000 * 60 * 60 * 24));
+
+    // Shift start datetime
+    const oldStart = new Date(evt.start_datetime.replace(' ', 'T'));
+    oldStart.setDate(oldStart.getDate() + diffDays);
+
+    // Shift end datetime
+    let newEnd = null;
+    if (evt.end_datetime) {
+        const oldEnd = new Date(evt.end_datetime.replace(' ', 'T'));
+        oldEnd.setDate(oldEnd.getDate() + diffDays);
+        newEnd = formatLocalDatetime(oldEnd);
+    }
+
+    const payload = {
+        id: evt.id,
+        title: evt.title,
+        category_id: evt.category_id || null,
+        start_datetime: formatLocalDatetime(oldStart),
+        end_datetime: newEnd,
+        all_day: evt.all_day,
+        location: evt.location || '',
+        description: evt.description || ''
+    };
+
+    try {
+        const response = await fetch(API_BASE + 'save_event.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+        if (data.success) {
+            await renderCalendar();
+        } else {
+            alert('Error moving event: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error moving event:', error);
+        alert('Error moving event');
+    }
+
+    draggedEventId = null;
+}
+
+// Format a Date object as local datetime string (YYYY-MM-DD HH:MM:SS)
+function formatLocalDatetime(d) {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    const hh = String(d.getHours()).padStart(2, '0');
+    const min = String(d.getMinutes()).padStart(2, '0');
+    const ss = String(d.getSeconds()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+}
 
 // Escape HTML for XSS prevention
 function escapeHtml(text) {

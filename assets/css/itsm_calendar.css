@@ -269,6 +269,23 @@
     opacity: 0.85;
 }
 
+.event-pill[draggable="true"] {
+    cursor: grab;
+}
+
+.event-pill[draggable="true"]:active {
+    cursor: grabbing;
+}
+
+.event-pill.dragging {
+    opacity: 0.4;
+}
+
+.month-day.drag-over {
+    background: #fff3e0;
+    box-shadow: inset 0 0 0 2px #ef6c00;
+}
+
 .more-events {
     font-size: 11px;
     color: #666;
