@@ -128,16 +128,61 @@ $path_prefix = '../';
         }
 
         .asset-detail-hostname {
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 600;
             color: #333;
-            margin: 0 0 5px 0;
-            font-family: monospace;
+            margin: 0 0 4px 0;
         }
 
-        .asset-detail-id {
+        .asset-detail-subtitle {
             font-size: 14px;
             color: #666;
+            margin: 0;
+        }
+
+        .asset-assigned-bar {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .asset-assigned-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .asset-assigned-info .user-name {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .asset-assigned-info .user-email {
+            color: #666;
+            font-size: 13px;
+        }
+
+        .asset-assigned-info .user-assigned-date {
+            color: #999;
+            font-size: 12px;
+        }
+
+        .asset-assigned-info .unassigned-text {
+            color: #999;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        #assignButtons {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
         .asset-info-grid {
@@ -487,7 +532,7 @@ $path_prefix = '../';
         <div class="assets-list-container">
             <div class="assets-list-header">
                 <h3>Assets</h3>
-                <input type="text" class="search-box" id="assetSearch" placeholder="Search by hostname..." oninput="searchAssets()">
+                <input type="text" class="search-box" id="assetSearch" placeholder="Search by hostname..." oninput="searchAssets()" autocomplete="off">
                 <div class="asset-count" id="assetCount"></div>
             </div>
             <div class="assets-list" id="assetsList">
@@ -536,6 +581,7 @@ $path_prefix = '../';
         let selectedAsset = null;
         let searchTimeout = null;
         let selectedUserForAssign = null;
+        let currentAssignedUserId = null;
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -578,7 +624,7 @@ $path_prefix = '../';
                     <div class="asset-hostname">${escapeHtml(asset.hostname)}</div>
                     <div class="asset-meta">
                         <span class="${asset.user_count > 0 ? 'asset-assigned' : 'asset-unassigned'}">
-                            ${asset.user_count > 0 ? asset.user_count + ' user' + (asset.user_count != 1 ? 's' : '') + ' assigned' : 'Unassigned'}
+                            ${asset.user_count > 0 ? 'Assigned' : 'Unassigned'}
                         </span>
                     </div>
                 </div>
@@ -607,17 +653,15 @@ $path_prefix = '../';
                 <div class="asset-detail-sticky">
                     <div class="asset-detail-header">
                         <h2 class="asset-detail-hostname">${escapeHtml(selectedAsset.hostname)}</h2>
-                        <div class="asset-detail-id">Service Tag: ${escapeHtml(selectedAsset.service_tag) || '-'}</div>
+                        <div class="asset-detail-subtitle">Service Tag: ${escapeHtml(selectedAsset.service_tag) || '-'}</div>
+                        <div class="asset-assigned-bar" id="assignedBar">
+                            <div class="asset-assigned-info" id="assignedInfo">
+                                <span class="unassigned-text">Loading...</span>
+                            </div>
+                            <span id="assignButtons"></span>
+                        </div>
                     </div>
                     <div class="asset-info-grid">
-                        <div class="info-item">
-                            <span class="info-label">Hostname</span>
-                            <span class="info-value" style="font-family: monospace;">${escapeHtml(selectedAsset.hostname)}</span>
-                        </div>
-                        <div class="info-item">
-                            <span class="info-label">Service Tag</span>
-                            <span class="info-value" style="font-family: monospace;">${escapeHtml(selectedAsset.service_tag) || '-'}</span>
-                        </div>
                         <div class="info-item">
                             <span class="info-label">Manufacturer</span>
                             <span class="info-value">${escapeHtml(selectedAsset.manufacturer) || '-'}</span>
@@ -654,22 +698,9 @@ $path_prefix = '../';
                             <span class="info-label">BIOS Version</span>
                             <span class="info-value">${escapeHtml(selectedAsset.bios_version) || '-'}</span>
                         </div>
-                        <div class="info-item">
-                            <span class="info-label">Assigned Users</span>
-                            <span class="info-value">${selectedAsset.user_count || 0}</span>
-                        </div>
                     </div>
                 </div>
                 <div class="asset-detail-scroll">
-                    <div class="assigned-users-section">
-                        <div class="section-header">
-                            <span class="section-title">Assigned Users</span>
-                            <button class="btn btn-primary" onclick="openAssignModal()">+ Assign User</button>
-                        </div>
-                        <div class="assigned-users-list" id="assignedUsersList">
-                            <div class="loading"><div class="spinner"></div></div>
-                        </div>
-                    </div>
                     <div class="software-section">
                         <div class="section-header">
                             <span class="section-title">Installed Software <span class="software-count-badge" id="softwareCountBadge">...</span></span>
@@ -692,30 +723,35 @@ $path_prefix = '../';
                 const response = await fetch(`${API_BASE}get_asset_users.php?asset_id=${assetId}`);
                 const data = await response.json();
 
-                const container = document.getElementById('assignedUsersList');
+                const infoSpan = document.getElementById('assignedInfo');
+                const buttonsSpan = document.getElementById('assignButtons');
 
                 if (data.success) {
-                    if (data.users.length === 0) {
-                        container.innerHTML = '<div class="empty-state">No users assigned to this asset</div>';
-                        return;
-                    }
+                    const user = data.users.length > 0 ? data.users[0] : null;
 
-                    container.innerHTML = data.users.map(user => `
-                        <div class="user-row">
-                            <div class="user-info">
-                                <span class="user-name">${escapeHtml(user.display_name || 'Unknown')}</span>
-                                <span class="user-email">${escapeHtml(user.email || '')}</span>
-                                <span class="user-assigned-date">Assigned: ${formatDate(user.assigned_datetime)}</span>
-                            </div>
+                    if (user) {
+                        currentAssignedUserId = user.user_id;
+                        infoSpan.innerHTML = `
+                            <span class="user-name">${escapeHtml(user.display_name || 'Unknown')}</span>
+                            <span class="user-email">${escapeHtml(user.email || '')}</span>
+                            <span class="user-assigned-date">Assigned: ${formatDate(user.assigned_datetime)}</span>
+                        `;
+                        buttonsSpan.innerHTML = `
+                            <button class="btn btn-primary btn-sm" onclick="reassignUser()">Re-assign</button>
                             <button class="btn btn-danger btn-sm" onclick="unassignUser(${user.user_id})">Remove</button>
-                        </div>
-                    `).join('');
+                        `;
+                    } else {
+                        currentAssignedUserId = null;
+                        infoSpan.innerHTML = '<span class="unassigned-text">Unassigned</span>';
+                        buttonsSpan.innerHTML = `
+                            <button class="btn btn-primary btn-sm" onclick="openAssignModal()">Assign</button>
+                        `;
+                    }
                 } else {
-                    container.innerHTML = '<div class="empty-state">Error loading users</div>';
+                    infoSpan.innerHTML = '<span class="unassigned-text">Error loading assignment</span>';
                 }
             } catch (error) {
                 console.error('Error loading assigned users:', error);
-                document.getElementById('assignedUsersList').innerHTML = '<div class="empty-state">Error loading users</div>';
             }
         }
 
@@ -825,11 +861,28 @@ $path_prefix = '../';
             event.currentTarget.classList.add('selected');
         }
 
-        // Confirm user assignment
+        // Re-assign: open the assign modal (will remove current user on confirm)
+        function reassignUser() {
+            openAssignModal();
+        }
+
+        // Confirm user assignment (handles both assign and re-assign)
         async function confirmAssignUser() {
             if (!selectedUserForAssign || !selectedAssetId) return;
 
             try {
+                // If re-assigning, remove current user first
+                if (currentAssignedUserId) {
+                    await fetch(API_BASE + 'unassign_asset_user.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            asset_id: selectedAssetId,
+                            user_id: currentAssignedUserId
+                        })
+                    });
+                }
+
                 const response = await fetch(API_BASE + 'assign_asset_user.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
