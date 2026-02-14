@@ -315,6 +315,7 @@ $path_prefix = '../../';
         'reporting': 'Reporting',
         'software': 'Software',
         'forms': 'Forms',
+        'contracts': 'Contracts',
         'wiki': 'Wiki',
         'system': 'System'
     };
