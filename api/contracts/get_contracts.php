@@ -29,11 +29,11 @@ try {
         $params = ['%' . $search . '%', '%' . $search . '%', '%' . $search . '%'];
     }
 
-    $sql .= " ORDER BY c.created_datetime DESC";
-
     if ($limit) {
-        $sql = "SELECT TOP " . intval($limit) . " sub.* FROM (" . $sql . ") sub";
+        $sql = str_replace("SELECT c.id", "SELECT TOP " . intval($limit) . " c.id", $sql);
     }
+
+    $sql .= " ORDER BY c.created_datetime DESC";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
