@@ -116,6 +116,13 @@ try {
         try {
             saveEmailToDatabase($conn, $email, $accessToken, $mailboxId);
             $savedCount++;
+
+            // Delete the email from the mailbox after successful import
+            try {
+                deleteEmailFromMailbox($accessToken, $email['id']);
+            } catch (Exception $delEx) {
+                $errors[] = 'Imported but failed to delete email ID ' . $email['id'] . ': ' . $delEx->getMessage();
+            }
         } catch (Exception $e) {
             $errors[] = 'Failed to save email ID ' . $email['id'] . ': ' . $e->getMessage();
         }
@@ -297,6 +304,38 @@ function getEmails($accessToken, $mailbox) {
 
     $data = json_decode($response, true);
     return $data['value'] ?? [];
+}
+
+/**
+ * Delete an email from the mailbox via Microsoft Graph API
+ */
+function deleteEmailFromMailbox($accessToken, $messageId) {
+    $graphUrl = 'https://graph.microsoft.com/v1.0/me/messages/' . $messageId;
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $graphUrl);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $accessToken
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if (curl_errno($ch)) {
+        curl_close($ch);
+        throw new Exception('cURL error when deleting email: ' . curl_error($ch));
+    }
+
+    curl_close($ch);
+
+    // Graph API returns 204 No Content on successful delete
+    if ($httpCode !== 204 && $httpCode !== 200) {
+        throw new Exception('Failed to delete email. HTTP Code: ' . $httpCode);
+    }
 }
 
 /**
