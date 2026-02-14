@@ -657,6 +657,64 @@ Controls which modules an analyst can access. No rows = full access to all modul
 3. Creates/matches tickets based on subject/requester
 4. Downloads attachments, logs results
 
+### Email Threading & Reply Flow
+
+The ticketing system handles email correspondence as a flat thread — each email in a ticket is stored and displayed as its own standalone entry, newest first, with no nesting or indentation.
+
+#### The Problem with Email Threads
+When a user replies to an email, their email client (Gmail, Outlook, etc.) automatically appends the entire previous conversation as a quoted block below their new content. If you simply store the full email body, each reply contains every previous message nested inside it, creating an ever-growing blob of duplicated content. Displaying these naively produces deeply indented, confusing threads with coloured borders and boxes-within-boxes.
+
+#### The Solution: Server-Side Assembly + Clean Storage
+
+The reply flow separates what the **recipient sees** from what gets **saved to the database**:
+
+1. **Reply editor is empty** — when an analyst clicks Reply, TinyMCE opens with a blank editor. No quoted thread, no markers, just a clean box for typing.
+
+2. **Server assembles the full email** — when the analyst clicks Send, only their typed content is sent to the server. The server (`api/tickets/send_email.php`) then:
+   - Fetches all previous emails for the ticket from the database
+   - Builds a quoted thread (each email as "On [date], [name] wrote:" + blockquote)
+   - Inserts a visible reply marker: **— Please reply above this line —**
+   - Constructs the full email: analyst's reply + marker + quoted thread
+   - Sends this assembled email to the recipient via Microsoft Graph API
+
+3. **Only the analyst's content is saved** — the database stores just what the analyst typed, not the full assembled email. This prevents thread duplication in the DB.
+
+#### Reply Marker
+The visible text `— Please reply above this line —` serves as the primary anchor for stripping. It is:
+- Plain Unicode text (em dashes + words) that survives every email client's HTML processing
+- Wrapped in a `<div>` with `data-reply-marker="true"` as a secondary signal
+- Displayed to the recipient as a subtle grey line between the analyst's reply and the quoted thread
+
+#### Inbound Email Stripping
+When a user replies back, their email contains the full thread (their reply + our marker + quoted history). The stripping functions extract **only the user's new content** by looking for these anchors in order:
+
+1. **Our visible marker text** — `— Please reply above this line —` (primary, works with all email clients)
+2. **Our `data-reply-marker` div** — backup if the HTML attribute survives
+3. **Legacy SDREF marker** — `[*** SDREF:XXX-000-00000 REPLY ABOVE THIS LINE ***]` for older emails
+4. **Generic blockquote fallback** — takes content before the first `<blockquote>` tag
+5. **Attribution line cleanup** — removes trailing "On [date], [name] wrote:" lines that email clients add before quoted blocks
+
+Stripping happens at two points:
+- **Import time** (`check_mailbox_email.php` → `stripInboundThread()`) — cleans the body before saving to DB
+- **Display time** (`get_ticket_thread.php` → `stripQuotedThread()`) — safety net for legacy emails already in the DB
+
+#### Thread Display
+The correspondence thread in the reading pane renders emails as a flat list:
+- Newest email at the top, oldest at the bottom
+- Each email separated by a thin horizontal line
+- Direction badge (Received/Sent) with sender name, email address, and timestamp
+- CSS overrides (`!important`) to kill any inline styles, blockquote indentation, or coloured borders from email HTML that leak through stripping
+
+#### Files Involved
+
+| File | Role |
+|------|------|
+| `assets/js/inbox.js` | Reply/forward modals (empty editor), `sendEmail()` passes `type` param, `loadCorrespondenceThread()` renders flat thread |
+| `api/tickets/send_email.php` | `buildFullEmailBody()` assembles full email for recipient, saves only analyst content to DB |
+| `api/tickets/get_ticket_thread.php` | `stripQuotedThread()` strips quoted content at display time |
+| `api/tickets/check_mailbox_email.php` | `stripInboundThread()` strips quoted content at import time |
+| `assets/css/inbox.css` | Flat thread styles, inline HTML overrides |
+
 ### MFA Login Flow
 MFA is optional and per-analyst. Analysts with MFA disabled log in with just username and password as normal. When an analyst enables MFA, subsequent logins require a second verification step:
 

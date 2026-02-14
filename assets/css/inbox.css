@@ -406,46 +406,46 @@ body {
 }
 
 /* Correspondence thread */
-.thread-message {
-    background: white;
-    padding: 20px;
-    border-radius: 6px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
-    margin-bottom: 16px;
-    border: 1px solid #e0e0e0;
-    border-left: 4px solid #ddd;
+.thread-separator {
+    border-top: 1px solid #ddd;
+    margin: 20px 0;
 }
 
-.thread-message.thread-inbound { border-left-color: #0078d4; }
-.thread-message.thread-outbound { border-left-color: #28a745; }
-.thread-message.thread-latest { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
-
-.thread-message-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #f0f0f0;
+.thread-meta {
     font-size: 13px;
+    color: #888;
+    margin-bottom: 6px;
 }
 
-.thread-message-from { display: flex; align-items: center; gap: 6px; }
-.thread-message-email { color: #888; }
-.thread-message-date { color: #888; white-space: nowrap; }
+.thread-meta strong { color: #333; }
 
 .thread-direction-badge {
     display: inline-block;
-    padding: 2px 8px;
-    border-radius: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
     font-size: 11px;
     font-weight: 600;
+    margin-right: 6px;
 }
 
 .thread-direction-badge.inbound { background: #e3f2fd; color: #0078d4; }
 .thread-direction-badge.outbound { background: #e8f5e9; color: #28a745; }
 
-.thread-message-body { line-height: 1.6; }
+.thread-message-body {
+    line-height: 1.6;
+    color: #333;
+    margin: 8px 0;
+}
+
+/* Kill indentation/boxing from inline HTML styles in email bodies */
+.thread-message-body blockquote,
+.thread-message-body div[style],
+.thread-message-body p[style] {
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    color: inherit !important;
+}
 
 /* Loading spinner */
 .loading {

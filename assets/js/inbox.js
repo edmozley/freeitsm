@@ -700,19 +700,14 @@ async function loadCorrespondenceThread(ticketId) {
 
         container.innerHTML = emails.map((e, index) => {
             const isOutbound = e.direction === 'Outbound';
-            const isLatest = index === 0;
             return `
-                <div class="thread-message ${isOutbound ? 'thread-outbound' : 'thread-inbound'}${isLatest ? ' thread-latest' : ''}">
-                    <div class="thread-message-header">
-                        <div class="thread-message-from">
-                            <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${isOutbound ? 'Sent' : 'Received'}</span>
-                            <strong>${escapeHtml(e.from_name || e.from_address)}</strong>
-                            <span class="thread-message-email">&lt;${escapeHtml(e.from_address)}&gt;</span>
-                        </div>
-                        <div class="thread-message-date">${formatFullDateTime(e.received_datetime)}</div>
-                    </div>
-                    <div class="thread-message-body">${e.body_content}</div>
+                ${index > 0 ? '<div class="thread-separator"></div>' : ''}
+                <div class="thread-meta">
+                    <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${isOutbound ? 'Sent' : 'Received'}</span>
+                    <strong>${escapeHtml(e.from_name || e.from_address)}</strong>
+                    &lt;${escapeHtml(e.from_address)}&gt; &mdash; ${formatFullDateTime(e.received_datetime)}
                 </div>
+                <div class="thread-message-body">${e.body_content}</div>
             `;
         }).join('');
     } catch (error) {

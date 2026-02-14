@@ -57,29 +57,36 @@ try {
  * Relies on our own visible marker text, with generic blockquote fallback
  */
 function stripQuotedThread($body) {
+    $stripped = null;
+
     // 1. Our visible marker text: "Please reply above this line"
     if (preg_match('/\x{2014}\s*Please reply above this line\s*\x{2014}/u', $body, $matches, PREG_OFFSET_CAPTURE)) {
-        $stripped = trim(substr($body, 0, $matches[0][1]));
-        if (!empty($stripped)) return $stripped;
+        $s = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($s)) $stripped = $s;
     }
 
     // 2. Our data-reply-marker div (if preserved)
-    if (preg_match('/<div[^>]*data-reply-marker="true"[^>]*>/i', $body, $matches, PREG_OFFSET_CAPTURE)) {
-        $stripped = trim(substr($body, 0, $matches[0][1]));
-        if (!empty($stripped)) return $stripped;
+    if ($stripped === null && preg_match('/<div[^>]*data-reply-marker="true"[^>]*>/i', $body, $matches, PREG_OFFSET_CAPTURE)) {
+        $s = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($s)) $stripped = $s;
     }
 
     // 3. Legacy SDREF marker text from older emails
-    if (preg_match('/\[\*{3}\s*SDREF:[A-Z]{3}-\d{3}-\d{5}\s*REPLY ABOVE THIS LINE\s*\*{3}\]/i', $body, $matches, PREG_OFFSET_CAPTURE)) {
-        $stripped = trim(substr($body, 0, $matches[0][1]));
-        if (!empty($stripped)) return $stripped;
+    if ($stripped === null && preg_match('/\[\*{3}\s*SDREF:[A-Z]{3}-\d{3}-\d{5}\s*REPLY ABOVE THIS LINE\s*\*{3}\]/i', $body, $matches, PREG_OFFSET_CAPTURE)) {
+        $s = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($s)) $stripped = $s;
     }
 
     // 4. Generic fallback: blockquote (only if there's content before it)
-    if (preg_match('/<blockquote[^>]*>/i', $body, $matches, PREG_OFFSET_CAPTURE)) {
-        $before = trim(substr($body, 0, $matches[0][1]));
-        if (!empty($before)) return $before;
+    if ($stripped === null && preg_match('/<blockquote[^>]*>/i', $body, $matches, PREG_OFFSET_CAPTURE)) {
+        $s = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($s)) $stripped = $s;
     }
 
-    return $body;
+    if ($stripped === null) $stripped = $body;
+
+    // Remove trailing "On [date], [name] wrote:" attribution lines added by email clients
+    $stripped = preg_replace('/(<br\s*\/?>|\s|<\/?div[^>]*>)*\bOn\s+.{10,120}\s+wrote:\s*(<\/?div[^>]*>|<br\s*\/?>|\s)*$/is', '', $stripped);
+
+    return trim($stripped);
 }

@@ -732,33 +732,38 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId) {
  * with a generic blockquote fallback
  */
 function stripInboundThread($bodyContent) {
+    $stripped = null;
+
     // 1. Our visible marker text: "Please reply above this line"
-    // This is plain text we control — it survives any email client's HTML processing
     if (preg_match('/\x{2014}\s*Please reply above this line\s*\x{2014}/u', $bodyContent, $matches, PREG_OFFSET_CAPTURE)) {
-        $stripped = trim(substr($bodyContent, 0, $matches[0][1]));
-        if (!empty($stripped)) return $stripped;
+        $s = trim(substr($bodyContent, 0, $matches[0][1]));
+        if (!empty($s)) $stripped = $s;
     }
 
     // 2. Our data-reply-marker div (if the email client preserved it)
-    if (preg_match('/<div[^>]*data-reply-marker="true"[^>]*>/i', $bodyContent, $matches, PREG_OFFSET_CAPTURE)) {
-        $stripped = trim(substr($bodyContent, 0, $matches[0][1]));
-        if (!empty($stripped)) return $stripped;
+    if ($stripped === null && preg_match('/<div[^>]*data-reply-marker="true"[^>]*>/i', $bodyContent, $matches, PREG_OFFSET_CAPTURE)) {
+        $s = trim(substr($bodyContent, 0, $matches[0][1]));
+        if (!empty($s)) $stripped = $s;
     }
 
     // 3. Legacy SDREF marker text from older emails
-    if (preg_match('/\[\*{3}\s*SDREF:[A-Z]{3}-\d{3}-\d{5}\s*REPLY ABOVE THIS LINE\s*\*{3}\]/i', $bodyContent, $matches, PREG_OFFSET_CAPTURE)) {
-        $stripped = trim(substr($bodyContent, 0, $matches[0][1]));
-        if (!empty($stripped)) return $stripped;
+    if ($stripped === null && preg_match('/\[\*{3}\s*SDREF:[A-Z]{3}-\d{3}-\d{5}\s*REPLY ABOVE THIS LINE\s*\*{3}\]/i', $bodyContent, $matches, PREG_OFFSET_CAPTURE)) {
+        $s = trim(substr($bodyContent, 0, $matches[0][1]));
+        if (!empty($s)) $stripped = $s;
     }
 
     // 4. Generic fallback: blockquote (only if there's content before it)
-    if (preg_match('/<blockquote[^>]*>/i', $bodyContent, $matches, PREG_OFFSET_CAPTURE)) {
-        $stripped = trim(substr($bodyContent, 0, $matches[0][1]));
-        if (!empty($stripped)) return $stripped;
+    if ($stripped === null && preg_match('/<blockquote[^>]*>/i', $bodyContent, $matches, PREG_OFFSET_CAPTURE)) {
+        $s = trim(substr($bodyContent, 0, $matches[0][1]));
+        if (!empty($s)) $stripped = $s;
     }
 
-    // No patterns found — return the full body
-    return $bodyContent;
+    if ($stripped === null) $stripped = $bodyContent;
+
+    // Remove trailing "On [date], [name] wrote:" attribution lines added by email clients
+    $stripped = preg_replace('/(<br\s*\/?>|\s|<\/?div[^>]*>)*\bOn\s+.{10,120}\s+wrote:\s*(<\/?div[^>]*>|<br\s*\/?>|\s)*$/is', '', $stripped);
+
+    return trim($stripped);
 }
 
 /**
