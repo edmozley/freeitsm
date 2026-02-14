@@ -333,6 +333,36 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         /* Avatar & User Menu */
         .header-right { position: relative; }
 
+        .mail-check-btn {
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.7);
+            cursor: pointer;
+            padding: 4px;
+            margin-right: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            transition: color 0.15s, background 0.15s;
+            position: relative;
+        }
+
+        .mail-check-btn:hover { color: #fff; background: rgba(255,255,255,0.1); }
+
+        .mail-check-btn.checking svg {
+            animation: mail-spin 1s linear infinite;
+        }
+
+        .mail-check-btn.checking { color: #80cbc4; }
+
+        @keyframes mail-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         .user-avatar {
             width: 34px;
             height: 34px;
@@ -630,6 +660,9 @@ function renderHeaderRight($analyst_name, $path_prefix) {
     </style>
 
     <div class="header-right">
+        <button class="mail-check-btn" id="mailCheckBtn" onclick="triggerMailCheck()" title="Check for new emails" style="display:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+        </button>
         <div class="user-menu-overlay" id="userMenuOverlay" onclick="closeUserMenu()"></div>
         <div class="user-avatar" onclick="toggleUserMenu()" title="<?php echo htmlspecialchars($analyst_name); ?>">
             <?php echo htmlspecialchars($initials); ?>

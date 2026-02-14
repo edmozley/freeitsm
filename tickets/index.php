@@ -226,5 +226,60 @@ $current_page = 'inbox';
     <div class="toast" id="toast"></div>
     <script>window.API_BASE = '../api/tickets/';</script>
     <script src="../assets/js/inbox.js?v=4"></script>
+    <script>
+    // Auto-check mailboxes every 60 seconds
+    (function() {
+        const POLL_INTERVAL = 60000;
+        const btn = document.getElementById('mailCheckBtn');
+        let polling = false;
+
+        // Show the icon on the inbox page
+        if (btn) btn.style.display = '';
+
+        async function checkMailboxes() {
+            if (polling) return;
+            polling = true;
+            if (btn) btn.classList.add('checking');
+
+            try {
+                // Get active authenticated mailboxes
+                const mbRes = await fetch('../api/tickets/get_mailboxes.php');
+                const mbData = await mbRes.json();
+                if (!mbData.success) { polling = false; if (btn) btn.classList.remove('checking'); return; }
+
+                const active = mbData.mailboxes.filter(m => m.is_authenticated && m.is_active);
+                let totalNew = 0;
+
+                for (const mb of active) {
+                    try {
+                        const res = await fetch('../api/tickets/check_mailbox_email.php', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ mailbox_id: mb.id })
+                        });
+                        const data = await res.json();
+                        if (data.success) totalNew += data.details?.emails_saved || 0;
+                    } catch (e) { /* skip */ }
+                }
+
+                // Refresh inbox if new emails arrived
+                if (totalNew > 0 && typeof refreshCurrentView === 'function') {
+                    refreshCurrentView();
+                    loadFolderCounts();
+                }
+            } catch (e) { /* skip */ }
+
+            polling = false;
+            if (btn) btn.classList.remove('checking');
+        }
+
+        // Manual trigger
+        window.triggerMailCheck = checkMailboxes;
+
+        // Run on load then every 60s
+        checkMailboxes();
+        setInterval(checkMailboxes, POLL_INTERVAL);
+    })();
+    </script>
 </body>
 </html>
