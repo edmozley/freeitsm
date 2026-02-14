@@ -21,6 +21,7 @@ $data = json_decode(file_get_contents('php://input'), true);
 $assetId = $data['asset_id'] ?? null;
 $userId = $data['user_id'] ?? null;
 $notes = $data['notes'] ?? null;
+$previousUserId = $data['previous_user_id'] ?? null;
 
 if (!$assetId || !$userId) {
     echo json_encode(['success' => false, 'error' => 'Asset ID and User ID are required']);
@@ -66,10 +67,17 @@ try {
     $stmt->execute([$assetId, $userId, $_SESSION['analyst_id'], $notes]);
 
     // Log to asset_history
+    $oldUserName = null;
+    if ($previousUserId) {
+        $prevStmt = $conn->prepare("SELECT display_name FROM users WHERE id = ?");
+        $prevStmt->execute([$previousUserId]);
+        $prevRow = $prevStmt->fetch(PDO::FETCH_ASSOC);
+        $oldUserName = $prevRow ? $prevRow['display_name'] : $previousUserId;
+    }
     $auditSql = "INSERT INTO asset_history (asset_id, analyst_id, field_name, old_value, new_value, created_datetime)
-                 VALUES (?, ?, 'Assigned User', NULL, ?, GETUTCDATE())";
+                 VALUES (?, ?, 'Assigned User', ?, ?, GETUTCDATE())";
     $auditStmt = $conn->prepare($auditSql);
-    $auditStmt->execute([$assetId, $_SESSION['analyst_id'], $userName]);
+    $auditStmt->execute([$assetId, $_SESSION['analyst_id'], $oldUserName, $userName]);
 
     echo json_encode([
         'success' => true,

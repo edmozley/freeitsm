@@ -1039,25 +1039,33 @@ $path_prefix = '../';
             if (!selectedUserForAssign || !selectedAssetId) return;
 
             try {
-                // If re-assigning, remove current user first
-                if (currentAssignedUserId) {
+                const previousUserId = currentAssignedUserId;
+
+                // If re-assigning, remove current user first (skip audit, assign will log it)
+                if (previousUserId) {
                     await fetch(API_BASE + 'unassign_asset_user.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
                             asset_id: selectedAssetId,
-                            user_id: currentAssignedUserId
+                            user_id: previousUserId,
+                            skip_audit: true
                         })
                     });
+                }
+
+                const assignBody = {
+                    asset_id: selectedAssetId,
+                    user_id: selectedUserForAssign
+                };
+                if (previousUserId) {
+                    assignBody.previous_user_id = previousUserId;
                 }
 
                 const response = await fetch(API_BASE + 'assign_asset_user.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        asset_id: selectedAssetId,
-                        user_id: selectedUserForAssign
-                    })
+                    body: JSON.stringify(assignBody)
                 });
                 const data = await response.json();
 
