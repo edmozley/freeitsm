@@ -210,6 +210,23 @@ $path_prefix = '../';
             color: #333;
         }
 
+        .info-value-select {
+            font-size: 14px;
+            color: #333;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            cursor: pointer;
+            max-width: 200px;
+        }
+
+        .info-value-select:focus {
+            outline: none;
+            border-color: #107c10;
+            box-shadow: 0 0 0 2px rgba(16, 124, 16, 0.1);
+        }
+
         .assigned-users-section {
             flex: 1;
             display: flex;
@@ -582,11 +599,55 @@ $path_prefix = '../';
         let searchTimeout = null;
         let selectedUserForAssign = null;
         let currentAssignedUserId = null;
+        let assetTypes = [];
+        let assetStatusTypes = [];
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadAssets();
+            loadAssetTypesForDropdown();
+            loadAssetStatusTypesForDropdown();
         });
+
+        async function loadAssetTypesForDropdown() {
+            try {
+                const response = await fetch(API_BASE + 'get_asset_types.php');
+                const data = await response.json();
+                if (data.success) assetTypes = data.asset_types.filter(t => t.is_active);
+            } catch (e) { console.error('Error loading asset types:', e); }
+        }
+
+        async function loadAssetStatusTypesForDropdown() {
+            try {
+                const response = await fetch(API_BASE + 'get_asset_status_types.php');
+                const data = await response.json();
+                if (data.success) assetStatusTypes = data.asset_status_types.filter(t => t.is_active);
+            } catch (e) { console.error('Error loading asset status types:', e); }
+        }
+
+        async function updateAssetField(field, value) {
+            if (!selectedAssetId) return;
+            try {
+                const response = await fetch(API_BASE + 'update_asset_field.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        asset_id: selectedAssetId,
+                        field: field,
+                        value: value || null
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    const asset = assets.find(a => a.id == selectedAssetId);
+                    if (asset) asset[field] = value || null;
+                } else {
+                    alert('Error updating asset: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error updating asset:', error);
+            }
+        }
 
         // Load assets from API
         async function loadAssets(search = '') {
@@ -662,6 +723,20 @@ $path_prefix = '../';
                         </div>
                     </div>
                     <div class="asset-info-grid">
+                        <div class="info-item">
+                            <span class="info-label">Type</span>
+                            <select class="info-value-select" onchange="updateAssetField('asset_type_id', this.value)">
+                                <option value="">-- None --</option>
+                                ${assetTypes.map(t => `<option value="${t.id}" ${t.id == selectedAsset.asset_type_id ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Status</span>
+                            <select class="info-value-select" onchange="updateAssetField('asset_status_id', this.value)">
+                                <option value="">-- None --</option>
+                                ${assetStatusTypes.map(s => `<option value="${s.id}" ${s.id == selectedAsset.asset_status_id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}
+                            </select>
+                        </div>
                         <div class="info-item">
                             <span class="info-label">Manufacturer</span>
                             <span class="info-value">${escapeHtml(selectedAsset.manufacturer) || '-'}</span>

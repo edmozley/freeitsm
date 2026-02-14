@@ -111,6 +111,16 @@ $path_prefix = '../';
                     <h3>Module Access</h3>
                     <p>Control which modules each analyst can access. Restrict visibility on the home screen and navigation menu.</p>
                 </a>
+
+                <a href="db-verify/" class="system-card">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                    </svg>
+                    <h3>Database Verify</h3>
+                    <p>Check all tables and columns exist in the database. Automatically creates any that are missing.</p>
+                </a>
             </div>
         </div>
     </div>
