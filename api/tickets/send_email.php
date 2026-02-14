@@ -534,14 +534,14 @@ function buildFullEmailBody($conn, $ticketId, $analystBody, $type) {
 
     $threadHtml = implode('', $threadParts);
 
-    // Build the reply marker
+    // Build the reply marker - visually hidden but detectable for stripping inbound replies
     $markerLine = htmlspecialchars("[*** SDREF:$ticketNumber REPLY ABOVE THIS LINE ***]", ENT_QUOTES, 'UTF-8');
     $prefix = ($type === 'forward') ? '<p><strong>---------- Forwarded message ----------</strong></p>' : '';
 
-    // Assemble: analyst content + marker + thread
+    // Assemble: analyst content + separator + thread
+    // The marker text is hidden (font-size:0) but present for programmatic detection
     return $analystBody
-        . '<br><br>'
-        . '<div style="border-top: 1px solid #ccc; padding: 10px 0; margin: 20px 0; color: #999; font-size: 12px; text-align: center;" data-reply-marker="true">' . $markerLine . '</div>'
+        . '<div style="border-top: 1px solid #ccc; margin: 20px 0;" data-reply-marker="true"><span style="font-size:0; line-height:0; color:transparent;">' . $markerLine . '</span></div>'
         . '<div style="color: #555;">'
         . $prefix
         . $threadHtml
