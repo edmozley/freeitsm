@@ -29,12 +29,24 @@ if (!$assetId || !$userId) {
 try {
     $conn = connectToDatabase();
 
+    // Get the user's display name for the audit log
+    $userStmt = $conn->prepare("SELECT display_name FROM users WHERE id = ?");
+    $userStmt->execute([$userId]);
+    $userRow = $userStmt->fetch(PDO::FETCH_ASSOC);
+    $userName = $userRow ? $userRow['display_name'] : $userId;
+
     // Delete the assignment
     $sql = "DELETE FROM users_assets WHERE asset_id = ? AND user_id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$assetId, $userId]);
 
     if ($stmt->rowCount() > 0) {
+        // Log to asset_history
+        $auditSql = "INSERT INTO asset_history (asset_id, analyst_id, field_name, old_value, new_value, created_datetime)
+                     VALUES (?, ?, 'Assigned User', ?, NULL, GETUTCDATE())";
+        $auditStmt = $conn->prepare($auditSql);
+        $auditStmt->execute([$assetId, $_SESSION['analyst_id'], $userName]);
+
         echo json_encode([
             'success' => true,
             'message' => 'User removed from asset successfully'

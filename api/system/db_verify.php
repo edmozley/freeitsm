@@ -257,6 +257,16 @@ $schema = [
         'notes'                     => 'nvarchar(500) NULL',
     ],
 
+    'asset_history' => [
+        'id'                => 'int IDENTITY(1,1) NOT NULL',
+        'asset_id'          => 'int NOT NULL',
+        'analyst_id'        => 'int NOT NULL',
+        'field_name'        => 'nvarchar(100) NOT NULL',
+        'old_value'         => 'nvarchar(500) NULL',
+        'new_value'         => 'nvarchar(500) NULL',
+        'created_datetime'  => 'datetime NULL DEFAULT GETUTCDATE()',
+    ],
+
     'servers' => [
         'id'                    => 'int IDENTITY(1,1) NOT NULL',
         'vm_id'                 => 'nvarchar(100) NOT NULL',

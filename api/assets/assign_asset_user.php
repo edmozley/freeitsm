@@ -52,12 +52,24 @@ try {
         exit;
     }
 
+    // Get the user's display name for the audit log
+    $userStmt = $conn->prepare("SELECT display_name FROM users WHERE id = ?");
+    $userStmt->execute([$userId]);
+    $userRow = $userStmt->fetch(PDO::FETCH_ASSOC);
+    $userName = $userRow ? $userRow['display_name'] : $userId;
+
     // Insert the assignment
     $sql = "INSERT INTO users_assets (asset_id, user_id, assigned_by_analyst_id, notes, assigned_datetime)
             VALUES (?, ?, ?, ?, GETUTCDATE())";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([$assetId, $userId, $_SESSION['analyst_id'], $notes]);
+
+    // Log to asset_history
+    $auditSql = "INSERT INTO asset_history (asset_id, analyst_id, field_name, old_value, new_value, created_datetime)
+                 VALUES (?, ?, 'Assigned User', NULL, ?, GETUTCDATE())";
+    $auditStmt = $conn->prepare($auditSql);
+    $auditStmt->execute([$assetId, $_SESSION['analyst_id'], $userName]);
 
     echo json_encode([
         'success' => true,

@@ -37,9 +37,35 @@ try {
 
     $conn = connectToDatabase();
 
+    // Get the current value before updating
+    $oldStmt = $conn->prepare("SELECT $field FROM assets WHERE id = ?");
+    $oldStmt->execute([$asset_id]);
+    $oldRow = $oldStmt->fetch(PDO::FETCH_ASSOC);
+    $oldValue = $oldRow ? $oldRow[$field] : null;
+
     $sql = "UPDATE assets SET $field = ? WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$value, $asset_id]);
+
+    // Resolve display names for type/status IDs
+    $oldDisplay = $oldValue;
+    $newDisplay = $value;
+    if ($field === 'asset_type_id') {
+        $nameQuery = "SELECT name FROM asset_types WHERE id = ?";
+        if ($oldValue) { $n = $conn->prepare($nameQuery); $n->execute([$oldValue]); $r = $n->fetch(PDO::FETCH_ASSOC); if ($r) $oldDisplay = $r['name']; }
+        if ($value)    { $n = $conn->prepare($nameQuery); $n->execute([$value]);    $r = $n->fetch(PDO::FETCH_ASSOC); if ($r) $newDisplay = $r['name']; }
+    } elseif ($field === 'asset_status_id') {
+        $nameQuery = "SELECT name FROM asset_status_types WHERE id = ?";
+        if ($oldValue) { $n = $conn->prepare($nameQuery); $n->execute([$oldValue]); $r = $n->fetch(PDO::FETCH_ASSOC); if ($r) $oldDisplay = $r['name']; }
+        if ($value)    { $n = $conn->prepare($nameQuery); $n->execute([$value]);    $r = $n->fetch(PDO::FETCH_ASSOC); if ($r) $newDisplay = $r['name']; }
+    }
+
+    // Log the change to asset_history
+    $fieldLabel = $field === 'asset_type_id' ? 'Type' : ($field === 'asset_status_id' ? 'Status' : $field);
+    $auditSql = "INSERT INTO asset_history (asset_id, analyst_id, field_name, old_value, new_value, created_datetime)
+                 VALUES (?, ?, ?, ?, ?, GETUTCDATE())";
+    $auditStmt = $conn->prepare($auditSql);
+    $auditStmt->execute([$asset_id, $_SESSION['analyst_id'], $fieldLabel, $oldDisplay, $newDisplay]);
 
     echo json_encode(['success' => true]);
 

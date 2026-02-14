@@ -490,6 +490,80 @@ $path_prefix = '../';
             background-color: #5a6268;
         }
 
+        .btn-outline {
+            background-color: transparent;
+            color: #546e7a;
+            border: 1px solid #b0bec5;
+        }
+
+        .btn-outline:hover {
+            background-color: #eceff1;
+        }
+
+        /* History Modal */
+        .modal-content.modal-wide {
+            width: 700px;
+        }
+
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .history-table thead th {
+            background-color: #f8f9fa;
+            padding: 10px 14px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .history-table tbody td {
+            padding: 9px 14px;
+            font-size: 13px;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+
+        .history-table tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .history-field-badge {
+            display: inline-block;
+            background-color: #e8eaf6;
+            color: #3f51b5;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .history-value-old {
+            color: #999;
+            text-decoration: line-through;
+        }
+
+        .history-value-new {
+            color: #2e7d32;
+            font-weight: 500;
+        }
+
+        .history-arrow {
+            color: #999;
+            margin: 0 4px;
+        }
+
+        .history-meta {
+            font-size: 12px;
+            color: #888;
+        }
+
         /* Installed Software Section */
         .software-section {
             border-top: 1px solid #e0e0e0;
@@ -586,6 +660,22 @@ $path_prefix = '../';
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeAssignModal()">Cancel</button>
                 <button class="btn btn-primary" onclick="confirmAssignUser()" id="assignBtn" disabled>Assign User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Asset History Modal -->
+    <div class="modal" id="assetHistoryModal">
+        <div class="modal-content modal-wide">
+            <div class="modal-header">
+                <span>Asset History</span>
+                <button class="modal-close" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="historyModalBody">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeHistoryModal()">Close</button>
             </div>
         </div>
     </div>
@@ -715,6 +805,9 @@ $path_prefix = '../';
                     <div class="asset-detail-header">
                         <h2 class="asset-detail-hostname">${escapeHtml(selectedAsset.hostname)}</h2>
                         <div class="asset-detail-subtitle">Service Tag: ${escapeHtml(selectedAsset.service_tag) || '-'}</div>
+                        <div style="margin-top: 10px;">
+                            <button class="btn btn-outline btn-sm" onclick="openHistoryModal(${selectedAsset.id})">View History</button>
+                        </div>
                         <div class="asset-assigned-bar" id="assignedBar">
                             <div class="asset-assigned-info" id="assignedInfo">
                                 <span class="unassigned-text">Loading...</span>
@@ -1033,6 +1126,86 @@ $path_prefix = '../';
         document.getElementById('assignUserModal').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeAssignModal();
+            }
+        });
+
+        // Asset History functions
+        async function openHistoryModal(assetId) {
+            document.getElementById('assetHistoryModal').classList.add('active');
+            document.getElementById('historyModalBody').innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const response = await fetch(`${API_BASE}get_asset_history.php?asset_id=${assetId}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    renderHistory(data.history);
+                } else {
+                    document.getElementById('historyModalBody').innerHTML =
+                        '<div class="empty-state" style="padding: 20px;">Error loading history: ' + escapeHtml(data.error) + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('historyModalBody').innerHTML =
+                    '<div class="empty-state" style="padding: 20px;">Failed to load history</div>';
+            }
+        }
+
+        function renderHistory(history) {
+            const container = document.getElementById('historyModalBody');
+
+            if (history.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 20px;">No history recorded for this asset</div>';
+                return;
+            }
+
+            let html = `<table class="history-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Field</th>
+                        <th>Change</th>
+                        <th>Analyst</th>
+                    </tr>
+                </thead>
+                <tbody>`;
+
+            history.forEach(entry => {
+                const oldVal = entry.old_value ? escapeHtml(entry.old_value) : '<em style="color:#999;">None</em>';
+                const newVal = entry.new_value ? escapeHtml(entry.new_value) : '<em style="color:#999;">None</em>';
+
+                html += `<tr>
+                    <td class="history-meta">${formatDateTime(entry.created_datetime)}</td>
+                    <td><span class="history-field-badge">${escapeHtml(entry.field_name)}</span></td>
+                    <td>
+                        <span class="history-value-old">${oldVal}</span>
+                        <span class="history-arrow">&rarr;</span>
+                        <span class="history-value-new">${newVal}</span>
+                    </td>
+                    <td class="history-meta">${escapeHtml(entry.analyst_name || 'Unknown')}</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString + 'Z');
+            return date.toLocaleDateString('en-GB', {
+                day: '2-digit', month: 'short', year: 'numeric'
+            }) + ' ' + date.toLocaleTimeString('en-GB', {
+                hour: '2-digit', minute: '2-digit'
+            });
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('assetHistoryModal').classList.remove('active');
+        }
+
+        document.getElementById('assetHistoryModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeHistoryModal();
             }
         });
     </script>
