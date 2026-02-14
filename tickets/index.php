@@ -225,7 +225,7 @@ $current_page = 'inbox';
 
     <div class="toast" id="toast"></div>
     <script>window.API_BASE = '../api/tickets/';</script>
-    <script src="../assets/js/inbox.js?v=4"></script>
+    <script src="../assets/js/inbox.js?v=5"></script>
     <script>
     // Auto-check mailboxes every 60 seconds
     (function() {
