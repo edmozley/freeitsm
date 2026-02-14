@@ -694,10 +694,14 @@ async function loadCorrespondenceThread(ticketId) {
 
         if (!data.success || !data.emails || data.emails.length === 0) return;
 
-        container.innerHTML = data.emails.map(e => {
+        // Reverse so most recent email is at the top
+        const emails = [...data.emails].reverse();
+
+        container.innerHTML = emails.map((e, index) => {
             const isOutbound = e.direction === 'Outbound';
+            const isLatest = index === 0;
             return `
-                <div class="thread-message ${isOutbound ? 'thread-outbound' : 'thread-inbound'}">
+                <div class="thread-message ${isOutbound ? 'thread-outbound' : 'thread-inbound'}${isLatest ? ' thread-latest' : ''}">
                     <div class="thread-message-header">
                         <div class="thread-message-from">
                             <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${isOutbound ? 'Sent' : 'Received'}</span>

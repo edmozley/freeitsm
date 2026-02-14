@@ -409,14 +409,16 @@ body {
 .thread-message {
     background: white;
     padding: 20px;
-    border-radius: 4px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    margin-bottom: 12px;
-    border-left: 3px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    margin-bottom: 16px;
+    border: 1px solid #e0e0e0;
+    border-left: 4px solid #ddd;
 }
 
 .thread-message.thread-inbound { border-left-color: #0078d4; }
 .thread-message.thread-outbound { border-left-color: #28a745; }
+.thread-message.thread-latest { box-shadow: 0 2px 8px rgba(0,0,0,0.12); }
 
 .thread-message-header {
     display: flex;
