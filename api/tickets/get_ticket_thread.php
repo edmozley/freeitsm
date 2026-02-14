@@ -38,6 +38,8 @@ try {
         if ($email['body_content']) {
             $email['body_content'] = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $email['body_content']);
             $email['body_content'] = str_replace("\xEF\xBF\xBD", '', $email['body_content']);
+            // Strip quoted thread content so each email only shows its own content
+            $email['body_content'] = stripQuotedThread($email['body_content']);
         }
         if ($email['received_datetime']) {
             $email['received_datetime'] = date('Y-m-d\TH:i:s', strtotime($email['received_datetime']));
@@ -48,4 +50,57 @@ try {
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+}
+
+/**
+ * Strip quoted/nested thread content from an email body
+ * so each email in the thread only shows its own new content
+ */
+function stripQuotedThread($body) {
+    // 1. Our reply marker div: <div data-reply-marker="true">...</div>
+    $divPattern = '/<div[^>]*data-reply-marker="true"[^>]*>.*?<\/div>/is';
+    if (preg_match($divPattern, $body, $matches, PREG_OFFSET_CAPTURE)) {
+        $stripped = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($stripped)) return $stripped;
+    }
+
+    // 2. Our raw marker text: [*** SDREF:XXX-XXX-XXXXX REPLY ABOVE THIS LINE ***]
+    $markerPattern = '/\[\*{3}\s*SDREF:[A-Z]{3}-\d{3}-\d{5}\s*REPLY ABOVE THIS LINE\s*\*{3}\]/i';
+    if (preg_match($markerPattern, $body, $matches, PREG_OFFSET_CAPTURE)) {
+        $stripped = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($stripped)) return $stripped;
+    }
+
+    // 3. Gmail quoted content: <div class="gmail_quote">
+    if (preg_match('/<div[^>]*class="gmail_quote"[^>]*>/i', $body, $matches, PREG_OFFSET_CAPTURE)) {
+        $stripped = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($stripped)) return $stripped;
+    }
+
+    // 4. Outlook-style separator: <div id="appendonsend"> or <hr> followed by From:/Sent:
+    if (preg_match('/<div[^>]*id="appendonsend"[^>]*>/i', $body, $matches, PREG_OFFSET_CAPTURE)) {
+        $stripped = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($stripped)) return $stripped;
+    }
+
+    // 5. Generic "On ... wrote:" pattern (common in most email clients)
+    if (preg_match('/<(div|p|span)[^>]*>\s*On\s+.{10,80}\s+wrote:\s*<\/(div|p|span)>/is', $body, $matches, PREG_OFFSET_CAPTURE)) {
+        $stripped = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($stripped)) return $stripped;
+    }
+
+    // 6. Outlook "From:" / "Sent:" header block after <hr>
+    if (preg_match('/<hr[^>]*>\s*(<(div|p|span)[^>]*>)?\s*<b>\s*From:\s*<\/b>/is', $body, $matches, PREG_OFFSET_CAPTURE)) {
+        $stripped = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($stripped)) return $stripped;
+    }
+
+    // 7. Blockquote elements (quoted replies)
+    if (preg_match('/<blockquote[^>]*>/i', $body, $matches, PREG_OFFSET_CAPTURE)) {
+        // Only strip if blockquote is not right at the start (i.e. there's content before it)
+        $before = trim(substr($body, 0, $matches[0][1]));
+        if (!empty($before)) return $before;
+    }
+
+    return $body;
 }
