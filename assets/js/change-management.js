@@ -490,7 +490,7 @@ function renderSearchResults(results) {
 
 function selectSearchResult(changeId) {
     closeSearchModal();
-    openChange(changeId);
+    viewChange(changeId);
 }
 
 function clearSearch() {
