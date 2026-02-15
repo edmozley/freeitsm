@@ -6,6 +6,10 @@
  */
 
 $checks = [];
+$adminCreated = false;
+$adminError = null;
+$analystCount = null;
+$dbConnected = false;
 
 // 1. Check config.php exists
 $configPath = __DIR__ . '/../config.php';
@@ -38,9 +42,33 @@ if (file_exists($configPath)) {
     if (function_exists('connectToDatabase') && defined('DB_SERVER')) {
         try {
             $conn = connectToDatabase();
+            $dbConnected = true;
             // Identify which driver connected
             $driverInfo = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
             $checks[] = ['name' => 'Database connection', 'status' => 'pass', 'detail' => "Connected (driver: $driverInfo)"];
+
+            // Check if analysts table has any rows
+            try {
+                $countStmt = $conn->query("SELECT COUNT(*) FROM analysts");
+                $analystCount = (int) $countStmt->fetchColumn();
+            } catch (Exception $e) {
+                // Table may not exist yet — leave $analystCount as null
+            }
+
+            // Handle admin account creation POST
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_admin'])) {
+                if ($analystCount === 0) {
+                    try {
+                        $hash = password_hash('freeitsm', PASSWORD_DEFAULT);
+                        $stmt = $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active, created_datetime) VALUES (?, ?, ?, ?, 1, GETUTCDATE())");
+                        $stmt->execute(['admin', $hash, 'Administrator', 'admin@localhost']);
+                        $adminCreated = true;
+                        $analystCount = 1;
+                    } catch (Exception $e) {
+                        $adminError = $e->getMessage();
+                    }
+                }
+            }
         } catch (Exception $e) {
             $checks[] = ['name' => 'Database connection', 'status' => 'fail', 'detail' => $e->getMessage()];
         }
@@ -219,6 +247,84 @@ $totalCount = count($checks);
         .check-detail.fail { color: #dc3545; }
         .check-detail.warn { color: #b8860b; }
 
+        .admin-section {
+            margin-top: 25px;
+            padding: 20px;
+            border-radius: 6px;
+            border: 1px solid #dee2e6;
+            background: #f8f9fa;
+        }
+
+        .admin-section h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .admin-section p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .admin-btn {
+            display: inline-block;
+            padding: 8px 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .admin-btn:hover {
+            background: #5a6fd6;
+        }
+
+        .admin-success {
+            margin-top: 25px;
+            padding: 20px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 6px;
+        }
+
+        .admin-success h2 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #155724;
+            margin-bottom: 8px;
+        }
+
+        .admin-success p {
+            font-size: 13px;
+            color: #155724;
+            margin-bottom: 4px;
+        }
+
+        .admin-success .credentials {
+            margin-top: 10px;
+            padding: 10px 15px;
+            background: white;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .admin-error {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #721c24;
+        }
+
         .footer-warning {
             margin-top: 25px;
             padding: 15px;
@@ -268,6 +374,30 @@ $totalCount = count($checks);
                 </li>
             <?php endforeach; ?>
         </ul>
+
+        <?php if ($adminCreated): ?>
+            <div class="admin-success">
+                <h2>Admin account created</h2>
+                <p>You can now log in with the following credentials:</p>
+                <div class="credentials">
+                    Username: <strong>admin</strong><br>
+                    Password: <strong>freeitsm</strong>
+                </div>
+                <p style="margin-top: 10px;">Change this password after your first login.</p>
+            </div>
+        <?php elseif ($adminError): ?>
+            <div class="admin-error">
+                Failed to create admin account: <?= htmlspecialchars($adminError) ?>
+            </div>
+        <?php elseif ($dbConnected && $analystCount === 0): ?>
+            <div class="admin-section">
+                <h2>No user accounts found</h2>
+                <p>The database has no analyst accounts. Create a default admin account to get started.</p>
+                <form method="POST">
+                    <button type="submit" name="create_admin" value="1" class="admin-btn">Create</button>
+                </form>
+            </div>
+        <?php endif; ?>
 
         <div class="footer-warning">
             Once your system is in production, delete the <strong>/setup</strong> folder for security.
