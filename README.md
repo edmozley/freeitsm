@@ -91,7 +91,7 @@ The platform is organised into 10 modules, accessible from a landing page (`inde
 | **Tickets** | `tickets/` | Blue `#0078d4` | Outlook-style ticket inbox with email integration, departments, teams, and audit trails |
 | **Assets** | `asset-management/` | Green `#107c10` | IT asset tracking, user assignments, and vCenter VM inventory |
 | **Knowledge** | `knowledge/` | Purple `#8764b8` | Rich-text knowledge base articles with AI chat and vector search |
-| **Changes** | `change-management/` | Teal `#00897b` | Change request workflow management |
+| **Changes** | `change-management/` | Teal `#00897b` | Change request workflow management with calendar view |
 | **Calendar** | `calendar/` | Orange `#ef6c00` | Event calendar with categories and scheduling |
 | **Checks** | `morning-checks/` | Cyan `#00acc1` | Daily infrastructure health checks (RAG status) with 30-day trend charts |
 | **Reporting** | `reporting/` | Brown `#ca5010` | System logs, audit trails, and analytics |
@@ -132,6 +132,7 @@ sdtickets/
 │   │   ├── knowledge.js              # Knowledge base logic
 │   │   ├── calendar.js               # Calendar logic
 │   │   ├── change-management.js      # Change management logic
+│   │   ├── change-calendar.js        # Change management calendar logic
 │   │   ├── itsm_calendar.js          # ITSM calendar logic
 │   │   ├── qrcode.min.js             # Client-side QR code generator (for MFA setup)
 │   │   └── tinymce/                  # Rich text editor library
@@ -162,6 +163,7 @@ sdtickets/
 │
 ├── change-management/                # Change Management Module
 │   ├── index.php                     # Change request list & detail
+│   ├── calendar.php                  # Calendar view of scheduled changes
 │   └── includes/
 │
 ├── calendar/                         # Calendar Module
@@ -325,6 +327,9 @@ Rich-text knowledge base with AI integration.
 
 ### Change Management (`change-management/`)
 Change request tracking and approval workflows.
+- Calendar view with month/week/day views for visualising scheduled changes
+- Status-based filtering (Draft, Pending Approval, Approved, In Progress, Completed, Failed, Cancelled)
+- Click-through from calendar to change detail view
 
 ### Calendar (`calendar/`)
 Event calendar with configurable categories.
@@ -499,7 +504,7 @@ if (!isset($_SESSION['analyst_id'])) {
 
 ### Other Module APIs
 
-- `api/change-management/` — 8 endpoints for change CRUD and attachments
+- `api/change-management/` — 9 endpoints for change CRUD, attachments, and calendar
 - `api/calendar/` — 7 endpoints for events and categories
 - `api/morning-checks/` — 7 endpoints for check definitions, results, and charts
 - `api/reporting/` — 2 endpoints for system logs

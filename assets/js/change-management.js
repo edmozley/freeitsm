@@ -21,6 +21,13 @@ document.addEventListener('DOMContentLoaded', function() {
     loadAnalysts();
     loadChanges();
     setupFileUpload();
+
+    // Handle ?open=ID from calendar or direct link
+    const urlParams = new URLSearchParams(window.location.search);
+    const openId = urlParams.get('open');
+    if (openId) {
+        viewChange(parseInt(openId, 10));
+    }
 });
 
 // ============ Data Loading ============
