@@ -45,6 +45,10 @@ $path_prefix = '../';
             margin: 0 auto 28px;
         }
 
+        .form-logo.align-left { margin: 0 auto 28px 0; }
+        .form-logo.align-center { margin: 0 auto 28px; }
+        .form-logo.align-right { margin: 0 0 28px auto; }
+
         .fill-title {
             font-size: 22px;
             font-weight: 600;
@@ -202,8 +206,18 @@ $path_prefix = '../';
     <script>
         const API_BASE = '../api/forms/';
         let formData = null;
+        let logoAlignment = 'center';
 
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Load settings first, then form
+            try {
+                const sRes = await fetch(API_BASE + 'get_settings.php');
+                const sData = await sRes.json();
+                if (sData.success && sData.settings) {
+                    logoAlignment = sData.settings.logo_alignment || 'center';
+                }
+            } catch (e) {}
+
             const params = new URLSearchParams(window.location.search);
             const id = params.get('id');
             if (id) {
@@ -231,7 +245,8 @@ $path_prefix = '../';
 
         function renderForm() {
             const card = document.getElementById('formCard');
-            let html = `<img src="../assets/images/CompanyLogo.png" alt="Company Logo" class="form-logo">`;
+            const alignClass = 'align-' + logoAlignment;
+            let html = `<img src="../assets/images/CompanyLogo.png" alt="Company Logo" class="form-logo ${alignClass}">`;
             html += `<h1 class="fill-title">${esc(formData.title)}</h1>`;
             if (formData.description) {
                 html += `<p class="fill-desc">${esc(formData.description)}</p>`;

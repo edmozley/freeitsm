@@ -380,9 +380,10 @@ System administration and configuration.
 ### Forms (`forms/`)
 Dynamic form builder and submission system with a unified sidebar + editor layout.
 
-- **Form List & Builder** (`index.php`): Sidebar shows searchable list of all forms with quick actions (Fill In, Submissions, Delete). Main area has full-width title/description inputs with tabbed Fields and Preview panels. Click a form in the sidebar to edit it inline.
-- **Filler** (`fill.php`): A4-style form rendering with company logo. Required field validation.
+- **Form List & Builder** (`index.php`): Sidebar shows searchable list of all forms with quick actions (Fill In, Submissions, Delete). Main area has full-width title/description inputs with tabbed Fields and Preview panels. Click a form in the sidebar to edit it inline. Unsaved changes indicator with browser leave warning. Toast notifications on save/delete.
+- **Filler** (`fill.php`): A4-style form rendering with company logo (alignment configurable). Required field validation.
 - **Submissions** (`submissions.php`): Table view of all submissions. Click rows for detail modal. Date range filtering. CSV export with UTF-8 BOM for Excel compatibility.
+- **Settings**: Gear icon in sidebar opens settings modal. Configurable logo alignment (left, centre, right) applied to both preview and fill-in views.
 - **Field types**: `text`, `textarea`, `checkbox`, `dropdown`
 
 ---
@@ -475,6 +476,8 @@ if (!isset($_SESSION['analyst_id'])) {
 | `submit_form.php` | POST | Submit a filled-in form |
 | `get_submissions.php` | GET | Submissions for a form (with field data) |
 | `delete_submission.php` | POST | Delete a submission |
+| `get_settings.php` | GET | Get forms module settings (logo alignment) |
+| `save_settings.php` | POST | Save forms module settings |
 
 ### Settings (`api/settings/`)
 

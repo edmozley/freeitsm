@@ -185,27 +185,35 @@
     gap: 8px;
 }
 
-.save-message {
-    padding: 8px 14px;
-    border-radius: 5px;
-    font-size: 13px;
-    font-weight: 500;
-    margin-bottom: 12px;
+/* Unsaved changes indicator */
+.unsaved-indicator {
     display: none;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #e65100;
+    font-weight: 500;
 }
 
-.save-message.success {
-    display: block;
-    background: #e8f5e9;
-    color: #2e7d32;
-    border: 1px solid #c8e6c9;
+.unsaved-indicator.visible {
+    display: flex;
 }
 
-.save-message.error {
-    display: block;
-    background: #ffebee;
-    color: #c62828;
-    border: 1px solid #ffcdd2;
+.unsaved-indicator .unsaved-dot {
+    width: 8px;
+    height: 8px;
+    background: #ff9800;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.save-btn.has-changes {
+    animation: save-pulse 2s ease-in-out infinite;
+}
+
+@keyframes save-pulse {
+    0%, 100% { box-shadow: none; }
+    50% { box-shadow: 0 0 0 3px rgba(255,152,0,0.3); }
 }
 
 /* Form settings (title/desc) */
@@ -675,4 +683,141 @@
     display: flex;
     gap: 8px;
     justify-content: flex-end;
+}
+
+/* Settings button in sidebar */
+.sidebar-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.sidebar-actions .btn-full {
+    flex: 1;
+}
+
+.settings-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 0 10px;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+}
+
+.settings-btn:hover {
+    background: #f5f5f5;
+    border-color: #00897b;
+    color: #00897b;
+}
+
+/* Settings modal */
+.settings-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-overlay.open { display: flex; }
+
+.settings-box {
+    background: #fff;
+    border-radius: 8px;
+    padding: 24px;
+    max-width: 420px;
+    width: 90%;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+}
+
+.settings-box h3 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    color: #333;
+}
+
+.settings-group {
+    margin-bottom: 20px;
+}
+
+.settings-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.alignment-options {
+    display: flex;
+    gap: 8px;
+}
+
+.alignment-option {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    background: #fafafa;
+}
+
+.alignment-option:hover {
+    border-color: #80cbc4;
+    background: #f0f7f6;
+}
+
+.alignment-option.selected {
+    border-color: #00897b;
+    background: #e0f2f1;
+}
+
+.alignment-option svg {
+    display: block;
+    margin: 0 auto 4px;
+    color: #666;
+}
+
+.alignment-option.selected svg {
+    color: #00897b;
+}
+
+.alignment-option span {
+    font-size: 12px;
+    font-weight: 500;
+    color: #666;
+}
+
+.alignment-option.selected span {
+    color: #00897b;
+    font-weight: 600;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+
+/* Preview logo alignment variants */
+.preview-logo.align-left {
+    margin: 0 auto 20px 0;
+}
+
+.preview-logo.align-center {
+    margin: 0 auto 20px;
+}
+
+.preview-logo.align-right {
+    margin: 0 0 20px auto;
 }
