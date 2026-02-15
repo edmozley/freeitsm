@@ -23,6 +23,7 @@ A comprehensive web-based IT Service Management (ITSM) platform with 10 integrat
 - **Database**: Microsoft SQL Server (Express or higher)
 - **ODBC Driver**: [Microsoft ODBC Driver 17 or 18 for SQL Server](https://learn.microsoft.com/en-us/sql/connect/odbc/download-odbc-driver-for-sql-server)
 - **Extensions**: PHP PDO, PDO_ODBC, curl, openssl, mbstring
+- **Database credentials file**: A `db_config.php` file stored **outside your web root** (e.g. `C:\wamp64\db_config.php`) — see step 2 below. The path is configured in `config.php`.
 
 ### Installation
 
