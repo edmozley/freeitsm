@@ -16,25 +16,12 @@ $path_prefix = '../../';
     <title>Service Desk - Software Settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        .settings-container {
-            flex: 1;
-            overflow-y: auto;
-            background: #f5f7fa;
-            padding: 30px;
-        }
+        body { overflow: auto; height: auto; padding-top: 0; }
+        .settings-container { max-width: 900px; margin: 0 auto; padding: 30px; }
 
-        .settings-content {
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .settings-section {
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-            margin-bottom: 24px;
-            overflow: hidden;
-        }
+        /* Purple theme for Software tabs */
+        .tab:hover { color: #5c6bc0; }
+        .tab.active { color: #5c6bc0; border-bottom-color: #5c6bc0; }
 
         .section-header {
             padding: 18px 24px;
@@ -336,58 +323,60 @@ $path_prefix = '../../';
 <body>
     <?php include '../includes/header.php'; ?>
 
-    <div class="main-container settings-container">
-        <div class="settings-content">
-            <div class="settings-section">
-                <div class="section-header">
-                    <h3>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+    <div class="settings-container">
+        <div class="tabs">
+            <button class="tab active" data-tab="api-keys" onclick="switchTab('api-keys')">API Keys</button>
+        </div>
+
+        <div class="tab-content active" id="api-keys-tab">
+            <div class="section-header">
+                <h3>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path>
+                    </svg>
+                    API Keys
+                </h3>
+                <button class="btn btn-primary" onclick="generateKey()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    Generate
+                </button>
+            </div>
+            <div class="section-description">
+                API keys are used to authenticate requests to the software inventory submission endpoint.<br>
+                Clients send the key in the <code>Authorization</code> header when submitting inventory data to <code>/api/external/software-inventory/submit/</code>
+            </div>
+            <div id="newKeyBanner" class="new-key-banner">
+                <p>New API key generated. Copy it now — it won't be shown in full again.</p>
+                <div class="key-display">
+                    <span id="newKeyValue"></span>
+                    <button class="copy-btn" onclick="copyNewKey()" title="Copy to clipboard">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                         </svg>
-                        API Keys
-                    </h3>
-                    <button class="btn btn-primary" onclick="generateKey()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Generate New Key
                     </button>
                 </div>
-                <div class="section-description">
-                    API keys are used to authenticate requests to the software inventory submission endpoint.<br>
-                    Clients send the key in the <code>Authorization</code> header when submitting inventory data to <code>/api/external/software-inventory/submit/</code>
-                </div>
-                <div id="newKeyBanner" class="new-key-banner">
-                    <p>New API key generated. Copy it now — it won't be shown in full again.</p>
-                    <div class="key-display">
-                        <span id="newKeyValue"></span>
-                        <button class="copy-btn" onclick="copyNewKey()" title="Copy to clipboard">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                            </svg>
-                        </button>
-                    </div>
-                    <p class="hint">Use this key as the Authorization header value when calling the inventory API.</p>
-                </div>
-                <div class="section-body">
-                    <table class="key-table">
-                        <thead>
-                            <tr>
-                                <th>API Key</th>
-                                <th>Created</th>
-                                <th>Status</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="keyTableBody">
-                            <tr><td colspan="4">
-                                <div class="loading-spinner"><div class="spinner"></div></div>
-                            </td></tr>
-                        </tbody>
-                    </table>
-                </div>
+                <p class="hint">Use this key as the Authorization header value when calling the inventory API.</p>
+            </div>
+            <div class="section-body">
+                <table class="key-table">
+                    <thead>
+                        <tr>
+                            <th>API Key</th>
+                            <th>Created</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="keyTableBody">
+                        <tr><td colspan="4">
+                            <div class="loading-spinner"><div class="spinner"></div></div>
+                        </td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -405,6 +394,14 @@ $path_prefix = '../../';
     </div>
 
     <script>
+        function switchTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            const btn = document.querySelector('.tab[data-tab="' + tab + '"]');
+            if (btn) btn.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tab + '-tab').classList.add('active');
+        }
+
         const API_BASE = '../../api/software/';
         let allKeys = [];
         let deleteKeyId = null;
