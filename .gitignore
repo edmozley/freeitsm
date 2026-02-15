@@ -26,6 +26,7 @@ database/backups/
 # Claude Code settings
 .claude/
 CLAUDE.local.md
+CHANGELOG.local.md
 
 # Visual Studio Code
 .vscode/
