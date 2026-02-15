@@ -191,10 +191,11 @@ $path_prefix = '../';
                                 <option value="High">High</option>
                             </select>
                         </div>
-                        <div class="form-group" data-field="category">
-                            <label class="form-label">Category</label>
-                            <input type="text" class="form-input" id="changeCategory" placeholder="e.g. Network, Server, Software...">
-                        </div>
+                    </div>
+
+                    <div class="form-group" data-field="category">
+                        <label class="form-label">Category</label>
+                        <input type="text" class="form-input" id="changeCategory" placeholder="e.g. Network, Server, Software...">
                     </div>
 
                     <h3 class="form-section-title" data-section="people">People</h3>
@@ -212,12 +213,13 @@ $path_prefix = '../';
                                 <option value="">-- Select --</option>
                             </select>
                         </div>
-                        <div class="form-group" data-field="approver">
-                            <label class="form-label">Approver</label>
-                            <select class="form-input" id="changeApprover">
-                                <option value="">-- Select --</option>
-                            </select>
-                        </div>
+                    </div>
+
+                    <div class="form-group" data-field="approver">
+                        <label class="form-label">Approver</label>
+                        <select class="form-input" id="changeApprover">
+                            <option value="">-- Select --</option>
+                        </select>
                     </div>
 
                     <h3 class="form-section-title" data-section="schedule">Schedule</h3>
