@@ -111,6 +111,7 @@ $path_prefix = '../../';
         }
         .toggle-switch {
             position: relative;
+            display: inline-block;
             width: 44px;
             height: 24px;
             flex-shrink: 0;

@@ -163,7 +163,7 @@ $path_prefix = '../';
             const tbody = document.getElementById('checksTableBody');
 
             if (checks.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="no-data">No checks defined. <a href="manage_checks.php">Add some checks</a> to get started.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data">No checks defined. <a href="settings/">Add some checks</a> to get started.</td></tr>';
                 return;
             }
 
@@ -281,52 +281,32 @@ $path_prefix = '../';
 
         // Chart functionality
         let chartInstance = null;
+        let chartRawDates = [];
 
         async function loadChart() {
             const selectedDate = document.getElementById('checkDate').value;
-            console.log('Loading chart for date:', selectedDate);
             try {
                 const response = await fetch(`${API_BASE}get_chart_data.php?endDate=${selectedDate}`);
-                console.log('Chart API response status:', response.status);
                 const data = await response.json();
-                console.log('Chart data received:', data);
 
                 if (data.error) {
-                    console.error('Chart data error:', data.error);
                     showNotification('Error loading chart: ' + data.error, 'error');
                     return;
                 }
 
-                console.log('Dates:', data.dates);
-                console.log('Green values:', data.green);
-                console.log('Amber values:', data.amber);
-                console.log('Red values:', data.red);
-
+                chartRawDates = data.rawDates || [];
                 displayChart(data);
             } catch (error) {
-                console.error('Chart load error:', error);
                 showNotification('Error loading chart: ' + error.message, 'error');
             }
         }
 
         function displayChart(data) {
-            console.log('displayChart called with:', data);
             const canvas = document.getElementById('statusChart');
-            if (!canvas) {
-                console.error('Chart canvas not found');
-                return;
-            }
-            console.log('Canvas found:', canvas);
-            console.log('Canvas dimensions:', canvas.width, 'x', canvas.height);
+            if (!canvas) return;
             const ctx = canvas.getContext('2d');
-            console.log('Canvas context:', ctx);
 
-            if (chartInstance) {
-                console.log('Destroying existing chart instance');
-                chartInstance.destroy();
-            }
-
-            console.log('Creating new Chart.js instance...');
+            if (chartInstance) chartInstance.destroy();
 
             chartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -353,10 +333,18 @@ $path_prefix = '../';
                                 label: (context) => context.dataset.label + ': ' + context.parsed.y
                             }
                         }
+                    },
+                    onClick: function(e, elements) {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            if (chartRawDates[index]) {
+                                document.getElementById('checkDate').value = chartRawDates[index];
+                                dateChanged();
+                            }
+                        }
                     }
                 }
             });
-            console.log('Chart created successfully:', chartInstance);
         }
 
         function toggleChart() {
@@ -442,6 +430,14 @@ $path_prefix = '../';
 
             pdfContent.appendChild(table);
 
+            // Temporarily add to DOM so html2canvas can measure it, and hide the chart footer
+            const chartFooter = document.querySelector('.chart-footer');
+            chartFooter.style.display = 'none';
+            pdfContent.style.position = 'absolute';
+            pdfContent.style.left = '-9999px';
+            pdfContent.style.top = '0';
+            document.body.appendChild(pdfContent);
+
             const opt = {
                 margin: [10, 10, 10, 10],
                 filename: `morning-checks-${selectedDate}.pdf`,
@@ -455,6 +451,9 @@ $path_prefix = '../';
                 showNotification('PDF saved successfully', 'success');
             } catch (error) {
                 showNotification('Error generating PDF: ' + error.message, 'error');
+            } finally {
+                document.body.removeChild(pdfContent);
+                chartFooter.style.display = '';
             }
         }
 

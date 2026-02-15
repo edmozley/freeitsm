@@ -79,6 +79,7 @@ try {
 
     echo json_encode([
         'dates' => $dates,
+        'rawDates' => array_keys($data),
         'green' => $green,
         'amber' => $amber,
         'red' => $red
