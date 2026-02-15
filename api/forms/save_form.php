@@ -40,6 +40,10 @@ try {
         $stmt = $conn->prepare("UPDATE forms SET title = ?, description = ?, modified_date = GETUTCDATE() WHERE id = ?");
         $stmt->execute([$title, $description, $formId]);
 
+        // Delete submission data for existing fields (FK constraint prevents direct field deletion)
+        $stmt = $conn->prepare("DELETE FROM form_submission_data WHERE field_id IN (SELECT id FROM form_fields WHERE form_id = ?)");
+        $stmt->execute([$formId]);
+
         // Delete existing fields and re-insert
         $stmt = $conn->prepare("DELETE FROM form_fields WHERE form_id = ?");
         $stmt->execute([$formId]);
