@@ -38,7 +38,13 @@ function nullStr($val) {
     return (isset($val) && $val !== '' && $val !== null) ? trim($val) : null;
 }
 function nullDatetime($val) {
-    return (isset($val) && $val !== '' && $val !== null) ? str_replace('T', ' ', $val) : null;
+    if (!isset($val) || $val === '' || $val === null) return null;
+    $val = str_replace('T', ' ', $val);
+    // Ensure seconds are present for ODBC driver compatibility
+    if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $val)) {
+        $val .= ':00';
+    }
+    return $val;
 }
 function nullText($val) {
     if (!isset($val) || $val === null) return null;
