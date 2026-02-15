@@ -194,13 +194,13 @@ $path_prefix = '../';
 
     <!-- Archived Article Preview Modal -->
     <div class="modal" id="archivedArticleModal">
-        <div class="modal-content" style="max-width: 800px; max-height: 85vh; display: flex; flex-direction: column;">
-            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+        <div class="modal-content" style="max-width: 800px; max-height: 85vh; display: flex; flex-direction: column; padding: 30px;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
                 <h3 id="archivedArticleTitle" style="margin: 0;"></h3>
                 <button class="btn btn-secondary" onclick="closeArchivedArticleModal()" style="flex-shrink: 0;">&times;</button>
             </div>
-            <div id="archivedArticleMeta" style="font-size: 13px; color: #666; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e0e0e0;"></div>
-            <div id="archivedArticleBody" class="article-content-body" style="overflow-y: auto; flex: 1;"></div>
+            <div id="archivedArticleMeta" style="font-size: 13px; color: #666; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0;"></div>
+            <div id="archivedArticleBody" class="article-content-body" style="overflow-y: auto; flex: 1; padding: 4px 0;"></div>
         </div>
     </div>
 
