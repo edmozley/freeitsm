@@ -12,29 +12,21 @@ $configPath = __DIR__ . '/../config.php';
 if (file_exists($configPath)) {
     $checks[] = ['name' => 'config.php', 'status' => 'pass', 'detail' => 'Found'];
 
-    // Load config to get $db_config_path and constants
-    // Use output buffering to suppress any errors during include
-    ob_start();
+    // Extract $db_config_path by reading config.php as text (don't include it yet — require_once would fatal)
     $db_config_path = null;
-    try {
-        // Extract $db_config_path without executing the require_once
-        $configContents = file_get_contents($configPath);
-        if (preg_match('/\$db_config_path\s*=\s*[\'"](.+?)[\'"]\s*;/', $configContents, $matches)) {
-            $db_config_path = $matches[1];
-        }
-
-        // Actually load config (this sets constants and includes db_config)
-        require_once $configPath;
-        require_once __DIR__ . '/../includes/functions.php';
-    } catch (Exception $e) {
-        // Will be caught by individual checks below
+    $configContents = file_get_contents($configPath);
+    if (preg_match('/\$db_config_path\s*=\s*[\'"](.+?)[\'"]\s*;/', $configContents, $matches)) {
+        $db_config_path = $matches[1];
     }
-    ob_end_clean();
 
     // 2. Check db_config.php exists
     if ($db_config_path) {
         if (file_exists($db_config_path)) {
             $checks[] = ['name' => 'db_config.php', 'status' => 'pass', 'detail' => $db_config_path];
+
+            // Safe to include config.php now (require_once inside it will succeed)
+            require_once $configPath;
+            require_once __DIR__ . '/../includes/functions.php';
         } else {
             $checks[] = ['name' => 'db_config.php', 'status' => 'fail', 'detail' => "Not found at: $db_config_path"];
         }
