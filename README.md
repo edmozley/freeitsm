@@ -187,8 +187,8 @@ sdtickets/
 │   └── includes/
 │
 ├── morning-checks/                   # Morning Checks Module
-│   ├── index.php                     # Daily check interface
-│   ├── manage_checks.php             # Check definitions (admin)
+│   ├── index.php                     # Daily check interface with PDF export
+│   ├── settings/                     # Settings page (check definitions, drag-and-drop reorder)
 │   ├── create_tables.sql             # Database schema
 │   └── includes/
 │
@@ -361,7 +361,9 @@ Daily infrastructure health check recording.
 
 - Define checks with Red/Amber/Green (RAG) status options
 - Record daily results per check item
-- 30-day trend charts for each check
+- 30-day trend charts — click any bar to jump to that day's checks
+- Settings page with tabbed layout, modal popups for add/edit, and drag-and-drop reordering
+- PDF export with selectable text, company logo, and coloured status values
 
 ### Reporting (`reporting/`)
 System logs and audit trails.
@@ -523,7 +525,7 @@ if (!isset($_SESSION['analyst_id'])) {
 
 - `api/change-management/` — 12 endpoints for change CRUD, attachments, calendar, approvals, and settings
 - `api/calendar/` — 7 endpoints for events and categories
-- `api/morning-checks/` — 7 endpoints for check definitions, results, and charts
+- `api/morning-checks/` — 8 endpoints for check definitions, results, charts, and reorder
 - `api/reporting/` — 2 endpoints for system logs
 - `api/software/` — 5 endpoints for software inventory and licence management
 - `api/system/` — 4 endpoints for encryption status and module access management

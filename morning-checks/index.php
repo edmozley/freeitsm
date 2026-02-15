@@ -103,7 +103,8 @@ $path_prefix = '../';
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
         const API_BASE = '../api/morning-checks/';
 
@@ -364,97 +365,74 @@ $path_prefix = '../';
         async function saveToPDF() {
             const selectedDate = document.getElementById('checkDate').value;
             const dateText = document.getElementById('dateDisplayText').textContent;
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
 
-            const pdfContent = document.createElement('div');
-            pdfContent.style.padding = '20px';
-            pdfContent.style.backgroundColor = 'white';
+            let startY = 10;
 
-            pdfContent.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <img src="../assets/images/CompanyLogo.png" alt="Company Logo" style="max-height: 40px; margin-bottom: 15px;">
-                    <h2 style="margin: 10px 0; color: #2c3e50; font-size: 18px;">${dateText}</h2>
-                </div>
-            `;
-
-            const table = document.getElementById('checksTable').cloneNode(true);
-            const headerRow = table.querySelector('thead tr');
-            const statusHeaderIndex = Array.from(headerRow.children).findIndex(th => th.textContent === 'Status');
-            if (statusHeaderIndex !== -1) {
-                headerRow.deleteCell(statusHeaderIndex);
+            // Add logo
+            try {
+                const img = new Image();
+                img.crossOrigin = 'anonymous';
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = '../assets/images/CompanyLogo.png';
+                });
+                const maxH = 12;
+                const w = maxH * (img.width / img.height);
+                doc.addImage(img, 'PNG', 10, startY, w, maxH);
+                startY += maxH + 5;
+            } catch (e) {
+                // Continue without logo
             }
 
-            const rows = table.querySelectorAll('tbody tr');
+            // Add title
+            doc.setFontSize(14);
+            doc.setTextColor(44, 62, 80);
+            doc.text(dateText, 10, startY + 5);
+            startY += 12;
+
+            // Build table data from the DOM
+            const rows = document.querySelectorAll('#checksTableBody tr');
+            const body = [];
             rows.forEach(row => {
                 if (row.cells.length > 1) {
-                    const statusCell = row.cells[statusHeaderIndex];
-                    let status = 'Not set';
-                    if (statusCell) {
-                        const activeBtn = statusCell.querySelector('.status-btn.active');
-                        if (activeBtn) status = activeBtn.textContent;
-                    }
+                    const name = row.cells[0].textContent.trim();
+                    const desc = row.cells[1].textContent.trim();
+                    const activeBtn = row.cells[2]?.querySelector('.status-btn.active');
+                    const status = activeBtn ? activeBtn.textContent : 'Not set';
+                    const notes = row.cells[3]?.textContent.trim() || '-';
+                    body.push([name, desc, status, notes]);
+                }
+            });
 
-                    if (statusHeaderIndex !== -1 && row.cells[statusHeaderIndex]) {
-                        row.deleteCell(statusHeaderIndex);
-                    }
-
-                    const checkNameCell = row.cells[0];
-                    if (checkNameCell) {
-                        const originalName = checkNameCell.textContent.trim();
-                        let statusColor = '#6c757d';
-                        if (status === 'Green') statusColor = '#28a745';
-                        if (status === 'Amber') statusColor = '#ffc107';
-                        if (status === 'Red') statusColor = '#dc3545';
-
-                        checkNameCell.innerHTML = `
-                            <strong>${originalName}</strong>
-                            <br><span style="color: ${statusColor}; font-weight: bold; font-size: 12px;">${status}</span>
-                        `;
+            // Generate table
+            doc.autoTable({
+                startY: startY,
+                head: [['Check name', 'Description', 'Status', 'Notes']],
+                body: body,
+                styles: { fontSize: 9, cellPadding: 3 },
+                headStyles: { fillColor: [248, 249, 250], textColor: [0, 0, 0], fontStyle: 'bold' },
+                columnStyles: {
+                    0: { cellWidth: 35, fontStyle: 'bold' },
+                    2: { cellWidth: 20, halign: 'center' },
+                    3: { cellWidth: 35 }
+                },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 2) {
+                        const status = data.cell.raw;
+                        data.cell.styles.fontStyle = 'bold';
+                        if (status === 'Green') data.cell.styles.textColor = [40, 167, 69];
+                        else if (status === 'Amber') data.cell.styles.textColor = [200, 150, 0];
+                        else if (status === 'Red') data.cell.styles.textColor = [220, 53, 69];
+                        else data.cell.styles.textColor = [108, 117, 125];
                     }
                 }
             });
 
-            table.style.width = '100%';
-            table.style.borderCollapse = 'collapse';
-            table.style.fontSize = '11px';
-
-            table.querySelectorAll('th, td').forEach(cell => {
-                cell.style.border = '1px solid #dee2e6';
-                cell.style.padding = '8px';
-                cell.style.textAlign = 'left';
-            });
-
-            table.querySelectorAll('th').forEach(th => {
-                th.style.backgroundColor = '#f8f9fa';
-                th.style.fontWeight = 'bold';
-            });
-
-            pdfContent.appendChild(table);
-
-            // Temporarily add to DOM so html2canvas can measure it, and hide the chart footer
-            const chartFooter = document.querySelector('.chart-footer');
-            chartFooter.style.display = 'none';
-            pdfContent.style.position = 'absolute';
-            pdfContent.style.left = '-9999px';
-            pdfContent.style.top = '0';
-            document.body.appendChild(pdfContent);
-
-            const opt = {
-                margin: [10, 10, 10, 10],
-                filename: `morning-checks-${selectedDate}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-
-            try {
-                await html2pdf().set(opt).from(pdfContent).save();
-                showNotification('PDF saved successfully', 'success');
-            } catch (error) {
-                showNotification('Error generating PDF: ' + error.message, 'error');
-            } finally {
-                document.body.removeChild(pdfContent);
-                chartFooter.style.display = '';
-            }
+            doc.save(`morning-checks-${selectedDate}.pdf`);
+            showNotification('PDF saved successfully', 'success');
         }
 
         // Initialize
