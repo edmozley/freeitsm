@@ -101,6 +101,43 @@ $path_prefix = '../../';
             color: #999;
             font-size: 14px;
         }
+
+        /* Toggle switch */
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 4px;
+        }
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #ccc;
+            border-radius: 24px;
+            transition: background 0.2s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider { background: #007bff; }
+        .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
+        .toggle-label { font-size: 14px; color: #333; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -125,7 +162,6 @@ $path_prefix = '../../';
     <!-- Add Modal -->
     <div id="addModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeAddModal()">&times;</span>
             <h2>Add check</h2>
             <form id="addCheckForm">
                 <div class="form-group">
@@ -147,7 +183,6 @@ $path_prefix = '../../';
     <!-- Edit Modal -->
     <div id="editModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeEditModal()">&times;</span>
             <h2>Edit check</h2>
             <form id="editCheckForm">
                 <input type="hidden" id="editCheckId">
@@ -160,9 +195,12 @@ $path_prefix = '../../';
                     <textarea id="editCheckDescription" rows="3"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>
-                        <input type="checkbox" id="editIsActive">
-                        Active
+                    <label class="toggle-group">
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="editIsActive">
+                            <span class="toggle-slider"></span>
+                        </span>
+                        <span class="toggle-label">Active</span>
                     </label>
                 </div>
                 <div class="modal-actions">
