@@ -1531,6 +1531,9 @@ CREATE TABLE [dbo].[contacts] (
     [surname] [nvarchar](100) NOT NULL,
     [email] [nvarchar](255) NULL,
     [mobile] [nvarchar](50) NULL,
+    [job_title] [nvarchar](100) NULL,
+    [direct_dial] [nvarchar](50) NULL,
+    [switchboard] [nvarchar](50) NULL,
     [is_active] [bit] NOT NULL DEFAULT 1,
     [created_datetime] [datetime] NULL DEFAULT GETDATE(),
     PRIMARY KEY CLUSTERED ([id] ASC) ON [PRIMARY]

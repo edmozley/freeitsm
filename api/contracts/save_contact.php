@@ -19,6 +19,9 @@ try {
     $surname = trim($data['surname'] ?? '');
     $email = trim($data['email'] ?? '');
     $mobile = trim($data['mobile'] ?? '');
+    $job_title = trim($data['job_title'] ?? '') ?: null;
+    $direct_dial = trim($data['direct_dial'] ?? '') ?: null;
+    $switchboard = trim($data['switchboard'] ?? '') ?: null;
     $is_active = $data['is_active'] ?? 1;
 
     if (empty($first_name) || empty($surname)) {
@@ -28,13 +31,13 @@ try {
     $conn = connectToDatabase();
 
     if ($id) {
-        $sql = "UPDATE contacts SET supplier_id = ?, first_name = ?, surname = ?, email = ?, mobile = ?, is_active = ? WHERE id = ?";
+        $sql = "UPDATE contacts SET supplier_id = ?, first_name = ?, surname = ?, email = ?, mobile = ?, job_title = ?, direct_dial = ?, switchboard = ?, is_active = ? WHERE id = ?";
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$supplier_id ?: null, $first_name, $surname, $email ?: null, $mobile ?: null, $is_active, $id]);
+        $stmt->execute([$supplier_id ?: null, $first_name, $surname, $email ?: null, $mobile ?: null, $job_title, $direct_dial, $switchboard, $is_active, $id]);
     } else {
-        $sql = "INSERT INTO contacts (supplier_id, first_name, surname, email, mobile, is_active) OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO contacts (supplier_id, first_name, surname, email, mobile, job_title, direct_dial, switchboard, is_active) OUTPUT INSERTED.id VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$supplier_id ?: null, $first_name, $surname, $email ?: null, $mobile ?: null, $is_active]);
+        $stmt->execute([$supplier_id ?: null, $first_name, $surname, $email ?: null, $mobile ?: null, $job_title, $direct_dial, $switchboard, $is_active]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         $id = $row['id'];
     }

@@ -59,6 +59,7 @@ $path_prefix = '../../';
                 <thead>
                     <tr>
                         <th>Name</th>
+                        <th>Job Title</th>
                         <th>Email</th>
                         <th>Mobile</th>
                         <th>Supplier</th>
@@ -67,7 +68,7 @@ $path_prefix = '../../';
                     </tr>
                 </thead>
                 <tbody id="contactsList">
-                    <tr><td colspan="6" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -91,8 +92,20 @@ $path_prefix = '../../';
                     <input type="email" id="email">
                 </div>
                 <div class="form-group">
+                    <label for="jobTitle">Job Title</label>
+                    <input type="text" id="jobTitle">
+                </div>
+                <div class="form-group">
                     <label for="mobile">Mobile</label>
                     <input type="text" id="mobile">
+                </div>
+                <div class="form-group">
+                    <label for="directDial">Direct Dial</label>
+                    <input type="text" id="directDial">
+                </div>
+                <div class="form-group">
+                    <label for="switchboard">Switchboard</label>
+                    <input type="text" id="switchboard">
                 </div>
                 <div class="form-group">
                     <label for="supplierId">Supplier</label>
@@ -153,12 +166,13 @@ $path_prefix = '../../';
         function renderContacts() {
             const tbody = document.getElementById('contactsList');
             if (contacts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:20px;color:#999;">No contacts yet. Click Add to create one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">No contacts yet. Click Add to create one.</td></tr>';
                 return;
             }
             tbody.innerHTML = contacts.map(c => `
                 <tr>
                     <td><strong>${escapeHtml(c.first_name + ' ' + c.surname)}</strong></td>
+                    <td>${escapeHtml(c.job_title || '-')}</td>
                     <td>${escapeHtml(c.email || '-')}</td>
                     <td>${escapeHtml(c.mobile || '-')}</td>
                     <td>${escapeHtml(c.supplier_name || '-')}</td>
@@ -180,8 +194,11 @@ $path_prefix = '../../';
             document.getElementById('itemId').value = contact ? contact.id : '';
             document.getElementById('firstName').value = contact ? contact.first_name : '';
             document.getElementById('surname').value = contact ? contact.surname : '';
+            document.getElementById('jobTitle').value = contact ? (contact.job_title || '') : '';
             document.getElementById('email').value = contact ? (contact.email || '') : '';
             document.getElementById('mobile').value = contact ? (contact.mobile || '') : '';
+            document.getElementById('directDial').value = contact ? (contact.direct_dial || '') : '';
+            document.getElementById('switchboard').value = contact ? (contact.switchboard || '') : '';
             document.getElementById('supplierId').value = contact ? (contact.supplier_id || '') : '';
             document.getElementById('itemActive').checked = contact ? contact.is_active : true;
             document.getElementById('editModal').classList.add('active');
@@ -213,8 +230,11 @@ $path_prefix = '../../';
             const payload = {
                 first_name: document.getElementById('firstName').value.trim(),
                 surname: document.getElementById('surname').value.trim(),
+                job_title: document.getElementById('jobTitle').value.trim(),
                 email: document.getElementById('email').value.trim(),
                 mobile: document.getElementById('mobile').value.trim(),
+                direct_dial: document.getElementById('directDial').value.trim(),
+                switchboard: document.getElementById('switchboard').value.trim(),
                 supplier_id: document.getElementById('supplierId').value || null,
                 is_active: document.getElementById('itemActive').checked ? 1 : 0
             };

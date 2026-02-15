@@ -14,7 +14,9 @@ try {
     $conn = connectToDatabase();
     $supplier_id = $_GET['supplier_id'] ?? null;
 
-    $sql = "SELECT c.id, c.supplier_id, c.first_name, c.surname, c.email, c.mobile, c.is_active, c.created_datetime,
+    $sql = "SELECT c.id, c.supplier_id, c.first_name, c.surname, c.email, c.mobile,
+                   c.job_title, c.direct_dial, c.switchboard,
+                   c.is_active, c.created_datetime,
                    s.legal_name AS supplier_name
             FROM contacts c
             LEFT JOIN suppliers s ON c.supplier_id = s.id";
