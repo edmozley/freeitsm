@@ -82,7 +82,7 @@ try {
             $expirySeconds = $trustDays * 86400;
 
             $insStmt = $conn->prepare("INSERT INTO trusted_devices (analyst_id, device_token_hash, user_agent, ip_address, created_datetime, expires_datetime)
-                                       VALUES (?, ?, ?, ?, GETUTCDATE(), DATEADD(DAY, ?, GETUTCDATE()))");
+                                       VALUES (?, ?, ?, ?, GETUTCDATE(), DATEADD(DAY, CAST(? AS INT), GETUTCDATE()))");
             $insStmt->execute([$analystId, $tokenHash, $_SERVER['HTTP_USER_AGENT'] ?? '', $_SERVER['REMOTE_ADDR'] ?? '', $trustDays]);
 
             setcookie('trusted_device', $cookieValue, time() + $expirySeconds, '/', '', false, true);

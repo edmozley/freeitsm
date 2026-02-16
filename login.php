@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $lockoutMins = (int)(getSecuritySetting($conn, 'lockout_duration_minutes') ?? 30);
 
                     if ($maxFailed > 0 && $newCount >= $maxFailed) {
-                        $lockStmt = $conn->prepare("UPDATE analysts SET failed_login_count = ?, locked_until = DATEADD(MINUTE, ?, GETUTCDATE()) WHERE id = ?");
+                        $lockStmt = $conn->prepare("UPDATE analysts SET failed_login_count = ?, locked_until = DATEADD(MINUTE, CAST(? AS INT), GETUTCDATE()) WHERE id = ?");
                         $lockStmt->execute([$newCount, $lockoutMins, $analyst['id']]);
                     } else {
                         $incStmt = $conn->prepare("UPDATE analysts SET failed_login_count = ? WHERE id = ?");
