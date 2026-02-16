@@ -42,19 +42,19 @@ $path_prefix = '../';
         }
 
         .system-cards {
-            display: flex;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
             gap: 24px;
-            justify-content: center;
+            max-width: 700px;
         }
 
         .system-card {
             background: #fff;
             border-radius: 12px;
-            padding: 40px 36px;
+            padding: 32px 30px;
             box-shadow: 0 2px 12px rgba(0,0,0,0.08);
             text-decoration: none;
             color: inherit;
-            width: 280px;
             transition: transform 0.15s, box-shadow 0.15s;
             border: 2px solid transparent;
         }
