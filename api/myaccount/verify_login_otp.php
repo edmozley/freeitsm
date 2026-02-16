@@ -30,9 +30,16 @@ try {
     $analystId = $_SESSION['mfa_pending_analyst_id'];
 
     // Get the encrypted TOTP secret and trust/password fields
-    $sql = "SELECT totp_secret, trust_device_enabled, password_changed_datetime FROM analysts WHERE id = ? AND totp_enabled = 1";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$analystId]);
+    // Try extended query first; fall back to basic if security columns don't exist yet
+    try {
+        $sql = "SELECT totp_secret, trust_device_enabled, password_changed_datetime FROM analysts WHERE id = ? AND totp_enabled = 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$analystId]);
+    } catch (Exception $colEx) {
+        $sql = "SELECT totp_secret FROM analysts WHERE id = ? AND totp_enabled = 1";
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$analystId]);
+    }
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$row || empty($row['totp_secret'])) {
