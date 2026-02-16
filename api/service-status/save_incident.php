@@ -55,17 +55,19 @@ try {
             $conn->prepare($sql)->execute([$title, $status, $comment, $id]);
         }
     } else {
-        // Insert new incident
+        // Insert new incident with OUTPUT to get the new ID
         if ($status === 'Resolved') {
-            $sql = "INSERT INTO status_incidents (title, status, comment, created_by_id, resolved_datetime) VALUES (?, ?, ?, ?, GETUTCDATE())";
+            $sql = "INSERT INTO status_incidents (title, status, comment, created_by_id, resolved_datetime)
+                    OUTPUT INSERTED.id
+                    VALUES (?, ?, ?, ?, GETUTCDATE())";
         } else {
-            $sql = "INSERT INTO status_incidents (title, status, comment, created_by_id) VALUES (?, ?, ?, ?)";
+            $sql = "INSERT INTO status_incidents (title, status, comment, created_by_id)
+                    OUTPUT INSERTED.id
+                    VALUES (?, ?, ?, ?)";
         }
-        $conn->prepare($sql)->execute([$title, $status, $comment, $_SESSION['analyst_id']]);
-
-        // Get the new ID (ODBC driver doesn't support lastInsertId)
-        $idStmt = $conn->query("SELECT SCOPE_IDENTITY() AS id");
-        $id = $idStmt->fetch(PDO::FETCH_ASSOC)['id'];
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$title, $status, $comment, $_SESSION['analyst_id']]);
+        $id = $stmt->fetch(PDO::FETCH_ASSOC)['id'];
     }
 
     // Re-insert affected services
