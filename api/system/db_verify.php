@@ -9,7 +9,7 @@ require_once '../../includes/functions.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['analyst_id'])) {
+if (!isset($_SESSION['analyst_id']) && empty($_SESSION['setup_access'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }

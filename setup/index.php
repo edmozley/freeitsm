@@ -5,6 +5,9 @@
  * DELETE THIS FOLDER once your system is in production.
  */
 
+session_start();
+$_SESSION['setup_access'] = true;
+
 $checks = [];
 $adminCreated = false;
 $adminError = null;
@@ -427,11 +430,74 @@ $totalCount = count($checks);
             </div>
         <?php endif; ?>
 
+        <?php if ($dbConnected): ?>
+        <div class="admin-section" id="dbVerifySection">
+            <h2>Database Verify</h2>
+            <p>Check and auto-create any missing tables or columns in the database.</p>
+            <button type="button" class="admin-btn" id="dbVerifyBtn" onclick="runDbVerify()">Run</button>
+            <div id="dbVerifyResult" style="margin-top: 12px; display: none;"></div>
+        </div>
+        <?php endif; ?>
+
         <div class="footer-warning">
             Once your system is in production, delete the <strong>/setup</strong> folder for security.
         </div>
 
         <div class="php-version">PHP <?= phpversion() ?></div>
     </div>
+
+    <script>
+    async function runDbVerify() {
+        const btn = document.getElementById('dbVerifyBtn');
+        const result = document.getElementById('dbVerifyResult');
+        btn.disabled = true;
+        btn.textContent = 'Running...';
+        result.style.display = 'none';
+
+        try {
+            const resp = await fetch('../api/system/db_verify.php');
+            const data = await resp.json();
+
+            if (data.success) {
+                let html = '<div style="font-size:13px;">';
+                let created = 0, updated = 0, ok = 0, errors = 0;
+                data.results.forEach(r => {
+                    if (r.status === 'created') created++;
+                    else if (r.status === 'updated') updated++;
+                    else if (r.status === 'error') errors++;
+                    else ok++;
+                });
+                html += '<strong>' + data.total_tables + ' tables checked:</strong> ';
+                html += ok + ' OK';
+                if (created) html += ', ' + created + ' created';
+                if (updated) html += ', ' + updated + ' updated';
+                if (errors) html += ', <span style="color:#dc3545">' + errors + ' errors</span>';
+
+                // Show details for non-ok tables
+                const changed = data.results.filter(r => r.status !== 'ok');
+                if (changed.length > 0) {
+                    html += '<ul style="margin-top:8px;padding-left:18px;">';
+                    changed.forEach(r => {
+                        const color = r.status === 'error' ? '#dc3545' : '#28a745';
+                        html += '<li style="color:' + color + '">' + r.table + ': ' + r.details.join('; ') + '</li>';
+                    });
+                    html += '</ul>';
+                }
+                html += '</div>';
+                result.innerHTML = html;
+                result.style.display = 'block';
+            } else {
+                result.innerHTML = '<div style="color:#dc3545;font-size:13px;">' + (data.error || 'Unknown error') + '</div>';
+                result.style.display = 'block';
+            }
+        } catch (e) {
+            result.innerHTML = '<div style="color:#dc3545;font-size:13px;">Failed to run DB verify: ' + e.message + '</div>';
+            result.style.display = 'block';
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Run';
+    }
+    </script>
 </body>
 </html>
