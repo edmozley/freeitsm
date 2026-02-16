@@ -81,15 +81,19 @@ try {
             $cookieValue = bin2hex($rawToken);
             $expirySeconds = $trustDays * 86400;
 
+            // Interpolate int values directly — PDO ODBC sends all params as text type
+            // which SQL Server refuses for int columns
+            $aid = intval($analystId);
+            $days = intval($trustDays);
             $insStmt = $conn->prepare("INSERT INTO trusted_devices (analyst_id, device_token_hash, user_agent, ip_address, created_datetime, expires_datetime)
-                                       VALUES (?, ?, ?, ?, GETUTCDATE(), DATEADD(DAY, CAST(? AS INT), GETUTCDATE()))");
-            $insStmt->execute([$analystId, $tokenHash, $_SERVER['HTTP_USER_AGENT'] ?? '', $_SERVER['REMOTE_ADDR'] ?? '', $trustDays]);
+                                       VALUES ({$aid}, ?, ?, ?, GETUTCDATE(), DATEADD(DAY, {$days}, GETUTCDATE()))");
+            $insStmt->execute([$tokenHash, $_SERVER['HTTP_USER_AGENT'] ?? '', $_SERVER['REMOTE_ADDR'] ?? '']);
 
             setcookie('trusted_device', $cookieValue, time() + $expirySeconds, '/', '', false, true);
 
             // Clean up expired tokens for this analyst
-            $cleanStmt = $conn->prepare("DELETE FROM trusted_devices WHERE analyst_id = ? AND expires_datetime < GETUTCDATE()");
-            $cleanStmt->execute([$analystId]);
+            $cleanStmt = $conn->prepare("DELETE FROM trusted_devices WHERE analyst_id = {$aid} AND expires_datetime < GETUTCDATE()");
+            $cleanStmt->execute();
         }
     }
 
