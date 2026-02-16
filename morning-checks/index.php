@@ -22,6 +22,7 @@ $path_prefix = '../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Morning Checks</title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script src="../assets/js/toast.js"></script>
     <link rel="stylesheet" href="style.css">
     <style>
         /* Override body padding for header */
@@ -229,14 +230,14 @@ $path_prefix = '../';
                 const data = await response.json();
 
                 if (data.success) {
-                    showNotification('Check saved successfully', 'success');
+                    showToast('Check saved successfully', 'success');
                     loadChecks();
                     loadChart();
                 } else {
-                    showNotification('Error: ' + data.error, 'error');
+                    showToast('Error: ' + data.error, 'error');
                 }
             } catch (error) {
-                showNotification('Error saving check: ' + error.message, 'error');
+                showToast('Error saving check: ' + error.message, 'error');
             }
         }
 
@@ -252,7 +253,7 @@ $path_prefix = '../';
             const notes = document.getElementById('modalNotes').value.trim();
 
             if (!notes) {
-                showNotification('Notes are required for ' + status + ' status', 'error');
+                showToast('Notes are required for ' + status + ' status', 'error');
                 return;
             }
 
@@ -267,19 +268,6 @@ $path_prefix = '../';
             }
         }
 
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-
-            setTimeout(() => notification.classList.add('show'), 10);
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
-
         // Chart functionality
         let chartInstance = null;
         let chartRawDates = [];
@@ -291,14 +279,14 @@ $path_prefix = '../';
                 const data = await response.json();
 
                 if (data.error) {
-                    showNotification('Error loading chart: ' + data.error, 'error');
+                    showToast('Error loading chart: ' + data.error, 'error');
                     return;
                 }
 
                 chartRawDates = data.rawDates || [];
                 displayChart(data);
             } catch (error) {
-                showNotification('Error loading chart: ' + error.message, 'error');
+                showToast('Error loading chart: ' + error.message, 'error');
             }
         }
 
@@ -432,7 +420,7 @@ $path_prefix = '../';
             });
 
             doc.save(`morning-checks-${selectedDate}.pdf`);
-            showNotification('PDF saved successfully', 'success');
+            showToast('PDF saved successfully', 'success');
         }
 
         // Initialize

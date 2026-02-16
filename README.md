@@ -414,6 +414,11 @@ System administration and configuration.
   - System module cannot be disabled (always accessible)
   - Auto-saves on toggle with debounced API calls and toast notifications
   - Permissions enforced on homepage cards and waffle menu navigation
+- **Toast Notifications** (`assets/js/toast.js`): Global notification system used across all modules
+  - Four types: success (green), error (red), warning (amber), info (blue) — each with icon and colour bar
+  - 9 configurable screen positions via visual grid picker in System Settings → General
+  - Position preference saved per-browser in localStorage
+  - Slide-in animations, auto-dismiss after 4 seconds, manual close button
 
 ### Forms (`forms/`)
 Dynamic form builder and submission system with a unified sidebar + editor layout.

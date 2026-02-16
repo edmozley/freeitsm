@@ -15,6 +15,7 @@ $path_prefix = '../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Form Builder</title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script src="../assets/js/toast.js"></script>
     <style>
         .builder-container {
             flex: 1;
@@ -394,28 +395,6 @@ $path_prefix = '../';
             font-size: 13px;
         }
 
-        .save-message {
-            padding: 8px 14px;
-            border-radius: 5px;
-            font-size: 13px;
-            font-weight: 500;
-            margin-bottom: 12px;
-            display: none;
-        }
-
-        .save-message.success {
-            display: block;
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
-        }
-
-        .save-message.error {
-            display: block;
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
-        }
     </style>
 </head>
 <body>
@@ -433,8 +412,6 @@ $path_prefix = '../';
                     </button>
                 </div>
             </div>
-
-            <div class="save-message" id="saveMessage"></div>
 
             <div class="builder-layout">
                 <div class="builder-left">
@@ -680,13 +657,13 @@ $path_prefix = '../';
         async function saveForm() {
             const title = document.getElementById('formTitle').value.trim();
             if (!title) {
-                showMessage('Please enter a form title', 'error');
+                showToast('Please enter a form title', 'error');
                 return;
             }
 
             const validFields = fields.filter(f => f.label.trim());
             if (validFields.length === 0) {
-                showMessage('Please add at least one field with a label', 'error');
+                showToast('Please add at least one field with a label', 'error');
                 return;
             }
 
@@ -717,21 +694,12 @@ $path_prefix = '../';
                         history.replaceState(null, '', 'builder.php?id=' + formId);
                         document.getElementById('pageTitle').textContent = 'Edit Form';
                     }
-                    showMessage('Form saved', 'success');
+                    showToast('Form saved', 'success');
                 } else {
-                    showMessage('Error: ' + data.error, 'error');
+                    showToast('Error: ' + data.error, 'error');
                 }
             } catch (e) {
-                showMessage('Failed to save form', 'error');
-            }
-        }
-
-        function showMessage(text, type) {
-            const el = document.getElementById('saveMessage');
-            el.textContent = text;
-            el.className = 'save-message ' + type;
-            if (type === 'success') {
-                setTimeout(() => { el.style.display = 'none'; }, 3000);
+                showToast('Failed to save form', 'error');
             }
         }
 

@@ -15,6 +15,7 @@ $path_prefix = '../../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Asset Settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script src="../../assets/js/toast.js"></script>
     <style>
         body {
             overflow: auto;
@@ -124,10 +125,6 @@ $path_prefix = '../../';
         .btn-primary:hover { background-color: #0b5c0b; }
         .btn-primary:disabled { background-color: #999; cursor: not-allowed; }
 
-        .save-message { font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s; }
-        .save-message.visible { opacity: 1; }
-        .save-message.success { color: #107c10; }
-        .save-message.error { color: #dc3545; }
 
         .password-wrapper { position: relative; }
         .password-wrapper .form-input { padding-right: 45px; }
@@ -247,8 +244,7 @@ $path_prefix = '../../';
                             </div>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary" id="saveBtn">Save Settings</button>
-                            <span class="save-message" id="saveMessage"></span>
+                            <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
                         </div>
                     </form>
                 </div>
@@ -510,23 +506,16 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showMessage('Settings saved successfully', 'success');
+                    showToast('Settings saved successfully', 'success');
                 } else {
-                    showMessage('Error: ' + data.error, 'error');
+                    showToast('Error: ' + data.error, 'error');
                 }
             } catch (error) {
-                showMessage('Failed to save settings', 'error');
+                showToast('Failed to save settings', 'error');
             }
 
             saveBtn.disabled = false;
             saveBtn.textContent = 'Save Settings';
-        }
-
-        function showMessage(text, type) {
-            const el = document.getElementById('saveMessage');
-            el.textContent = text;
-            el.className = 'save-message visible ' + type;
-            setTimeout(() => el.classList.remove('visible'), 3000);
         }
 
         function togglePassword() {

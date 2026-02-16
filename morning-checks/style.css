@@ -549,34 +549,6 @@ tr.status-red {
     min-width: 100px;
 }
 
-/* Notifications */
-.notification {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    padding: 15px 25px;
-    border-radius: 5px;
-    color: white;
-    font-weight: 500;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-    z-index: 2000;
-    opacity: 0;
-    transform: translateX(400px);
-    transition: all 0.3s ease;
-}
-
-.notification.show {
-    opacity: 1;
-    transform: translateX(0);
-}
-
-.notification.success {
-    background-color: #28a745;
-}
-
-.notification.error {
-    background-color: #dc3545;
-}
 
 /* Responsive Design */
 @media (max-width: 768px) {

@@ -27,6 +27,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script src="../../assets/js/toast.js"></script>
     <style>
         /* Page-specific overrides for settings page */
         body {
@@ -339,9 +340,14 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
 
                 <div class="modal-actions" style="justify-content: flex-start; margin-top: 30px;">
                     <button type="submit" class="btn btn-primary">Save</button>
-                    <span id="generalSettingsSaved" style="color: #155724; margin-left: 15px; display: none;">Settings saved!</span>
                 </div>
             </form>
+
+            <div style="margin-top: 40px; padding-top: 24px; border-top: 1px solid #eee; max-width: 600px;">
+                <h3 style="margin: 0 0 6px 0; font-size: 16px; color: #333;">Toast Notifications</h3>
+                <p style="margin: 0 0 16px 0; font-size: 13px; color: #666;">Choose where notifications appear on your screen. This is saved per-browser.</p>
+                <div id="toastPositionGrid" style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;width:192px;height:128px;background:#f0f0f0;border:2px solid #ddd;border-radius:8px;padding:8px;"></div>
+            </div>
         </div>
     </div>
 
@@ -1761,17 +1767,72 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 const data = await response.json();
 
                 if (data.success) {
-                    const savedMsg = document.getElementById('generalSettingsSaved');
-                    savedMsg.style.display = 'inline';
-                    setTimeout(() => { savedMsg.style.display = 'none'; }, 3000);
+                    showToast('Settings saved', 'success');
                 } else {
-                    alert('Error saving settings: ' + data.error);
+                    showToast('Error: ' + data.error, 'error');
                 }
             } catch (error) {
-                console.error('Error:', error);
-                alert('Failed to save settings');
+                showToast('Failed to save settings', 'error');
             }
         });
+
+        // Toast position picker
+        (function() {
+            const positions = [
+                { key: 'top-left', label: 'Top left' },
+                { key: 'top-center', label: 'Top centre' },
+                { key: 'top-right', label: 'Top right' },
+                { key: 'middle-left', label: 'Middle left' },
+                { key: 'middle-center', label: 'Middle centre' },
+                { key: 'middle-right', label: 'Middle right' },
+                { key: 'bottom-left', label: 'Bottom left' },
+                { key: 'bottom-center', label: 'Bottom centre' },
+                { key: 'bottom-right', label: 'Bottom right' }
+            ];
+
+            const grid = document.getElementById('toastPositionGrid');
+            const current = localStorage.getItem('toast_position') || 'bottom-right';
+
+            positions.forEach(pos => {
+                const cell = document.createElement('div');
+                cell.style.cssText = 'background:#e0e0e0;border-radius:4px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;justify-content:center';
+                cell.title = pos.label;
+                cell.dataset.pos = pos.key;
+
+                const dot = document.createElement('div');
+                dot.style.cssText = 'width:10px;height:10px;border-radius:50%;background:#bbb;transition:all 0.15s';
+                cell.appendChild(dot);
+
+                if (pos.key === current) {
+                    cell.style.background = '#0078d4';
+                    dot.style.background = '#fff';
+                }
+
+                cell.addEventListener('mouseenter', function() {
+                    if (pos.key !== (localStorage.getItem('toast_position') || 'bottom-right')) {
+                        cell.style.background = '#d0d0d0';
+                    }
+                });
+                cell.addEventListener('mouseleave', function() {
+                    if (pos.key !== (localStorage.getItem('toast_position') || 'bottom-right')) {
+                        cell.style.background = '#e0e0e0';
+                    }
+                });
+
+                cell.addEventListener('click', function() {
+                    localStorage.setItem('toast_position', pos.key);
+                    grid.querySelectorAll('div[data-pos]').forEach(c => {
+                        c.style.background = '#e0e0e0';
+                        c.querySelector('div').style.background = '#bbb';
+                    });
+                    cell.style.background = '#0078d4';
+                    dot.style.background = '#fff';
+                    showToast('Notifications will appear here', 'info');
+                });
+
+                grid.appendChild(cell);
+            });
+        })();
     </script>
 </body>
 </html>

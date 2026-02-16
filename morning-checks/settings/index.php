@@ -21,6 +21,7 @@ $path_prefix = '../../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Morning Checks Settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script src="../../assets/js/toast.js"></script>
     <link rel="stylesheet" href="../style.css">
     <style>
         body { overflow: auto; height: auto; padding-top: 0; }
@@ -355,10 +356,10 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (!data.success) {
-                    showNotification('Error saving order: ' + (data.error || 'Unknown error'), 'error');
+                    showToast('Error saving order: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                showNotification('Error saving order: ' + error.message, 'error');
+                showToast('Error saving order: ' + error.message, 'error');
             }
         }
 
@@ -416,14 +417,14 @@ $path_prefix = '../../';
                 const data = await response.json();
 
                 if (data.success) {
-                    showNotification('Check added successfully', 'success');
+                    showToast('Check added successfully', 'success');
                     closeAddModal();
                     loadChecks();
                 } else {
-                    showNotification('Error: ' + (data.error || 'Unknown error'), 'error');
+                    showToast('Error: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                showNotification('Error adding check: ' + error.message, 'error');
+                showToast('Error adding check: ' + error.message, 'error');
             }
         });
 
@@ -450,14 +451,14 @@ $path_prefix = '../../';
                 const data = await response.json();
 
                 if (data.success) {
-                    showNotification('Check updated successfully', 'success');
+                    showToast('Check updated successfully', 'success');
                     closeEditModal();
                     loadChecks();
                 } else {
-                    showNotification('Error: ' + (data.error || 'Unknown error'), 'error');
+                    showToast('Error: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                showNotification('Error updating check: ' + error.message, 'error');
+                showToast('Error updating check: ' + error.message, 'error');
             }
         });
 
@@ -477,13 +478,13 @@ $path_prefix = '../../';
                 const data = await response.json();
 
                 if (data.success) {
-                    showNotification('Check deleted successfully', 'success');
+                    showToast('Check deleted successfully', 'success');
                     loadChecks();
                 } else {
-                    showNotification('Error: ' + (data.error || 'Unknown error'), 'error');
+                    showToast('Error: ' + (data.error || 'Unknown error'), 'error');
                 }
             } catch (error) {
-                showNotification('Error deleting check: ' + error.message, 'error');
+                showToast('Error deleting check: ' + error.message, 'error');
             }
         }
 
@@ -494,18 +495,6 @@ $path_prefix = '../../';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
-        }
-
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = 'notification ' + type;
-            notification.textContent = message;
-            document.body.appendChild(notification);
-            setTimeout(() => notification.classList.add('show'), 10);
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
         }
 
         // Initialize

@@ -16,6 +16,7 @@ $contract_id = $_GET['id'] ?? null;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo $contract_id ? 'Edit' : 'Add'; ?> Contract</title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script src="../assets/js/toast.js"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
     <style>
         body { overflow: auto; height: auto; }
@@ -88,10 +89,6 @@ $contract_id = $_GET['id'] ?? null;
         .btn-secondary { background: #e0e0e0; color: #333; }
         .btn-secondary:hover { background: #d0d0d0; }
 
-        .save-message { font-size: 13px; font-weight: 500; opacity: 0; transition: opacity 0.3s; }
-        .save-message.visible { opacity: 1; }
-        .save-message.success { color: #155724; }
-        .save-message.error { color: #dc3545; }
 
         .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
         .toggle-switch input { opacity: 0; width: 0; height: 0; }
@@ -276,7 +273,6 @@ $contract_id = $_GET['id'] ?? null;
                     <div class="form-actions">
                         <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
                         <a href="index.php" class="btn btn-secondary">Cancel</a>
-                        <span class="save-message" id="saveMessage"></span>
                     </div>
                 </form>
             </div>
@@ -477,27 +473,20 @@ $contract_id = $_GET['id'] ?? null;
                     }
 
                     if (contractId) {
-                        showMessage('Contract saved', 'success');
+                        showToast('Contract saved', 'success');
                     } else {
                         window.location.href = 'view.php?id=' + savedId;
                     }
                 } else {
-                    showMessage('Error: ' + data.error, 'error');
+                    showToast('Error: ' + data.error, 'error');
                 }
             } catch (error) {
-                showMessage('Failed to save contract', 'error');
+                showToast('Failed to save contract', 'error');
             }
 
             saveBtn.disabled = false;
             saveBtn.textContent = 'Save';
         });
-
-        function showMessage(text, type) {
-            const el = document.getElementById('saveMessage');
-            el.textContent = text;
-            el.className = 'save-message visible ' + type;
-            setTimeout(() => el.classList.remove('visible'), 3000);
-        }
 
         function escapeHtml(text) {
             if (!text) return '';
