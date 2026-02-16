@@ -13,7 +13,7 @@ It genuinely helps and means a lot!
 
 # FreeITSM - Open Source Service Desk Platform
 
-A comprehensive web-based IT Service Management (ITSM) platform with 10 integrated modules covering tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, and system administration. Includes analyst account management with password reset and TOTP multi-factor authentication.
+A comprehensive web-based IT Service Management (ITSM) platform with 11 integrated modules covering tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, and system administration. Includes analyst account management with password reset and TOTP multi-factor authentication.
 
 ## 🚀 Quick Start
 
@@ -439,6 +439,12 @@ Supplier and contract lifecycle management with configurable rich text terms.
 - **Contacts** (`contacts/`): Supplier contacts with name, job title, email, direct dial, and switchboard fields.
 - **Settings** (`settings/`): Tabbed management of supplier types, supplier statuses, contract statuses, payment schedules, and contract term tabs.
 
+### Service Status (`service-status/`)
+Service health dashboard with incident-driven status tracking.
+
+- **Dashboard** (`index.php`): Grid view of all active services showing worst current impact from open incidents. Below, a list of active and recently resolved incidents. Create/edit incidents via modal with multi-service impact selector.
+- **Settings** (`settings/`): Manage the list of services (name, description, display order, active status).
+
 ---
 
 ## API Reference
@@ -557,6 +563,7 @@ if (!isset($_SESSION['analyst_id'])) {
 - `api/morning-checks/` — 8 endpoints for check definitions, results, charts, and reorder
 - `api/reporting/` — 2 endpoints for system logs
 - `api/software/` — 5 endpoints for software inventory and licence management
+- `api/service-status/` — 7 endpoints for services CRUD, incident management, and dashboard aggregation
 - `api/system/` — 4 endpoints for encryption status and module access management
 - `api/external/software-inventory/submit/` — External API for automated inventory collection
 

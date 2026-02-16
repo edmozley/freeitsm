@@ -1626,6 +1626,40 @@ CREATE TABLE [dbo].[trusted_devices] (
 ) ON [PRIMARY]
 GO
 
+-- Service Status module
+CREATE TABLE [dbo].[status_services](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[name] [nvarchar](100) NOT NULL,
+	[description] [nvarchar](500) NULL,
+	[is_active] [bit] NOT NULL DEFAULT 1,
+	[display_order] [int] NOT NULL DEFAULT 0,
+	[created_datetime] [datetime] NULL DEFAULT GETUTCDATE(),
+PRIMARY KEY CLUSTERED ([id] ASC) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+CREATE TABLE [dbo].[status_incidents](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[title] [nvarchar](255) NOT NULL,
+	[status] [nvarchar](30) NOT NULL DEFAULT 'Investigating',
+	[comment] [nvarchar](max) NULL,
+	[created_by_id] [int] NULL,
+	[created_datetime] [datetime] NULL DEFAULT GETUTCDATE(),
+	[updated_datetime] [datetime] NULL DEFAULT GETUTCDATE(),
+	[resolved_datetime] [datetime] NULL,
+PRIMARY KEY CLUSTERED ([id] ASC) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
+CREATE TABLE [dbo].[status_incident_services](
+	[id] [int] IDENTITY(1,1) NOT NULL,
+	[incident_id] [int] NOT NULL,
+	[service_id] [int] NOT NULL,
+	[impact_level] [nvarchar](30) NOT NULL DEFAULT 'Operational',
+PRIMARY KEY CLUSTERED ([id] ASC) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+
 -- Default admin account (username: admin, password: freeitsm)
 -- IMPORTANT: Change this password after first login!
 INSERT INTO [dbo].[analysts] ([username], [password_hash], [full_name], [email], [is_active], [created_datetime]) VALUES (N'admin', N'$2y$12$z9jzs9Sqol4i.ThVE/wwL.EzvbYtZrU0GHpzUJX7UC6ODp5h.q2U2', N'Administrator', N'admin@localhost', 1, GETUTCDATE());

@@ -700,6 +700,34 @@ $schema = [
         'is_active'                 => 'bit NOT NULL DEFAULT 1',
         'created_datetime'          => 'datetime NULL DEFAULT GETUTCDATE()',
     ],
+
+    // Service Status module
+    'status_services' => [
+        'id'                => 'int IDENTITY(1,1) NOT NULL',
+        'name'              => 'nvarchar(100) NOT NULL',
+        'description'       => 'nvarchar(500) NULL',
+        'is_active'         => 'bit NOT NULL DEFAULT 1',
+        'display_order'     => 'int NOT NULL DEFAULT 0',
+        'created_datetime'  => 'datetime NULL DEFAULT GETUTCDATE()',
+    ],
+
+    'status_incidents' => [
+        'id'                    => 'int IDENTITY(1,1) NOT NULL',
+        'title'                 => 'nvarchar(255) NOT NULL',
+        'status'                => 'nvarchar(30) NOT NULL DEFAULT \'Investigating\'',
+        'comment'               => 'nvarchar(max) NULL',
+        'created_by_id'         => 'int NULL',
+        'created_datetime'      => 'datetime NULL DEFAULT GETUTCDATE()',
+        'updated_datetime'      => 'datetime NULL DEFAULT GETUTCDATE()',
+        'resolved_datetime'     => 'datetime NULL',
+    ],
+
+    'status_incident_services' => [
+        'id'                => 'int IDENTITY(1,1) NOT NULL',
+        'incident_id'       => 'int NOT NULL',
+        'service_id'        => 'int NOT NULL',
+        'impact_level'      => 'nvarchar(30) NOT NULL DEFAULT \'Operational\'',
+    ],
 ];
 
 // Primary key definitions: table => pk_column (defaults to 'id')
