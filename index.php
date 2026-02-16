@@ -125,6 +125,7 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
         .module-card.software:hover { border-color: #5c6bc0; }
         .module-card.forms:hover { border-color: #00897b; }
         .module-card.contracts:hover { border-color: #f59e0b; }
+        .module-card.service-status:hover { border-color: #10b981; }
         .module-card.wiki:hover { border-color: #c62828; }
         .module-card.system:hover { border-color: #546e7a; }
 
@@ -154,6 +155,7 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
         .module-icon.software { background: linear-gradient(135deg, #5c6bc0, #3f51b5); }
         .module-icon.forms { background: linear-gradient(135deg, #00897b, #00695c); }
         .module-icon.contracts { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        .module-icon.service-status { background: linear-gradient(135deg, #10b981, #059669); }
         .module-icon.wiki { background: linear-gradient(135deg, #c62828, #b71c1c); }
         .module-icon.system { background: linear-gradient(135deg, #546e7a, #37474f); }
 
@@ -323,6 +325,17 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
                     </svg>
                 </div>
                 <div class="module-name">Contracts</div>
+            </a>
+            <?php endif; ?>
+
+            <?php if ($allowed_modules === null || in_array('service-status', $allowed_modules)): ?>
+            <a href="service-status/" class="module-card service-status" title="Monitor service health and track incidents">
+                <div class="module-icon service-status">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                </div>
+                <div class="module-name">Status</div>
             </a>
             <?php endif; ?>
 
