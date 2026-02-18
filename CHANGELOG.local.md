@@ -23,6 +23,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 048 | System            | Improvement | Update setup page to check for pdo_mysql extension instead of pdo_odbc |
 | 049 | System            | Feature     | Per-module demo data import with 11 JSON datasets covering tickets, assets, knowledge, changes, calendar, morning checks, contracts, services, software, and forms |
 | 050 | Knowledge         | Fix         | Replace SQL Server DATALENGTH() with MySQL LENGTH() in AI chat, embedding stats, and article embedding queries |
+| 051 | Knowledge         | Improvement | Ask AI button navigates to knowledge page first when clicked from Settings or Review, then slides open the chat panel |
+| 052 | Knowledge         | Improvement | Clicking an article link in AI chat loads the article in-page while keeping the chat panel open |
 
 ### 16 February 2026
 
