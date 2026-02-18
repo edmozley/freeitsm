@@ -1,0 +1,146 @@
+{
+    "tier1": {
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "jsmith",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "jsmith"
+            },
+            {
+                "_ref": "swilliams",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "swilliams"
+            },
+            {
+                "_ref": "mjones",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "mjones"
+            },
+            {
+                "_ref": "lbrown",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "lbrown"
+            }
+        ]
+    },
+    "tier2": {
+        "changes": [
+            {
+                "_ref": "ch1",
+                "title": "Upgrade Exchange Server to 2019 CU14",
+                "change_type": "Normal",
+                "status": "Draft",
+                "priority": "High",
+                "impact": "High",
+                "category": "Email",
+                "requester_id": "@analysts.mjones",
+                "assigned_to_id": "@analysts.mjones",
+                "description": "Upgrade Exchange Server from 2019 CU12 to CU14 to address security vulnerabilities and improve performance.",
+                "reason_for_change": "Current version has known security vulnerabilities (CVE-2024-xxxx). Upgrade required to maintain compliance.",
+                "risk_evaluation": "Medium risk. Potential for email downtime during upgrade. Mitigation: schedule during maintenance window.",
+                "test_plan": "1. Backup current Exchange databases\n2. Apply CU14 in test environment\n3. Verify mail flow and client connectivity\n4. Run health checks",
+                "rollback_plan": "1. Restore Exchange databases from backup\n2. Reinstall CU12 if needed\n3. Verify services restored",
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-5d__",
+                "modified_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "ch2",
+                "title": "Deploy New WiFi Access Points - Building B",
+                "change_type": "Normal",
+                "status": "Approved",
+                "priority": "Medium",
+                "impact": "Low",
+                "category": "Network",
+                "requester_id": "@analysts.lbrown",
+                "assigned_to_id": "@analysts.lbrown",
+                "approver_id": "@analysts.admin",
+                "approval_datetime": "__RELATIVE_DATE:-3d__",
+                "work_start_datetime": "__RELATIVE_DATE:+2d__",
+                "work_end_datetime": "__RELATIVE_DATE:+2d+8h__",
+                "description": "Install 8 new Cisco Meraki MR46 wireless access points across Building B floors 1-3 to improve WiFi coverage and capacity for the expanded workforce.",
+                "reason_for_change": "Building B staff have reported poor WiFi signal strength and frequent disconnections. A site survey confirmed inadequate AP density for current headcount.",
+                "risk_evaluation": "Low risk. Installation can be performed with minimal disruption. Existing APs remain active during deployment. Brief connectivity blip during channel rebalancing.",
+                "test_plan": "1. Verify each AP powers on and registers with Meraki dashboard\n2. Conduct signal strength walkthrough on each floor\n3. Run speed tests from multiple locations\n4. Confirm seamless roaming between APs",
+                "rollback_plan": "1. Disconnect newly installed APs\n2. Revert Meraki dashboard configuration to previous state\n3. Verify existing APs resume normal operation",
+                "created_by_id": "@analysts.lbrown",
+                "created_datetime": "__RELATIVE_DATE:-7d__",
+                "modified_datetime": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "_ref": "ch3",
+                "title": "Migrate File Server to Azure Files",
+                "change_type": "Normal",
+                "status": "In Progress",
+                "priority": "High",
+                "impact": "Medium",
+                "category": "Cloud",
+                "requester_id": "@analysts.admin",
+                "assigned_to_id": "@analysts.mjones",
+                "approver_id": "@analysts.admin",
+                "approval_datetime": "__RELATIVE_DATE:-10d__",
+                "work_start_datetime": "__RELATIVE_DATE:-5d__",
+                "description": "Migrate on-premises file shares from Windows File Server (FS01) to Azure Files with Azure File Sync. Approximately 2.4 TB of data across 15 department shares.",
+                "reason_for_change": "On-premises file server hardware is approaching end-of-life. Migration to Azure Files provides improved redundancy, disaster recovery, and remote access capabilities.",
+                "risk_evaluation": "Medium risk. Large data volume requires careful synchronisation. Mitigation: use Azure File Sync for phased migration with local cache retained during transition.",
+                "test_plan": "1. Deploy Azure File Sync agent on FS01\n2. Sync first department share and verify data integrity\n3. Test file access from Azure-joined devices\n4. Validate NTFS permissions are preserved\n5. Confirm DFS namespace redirection works",
+                "rollback_plan": "1. Disable Azure File Sync agent\n2. Revert DFS namespace to point to local file server\n3. Verify all shares accessible locally\n4. Remove Azure File Sync cloud endpoints",
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-14d__",
+                "modified_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "ch4",
+                "title": "Patch Windows Servers - February 2026",
+                "change_type": "Standard",
+                "status": "Completed",
+                "priority": "Medium",
+                "impact": "Low",
+                "category": "Patching",
+                "requester_id": "@analysts.swilliams",
+                "assigned_to_id": "@analysts.swilliams",
+                "approver_id": "@analysts.admin",
+                "approval_datetime": "__RELATIVE_DATE:-18d__",
+                "work_start_datetime": "__RELATIVE_DATE:-15d__",
+                "work_end_datetime": "__RELATIVE_DATE:-15d+4h__",
+                "description": "Apply February 2026 cumulative updates and security patches to all 12 Windows Server 2022 instances in the production environment.",
+                "reason_for_change": "Monthly security patching cycle. February 2026 updates address 3 critical and 8 important vulnerabilities per Microsoft Security Response Center advisories.",
+                "risk_evaluation": "Low risk. Standard monthly patching procedure with established runbook. All servers will be patched sequentially with service validation between each.",
+                "test_plan": "1. Snapshot all VMs before patching\n2. Apply updates to first server and verify services\n3. Proceed with remaining servers in maintenance groups\n4. Run automated health check script post-reboot\n5. Verify all critical services are operational",
+                "rollback_plan": "1. Revert VM to pre-patch snapshot\n2. Verify services restored\n3. Investigate patch failure before reattempting",
+                "post_implementation_review": "All 12 servers patched successfully. No issues reported. Reboot completed within maintenance window.",
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-20d__",
+                "modified_datetime": "__RELATIVE_DATE:-15d__"
+            },
+            {
+                "_ref": "ch5",
+                "title": "Replace Core Switch - Server Room",
+                "change_type": "Emergency",
+                "status": "Cancelled",
+                "priority": "Critical",
+                "impact": "High",
+                "category": "Network",
+                "requester_id": "@analysts.mjones",
+                "assigned_to_id": "@analysts.mjones",
+                "description": "Emergency replacement of core Cisco Catalyst 9300 switch in the main server room due to intermittent port failures causing network instability across multiple VLANs.",
+                "reason_for_change": "Vendor provided a firmware fix (IOS-XE 17.12.3) that resolved the intermittent port failure issue. Hardware replacement is no longer required. Change cancelled.",
+                "risk_evaluation": "High risk. Core switch replacement would cause a full network outage for approximately 30 minutes during cutover. All server room connectivity affected.",
+                "rollback_plan": "1. Reconnect original switch\n2. Restore running configuration\n3. Verify all VLANs and trunk ports operational",
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "modified_datetime": "__RELATIVE_DATE:-10d__"
+            }
+        ]
+    }
+}

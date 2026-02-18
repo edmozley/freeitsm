@@ -1,0 +1,143 @@
+{
+    "tier1": {
+        "calendar_categories": [
+            {
+                "_ref": "maint",
+                "name": "Maintenance",
+                "color": "#ef6c00",
+                "description": "Scheduled maintenance windows",
+                "is_active": 1
+            },
+            {
+                "_ref": "meeting",
+                "name": "Meeting",
+                "color": "#1565c0",
+                "description": "Team meetings and reviews",
+                "is_active": 1
+            },
+            {
+                "_ref": "release",
+                "name": "Release",
+                "color": "#2e7d32",
+                "description": "Software releases and deployments",
+                "is_active": 1
+            }
+        ],
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "jsmith",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "jsmith"
+            },
+            {
+                "_ref": "swilliams",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "swilliams"
+            },
+            {
+                "_ref": "mjones",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "mjones"
+            }
+        ]
+    },
+    "tier2": {
+        "calendar_events": [
+            {
+                "_ref": "ev1",
+                "title": "Server Patching Window",
+                "description": "Monthly Windows Server patching cycle for all production servers.",
+                "category_id": "@calendar_categories.maint",
+                "start_datetime": "__RELATIVE_DATE:+3d__",
+                "end_datetime": "__RELATIVE_DATE:+3d+6h__",
+                "all_day": 0,
+                "location": "Remote",
+                "created_by": "@analysts.mjones"
+            },
+            {
+                "_ref": "ev2",
+                "title": "Weekly IT Team Standup",
+                "description": "Review open tickets, priorities, and blockers.",
+                "category_id": "@calendar_categories.meeting",
+                "start_datetime": "__RELATIVE_DATE:+1d__",
+                "end_datetime": "__RELATIVE_DATE:+1d+1h__",
+                "all_day": 0,
+                "location": "Conference Room B",
+                "created_by": "@analysts.admin"
+            },
+            {
+                "_ref": "ev3",
+                "title": "Network Switch Firmware Update",
+                "description": "Update firmware on Building A core switches. Brief network interruption expected.",
+                "category_id": "@calendar_categories.maint",
+                "start_datetime": "__RELATIVE_DATE:+7d__",
+                "end_datetime": "__RELATIVE_DATE:+7d+4h__",
+                "all_day": 0,
+                "location": "Server Room A",
+                "created_by": "@analysts.mjones"
+            },
+            {
+                "_ref": "ev4",
+                "title": "Intranet v2.5 Release",
+                "description": "Deploy updated intranet application with new document search feature.",
+                "category_id": "@calendar_categories.release",
+                "start_datetime": "__RELATIVE_DATE:+5d__",
+                "end_datetime": "__RELATIVE_DATE:+5d+2h__",
+                "all_day": 0,
+                "location": "Remote",
+                "created_by": "@analysts.swilliams"
+            },
+            {
+                "_ref": "ev5",
+                "title": "Change Advisory Board",
+                "description": "Monthly CAB meeting to review and approve upcoming changes.",
+                "category_id": "@calendar_categories.meeting",
+                "start_datetime": "__RELATIVE_DATE:+10d__",
+                "end_datetime": "__RELATIVE_DATE:+10d+2h__",
+                "all_day": 0,
+                "location": "Boardroom",
+                "created_by": "@analysts.admin"
+            },
+            {
+                "_ref": "ev6",
+                "title": "DR Test Day",
+                "description": "Annual disaster recovery test. Failover to secondary data centre.",
+                "category_id": "@calendar_categories.maint",
+                "start_datetime": "__RELATIVE_DATE:+14d__",
+                "end_datetime": "__RELATIVE_DATE:+14d+8h__",
+                "all_day": 0,
+                "location": "DR Site",
+                "created_by": "@analysts.admin"
+            },
+            {
+                "_ref": "ev7",
+                "title": "Security Awareness Training",
+                "description": "Mandatory phishing awareness session for all IT staff.",
+                "category_id": "@calendar_categories.meeting",
+                "start_datetime": "__RELATIVE_DATE:+4d__",
+                "end_datetime": "__RELATIVE_DATE:+4d+1h__",
+                "all_day": 0,
+                "location": "Training Room 1",
+                "created_by": "@analysts.jsmith"
+            },
+            {
+                "_ref": "ev8",
+                "title": "Office 365 Licence Renewal",
+                "description": "Annual licence renewal deadline. Procurement to confirm by EOD.",
+                "category_id": "@calendar_categories.release",
+                "start_datetime": "__RELATIVE_DATE:+21d__",
+                "all_day": 1,
+                "created_by": "@analysts.swilliams"
+            }
+        ]
+    }
+}

@@ -1,0 +1,336 @@
+{
+    "tier1": {
+        "asset_types": [
+            {
+                "_ref": "laptop",
+                "name": "Laptop",
+                "description": "Portable computers",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "desktop",
+                "name": "Desktop",
+                "description": "Desktop workstations",
+                "is_active": 1,
+                "display_order": 2
+            },
+            {
+                "_ref": "monitor",
+                "name": "Monitor",
+                "description": "Display monitors",
+                "is_active": 1,
+                "display_order": 3
+            }
+        ],
+        "asset_status_types": [
+            {
+                "_ref": "active",
+                "name": "Active",
+                "description": "In use and operational",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "storage",
+                "name": "In Storage",
+                "description": "Available but not deployed",
+                "is_active": 1,
+                "display_order": 2
+            },
+            {
+                "_ref": "retired",
+                "name": "Retired",
+                "description": "End of life, pending disposal",
+                "is_active": 1,
+                "display_order": 3
+            }
+        ],
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "jsmith",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "jsmith"
+            }
+        ],
+        "users": [
+            {
+                "_ref": "user1",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "alice.johnson@example.com"
+            },
+            {
+                "_ref": "user2",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "bob.taylor@example.com"
+            },
+            {
+                "_ref": "user3",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "claire.davies@example.com"
+            },
+            {
+                "_ref": "user4",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "david.wilson@example.com"
+            },
+            {
+                "_ref": "user5",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "emma.thomas@example.com"
+            },
+            {
+                "_ref": "user6",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "frank.roberts@example.com"
+            },
+            {
+                "_ref": "user7",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "grace.walker@example.com"
+            },
+            {
+                "_ref": "user8",
+                "_skip_insert": true,
+                "_match_by": "email",
+                "_match_value": "harry.evans@example.com"
+            }
+        ]
+    },
+    "tier2": {
+        "assets": [
+            {
+                "_ref": "a1",
+                "hostname": "LT-001",
+                "manufacturer": "Dell",
+                "model": "Latitude 5540",
+                "memory": 17179869184,
+                "service_tag": "ABC1234",
+                "operating_system": "Windows 11 Pro",
+                "feature_release": "23H2",
+                "build_number": "22631.3007",
+                "cpu_name": "Intel Core i7-1365U",
+                "speed": 1800000000,
+                "bios_version": "1.12.0",
+                "first_seen": "__RELATIVE_DATE:-90d__",
+                "last_seen": "__RELATIVE_DATE:-1d__",
+                "asset_type_id": "@asset_types.laptop",
+                "asset_status_id": "@asset_status_types.active"
+            },
+            {
+                "_ref": "a2",
+                "hostname": "LT-002",
+                "manufacturer": "Dell",
+                "model": "Latitude 5530",
+                "memory": 17179869184,
+                "service_tag": "DEF5678",
+                "operating_system": "Windows 11 Pro",
+                "feature_release": "23H2",
+                "build_number": "22631.2861",
+                "cpu_name": "Intel Core i7-1265U",
+                "speed": 1800000000,
+                "bios_version": "1.18.0",
+                "first_seen": "__RELATIVE_DATE:-120d__",
+                "last_seen": "__RELATIVE_DATE:-1d__",
+                "asset_type_id": "@asset_types.laptop",
+                "asset_status_id": "@asset_status_types.active"
+            },
+            {
+                "_ref": "a3",
+                "hostname": "LT-003",
+                "manufacturer": "Lenovo",
+                "model": "ThinkPad T14 Gen 4",
+                "memory": 17179869184,
+                "service_tag": "GHI9012",
+                "operating_system": "Windows 11 Pro",
+                "feature_release": "23H2",
+                "build_number": "22631.3155",
+                "cpu_name": "Intel Core i7-1360P",
+                "speed": 2200000000,
+                "bios_version": "1.34",
+                "first_seen": "__RELATIVE_DATE:-75d__",
+                "last_seen": "__RELATIVE_DATE:-2d__",
+                "asset_type_id": "@asset_types.laptop",
+                "asset_status_id": "@asset_status_types.active"
+            },
+            {
+                "_ref": "a4",
+                "hostname": "LT-004",
+                "manufacturer": "HP",
+                "model": "EliteBook 840 G10",
+                "memory": 17179869184,
+                "service_tag": "JKL3456",
+                "operating_system": "Windows 11 Pro",
+                "feature_release": "23H2",
+                "build_number": "22631.2715",
+                "cpu_name": "Intel Core i7-1365U",
+                "speed": 1800000000,
+                "bios_version": "01.04.02",
+                "first_seen": "__RELATIVE_DATE:-60d__",
+                "last_seen": "__RELATIVE_DATE:-1d__",
+                "asset_type_id": "@asset_types.laptop",
+                "asset_status_id": "@asset_status_types.active"
+            },
+            {
+                "_ref": "a5",
+                "hostname": "DT-001",
+                "manufacturer": "Dell",
+                "model": "OptiPlex 7090",
+                "memory": 34359738368,
+                "service_tag": "MNO7890",
+                "operating_system": "Windows 11 Pro",
+                "feature_release": "23H2",
+                "build_number": "22631.3007",
+                "cpu_name": "Intel Core i9-11900",
+                "speed": 2500000000,
+                "bios_version": "2.8.0",
+                "first_seen": "__RELATIVE_DATE:-180d__",
+                "last_seen": "__RELATIVE_DATE:-1d__",
+                "asset_type_id": "@asset_types.desktop",
+                "asset_status_id": "@asset_status_types.active"
+            },
+            {
+                "_ref": "a6",
+                "hostname": "DT-002",
+                "manufacturer": "HP",
+                "model": "ProDesk 400 G9",
+                "memory": 17179869184,
+                "service_tag": "PQR1234",
+                "operating_system": "Windows 11 Pro",
+                "feature_release": "23H2",
+                "build_number": "22631.2861",
+                "cpu_name": "Intel Core i5-12500",
+                "speed": 3000000000,
+                "bios_version": "02.09.01",
+                "first_seen": "__RELATIVE_DATE:-150d__",
+                "last_seen": "__RELATIVE_DATE:-3d__",
+                "asset_type_id": "@asset_types.desktop",
+                "asset_status_id": "@asset_status_types.active"
+            },
+            {
+                "_ref": "a7",
+                "hostname": "LT-005",
+                "manufacturer": "Dell",
+                "model": "Latitude 5520",
+                "memory": 8589934592,
+                "service_tag": "STU5678",
+                "operating_system": "Windows 10 Pro",
+                "feature_release": "22H2",
+                "build_number": "19045.3803",
+                "cpu_name": "Intel Core i5-1145G7",
+                "speed": 2600000000,
+                "bios_version": "1.22.0",
+                "first_seen": "__RELATIVE_DATE:-365d__",
+                "last_seen": "__RELATIVE_DATE:-30d__",
+                "asset_type_id": "@asset_types.laptop",
+                "asset_status_id": "@asset_status_types.storage"
+            },
+            {
+                "_ref": "a8",
+                "hostname": "LT-006",
+                "manufacturer": "Lenovo",
+                "model": "ThinkPad T480",
+                "memory": 8589934592,
+                "service_tag": "VWX9012",
+                "operating_system": "Windows 10 Pro",
+                "feature_release": "22H2",
+                "build_number": "19045.3570",
+                "cpu_name": "Intel Core i5-8250U",
+                "speed": 1600000000,
+                "bios_version": "1.52",
+                "first_seen": "__RELATIVE_DATE:-730d__",
+                "last_seen": "__RELATIVE_DATE:-90d__",
+                "asset_type_id": "@asset_types.laptop",
+                "asset_status_id": "@asset_status_types.retired"
+            },
+            {
+                "_ref": "a9",
+                "hostname": "MON-001",
+                "manufacturer": "Dell",
+                "model": "U2722D",
+                "service_tag": "YZA3456",
+                "first_seen": "__RELATIVE_DATE:-200d__",
+                "last_seen": "__RELATIVE_DATE:-1d__",
+                "asset_type_id": "@asset_types.monitor",
+                "asset_status_id": "@asset_status_types.active"
+            },
+            {
+                "_ref": "a10",
+                "hostname": "MON-002",
+                "manufacturer": "LG",
+                "model": "27UK850",
+                "service_tag": "BCD7890",
+                "first_seen": "__RELATIVE_DATE:-180d__",
+                "last_seen": "__RELATIVE_DATE:-2d__",
+                "asset_type_id": "@asset_types.monitor",
+                "asset_status_id": "@asset_status_types.active"
+            }
+        ]
+    },
+    "tier3": {
+        "users_assets": [
+            {
+                "user_id": "@users.user1",
+                "asset_id": "@assets.a1",
+                "assigned_by_analyst_id": "@analysts.admin",
+                "notes": "Primary laptop issued on start date"
+            },
+            {
+                "user_id": "@users.user2",
+                "asset_id": "@assets.a2",
+                "assigned_by_analyst_id": "@analysts.jsmith",
+                "notes": "Replacement laptop after hardware refresh"
+            },
+            {
+                "user_id": "@users.user3",
+                "asset_id": "@assets.a3",
+                "assigned_by_analyst_id": "@analysts.admin",
+                "notes": "Primary laptop issued on start date"
+            },
+            {
+                "user_id": "@users.user4",
+                "asset_id": "@assets.a4",
+                "assigned_by_analyst_id": "@analysts.jsmith",
+                "notes": "Primary laptop issued on start date"
+            },
+            {
+                "user_id": "@users.user5",
+                "asset_id": "@assets.a5",
+                "assigned_by_analyst_id": "@analysts.admin",
+                "notes": "Desktop workstation for office use"
+            },
+            {
+                "user_id": "@users.user6",
+                "asset_id": "@assets.a6",
+                "assigned_by_analyst_id": "@analysts.jsmith",
+                "notes": "Desktop workstation for office use"
+            },
+            {
+                "user_id": "@users.user7",
+                "asset_id": "@assets.a9",
+                "assigned_by_analyst_id": "@analysts.admin",
+                "notes": "Secondary monitor for dual-screen setup"
+            },
+            {
+                "user_id": "@users.user8",
+                "asset_id": "@assets.a10",
+                "assigned_by_analyst_id": "@analysts.jsmith",
+                "notes": "Secondary monitor for dual-screen setup"
+            }
+        ]
+    }
+}

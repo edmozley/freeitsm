@@ -1,0 +1,1517 @@
+{
+    "tier1": {
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "jsmith",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "jsmith"
+            }
+        ],
+        "morningChecks_Checks": [
+            {
+                "_ref": "chk1",
+                "CheckName": "Email Service",
+                "CheckDescription": "Verify Exchange/M365 mail flow is operational",
+                "IsActive": 1,
+                "SortOrder": 1
+            },
+            {
+                "_ref": "chk2",
+                "CheckName": "VPN Gateway",
+                "CheckDescription": "Test VPN connectivity and authentication",
+                "IsActive": 1,
+                "SortOrder": 2
+            },
+            {
+                "_ref": "chk3",
+                "CheckName": "Backup Status",
+                "CheckDescription": "Check overnight backup jobs completed successfully",
+                "IsActive": 1,
+                "SortOrder": 3
+            },
+            {
+                "_ref": "chk4",
+                "CheckName": "Domain Controllers",
+                "CheckDescription": "Verify AD replication and DC health",
+                "IsActive": 1,
+                "SortOrder": 4
+            },
+            {
+                "_ref": "chk5",
+                "CheckName": "Internet Connectivity",
+                "CheckDescription": "Test external connectivity and DNS resolution",
+                "IsActive": 1,
+                "SortOrder": 5
+            },
+            {
+                "_ref": "chk6",
+                "CheckName": "Antivirus Definitions",
+                "CheckDescription": "Confirm AV definitions are up to date across endpoints",
+                "IsActive": 1,
+                "SortOrder": 6
+            }
+        ]
+    },
+    "tier2": {
+        "morningChecks_Results": [
+            {
+                "_ref": "res1",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-1d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "res2",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-1d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "res3",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-1d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "res4",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-1d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "res5",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-1d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "res6",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-1d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "res7",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-2d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "res8",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-2d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "res9",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-2d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "res10",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-2d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "res11",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-2d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "res12",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-2d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "res13",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-3d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "_ref": "res14",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-3d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "_ref": "res15",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-3d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "_ref": "res16",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-3d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "_ref": "res17",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-3d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "_ref": "res18",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-3d__",
+                "Status": "Warning",
+                "Notes": "Definition update delayed by 6 hours on 12 endpoints",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "_ref": "res19",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-4d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "_ref": "res20",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-4d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "_ref": "res21",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-4d__",
+                "Status": "Warning",
+                "Notes": "Backup job completed with warnings - 3 files skipped due to lock",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "_ref": "res22",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-4d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "_ref": "res23",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-4d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "_ref": "res24",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-4d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "_ref": "res25",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-5d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "res26",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-5d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "res27",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-5d__",
+                "Status": "Fail",
+                "Notes": "Backup job failed - storage volume full. Cleared old snapshots to free space.",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "res28",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-5d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "res29",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-5d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "res30",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-5d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "res31",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-6d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "res32",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-6d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "res33",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-6d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "res34",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-6d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "res35",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-6d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "res36",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-6d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "_ref": "res37",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-7d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "_ref": "res38",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-7d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "_ref": "res39",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-7d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "_ref": "res40",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-7d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "_ref": "res41",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-7d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "_ref": "res42",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-7d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "_ref": "res43",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-8d__",
+                "Status": "Warning",
+                "Notes": "Slight delay in mail delivery observed - messages queuing for 10 minutes",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-8d__"
+            },
+            {
+                "_ref": "res44",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-8d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-8d__"
+            },
+            {
+                "_ref": "res45",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-8d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-8d__"
+            },
+            {
+                "_ref": "res46",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-8d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-8d__"
+            },
+            {
+                "_ref": "res47",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-8d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-8d__"
+            },
+            {
+                "_ref": "res48",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-8d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-8d__"
+            },
+            {
+                "_ref": "res49",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-9d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "_ref": "res50",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-9d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "_ref": "res51",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-9d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "_ref": "res52",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-9d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "_ref": "res53",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-9d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "_ref": "res54",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-9d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "_ref": "res55",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-10d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-10d__"
+            },
+            {
+                "_ref": "res56",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-10d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-10d__"
+            },
+            {
+                "_ref": "res57",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-10d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-10d__"
+            },
+            {
+                "_ref": "res58",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-10d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-10d__"
+            },
+            {
+                "_ref": "res59",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-10d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-10d__"
+            },
+            {
+                "_ref": "res60",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-10d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-10d__"
+            },
+            {
+                "_ref": "res61",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-11d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-11d__"
+            },
+            {
+                "_ref": "res62",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-11d__",
+                "Status": "Warning",
+                "Notes": "VPN gateway recovered but intermittent packet loss observed during first hour",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-11d__"
+            },
+            {
+                "_ref": "res63",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-11d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-11d__"
+            },
+            {
+                "_ref": "res64",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-11d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-11d__"
+            },
+            {
+                "_ref": "res65",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-11d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-11d__"
+            },
+            {
+                "_ref": "res66",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-11d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-11d__"
+            },
+            {
+                "_ref": "res67",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-12d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-12d__"
+            },
+            {
+                "_ref": "res68",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-12d__",
+                "Status": "Fail",
+                "Notes": "VPN gateway unreachable for 15 minutes. Restarted service and verified connectivity restored.",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-12d__"
+            },
+            {
+                "_ref": "res69",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-12d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-12d__"
+            },
+            {
+                "_ref": "res70",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-12d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-12d__"
+            },
+            {
+                "_ref": "res71",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-12d__",
+                "Status": "Warning",
+                "Notes": "Intermittent DNS resolution failures detected - likely related to VPN gateway issue",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-12d__"
+            },
+            {
+                "_ref": "res72",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-12d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-12d__"
+            },
+            {
+                "_ref": "res73",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-13d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-13d__"
+            },
+            {
+                "_ref": "res74",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-13d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-13d__"
+            },
+            {
+                "_ref": "res75",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-13d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-13d__"
+            },
+            {
+                "_ref": "res76",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-13d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-13d__"
+            },
+            {
+                "_ref": "res77",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-13d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-13d__"
+            },
+            {
+                "_ref": "res78",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-13d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-13d__"
+            },
+            {
+                "_ref": "res79",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-14d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-14d__"
+            },
+            {
+                "_ref": "res80",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-14d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-14d__"
+            },
+            {
+                "_ref": "res81",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-14d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-14d__"
+            },
+            {
+                "_ref": "res82",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-14d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-14d__"
+            },
+            {
+                "_ref": "res83",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-14d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-14d__"
+            },
+            {
+                "_ref": "res84",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-14d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-14d__"
+            },
+            {
+                "_ref": "res85",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-15d__",
+                "Status": "Warning",
+                "Notes": "Mail delivery delayed up to 20 minutes - M365 service degradation reported by Microsoft",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-15d__"
+            },
+            {
+                "_ref": "res86",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-15d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-15d__"
+            },
+            {
+                "_ref": "res87",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-15d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-15d__"
+            },
+            {
+                "_ref": "res88",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-15d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-15d__"
+            },
+            {
+                "_ref": "res89",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-15d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-15d__"
+            },
+            {
+                "_ref": "res90",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-15d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-15d__"
+            },
+            {
+                "_ref": "res91",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-16d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-16d__"
+            },
+            {
+                "_ref": "res92",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-16d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-16d__"
+            },
+            {
+                "_ref": "res93",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-16d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-16d__"
+            },
+            {
+                "_ref": "res94",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-16d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-16d__"
+            },
+            {
+                "_ref": "res95",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-16d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-16d__"
+            },
+            {
+                "_ref": "res96",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-16d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-16d__"
+            },
+            {
+                "_ref": "res97",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-17d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-17d__"
+            },
+            {
+                "_ref": "res98",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-17d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-17d__"
+            },
+            {
+                "_ref": "res99",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-17d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-17d__"
+            },
+            {
+                "_ref": "res100",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-17d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-17d__"
+            },
+            {
+                "_ref": "res101",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-17d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-17d__"
+            },
+            {
+                "_ref": "res102",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-17d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-17d__"
+            },
+            {
+                "_ref": "res103",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-18d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-18d__"
+            },
+            {
+                "_ref": "res104",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-18d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-18d__"
+            },
+            {
+                "_ref": "res105",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-18d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-18d__"
+            },
+            {
+                "_ref": "res106",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-18d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-18d__"
+            },
+            {
+                "_ref": "res107",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-18d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-18d__"
+            },
+            {
+                "_ref": "res108",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-18d__",
+                "Status": "Warning",
+                "Notes": "AV definition push failed to 8 remote laptops - scheduled retry for next sync",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-18d__"
+            },
+            {
+                "_ref": "res109",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-19d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-19d__"
+            },
+            {
+                "_ref": "res110",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-19d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-19d__"
+            },
+            {
+                "_ref": "res111",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-19d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-19d__"
+            },
+            {
+                "_ref": "res112",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-19d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-19d__"
+            },
+            {
+                "_ref": "res113",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-19d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-19d__"
+            },
+            {
+                "_ref": "res114",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-19d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-19d__"
+            },
+            {
+                "_ref": "res115",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-20d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-20d__"
+            },
+            {
+                "_ref": "res116",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-20d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-20d__"
+            },
+            {
+                "_ref": "res117",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-20d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-20d__"
+            },
+            {
+                "_ref": "res118",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-20d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-20d__"
+            },
+            {
+                "_ref": "res119",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-20d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-20d__"
+            },
+            {
+                "_ref": "res120",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-20d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-20d__"
+            },
+            {
+                "_ref": "res121",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-21d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-21d__"
+            },
+            {
+                "_ref": "res122",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-21d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-21d__"
+            },
+            {
+                "_ref": "res123",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-21d__",
+                "Status": "Warning",
+                "Notes": "Backup completed with warnings - SQL database backup took longer than expected",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-21d__"
+            },
+            {
+                "_ref": "res124",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-21d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-21d__"
+            },
+            {
+                "_ref": "res125",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-21d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-21d__"
+            },
+            {
+                "_ref": "res126",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-21d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-21d__"
+            },
+            {
+                "_ref": "res127",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-22d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-22d__"
+            },
+            {
+                "_ref": "res128",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-22d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-22d__"
+            },
+            {
+                "_ref": "res129",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-22d__",
+                "Status": "Fail",
+                "Notes": "Backup job failed - network path to NAS unreachable. NAS rebooted and path restored.",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-22d__"
+            },
+            {
+                "_ref": "res130",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-22d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-22d__"
+            },
+            {
+                "_ref": "res131",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-22d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-22d__"
+            },
+            {
+                "_ref": "res132",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-22d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-22d__"
+            },
+            {
+                "_ref": "res133",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-23d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-23d__"
+            },
+            {
+                "_ref": "res134",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-23d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-23d__"
+            },
+            {
+                "_ref": "res135",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-23d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-23d__"
+            },
+            {
+                "_ref": "res136",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-23d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-23d__"
+            },
+            {
+                "_ref": "res137",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-23d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-23d__"
+            },
+            {
+                "_ref": "res138",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-23d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-23d__"
+            },
+            {
+                "_ref": "res139",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-24d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-24d__"
+            },
+            {
+                "_ref": "res140",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-24d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-24d__"
+            },
+            {
+                "_ref": "res141",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-24d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-24d__"
+            },
+            {
+                "_ref": "res142",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-24d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-24d__"
+            },
+            {
+                "_ref": "res143",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-24d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-24d__"
+            },
+            {
+                "_ref": "res144",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-24d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-24d__"
+            },
+            {
+                "_ref": "res145",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-25d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-25d__"
+            },
+            {
+                "_ref": "res146",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-25d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-25d__"
+            },
+            {
+                "_ref": "res147",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-25d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-25d__"
+            },
+            {
+                "_ref": "res148",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-25d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-25d__"
+            },
+            {
+                "_ref": "res149",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-25d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-25d__"
+            },
+            {
+                "_ref": "res150",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-25d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-25d__"
+            },
+            {
+                "_ref": "res151",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-26d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-26d__"
+            },
+            {
+                "_ref": "res152",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-26d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-26d__"
+            },
+            {
+                "_ref": "res153",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-26d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-26d__"
+            },
+            {
+                "_ref": "res154",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-26d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-26d__"
+            },
+            {
+                "_ref": "res155",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-26d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-26d__"
+            },
+            {
+                "_ref": "res156",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-26d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-26d__"
+            },
+            {
+                "_ref": "res157",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-27d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "_ref": "res158",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-27d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "_ref": "res159",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-27d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "_ref": "res160",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-27d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "_ref": "res161",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-27d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "_ref": "res162",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-27d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-27d__"
+            },
+            {
+                "_ref": "res163",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-28d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-28d__"
+            },
+            {
+                "_ref": "res164",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-28d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-28d__"
+            },
+            {
+                "_ref": "res165",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-28d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-28d__"
+            },
+            {
+                "_ref": "res166",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-28d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-28d__"
+            },
+            {
+                "_ref": "res167",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-28d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-28d__"
+            },
+            {
+                "_ref": "res168",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-28d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-28d__"
+            },
+            {
+                "_ref": "res169",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-29d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-29d__"
+            },
+            {
+                "_ref": "res170",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-29d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-29d__"
+            },
+            {
+                "_ref": "res171",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-29d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-29d__"
+            },
+            {
+                "_ref": "res172",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-29d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-29d__"
+            },
+            {
+                "_ref": "res173",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-29d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-29d__"
+            },
+            {
+                "_ref": "res174",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-29d__",
+                "Status": "OK",
+                "CreatedBy": "admin",
+                "CreatedDate": "__RELATIVE_DATE:-29d__"
+            },
+            {
+                "_ref": "res175",
+                "CheckID": "@morningChecks_Checks.chk1",
+                "CheckDate": "__RELATIVE_DATE:-30d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "res176",
+                "CheckID": "@morningChecks_Checks.chk2",
+                "CheckDate": "__RELATIVE_DATE:-30d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "res177",
+                "CheckID": "@morningChecks_Checks.chk3",
+                "CheckDate": "__RELATIVE_DATE:-30d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "res178",
+                "CheckID": "@morningChecks_Checks.chk4",
+                "CheckDate": "__RELATIVE_DATE:-30d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "res179",
+                "CheckID": "@morningChecks_Checks.chk5",
+                "CheckDate": "__RELATIVE_DATE:-30d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "res180",
+                "CheckID": "@morningChecks_Checks.chk6",
+                "CheckDate": "__RELATIVE_DATE:-30d__",
+                "Status": "OK",
+                "CreatedBy": "jsmith",
+                "CreatedDate": "__RELATIVE_DATE:-30d__"
+            }
+        ]
+    }
+}

@@ -1,0 +1,315 @@
+{
+    "tier1": {
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "jsmith",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "jsmith"
+            },
+            {
+                "_ref": "swilliams",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "swilliams"
+            }
+        ],
+        "supplier_types": [
+            {
+                "_ref": "hardware",
+                "name": "Hardware Vendor",
+                "description": "IT hardware and equipment suppliers",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "software_v",
+                "name": "Software Vendor",
+                "description": "Software licensing and SaaS providers",
+                "is_active": 1,
+                "display_order": 2
+            },
+            {
+                "_ref": "services_v",
+                "name": "Managed Services",
+                "description": "Outsourced IT services and consultancy",
+                "is_active": 1,
+                "display_order": 3
+            }
+        ],
+        "supplier_statuses": [
+            {
+                "_ref": "approved",
+                "name": "Approved",
+                "description": "Vetted and approved for use",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "pending_review",
+                "name": "Pending Review",
+                "description": "Awaiting compliance review",
+                "is_active": 1,
+                "display_order": 2
+            },
+            {
+                "_ref": "inactive_s",
+                "name": "Inactive",
+                "description": "No longer in use",
+                "is_active": 1,
+                "display_order": 3
+            }
+        ],
+        "contract_statuses": [
+            {
+                "_ref": "active_c",
+                "name": "Active",
+                "description": "Contract currently in effect",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "expiring",
+                "name": "Expiring Soon",
+                "description": "Contract due for renewal within 90 days",
+                "is_active": 1,
+                "display_order": 2
+            },
+            {
+                "_ref": "expired",
+                "name": "Expired",
+                "description": "Contract has ended",
+                "is_active": 1,
+                "display_order": 3
+            }
+        ],
+        "payment_schedules": [
+            {
+                "_ref": "annual",
+                "name": "Annual",
+                "description": "Paid once per year",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "monthly",
+                "name": "Monthly",
+                "description": "Paid every month",
+                "is_active": 1,
+                "display_order": 2
+            },
+            {
+                "_ref": "quarterly",
+                "name": "Quarterly",
+                "description": "Paid every three months",
+                "is_active": 1,
+                "display_order": 3
+            }
+        ],
+        "contract_term_tabs": [
+            {
+                "_ref": "sla_tab",
+                "name": "SLA Terms",
+                "description": "Service level agreement terms",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "kpi_tab",
+                "name": "KPI Targets",
+                "description": "Key performance indicator targets",
+                "is_active": 1,
+                "display_order": 2
+            }
+        ]
+    },
+    "tier2": {
+        "suppliers": [
+            {
+                "_ref": "sup1",
+                "legal_name": "TechDirect Solutions Ltd",
+                "trading_name": "TechDirect",
+                "reg_number": "12345678",
+                "vat_number": "GB123456789",
+                "supplier_type_id": "@supplier_types.hardware",
+                "supplier_status_id": "@supplier_statuses.approved",
+                "address_line_1": "Unit 4, Innovation Park",
+                "city": "Reading",
+                "county": "Berkshire",
+                "postcode": "RG1 2AB",
+                "country": "United Kingdom",
+                "is_active": 1
+            },
+            {
+                "_ref": "sup2",
+                "legal_name": "CloudFirst Software Inc",
+                "trading_name": "CloudFirst",
+                "reg_number": "87654321",
+                "vat_number": "GB987654321",
+                "supplier_type_id": "@supplier_types.software_v",
+                "supplier_status_id": "@supplier_statuses.approved",
+                "address_line_1": "10 Digital Quarter",
+                "city": "Manchester",
+                "county": "Greater Manchester",
+                "postcode": "M1 4BT",
+                "country": "United Kingdom",
+                "is_active": 1
+            },
+            {
+                "_ref": "sup3",
+                "legal_name": "Nexus Managed Services Ltd",
+                "trading_name": "Nexus IT",
+                "reg_number": "11223344",
+                "vat_number": "GB112233445",
+                "supplier_type_id": "@supplier_types.services_v",
+                "supplier_status_id": "@supplier_statuses.approved",
+                "address_line_1": "Floor 3, Albion House",
+                "city": "Bristol",
+                "county": "Bristol",
+                "postcode": "BS1 5UH",
+                "country": "United Kingdom",
+                "is_active": 1
+            }
+        ],
+        "contacts": [
+            {
+                "_ref": "con1",
+                "supplier_id": "@suppliers.sup1",
+                "first_name": "Tom",
+                "surname": "Parker",
+                "email": "tom.parker@techdirect.example.com",
+                "mobile": "07700 900001",
+                "job_title": "Account Manager",
+                "direct_dial": "0118 900 0001",
+                "switchboard": "0118 900 0000",
+                "is_active": 1
+            },
+            {
+                "_ref": "con2",
+                "supplier_id": "@suppliers.sup1",
+                "first_name": "Rachel",
+                "surname": "Green",
+                "email": "rachel.green@techdirect.example.com",
+                "mobile": "07700 900002",
+                "job_title": "Technical Support Lead",
+                "direct_dial": "0118 900 0002",
+                "switchboard": "0118 900 0000",
+                "is_active": 1
+            },
+            {
+                "_ref": "con3",
+                "supplier_id": "@suppliers.sup2",
+                "first_name": "Daniel",
+                "surname": "Carter",
+                "email": "daniel.carter@cloudfirst.example.com",
+                "mobile": "07700 900003",
+                "job_title": "Customer Success Manager",
+                "direct_dial": "0161 200 0001",
+                "switchboard": "0161 200 0000",
+                "is_active": 1
+            },
+            {
+                "_ref": "con4",
+                "supplier_id": "@suppliers.sup2",
+                "first_name": "Sophie",
+                "surname": "Wright",
+                "email": "sophie.wright@cloudfirst.example.com",
+                "mobile": "07700 900004",
+                "job_title": "Licensing Specialist",
+                "direct_dial": "0161 200 0002",
+                "switchboard": "0161 200 0000",
+                "is_active": 1
+            },
+            {
+                "_ref": "con5",
+                "supplier_id": "@suppliers.sup3",
+                "first_name": "Mark",
+                "surname": "Evans",
+                "email": "mark.evans@nexusit.example.com",
+                "mobile": "07700 900005",
+                "job_title": "Service Delivery Manager",
+                "direct_dial": "0117 300 0001",
+                "switchboard": "0117 300 0000",
+                "is_active": 1
+            }
+        ]
+    },
+    "tier3": {
+        "contracts": [
+            {
+                "_ref": "ct1",
+                "contract_number": "CON-2024-001",
+                "title": "Hardware Supply Agreement",
+                "description": "Annual hardware procurement framework covering laptops, desktops, and peripherals.",
+                "supplier_id": "@suppliers.sup1",
+                "contract_owner_id": "@analysts.admin",
+                "contract_status_id": "@contract_statuses.active_c",
+                "contract_start": "__RELATIVE_DATEONLY:-180d__",
+                "contract_end": "__RELATIVE_DATEONLY:+185d__",
+                "notice_period_days": 90,
+                "notice_date": "__RELATIVE_DATEONLY:+95d__",
+                "contract_value": 45000.00,
+                "currency": "GBP",
+                "payment_schedule_id": "@payment_schedules.annual",
+                "cost_centre": "IT-HW-001",
+                "is_active": 1
+            },
+            {
+                "_ref": "ct2",
+                "contract_number": "CON-2024-002",
+                "title": "Cloud Platform Licences",
+                "description": "Enterprise licensing for cloud productivity suite including email, storage, and collaboration tools.",
+                "supplier_id": "@suppliers.sup2",
+                "contract_owner_id": "@analysts.swilliams",
+                "contract_status_id": "@contract_statuses.active_c",
+                "contract_start": "__RELATIVE_DATEONLY:-90d__",
+                "contract_end": "__RELATIVE_DATEONLY:+275d__",
+                "notice_period_days": 60,
+                "notice_date": "__RELATIVE_DATEONLY:+215d__",
+                "contract_value": 72000.00,
+                "currency": "GBP",
+                "payment_schedule_id": "@payment_schedules.monthly",
+                "cost_centre": "IT-SW-002",
+                "is_active": 1
+            },
+            {
+                "_ref": "ct3",
+                "contract_number": "CON-2023-005",
+                "title": "Managed Network Services",
+                "description": "Outsourced network monitoring, maintenance, and 24/7 NOC support.",
+                "supplier_id": "@suppliers.sup3",
+                "contract_owner_id": "@analysts.jsmith",
+                "contract_status_id": "@contract_statuses.expiring",
+                "contract_start": "__RELATIVE_DATEONLY:-330d__",
+                "contract_end": "__RELATIVE_DATEONLY:+35d__",
+                "notice_period_days": 30,
+                "notice_date": "__RELATIVE_DATEONLY:+5d__",
+                "contract_value": 96000.00,
+                "currency": "GBP",
+                "payment_schedule_id": "@payment_schedules.quarterly",
+                "cost_centre": "IT-MS-003",
+                "is_active": 1
+            }
+        ]
+    },
+    "tier4": {
+        "contract_term_values": [
+            {
+                "contract_id": "@contracts.ct1",
+                "term_tab_id": "@contract_term_tabs.sla_tab",
+                "content": "<p><strong>Response Times:</strong></p><ul><li>Critical hardware failure: 4-hour on-site response</li><li>Standard replacement: next business day delivery</li><li>Bulk orders (10+ units): 5 business day lead time</li></ul>"
+            },
+            {
+                "contract_id": "@contracts.ct2",
+                "term_tab_id": "@contract_term_tabs.kpi_tab",
+                "content": "<p><strong>Uptime Target:</strong> 99.9% monthly availability</p><p><strong>Support Response:</strong> P1 issues within 1 hour, P2 within 4 hours</p><p><strong>Reporting:</strong> Monthly usage and SLA compliance report delivered by 5th of each month</p>"
+            }
+        ]
+    }
+}

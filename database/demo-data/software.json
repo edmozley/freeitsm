@@ -1,0 +1,132 @@
+{
+    "tier1": {
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "swilliams",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "swilliams"
+            }
+        ],
+        "software_inventory_apps": [
+            {
+                "_ref": "app1",
+                "display_name": "Microsoft 365 Apps for Enterprise",
+                "publisher": "Microsoft Corporation",
+                "first_detected": "__RELATIVE_DATE:-120d__"
+            },
+            {
+                "_ref": "app2",
+                "display_name": "Adobe Creative Cloud",
+                "publisher": "Adobe Inc.",
+                "first_detected": "__RELATIVE_DATE:-90d__"
+            },
+            {
+                "_ref": "app3",
+                "display_name": "Zoom Workplace",
+                "publisher": "Zoom Video Communications",
+                "first_detected": "__RELATIVE_DATE:-100d__"
+            },
+            {
+                "_ref": "app4",
+                "display_name": "Slack",
+                "publisher": "Salesforce",
+                "first_detected": "__RELATIVE_DATE:-110d__"
+            },
+            {
+                "_ref": "app5",
+                "display_name": "AutoCAD 2025",
+                "publisher": "Autodesk",
+                "first_detected": "__RELATIVE_DATE:-60d__"
+            }
+        ]
+    },
+    "tier2": {
+        "software_licences": [
+            {
+                "app_id": "@software_inventory_apps.app1",
+                "licence_type": "Subscription",
+                "licence_key": "M365-ENT-2024-XXXX",
+                "quantity": 250,
+                "renewal_date": "__RELATIVE_DATEONLY:+245d__",
+                "notice_period_days": 60,
+                "portal_url": "https://admin.microsoft.com",
+                "cost": 28500.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-120d__",
+                "vendor_contact": "Microsoft Account Team",
+                "notes": "Enterprise E3 licences. Includes Office apps, Exchange Online, and SharePoint.",
+                "status": "Active",
+                "created_by": "@analysts.admin"
+            },
+            {
+                "app_id": "@software_inventory_apps.app2",
+                "licence_type": "Subscription",
+                "licence_key": "ADBE-CC-2024-XXXX",
+                "quantity": 15,
+                "renewal_date": "__RELATIVE_DATEONLY:+155d__",
+                "notice_period_days": 30,
+                "portal_url": "https://adminconsole.adobe.com",
+                "cost": 7200.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-90d__",
+                "vendor_contact": "Adobe Enterprise Support",
+                "notes": "Creative Cloud All Apps licence for design team.",
+                "status": "Active",
+                "created_by": "@analysts.swilliams"
+            },
+            {
+                "app_id": "@software_inventory_apps.app3",
+                "licence_type": "Subscription",
+                "licence_key": "ZM-BUS-2024-XXXX",
+                "quantity": 100,
+                "renewal_date": "__RELATIVE_DATEONLY:+60d__",
+                "notice_period_days": 30,
+                "portal_url": "https://zoom.us/account",
+                "cost": 3600.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-100d__",
+                "vendor_contact": "Zoom Sales",
+                "notes": "Business tier. Renewal due soon - evaluate Teams integration as alternative.",
+                "status": "Active",
+                "created_by": "@analysts.admin"
+            },
+            {
+                "app_id": "@software_inventory_apps.app4",
+                "licence_type": "Subscription",
+                "licence_key": "SLCK-PRO-2024-XXXX",
+                "quantity": 200,
+                "renewal_date": "__RELATIVE_DATEONLY:+180d__",
+                "notice_period_days": 45,
+                "portal_url": "https://slack.com/admin",
+                "cost": 4800.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-110d__",
+                "vendor_contact": "Slack Enterprise Team",
+                "notes": "Pro plan. Used across all departments for instant messaging.",
+                "status": "Active",
+                "created_by": "@analysts.swilliams"
+            },
+            {
+                "app_id": "@software_inventory_apps.app5",
+                "licence_type": "Perpetual",
+                "licence_key": "ACAD-2025-XXXX-XXXX",
+                "quantity": 5,
+                "portal_url": "https://manage.autodesk.com",
+                "cost": 8500.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-60d__",
+                "vendor_contact": "Autodesk Reseller - CAD Solutions Ltd",
+                "notes": "Perpetual licences for engineering department. Maintenance contract separate.",
+                "status": "Active",
+                "created_by": "@analysts.admin"
+            }
+        ]
+    }
+}

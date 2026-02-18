@@ -1,0 +1,270 @@
+{
+    "tier1": {
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "jsmith",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "jsmith"
+            },
+            {
+                "_ref": "swilliams",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "swilliams"
+            }
+        ]
+    },
+    "tier2": {
+        "forms": [
+            {
+                "_ref": "form1",
+                "title": "New Starter Request",
+                "description": "Request IT equipment and access for a new employee joining the organisation.",
+                "is_active": 1,
+                "created_by": "@analysts.admin",
+                "created_date": "__RELATIVE_DATE:-30d__",
+                "modified_date": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "_ref": "form2",
+                "title": "Equipment Return Form",
+                "description": "Record details of IT equipment being returned by a departing employee.",
+                "is_active": 1,
+                "created_by": "@analysts.swilliams",
+                "created_date": "__RELATIVE_DATE:-20d__",
+                "modified_date": "__RELATIVE_DATE:-3d__"
+            }
+        ]
+    },
+    "tier3": {
+        "form_fields": [
+            {
+                "_ref": "f1_field1",
+                "form_id": "@forms.form1",
+                "field_type": "text",
+                "label": "Employee Full Name",
+                "is_required": 1,
+                "sort_order": 1
+            },
+            {
+                "_ref": "f1_field2",
+                "form_id": "@forms.form1",
+                "field_type": "text",
+                "label": "Job Title",
+                "is_required": 1,
+                "sort_order": 2
+            },
+            {
+                "_ref": "f1_field3",
+                "form_id": "@forms.form1",
+                "field_type": "dropdown",
+                "label": "Department",
+                "options": "[\"IT Support\",\"Infrastructure\",\"Development\",\"Information Security\",\"Projects\",\"Finance\",\"HR\",\"Marketing\"]",
+                "is_required": 1,
+                "sort_order": 3
+            },
+            {
+                "_ref": "f1_field4",
+                "form_id": "@forms.form1",
+                "field_type": "text",
+                "label": "Start Date",
+                "is_required": 1,
+                "sort_order": 4
+            },
+            {
+                "_ref": "f1_field5",
+                "form_id": "@forms.form1",
+                "field_type": "dropdown",
+                "label": "Equipment Required",
+                "options": "[\"Laptop\",\"Desktop\",\"Laptop + Monitor\",\"Desktop + Monitor\"]",
+                "is_required": 1,
+                "sort_order": 5
+            },
+            {
+                "_ref": "f1_field6",
+                "form_id": "@forms.form1",
+                "field_type": "checkbox",
+                "label": "VPN Access Required",
+                "is_required": 0,
+                "sort_order": 6
+            },
+            {
+                "_ref": "f1_field7",
+                "form_id": "@forms.form1",
+                "field_type": "textarea",
+                "label": "Additional Requirements",
+                "is_required": 0,
+                "sort_order": 7
+            },
+            {
+                "_ref": "f2_field1",
+                "form_id": "@forms.form2",
+                "field_type": "text",
+                "label": "Employee Name",
+                "is_required": 1,
+                "sort_order": 1
+            },
+            {
+                "_ref": "f2_field2",
+                "form_id": "@forms.form2",
+                "field_type": "text",
+                "label": "Asset Tag / Hostname",
+                "is_required": 1,
+                "sort_order": 2
+            },
+            {
+                "_ref": "f2_field3",
+                "form_id": "@forms.form2",
+                "field_type": "dropdown",
+                "label": "Equipment Condition",
+                "options": "[\"Good\",\"Fair\",\"Poor\",\"Damaged\"]",
+                "is_required": 1,
+                "sort_order": 3
+            },
+            {
+                "_ref": "f2_field4",
+                "form_id": "@forms.form2",
+                "field_type": "checkbox",
+                "label": "Charger Included",
+                "is_required": 0,
+                "sort_order": 4
+            },
+            {
+                "_ref": "f2_field5",
+                "form_id": "@forms.form2",
+                "field_type": "textarea",
+                "label": "Notes",
+                "is_required": 0,
+                "sort_order": 5
+            }
+        ]
+    },
+    "tier4": {
+        "form_submissions": [
+            {
+                "_ref": "sub1",
+                "form_id": "@forms.form1",
+                "submitted_by": "@analysts.jsmith",
+                "submitted_date": "__RELATIVE_DATE:-10d__"
+            },
+            {
+                "_ref": "sub2",
+                "form_id": "@forms.form1",
+                "submitted_by": "@analysts.swilliams",
+                "submitted_date": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "_ref": "sub3",
+                "form_id": "@forms.form2",
+                "submitted_by": "@analysts.jsmith",
+                "submitted_date": "__RELATIVE_DATE:-3d__"
+            }
+        ]
+    },
+    "tier5": {
+        "form_submission_data": [
+            {
+                "submission_id": "@form_submissions.sub1",
+                "field_id": "@form_fields.f1_field1",
+                "field_value": "Emily Richardson"
+            },
+            {
+                "submission_id": "@form_submissions.sub1",
+                "field_id": "@form_fields.f1_field2",
+                "field_value": "Marketing Coordinator"
+            },
+            {
+                "submission_id": "@form_submissions.sub1",
+                "field_id": "@form_fields.f1_field3",
+                "field_value": "Marketing"
+            },
+            {
+                "submission_id": "@form_submissions.sub1",
+                "field_id": "@form_fields.f1_field4",
+                "field_value": "2026-03-03"
+            },
+            {
+                "submission_id": "@form_submissions.sub1",
+                "field_id": "@form_fields.f1_field5",
+                "field_value": "Laptop + Monitor"
+            },
+            {
+                "submission_id": "@form_submissions.sub1",
+                "field_id": "@form_fields.f1_field6",
+                "field_value": "true"
+            },
+            {
+                "submission_id": "@form_submissions.sub1",
+                "field_id": "@form_fields.f1_field7",
+                "field_value": "Will need access to Adobe Creative Cloud and the marketing shared drive."
+            },
+            {
+                "submission_id": "@form_submissions.sub2",
+                "field_id": "@form_fields.f1_field1",
+                "field_value": "Raj Patel"
+            },
+            {
+                "submission_id": "@form_submissions.sub2",
+                "field_id": "@form_fields.f1_field2",
+                "field_value": "Junior Developer"
+            },
+            {
+                "submission_id": "@form_submissions.sub2",
+                "field_id": "@form_fields.f1_field3",
+                "field_value": "Development"
+            },
+            {
+                "submission_id": "@form_submissions.sub2",
+                "field_id": "@form_fields.f1_field4",
+                "field_value": "2026-03-10"
+            },
+            {
+                "submission_id": "@form_submissions.sub2",
+                "field_id": "@form_fields.f1_field5",
+                "field_value": "Laptop + Monitor"
+            },
+            {
+                "submission_id": "@form_submissions.sub2",
+                "field_id": "@form_fields.f1_field6",
+                "field_value": "true"
+            },
+            {
+                "submission_id": "@form_submissions.sub2",
+                "field_id": "@form_fields.f1_field7",
+                "field_value": "Needs Visual Studio, Git, and access to the development servers."
+            },
+            {
+                "submission_id": "@form_submissions.sub3",
+                "field_id": "@form_fields.f2_field1",
+                "field_value": "Sarah Mitchell"
+            },
+            {
+                "submission_id": "@form_submissions.sub3",
+                "field_id": "@form_fields.f2_field2",
+                "field_value": "LT-007"
+            },
+            {
+                "submission_id": "@form_submissions.sub3",
+                "field_id": "@form_fields.f2_field3",
+                "field_value": "Fair"
+            },
+            {
+                "submission_id": "@form_submissions.sub3",
+                "field_id": "@form_fields.f2_field4",
+                "field_value": "true"
+            },
+            {
+                "submission_id": "@form_submissions.sub3",
+                "field_id": "@form_fields.f2_field5",
+                "field_value": "Minor cosmetic damage on lid. Battery holds charge for approximately 3 hours."
+            }
+        ]
+    }
+}

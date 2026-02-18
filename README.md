@@ -80,6 +80,13 @@ A comprehensive web-based IT Service Management (ITSM) platform with 11 integrat
      - **Password:** `freeitsm`
    - **Change this password immediately** after first login via the account menu
 
+8. **Import demo data** (optional)
+   - Navigate to **System → Demo Data** to populate modules with realistic sample data
+   - Import **Core** first (creates analysts, departments, teams, and end users), then choose which modules to populate
+   - Includes tickets, assets, knowledge articles, changes, calendar events, morning checks, contracts, service status, software licences, and forms
+   - Demo analysts use password `demo1234`
+   - Designed for fresh installations only — each module can be imported once
+
 ### Configuration Files
 
 | File | Location | Purpose | Commit to Git? |
@@ -421,6 +428,9 @@ System administration and configuration.
   - 9 configurable screen positions via visual grid picker in System Settings → General
   - Position preference saved per-browser in localStorage
   - Slide-in animations, auto-dismiss after 4 seconds, manual close button
+- **Demo Data** (`system/demo-data/`): One-click import of realistic sample data across all modules
+  - Populates tickets, assets, knowledge articles, changes, calendar events, morning checks, contracts, services, software, forms, analysts, and end users
+  - Designed for fresh installations — makes the system feel alive for evaluation and testing
 
 ### Forms (`forms/`)
 Dynamic form builder and submission system with a unified sidebar + editor layout.

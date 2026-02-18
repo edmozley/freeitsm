@@ -1,0 +1,102 @@
+{
+    "tier1": {
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "mjones",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "mjones"
+            }
+        ],
+        "status_services": [
+            {
+                "_ref": "svc_email",
+                "name": "Email",
+                "description": "Exchange Online and mail flow services",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "svc_vpn",
+                "name": "VPN",
+                "description": "Remote access VPN gateway",
+                "is_active": 1,
+                "display_order": 2
+            },
+            {
+                "_ref": "svc_internet",
+                "name": "Internet",
+                "description": "External internet connectivity",
+                "is_active": 1,
+                "display_order": 3
+            },
+            {
+                "_ref": "svc_fileserv",
+                "name": "File Services",
+                "description": "Network drives and shared storage",
+                "is_active": 1,
+                "display_order": 4
+            },
+            {
+                "_ref": "svc_print",
+                "name": "Printing",
+                "description": "Network printing services",
+                "is_active": 1,
+                "display_order": 5
+            }
+        ]
+    },
+    "tier2": {
+        "status_incidents": [
+            {
+                "_ref": "si1",
+                "title": "Intermittent VPN disconnections",
+                "status": "Resolved",
+                "comment": "Users reported frequent VPN drops between 09:00-11:00. Root cause identified as expired certificate on VPN concentrator. Certificate renewed and service restored.",
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-12d+3h__",
+                "resolved_datetime": "__RELATIVE_DATE:-12d+3h__"
+            },
+            {
+                "_ref": "si2",
+                "title": "Email delivery delays",
+                "status": "Monitoring",
+                "comment": "Some users experiencing 10-15 minute delays on outbound email. Investigating mail queue. Microsoft service health shows no issues on their end.",
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            }
+        ]
+    },
+    "tier3": {
+        "status_incident_services": [
+            {
+                "incident_id": "@status_incidents.si1",
+                "service_id": "@status_services.svc_vpn",
+                "impact_level": "Major Outage"
+            },
+            {
+                "incident_id": "@status_incidents.si1",
+                "service_id": "@status_services.svc_internet",
+                "impact_level": "Degraded Performance"
+            },
+            {
+                "incident_id": "@status_incidents.si2",
+                "service_id": "@status_services.svc_email",
+                "impact_level": "Degraded Performance"
+            },
+            {
+                "incident_id": "@status_incidents.si2",
+                "service_id": "@status_services.svc_fileserv",
+                "impact_level": "Operational"
+            }
+        ]
+    }
+}

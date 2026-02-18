@@ -1,0 +1,313 @@
+{
+    "tier1": {
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "jsmith",
+                "username": "jsmith",
+                "password_hash": "__BCRYPT:demo1234__",
+                "full_name": "James Smith",
+                "email": "james.smith@example.com",
+                "is_active": 1,
+                "created_datetime": "__RELATIVE_DATE:-60d__",
+                "totp_enabled": 0,
+                "trust_device_enabled": 0,
+                "failed_login_count": 0
+            },
+            {
+                "_ref": "swilliams",
+                "username": "swilliams",
+                "password_hash": "__BCRYPT:demo1234__",
+                "full_name": "Sarah Williams",
+                "email": "sarah.williams@example.com",
+                "is_active": 1,
+                "created_datetime": "__RELATIVE_DATE:-55d__",
+                "totp_enabled": 0,
+                "trust_device_enabled": 0,
+                "failed_login_count": 0
+            },
+            {
+                "_ref": "mjones",
+                "username": "mjones",
+                "password_hash": "__BCRYPT:demo1234__",
+                "full_name": "Michael Jones",
+                "email": "michael.jones@example.com",
+                "is_active": 1,
+                "created_datetime": "__RELATIVE_DATE:-50d__",
+                "totp_enabled": 0,
+                "trust_device_enabled": 0,
+                "failed_login_count": 0
+            },
+            {
+                "_ref": "lbrown",
+                "username": "lbrown",
+                "password_hash": "__BCRYPT:demo1234__",
+                "full_name": "Laura Brown",
+                "email": "laura.brown@example.com",
+                "is_active": 1,
+                "created_datetime": "__RELATIVE_DATE:-45d__",
+                "totp_enabled": 0,
+                "trust_device_enabled": 0,
+                "failed_login_count": 0
+            }
+        ],
+        "departments": [
+            {
+                "_ref": "it",
+                "name": "IT Support",
+                "description": "General IT support and helpdesk",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "infra",
+                "name": "Infrastructure",
+                "description": "Servers, networking, and cloud services",
+                "is_active": 1,
+                "display_order": 2
+            },
+            {
+                "_ref": "dev",
+                "name": "Development",
+                "description": "Software development and integrations",
+                "is_active": 1,
+                "display_order": 3
+            },
+            {
+                "_ref": "security",
+                "name": "Information Security",
+                "description": "Cybersecurity and compliance",
+                "is_active": 1,
+                "display_order": 4
+            },
+            {
+                "_ref": "projects",
+                "name": "Projects",
+                "description": "IT project delivery and coordination",
+                "is_active": 1,
+                "display_order": 5
+            }
+        ],
+        "ticket_types": [
+            {
+                "_ref": "incident",
+                "name": "Incident",
+                "description": "Something is broken or not working",
+                "is_active": 1,
+                "display_order": 1
+            },
+            {
+                "_ref": "request",
+                "name": "Service Request",
+                "description": "Request for a new service or access",
+                "is_active": 1,
+                "display_order": 2
+            },
+            {
+                "_ref": "problem",
+                "name": "Problem",
+                "description": "Root cause investigation",
+                "is_active": 1,
+                "display_order": 3
+            },
+            {
+                "_ref": "task",
+                "name": "Task",
+                "description": "Planned work or maintenance",
+                "is_active": 1,
+                "display_order": 4
+            },
+            {
+                "_ref": "question",
+                "name": "Question",
+                "description": "General enquiry or how-to",
+                "is_active": 1,
+                "display_order": 5
+            }
+        ],
+        "ticket_origins": [
+            {
+                "_ref": "email",
+                "name": "Email",
+                "description": "Received via email",
+                "display_order": 1,
+                "is_active": 1
+            },
+            {
+                "_ref": "phone",
+                "name": "Phone",
+                "description": "Reported by phone",
+                "display_order": 2,
+                "is_active": 1
+            },
+            {
+                "_ref": "portal",
+                "name": "Self-Service Portal",
+                "description": "Submitted via web portal",
+                "display_order": 3,
+                "is_active": 1
+            },
+            {
+                "_ref": "walkin",
+                "name": "Walk-in",
+                "description": "Reported in person",
+                "display_order": 4,
+                "is_active": 1
+            }
+        ]
+    },
+    "tier2": {
+        "teams": [
+            {
+                "_ref": "servicedesk",
+                "name": "Service Desk",
+                "description": "First-line support team handling initial triage and resolution",
+                "display_order": 1,
+                "is_active": 1
+            },
+            {
+                "_ref": "escalation",
+                "name": "Escalation Team",
+                "description": "Second-line support for complex technical issues",
+                "display_order": 2,
+                "is_active": 1
+            }
+        ],
+        "users": [
+            {
+                "_ref": "user1",
+                "email": "alice.johnson@example.com",
+                "display_name": "Alice Johnson"
+            },
+            {
+                "_ref": "user2",
+                "email": "bob.taylor@example.com",
+                "display_name": "Bob Taylor"
+            },
+            {
+                "_ref": "user3",
+                "email": "claire.davies@example.com",
+                "display_name": "Claire Davies"
+            },
+            {
+                "_ref": "user4",
+                "email": "david.wilson@example.com",
+                "display_name": "David Wilson"
+            },
+            {
+                "_ref": "user5",
+                "email": "emma.thomas@example.com",
+                "display_name": "Emma Thomas"
+            },
+            {
+                "_ref": "user6",
+                "email": "frank.roberts@example.com",
+                "display_name": "Frank Roberts"
+            },
+            {
+                "_ref": "user7",
+                "email": "grace.walker@example.com",
+                "display_name": "Grace Walker"
+            },
+            {
+                "_ref": "user8",
+                "email": "harry.evans@example.com",
+                "display_name": "Harry Evans"
+            },
+            {
+                "_ref": "user9",
+                "email": "isla.martin@example.com",
+                "display_name": "Isla Martin"
+            },
+            {
+                "_ref": "user10",
+                "email": "jack.white@example.com",
+                "display_name": "Jack White"
+            },
+            {
+                "_ref": "user11",
+                "email": "karen.hall@example.com",
+                "display_name": "Karen Hall"
+            },
+            {
+                "_ref": "user12",
+                "email": "leo.clark@example.com",
+                "display_name": "Leo Clark"
+            },
+            {
+                "_ref": "user13",
+                "email": "mia.lewis@example.com",
+                "display_name": "Mia Lewis"
+            },
+            {
+                "_ref": "user14",
+                "email": "nathan.harris@example.com",
+                "display_name": "Nathan Harris"
+            },
+            {
+                "_ref": "user15",
+                "email": "olivia.young@example.com",
+                "display_name": "Olivia Young"
+            }
+        ],
+        "ticket_prefixes": [
+            {
+                "_ref": "its",
+                "prefix": "ITS",
+                "description": "IT Support tickets",
+                "department_id": "@departments.it",
+                "is_default": 1
+            },
+            {
+                "_ref": "inf",
+                "prefix": "INF",
+                "description": "Infrastructure tickets",
+                "department_id": "@departments.infra",
+                "is_default": 0
+            }
+        ]
+    },
+    "tier3": {
+        "analyst_teams": [
+            {
+                "analyst_id": "@analysts.jsmith",
+                "team_id": "@teams.servicedesk"
+            },
+            {
+                "analyst_id": "@analysts.swilliams",
+                "team_id": "@teams.servicedesk"
+            },
+            {
+                "analyst_id": "@analysts.mjones",
+                "team_id": "@teams.escalation"
+            },
+            {
+                "analyst_id": "@analysts.lbrown",
+                "team_id": "@teams.escalation"
+            },
+            {
+                "analyst_id": "@analysts.admin",
+                "team_id": "@teams.servicedesk"
+            }
+        ],
+        "department_teams": [
+            {
+                "department_id": "@departments.it",
+                "team_id": "@teams.servicedesk"
+            },
+            {
+                "department_id": "@departments.infra",
+                "team_id": "@teams.escalation"
+            },
+            {
+                "department_id": "@departments.dev",
+                "team_id": "@teams.escalation"
+            }
+        ]
+    }
+}
