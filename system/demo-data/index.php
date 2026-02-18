@@ -67,6 +67,27 @@ if (!isset($_SESSION['analyst_id'])) {
 
         .warning-card .warning-text strong { color: #e65100; }
 
+        .tip-card {
+            background: #e8f4fd;
+            border: 1px solid #90caf9;
+            border-radius: 8px;
+            padding: 12px 16px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tip-card svg { color: #1976d2; flex-shrink: 0; }
+
+        .tip-card .tip-text {
+            font-size: 13px;
+            color: #1565c0;
+            line-height: 1.4;
+        }
+
+        .tip-card .tip-text strong { color: #0d47a1; }
+
         .section-label {
             font-size: 11px;
             text-transform: uppercase;
@@ -258,6 +279,17 @@ if (!isset($_SESSION['analyst_id'])) {
             </svg>
             <div class="warning-text">
                 <strong>Designed for fresh installations only.</strong> Importing demo data into a system that already contains real data may cause conflicts. Each module can only be imported once.
+            </div>
+        </div>
+
+        <div class="tip-card">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+            </svg>
+            <div class="tip-text">
+                Import both <strong>Assets</strong> and <strong>Software</strong> to unlock a bonus option that links installed software to computers.
             </div>
         </div>
 
