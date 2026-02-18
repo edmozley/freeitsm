@@ -457,7 +457,7 @@ if (!isset($_SESSION['analyst_id'])) {
             }
         }
 
-        // On page load, check if core data already exists
+        // On page load, check if core data and modules already exist
         (async function checkCoreStatus() {
             try {
                 const response = await fetch('../../api/system/check_demo_core.php');
@@ -469,6 +469,21 @@ if (!isset($_SESSION['analyst_id'])) {
                     btn.innerHTML = checkSvg + ' Already imported';
                     btn.disabled = true;
                     enableModuleButtons();
+                }
+                // Track which modules have data so bonus sections appear
+                if (data.modules) {
+                    if (data.modules.software) importedModules['software'] = true;
+                    if (data.modules.assets) importedModules['assets'] = true;
+                    if (data.modules['software-assets']) {
+                        importedModules['software-assets'] = true;
+                        var saBtn = document.getElementById('btn-software-assets');
+                        if (saBtn) {
+                            saBtn.className = 'import-btn success';
+                            saBtn.innerHTML = checkSvg + ' Already imported';
+                            saBtn.disabled = true;
+                        }
+                    }
+                    checkBonusEligibility();
                 }
             } catch (e) { /* ignore - user can still click Import */ }
         })();
