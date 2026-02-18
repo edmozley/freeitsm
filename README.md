@@ -15,6 +15,10 @@ It genuinely helps and means a lot!
 
 A comprehensive web-based IT Service Management (ITSM) platform with 11 integrated modules covering tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, and system administration. Includes analyst account management with password reset and TOTP multi-factor authentication.
 
+> **⚠️ Note for early adopters:** If you downloaded FreeITSM before 18 February 2026, the project required Microsoft SQL Server Express and ODBC drivers — sorry about that! The original choice of SQL Server made sense at the time (it was the database I was most familiar with), but it created a painful setup experience: downloading SQL Server Express, installing ODBC drivers, enabling Mixed Mode Authentication, and troubleshooting driver compatibility issues. That's a lot of friction for an open-source project that's supposed to be easy to get running.
+>
+> FreeITSM now runs on **MySQL**, which comes pre-installed with WAMP, XAMPP, and most web hosting stacks. No extra downloads, no driver headaches. If you've already set up with SQL Server, you'll need to migrate your data to MySQL and update your `db_config.php` — but for new installations, it's just clone and go.
+
 ## 🚀 Quick Start
 
 ### Prerequisites
