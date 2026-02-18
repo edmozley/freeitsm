@@ -21,8 +21,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 046 | System            | Improvement | Replace OBJECT_ID table existence checks with information_schema queries |
 | 047 | System            | Fix         | Parameterize all raw token_data SQL updates and integer interpolation to prevent SQL injection (6 files) |
 | 048 | System            | Improvement | Update setup page to check for pdo_mysql extension instead of pdo_odbc |
-| 049 | System            | Feature     | One-click demo data import populating all 11 modules with realistic sample data for evaluation and testing |
-| 050 | Knowledge         | Feature     | Demo data file with 8 tags, 5 knowledge articles, and tag associations for realistic evaluation of the knowledge base module |
+| 049 | System            | Feature     | Per-module demo data import with 11 JSON datasets covering tickets, assets, knowledge, changes, calendar, morning checks, contracts, services, software, and forms |
 
 ### 16 February 2026
 
