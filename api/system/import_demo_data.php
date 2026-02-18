@@ -106,10 +106,54 @@ try {
     $conn = connectToDatabase();
     $conn->beginTransaction();
 
+    // Pre-scan: find tables with insertable records and collect skip-insert criteria
+    $tiers = ['tier1', 'tier2', 'tier3', 'tier4', 'tier5'];
+    $tablesToClean = [];
+    $skipCriteria = [];
+
+    foreach ($tiers as $tierKey) {
+        if (!isset($demoData[$tierKey])) continue;
+        foreach ($demoData[$tierKey] as $tableName => $records) {
+            $hasInserts = false;
+            foreach ($records as $record) {
+                if (!empty($record['_skip_insert'])) {
+                    $skipCriteria[$tableName][] = [
+                        'column' => $record['_match_by'],
+                        'value' => $record['_match_value']
+                    ];
+                } else {
+                    $hasInserts = true;
+                }
+            }
+            if ($hasInserts && !in_array($tableName, $tablesToClean)) {
+                $tablesToClean[] = $tableName;
+            }
+        }
+    }
+
+    // Delete existing demo data (reverse order for FK dependencies)
+    $conn->exec("SET FOREIGN_KEY_CHECKS = 0");
+    foreach (array_reverse($tablesToClean) as $tableName) {
+        if (!empty($skipCriteria[$tableName])) {
+            // Keep rows that match skip-insert criteria (e.g. admin account)
+            $conditions = [];
+            $params = [];
+            foreach ($skipCriteria[$tableName] as $criteria) {
+                $conditions[] = "`{$criteria['column']}` = ?";
+                $params[] = $criteria['value'];
+            }
+            $sql = "DELETE FROM `$tableName` WHERE NOT (" . implode(' OR ', $conditions) . ")";
+            $stmt = $conn->prepare($sql);
+            $stmt->execute($params);
+        } else {
+            $conn->exec("DELETE FROM `$tableName`");
+        }
+    }
+    $conn->exec("SET FOREIGN_KEY_CHECKS = 1");
+
     $idMap = [];
     $counts = [];
 
-    $tiers = ['tier1', 'tier2', 'tier3', 'tier4', 'tier5'];
     foreach ($tiers as $tierKey) {
         if (!isset($demoData[$tierKey])) continue;
 
