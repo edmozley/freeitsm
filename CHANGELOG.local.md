@@ -25,6 +25,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 050 | Knowledge         | Fix         | Replace SQL Server DATALENGTH() with MySQL LENGTH() in AI chat, embedding stats, and article embedding queries |
 | 051 | Knowledge         | Improvement | Ask AI button navigates to knowledge page first when clicked from Settings or Review, then slides open the chat panel |
 | 052 | Knowledge         | Improvement | Clicking an article link in AI chat loads the article in-page while keeping the chat panel open |
+| 053 | Software          | Improvement | Expand software demo data from 5 to 20 applications and 13 licences with varied types (subscription, perpetual, expired, bundled), realistic notes, and vendor details |
+| 054 | Software          | Feature     | Cross-module demo data linking software installations to asset computers, with conditional import prompt when both modules are imported |
 
 ### 16 February 2026
 

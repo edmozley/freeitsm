@@ -203,6 +203,42 @@ if (!isset($_SESSION['analyst_id'])) {
             width: 14px;
             height: 14px;
         }
+
+        /* Bonus cross-module section */
+        .bonus-section {
+            display: none;
+            margin-top: 8px;
+        }
+
+        .bonus-card {
+            background: white;
+            border: 2px dashed #90a4ae;
+            border-radius: 10px;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+
+        .bonus-card .bonus-info h4 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .bonus-card .bonus-info p {
+            margin: 0;
+            font-size: 12px;
+            color: #888;
+            line-height: 1.4;
+        }
+
+        .bonus-card .bonus-info .bonus-detail {
+            margin: 8px 0 0 0;
+            font-size: 12px;
+            color: #999;
+        }
     </style>
 </head>
 <body>
@@ -321,9 +357,9 @@ if (!isset($_SESSION['analyst_id'])) {
 
             <div class="module-card" data-module="software">
                 <h4>Software</h4>
-                <p class="module-desc">5 applications (M365, Adobe CC, Zoom, Slack, AutoCAD) with licence details.</p>
+                <p class="module-desc">20 applications with 13 licences &mdash; subscriptions, perpetual, expired, and bundled. Includes M365, Adobe CC, CrowdStrike, Citrix, and more.</p>
                 <div class="module-footer">
-                    <span class="record-count">~10 records</span>
+                    <span class="record-count">~33 records</span>
                     <button class="import-btn" id="btn-software" onclick="importModule('software', this)" disabled>Import</button>
                 </div>
                 <div class="error-text" id="err-software" style="display:none"></div>
@@ -339,10 +375,25 @@ if (!isset($_SESSION['analyst_id'])) {
                 <div class="error-text" id="err-forms" style="display:none"></div>
             </div>
         </div>
+
+        <!-- Bonus: cross-module linking (appears after both software + assets imported) -->
+        <div class="bonus-section" id="bonusSection">
+            <p class="section-label">Step 3 &mdash; Cross-module data</p>
+            <div class="bonus-card" id="bonus-software-assets">
+                <div class="bonus-info">
+                    <h4>Software Installed on Assets</h4>
+                    <p>Links software applications to computers, showing which apps are installed on each device. Requires both Software and Assets to be imported first.</p>
+                    <p class="bonus-detail">~55 installation records across 6 computers &bull; Realistic version numbers and install paths</p>
+                </div>
+                <button class="import-btn" id="btn-software-assets" onclick="importModule('software-assets', this)" disabled>Import</button>
+            </div>
+            <div class="error-text" id="err-software-assets" style="display:none"></div>
+        </div>
     </div>
 
     <script>
         let coreImported = false;
+        let importedModules = {};
 
         const checkSvg = '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
 
@@ -365,11 +416,14 @@ if (!isset($_SESSION['analyst_id'])) {
                     btn.className = 'import-btn success';
                     btn.innerHTML = checkSvg + ' ' + data.total + ' imported';
                     btn.disabled = true;
+                    importedModules[module] = true;
 
                     if (module === 'core') {
                         coreImported = true;
                         enableModuleButtons();
                     }
+
+                    checkBonusEligibility();
                 } else {
                     if (errEl) { errEl.textContent = data.error; errEl.style.display = 'block'; }
                     btn.disabled = false;
@@ -390,6 +444,17 @@ if (!isset($_SESSION['analyst_id'])) {
                     btn.disabled = false;
                 }
             });
+        }
+
+        function checkBonusEligibility() {
+            if (importedModules['software'] && importedModules['assets']) {
+                var section = document.getElementById('bonusSection');
+                section.style.display = 'block';
+                var btn = document.getElementById('btn-software-assets');
+                if (btn && !btn.classList.contains('success')) {
+                    btn.disabled = false;
+                }
+            }
         }
 
         // On page load, check if core data already exists

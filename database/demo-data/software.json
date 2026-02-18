@@ -8,6 +8,12 @@
                 "_match_value": "admin"
             },
             {
+                "_ref": "jsmith",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "jsmith"
+            },
+            {
                 "_ref": "swilliams",
                 "_skip_insert": true,
                 "_match_by": "username",
@@ -16,116 +22,336 @@
         ],
         "software_inventory_apps": [
             {
-                "_ref": "app1",
+                "_ref": "m365",
                 "display_name": "Microsoft 365 Apps for Enterprise",
+                "publisher": "Microsoft Corporation",
+                "first_detected": "__RELATIVE_DATE:-180d__"
+            },
+            {
+                "_ref": "adobe_cc",
+                "display_name": "Adobe Creative Cloud",
+                "publisher": "Adobe Inc.",
+                "first_detected": "__RELATIVE_DATE:-150d__"
+            },
+            {
+                "_ref": "zoom",
+                "display_name": "Zoom Workplace",
+                "publisher": "Zoom Video Communications, Inc.",
+                "first_detected": "__RELATIVE_DATE:-160d__"
+            },
+            {
+                "_ref": "slack",
+                "display_name": "Slack",
+                "publisher": "Salesforce, Inc.",
+                "first_detected": "__RELATIVE_DATE:-170d__"
+            },
+            {
+                "_ref": "autocad",
+                "display_name": "AutoCAD 2025",
+                "publisher": "Autodesk, Inc.",
+                "first_detected": "__RELATIVE_DATE:-90d__"
+            },
+            {
+                "_ref": "crowdstrike",
+                "display_name": "CrowdStrike Falcon Sensor",
+                "publisher": "CrowdStrike, Inc.",
+                "first_detected": "__RELATIVE_DATE:-200d__"
+            },
+            {
+                "_ref": "citrix",
+                "display_name": "Citrix Workspace",
+                "publisher": "Cloud Software Group, Inc.",
+                "first_detected": "__RELATIVE_DATE:-140d__"
+            },
+            {
+                "_ref": "veeam",
+                "display_name": "Veeam Backup & Replication",
+                "publisher": "Veeam Software Group GmbH",
+                "first_detected": "__RELATIVE_DATE:-300d__"
+            },
+            {
+                "_ref": "vmware",
+                "display_name": "VMware Workstation Pro 17",
+                "publisher": "Broadcom Inc.",
+                "first_detected": "__RELATIVE_DATE:-365d__"
+            },
+            {
+                "_ref": "sep",
+                "display_name": "Symantec Endpoint Protection",
+                "publisher": "Broadcom Inc.",
+                "first_detected": "__RELATIVE_DATE:-400d__"
+            },
+            {
+                "_ref": "chrome",
+                "display_name": "Google Chrome",
+                "publisher": "Google LLC",
+                "first_detected": "__RELATIVE_DATE:-200d__"
+            },
+            {
+                "_ref": "firefox",
+                "display_name": "Mozilla Firefox ESR",
+                "publisher": "Mozilla Foundation",
+                "first_detected": "__RELATIVE_DATE:-180d__"
+            },
+            {
+                "_ref": "7zip",
+                "display_name": "7-Zip",
+                "publisher": "Igor Pavlov",
+                "first_detected": "__RELATIVE_DATE:-200d__"
+            },
+            {
+                "_ref": "notepadpp",
+                "display_name": "Notepad++",
+                "publisher": "Don Ho",
+                "first_detected": "__RELATIVE_DATE:-190d__"
+            },
+            {
+                "_ref": "vscode",
+                "display_name": "Microsoft Visual Studio Code",
                 "publisher": "Microsoft Corporation",
                 "first_detected": "__RELATIVE_DATE:-120d__"
             },
             {
-                "_ref": "app2",
-                "display_name": "Adobe Creative Cloud",
-                "publisher": "Adobe Inc.",
-                "first_detected": "__RELATIVE_DATE:-90d__"
+                "_ref": "git",
+                "display_name": "Git for Windows",
+                "publisher": "The Git Development Community",
+                "first_detected": "__RELATIVE_DATE:-120d__"
             },
             {
-                "_ref": "app3",
-                "display_name": "Zoom Workplace",
-                "publisher": "Zoom Video Communications",
+                "_ref": "python",
+                "display_name": "Python 3.12.4",
+                "publisher": "Python Software Foundation",
                 "first_detected": "__RELATIVE_DATE:-100d__"
             },
             {
-                "_ref": "app4",
-                "display_name": "Slack",
-                "publisher": "Salesforce",
-                "first_detected": "__RELATIVE_DATE:-110d__"
+                "_ref": "teams",
+                "display_name": "Microsoft Teams",
+                "publisher": "Microsoft Corporation",
+                "first_detected": "__RELATIVE_DATE:-180d__"
             },
             {
-                "_ref": "app5",
-                "display_name": "AutoCAD 2025",
-                "publisher": "Autodesk",
+                "_ref": "power_bi",
+                "display_name": "Microsoft Power BI Desktop",
+                "publisher": "Microsoft Corporation",
                 "first_detected": "__RELATIVE_DATE:-60d__"
+            },
+            {
+                "_ref": "snagit",
+                "display_name": "Snagit 2024",
+                "publisher": "TechSmith Corporation",
+                "first_detected": "__RELATIVE_DATE:-75d__"
             }
         ]
     },
     "tier2": {
         "software_licences": [
             {
-                "app_id": "@software_inventory_apps.app1",
+                "app_id": "@software_inventory_apps.m365",
                 "licence_type": "Subscription",
-                "licence_key": "M365-ENT-2024-XXXX",
+                "licence_key": "M365-ENT-E3-XXXX-XXXX",
                 "quantity": 250,
                 "renewal_date": "__RELATIVE_DATEONLY:+245d__",
-                "notice_period_days": 60,
+                "notice_period_days": 90,
                 "portal_url": "https://admin.microsoft.com",
-                "cost": 28500.00,
+                "cost": 57600.00,
                 "currency": "GBP",
                 "purchase_date": "__RELATIVE_DATEONLY:-120d__",
-                "vendor_contact": "Microsoft Account Team",
-                "notes": "Enterprise E3 licences. Includes Office apps, Exchange Online, and SharePoint.",
+                "vendor_contact": "Microsoft Enterprise Agreement — Softcat (SAM: Rachel Hughes)",
+                "notes": "Enterprise E3 licences via EA. Includes Office desktop apps, Exchange Online Plan 2, SharePoint Online Plan 2, and Teams. 3-year agreement, annual true-up in March. 212 of 250 seats currently assigned.",
                 "status": "Active",
                 "created_by": "@analysts.admin"
             },
             {
-                "app_id": "@software_inventory_apps.app2",
+                "app_id": "@software_inventory_apps.adobe_cc",
                 "licence_type": "Subscription",
-                "licence_key": "ADBE-CC-2024-XXXX",
+                "licence_key": "ADBE-CC-ALLAPS-XXXX",
                 "quantity": 15,
                 "renewal_date": "__RELATIVE_DATEONLY:+155d__",
                 "notice_period_days": 30,
                 "portal_url": "https://adminconsole.adobe.com",
-                "cost": 7200.00,
+                "cost": 7560.00,
                 "currency": "GBP",
-                "purchase_date": "__RELATIVE_DATEONLY:-90d__",
-                "vendor_contact": "Adobe Enterprise Support",
-                "notes": "Creative Cloud All Apps licence for design team.",
+                "purchase_date": "__RELATIVE_DATEONLY:-210d__",
+                "vendor_contact": "Adobe VIP — Insight Direct (AM: James Thornton)",
+                "notes": "Creative Cloud All Apps (Named User) for Marketing and Design teams. Includes Photoshop, Illustrator, InDesign, Premiere Pro, After Effects. 12 of 15 licences assigned. Consider reducing to 12 at renewal.",
                 "status": "Active",
                 "created_by": "@analysts.swilliams"
             },
             {
-                "app_id": "@software_inventory_apps.app3",
+                "app_id": "@software_inventory_apps.zoom",
                 "licence_type": "Subscription",
-                "licence_key": "ZM-BUS-2024-XXXX",
+                "licence_key": "ZM-BUS-XXXX-XXXX",
                 "quantity": 100,
-                "renewal_date": "__RELATIVE_DATEONLY:+60d__",
+                "renewal_date": "__RELATIVE_DATEONLY:+35d__",
                 "notice_period_days": 30,
                 "portal_url": "https://zoom.us/account",
-                "cost": 3600.00,
+                "cost": 4320.00,
                 "currency": "GBP",
-                "purchase_date": "__RELATIVE_DATEONLY:-100d__",
-                "vendor_contact": "Zoom Sales",
-                "notes": "Business tier. Renewal due soon - evaluate Teams integration as alternative.",
+                "purchase_date": "__RELATIVE_DATEONLY:-330d__",
+                "vendor_contact": "Zoom direct — zoom-renewals@zoom.us",
+                "notes": "Business tier (100 hosts). RENEWAL DUE SOON. Board approved migration to Teams for meetings — reduce to 25 licences at renewal for exec/external use only. Confirm with CTO before renewal date.",
                 "status": "Active",
                 "created_by": "@analysts.admin"
             },
             {
-                "app_id": "@software_inventory_apps.app4",
+                "app_id": "@software_inventory_apps.slack",
                 "licence_type": "Subscription",
-                "licence_key": "SLCK-PRO-2024-XXXX",
+                "licence_key": "SLCK-PRO-XXXX-XXXX",
                 "quantity": 200,
                 "renewal_date": "__RELATIVE_DATEONLY:+180d__",
                 "notice_period_days": 45,
-                "portal_url": "https://slack.com/admin",
-                "cost": 4800.00,
+                "portal_url": "https://app.slack.com/plans",
+                "cost": 14400.00,
                 "currency": "GBP",
-                "purchase_date": "__RELATIVE_DATEONLY:-110d__",
-                "vendor_contact": "Slack Enterprise Team",
-                "notes": "Pro plan. Used across all departments for instant messaging.",
+                "purchase_date": "__RELATIVE_DATEONLY:-185d__",
+                "vendor_contact": "Slack Enterprise — Salesforce (CSM: Priya Patel)",
+                "notes": "Pro plan, 200 seats. Used across all departments for messaging and workflow automation. 187 active users. Integrated with Jira, PagerDuty, and GitHub. Review usage of paid Slack Connect channels at renewal.",
                 "status": "Active",
                 "created_by": "@analysts.swilliams"
             },
             {
-                "app_id": "@software_inventory_apps.app5",
-                "licence_type": "Perpetual",
-                "licence_key": "ACAD-2025-XXXX-XXXX",
+                "app_id": "@software_inventory_apps.autocad",
+                "licence_type": "Subscription",
+                "licence_key": "ACAD-2025-SUB-XXXX",
                 "quantity": 5,
+                "renewal_date": "__RELATIVE_DATEONLY:+275d__",
+                "notice_period_days": 30,
                 "portal_url": "https://manage.autodesk.com",
-                "cost": 8500.00,
+                "cost": 8750.00,
                 "currency": "GBP",
-                "purchase_date": "__RELATIVE_DATEONLY:-60d__",
-                "vendor_contact": "Autodesk Reseller - CAD Solutions Ltd",
-                "notes": "Perpetual licences for engineering department. Maintenance contract separate.",
+                "purchase_date": "__RELATIVE_DATEONLY:-90d__",
+                "vendor_contact": "Autodesk reseller — CAD Solutions Ltd (Chris Marsh)",
+                "notes": "AutoCAD 2025 including specialised toolsets. Named-user subscription for Facilities and Engineering team. All 5 seats assigned. Includes AutoCAD Architecture and AutoCAD MEP toolsets.",
                 "status": "Active",
                 "created_by": "@analysts.admin"
+            },
+            {
+                "app_id": "@software_inventory_apps.crowdstrike",
+                "licence_type": "Subscription",
+                "licence_key": "CS-FALCON-PRO-XXXX",
+                "quantity": 300,
+                "renewal_date": "__RELATIVE_DATEONLY:+190d__",
+                "notice_period_days": 60,
+                "portal_url": "https://falcon.crowdstrike.com",
+                "cost": 21600.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-175d__",
+                "vendor_contact": "CrowdStrike — Optiv Security (TAM: Daniel Osei)",
+                "notes": "Falcon Pro — EDR, threat intelligence, device control. 300-seat bundle covers all endpoints. 247 sensors currently reporting. Includes 24/7 Falcon Complete MDR add-on. Critical security tooling — do not let lapse.",
+                "status": "Active",
+                "created_by": "@analysts.admin"
+            },
+            {
+                "app_id": "@software_inventory_apps.citrix",
+                "licence_type": "Subscription",
+                "licence_key": "CTX-CVAD-XXXX-XXXX",
+                "quantity": 50,
+                "renewal_date": "__RELATIVE_DATEONLY:+120d__",
+                "notice_period_days": 60,
+                "portal_url": "https://citrix.cloud.com",
+                "cost": 18000.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-245d__",
+                "vendor_contact": "Cloud Software Group — CDW (AM: Lisa Chen)",
+                "notes": "Citrix Virtual Apps and Desktops (CVAD) — 50 concurrent user licences for remote access to legacy applications. Usage trending down since Azure Virtual Desktop pilot. Evaluate AVD migration before renewal.",
+                "status": "Active",
+                "created_by": "@analysts.jsmith"
+            },
+            {
+                "app_id": "@software_inventory_apps.veeam",
+                "licence_type": "Perpetual",
+                "licence_key": "VEEM-BKP-PERP-XXXX",
+                "quantity": 10,
+                "renewal_date": "__RELATIVE_DATEONLY:+90d__",
+                "notice_period_days": 30,
+                "portal_url": "https://my.veeam.com",
+                "cost": 12500.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-670d__",
+                "vendor_contact": "Veeam — Softcat (SAM: Rachel Hughes)",
+                "notes": "Perpetual licence for 10 VM sockets. Annual maintenance renewal covers support and updates. Considering upgrade to Veeam Data Platform Universal licence at next renewal to cover cloud workloads.",
+                "status": "Active",
+                "created_by": "@analysts.admin"
+            },
+            {
+                "app_id": "@software_inventory_apps.vmware",
+                "licence_type": "Perpetual",
+                "licence_key": "VMW-WS17-XXXX-XXXX",
+                "quantity": 8,
+                "renewal_date": null,
+                "notice_period_days": null,
+                "portal_url": "https://customerconnect.broadcom.com",
+                "cost": 2400.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-365d__",
+                "vendor_contact": "Broadcom (formerly VMware) — direct purchase",
+                "notes": "Perpetual licences purchased pre-Broadcom acquisition. Support contract expired and NOT renewed due to Broadcom pricing changes. 3 of 8 copies still in use by DevOps team for local testing. Plan to decommission in favour of WSL2/Docker Desktop.",
+                "status": "Expired",
+                "created_by": "@analysts.jsmith"
+            },
+            {
+                "app_id": "@software_inventory_apps.sep",
+                "licence_type": "Subscription",
+                "licence_key": "SEP-14-XXXX-XXXX",
+                "quantity": 300,
+                "renewal_date": "__RELATIVE_DATEONLY:-45d__",
+                "notice_period_days": 60,
+                "portal_url": "https://securitycloud.symantec.com",
+                "cost": 9000.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-410d__",
+                "vendor_contact": "Broadcom — SHI International (AM: Mike Santos)",
+                "notes": "DECOMMISSIONED — Replaced by CrowdStrike Falcon. Licence intentionally not renewed. Uninstall from remaining 14 endpoints still showing SEP installed (see IT-OPS ticket). Agent conflicts with CrowdStrike if both present.",
+                "status": "Expired",
+                "created_by": "@analysts.admin"
+            },
+            {
+                "app_id": "@software_inventory_apps.teams",
+                "licence_type": "Subscription",
+                "licence_key": null,
+                "quantity": 250,
+                "renewal_date": null,
+                "notice_period_days": null,
+                "portal_url": "https://admin.microsoft.com",
+                "cost": 0.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-180d__",
+                "vendor_contact": "Included with Microsoft 365 E3",
+                "notes": "Bundled with M365 E3 — no separate cost. Tracked separately for deployment visibility. Deploying as primary meeting platform to replace Zoom (see Zoom licence notes).",
+                "status": "Active",
+                "created_by": "@analysts.admin"
+            },
+            {
+                "app_id": "@software_inventory_apps.power_bi",
+                "licence_type": "Subscription",
+                "licence_key": "PBI-PRO-XXXX",
+                "quantity": 20,
+                "renewal_date": "__RELATIVE_DATEONLY:+305d__",
+                "notice_period_days": 30,
+                "portal_url": "https://app.powerbi.com/admin-portal",
+                "cost": 1900.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-60d__",
+                "vendor_contact": "Microsoft — Softcat (SAM: Rachel Hughes)",
+                "notes": "Power BI Pro licences for Finance, Ops, and IT reporting teams. 8 of 20 licences assigned so far — rollout in progress. Connected to Azure SQL and SharePoint data sources.",
+                "status": "Active",
+                "created_by": "@analysts.swilliams"
+            },
+            {
+                "app_id": "@software_inventory_apps.snagit",
+                "licence_type": "Perpetual",
+                "licence_key": "SNAG-2024-XXXX-XXXX",
+                "quantity": 10,
+                "renewal_date": null,
+                "notice_period_days": null,
+                "portal_url": "https://www.techsmith.com/account",
+                "cost": 530.00,
+                "currency": "GBP",
+                "purchase_date": "__RELATIVE_DATEONLY:-75d__",
+                "vendor_contact": "TechSmith — direct purchase (volume key)",
+                "notes": "Perpetual volume licence. Used by IT Service Desk and Documentation teams for screenshots in knowledge base articles and training materials. Maintenance not purchased — manual upgrades only.",
+                "status": "Active",
+                "created_by": "@analysts.jsmith"
             }
         ]
     }

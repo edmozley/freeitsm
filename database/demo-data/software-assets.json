@@ -1,0 +1,546 @@
+{
+    "tier1": {
+        "software_inventory_apps": [
+            { "_ref": "m365", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Microsoft 365 Apps for Enterprise" },
+            { "_ref": "adobe_cc", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Adobe Creative Cloud" },
+            { "_ref": "zoom", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Zoom Workplace" },
+            { "_ref": "slack", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Slack" },
+            { "_ref": "autocad", "_skip_insert": true, "_match_by": "display_name", "_match_value": "AutoCAD 2025" },
+            { "_ref": "crowdstrike", "_skip_insert": true, "_match_by": "display_name", "_match_value": "CrowdStrike Falcon Sensor" },
+            { "_ref": "citrix", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Citrix Workspace" },
+            { "_ref": "vmware", "_skip_insert": true, "_match_by": "display_name", "_match_value": "VMware Workstation Pro 17" },
+            { "_ref": "sep", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Symantec Endpoint Protection" },
+            { "_ref": "chrome", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Google Chrome" },
+            { "_ref": "firefox", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Mozilla Firefox ESR" },
+            { "_ref": "7zip", "_skip_insert": true, "_match_by": "display_name", "_match_value": "7-Zip" },
+            { "_ref": "notepadpp", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Notepad++" },
+            { "_ref": "vscode", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Microsoft Visual Studio Code" },
+            { "_ref": "git", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Git for Windows" },
+            { "_ref": "python", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Python 3.12.4" },
+            { "_ref": "teams", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Microsoft Teams" },
+            { "_ref": "power_bi", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Microsoft Power BI Desktop" },
+            { "_ref": "snagit", "_skip_insert": true, "_match_by": "display_name", "_match_value": "Snagit 2024" }
+        ],
+        "assets": [
+            { "_ref": "lt001", "_skip_insert": true, "_match_by": "hostname", "_match_value": "LT-001" },
+            { "_ref": "lt002", "_skip_insert": true, "_match_by": "hostname", "_match_value": "LT-002" },
+            { "_ref": "lt003", "_skip_insert": true, "_match_by": "hostname", "_match_value": "LT-003" },
+            { "_ref": "lt004", "_skip_insert": true, "_match_by": "hostname", "_match_value": "LT-004" },
+            { "_ref": "dt001", "_skip_insert": true, "_match_by": "hostname", "_match_value": "DT-001" },
+            { "_ref": "dt002", "_skip_insert": true, "_match_by": "hostname", "_match_value": "DT-002" }
+        ]
+    },
+    "tier2": {
+        "software_inventory_detail": [
+            {
+                "host_id": "@assets.lt001",
+                "app_id": "@software_inventory_apps.m365",
+                "display_version": "16.0.17928.20156",
+                "install_date": "__RELATIVE_DATEONLY:-85d__",
+                "install_location": "C:\\Program Files\\Microsoft Office",
+                "estimated_size": "4194304",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt001",
+                "app_id": "@software_inventory_apps.teams",
+                "display_version": "24004.1309.2689.2246",
+                "install_date": "__RELATIVE_DATEONLY:-85d__",
+                "install_location": "C:\\Program Files\\WindowsApps\\MSTeams",
+                "estimated_size": "524288",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt001",
+                "app_id": "@software_inventory_apps.crowdstrike",
+                "display_version": "7.16.17106.0",
+                "install_date": "__RELATIVE_DATEONLY:-88d__",
+                "install_location": "C:\\Program Files\\CrowdStrike",
+                "estimated_size": "131072",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt001",
+                "app_id": "@software_inventory_apps.chrome",
+                "display_version": "121.0.6167.161",
+                "install_date": "__RELATIVE_DATEONLY:-80d__",
+                "install_location": "C:\\Program Files\\Google\\Chrome\\Application",
+                "estimated_size": "262144",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt001",
+                "app_id": "@software_inventory_apps.7zip",
+                "display_version": "24.08",
+                "install_date": "__RELATIVE_DATEONLY:-85d__",
+                "install_location": "C:\\Program Files\\7-Zip",
+                "estimated_size": "5120",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt001",
+                "app_id": "@software_inventory_apps.zoom",
+                "display_version": "6.0.11.38530",
+                "install_date": "__RELATIVE_DATEONLY:-70d__",
+                "install_location": "C:\\Program Files\\Zoom\\bin",
+                "estimated_size": "204800",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt001",
+                "app_id": "@software_inventory_apps.slack",
+                "display_version": "4.38.125",
+                "install_date": "__RELATIVE_DATEONLY:-82d__",
+                "install_location": "C:\\Users\\alice.johnson\\AppData\\Local\\slack",
+                "estimated_size": "307200",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt001",
+                "app_id": "@software_inventory_apps.snagit",
+                "display_version": "2024.3.2",
+                "install_date": "__RELATIVE_DATEONLY:-60d__",
+                "install_location": "C:\\Program Files\\TechSmith\\Snagit 2024",
+                "estimated_size": "307200",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+
+            {
+                "host_id": "@assets.lt002",
+                "app_id": "@software_inventory_apps.m365",
+                "display_version": "16.0.17928.20156",
+                "install_date": "__RELATIVE_DATEONLY:-115d__",
+                "install_location": "C:\\Program Files\\Microsoft Office",
+                "estimated_size": "4194304",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt002",
+                "app_id": "@software_inventory_apps.teams",
+                "display_version": "24004.1309.2689.2246",
+                "install_date": "__RELATIVE_DATEONLY:-115d__",
+                "install_location": "C:\\Program Files\\WindowsApps\\MSTeams",
+                "estimated_size": "524288",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt002",
+                "app_id": "@software_inventory_apps.crowdstrike",
+                "display_version": "7.16.17106.0",
+                "install_date": "__RELATIVE_DATEONLY:-118d__",
+                "install_location": "C:\\Program Files\\CrowdStrike",
+                "estimated_size": "131072",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt002",
+                "app_id": "@software_inventory_apps.chrome",
+                "display_version": "121.0.6167.161",
+                "install_date": "__RELATIVE_DATEONLY:-110d__",
+                "install_location": "C:\\Program Files\\Google\\Chrome\\Application",
+                "estimated_size": "262144",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt002",
+                "app_id": "@software_inventory_apps.7zip",
+                "display_version": "24.08",
+                "install_date": "__RELATIVE_DATEONLY:-115d__",
+                "install_location": "C:\\Program Files\\7-Zip",
+                "estimated_size": "5120",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt002",
+                "app_id": "@software_inventory_apps.slack",
+                "display_version": "4.38.125",
+                "install_date": "__RELATIVE_DATEONLY:-100d__",
+                "install_location": "C:\\Users\\bob.taylor\\AppData\\Local\\slack",
+                "estimated_size": "307200",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt002",
+                "app_id": "@software_inventory_apps.adobe_cc",
+                "display_version": "6.1.0.587",
+                "install_date": "__RELATIVE_DATEONLY:-95d__",
+                "install_location": "C:\\Program Files\\Adobe",
+                "estimated_size": "10485760",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt002",
+                "app_id": "@software_inventory_apps.notepadpp",
+                "display_version": "8.6.4",
+                "install_date": "__RELATIVE_DATEONLY:-108d__",
+                "install_location": "C:\\Program Files\\Notepad++",
+                "estimated_size": "10240",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.m365",
+                "display_version": "16.0.17928.20156",
+                "install_date": "__RELATIVE_DATEONLY:-70d__",
+                "install_location": "C:\\Program Files\\Microsoft Office",
+                "estimated_size": "4194304",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.teams",
+                "display_version": "24004.1309.2689.2246",
+                "install_date": "__RELATIVE_DATEONLY:-70d__",
+                "install_location": "C:\\Program Files\\WindowsApps\\MSTeams",
+                "estimated_size": "524288",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.crowdstrike",
+                "display_version": "7.16.17106.0",
+                "install_date": "__RELATIVE_DATEONLY:-73d__",
+                "install_location": "C:\\Program Files\\CrowdStrike",
+                "estimated_size": "131072",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.chrome",
+                "display_version": "121.0.6167.161",
+                "install_date": "__RELATIVE_DATEONLY:-68d__",
+                "install_location": "C:\\Program Files\\Google\\Chrome\\Application",
+                "estimated_size": "262144",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.7zip",
+                "display_version": "24.08",
+                "install_date": "__RELATIVE_DATEONLY:-70d__",
+                "install_location": "C:\\Program Files\\7-Zip",
+                "estimated_size": "5120",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.zoom",
+                "display_version": "6.0.11.38530",
+                "install_date": "__RELATIVE_DATEONLY:-65d__",
+                "install_location": "C:\\Program Files\\Zoom\\bin",
+                "estimated_size": "204800",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.slack",
+                "display_version": "4.38.125",
+                "install_date": "__RELATIVE_DATEONLY:-68d__",
+                "install_location": "C:\\Users\\claire.davies\\AppData\\Local\\slack",
+                "estimated_size": "307200",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.vscode",
+                "display_version": "1.87.2",
+                "install_date": "__RELATIVE_DATEONLY:-55d__",
+                "install_location": "C:\\Users\\claire.davies\\AppData\\Local\\Programs\\Microsoft VS Code",
+                "estimated_size": "409600",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.git",
+                "display_version": "2.44.0",
+                "install_date": "__RELATIVE_DATEONLY:-55d__",
+                "install_location": "C:\\Program Files\\Git",
+                "estimated_size": "307200",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "host_id": "@assets.lt003",
+                "app_id": "@software_inventory_apps.python",
+                "display_version": "3.12.4",
+                "install_date": "__RELATIVE_DATEONLY:-50d__",
+                "install_location": "C:\\Users\\claire.davies\\AppData\\Local\\Programs\\Python\\Python312",
+                "estimated_size": "204800",
+                "last_seen": "__RELATIVE_DATE:-2d__"
+            },
+
+            {
+                "host_id": "@assets.lt004",
+                "app_id": "@software_inventory_apps.m365",
+                "display_version": "16.0.17928.20156",
+                "install_date": "__RELATIVE_DATEONLY:-55d__",
+                "install_location": "C:\\Program Files\\Microsoft Office",
+                "estimated_size": "4194304",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt004",
+                "app_id": "@software_inventory_apps.teams",
+                "display_version": "24004.1309.2689.2246",
+                "install_date": "__RELATIVE_DATEONLY:-55d__",
+                "install_location": "C:\\Program Files\\WindowsApps\\MSTeams",
+                "estimated_size": "524288",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt004",
+                "app_id": "@software_inventory_apps.crowdstrike",
+                "display_version": "7.16.17106.0",
+                "install_date": "__RELATIVE_DATEONLY:-58d__",
+                "install_location": "C:\\Program Files\\CrowdStrike",
+                "estimated_size": "131072",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt004",
+                "app_id": "@software_inventory_apps.chrome",
+                "display_version": "121.0.6167.161",
+                "install_date": "__RELATIVE_DATEONLY:-50d__",
+                "install_location": "C:\\Program Files\\Google\\Chrome\\Application",
+                "estimated_size": "262144",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt004",
+                "app_id": "@software_inventory_apps.7zip",
+                "display_version": "24.08",
+                "install_date": "__RELATIVE_DATEONLY:-55d__",
+                "install_location": "C:\\Program Files\\7-Zip",
+                "estimated_size": "5120",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt004",
+                "app_id": "@software_inventory_apps.slack",
+                "display_version": "4.38.125",
+                "install_date": "__RELATIVE_DATEONLY:-50d__",
+                "install_location": "C:\\Users\\david.wilson\\AppData\\Local\\slack",
+                "estimated_size": "307200",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt004",
+                "app_id": "@software_inventory_apps.citrix",
+                "display_version": "24.2.0.65",
+                "install_date": "__RELATIVE_DATEONLY:-45d__",
+                "install_location": "C:\\Program Files (x86)\\Citrix\\ICA Client",
+                "estimated_size": "512000",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt004",
+                "app_id": "@software_inventory_apps.firefox",
+                "display_version": "115.8.0esr",
+                "install_date": "__RELATIVE_DATEONLY:-50d__",
+                "install_location": "C:\\Program Files\\Mozilla Firefox",
+                "estimated_size": "204800",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.lt004",
+                "app_id": "@software_inventory_apps.power_bi",
+                "display_version": "2.126.927.0",
+                "install_date": "__RELATIVE_DATEONLY:-20d__",
+                "install_location": "C:\\Program Files\\Microsoft Power BI Desktop",
+                "estimated_size": "819200",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.m365",
+                "display_version": "16.0.17928.20156",
+                "install_date": "__RELATIVE_DATEONLY:-175d__",
+                "install_location": "C:\\Program Files\\Microsoft Office",
+                "estimated_size": "4194304",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.teams",
+                "display_version": "24004.1309.2689.2246",
+                "install_date": "__RELATIVE_DATEONLY:-175d__",
+                "install_location": "C:\\Program Files\\WindowsApps\\MSTeams",
+                "estimated_size": "524288",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.crowdstrike",
+                "display_version": "7.16.17106.0",
+                "install_date": "__RELATIVE_DATEONLY:-178d__",
+                "install_location": "C:\\Program Files\\CrowdStrike",
+                "estimated_size": "131072",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.chrome",
+                "display_version": "121.0.6167.161",
+                "install_date": "__RELATIVE_DATEONLY:-170d__",
+                "install_location": "C:\\Program Files\\Google\\Chrome\\Application",
+                "estimated_size": "262144",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.7zip",
+                "display_version": "24.08",
+                "install_date": "__RELATIVE_DATEONLY:-175d__",
+                "install_location": "C:\\Program Files\\7-Zip",
+                "estimated_size": "5120",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.autocad",
+                "display_version": "25.0.56.157",
+                "install_date": "__RELATIVE_DATEONLY:-85d__",
+                "install_location": "C:\\Program Files\\Autodesk\\AutoCAD 2025",
+                "estimated_size": "5242880",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.vmware",
+                "display_version": "17.5.2",
+                "install_date": "__RELATIVE_DATEONLY:-300d__",
+                "install_location": "C:\\Program Files (x86)\\VMware\\VMware Workstation",
+                "estimated_size": "716800",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.vscode",
+                "display_version": "1.87.2",
+                "install_date": "__RELATIVE_DATEONLY:-90d__",
+                "install_location": "C:\\Users\\emma.thomas\\AppData\\Local\\Programs\\Microsoft VS Code",
+                "estimated_size": "409600",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.git",
+                "display_version": "2.44.0",
+                "install_date": "__RELATIVE_DATEONLY:-90d__",
+                "install_location": "C:\\Program Files\\Git",
+                "estimated_size": "307200",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.python",
+                "display_version": "3.12.4",
+                "install_date": "__RELATIVE_DATEONLY:-85d__",
+                "install_location": "C:\\Users\\emma.thomas\\AppData\\Local\\Programs\\Python\\Python312",
+                "estimated_size": "204800",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.notepadpp",
+                "display_version": "8.6.4",
+                "install_date": "__RELATIVE_DATEONLY:-170d__",
+                "install_location": "C:\\Program Files\\Notepad++",
+                "estimated_size": "10240",
+                "last_seen": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "host_id": "@assets.dt001",
+                "app_id": "@software_inventory_apps.sep",
+                "display_version": "14.3.10148.8000",
+                "install_date": "__RELATIVE_DATEONLY:-350d__",
+                "install_location": "C:\\Program Files (x86)\\Symantec\\Symantec Endpoint Protection",
+                "estimated_size": "819200",
+                "last_seen": "__RELATIVE_DATE:-45d__"
+            },
+
+            {
+                "host_id": "@assets.dt002",
+                "app_id": "@software_inventory_apps.m365",
+                "display_version": "16.0.17928.20156",
+                "install_date": "__RELATIVE_DATEONLY:-145d__",
+                "install_location": "C:\\Program Files\\Microsoft Office",
+                "estimated_size": "4194304",
+                "last_seen": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "host_id": "@assets.dt002",
+                "app_id": "@software_inventory_apps.teams",
+                "display_version": "24004.1309.2689.2246",
+                "install_date": "__RELATIVE_DATEONLY:-145d__",
+                "install_location": "C:\\Program Files\\WindowsApps\\MSTeams",
+                "estimated_size": "524288",
+                "last_seen": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "host_id": "@assets.dt002",
+                "app_id": "@software_inventory_apps.crowdstrike",
+                "display_version": "7.14.16806.0",
+                "install_date": "__RELATIVE_DATEONLY:-148d__",
+                "install_location": "C:\\Program Files\\CrowdStrike",
+                "estimated_size": "131072",
+                "last_seen": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "host_id": "@assets.dt002",
+                "app_id": "@software_inventory_apps.chrome",
+                "display_version": "120.0.6099.130",
+                "install_date": "__RELATIVE_DATEONLY:-140d__",
+                "install_location": "C:\\Program Files\\Google\\Chrome\\Application",
+                "estimated_size": "262144",
+                "last_seen": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "host_id": "@assets.dt002",
+                "app_id": "@software_inventory_apps.7zip",
+                "display_version": "23.01",
+                "install_date": "__RELATIVE_DATEONLY:-145d__",
+                "install_location": "C:\\Program Files\\7-Zip",
+                "estimated_size": "5120",
+                "last_seen": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "host_id": "@assets.dt002",
+                "app_id": "@software_inventory_apps.citrix",
+                "display_version": "24.2.0.65",
+                "install_date": "__RELATIVE_DATEONLY:-130d__",
+                "install_location": "C:\\Program Files (x86)\\Citrix\\ICA Client",
+                "estimated_size": "512000",
+                "last_seen": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "host_id": "@assets.dt002",
+                "app_id": "@software_inventory_apps.firefox",
+                "display_version": "115.8.0esr",
+                "install_date": "__RELATIVE_DATEONLY:-140d__",
+                "install_location": "C:\\Program Files\\Mozilla Firefox",
+                "estimated_size": "204800",
+                "last_seen": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "host_id": "@assets.dt002",
+                "app_id": "@software_inventory_apps.snagit",
+                "display_version": "2024.3.2",
+                "install_date": "__RELATIVE_DATEONLY:-40d__",
+                "install_location": "C:\\Program Files\\TechSmith\\Snagit 2024",
+                "estimated_size": "307200",
+                "last_seen": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "host_id": "@assets.dt002",
+                "app_id": "@software_inventory_apps.sep",
+                "display_version": "14.3.10148.8000",
+                "install_date": "__RELATIVE_DATEONLY:-320d__",
+                "install_location": "C:\\Program Files (x86)\\Symantec\\Symantec Endpoint Protection",
+                "estimated_size": "819200",
+                "last_seen": "__RELATIVE_DATE:-50d__"
+            }
+        ]
+    }
+}
