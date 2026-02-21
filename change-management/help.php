@@ -31,35 +31,35 @@ $path_prefix = '../';
             <h3>Guide</h3>
             <a href="#what-is-a-change" class="cm-help-nav-link active" data-section="what-is-a-change">
                 <span class="cm-help-nav-num">1</span>
-                What is a Change?
+                What is a change?
             </a>
             <a href="#change-types" class="cm-help-nav-link" data-section="change-types">
                 <span class="cm-help-nav-num">2</span>
-                Change Types
+                Change types
             </a>
             <a href="#lifecycle" class="cm-help-nav-link" data-section="lifecycle">
                 <span class="cm-help-nav-num">3</span>
-                The Change Lifecycle
+                The change lifecycle
             </a>
             <a href="#recording" class="cm-help-nav-link" data-section="recording">
                 <span class="cm-help-nav-num">4</span>
-                Recording a Change
+                Recording a change
             </a>
             <a href="#cab" class="cm-help-nav-link cab" data-section="cab">
                 <span class="cm-help-nav-num cab">5</span>
-                CAB Review
+                CAB review
             </a>
             <a href="#risk" class="cm-help-nav-link" data-section="risk">
                 <span class="cm-help-nav-num">6</span>
-                Risk Assessment
+                Risk assessment
             </a>
             <a href="#pir" class="cm-help-nav-link" data-section="pir">
                 <span class="cm-help-nav-num">7</span>
-                Post-Implementation Review
+                Post-implementation review
             </a>
             <a href="#tips" class="cm-help-nav-link" data-section="tips">
                 <span class="cm-help-nav-num">8</span>
-                Quick Tips
+                Quick tips
             </a>
         </div>
 
@@ -67,7 +67,7 @@ $path_prefix = '../';
         <div class="cm-help-main" id="helpMain">
             <!-- Hero banner -->
             <div class="cm-help-hero">
-                <h2>Change Management Guide</h2>
+                <h2>Change management guide</h2>
                 <p>Everything you need to know about recording, reviewing, and approving changes.</p>
             </div>
 
@@ -78,7 +78,7 @@ $path_prefix = '../';
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">1</span>
                         <div>
-                            <h3>What is a Change?</h3>
+                            <h3>What is a change?</h3>
                             <p>A change is any planned modification to your IT environment &mdash; installing software, upgrading a server, changing a firewall rule, deploying new hardware. Recording changes ensures nothing is done without proper planning, approval, and a rollback plan if things go wrong.</p>
                         </div>
                     </div>
@@ -88,7 +88,7 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="change-types">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">2</span>
-                        <h3>Change Types</h3>
+                        <h3>Change types</h3>
                     </div>
                     <div class="cm-help-types-grid">
                         <div class="cm-help-type-card standard">
@@ -119,7 +119,7 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="lifecycle">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">3</span>
-                        <h3>The Change Lifecycle</h3>
+                        <h3>The change lifecycle</h3>
                     </div>
                     <div class="cm-help-lifecycle">
                         <div class="cm-help-lifecycle-step">
@@ -179,7 +179,7 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="recording">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">4</span>
-                        <h3>Recording a Change &mdash; Step by Step</h3>
+                        <h3>Recording a change &mdash; step by step</h3>
                     </div>
                     <div class="cm-help-steps">
                         <div class="cm-help-step-item">
@@ -191,7 +191,7 @@ $path_prefix = '../';
                         <div class="cm-help-step-item">
                             <div class="cm-help-step-num">2</div>
                             <div>
-                                <strong>Fill in General Info</strong> &mdash; title, type (Standard/Normal/Emergency), priority, and impact.
+                                <strong>Fill in general info</strong> &mdash; title, type (Standard/Normal/Emergency), priority, and impact.
                             </div>
                         </div>
                         <div class="cm-help-step-item">
@@ -231,7 +231,7 @@ $path_prefix = '../';
                 <div class="cm-help-section cm-help-section-highlight" id="cab">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num cab">5</span>
-                        <h3>CAB Review &mdash; When You Need Multiple Approvers</h3>
+                        <h3>CAB review &mdash; when you need multiple approvers</h3>
                     </div>
                     <p class="cm-help-intro">For higher-risk or higher-impact changes, a single approver may not be enough. The <strong>Change Advisory Board (CAB)</strong> lets you assemble a panel of reviewers who each vote on the change.</p>
 
@@ -240,14 +240,14 @@ $path_prefix = '../';
                             <div class="cm-help-cab-step-icon setup">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             </div>
-                            <h4>Set Up the Board</h4>
+                            <h4>Set up the board</h4>
                             <p>In the editor, tick <strong>"Require CAB review"</strong>. Choose your approval type and add members from the analyst list.</p>
                         </div>
                         <div class="cm-help-cab-step">
                             <div class="cm-help-cab-step-icon choose">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                             </div>
-                            <h4>Choose Approval Type</h4>
+                            <h4>Choose approval type</h4>
                             <div class="cm-help-approval-types">
                                 <div class="cm-help-approval-type">
                                     <span class="cm-help-approval-label all">All must approve</span>
@@ -263,14 +263,14 @@ $path_prefix = '../';
                             <div class="cm-help-cab-step-icon members">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
                             </div>
-                            <h4>Required vs Optional Members</h4>
+                            <h4>Required vs optional members</h4>
                             <p>Each member can be toggled between <strong>Required</strong> and <strong>Optional</strong>. Only required members' votes count toward the threshold. Optional members can provide input but their vote isn't mandatory.</p>
                         </div>
                         <div class="cm-help-cab-step">
                             <div class="cm-help-cab-step-icon vote">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
                             </div>
-                            <h4>The Voting Process</h4>
+                            <h4>The voting process</h4>
                             <p>When the change moves to <strong>Pending Approval</strong>, each CAB member sees a voting panel on the change detail page with three options:</p>
                             <div class="cm-help-vote-options">
                                 <span class="cm-help-vote approve">Approve</span>
@@ -283,7 +283,7 @@ $path_prefix = '../';
                             <div class="cm-help-cab-step-icon auto">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
                             </div>
-                            <h4>Automatic Status Changes</h4>
+                            <h4>Automatic status changes</h4>
                             <div class="cm-help-auto-rules">
                                 <div class="cm-help-auto-rule approve">
                                     <span class="cm-help-auto-arrow">&#10003;</span>
@@ -308,7 +308,7 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="risk">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">6</span>
-                        <h3>Risk Assessment</h3>
+                        <h3>Risk assessment</h3>
                     </div>
                     <p>Every change should be assessed for risk. Pick a <strong>Likelihood</strong> (1&ndash;5) and <strong>Impact</strong> (1&ndash;5) score. They multiply to give a risk level:</p>
                     <div class="cm-help-risk-scale">
@@ -325,7 +325,7 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="pir">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">7</span>
-                        <h3>Post-Implementation Review</h3>
+                        <h3>Post-implementation review</h3>
                     </div>
                     <p>When a change is marked <strong>Completed</strong> or <strong>Failed</strong>, a PIR section appears in the editor. This is your chance to record what actually happened:</p>
                     <div class="cm-help-pir-fields">
@@ -341,7 +341,7 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="tips">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">8</span>
-                        <h3>Quick Tips</h3>
+                        <h3>Quick tips</h3>
                     </div>
                     <div class="cm-help-tips-grid">
                         <div class="cm-help-tip-card">
@@ -358,7 +358,7 @@ $path_prefix = '../';
                         </div>
                         <div class="cm-help-tip-card">
                             <div class="cm-help-tip-icon">&#128269;</div>
-                            <div><strong>Audit Trail</strong><br>Every field change is automatically tracked. See who changed what and when in the Activity timeline.</div>
+                            <div><strong>Audit trail</strong><br>Every field change is automatically tracked. See who changed what and when in the Activity timeline.</div>
                         </div>
                     </div>
                 </div>
