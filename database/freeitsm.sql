@@ -596,10 +596,24 @@ CREATE TABLE IF NOT EXISTS `knowledge_articles` (
     `is_archived`           TINYINT(1) NULL DEFAULT 0,
     `archived_datetime`     DATETIME NULL,
     `archived_by_id`        INT NULL,
+    `version`               INT NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_knowledge_articles_author` FOREIGN KEY (`author_id`) REFERENCES `analysts` (`id`),
     CONSTRAINT `fk_knowledge_articles_owner` FOREIGN KEY (`owner_id`) REFERENCES `analysts` (`id`),
     CONSTRAINT `fk_knowledge_articles_archived_by` FOREIGN KEY (`archived_by_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `knowledge_article_versions` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `article_id`        INT NOT NULL,
+    `version`           INT NOT NULL,
+    `title`             VARCHAR(255) NOT NULL,
+    `body`              LONGTEXT NULL,
+    `saved_by_id`       INT NOT NULL,
+    `saved_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_kav_article` FOREIGN KEY (`article_id`) REFERENCES `knowledge_articles` (`id`),
+    CONSTRAINT `fk_kav_saved_by` FOREIGN KEY (`saved_by_id`) REFERENCES `analysts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `knowledge_tags` (

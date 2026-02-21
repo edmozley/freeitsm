@@ -29,6 +29,7 @@ $body = $input['body'] ?? '';
 $tags = $input['tags'] ?? [];
 $ownerId = !empty($input['owner_id']) ? (int)$input['owner_id'] : null;
 $nextReviewDate = !empty($input['next_review_date']) ? $input['next_review_date'] : null;
+$saveAsVersion = !empty($input['save_as_version']);
 
 if (empty($title)) {
     echo json_encode(['success' => false, 'error' => 'Title is required']);
@@ -40,10 +41,24 @@ try {
     $conn->beginTransaction();
 
     if ($articleId) {
-        // Update existing article
-        $sql = "UPDATE knowledge_articles
-                SET title = ?, body = ?, owner_id = ?, next_review_date = ?, modified_datetime = UTC_TIMESTAMP()
-                WHERE id = ?";
+        if ($saveAsVersion) {
+            // Snapshot current article content into version history
+            $snapSql = "INSERT INTO knowledge_article_versions (article_id, version, title, body, saved_by_id, saved_datetime)
+                        SELECT id, version, title, body, ?, UTC_TIMESTAMP()
+                        FROM knowledge_articles WHERE id = ?";
+            $snapStmt = $conn->prepare($snapSql);
+            $snapStmt->execute([$analystId, $articleId]);
+
+            // Update article with new content and increment version
+            $sql = "UPDATE knowledge_articles
+                    SET title = ?, body = ?, owner_id = ?, next_review_date = ?, modified_datetime = UTC_TIMESTAMP(), version = version + 1
+                    WHERE id = ?";
+        } else {
+            // Normal update (no version change)
+            $sql = "UPDATE knowledge_articles
+                    SET title = ?, body = ?, owner_id = ?, next_review_date = ?, modified_datetime = UTC_TIMESTAMP()
+                    WHERE id = ?";
+        }
         $stmt = $conn->prepare($sql);
         $stmt->execute([$title, $body, $ownerId, $nextReviewDate, $articleId]);
     } else {

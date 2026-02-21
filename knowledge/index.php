@@ -151,7 +151,8 @@ $path_prefix = '../';
                     </div>
                     <div class="editor-actions">
                         <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
-                        <button class="btn btn-primary" onclick="saveArticle()">Save Article</button>
+                        <button class="btn btn-primary" onclick="saveArticle()">Save</button>
+                        <button class="btn btn-primary" id="btnSaveAsVersion" onclick="saveAsNewVersion()" style="display:none;">Version</button>
                     </div>
                 </div>
             </div>

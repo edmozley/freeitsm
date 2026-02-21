@@ -375,6 +375,7 @@ Rich-text knowledge base with AI integration.
 - OpenAI embeddings for semantic search
 - Email sharing capability
 - Article review workflow
+- Article versioning — save as new version to archive previous content with full version history
 - Article archiving with recycle bin (soft delete, restore, configurable auto-purge)
 
 ### Change Management (`change-management/`)

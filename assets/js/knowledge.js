@@ -261,7 +261,7 @@ function renderArticleDetail() {
             <h1 class="article-content-title">${escapeHtml(currentArticle.title)}</h1>
             <div class="article-content-meta">
                 <span>By ${escapeHtml(currentArticle.author_name)}</span>
-                <span>Created: ${formatDate(currentArticle.created_datetime)}</span>
+                <span>Created: ${formatDate(currentArticle.created_datetime)} (v${currentArticle.version || 1})</span>
                 <span>Modified: ${formatDate(currentArticle.modified_datetime)}</span>
                 <span>Views: ${currentArticle.view_count}</span>
             </div>
@@ -299,6 +299,7 @@ function openCreateArticle() {
         articleEditor.setContent('');
     }
 
+    document.getElementById('btnSaveAsVersion').style.display = 'none';
     showView('editor');
 }
 
@@ -331,7 +332,56 @@ function editCurrentArticle() {
         articleEditor.setContent(currentArticle.body || '');
     }
 
+    document.getElementById('btnSaveAsVersion').style.display = '';
     showView('editor');
+}
+
+// Save as new version
+async function saveAsNewVersion() {
+    if (!confirm('Save as a new version? The current content will be archived as v' + (currentArticle.version || 1) + '.')) return;
+
+    const articleId = document.getElementById('editArticleId').value;
+    const title = document.getElementById('articleTitle').value.trim();
+    const body = articleEditor ? articleEditor.getContent() : '';
+    const ownerSelect = document.getElementById('articleOwner');
+    const ownerId = ownerSelect ? ownerSelect.value : null;
+    const reviewDateInput = document.getElementById('articleReviewDate');
+    const nextReviewDate = reviewDateInput ? reviewDateInput.value : null;
+
+    if (!title) {
+        alert('Please enter a title');
+        return;
+    }
+
+    try {
+        const response = await fetch(API_BASE + 'knowledge_save.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: articleId,
+                title: title,
+                body: body,
+                tags: selectedTags,
+                owner_id: ownerId || null,
+                next_review_date: nextReviewDate || null,
+                save_as_version: true
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            alert('Saved as new version');
+            loadTags();
+            loadArticles();
+            showView('list');
+        } else {
+            alert('Error saving version: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to save version');
+    }
 }
 
 // Save article

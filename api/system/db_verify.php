@@ -496,6 +496,17 @@ $schema = [
         'is_archived'           => 'TINYINT(1) NULL DEFAULT 0',
         'archived_datetime'     => 'DATETIME NULL',
         'archived_by_id'        => 'INT NULL',
+        'version'               => 'INT NOT NULL DEFAULT 1',
+    ],
+
+    'knowledge_article_versions' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'article_id'        => 'INT NOT NULL',
+        'version'           => 'INT NOT NULL',
+        'title'             => 'VARCHAR(255) NOT NULL',
+        'body'              => 'LONGTEXT NULL',
+        'saved_by_id'       => 'INT NOT NULL',
+        'saved_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     'knowledge_tags' => [
