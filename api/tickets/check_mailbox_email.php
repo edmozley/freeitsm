@@ -112,6 +112,11 @@ try {
     $whitelist = loadWhitelist($conn, $mailboxId);
     $hasWhitelist = !empty($whitelist['domains']) || !empty($whitelist['emails']);
 
+    // Get action settings
+    $rejectedAction = $mailbox['rejected_action'] ?? 'delete';
+    $importedAction = $mailbox['imported_action'] ?? 'delete';
+    $importedFolder = $mailbox['imported_folder'] ?? null;
+
     // Save emails to database
     $savedCount = 0;
     $rejectedCount = 0;
@@ -125,11 +130,11 @@ try {
 
         // Check whitelist
         if ($hasWhitelist && !isWhitelisted($fromAddress, $whitelist)) {
-            // Reject: delete from mailbox without importing
+            // Reject: handle according to rejected_action setting
             try {
-                deleteEmailFromMailbox($accessToken, $email['id']);
+                handleEmailAfterProcessing($accessToken, $email['id'], $rejectedAction);
             } catch (Exception $delEx) {
-                $errors[] = 'Failed to delete rejected email from ' . $fromAddress . ': ' . $delEx->getMessage();
+                $errors[] = 'Failed to handle rejected email from ' . $fromAddress . ': ' . $delEx->getMessage();
             }
 
             $rejectedCount++;
@@ -157,11 +162,11 @@ try {
                 'ticket_id' => $ticketId ?: null
             ];
 
-            // Delete the email from the mailbox after successful import
+            // Handle imported email according to imported_action setting
             try {
-                deleteEmailFromMailbox($accessToken, $email['id']);
+                handleEmailAfterProcessing($accessToken, $email['id'], $importedAction, $importedFolder);
             } catch (Exception $delEx) {
-                $errors[] = 'Imported but failed to delete email ID ' . $email['id'] . ': ' . $delEx->getMessage();
+                $errors[] = 'Imported but failed to handle email ID ' . $email['id'] . ': ' . $delEx->getMessage();
             }
         } catch (Exception $e) {
             $errors[] = 'Failed to save email ID ' . $email['id'] . ': ' . $e->getMessage();
@@ -385,6 +390,102 @@ function deleteEmailFromMailbox($accessToken, $messageId) {
     // Graph API returns 204 No Content on successful delete
     if ($httpCode !== 204 && $httpCode !== 200) {
         throw new Exception('Failed to delete email. HTTP Code: ' . $httpCode);
+    }
+}
+
+/**
+ * Move an email to a folder via Microsoft Graph API
+ */
+function moveEmailToFolder($accessToken, $messageId, $folderName) {
+    $graphUrl = 'https://graph.microsoft.com/v1.0/me/messages/' . $messageId . '/move';
+
+    $body = json_encode(['destinationId' => $folderName]);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $graphUrl);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $accessToken,
+        'Content-Type: application/json'
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if (curl_errno($ch)) {
+        curl_close($ch);
+        throw new Exception('cURL error when moving email: ' . curl_error($ch));
+    }
+
+    curl_close($ch);
+
+    if ($httpCode !== 200 && $httpCode !== 201) {
+        throw new Exception('Failed to move email. HTTP Code: ' . $httpCode);
+    }
+}
+
+/**
+ * Mark an email as read via Microsoft Graph API
+ */
+function markEmailAsRead($accessToken, $messageId) {
+    $graphUrl = 'https://graph.microsoft.com/v1.0/me/messages/' . $messageId;
+
+    $body = json_encode(['isRead' => true]);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $graphUrl);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $accessToken,
+        'Content-Type: application/json'
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if (curl_errno($ch)) {
+        curl_close($ch);
+        throw new Exception('cURL error when marking email as read: ' . curl_error($ch));
+    }
+
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        throw new Exception('Failed to mark email as read. HTTP Code: ' . $httpCode);
+    }
+}
+
+/**
+ * Handle email after processing based on action setting
+ * Actions: 'delete' (permanent), 'move_to_deleted' (Deleted Items), 'mark_read' (leave in inbox), 'move_to_folder' (custom folder)
+ */
+function handleEmailAfterProcessing($accessToken, $messageId, $action, $folderName = null) {
+    switch ($action) {
+        case 'move_to_deleted':
+            moveEmailToFolder($accessToken, $messageId, 'deleteditems');
+            break;
+        case 'mark_read':
+            markEmailAsRead($accessToken, $messageId);
+            break;
+        case 'move_to_folder':
+            if ($folderName) {
+                moveEmailToFolder($accessToken, $messageId, $folderName);
+            } else {
+                deleteEmailFromMailbox($accessToken, $messageId);
+            }
+            break;
+        case 'delete':
+        default:
+            deleteEmailFromMailbox($accessToken, $messageId);
+            break;
     }
 }
 

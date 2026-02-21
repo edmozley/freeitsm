@@ -344,6 +344,7 @@ The primary module. Three-panel Outlook-style interface.
 - **Features**: Create tickets, reply/forward emails, attachments, internal notes, audit trail, team-based filtering, scheduling
 - **Settings**: Departments, ticket types, origins, mailboxes (Office 365), analysts, teams
 - **Mailbox whitelist**: Per-mailbox domain and email address whitelisting — non-whitelisted senders are rejected
+- **Email actions**: Configurable per-mailbox actions for rejected emails (delete, move to Deleted Items, mark as read) and imported emails (delete, move to folder)
 - **Activity log**: Searchable, paginated log of imported and rejected emails per mailbox
 
 ### Assets (`asset-management/`)

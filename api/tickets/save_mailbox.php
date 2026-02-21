@@ -49,7 +49,16 @@ try {
     $email_folder = $data['email_folder'] ?? 'INBOX';
     $max_emails_per_check = $data['max_emails_per_check'] ?? 10;
     $mark_as_read = isset($data['mark_as_read']) ? ($data['mark_as_read'] ? 1 : 0) : 0;
+    $rejected_action = $data['rejected_action'] ?? 'delete';
+    $imported_action = $data['imported_action'] ?? 'delete';
+    $imported_folder = $data['imported_folder'] ?? null;
     $is_active = isset($data['is_active']) ? ($data['is_active'] ? 1 : 0) : 1;
+
+    // Validate action values
+    $allowedRejectedActions = ['delete', 'move_to_deleted', 'mark_read'];
+    $allowedImportedActions = ['delete', 'move_to_folder'];
+    if (!in_array($rejected_action, $allowedRejectedActions)) $rejected_action = 'delete';
+    if (!in_array($imported_action, $allowedImportedActions)) $imported_action = 'delete';
 
     if ($id) {
         // Update existing mailbox
@@ -60,6 +69,7 @@ try {
                         oauth_redirect_uri = ?, oauth_scopes = ?, imap_server = ?,
                         imap_port = ?, imap_encryption = ?, target_mailbox = ?,
                         email_folder = ?, max_emails_per_check = ?, mark_as_read = ?,
+                        rejected_action = ?, imported_action = ?, imported_folder = ?,
                         is_active = ?
                     WHERE id = ?";
             $params = [
@@ -67,6 +77,7 @@ try {
                 $oauth_redirect_uri, $oauth_scopes, $imap_server,
                 $imap_port, $imap_encryption, $target_mailbox,
                 $email_folder, $max_emails_per_check, $mark_as_read,
+                $rejected_action, $imported_action, $imported_folder,
                 $is_active, $id
             ];
         } else {
@@ -76,14 +87,16 @@ try {
                         azure_client_secret = ?, oauth_redirect_uri = ?, oauth_scopes = ?,
                         imap_server = ?, imap_port = ?, imap_encryption = ?,
                         target_mailbox = ?, email_folder = ?, max_emails_per_check = ?,
-                        mark_as_read = ?, is_active = ?
+                        mark_as_read = ?, rejected_action = ?, imported_action = ?,
+                        imported_folder = ?, is_active = ?
                     WHERE id = ?";
             $params = [
                 $name, $azure_tenant_id, $azure_client_id,
                 $azure_client_secret, $oauth_redirect_uri, $oauth_scopes,
                 $imap_server, $imap_port, $imap_encryption,
                 $target_mailbox, $email_folder, $max_emails_per_check,
-                $mark_as_read, $is_active, $id
+                $mark_as_read, $rejected_action, $imported_action,
+                $imported_folder, $is_active, $id
             ];
         }
 
@@ -108,15 +121,17 @@ try {
                     name, azure_tenant_id, azure_client_id, azure_client_secret,
                     oauth_redirect_uri, oauth_scopes, imap_server, imap_port,
                     imap_encryption, target_mailbox, email_folder, max_emails_per_check,
-                    mark_as_read, is_active
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    mark_as_read, rejected_action, imported_action, imported_folder,
+                    is_active
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([
             $name, $azure_tenant_id, $azure_client_id, $azure_client_secret,
             $oauth_redirect_uri, $oauth_scopes, $imap_server, $imap_port,
             $imap_encryption, $target_mailbox, $email_folder, $max_emails_per_check,
-            $mark_as_read, $is_active
+            $mark_as_read, $rejected_action, $imported_action, $imported_folder,
+            $is_active
         ]);
 
         $newId = $conn->lastInsertId();

@@ -148,6 +148,44 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             padding: 0;
             border-bottom: none;
         }
+        /* Toggle switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+            vertical-align: middle;
+        }
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: #ccc;
+            border-radius: 24px;
+            transition: background 0.2s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 18px;
+            height: 18px;
+            left: 3px;
+            bottom: 3px;
+            background: #fff;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+        .toggle-switch input:checked + .toggle-slider {
+            background: #0078d4;
+        }
+        .toggle-switch input:checked + .toggle-slider::before {
+            transform: translateX(20px);
+        }
     </style>
 </head>
 <body>
@@ -448,14 +486,34 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                     </div>
 
                     <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="mailboxMarkAsRead"> Mark as Read after processing
-                        </label>
+                        <label for="mailboxRejectedAction">Rejected Emails</label>
+                        <select id="mailboxRejectedAction">
+                            <option value="delete">Delete permanently</option>
+                            <option value="move_to_deleted">Move to Deleted Items</option>
+                            <option value="mark_read">Mark as read</option>
+                        </select>
                     </div>
 
                     <div class="form-group">
-                        <label>
-                            <input type="checkbox" id="mailboxActive" checked> Active
+                        <label for="mailboxImportedAction">Imported Emails</label>
+                        <select id="mailboxImportedAction" onchange="toggleImportedFolder()">
+                            <option value="delete">Delete permanently</option>
+                            <option value="move_to_folder">Move to folder</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="importedFolderGroup" style="display: none; grid-column: span 2;">
+                        <label for="mailboxImportedFolder">Move to Folder</label>
+                        <input type="text" id="mailboxImportedFolder" placeholder="e.g., Processed">
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label style="display: flex; align-items: center; gap: 10px;">
+                            Active
+                            <label class="toggle-switch" style="margin: 0;">
+                                <input type="checkbox" id="mailboxActive" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
                         </label>
                     </div>
                 </div>
@@ -1253,7 +1311,10 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             document.getElementById('mailboxImapPort').value = mailbox ? mailbox.imap_port : 993;
             document.getElementById('mailboxFolder').value = mailbox ? mailbox.email_folder : 'INBOX';
             document.getElementById('mailboxMaxEmails').value = mailbox ? mailbox.max_emails_per_check : 10;
-            document.getElementById('mailboxMarkAsRead').checked = mailbox ? mailbox.mark_as_read : false;
+            document.getElementById('mailboxRejectedAction').value = mailbox ? (mailbox.rejected_action || 'delete') : 'delete';
+            document.getElementById('mailboxImportedAction').value = mailbox ? (mailbox.imported_action || 'delete') : 'delete';
+            document.getElementById('mailboxImportedFolder').value = mailbox ? (mailbox.imported_folder || '') : '';
+            toggleImportedFolder();
             document.getElementById('mailboxActive').checked = mailbox ? mailbox.is_active : true;
 
             // Load whitelist
@@ -1276,6 +1337,11 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
 
         function closeMailboxModal() {
             document.getElementById('mailboxModal').classList.remove('active');
+        }
+
+        function toggleImportedFolder() {
+            const action = document.getElementById('mailboxImportedAction').value;
+            document.getElementById('importedFolderGroup').style.display = action === 'move_to_folder' ? '' : 'none';
         }
 
         async function editMailbox(id) {
@@ -1473,7 +1539,9 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 imap_port: parseInt(document.getElementById('mailboxImapPort').value),
                 email_folder: document.getElementById('mailboxFolder').value,
                 max_emails_per_check: parseInt(document.getElementById('mailboxMaxEmails').value),
-                mark_as_read: document.getElementById('mailboxMarkAsRead').checked,
+                rejected_action: document.getElementById('mailboxRejectedAction').value,
+                imported_action: document.getElementById('mailboxImportedAction').value,
+                imported_folder: document.getElementById('mailboxImportedFolder').value || null,
                 is_active: document.getElementById('mailboxActive').checked
             };
 

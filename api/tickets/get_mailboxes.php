@@ -21,6 +21,7 @@ try {
     $sql = "SELECT id, name, azure_tenant_id, azure_client_id, azure_client_secret,
                    oauth_redirect_uri, oauth_scopes, imap_server, imap_port, imap_encryption,
                    target_mailbox, email_folder, max_emails_per_check, mark_as_read,
+                   rejected_action, imported_action, imported_folder,
                    is_active, created_datetime, last_checked_datetime,
                    CASE WHEN token_data IS NOT NULL AND token_data != '' THEN 1 ELSE 0 END as is_authenticated
             FROM target_mailboxes
