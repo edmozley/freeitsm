@@ -246,8 +246,8 @@ $path_prefix = '../';
     <!-- Link Copied Toast -->
     <div class="toast" id="linkCopiedToast">Link copied to clipboard!</div>
 
-    <!-- html2pdf for PDF generation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <!-- jsPDF for searchable PDF generation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>window.API_BASE = '../api/knowledge/';</script>
     <script src="../assets/js/custom-alert.js?v=1"></script>
     <script src="../assets/js/knowledge.js?v=5"></script>

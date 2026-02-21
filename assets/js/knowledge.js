@@ -797,39 +797,168 @@ function showToast(message) {
     }, 2500);
 }
 
-// Export article as PDF
-function shareArticlePdf() {
-    closeShareDropdown();
+// Build a searchable jsPDF document from the current article
+async function buildArticlePdf() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const contentW = pageW - margin * 2;
+    let y = margin;
 
+    // --- Logo ---
+    try {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = '../assets/images/CompanyLogo.png';
+        });
+        const maxH = 12;
+        const w = maxH * (img.width / img.height);
+        doc.addImage(img, 'PNG', margin, y, w, maxH);
+        y += maxH + 6;
+    } catch (e) { /* continue without logo */ }
+
+    // --- Title ---
+    doc.setFontSize(18);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(30, 30, 30);
+    const titleLines = doc.splitTextToSize(currentArticle.title, contentW);
+    doc.text(titleLines, margin, y);
+    y += titleLines.length * 7 + 2;
+
+    // --- Meta line ---
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(120, 120, 120);
+    const meta = `By ${currentArticle.author_name}  |  Created: ${formatDate(currentArticle.created_datetime)}  |  Modified: ${formatDate(currentArticle.modified_datetime)}  |  v${currentArticle.version || 1}`;
+    doc.text(meta, margin, y);
+    y += 4;
+
+    // --- Divider ---
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
+
+    // --- Body ---
+    // Parse HTML to structured text blocks
+    const temp = document.createElement('div');
+    temp.innerHTML = currentArticle.body || '';
+
+    function addPage() {
+        doc.addPage();
+        y = margin;
+    }
+
+    function checkSpace(needed) {
+        if (y + needed > doc.internal.pageSize.getHeight() - margin) addPage();
+    }
+
+    function renderNode(node) {
+        if (node.nodeType === 3) {
+            // Text node
+            const text = node.textContent.replace(/\s+/g, ' ');
+            if (!text.trim()) return;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(50, 50, 50);
+            const lines = doc.splitTextToSize(text.trim(), contentW);
+            checkSpace(lines.length * 5);
+            doc.text(lines, margin, y);
+            y += lines.length * 5;
+            return;
+        }
+        if (node.nodeType !== 1) return;
+
+        const tag = node.tagName.toLowerCase();
+
+        if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4') {
+            const sizes = { h1: 16, h2: 14, h3: 12, h4: 11 };
+            y += 3;
+            checkSpace(10);
+            doc.setFontSize(sizes[tag]);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(30, 30, 30);
+            const lines = doc.splitTextToSize(node.textContent.trim(), contentW);
+            doc.text(lines, margin, y);
+            y += lines.length * (sizes[tag] * 0.45) + 3;
+            return;
+        }
+
+        if (tag === 'p') {
+            const text = node.textContent.trim();
+            if (!text) return;
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(50, 50, 50);
+            // Handle bold/strong inline
+            const lines = doc.splitTextToSize(text, contentW);
+            checkSpace(lines.length * 5);
+            doc.text(lines, margin, y);
+            y += lines.length * 5 + 2;
+            return;
+        }
+
+        if (tag === 'ul' || tag === 'ol') {
+            const items = node.querySelectorAll(':scope > li');
+            items.forEach((li, idx) => {
+                const bullet = tag === 'ul' ? '\u2022' : `${idx + 1}.`;
+                const text = li.textContent.trim();
+                doc.setFontSize(10);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(50, 50, 50);
+                const lines = doc.splitTextToSize(text, contentW - 8);
+                checkSpace(lines.length * 5);
+                doc.text(bullet, margin + 2, y);
+                doc.text(lines, margin + 8, y);
+                y += lines.length * 5 + 1;
+            });
+            y += 2;
+            return;
+        }
+
+        if (tag === 'pre' || tag === 'code') {
+            const text = node.textContent.trim();
+            if (!text) return;
+            doc.setFontSize(9);
+            doc.setFont('courier', 'normal');
+            doc.setTextColor(80, 80, 80);
+            const lines = doc.splitTextToSize(text, contentW - 6);
+            checkSpace(lines.length * 4.5 + 4);
+            doc.setFillColor(245, 245, 245);
+            doc.rect(margin, y - 3, contentW, lines.length * 4.5 + 6, 'F');
+            doc.text(lines, margin + 3, y);
+            y += lines.length * 4.5 + 5;
+            return;
+        }
+
+        if (tag === 'br') { y += 3; return; }
+        if (tag === 'hr') {
+            y += 2;
+            doc.setDrawColor(200, 200, 200);
+            doc.line(margin, y, pageW - margin, y);
+            y += 4;
+            return;
+        }
+
+        // Recurse into other elements (div, span, strong, em, etc.)
+        for (const child of node.childNodes) renderNode(child);
+    }
+
+    for (const child of temp.childNodes) renderNode(child);
+
+    return doc;
+}
+
+// Export article as PDF
+async function shareArticlePdf() {
+    closeShareDropdown();
     if (!currentArticle) return;
 
-    // Create a clean version of the article for PDF
-    const pdfContent = document.createElement('div');
-    pdfContent.innerHTML = `
-        <div style="font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px;">
-            <h1 style="color: #333; margin-bottom: 10px;">${escapeHtml(currentArticle.title)}</h1>
-            <div style="color: #666; font-size: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
-                By ${escapeHtml(currentArticle.author_name)} |
-                Created: ${formatDate(currentArticle.created_datetime)} |
-                Modified: ${formatDate(currentArticle.modified_datetime)}
-            </div>
-            <div style="line-height: 1.6; color: #333;">
-                ${currentArticle.body}
-            </div>
-        </div>
-    `;
-
-    // PDF options
-    const opt = {
-        margin: 10,
-        filename: `${currentArticle.title.replace(/[^a-z0-9]/gi, '_')}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
-
-    // Generate PDF
-    html2pdf().set(opt).from(pdfContent).save();
+    const doc = await buildArticlePdf();
+    doc.save(`${currentArticle.title.replace(/[^a-z0-9]/gi, '_')}.pdf`);
 }
 
 // Open email share modal with both link and PDF options
@@ -872,30 +1001,9 @@ async function sendShareEmail() {
     // Generate PDF if needed
     let pdfBase64 = null;
     if (includePdf) {
-        const pdfContent = document.createElement('div');
-        pdfContent.innerHTML = `
-            <div style="font-family: 'Segoe UI', Tahoma, sans-serif; padding: 20px;">
-                <h1 style="color: #333; margin-bottom: 10px;">${escapeHtml(currentArticle.title)}</h1>
-                <div style="color: #666; font-size: 12px; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
-                    By ${escapeHtml(currentArticle.author_name)} |
-                    Created: ${formatDate(currentArticle.created_datetime)} |
-                    Modified: ${formatDate(currentArticle.modified_datetime)}
-                </div>
-                <div style="line-height: 1.6; color: #333;">
-                    ${currentArticle.body}
-                </div>
-            </div>
-        `;
-
-        const opt = {
-            margin: 10,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-
         try {
-            const pdfBlob = await html2pdf().set(opt).from(pdfContent).outputPdf('blob');
+            const doc = await buildArticlePdf();
+            const pdfBlob = doc.output('blob');
             pdfBase64 = await blobToBase64(pdfBlob);
         } catch (error) {
             console.error('Error generating PDF:', error);
