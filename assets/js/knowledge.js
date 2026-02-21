@@ -893,7 +893,7 @@ function blobToBase64(blob) {
 // Check for article ID in URL on page load (for shared links)
 (function() {
     const urlParams = new URLSearchParams(window.location.search);
-    const articleId = urlParams.get('article');
+    const articleId = urlParams.get('article') || urlParams.get('id');
     if (articleId) {
         // Wait for articles to load, then open the specific article
         const checkAndLoad = setInterval(() => {

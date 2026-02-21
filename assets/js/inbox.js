@@ -1996,7 +1996,7 @@ function formatTicketAiResponse(text, articlesList) {
         sorted.forEach(article => {
             const escapedTitle = article.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
             const regex = new RegExp('["\u201c]' + escapedTitle + '(\\s*\\(ID:\\s*\\d+\\))?["\u201d]', 'gi');
-            const link = '<a href="../api/knowledge/knowledge_article.php?id=' + article.id + '" target="_blank" class="ai-article-link">\u201c' + escapeHtml(article.title) + '\u201d</a>';
+            const link = '<a href="../knowledge/?id=' + article.id + '" target="_blank" class="ai-article-link">\u201c' + escapeHtml(article.title) + '\u201d</a>';
             text = text.replace(regex, link);
         });
     }
