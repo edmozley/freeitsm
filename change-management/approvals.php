@@ -203,6 +203,10 @@ $path_prefix = '../';
                 <span>Requested by me</span>
                 <span class="filter-count" id="countRequested">0</span>
             </div>
+            <div class="approval-filter" data-filter="cab" onclick="setFilter('cab')">
+                <span>My CAB reviews</span>
+                <span class="filter-count" id="countCab">0</span>
+            </div>
         </div>
 
         <div class="approvals-main">
@@ -246,6 +250,7 @@ $path_prefix = '../';
                 document.getElementById('countAll').textContent = data.counts.all;
                 document.getElementById('countAssigned').textContent = data.counts.assigned;
                 document.getElementById('countRequested').textContent = data.counts.requested;
+                document.getElementById('countCab').textContent = data.counts.cab || 0;
 
                 renderApprovals(data.changes);
             } catch (e) {
@@ -275,11 +280,17 @@ $path_prefix = '../';
                 const priorityClass = c.priority.toLowerCase();
                 const date = c.created_datetime ? formatDate(c.created_datetime) : '';
 
+                let cabBadge = '';
+                if (parseInt(c.cab_required) && c.cab_progress) {
+                    cabBadge = `<span class="cab-progress-small">CAB: ${c.cab_progress.required_approved}/${c.cab_progress.required_total}</span>`;
+                }
+
                 return `
                     <div class="approval-card" onclick="openChange(${c.id})">
                         <div class="approval-card-top">
                             <span class="approval-card-ref">${ref}</span>
                             <div class="approval-card-badges">
+                                ${cabBadge}
                                 <span class="type-badge ${typeClass}">${escapeHtml(c.change_type)}</span>
                                 <span class="priority-badge ${priorityClass}">${escapeHtml(c.priority)}</span>
                             </div>

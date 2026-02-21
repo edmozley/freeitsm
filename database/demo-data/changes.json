@@ -76,6 +76,8 @@
                 "risk_impact_score": 2,
                 "risk_score": 2,
                 "risk_level": "Low",
+                "cab_required": 1,
+                "cab_approval_type": "all",
                 "description": "Install 8 new Cisco Meraki MR46 wireless access points across Building B floors 1-3 to improve WiFi coverage and capacity for the expanded workforce.",
                 "reason_for_change": "Building B staff have reported poor WiFi signal strength and frequent disconnections. A site survey confirmed inadequate AP density for current headcount.",
                 "risk_evaluation": "Low risk. Installation can be performed with minimal disruption. Existing APs remain active during deployment. Brief connectivity blip during channel rebalancing.",
@@ -195,6 +197,30 @@
             },
             {
                 "change_id": "@changes.ch2",
+                "analyst_id": "@analysts.mjones",
+                "action_type": "cab_vote",
+                "field_name": "CAB Vote",
+                "new_value": "Approve by Mike Jones: Network team ready to support. No concerns.",
+                "created_datetime": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "change_id": "@changes.ch2",
+                "analyst_id": "@analysts.admin",
+                "action_type": "cab_vote",
+                "field_name": "CAB Vote",
+                "new_value": "Approve by Admin User: Low risk, straightforward deployment. Approved.",
+                "created_datetime": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "change_id": "@changes.ch2",
+                "analyst_id": "@analysts.swilliams",
+                "action_type": "cab_vote",
+                "field_name": "CAB Vote",
+                "new_value": "Approve by Sarah Williams",
+                "created_datetime": "__RELATIVE_DATE:-3d+2h__"
+            },
+            {
+                "change_id": "@changes.ch2",
                 "analyst_id": "@analysts.admin",
                 "action_type": "status_change",
                 "field_name": "Status",
@@ -279,6 +305,37 @@
                 "old_value": "Draft",
                 "new_value": "Cancelled",
                 "created_datetime": "__RELATIVE_DATE:-10d__"
+            }
+        ],
+        "change_cab_members": [
+            {
+                "change_id": "@changes.ch2",
+                "analyst_id": "@analysts.admin",
+                "is_required": 1,
+                "vote": "Approve",
+                "vote_comment": "Low risk, straightforward deployment. Approved.",
+                "vote_datetime": "__RELATIVE_DATE:-3d__",
+                "added_by_id": "@analysts.lbrown",
+                "added_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "change_id": "@changes.ch2",
+                "analyst_id": "@analysts.mjones",
+                "is_required": 1,
+                "vote": "Approve",
+                "vote_comment": "Network team ready to support. No concerns.",
+                "vote_datetime": "__RELATIVE_DATE:-4d__",
+                "added_by_id": "@analysts.lbrown",
+                "added_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "change_id": "@changes.ch2",
+                "analyst_id": "@analysts.swilliams",
+                "is_required": 0,
+                "vote": "Approve",
+                "vote_datetime": "__RELATIVE_DATE:-3d+2h__",
+                "added_by_id": "@analysts.lbrown",
+                "added_datetime": "__RELATIVE_DATE:-5d__"
             }
         ],
         "change_comments": [

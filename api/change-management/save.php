@@ -98,6 +98,11 @@ $pirActualEnd = nullDatetime($input['pir_actual_end'] ?? null);
 $pirLessonsLearned = nullText($input['pir_lessons_learned'] ?? null);
 $pirFollowUp = nullText($input['pir_follow_up'] ?? null);
 
+// CAB fields
+$cabRequired = isset($input['cab_required']) ? (int)$input['cab_required'] : 0;
+$cabApprovalType = $input['cab_approval_type'] ?? 'all';
+if (!in_array($cabApprovalType, ['all', 'majority'])) $cabApprovalType = 'all';
+
 try {
     $conn = connectToDatabase();
 
@@ -122,6 +127,8 @@ try {
         'pir_was_successful'        => ['PIR Successful', false],
         'pir_actual_start'          => ['PIR Actual Start', false],
         'pir_actual_end'            => ['PIR Actual End', false],
+        'cab_required'              => ['CAB Required', false],
+        'cab_approval_type'         => ['CAB Approval Type', false],
     ];
 
     // New values map
@@ -141,6 +148,7 @@ try {
         'pir_was_successful' => $pirWasSuccessful, 'pir_actual_start' => $pirActualStart,
         'pir_actual_end' => $pirActualEnd, 'pir_lessons_learned' => $pirLessonsLearned,
         'pir_follow_up' => $pirFollowUp,
+        'cab_required' => $cabRequired, 'cab_approval_type' => $cabApprovalType,
     ];
 
     if ($changeId) {
@@ -161,6 +169,7 @@ try {
                     risk_likelihood = ?, risk_impact_score = ?, risk_score = ?, risk_level = ?,
                     pir_was_successful = ?, pir_actual_start = ?, pir_actual_end = ?,
                     pir_lessons_learned = ?, pir_follow_up = ?,
+                    cab_required = ?, cab_approval_type = ?,
                     modified_datetime = UTC_TIMESTAMP()
                 WHERE id = ?";
         $stmt = $conn->prepare($sql);
@@ -174,6 +183,7 @@ try {
             $riskLikelihood, $riskImpactScore, $riskScore, $riskLevel,
             $pirWasSuccessful, $pirActualStart, $pirActualEnd,
             $pirLessonsLearned, $pirFollowUp,
+            $cabRequired, $cabApprovalType,
             $changeId
         ]);
 
@@ -220,9 +230,10 @@ try {
                     risk_likelihood, risk_impact_score, risk_score, risk_level,
                     pir_was_successful, pir_actual_start, pir_actual_end,
                     pir_lessons_learned, pir_follow_up,
+                    cab_required, cab_approval_type,
                     created_by_id, created_datetime, modified_datetime
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         $stmt = $conn->prepare($sql);
         $stmt->execute([
             $title, $changeType, $status, $priority, $impact,
@@ -234,6 +245,7 @@ try {
             $riskLikelihood, $riskImpactScore, $riskScore, $riskLevel,
             $pirWasSuccessful, $pirActualStart, $pirActualEnd,
             $pirLessonsLearned, $pirFollowUp,
+            $cabRequired, $cabApprovalType,
             $analystId
         ]);
         $changeId = $conn->lastInsertId();

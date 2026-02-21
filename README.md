@@ -252,11 +252,11 @@ sdtickets/
 ├── setup/                            # Setup verification (delete after going live)
 │   └── index.php                     # Diagnostic checks page
 │
-├── api/                              # REST API endpoints (~122 total)
+├── api/                              # REST API endpoints (~125 total)
 │   ├── tickets/                      # ~48 endpoints
 │   ├── assets/                       # 8 endpoints (inc. vCenter sync)
 │   ├── knowledge/                    # 16 endpoints (inc. AI chat)
-│   ├── change-management/            # 12 endpoints
+│   ├── change-management/            # 15 endpoints
 │   ├── calendar/                     # 7 endpoints
 │   ├── morning-checks/               # 7 endpoints
 │   ├── reporting/                    # 2 endpoints
@@ -383,11 +383,16 @@ Rich-text knowledge base with AI integration.
 - Article archiving with recycle bin (soft delete, restore, configurable auto-purge)
 
 ### Change Management (`change-management/`)
-Change request tracking and approval workflows.
+Change request tracking and approval workflows with ITIL-aligned processes.
 - Calendar view with month/week/day views for visualising scheduled changes
 - Status-based filtering (Draft, Pending Approval, Approved, In Progress, Completed, Failed, Cancelled)
 - Click-through from calendar to change detail view
-- Approvals page showing changes pending approval (filter by All, Assigned to me, Requested by me)
+- Approvals page showing changes pending approval (filter by All, Assigned to me, Requested by me, My CAB reviews)
+- CAB (Change Advisory Board) multi-member approval with required/optional reviewers, configurable threshold (all or majority), and auto-status transitions on vote
+- CAB review panel in detail view with colour-coded vote cards and inline voting for pending members
+- Risk assessment matrix with 5x5 colour-coded grid, auto-calculated risk score and level
+- Post-implementation review fields for completed/failed changes
+- Activity timeline combining comments and audit trail with inline commenting
 - Settings page with configurable form field visibility (show/hide fields per section)
 
 ### Calendar (`calendar/`)
@@ -602,7 +607,7 @@ if (!isset($_SESSION['analyst_id'])) {
 
 ### Other Module APIs
 
-- `api/change-management/` — 12 endpoints for change CRUD, attachments, calendar, approvals, and settings
+- `api/change-management/` — 15 endpoints for change CRUD, attachments, calendar, approvals, CAB workflow, and settings
 - `api/calendar/` — 7 endpoints for events and categories
 - `api/morning-checks/` — 8 endpoints for check definitions, results, charts, and reorder
 - `api/reporting/` — 2 endpoints for system logs

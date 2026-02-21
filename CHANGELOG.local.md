@@ -16,6 +16,9 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 070 | Change Management | Feature     | Post-implementation review structured fields (success status, actual start/end, lessons learned, follow-up actions) visible when change status is Completed or Failed |
 | 071 | Change Management | Feature     | Activity timeline combining comments and audit trail into a single chronological view on the change detail page, with inline comment posting |
 | 072 | Change Management | Feature     | Server-side audit logging that tracks all field changes by comparing old and new values before each update, with automatic audit entries for status changes |
+| 073 | Change Management | Feature     | CAB (Change Advisory Board) multi-member approval workflow with required/optional reviewers, Approve/Reject/Abstain voting, configurable threshold (all or majority), and auto-status transitions |
+| 074 | Change Management | Feature     | CAB review panel in change detail view showing member cards with colour-coded vote status, progress badge, and inline vote form for pending CAB members |
+| 075 | Change Management | Feature     | My CAB Reviews filter on approvals page showing changes where current analyst has a pending CAB vote, with CAB progress badge on approval cards |
 
 ---
 

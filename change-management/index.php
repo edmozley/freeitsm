@@ -18,7 +18,7 @@ $path_prefix = '../';
     <link rel="stylesheet" href="../assets/css/change-management.css">
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
 </head>
-<body>
+<body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
     <?php include 'includes/header.php'; ?>
 
     <div class="changes-container">
@@ -176,6 +176,34 @@ $path_prefix = '../';
                         <select class="form-input" id="changeApprover">
                             <option value="">-- Select --</option>
                         </select>
+                    </div>
+
+                    <!-- CAB Review -->
+                    <div class="form-group" data-field="cab" data-section="people">
+                        <label class="form-label" style="display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" id="cabRequired" onchange="toggleCabConfig()"> Require CAB review
+                        </label>
+                    </div>
+                    <div id="cabConfigSection" style="display: none;" data-section="people">
+                        <div class="form-group">
+                            <label class="form-label">Approval Type</label>
+                            <select class="form-input" id="cabApprovalType">
+                                <option value="all">All must approve</option>
+                                <option value="majority">Majority</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">CAB Members</label>
+                            <div class="cab-member-picker">
+                                <div style="display: flex; gap: 8px;">
+                                    <select class="form-input" id="cabMemberSelect" style="flex: 1;">
+                                        <option value="">-- Select analyst --</option>
+                                    </select>
+                                    <button type="button" class="btn btn-secondary" onclick="addCabMember()">Add</button>
+                                </div>
+                                <div class="cab-members-list" id="cabMembersList"></div>
+                            </div>
+                        </div>
                     </div>
 
                     <h3 class="form-section-title" data-section="schedule">Schedule</h3>

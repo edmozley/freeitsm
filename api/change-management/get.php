@@ -68,6 +68,19 @@ try {
     $commentStmt->execute([$changeId]);
     $change['comments'] = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Get CAB members
+    $cabSql = "SELECT m.id, m.analyst_id, m.is_required, m.vote, m.vote_comment,
+                      m.vote_datetime, m.added_by_id, m.added_datetime,
+                      a.full_name as analyst_name, adder.full_name as added_by_name
+               FROM change_cab_members m
+               LEFT JOIN analysts a ON m.analyst_id = a.id
+               LEFT JOIN analysts adder ON m.added_by_id = adder.id
+               WHERE m.change_id = ?
+               ORDER BY m.is_required DESC, a.full_name ASC";
+    $cabStmt = $conn->prepare($cabSql);
+    $cabStmt->execute([$changeId]);
+    $change['cab_members'] = $cabStmt->fetchAll(PDO::FETCH_ASSOC);
+
     echo json_encode([
         'success' => true,
         'change' => $change

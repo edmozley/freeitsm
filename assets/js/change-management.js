@@ -10,6 +10,7 @@ let currentChange = null;
 let currentFilter = 'all';
 let searchQuery = '';
 let fieldVisibility = {};
+let cabEditorMembers = []; // [{analyst_id, name, is_required}]
 
 // TinyMCE editor instances
 const editorIds = ['editorDescription', 'editorReason', 'editorRisk', 'editorTestplan', 'editorRollback', 'editorPir'];
@@ -146,7 +147,7 @@ async function loadAnalysts() {
 }
 
 function populateAnalystDropdowns() {
-    const dropdowns = ['changeRequester', 'changeAssignedTo', 'changeApprover'];
+    const dropdowns = ['changeRequester', 'changeAssignedTo', 'changeApprover', 'cabMemberSelect'];
     dropdowns.forEach(id => {
         const select = document.getElementById(id);
         if (!select) return;
@@ -347,6 +348,9 @@ function renderChangeDetail() {
             ${metaItems ? `<div class="detail-meta-grid">${metaItems}</div>` : ''}
         </div>
     `;
+
+    // CAB Review panel
+    html += renderCabReviewPanel(c);
 
     // Detail sections — only include visible fields
     let sections = '';
@@ -593,6 +597,10 @@ function renderActivityTimeline(timeline, container) {
                 description = `changed <strong>Status</strong> from <span class="old-val">${escapeHtml(entry.old_value || '')}</span> to <span class="new-val">${escapeHtml(entry.new_value || '')}</span>`;
             } else if (entry.action_type === 'comment') {
                 return ''; // Already shown as comment entry
+            } else if (entry.action_type === 'cab_vote') {
+                description = `<strong>${escapeHtml(entry.field_name || 'CAB')}</strong>`;
+                if (entry.new_value) description += `: <span class="new-val">${escapeHtml(entry.new_value)}</span>`;
+                if (entry.old_value) description += ` <span class="old-val">(${escapeHtml(entry.old_value)})</span>`;
             } else {
                 description = `changed <strong>${escapeHtml(entry.field_name || '')}</strong>`;
                 if (entry.old_value && entry.new_value) {
@@ -604,8 +612,8 @@ function renderActivityTimeline(timeline, container) {
                 }
             }
 
-            const icon = entry.action_type === 'status_change' ? '&#9654;' : '&#9998;';
-            const itemClass = entry.action_type === 'status_change' ? 'timeline-status' : 'timeline-field';
+            const icon = entry.action_type === 'status_change' ? '&#9654;' : entry.action_type === 'cab_vote' ? '&#9734;' : '&#9998;';
+            const itemClass = entry.action_type === 'status_change' ? 'timeline-status' : entry.action_type === 'cab_vote' ? 'timeline-cab' : 'timeline-field';
 
             return `
                 <div class="timeline-item ${itemClass}">
@@ -835,6 +843,13 @@ function openCreateChange() {
     document.getElementById('pirFollowUp').value = '';
     document.getElementById('pirStructuredFields').style.display = 'none';
 
+    // CAB fields
+    document.getElementById('cabRequired').checked = false;
+    document.getElementById('cabConfigSection').style.display = 'none';
+    document.getElementById('cabApprovalType').value = 'all';
+    cabEditorMembers = [];
+    renderCabMemberChips();
+
     initEditors(() => {
         editorIds.forEach(id => {
             const editor = tinymce.get(id);
@@ -882,6 +897,18 @@ function editCurrentChange() {
     document.getElementById('pirActualEnd').value = toDatetimeLocal(c.pir_actual_end);
     document.getElementById('pirLessonsLearned').value = c.pir_lessons_learned || '';
     document.getElementById('pirFollowUp').value = c.pir_follow_up || '';
+
+    // CAB fields
+    const cabReq = parseInt(c.cab_required) === 1;
+    document.getElementById('cabRequired').checked = cabReq;
+    document.getElementById('cabConfigSection').style.display = cabReq ? '' : 'none';
+    document.getElementById('cabApprovalType').value = c.cab_approval_type || 'all';
+    cabEditorMembers = (c.cab_members || []).map(m => ({
+        analyst_id: parseInt(m.analyst_id),
+        name: m.analyst_name || 'Unknown',
+        is_required: parseInt(m.is_required)
+    }));
+    renderCabMemberChips();
 
     initEditors(() => {
         setEditorContent('editorDescription', c.description || '');
@@ -943,7 +970,9 @@ async function saveChange() {
         pir_actual_start: document.getElementById('pirActualStart').value || null,
         pir_actual_end: document.getElementById('pirActualEnd').value || null,
         pir_lessons_learned: document.getElementById('pirLessonsLearned').value || null,
-        pir_follow_up: document.getElementById('pirFollowUp').value || null
+        pir_follow_up: document.getElementById('pirFollowUp').value || null,
+        cab_required: document.getElementById('cabRequired').checked ? 1 : 0,
+        cab_approval_type: document.getElementById('cabApprovalType').value
     };
 
     try {
@@ -955,6 +984,21 @@ async function saveChange() {
         const data = await response.json();
 
         if (data.success) {
+            // Save CAB members if CAB is enabled
+            if (payload.cab_required) {
+                await fetch(API_BASE + 'save_cab_members.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        change_id: data.change_id,
+                        members: cabEditorMembers.map(m => ({
+                            analyst_id: m.analyst_id,
+                            is_required: m.is_required
+                        }))
+                    })
+                });
+            }
+
             showToast('Change saved successfully');
             destroyEditors();
             // Reload and view the saved change
@@ -1234,6 +1278,160 @@ function updatePirVisibility() {
     const pirSection = document.getElementById('pirStructuredFields');
     if (pirSection) {
         pirSection.style.display = (status === 'Completed' || status === 'Failed') ? '' : 'none';
+    }
+}
+
+// ============ CAB Editor Functions ============
+
+function toggleCabConfig() {
+    const checked = document.getElementById('cabRequired').checked;
+    document.getElementById('cabConfigSection').style.display = checked ? '' : 'none';
+}
+
+function addCabMember() {
+    const select = document.getElementById('cabMemberSelect');
+    const analystId = parseInt(select.value);
+    if (!analystId) return;
+
+    // Check if already added
+    if (cabEditorMembers.some(m => m.analyst_id === analystId)) {
+        showToast('Already added');
+        return;
+    }
+
+    const name = select.options[select.selectedIndex].text;
+    cabEditorMembers.push({ analyst_id: analystId, name: name, is_required: 1 });
+    select.value = '';
+    renderCabMemberChips();
+}
+
+function removeCabMember(analystId) {
+    cabEditorMembers = cabEditorMembers.filter(m => m.analyst_id !== analystId);
+    renderCabMemberChips();
+}
+
+function toggleCabMemberRequired(analystId) {
+    const member = cabEditorMembers.find(m => m.analyst_id === analystId);
+    if (member) {
+        member.is_required = member.is_required ? 0 : 1;
+        renderCabMemberChips();
+    }
+}
+
+function renderCabMemberChips() {
+    const container = document.getElementById('cabMembersList');
+    if (!container) return;
+
+    if (!cabEditorMembers.length) {
+        container.innerHTML = '<div style="color: #999; font-size: 13px; padding: 8px 0;">No CAB members added</div>';
+        return;
+    }
+
+    container.innerHTML = cabEditorMembers.map(m => `
+        <div class="cab-member-chip">
+            <span class="cab-member-name">${escapeHtml(m.name)}</span>
+            <button type="button" class="cab-member-toggle ${m.is_required ? 'required' : 'optional'}" onclick="toggleCabMemberRequired(${m.analyst_id})" title="Toggle required/optional">
+                ${m.is_required ? 'Required' : 'Optional'}
+            </button>
+            <button type="button" class="cab-member-remove" onclick="removeCabMember(${m.analyst_id})" title="Remove">&times;</button>
+        </div>
+    `).join('');
+}
+
+// ============ CAB Review Panel (Detail View) ============
+
+function renderCabReviewPanel(c) {
+    if (!parseInt(c.cab_required) || !c.cab_members) return '';
+
+    const members = c.cab_members;
+    const requiredMembers = members.filter(m => parseInt(m.is_required));
+    const requiredApproved = requiredMembers.filter(m => m.vote === 'Approve').length;
+    const approvalType = c.cab_approval_type === 'majority' ? 'Majority' : 'All must approve';
+    const currentAnalystId = parseInt(document.body.dataset.analystId) || 0;
+    const myMembership = members.find(m => parseInt(m.analyst_id) === currentAnalystId);
+    const canVote = myMembership && !myMembership.vote && c.status === 'Pending Approval';
+
+    let html = `
+        <div class="cab-review-section">
+            <div class="cab-review-header">
+                <h3>CAB Review</h3>
+                <div class="cab-review-meta">
+                    <span class="cab-progress-badge">${requiredApproved} of ${requiredMembers.length} required</span>
+                    <span class="cab-approval-type">${approvalType}</span>
+                </div>
+            </div>
+            <div class="cab-members-grid">
+    `;
+
+    members.forEach(m => {
+        const isReq = parseInt(m.is_required);
+        const voteClass = m.vote ? m.vote.toLowerCase() : 'pending';
+        const voteLabel = m.vote || 'Pending';
+
+        html += `
+            <div class="cab-member-card vote-${voteClass}">
+                <div class="cab-member-card-header">
+                    <span class="cab-member-card-name">${escapeHtml(m.analyst_name || 'Unknown')}</span>
+                    <span class="cab-member-badge ${isReq ? 'required' : 'optional'}">${isReq ? 'Required' : 'Optional'}</span>
+                </div>
+                <div class="cab-member-card-vote">
+                    <span class="cab-vote-status vote-${voteClass}">${voteLabel}</span>
+                    ${m.vote_datetime ? `<span class="cab-vote-date">${formatDateTime(m.vote_datetime)}</span>` : ''}
+                </div>
+                ${m.vote_comment ? `<div class="cab-vote-comment">${escapeHtml(m.vote_comment)}</div>` : ''}
+            </div>
+        `;
+    });
+
+    html += '</div>';
+
+    // Vote form for current user
+    if (canVote) {
+        html += `
+            <div class="cab-vote-form">
+                <textarea class="form-input" id="cabVoteComment" rows="2" placeholder="Add a comment with your vote (optional)"></textarea>
+                <div class="cab-vote-buttons">
+                    <button class="btn cab-btn-approve" onclick="submitCabVote('Approve')">Approve</button>
+                    <button class="btn cab-btn-reject" onclick="submitCabVote('Reject')">Reject</button>
+                    <button class="btn cab-btn-abstain" onclick="submitCabVote('Abstain')">Abstain</button>
+                </div>
+            </div>
+        `;
+    }
+
+    html += '</div>';
+    return html;
+}
+
+async function submitCabVote(vote) {
+    if (!currentChange) return;
+
+    const comment = document.getElementById('cabVoteComment')?.value?.trim() || '';
+
+    try {
+        const response = await fetch(API_BASE + 'submit_cab_vote.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                change_id: currentChange.id,
+                vote: vote,
+                vote_comment: comment
+            })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            showToast('Vote recorded: ' + vote);
+            // Refresh the change detail
+            await viewChange(currentChange.id);
+            if (data.status_changed) {
+                loadChanges();
+            }
+        } else {
+            showToast('Error: ' + data.error);
+        }
+    } catch (error) {
+        showToast('Error submitting vote');
     }
 }
 
