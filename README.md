@@ -182,6 +182,8 @@ sdtickets/
 │
 ├── asset-management/                 # Asset Management Module
 │   ├── index.php                     # Asset list & user assignments
+│   ├── dashboard/
+│   │   └── index.php                 # Per-analyst widget dashboard with Chart.js
 │   ├── servers/
 │   │   └── index.php                 # vCenter VM inventory with detail modal
 │   ├── settings/
@@ -350,6 +352,11 @@ IT asset management with vCenter integration.
   - Displays VM name, OS, IP, host, cluster, CPU, memory, disk
   - Clickable rows show full detail modal with raw JSON from vCenter
   - Stores all API response data in `raw_data` column
+- **Dashboard** (`dashboard/`): Per-analyst customisable dashboard with Chart.js widgets
+  - Widget library with 13 pre-built charts (bar, pie, doughnut) covering OS, manufacturer, model, memory, GPU, TPM, BitLocker, etc.
+  - Each analyst picks widgets for their own dashboard
+  - Status filtering on supported widgets
+  - Drag-and-drop reordering
 - **Settings**: vCenter server URL, username, and password (encrypted)
 - **PowerShell inventory agent** (`scripts/Invoke-AssetInventory.ps1`): Collects hardware, disks, network, GPU, TPM, BitLocker, and installed software from Windows machines and posts to the system-info API
 - **System-info API** (`api/external/system-info/submit/`): External endpoint that ingests asset inventory data, syncs disk and network adapter tables, and processes software inventory

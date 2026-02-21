@@ -299,6 +299,28 @@ $schema = [
         'dhcp_enabled'  => 'TINYINT(1) NULL',
     ],
 
+    'asset_dashboard_widgets' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'title'                 => 'VARCHAR(100) NOT NULL',
+        'description'           => 'VARCHAR(255) NULL',
+        'chart_type'            => "VARCHAR(20) NOT NULL DEFAULT 'bar'",
+        'aggregate_property'    => 'VARCHAR(50) NOT NULL',
+        'is_status_filterable'  => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'default_status_id'     => 'INT NULL',
+        'display_order'         => 'INT NOT NULL DEFAULT 0',
+        'is_active'             => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'analyst_dashboard_widgets' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'        => 'INT NOT NULL',
+        'widget_id'         => 'INT NOT NULL',
+        'sort_order'        => 'INT NOT NULL DEFAULT 0',
+        'status_filter_id'  => 'INT NULL',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'servers' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'vm_id'                 => 'VARCHAR(100) NOT NULL',
@@ -864,6 +886,35 @@ try {
             'status' => 'seeded',
             'details' => ['Created default admin account (username: admin, password: freeitsm)']
         ];
+    }
+
+    // Seed default dashboard widgets if table is empty
+    $widgetCheck = $conn->prepare("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = ? AND table_name = 'asset_dashboard_widgets'");
+    $widgetCheck->execute([DB_NAME]);
+    if ((int)$widgetCheck->fetch(PDO::FETCH_ASSOC)['cnt'] > 0) {
+        $widgetCount = (int) $conn->query("SELECT COUNT(*) FROM asset_dashboard_widgets")->fetchColumn();
+        if ($widgetCount === 0) {
+            $conn->exec("INSERT INTO asset_dashboard_widgets (id, title, description, chart_type, aggregate_property, is_status_filterable, default_status_id, display_order) VALUES
+                (1,  'OS Distribution',   'Distribution of operating systems across assets',       'doughnut', 'operating_system',  1, NULL, 1),
+                (2,  'Manufacturer',      'Asset count by manufacturer',                           'bar',      'manufacturer',      1, NULL, 2),
+                (3,  'Model',             'Asset count by model',                                  'bar',      'model',             1, NULL, 3),
+                (4,  'Asset Type',        'Breakdown by asset type',                               'doughnut', 'asset_type_id',     1, NULL, 4),
+                (5,  'Asset Status',      'Current status of all assets',                          'doughnut', 'asset_status_id',   0, NULL, 5),
+                (6,  'Feature Release',   'Windows feature release versions',                      'bar',      'feature_release',   1, NULL, 6),
+                (7,  'Domain',            'Assets grouped by domain',                              'doughnut', 'domain',            1, NULL, 7),
+                (8,  'CPU',               'Processor models across the estate',                    'bar',      'cpu_name',          1, NULL, 8),
+                (9,  'Memory',            'RAM distribution across assets',                        'bar',      'memory',            1, NULL, 9),
+                (10, 'GPU',               'Graphics adapters across the estate',                   'bar',      'gpu_name',          1, NULL, 10),
+                (11, 'TPM Version',       'TPM module versions',                                   'doughnut', 'tpm_version',       1, NULL, 11),
+                (12, 'BitLocker Status',  'BitLocker encryption status',                           'doughnut', 'bitlocker_status',  1, NULL, 12),
+                (13, 'BIOS Version',      'BIOS versions across the estate',                       'bar',      'bios_version',      1, NULL, 13)
+            ");
+            $results[] = [
+                'table' => 'asset_dashboard_widgets',
+                'status' => 'seeded',
+                'details' => ['Inserted 13 default dashboard widgets']
+            ];
+        }
     }
 
     echo json_encode([
