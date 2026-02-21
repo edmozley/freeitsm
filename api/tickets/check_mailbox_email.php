@@ -117,6 +117,12 @@ try {
     $importedAction = $mailbox['imported_action'] ?? 'delete';
     $importedFolder = $mailbox['imported_folder'] ?? null;
 
+    $mailboxSettings = [
+        'imported_action' => $importedAction,
+        'imported_folder' => $importedFolder,
+        'rejected_action' => $rejectedAction,
+    ];
+
     // Save emails to database
     $savedCount = 0;
     $rejectedCount = 0;
@@ -130,12 +136,27 @@ try {
 
         // Check whitelist
         if ($hasWhitelist && !isWhitelisted($fromAddress, $whitelist)) {
+            $processingLog = ['steps' => [], 'mailbox_settings' => $mailboxSettings];
+
+            $domain = explode('@', $fromAddress)[1] ?? '';
+            $processingLog['steps'][] = [
+                'step' => 'whitelist_check',
+                'result' => 'rejected',
+                'details' => "Sender {$fromAddress} (domain {$domain}) not whitelisted"
+            ];
+
             // Reject: handle according to rejected_action setting
+            $postAction = ['step' => 'post_action', 'action' => $rejectedAction];
             try {
-                handleEmailAfterProcessing($accessToken, $email['id'], $rejectedAction);
+                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $rejectedAction);
+                $postAction['result'] = 'success';
+                $postAction['http_code'] = $httpCode;
             } catch (Exception $delEx) {
                 $errors[] = 'Failed to handle rejected email from ' . $fromAddress . ': ' . $delEx->getMessage();
+                $postAction['result'] = 'error';
+                $postAction['error'] = $delEx->getMessage();
             }
+            $processingLog['steps'][] = $postAction;
 
             $rejectedCount++;
             $activityEntries[] = [
@@ -144,14 +165,47 @@ try {
                 'from_name' => $fromName,
                 'subject' => $subject,
                 'reason' => 'Not whitelisted',
-                'ticket_id' => null
+                'ticket_id' => null,
+                'processing_log' => json_encode($processingLog)
             ];
             continue;
         }
 
         try {
+            $processingLog = ['steps' => [], 'mailbox_settings' => $mailboxSettings];
+
+            if ($hasWhitelist) {
+                $domain = explode('@', $fromAddress)[1] ?? '';
+                $processingLog['steps'][] = [
+                    'step' => 'whitelist_check',
+                    'result' => 'passed',
+                    'details' => "Domain {$domain} whitelisted"
+                ];
+            }
+
             $ticketId = saveEmailToDatabase($conn, $email, $accessToken, $mailboxId);
+            $processingLog['steps'][] = [
+                'step' => 'import',
+                'result' => 'success',
+                'ticket_id' => $ticketId ?: null
+            ];
             $savedCount++;
+
+            // Handle imported email according to imported_action setting
+            $postAction = ['step' => 'post_action', 'action' => $importedAction];
+            if ($importedAction === 'move_to_folder' && $importedFolder) {
+                $postAction['folder'] = $importedFolder;
+            }
+            try {
+                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $importedAction, $importedFolder);
+                $postAction['result'] = 'success';
+                $postAction['http_code'] = $httpCode;
+            } catch (Exception $delEx) {
+                $errors[] = 'Imported but failed to handle email ID ' . $email['id'] . ': ' . $delEx->getMessage();
+                $postAction['result'] = 'error';
+                $postAction['error'] = $delEx->getMessage();
+            }
+            $processingLog['steps'][] = $postAction;
 
             $activityEntries[] = [
                 'action' => 'imported',
@@ -159,15 +213,9 @@ try {
                 'from_name' => $fromName,
                 'subject' => $subject,
                 'reason' => null,
-                'ticket_id' => $ticketId ?: null
+                'ticket_id' => $ticketId ?: null,
+                'processing_log' => json_encode($processingLog)
             ];
-
-            // Handle imported email according to imported_action setting
-            try {
-                handleEmailAfterProcessing($accessToken, $email['id'], $importedAction, $importedFolder);
-            } catch (Exception $delEx) {
-                $errors[] = 'Imported but failed to handle email ID ' . $email['id'] . ': ' . $delEx->getMessage();
-            }
         } catch (Exception $e) {
             $errors[] = 'Failed to save email ID ' . $email['id'] . ': ' . $e->getMessage();
         }
@@ -394,12 +442,89 @@ function deleteEmailFromMailbox($accessToken, $messageId) {
 }
 
 /**
+ * Resolve a folder display name to a Graph API folder ID.
+ * Maps well-known display names first, then queries Graph API.
+ * Results are cached within the same request.
+ */
+function resolveMailFolderId($accessToken, $folderName) {
+    static $cache = [];
+    if (isset($cache[$folderName])) {
+        return $cache[$folderName];
+    }
+
+    // Well-known folder display names -> Graph API names
+    $wellKnown = [
+        'Inbox'         => 'inbox',
+        'Drafts'        => 'drafts',
+        'Sent Items'    => 'sentitems',
+        'Deleted Items' => 'deleteditems',
+        'Junk Email'    => 'junkemail',
+        'Archive'       => 'archive',
+        'Outbox'        => 'outbox',
+    ];
+
+    foreach ($wellKnown as $displayName => $apiName) {
+        if (strcasecmp($folderName, $displayName) === 0) {
+            $cache[$folderName] = $apiName;
+            return $apiName;
+        }
+    }
+
+    // Check if already a well-known API name
+    if (in_array(strtolower($folderName), array_values($wellKnown))) {
+        $cache[$folderName] = strtolower($folderName);
+        return strtolower($folderName);
+    }
+
+    // Query Graph API by displayName
+    $graphUrl = 'https://graph.microsoft.com/v1.0/me/mailFolders?'
+        . http_build_query(['$filter' => "displayName eq '" . str_replace("'", "''", $folderName) . "'"]);
+
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $graphUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: Bearer ' . $accessToken,
+        'Content-Type: application/json'
+    ]);
+
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+    if (curl_errno($ch)) {
+        curl_close($ch);
+        throw new Exception('cURL error resolving folder: ' . curl_error($ch));
+    }
+
+    curl_close($ch);
+
+    if ($httpCode !== 200) {
+        throw new Exception('Failed to resolve folder "' . $folderName . '". HTTP ' . $httpCode);
+    }
+
+    $data = json_decode($response, true);
+    $folders = $data['value'] ?? [];
+
+    if (empty($folders)) {
+        throw new Exception('Folder "' . $folderName . '" not found in mailbox');
+    }
+
+    $folderId = $folders[0]['id'];
+    $cache[$folderName] = $folderId;
+    return $folderId;
+}
+
+/**
  * Move an email to a folder via Microsoft Graph API
  */
 function moveEmailToFolder($accessToken, $messageId, $folderName) {
+    $destinationId = resolveMailFolderId($accessToken, $folderName);
+
     $graphUrl = 'https://graph.microsoft.com/v1.0/me/messages/' . $messageId . '/move';
 
-    $body = json_encode(['destinationId' => $folderName]);
+    $body = json_encode(['destinationId' => $destinationId]);
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $graphUrl);
@@ -424,8 +549,10 @@ function moveEmailToFolder($accessToken, $messageId, $folderName) {
     curl_close($ch);
 
     if ($httpCode !== 200 && $httpCode !== 201) {
-        throw new Exception('Failed to move email. HTTP Code: ' . $httpCode);
+        throw new Exception('Failed to move email to "' . $folderName . '". HTTP ' . $httpCode);
     }
+
+    return $httpCode;
 }
 
 /**
@@ -470,22 +597,20 @@ function markEmailAsRead($accessToken, $messageId) {
 function handleEmailAfterProcessing($accessToken, $messageId, $action, $folderName = null) {
     switch ($action) {
         case 'move_to_deleted':
-            moveEmailToFolder($accessToken, $messageId, 'deleteditems');
-            break;
+            return moveEmailToFolder($accessToken, $messageId, 'deleteditems');
         case 'mark_read':
             markEmailAsRead($accessToken, $messageId);
-            break;
+            return 200;
         case 'move_to_folder':
             if ($folderName) {
-                moveEmailToFolder($accessToken, $messageId, $folderName);
-            } else {
-                deleteEmailFromMailbox($accessToken, $messageId);
+                return moveEmailToFolder($accessToken, $messageId, $folderName);
             }
-            break;
+            deleteEmailFromMailbox($accessToken, $messageId);
+            return 204;
         case 'delete':
         default:
             deleteEmailFromMailbox($accessToken, $messageId);
-            break;
+            return 204;
     }
 }
 
@@ -973,8 +1098,8 @@ function isWhitelisted($fromAddress, $whitelist) {
 function logMailboxActivity($conn, $mailboxId, $entries) {
     try {
         $stmt = $conn->prepare("INSERT INTO mailbox_activity_log
-            (mailbox_id, action, from_address, from_name, subject, reason, ticket_id, created_datetime)
-            VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())");
+            (mailbox_id, action, from_address, from_name, subject, reason, ticket_id, processing_log, created_datetime)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())");
 
         foreach ($entries as $entry) {
             $stmt->execute([
@@ -984,7 +1109,8 @@ function logMailboxActivity($conn, $mailboxId, $entries) {
                 $entry['from_name'],
                 $entry['subject'],
                 $entry['reason'],
-                $entry['ticket_id']
+                $entry['ticket_id'],
+                $entry['processing_log'] ?? null
             ]);
         }
     } catch (Exception $e) {

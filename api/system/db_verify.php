@@ -235,6 +235,7 @@ $schema = [
         'subject'           => 'VARCHAR(500) NULL',
         'reason'            => 'VARCHAR(255) NULL',
         'ticket_id'         => 'INT NULL',
+        'processing_log'    => 'TEXT NULL',
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 

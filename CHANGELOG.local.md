@@ -21,6 +21,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 059 | Assets            | Feature     | Full-page widget library management with search, inline editing, duplicate, and delete for dashboard widgets |
 | 060 | Tickets           | Feature     | Per-mailbox email whitelist (domains and addresses) with searchable activity log for imported and rejected emails |
 | 061 | Tickets           | Improvement | Configurable email actions for rejected and imported emails (delete, move to deleted, mark as read, move to folder) with modern toggle switch for active state |
+| 062 | Tickets           | Fix         | Fix move-to-folder by resolving display names to Graph API folder IDs, add processing log JSON with clickable detail view in activity log, and folder Verify button |
 
 ---
 

@@ -504,7 +504,11 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
 
                     <div class="form-group" id="importedFolderGroup" style="display: none; grid-column: span 2;">
                         <label for="mailboxImportedFolder">Move to Folder</label>
-                        <input type="text" id="mailboxImportedFolder" placeholder="e.g., Processed">
+                        <div style="display: flex; gap: 8px; align-items: start;">
+                            <input type="text" id="mailboxImportedFolder" placeholder="e.g., Processed" style="flex: 1;">
+                            <button type="button" class="btn btn-secondary" id="verifyFolderBtn" onclick="verifyFolder()" style="padding: 8px 12px; white-space: nowrap;">Verify</button>
+                        </div>
+                        <small id="verifyFolderResult" style="display: none; margin-top: 5px;"></small>
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
@@ -569,6 +573,14 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             </div>
 
             <div id="activityPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 13px; color: #666;"></div>
+
+            <div id="processingLogPanel" style="display: none; margin-top: 15px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <strong style="font-size: 14px;">Processing Log</strong>
+                    <button type="button" class="btn btn-secondary" style="padding: 3px 10px; font-size: 12px;" onclick="closeProcessingLog()">Close</button>
+                </div>
+                <pre id="processingLogContent" style="background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 12px; font-size: 12px; max-height: 250px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; margin: 0;"></pre>
+            </div>
 
             <div class="modal-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeActivityModal()">Close</button>
@@ -1315,6 +1327,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             document.getElementById('mailboxImportedAction').value = mailbox ? (mailbox.imported_action || 'delete') : 'delete';
             document.getElementById('mailboxImportedFolder').value = mailbox ? (mailbox.imported_folder || '') : '';
             toggleImportedFolder();
+            document.getElementById('verifyFolderResult').style.display = 'none';
             document.getElementById('mailboxActive').checked = mailbox ? mailbox.is_active : true;
 
             // Load whitelist
@@ -1342,6 +1355,59 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
         function toggleImportedFolder() {
             const action = document.getElementById('mailboxImportedAction').value;
             document.getElementById('importedFolderGroup').style.display = action === 'move_to_folder' ? '' : 'none';
+        }
+
+        async function verifyFolder() {
+            const folderName = document.getElementById('mailboxImportedFolder').value.trim();
+            const mailboxId = document.getElementById('mailboxId').value;
+            const resultEl = document.getElementById('verifyFolderResult');
+            const btn = document.getElementById('verifyFolderBtn');
+
+            if (!folderName) {
+                resultEl.style.display = '';
+                resultEl.style.color = '#856404';
+                resultEl.textContent = 'Enter a folder name first.';
+                return;
+            }
+            if (!mailboxId) {
+                resultEl.style.display = '';
+                resultEl.style.color = '#856404';
+                resultEl.textContent = 'Save the mailbox first, then verify.';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Verifying...';
+            resultEl.style.display = 'none';
+
+            try {
+                const res = await fetch(API_BASE + 'verify_mailbox_folder.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mailbox_id: parseInt(mailboxId), folder_name: folderName })
+                });
+                const data = await res.json();
+
+                resultEl.style.display = '';
+                if (data.success) {
+                    resultEl.style.color = '#155724';
+                    let msg = 'Folder "' + escapeHtml(data.folder.displayName) + '" found';
+                    if (data.folder.totalItemCount !== null) {
+                        msg += ' (' + data.folder.totalItemCount + ' items, ' + data.folder.unreadItemCount + ' unread)';
+                    }
+                    resultEl.textContent = msg;
+                } else {
+                    resultEl.style.color = '#721c24';
+                    resultEl.textContent = data.error || 'Folder not found';
+                }
+            } catch (err) {
+                resultEl.style.display = '';
+                resultEl.style.color = '#721c24';
+                resultEl.textContent = 'Failed to verify folder';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Verify';
+            }
         }
 
         async function editMailbox(id) {
@@ -1637,12 +1703,33 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             const mb = mailboxes.find(m => m.id == mailboxId);
             document.getElementById('activityModalTitle').textContent = 'Activity — ' + (mb ? mb.name : 'Mailbox');
             document.getElementById('activitySearch').value = '';
+            closeProcessingLog();
             loadActivity(mailboxId, '', 1);
             document.getElementById('activityModal').classList.add('active');
         }
 
         function closeActivityModal() {
             document.getElementById('activityModal').classList.remove('active');
+        }
+
+        function showProcessingLog(logJson) {
+            const panel = document.getElementById('processingLogPanel');
+            const content = document.getElementById('processingLogContent');
+            if (!logJson) {
+                content.textContent = 'No processing log available for this entry.';
+            } else {
+                try {
+                    const parsed = typeof logJson === 'string' ? JSON.parse(logJson) : logJson;
+                    content.textContent = JSON.stringify(parsed, null, 2);
+                } catch (e) {
+                    content.textContent = logJson;
+                }
+            }
+            panel.style.display = '';
+        }
+
+        function closeProcessingLog() {
+            document.getElementById('processingLogPanel').style.display = 'none';
         }
 
         function debounceActivitySearch() {
@@ -1675,13 +1762,16 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                     return;
                 }
 
-                tbody.innerHTML = data.entries.map(e => {
+                // Store logs for click handler
+                window._activityLogs = data.entries.map(e => e.processing_log || null);
+
+                tbody.innerHTML = data.entries.map((e, idx) => {
                     const dt = new Date(e.created_datetime + 'Z').toLocaleString();
                     const badge = e.action === 'imported'
                         ? '<span style="display: inline-block; padding: 2px 8px; background: #d4edda; color: #155724; border-radius: 10px; font-size: 11px;">Imported</span>'
                         : '<span style="display: inline-block; padding: 2px 8px; background: #f8d7da; color: #721c24; border-radius: 10px; font-size: 11px;">Rejected</span>';
                     const from = escapeHtml(e.from_name ? e.from_name + ' <' + e.from_address + '>' : e.from_address);
-                    return `<tr>
+                    return `<tr style="cursor: pointer;" onclick="showProcessingLog(window._activityLogs[${idx}])">
                         <td style="white-space: nowrap;">${dt}</td>
                         <td>${from}</td>
                         <td>${escapeHtml(e.subject || '')}</td>

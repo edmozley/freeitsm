@@ -283,6 +283,7 @@ CREATE TABLE IF NOT EXISTS `mailbox_activity_log` (
     `subject`           VARCHAR(500) NULL,
     `reason`            VARCHAR(255) NULL,
     `ticket_id`         INT NULL,
+    `processing_log`    TEXT NULL,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_mal_mailbox` FOREIGN KEY (`mailbox_id`) REFERENCES `target_mailboxes` (`id`)

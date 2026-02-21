@@ -344,8 +344,8 @@ The primary module. Three-panel Outlook-style interface.
 - **Features**: Create tickets, reply/forward emails, attachments, internal notes, audit trail, team-based filtering, scheduling
 - **Settings**: Departments, ticket types, origins, mailboxes (Office 365), analysts, teams
 - **Mailbox whitelist**: Per-mailbox domain and email address whitelisting — non-whitelisted senders are rejected
-- **Email actions**: Configurable per-mailbox actions for rejected emails (delete, move to Deleted Items, mark as read) and imported emails (delete, move to folder)
-- **Activity log**: Searchable, paginated log of imported and rejected emails per mailbox
+- **Email actions**: Configurable per-mailbox actions for rejected emails (delete, move to Deleted Items, mark as read) and imported emails (delete, move to folder) with folder verification
+- **Activity log**: Searchable, paginated log of imported and rejected emails per mailbox with clickable processing log details
 
 ### Assets (`asset-management/`)
 IT asset management with vCenter integration.
@@ -517,6 +517,7 @@ if (!isset($_SESSION['analyst_id'])) {
 | `get_mailbox_whitelist.php` | GET | Get whitelist entries for a mailbox |
 | `save_mailbox_whitelist.php` | POST | Replace whitelist entries for a mailbox |
 | `get_mailbox_activity.php` | GET | Paginated activity log for a mailbox |
+| `verify_mailbox_folder.php` | POST | Verify a mail folder exists via Graph API |
 | `get_notes.php` | GET | Get notes for a ticket |
 | `save_note.php` | POST | Add internal note |
 | `get_ticket_audit.php` | GET | Get change history |

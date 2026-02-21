@@ -45,7 +45,7 @@ try {
     $total = (int)$countStmt->fetchColumn();
 
     // Get entries
-    $sql = "SELECT id, action, from_address, from_name, subject, reason, ticket_id, created_datetime
+    $sql = "SELECT id, action, from_address, from_name, subject, reason, ticket_id, processing_log, created_datetime
             FROM mailbox_activity_log $where
             ORDER BY created_datetime DESC
             LIMIT $perPage OFFSET $offset";
