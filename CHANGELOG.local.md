@@ -18,6 +18,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 056 | Assets            | Improvement | Widen hostname and service_tag columns to VARCHAR(50) and add new asset columns for domain, logged-in user, last boot, TPM, BitLocker, and GPU |
 | 057 | Software          | Feature     | Distinguish system components from user-visible applications using registry SystemComponent flag, with tabbed views (Applications / Components / All) in both the software module and asset detail |
 | 058 | Assets            | Feature     | Per-analyst customisable dashboard with widget library, Chart.js charts (bar/pie/doughnut), status filtering, and drag-and-drop reordering |
+| 059 | Assets            | Feature     | Full-page widget library management with search, inline editing, duplicate, and delete for dashboard widgets |
 
 ---
 

@@ -211,124 +211,6 @@ $path_prefix = '../../';
             font-size: 14px;
         }
 
-        /* Modal */
-        .dash-modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.4);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .dash-modal-overlay.active {
-            display: flex;
-        }
-
-        .dash-modal-box {
-            background: #fff;
-            border-radius: 10px;
-            width: 560px;
-            max-height: 80vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
-        }
-
-        .dash-modal-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 16px 20px;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .dash-modal-header h3 {
-            margin: 0;
-            font-size: 16px;
-            color: #333;
-        }
-
-        .dash-modal-close {
-            background: none;
-            border: none;
-            padding: 4px;
-            cursor: pointer;
-            color: #999;
-            border-radius: 4px;
-        }
-
-        .dash-modal-close:hover {
-            color: #333;
-            background: #f0f0f0;
-        }
-
-        .dash-modal-close svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .dash-modal-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 20px;
-        }
-
-        .widget-library-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .widget-library-item:last-child {
-            border-bottom: none;
-        }
-
-        .widget-library-info {
-            flex: 1;
-            min-width: 0;
-        }
-
-        .widget-library-info h4 {
-            margin: 0;
-            font-size: 14px;
-            color: #333;
-        }
-
-        .widget-library-info p {
-            margin: 2px 0 0 0;
-            font-size: 12px;
-            color: #888;
-        }
-
-        .widget-library-info .widget-type-badge {
-            display: inline-block;
-            margin-top: 4px;
-            padding: 2px 8px;
-            background: #f0f0f0;
-            border-radius: 10px;
-            font-size: 11px;
-            color: #666;
-        }
-
-        .widget-library-item .btn {
-            flex-shrink: 0;
-            margin-left: 12px;
-            padding: 6px 12px;
-            font-size: 12px;
-        }
-
-        .widget-library-item .btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
         @media (max-width: 900px) {
             .widget-grid {
                 grid-template-columns: 1fr;
@@ -342,7 +224,7 @@ $path_prefix = '../../';
     <div class="dashboard-toolbar">
         <h2>Dashboard</h2>
         <div class="dashboard-toolbar-actions">
-            <button class="btn btn-primary" onclick="openWidgetLibrary()">
+            <button class="btn btn-primary" onclick="window.location.href='library.php'">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 Add
             </button>
@@ -359,30 +241,16 @@ $path_prefix = '../../';
         </svg>
         <h3>No widgets yet</h3>
         <p>Add widgets from the library to build your dashboard</p>
-        <button class="btn btn-primary" onclick="openWidgetLibrary()">
+        <button class="btn btn-primary" onclick="window.location.href='library.php'">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Add
         </button>
-    </div>
-
-    <!-- Widget Library Modal -->
-    <div id="libraryModal" class="dash-modal-overlay">
-        <div class="dash-modal-box">
-            <div class="dash-modal-header">
-                <h3>Widget Library</h3>
-                <button class="dash-modal-close" onclick="closeWidgetLibrary()">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-            <div class="dash-modal-body" id="libraryList"></div>
-        </div>
     </div>
 
     <script src="../../assets/js/chart.min.js"></script>
     <script>
         const API_BASE = '../../api/assets/';
         let dashboardWidgets = [];
-        let widgetLibrary = [];
         let statusTypes = [];
         let chartInstances = {};
         let dragSource = null;
@@ -563,49 +431,6 @@ $path_prefix = '../../';
             loadWidgetData(widgetId, widget.chart_type, statusId);
         }
 
-        // Widget Library Modal
-        async function openWidgetLibrary() {
-            const modal = document.getElementById('libraryModal');
-            const list = document.getElementById('libraryList');
-
-            try {
-                // Load library if not cached
-                if (widgetLibrary.length === 0) {
-                    const res = await fetch(API_BASE + 'get_widget_library.php');
-                    const data = await res.json();
-                    if (data.success) {
-                        widgetLibrary = data.widgets;
-                    }
-                }
-            } catch (err) {
-                console.error('Failed to load widget library:', err);
-            }
-
-            const addedIds = new Set(dashboardWidgets.map(w => parseInt(w.widget_id)));
-
-            list.innerHTML = widgetLibrary.map(w => {
-                const isAdded = addedIds.has(parseInt(w.id));
-                return `
-                    <div class="widget-library-item">
-                        <div class="widget-library-info">
-                            <h4>${escapeHtml(w.title)}</h4>
-                            <p>${escapeHtml(w.description || '')}</p>
-                            <span class="widget-type-badge">${w.chart_type}</span>
-                        </div>
-                        <button class="btn" onclick="addWidget(${w.id})" ${isAdded ? 'disabled' : ''}>
-                            ${isAdded ? 'Added' : 'Add'}
-                        </button>
-                    </div>
-                `;
-            }).join('');
-
-            modal.classList.add('active');
-        }
-
-        function closeWidgetLibrary() {
-            document.getElementById('libraryModal').classList.remove('active');
-        }
-
         async function addWidget(widgetId) {
             try {
                 const res = await fetch(API_BASE + 'add_dashboard_widget.php', {
@@ -628,7 +453,6 @@ $path_prefix = '../../';
                 }
 
                 renderDashboard();
-                closeWidgetLibrary();
                 showToast('Widget added', 'success');
             } catch (err) {
                 showToast('Failed to add widget', 'error');
@@ -734,16 +558,6 @@ $path_prefix = '../../';
             div.textContent = str;
             return div.innerHTML;
         }
-
-        // Close modal on overlay click
-        document.getElementById('libraryModal').addEventListener('click', function(e) {
-            if (e.target === this) closeWidgetLibrary();
-        });
-
-        // Close modal on Escape
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeWidgetLibrary();
-        });
 
         // Init
         init();
