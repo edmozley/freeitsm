@@ -847,27 +847,30 @@ async function buildArticlePdf() {
     const temp = document.createElement('div');
     temp.innerHTML = currentArticle.body || '';
 
-    function addPage() {
-        doc.addPage();
-        y = margin;
+    const pageH = doc.internal.pageSize.getHeight();
+    const bottomLimit = pageH - margin;
+
+    function ensureSpace(needed) {
+        if (y + needed > bottomLimit) { doc.addPage(); y = margin; }
     }
 
-    function checkSpace(needed) {
-        if (y + needed > doc.internal.pageSize.getHeight() - margin) addPage();
+    // Print wrapped lines one-by-one, adding pages as needed
+    function printLines(lines, x, lineH) {
+        for (let i = 0; i < lines.length; i++) {
+            ensureSpace(lineH);
+            doc.text(lines[i], x, y);
+            y += lineH;
+        }
     }
 
     function renderNode(node) {
         if (node.nodeType === 3) {
-            // Text node
-            const text = node.textContent.replace(/\s+/g, ' ');
-            if (!text.trim()) return;
+            const text = node.textContent.replace(/\s+/g, ' ').trim();
+            if (!text) return;
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(50, 50, 50);
-            const lines = doc.splitTextToSize(text.trim(), contentW);
-            checkSpace(lines.length * 5);
-            doc.text(lines, margin, y);
-            y += lines.length * 5;
+            printLines(doc.splitTextToSize(text, contentW), margin, 5);
             return;
         }
         if (node.nodeType !== 1) return;
@@ -876,14 +879,14 @@ async function buildArticlePdf() {
 
         if (tag === 'h1' || tag === 'h2' || tag === 'h3' || tag === 'h4') {
             const sizes = { h1: 16, h2: 14, h3: 12, h4: 11 };
+            const lh = sizes[tag] * 0.45;
             y += 3;
-            checkSpace(10);
+            ensureSpace(lh + 3);
             doc.setFontSize(sizes[tag]);
             doc.setFont('helvetica', 'bold');
             doc.setTextColor(30, 30, 30);
-            const lines = doc.splitTextToSize(node.textContent.trim(), contentW);
-            doc.text(lines, margin, y);
-            y += lines.length * (sizes[tag] * 0.45) + 3;
+            printLines(doc.splitTextToSize(node.textContent.trim(), contentW), margin, lh);
+            y += 3;
             return;
         }
 
@@ -893,11 +896,8 @@ async function buildArticlePdf() {
             doc.setFontSize(10);
             doc.setFont('helvetica', 'normal');
             doc.setTextColor(50, 50, 50);
-            // Handle bold/strong inline
-            const lines = doc.splitTextToSize(text, contentW);
-            checkSpace(lines.length * 5);
-            doc.text(lines, margin, y);
-            y += lines.length * 5 + 2;
+            printLines(doc.splitTextToSize(text, contentW), margin, 5);
+            y += 2;
             return;
         }
 
@@ -910,10 +910,14 @@ async function buildArticlePdf() {
                 doc.setFont('helvetica', 'normal');
                 doc.setTextColor(50, 50, 50);
                 const lines = doc.splitTextToSize(text, contentW - 8);
-                checkSpace(lines.length * 5);
-                doc.text(bullet, margin + 2, y);
-                doc.text(lines, margin + 8, y);
-                y += lines.length * 5 + 1;
+                // Print bullet on first line, then remaining lines
+                for (let i = 0; i < lines.length; i++) {
+                    ensureSpace(5);
+                    if (i === 0) doc.text(bullet, margin + 2, y);
+                    doc.text(lines[i], margin + 8, y);
+                    y += 5;
+                }
+                y += 1;
             });
             y += 2;
             return;
@@ -926,24 +930,48 @@ async function buildArticlePdf() {
             doc.setFont('courier', 'normal');
             doc.setTextColor(80, 80, 80);
             const lines = doc.splitTextToSize(text, contentW - 6);
-            checkSpace(lines.length * 4.5 + 4);
-            doc.setFillColor(245, 245, 245);
-            doc.rect(margin, y - 3, contentW, lines.length * 4.5 + 6, 'F');
-            doc.text(lines, margin + 3, y);
-            y += lines.length * 4.5 + 5;
+            const lineH = 4.5;
+            // Render each line with its own grey background strip
+            for (let i = 0; i < lines.length; i++) {
+                ensureSpace(lineH + 2);
+                doc.setFillColor(245, 245, 245);
+                doc.rect(margin, y - 3, contentW, lineH + 1, 'F');
+                doc.text(lines[i], margin + 3, y);
+                y += lineH;
+            }
+            y += 3;
             return;
         }
 
         if (tag === 'br') { y += 3; return; }
         if (tag === 'hr') {
             y += 2;
+            ensureSpace(4);
             doc.setDrawColor(200, 200, 200);
             doc.line(margin, y, pageW - margin, y);
             y += 4;
             return;
         }
 
-        // Recurse into other elements (div, span, strong, em, etc.)
+        // Table support — render as simple rows
+        if (tag === 'table') {
+            const rows = node.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('th, td');
+                const cellTexts = Array.from(cells).map(c => c.textContent.trim());
+                const text = cellTexts.join('  |  ');
+                doc.setFontSize(9);
+                const isHeader = row.querySelector('th');
+                doc.setFont('helvetica', isHeader ? 'bold' : 'normal');
+                doc.setTextColor(50, 50, 50);
+                const lines = doc.splitTextToSize(text, contentW);
+                printLines(lines, margin, 4.5);
+                y += 1;
+            });
+            y += 2;
+            return;
+        }
+
         for (const child of node.childNodes) renderNode(child);
     }
 
