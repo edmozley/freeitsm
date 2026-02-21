@@ -338,7 +338,16 @@ function editCurrentArticle() {
 
 // Save as new version
 async function saveAsNewVersion() {
-    if (!confirm('Save as a new version? The current content will be archived as v' + (currentArticle.version || 1) + '.')) return;
+    const currentVersion = currentArticle.version || 1;
+    const confirmed = await customAlert({
+        title: 'Save as New Version',
+        message: 'The current content will be archived as <strong>v' + currentVersion + '</strong> and your changes will become <strong>v' + (currentVersion + 1) + '</strong>.',
+        type: 'info',
+        confirm: true,
+        okText: 'Confirm',
+        cancelText: 'Cancel'
+    });
+    if (!confirmed) return;
 
     const articleId = document.getElementById('editArticleId').value;
     const title = document.getElementById('articleTitle').value.trim();
@@ -349,7 +358,7 @@ async function saveAsNewVersion() {
     const nextReviewDate = reviewDateInput ? reviewDateInput.value : null;
 
     if (!title) {
-        alert('Please enter a title');
+        await customAlert({ title: 'Missing Title', message: 'Please enter a title before saving.', type: 'warning' });
         return;
     }
 
@@ -371,16 +380,16 @@ async function saveAsNewVersion() {
         const data = await response.json();
 
         if (data.success) {
-            alert('Saved as new version');
+            showToast('Saved as v' + (currentVersion + 1));
             loadTags();
             loadArticles();
             showView('list');
         } else {
-            alert('Error saving version: ' + data.error);
+            await customAlert({ title: 'Error', message: data.error || 'Failed to save version.', type: 'danger' });
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Failed to save version');
+        await customAlert({ title: 'Error', message: 'Failed to save version. Please try again.', type: 'danger' });
     }
 }
 
