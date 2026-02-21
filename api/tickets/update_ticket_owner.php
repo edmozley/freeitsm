@@ -48,6 +48,12 @@ try {
         }
     }
 
+    // Get current owner for change detection
+    $currentStmt = $conn->prepare("SELECT owner_id FROM tickets WHERE id = ?");
+    $currentStmt->execute([$ticketId]);
+    $currentTicket = $currentStmt->fetch(PDO::FETCH_ASSOC);
+    $oldOwnerId = $currentTicket ? $currentTicket['owner_id'] : null;
+
     // Update ticket owner
     $sql = "UPDATE tickets SET owner_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?";
     $stmt = $conn->prepare($sql);
@@ -55,8 +61,16 @@ try {
 
     echo json_encode(['success' => true, 'message' => 'Ticket owner updated successfully']);
 
+    // Trigger ticket_assigned template if owner actually changed
+    if ((string)($ownerId ?? '') !== (string)($oldOwnerId ?? '') && $ownerId !== null) {
+        try {
+            require_once dirname(dirname(__DIR__)) . '/includes/template_email.php';
+            sendTemplateEmail($conn, $ticketId, 'ticket_assigned');
+        } catch (Exception $tplEx) {
+            error_log('Template email error in update_ticket_owner: ' . $tplEx->getMessage());
+        }
+    }
+
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-
-?>
