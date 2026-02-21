@@ -12,14 +12,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
-| 069 | Change Management | Feature     | Risk assessment matrix with 5x5 colour-coded grid, likelihood/impact scoring (1-5), auto-calculated risk score and level displayed on list cards and detail view |
-| 070 | Change Management | Feature     | Post-implementation review structured fields (success status, actual start/end, lessons learned, follow-up actions) visible when change status is Completed or Failed |
-| 071 | Change Management | Feature     | Activity timeline combining comments and audit trail into a single chronological view on the change detail page, with inline comment posting |
-| 072 | Change Management | Feature     | Server-side audit logging that tracks all field changes by comparing old and new values before each update, with automatic audit entries for status changes |
-| 073 | Change Management | Feature     | CAB (Change Advisory Board) multi-member approval workflow with required/optional reviewers, Approve/Reject/Abstain voting, configurable threshold (all or majority), and auto-status transitions |
-| 074 | Change Management | Feature     | CAB review panel in change detail view showing member cards with colour-coded vote status, progress badge, and inline vote form for pending CAB members |
-| 075 | Change Management | Feature     | My CAB Reviews filter on approvals page showing changes where current analyst has a pending CAB vote, with CAB progress badge on approval cards |
-| 076 | Change Management | Improvement | Help guide moved from modal to dedicated full page with left-pane section navigation, scroll-spy active section highlighting, and smooth scrolling |
 
 ---
 
@@ -34,6 +26,14 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 066 | Knowledge         | Feature     | Article versioning — save as new version button archives previous content, displays version number on article view, and stores version history |
 | 067 | System            | Feature     | Shared customAlert component replacing native alert/confirm with styled modals supporting info, warning, danger, and success types |
 | 068 | Tickets           | Feature     | Staff rota with weekly grid showing analyst shift patterns, WFH/office location, and on-call status; configurable shifts and include-weekends setting in Ticket Settings |
+| 069 | Change Management | Feature     | Risk assessment matrix with 5x5 colour-coded grid, likelihood/impact scoring (1-5), auto-calculated risk score and level displayed on list cards and detail view |
+| 070 | Change Management | Feature     | Post-implementation review structured fields (success status, actual start/end, lessons learned, follow-up actions) visible when change status is Completed or Failed |
+| 071 | Change Management | Feature     | Activity timeline combining comments and audit trail into a single chronological view on the change detail page, with inline comment posting |
+| 072 | Change Management | Feature     | Server-side audit logging that tracks all field changes by comparing old and new values before each update, with automatic audit entries for status changes |
+| 073 | Change Management | Feature     | CAB (Change Advisory Board) multi-member approval workflow with required/optional reviewers, Approve/Reject/Abstain voting, configurable threshold (all or majority), and auto-status transitions |
+| 074 | Change Management | Feature     | CAB review panel in change detail view showing member cards with colour-coded vote status, progress badge, and inline vote form for pending CAB members |
+| 075 | Change Management | Feature     | My CAB Reviews filter on approvals page showing changes where current analyst has a pending CAB vote, with CAB progress badge on approval cards |
+| 076 | Change Management | Improvement | Help guide moved from modal to dedicated full page with left-pane section navigation, scroll-spy active section highlighting, and smooth scrolling |
 | 055 | Assets            | Feature     | PowerShell inventory agent and system-info ingest API that collects and syncs hardware, disks, network, GPU, TPM, BitLocker, and software data per asset |
 | 056 | Assets            | Improvement | Widen hostname and service_tag columns to VARCHAR(50) and add new asset columns for domain, logged-in user, last boot, TPM, BitLocker, and GPU |
 | 057 | Software          | Feature     | Distinguish system components from user-visible applications using registry SystemComponent flag, with tabbed views (Applications / Components / All) in both the software module and asset detail |
