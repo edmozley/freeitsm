@@ -538,6 +538,7 @@ if (!isset($_SESSION['analyst_id'])) {
                         if (saBtn) {
                             saBtn.className = 'import-btn success';
                             saBtn.innerHTML = checkSvg + ' Already imported';
+                            saBtn.disabled = false;
                         }
                     }
                     if (data.modules.dashboards) {
@@ -546,6 +547,7 @@ if (!isset($_SESSION['analyst_id'])) {
                         if (dbBtn) {
                             dbBtn.className = 'import-btn success';
                             dbBtn.innerHTML = checkSvg + ' Already imported';
+                            dbBtn.disabled = false;
                         }
                     }
                     checkBonusEligibility();
