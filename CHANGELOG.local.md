@@ -10,15 +10,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 ## Unpublished
 
-### 21 February 2026
-
-| ID  | Module            | Type        | Description |
-|-----|-------------------|-------------|-------------|
-| 064 | Tickets           | Feature     | Automated email templates triggered by ticket events (new ticket from email, ticket assigned, ticket closed) with merge codes for ticket reference, requester, analyst, department, and dates |
-| 065 | Tickets           | Feature     | Ask AI button in ticket detail view that opens a slide-in chat panel, auto-sends ticket context to the knowledge base AI, and links referenced articles in new tabs |
-| 066 | Knowledge         | Feature     | Article versioning — save as new version button archives previous content, displays version number on article view, and stores version history |
-| 067 | System            | Feature     | Shared customAlert component replacing native alert/confirm with styled modals supporting info, warning, danger, and success types |
-| 068 | Tickets           | Feature     | Staff rota with weekly grid showing analyst shift patterns, WFH/office location, and on-call status; configurable shifts and include-weekends setting in Ticket Settings |
+(none)
 
 ---
 
@@ -28,6 +20,11 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 064 | Tickets           | Feature     | Automated email templates triggered by ticket events (new ticket from email, ticket assigned, ticket closed) with merge codes for ticket reference, requester, analyst, department, and dates |
+| 065 | Tickets           | Feature     | Ask AI button in ticket detail view that opens a slide-in chat panel, auto-sends ticket context to the knowledge base AI, and links referenced articles in new tabs |
+| 066 | Knowledge         | Feature     | Article versioning — save as new version button archives previous content, displays version number on article view, and stores version history |
+| 067 | System            | Feature     | Shared customAlert component replacing native alert/confirm with styled modals supporting info, warning, danger, and success types |
+| 068 | Tickets           | Feature     | Staff rota with weekly grid showing analyst shift patterns, WFH/office location, and on-call status; configurable shifts and include-weekends setting in Ticket Settings |
 | 055 | Assets            | Feature     | PowerShell inventory agent and system-info ingest API that collects and syncs hardware, disks, network, GPU, TPM, BitLocker, and software data per asset |
 | 056 | Assets            | Improvement | Widen hostname and service_tag columns to VARCHAR(50) and add new asset columns for domain, logged-in user, last boot, TPM, BitLocker, and GPU |
 | 057 | Software          | Feature     | Distinguish system components from user-visible applications using registry SystemComponent flag, with tabbed views (Applications / Components / All) in both the software module and asset detail |
