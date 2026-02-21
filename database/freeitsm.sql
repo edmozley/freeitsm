@@ -261,6 +261,30 @@ CREATE TABLE IF NOT EXISTS `email_attachments` (
     CONSTRAINT `fk_email_attachments_email` FOREIGN KEY (`email_id`) REFERENCES `emails` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `mailbox_email_whitelist` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `mailbox_id`        INT NOT NULL,
+    `entry_type`        VARCHAR(10) NOT NULL,
+    `entry_value`       VARCHAR(255) NOT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_mew_mailbox` FOREIGN KEY (`mailbox_id`) REFERENCES `target_mailboxes` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `mailbox_activity_log` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `mailbox_id`        INT NOT NULL,
+    `action`            VARCHAR(20) NOT NULL,
+    `from_address`      VARCHAR(255) NOT NULL,
+    `from_name`         VARCHAR(255) NULL,
+    `subject`           VARCHAR(500) NULL,
+    `reason`            VARCHAR(255) NULL,
+    `ticket_id`         INT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_mal_mailbox` FOREIGN KEY (`mailbox_id`) REFERENCES `target_mailboxes` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ----------------------------------------------------------
 -- Assets
 -- ----------------------------------------------------------

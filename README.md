@@ -343,6 +343,8 @@ The primary module. Three-panel Outlook-style interface.
 - **Right panel**: Reading pane with full email thread
 - **Features**: Create tickets, reply/forward emails, attachments, internal notes, audit trail, team-based filtering, scheduling
 - **Settings**: Departments, ticket types, origins, mailboxes (Office 365), analysts, teams
+- **Mailbox whitelist**: Per-mailbox domain and email address whitelisting — non-whitelisted senders are rejected
+- **Activity log**: Searchable, paginated log of imported and rejected emails per mailbox
 
 ### Assets (`asset-management/`)
 IT asset management with vCenter integration.
@@ -511,6 +513,9 @@ if (!isset($_SESSION['analyst_id'])) {
 | `save_team.php` | POST | Create/update team |
 | `get_mailboxes.php` | GET | List mailbox configurations |
 | `save_mailbox.php` | POST | Create/update mailbox |
+| `get_mailbox_whitelist.php` | GET | Get whitelist entries for a mailbox |
+| `save_mailbox_whitelist.php` | POST | Replace whitelist entries for a mailbox |
+| `get_mailbox_activity.php` | GET | Paginated activity log for a mailbox |
 | `get_notes.php` | GET | Get notes for a ticket |
 | `save_note.php` | POST | Add internal note |
 | `get_ticket_audit.php` | GET | Get change history |
@@ -650,6 +655,19 @@ email_folder, max_emails_per_check, mark_as_read,
 token_data (JSON), is_active, created_datetime, last_checked_datetime
 ```
 \* *Encrypted at rest with AES-256-GCM*
+
+#### mailbox_email_whitelist
+```sql
+id, mailbox_id, entry_type ('domain'|'email'), entry_value, created_datetime
+```
+Per-mailbox sender whitelist. If no entries exist, all senders are allowed.
+
+#### mailbox_activity_log
+```sql
+id, mailbox_id, action ('imported'|'rejected'), from_address, from_name,
+subject, reason, ticket_id, created_datetime
+```
+Records every email imported or rejected during mailbox processing.
 
 ### Asset Tables
 

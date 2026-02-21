@@ -460,11 +460,61 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                     </div>
                 </div>
 
+                <div style="grid-column: span 2; margin-top: 10px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
+                    <label style="font-weight: 600; margin-bottom: 8px; display: block;">Email Whitelist</label>
+                    <small style="color: #666; display: block; margin-bottom: 10px;">If empty, all senders are allowed. Add domains or email addresses to restrict which emails are imported.</small>
+
+                    <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+                        <select id="whitelistType" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                            <option value="domain">Domain</option>
+                            <option value="email">Email</option>
+                        </select>
+                        <input type="text" id="whitelistValue" placeholder="e.g. company.com or user@example.com" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addWhitelistEntry();}">
+                        <button type="button" class="btn btn-primary" onclick="addWhitelistEntry()" style="padding: 8px 12px;">Add</button>
+                    </div>
+
+                    <div id="whitelistEntries" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeMailboxModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Activity Log Modal -->
+    <div class="modal" id="activityModal">
+        <div class="modal-content" style="max-width: 850px;">
+            <div class="modal-header" id="activityModalTitle">Mailbox Activity</div>
+
+            <div style="display: flex; gap: 10px; margin-bottom: 15px;">
+                <input type="text" id="activitySearch" placeholder="Search by sender, name, or subject..." style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" oninput="debounceActivitySearch()">
+            </div>
+
+            <div style="max-height: 450px; overflow-y: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>From</th>
+                            <th>Subject</th>
+                            <th>Action</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityList">
+                        <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="activityPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 13px; color: #666;"></div>
+
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="closeActivityModal()">Close</button>
+            </div>
         </div>
     </div>
 
@@ -565,6 +615,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
         let currentTab = 'departments';
 
         let mailboxes = [];
+        let whitelistEntries = [];
         let teams = [];
         let departmentTeams = {}; // Cache for department->teams mapping
         let analystTeams = {}; // Cache for analyst->teams mapping
@@ -1154,6 +1205,10 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </button>`;
 
+                actions += `<button class="action-btn" onclick="openActivityModal(${mb.id})" title="Activity">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </button>`;
+
                 if (mb.is_authenticated) {
                     actions += `<button class="action-btn" onclick="checkMailboxEmails(${mb.id})" title="Check Emails">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
@@ -1184,7 +1239,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             }).join('');
         }
 
-        function openMailboxModal(mailbox = null) {
+        async function openMailboxModal(mailbox = null) {
             document.getElementById('mailboxModalTitle').textContent = mailbox ? 'Edit Mailbox' : 'Add Mailbox';
             document.getElementById('mailboxId').value = mailbox ? mailbox.id : '';
             document.getElementById('mailboxName').value = mailbox ? mailbox.name : '';
@@ -1200,6 +1255,21 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             document.getElementById('mailboxMaxEmails').value = mailbox ? mailbox.max_emails_per_check : 10;
             document.getElementById('mailboxMarkAsRead').checked = mailbox ? mailbox.mark_as_read : false;
             document.getElementById('mailboxActive').checked = mailbox ? mailbox.is_active : true;
+
+            // Load whitelist
+            whitelistEntries = [];
+            if (mailbox && mailbox.id) {
+                try {
+                    const res = await fetch(API_BASE + 'get_mailbox_whitelist.php?mailbox_id=' + mailbox.id);
+                    const data = await res.json();
+                    if (data.success) {
+                        whitelistEntries = data.entries.map(e => ({ entry_type: e.entry_type, entry_value: e.entry_value }));
+                    }
+                } catch (err) {
+                    console.error('Failed to load whitelist:', err);
+                }
+            }
+            renderWhitelistEntries();
 
             document.getElementById('mailboxModal').classList.add('active');
         }
@@ -1416,6 +1486,20 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 const data = await response.json();
 
                 if (data.success) {
+                    // Save whitelist entries
+                    const mailboxId = data.id || formData.id;
+                    if (mailboxId) {
+                        try {
+                            await fetch(API_BASE + 'save_mailbox_whitelist.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ mailbox_id: mailboxId, entries: whitelistEntries })
+                            });
+                        } catch (wErr) {
+                            console.error('Failed to save whitelist:', wErr);
+                        }
+                    }
+
                     closeMailboxModal();
                     loadMailboxes();
                 } else {
@@ -1426,6 +1510,141 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 alert('Failed to save mailbox');
             }
         });
+
+        // Whitelist Functions
+        function addWhitelistEntry() {
+            const type = document.getElementById('whitelistType').value;
+            const value = document.getElementById('whitelistValue').value.trim().toLowerCase();
+
+            if (!value) return;
+
+            // Validate
+            if (type === 'email' && !value.includes('@')) {
+                showToast('Please enter a valid email address', 'warning');
+                return;
+            }
+            if (type === 'domain' && value.includes('@')) {
+                showToast('Enter a domain without @, e.g. company.com', 'warning');
+                return;
+            }
+
+            // Check for duplicates
+            if (whitelistEntries.some(e => e.entry_type === type && e.entry_value === value)) {
+                showToast('Entry already exists', 'warning');
+                return;
+            }
+
+            whitelistEntries.push({ entry_type: type, entry_value: value });
+            renderWhitelistEntries();
+            document.getElementById('whitelistValue').value = '';
+        }
+
+        function removeWhitelistEntry(index) {
+            whitelistEntries.splice(index, 1);
+            renderWhitelistEntries();
+        }
+
+        function renderWhitelistEntries() {
+            const container = document.getElementById('whitelistEntries');
+            if (whitelistEntries.length === 0) {
+                container.innerHTML = '<span style="color: #999; font-size: 12px;">No whitelist entries — all senders allowed</span>';
+                return;
+            }
+
+            container.innerHTML = whitelistEntries.map((e, i) => {
+                const color = e.entry_type === 'domain' ? '#0078d4' : '#6c757d';
+                return `<span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 10px; background: ${color}15; border: 1px solid ${color}40; border-radius: 20px; font-size: 12px; color: ${color};">
+                    <strong>${e.entry_type === 'domain' ? '@' : ''}${escapeHtml(e.entry_value)}</strong>
+                    <button type="button" onclick="removeWhitelistEntry(${i})" style="background: none; border: none; cursor: pointer; color: ${color}; font-size: 14px; padding: 0 2px; line-height: 1;">&times;</button>
+                </span>`;
+            }).join('');
+        }
+
+        // Activity Log Functions
+        let activityMailboxId = null;
+        let activitySearchTimer = null;
+
+        function openActivityModal(mailboxId) {
+            activityMailboxId = mailboxId;
+            const mb = mailboxes.find(m => m.id == mailboxId);
+            document.getElementById('activityModalTitle').textContent = 'Activity — ' + (mb ? mb.name : 'Mailbox');
+            document.getElementById('activitySearch').value = '';
+            loadActivity(mailboxId, '', 1);
+            document.getElementById('activityModal').classList.add('active');
+        }
+
+        function closeActivityModal() {
+            document.getElementById('activityModal').classList.remove('active');
+        }
+
+        function debounceActivitySearch() {
+            clearTimeout(activitySearchTimer);
+            activitySearchTimer = setTimeout(() => {
+                const search = document.getElementById('activitySearch').value;
+                loadActivity(activityMailboxId, search, 1);
+            }, 300);
+        }
+
+        async function loadActivity(mailboxId, search, page) {
+            const tbody = document.getElementById('activityList');
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Loading...</td></tr>';
+
+            try {
+                let url = API_BASE + 'get_mailbox_activity.php?mailbox_id=' + mailboxId + '&page=' + page;
+                if (search) url += '&search=' + encodeURIComponent(search);
+
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (!data.success) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">' + escapeHtml(data.error) + '</td></tr>';
+                    return;
+                }
+
+                if (data.entries.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No activity found</td></tr>';
+                    document.getElementById('activityPagination').innerHTML = '';
+                    return;
+                }
+
+                tbody.innerHTML = data.entries.map(e => {
+                    const dt = new Date(e.created_datetime + 'Z').toLocaleString();
+                    const badge = e.action === 'imported'
+                        ? '<span style="display: inline-block; padding: 2px 8px; background: #d4edda; color: #155724; border-radius: 10px; font-size: 11px;">Imported</span>'
+                        : '<span style="display: inline-block; padding: 2px 8px; background: #f8d7da; color: #721c24; border-radius: 10px; font-size: 11px;">Rejected</span>';
+                    const from = escapeHtml(e.from_name ? e.from_name + ' <' + e.from_address + '>' : e.from_address);
+                    return `<tr>
+                        <td style="white-space: nowrap;">${dt}</td>
+                        <td>${from}</td>
+                        <td>${escapeHtml(e.subject || '')}</td>
+                        <td>${badge}</td>
+                        <td>${escapeHtml(e.reason || '')}</td>
+                    </tr>`;
+                }).join('');
+
+                // Pagination
+                const totalPages = Math.ceil(data.total / data.per_page);
+                const currentSearch = document.getElementById('activitySearch').value;
+                let paginationHtml = `<span>Showing ${data.entries.length} of ${data.total} entries</span>`;
+
+                if (totalPages > 1) {
+                    paginationHtml += '<div>';
+                    if (page > 1) {
+                        paginationHtml += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-right: 4px;" onclick="loadActivity(${mailboxId}, '${currentSearch.replace(/'/g, "\\'")}', ${page - 1})">Prev</button>`;
+                    }
+                    paginationHtml += `<span style="margin: 0 8px;">Page ${page} of ${totalPages}</span>`;
+                    if (page < totalPages) {
+                        paginationHtml += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-left: 4px;" onclick="loadActivity(${mailboxId}, '${currentSearch.replace(/'/g, "\\'")}', ${page + 1})">Next</button>`;
+                    }
+                    paginationHtml += '</div>';
+                }
+
+                document.getElementById('activityPagination').innerHTML = paginationHtml;
+
+            } catch (err) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Failed to load activity</td></tr>';
+            }
+        }
 
         // Analyst Functions
         let analysts = [];

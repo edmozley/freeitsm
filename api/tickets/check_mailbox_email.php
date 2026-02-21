@@ -108,14 +108,54 @@ try {
         exit;
     }
 
+    // Load whitelist for this mailbox
+    $whitelist = loadWhitelist($conn, $mailboxId);
+    $hasWhitelist = !empty($whitelist['domains']) || !empty($whitelist['emails']);
+
     // Save emails to database
     $savedCount = 0;
+    $rejectedCount = 0;
     $errors = [];
+    $activityEntries = [];
 
     foreach ($emails as $email) {
+        $fromAddress = strtolower(trim($email['from']['emailAddress']['address'] ?? ''));
+        $fromName = $email['from']['emailAddress']['name'] ?? '';
+        $subject = $email['subject'] ?? '(No Subject)';
+
+        // Check whitelist
+        if ($hasWhitelist && !isWhitelisted($fromAddress, $whitelist)) {
+            // Reject: delete from mailbox without importing
+            try {
+                deleteEmailFromMailbox($accessToken, $email['id']);
+            } catch (Exception $delEx) {
+                $errors[] = 'Failed to delete rejected email from ' . $fromAddress . ': ' . $delEx->getMessage();
+            }
+
+            $rejectedCount++;
+            $activityEntries[] = [
+                'action' => 'rejected',
+                'from_address' => $fromAddress,
+                'from_name' => $fromName,
+                'subject' => $subject,
+                'reason' => 'Not whitelisted',
+                'ticket_id' => null
+            ];
+            continue;
+        }
+
         try {
-            saveEmailToDatabase($conn, $email, $accessToken, $mailboxId);
+            $ticketId = saveEmailToDatabase($conn, $email, $accessToken, $mailboxId);
             $savedCount++;
+
+            $activityEntries[] = [
+                'action' => 'imported',
+                'from_address' => $fromAddress,
+                'from_name' => $fromName,
+                'subject' => $subject,
+                'reason' => null,
+                'ticket_id' => $ticketId ?: null
+            ];
 
             // Delete the email from the mailbox after successful import
             try {
@@ -128,15 +168,27 @@ try {
         }
     }
 
+    // Log activity (only if emails were actually processed)
+    if (!empty($activityEntries)) {
+        logMailboxActivity($conn, $mailboxId, $activityEntries);
+    }
+
     // Update last checked time
     updateLastChecked($conn, $mailboxId);
 
+    $message = "Processed {$savedCount} imported";
+    if ($rejectedCount > 0) {
+        $message .= ", {$rejectedCount} rejected";
+    }
+    $message .= " email(s) from " . $mailbox['target_mailbox'];
+
     echo json_encode([
         'success' => true,
-        'message' => "Successfully processed {$savedCount} email(s) from " . $mailbox['target_mailbox'],
+        'message' => $message,
         'details' => [
             'emails_found' => count($emails),
             'emails_saved' => $savedCount,
+            'emails_rejected' => $rejectedCount,
             'errors' => $errors,
             'mailbox' => $mailbox['target_mailbox'],
             'folder' => $mailbox['email_folder']
@@ -709,7 +761,7 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId) {
         'attachments' => $attachmentInfo
     ]);
 
-    return true;
+    return $ticketId;
 }
 
 /**
@@ -765,6 +817,77 @@ function logEmailImport($conn, $mailboxId, $details) {
     } catch (Exception $e) {
         // Silently fail - don't break email import if logging fails
         error_log('Failed to log email import: ' . $e->getMessage());
+    }
+}
+
+/**
+ * Load whitelist entries for a mailbox
+ */
+function loadWhitelist($conn, $mailboxId) {
+    $stmt = $conn->prepare("SELECT entry_type, entry_value FROM mailbox_email_whitelist WHERE mailbox_id = ?");
+    $stmt->execute([$mailboxId]);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $domains = [];
+    $emails = [];
+
+    foreach ($rows as $row) {
+        $value = strtolower(trim($row['entry_value']));
+        if ($row['entry_type'] === 'domain') {
+            $domains[] = $value;
+        } else {
+            $emails[] = $value;
+        }
+    }
+
+    return ['domains' => $domains, 'emails' => $emails];
+}
+
+/**
+ * Check if a sender address is whitelisted
+ */
+function isWhitelisted($fromAddress, $whitelist) {
+    $fromAddress = strtolower(trim($fromAddress));
+
+    // Check exact email match
+    if (in_array($fromAddress, $whitelist['emails'])) {
+        return true;
+    }
+
+    // Check domain match
+    $parts = explode('@', $fromAddress);
+    if (count($parts) === 2) {
+        $domain = $parts[1];
+        if (in_array($domain, $whitelist['domains'])) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Log mailbox activity (imports and rejections)
+ */
+function logMailboxActivity($conn, $mailboxId, $entries) {
+    try {
+        $stmt = $conn->prepare("INSERT INTO mailbox_activity_log
+            (mailbox_id, action, from_address, from_name, subject, reason, ticket_id, created_datetime)
+            VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())");
+
+        foreach ($entries as $entry) {
+            $stmt->execute([
+                $mailboxId,
+                $entry['action'],
+                $entry['from_address'],
+                $entry['from_name'],
+                $entry['subject'],
+                $entry['reason'],
+                $entry['ticket_id']
+            ]);
+        }
+    } catch (Exception $e) {
+        error_log('Failed to log mailbox activity: ' . $e->getMessage());
     }
 }
 ?>

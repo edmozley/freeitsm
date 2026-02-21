@@ -215,6 +215,26 @@ $schema = [
         'created_datetime'          => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    'mailbox_email_whitelist' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'mailbox_id'        => 'INT NOT NULL',
+        'entry_type'        => 'VARCHAR(10) NOT NULL',
+        'entry_value'       => 'VARCHAR(255) NOT NULL',
+        'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'mailbox_activity_log' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'mailbox_id'        => 'INT NOT NULL',
+        'action'            => 'VARCHAR(20) NOT NULL',
+        'from_address'      => 'VARCHAR(255) NOT NULL',
+        'from_name'         => 'VARCHAR(255) NULL',
+        'subject'           => 'VARCHAR(500) NULL',
+        'reason'            => 'VARCHAR(255) NULL',
+        'ticket_id'         => 'INT NULL',
+        'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'assets' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'hostname'          => 'VARCHAR(50) NULL',
