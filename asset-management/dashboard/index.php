@@ -212,7 +212,7 @@ $path_prefix = '../../';
         }
 
         /* Modal */
-        .modal-overlay {
+        .dash-modal-overlay {
             display: none;
             position: fixed;
             top: 0;
@@ -225,11 +225,11 @@ $path_prefix = '../../';
             justify-content: center;
         }
 
-        .modal-overlay.active {
+        .dash-modal-overlay.active {
             display: flex;
         }
 
-        .modal {
+        .dash-modal-box {
             background: #fff;
             border-radius: 10px;
             width: 560px;
@@ -239,7 +239,7 @@ $path_prefix = '../../';
             box-shadow: 0 8px 32px rgba(0,0,0,0.15);
         }
 
-        .modal-header {
+        .dash-modal-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -247,13 +247,13 @@ $path_prefix = '../../';
             border-bottom: 1px solid #e0e0e0;
         }
 
-        .modal-header h3 {
+        .dash-modal-header h3 {
             margin: 0;
             font-size: 16px;
             color: #333;
         }
 
-        .modal-close {
+        .dash-modal-close {
             background: none;
             border: none;
             padding: 4px;
@@ -262,17 +262,17 @@ $path_prefix = '../../';
             border-radius: 4px;
         }
 
-        .modal-close:hover {
+        .dash-modal-close:hover {
             color: #333;
             background: #f0f0f0;
         }
 
-        .modal-close svg {
+        .dash-modal-close svg {
             width: 20px;
             height: 20px;
         }
 
-        .modal-body {
+        .dash-modal-body {
             flex: 1;
             overflow-y: auto;
             padding: 12px 20px;
@@ -366,15 +366,15 @@ $path_prefix = '../../';
     </div>
 
     <!-- Widget Library Modal -->
-    <div id="libraryModal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
+    <div id="libraryModal" class="dash-modal-overlay">
+        <div class="dash-modal-box">
+            <div class="dash-modal-header">
                 <h3>Widget Library</h3>
-                <button class="modal-close" onclick="closeWidgetLibrary()">
+                <button class="dash-modal-close" onclick="closeWidgetLibrary()">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                 </button>
             </div>
-            <div class="modal-body" id="libraryList"></div>
+            <div class="dash-modal-body" id="libraryList"></div>
         </div>
     </div>
 
