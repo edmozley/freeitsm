@@ -518,6 +518,19 @@ CREATE TABLE IF NOT EXISTS `changes` (
     `test_plan`                     LONGTEXT NULL,
     `rollback_plan`                 LONGTEXT NULL,
     `post_implementation_review`    LONGTEXT NULL,
+    `risk_likelihood`               TINYINT NULL,
+    `risk_impact_score`             TINYINT NULL,
+    `risk_score`                    TINYINT NULL,
+    `risk_level`                    VARCHAR(20) NULL,
+    `pir_was_successful`            TINYINT(1) NULL,
+    `pir_actual_start`              DATETIME NULL,
+    `pir_actual_end`                DATETIME NULL,
+    `pir_lessons_learned`           LONGTEXT NULL,
+    `pir_follow_up`                 LONGTEXT NULL,
+    `category_id`                   INT NULL,
+    `template_id`                   INT NULL,
+    `cab_required`                  TINYINT(1) NOT NULL DEFAULT 0,
+    `cab_approval_type`             VARCHAR(20) NOT NULL DEFAULT 'all',
     `created_by_id`                 INT NULL,
     `created_datetime`              DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `modified_datetime`             DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -540,6 +553,130 @@ CREATE TABLE IF NOT EXISTS `change_attachments` (
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_change_attachments_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_change_attachments_uploaded_by` FOREIGN KEY (`uploaded_by_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `change_audit` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `change_id`         INT NOT NULL,
+    `analyst_id`        INT NOT NULL,
+    `action_type`       VARCHAR(50) NOT NULL,
+    `field_name`        VARCHAR(100) NULL,
+    `old_value`         VARCHAR(1000) NULL,
+    `new_value`         VARCHAR(1000) NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_change_audit_change` (`change_id`),
+    CONSTRAINT `fk_change_audit_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_change_audit_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `change_comments` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `change_id`         INT NOT NULL,
+    `analyst_id`        INT NOT NULL,
+    `comment_text`      LONGTEXT NOT NULL,
+    `is_internal`       TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_change_comments_change` (`change_id`),
+    CONSTRAINT `fk_change_comments_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_change_comments_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `change_cab_members` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `change_id`         INT NOT NULL,
+    `analyst_id`        INT NOT NULL,
+    `is_required`       TINYINT(1) NOT NULL DEFAULT 1,
+    `vote`              VARCHAR(20) NULL,
+    `vote_comment`      TEXT NULL,
+    `vote_datetime`     DATETIME NULL,
+    `added_by_id`       INT NULL,
+    `added_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_cab_change_analyst` (`change_id`, `analyst_id`),
+    CONSTRAINT `fk_cab_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_cab_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`),
+    CONSTRAINT `fk_cab_added_by` FOREIGN KEY (`added_by_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `change_checklist_items` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `change_id`             INT NOT NULL,
+    `description`           VARCHAR(500) NOT NULL,
+    `is_completed`          TINYINT(1) NOT NULL DEFAULT 0,
+    `completed_by_id`       INT NULL,
+    `completed_datetime`    DATETIME NULL,
+    `display_order`         INT NOT NULL DEFAULT 0,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_checklist_change` (`change_id`),
+    CONSTRAINT `fk_checklist_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_checklist_completed_by` FOREIGN KEY (`completed_by_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `change_relations` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `change_id`         INT NOT NULL,
+    `related_type`      VARCHAR(20) NOT NULL,
+    `related_id`        INT NOT NULL,
+    `relation_type`     VARCHAR(30) NOT NULL,
+    `created_by_id`     INT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_relations_change` (`change_id`),
+    INDEX `idx_relations_related` (`related_type`, `related_id`),
+    CONSTRAINT `fk_relations_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_relations_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `change_categories` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(100) NOT NULL,
+    `description`       VARCHAR(255) NULL,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_change_categories_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `change_templates` (
+    `id`                        INT NOT NULL AUTO_INCREMENT,
+    `name`                      VARCHAR(200) NOT NULL,
+    `description`               VARCHAR(500) NULL,
+    `change_type`               VARCHAR(20) NULL DEFAULT 'Normal',
+    `priority`                  VARCHAR(20) NULL DEFAULT 'Medium',
+    `impact`                    VARCHAR(20) NULL DEFAULT 'Medium',
+    `category_id`               INT NULL,
+    `risk_likelihood`           TINYINT NULL,
+    `risk_impact_score`         TINYINT NULL,
+    `description_template`      LONGTEXT NULL,
+    `reason_template`           LONGTEXT NULL,
+    `risk_template`             LONGTEXT NULL,
+    `test_plan_template`        LONGTEXT NULL,
+    `rollback_plan_template`    LONGTEXT NULL,
+    `is_active`                 TINYINT(1) NOT NULL DEFAULT 1,
+    `display_order`             INT NOT NULL DEFAULT 0,
+    `created_by_id`             INT NULL,
+    `created_datetime`          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_template_category` FOREIGN KEY (`category_id`) REFERENCES `change_categories` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_template_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `change_notifications` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `analyst_id`        INT NOT NULL,
+    `change_id`         INT NOT NULL,
+    `notification_type` VARCHAR(50) NOT NULL,
+    `message`           VARCHAR(500) NOT NULL,
+    `is_read`           TINYINT(1) NOT NULL DEFAULT 0,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    INDEX `idx_notifications_analyst` (`analyst_id`, `is_read`),
+    CONSTRAINT `fk_notification_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`),
+    CONSTRAINT `fk_notification_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------

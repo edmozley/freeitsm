@@ -40,6 +40,8 @@ try {
                 c.category,
                 c.work_start_datetime,
                 c.work_end_datetime,
+                c.risk_score,
+                c.risk_level,
                 c.created_datetime,
                 c.modified_datetime,
                 assigned.full_name as assigned_to_name,

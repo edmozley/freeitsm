@@ -10,7 +10,12 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 ## Unpublished
 
-(none)
+| ID  | Module            | Type        | Description |
+|-----|-------------------|-------------|-------------|
+| 069 | Change Management | Feature     | Risk assessment matrix with 5x5 colour-coded grid, likelihood/impact scoring (1-5), auto-calculated risk score and level displayed on list cards and detail view |
+| 070 | Change Management | Feature     | Post-implementation review structured fields (success status, actual start/end, lessons learned, follow-up actions) visible when change status is Completed or Failed |
+| 071 | Change Management | Feature     | Activity timeline combining comments and audit trail into a single chronological view on the change detail page, with inline comment posting |
+| 072 | Change Management | Feature     | Server-side audit logging that tracks all field changes by comparing old and new values before each update, with automatic audit entries for status changes |
 
 ---
 

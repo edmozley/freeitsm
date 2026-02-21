@@ -204,6 +204,36 @@ $path_prefix = '../';
 
                     <h3 class="form-section-title" data-section="details">Details</h3>
 
+                    <!-- Risk Scoring -->
+                    <div class="form-row risk-scoring-row" data-section="details" data-field="risk">
+                        <div class="form-group">
+                            <label class="form-label">Risk Likelihood</label>
+                            <select class="form-input" id="riskLikelihood" onchange="updateRiskScore()">
+                                <option value="">Not assessed</option>
+                                <option value="1">1 - Very Low</option>
+                                <option value="2">2 - Low</option>
+                                <option value="3">3 - Medium</option>
+                                <option value="4">4 - High</option>
+                                <option value="5">5 - Very High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Risk Impact</label>
+                            <select class="form-input" id="riskImpactScore" onchange="updateRiskScore()">
+                                <option value="">Not assessed</option>
+                                <option value="1">1 - Very Low</option>
+                                <option value="2">2 - Low</option>
+                                <option value="3">3 - Medium</option>
+                                <option value="4">4 - High</option>
+                                <option value="5">5 - Very High</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Risk Score</label>
+                            <div class="risk-score-display" id="riskScoreDisplay">-</div>
+                        </div>
+                    </div>
+
                     <div class="rich-text-tabs" id="richTextTabs" data-section="details">
                         <button class="rich-text-tab active" data-field="description" onclick="switchTab('description')">Description</button>
                         <button class="rich-text-tab" data-field="reason" onclick="switchTab('reason')">Reason for Change</button>
@@ -230,6 +260,41 @@ $path_prefix = '../';
                     </div>
                     <div class="rich-text-panel" id="panel-pir" data-field="pir">
                         <textarea id="editorPir"></textarea>
+                    </div>
+
+                    <!-- PIR Structured Fields (visible when status = Completed/Failed) -->
+                    <div class="pir-structured" id="pirStructuredFields" data-section="details" data-field="pir" style="display: none;">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Was Successful?</label>
+                                <div style="display: flex; gap: 15px; margin-top: 5px;">
+                                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                        <input type="radio" name="pirWasSuccessful" value="1"> Yes
+                                    </label>
+                                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                        <input type="radio" name="pirWasSuccessful" value="0"> No
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Actual Start</label>
+                                <input type="datetime-local" class="form-input" id="pirActualStart">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Actual End</label>
+                                <input type="datetime-local" class="form-input" id="pirActualEnd">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Lessons Learned</label>
+                            <textarea class="form-input" id="pirLessonsLearned" rows="3" placeholder="What went well? What could be improved?"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Follow-up Actions</label>
+                            <textarea class="form-input" id="pirFollowUp" rows="3" placeholder="Any actions arising from this change?"></textarea>
+                        </div>
                     </div>
 
                     <h3 class="form-section-title" data-section="attachments">Attachments</h3>

@@ -843,3 +843,405 @@
     padding-bottom: 0;
     border-bottom: none;
 }
+
+/* ============ Risk Scoring (Editor) ============ */
+
+.risk-scoring-row {
+    align-items: flex-end;
+}
+
+.risk-score-display {
+    padding: 10px 16px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    text-align: center;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #888;
+}
+
+.risk-score-display.risk-low { background: #e8f5e9; color: #2e7d32; }
+.risk-score-display.risk-medium { background: #fff3e0; color: #e65100; }
+.risk-score-display.risk-high { background: #fbe9e7; color: #d84315; }
+.risk-score-display.risk-very-high { background: #fce4ec; color: #c62828; }
+.risk-score-display.risk-critical { background: #c62828; color: #fff; }
+
+/* Risk level badges */
+.risk-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.risk-badge.risk-low { background: #e8f5e9; color: #2e7d32; }
+.risk-badge.risk-medium { background: #fff3e0; color: #e65100; }
+.risk-badge.risk-high { background: #fbe9e7; color: #d84315; }
+.risk-badge.risk-very-high { background: #fce4ec; color: #c62828; }
+.risk-badge.risk-critical { background: #c62828; color: #fff; }
+
+/* ============ Risk Matrix (Detail View) ============ */
+
+.risk-matrix-section {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.risk-matrix-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.risk-matrix-wrapper {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start;
+}
+
+.risk-matrix-info {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    min-width: 140px;
+}
+
+.risk-score-badge {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 24px;
+    border-radius: 8px;
+    background: #f5f5f5;
+}
+
+.risk-score-badge.low { background: #e8f5e9; }
+.risk-score-badge.medium { background: #fff3e0; }
+.risk-score-badge.high { background: #fbe9e7; }
+.risk-score-badge.very-high { background: #fce4ec; }
+.risk-score-badge.critical { background: #c62828; color: #fff; }
+
+.risk-score-value {
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.risk-score-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+.risk-matrix-details {
+    font-size: 14px;
+    color: #555;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.risk-matrix-grid-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.risk-matrix-y-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    position: absolute;
+    left: -20px;
+    top: 50%;
+    margin-top: -30px;
+}
+
+.risk-matrix-grid-container {
+    position: relative;
+    padding-left: 24px;
+}
+
+.risk-matrix-grid {
+    display: grid;
+    grid-template-columns: 24px repeat(5, 44px);
+    grid-template-rows: repeat(5, 44px) 20px;
+    gap: 2px;
+}
+
+.risk-matrix-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
+    border-radius: 4px;
+    color: rgba(0,0,0,0.5);
+    transition: all 0.15s;
+}
+
+.risk-matrix-cell.low { background: #c8e6c9; }
+.risk-matrix-cell.medium { background: #ffe0b2; }
+.risk-matrix-cell.high { background: #ffccbc; }
+.risk-matrix-cell.very-high { background: #f8bbd0; }
+.risk-matrix-cell.critical { background: #ef9a9a; }
+
+.risk-matrix-cell.active {
+    outline: 3px solid #333;
+    outline-offset: -1px;
+    font-weight: 700;
+    color: #000;
+    z-index: 1;
+    transform: scale(1.1);
+}
+
+.risk-matrix-label-y {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+}
+
+.risk-matrix-label-x {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+}
+
+.risk-matrix-spacer {
+    /* empty cell to align x-labels under grid */
+}
+
+.risk-matrix-x-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+}
+
+/* ============ PIR Detail Section ============ */
+
+.pir-detail-section {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.pir-detail-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+}
+
+.pir-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.pir-success {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+.pir-fail {
+    color: #c62828;
+    font-weight: 600;
+}
+
+.pir-text-block {
+    margin-bottom: 12px;
+}
+
+.pir-text-block strong {
+    display: block;
+    font-size: 13px;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.pir-text-block p {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    margin: 0;
+}
+
+/* ============ PIR Structured (Editor) ============ */
+
+.pir-structured {
+    background: #f9fbe7;
+    border: 1px solid #e6ee9c;
+    border-radius: 6px;
+    padding: 20px;
+    margin-top: 16px;
+}
+
+.pir-structured::before {
+    content: 'Post-Implementation Review';
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #827717;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+}
+
+/* ============ Activity Section ============ */
+
+.activity-section {
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.activity-section h3 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+}
+
+.comment-input-area {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.comment-input-area textarea {
+    flex: 1;
+    resize: vertical;
+    min-height: 38px;
+}
+
+.comment-input-area .btn-sm {
+    padding: 8px 16px;
+    font-size: 13px;
+    white-space: nowrap;
+    height: 38px;
+}
+
+.activity-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.timeline-item {
+    display: flex;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.timeline-item:last-child {
+    border-bottom: none;
+}
+
+.timeline-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    background: #f5f5f5;
+    color: #888;
+}
+
+.timeline-comment .timeline-icon {
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+.timeline-status .timeline-icon {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.timeline-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.timeline-header {
+    font-size: 13px;
+    color: #555;
+    line-height: 1.5;
+}
+
+.timeline-header strong {
+    color: #333;
+}
+
+.timeline-date {
+    color: #999;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.timeline-body {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.6;
+    background: #f9f9f9;
+    border-radius: 6px;
+    padding: 10px 14px;
+    white-space: pre-wrap;
+}
+
+.old-val {
+    text-decoration: line-through;
+    color: #c62828;
+    background: #fce4ec;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.new-val {
+    color: #2e7d32;
+    background: #e8f5e9;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+.timeline-empty {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-style: italic;
+    font-size: 14px;
+}

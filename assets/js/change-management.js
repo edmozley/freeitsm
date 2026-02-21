@@ -36,6 +36,12 @@ document.addEventListener('DOMContentLoaded', function() {
             if (e.key === 'Enter') performSearch();
         });
     });
+
+    // Status change toggles PIR fields visibility
+    const statusSelect = document.getElementById('changeStatus');
+    if (statusSelect) {
+        statusSelect.addEventListener('change', updatePirVisibility);
+    }
 });
 
 // ============ Field Visibility ============
@@ -224,6 +230,7 @@ function renderChangeList() {
                     </div>
                 </div>
                 <div class="change-card-badges">
+                    ${c.risk_level ? `<span class="risk-badge risk-${c.risk_level.toLowerCase().replace(/\s+/g, '-')}">${c.risk_level}</span>` : ''}
                     <span class="type-badge ${typeClass}">${c.change_type}</span>
                     <span class="priority-badge ${priorityClass}">${c.priority}</span>
                     <span class="status-badge ${statusClass}">${c.status}</span>
@@ -280,6 +287,7 @@ function renderChangeDetail() {
     if (v('work_end') && c.work_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Work End</span><span class="detail-meta-value">${formatDateTime(c.work_end_datetime)}</span></div>`;
     if (v('outage_start') && c.outage_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Outage Start</span><span class="detail-meta-value">${formatDateTime(c.outage_start_datetime)}</span></div>`;
     if (v('outage_end') && c.outage_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Outage End</span><span class="detail-meta-value">${formatDateTime(c.outage_end_datetime)}</span></div>`;
+    if (v('risk') && c.risk_level) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Risk Level</span><span class="detail-meta-value"><span class="risk-badge risk-${c.risk_level.toLowerCase().replace(/\s+/g, '-')}">${c.risk_level} (${c.risk_score})</span></span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Created</span><span class="detail-meta-value">${formatDateTime(c.created_datetime)}${c.created_by_name ? ' by ' + c.created_by_name : ''}</span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Last Modified</span><span class="detail-meta-value">${formatDateTime(c.modified_datetime)}</span></div>`;
 
@@ -351,6 +359,16 @@ function renderChangeDetail() {
 
     if (sections) html += `<div class="detail-sections">${sections}</div>`;
 
+    // Risk Matrix (shown when risk scores exist)
+    if (v('risk') && c.risk_likelihood && c.risk_impact_score) {
+        html += renderRiskMatrix(c.risk_likelihood, c.risk_impact_score, c.risk_score, c.risk_level);
+    }
+
+    // PIR Structured Data (for Completed/Failed changes)
+    if (v('pir') && (c.status === 'Completed' || c.status === 'Failed') && (c.pir_was_successful !== null || c.pir_actual_start || c.pir_lessons_learned)) {
+        html += renderPirDetail(c);
+    }
+
     // Attachments
     if (v('attachments') && c.attachments && c.attachments.length) {
         html += `
@@ -374,7 +392,24 @@ function renderChangeDetail() {
         `;
     }
 
+    // Activity section (comments + audit trail)
+    html += `
+        <div class="activity-section">
+            <h3>Activity</h3>
+            <div class="comment-input-area">
+                <textarea class="form-input" id="commentInput" rows="2" placeholder="Add a comment..."></textarea>
+                <button class="btn btn-primary btn-sm" onclick="postComment()">Post</button>
+            </div>
+            <div class="activity-timeline" id="activityTimeline">
+                <div class="loading"><div class="spinner"></div></div>
+            </div>
+        </div>
+    `;
+
     document.getElementById('changeDetailContent').innerHTML = html;
+
+    // Load activity timeline asynchronously
+    loadActivityTimeline(c.id);
 }
 
 function renderDetailSection(title, content) {
@@ -392,6 +427,229 @@ function renderDetailSection(title, content) {
             <div class="detail-section-body">${content}</div>
         </div>
     `;
+}
+
+// ============ Risk Matrix ============
+
+function renderRiskMatrix(likelihood, impact, score, level) {
+    const riskClass = level ? level.toLowerCase().replace(/\s+/g, '-') : '';
+
+    // 5x5 grid: rows = likelihood (5 top to 1 bottom), cols = impact (1 left to 5 right)
+    const cellColors = [
+        // [likelihood][impact] => color class
+        // Row 1 (likelihood=1): impacts 1-5
+        ['low','low','low','medium','medium'],
+        // Row 2 (likelihood=2): impacts 1-5
+        ['low','low','medium','medium','high'],
+        // Row 3 (likelihood=3): impacts 1-5
+        ['low','medium','medium','high','high'],
+        // Row 4 (likelihood=4): impacts 1-5
+        ['medium','medium','high','very-high','very-high'],
+        // Row 5 (likelihood=5): impacts 1-5
+        ['medium','high','high','very-high','critical'],
+    ];
+
+    let gridHtml = '';
+    // Render rows from top (likelihood=5) to bottom (likelihood=1)
+    for (let l = 5; l >= 1; l--) {
+        gridHtml += `<div class="risk-matrix-label-y">${l}</div>`;
+        for (let i = 1; i <= 5; i++) {
+            const cellClass = cellColors[l-1][i-1];
+            const isActive = (l === parseInt(likelihood) && i === parseInt(impact));
+            gridHtml += `<div class="risk-matrix-cell ${cellClass}${isActive ? ' active' : ''}">${l * i}</div>`;
+        }
+    }
+
+    return `
+        <div class="risk-matrix-section">
+            <h3>Risk Assessment</h3>
+            <div class="risk-matrix-wrapper">
+                <div class="risk-matrix-info">
+                    <div class="risk-score-badge ${riskClass}">
+                        <span class="risk-score-value">${score}</span>
+                        <span class="risk-score-label">${level}</span>
+                    </div>
+                    <div class="risk-matrix-details">
+                        <div><strong>Likelihood:</strong> ${likelihood} / 5</div>
+                        <div><strong>Impact:</strong> ${impact} / 5</div>
+                    </div>
+                </div>
+                <div class="risk-matrix-grid-container">
+                    <div class="risk-matrix-y-label">Likelihood</div>
+                    <div class="risk-matrix-grid">
+                        ${gridHtml}
+                        <div class="risk-matrix-spacer"></div>
+                        <div class="risk-matrix-label-x">1</div>
+                        <div class="risk-matrix-label-x">2</div>
+                        <div class="risk-matrix-label-x">3</div>
+                        <div class="risk-matrix-label-x">4</div>
+                        <div class="risk-matrix-label-x">5</div>
+                    </div>
+                    <div class="risk-matrix-x-label">Impact</div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// ============ PIR Detail ============
+
+function renderPirDetail(c) {
+    let html = '<div class="pir-detail-section"><h3>Post-Implementation Review</h3><div class="pir-detail-grid">';
+
+    if (c.pir_was_successful !== null && c.pir_was_successful !== '') {
+        const successText = parseInt(c.pir_was_successful) === 1 ? 'Yes' : 'No';
+        const successClass = parseInt(c.pir_was_successful) === 1 ? 'pir-success' : 'pir-fail';
+        html += `<div class="detail-meta-item"><span class="detail-meta-label">Successful</span><span class="detail-meta-value ${successClass}">${successText}</span></div>`;
+    }
+    if (c.pir_actual_start) {
+        html += `<div class="detail-meta-item"><span class="detail-meta-label">Actual Start</span><span class="detail-meta-value">${formatDateTime(c.pir_actual_start)}</span></div>`;
+    }
+    if (c.pir_actual_end) {
+        html += `<div class="detail-meta-item"><span class="detail-meta-label">Actual End</span><span class="detail-meta-value">${formatDateTime(c.pir_actual_end)}</span></div>`;
+    }
+    html += '</div>';
+
+    if (c.pir_lessons_learned) {
+        html += `<div class="pir-text-block"><strong>Lessons Learned</strong><p>${escapeHtml(c.pir_lessons_learned)}</p></div>`;
+    }
+    if (c.pir_follow_up) {
+        html += `<div class="pir-text-block"><strong>Follow-up Actions</strong><p>${escapeHtml(c.pir_follow_up)}</p></div>`;
+    }
+
+    html += '</div>';
+    return html;
+}
+
+// ============ Activity Timeline ============
+
+async function loadActivityTimeline(changeId) {
+    const container = document.getElementById('activityTimeline');
+    if (!container) return;
+
+    try {
+        // Fetch audit trail and comments in parallel
+        const [auditRes, commentsRes] = await Promise.all([
+            fetch(API_BASE + 'get_audit.php?change_id=' + changeId),
+            fetch(API_BASE + 'get_comments.php?change_id=' + changeId)
+        ]);
+
+        const auditData = await auditRes.json();
+        const commentsData = await commentsRes.json();
+
+        const auditEntries = (auditData.success ? auditData.entries : []).map(e => ({
+            type: 'audit',
+            datetime: e.created_datetime,
+            analyst: e.analyst_name || 'System',
+            action_type: e.action_type,
+            field_name: e.field_name,
+            old_value: e.old_value,
+            new_value: e.new_value
+        }));
+
+        const commentEntries = (commentsData.success ? commentsData.comments : []).map(e => ({
+            type: 'comment',
+            id: e.id,
+            datetime: e.created_datetime,
+            analyst: e.analyst_name || 'Unknown',
+            text: e.comment_text
+        }));
+
+        // Merge and sort by datetime descending
+        const timeline = [...auditEntries, ...commentEntries]
+            .sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+
+        renderActivityTimeline(timeline, container);
+    } catch (error) {
+        console.error('Error loading activity:', error);
+        container.innerHTML = '<div class="timeline-empty">Error loading activity</div>';
+    }
+}
+
+function renderActivityTimeline(timeline, container) {
+    if (!timeline.length) {
+        container.innerHTML = '<div class="timeline-empty">No activity yet</div>';
+        return;
+    }
+
+    container.innerHTML = timeline.map(entry => {
+        if (entry.type === 'comment') {
+            return `
+                <div class="timeline-item timeline-comment">
+                    <div class="timeline-icon comment-icon">&#128172;</div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <strong>${escapeHtml(entry.analyst)}</strong> commented
+                            <span class="timeline-date">${formatDateTime(entry.datetime)}</span>
+                        </div>
+                        <div class="timeline-body">${escapeHtml(entry.text)}</div>
+                    </div>
+                </div>
+            `;
+        } else {
+            // Audit entry
+            let description = '';
+            if (entry.action_type === 'status_change') {
+                description = `changed <strong>Status</strong> from <span class="old-val">${escapeHtml(entry.old_value || '')}</span> to <span class="new-val">${escapeHtml(entry.new_value || '')}</span>`;
+            } else if (entry.action_type === 'comment') {
+                return ''; // Already shown as comment entry
+            } else {
+                description = `changed <strong>${escapeHtml(entry.field_name || '')}</strong>`;
+                if (entry.old_value && entry.new_value) {
+                    description += ` from <span class="old-val">${escapeHtml(entry.old_value)}</span> to <span class="new-val">${escapeHtml(entry.new_value)}</span>`;
+                } else if (entry.new_value) {
+                    description += ` to <span class="new-val">${escapeHtml(entry.new_value)}</span>`;
+                } else if (entry.old_value) {
+                    description += ` (was <span class="old-val">${escapeHtml(entry.old_value)}</span>)`;
+                }
+            }
+
+            const icon = entry.action_type === 'status_change' ? '&#9654;' : '&#9998;';
+            const itemClass = entry.action_type === 'status_change' ? 'timeline-status' : 'timeline-field';
+
+            return `
+                <div class="timeline-item ${itemClass}">
+                    <div class="timeline-icon">${icon}</div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <strong>${escapeHtml(entry.analyst)}</strong> ${description}
+                            <span class="timeline-date">${formatDateTime(entry.datetime)}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }).join('');
+}
+
+async function postComment() {
+    if (!currentChange) return;
+
+    const input = document.getElementById('commentInput');
+    const text = input.value.trim();
+    if (!text) {
+        showToast('Please enter a comment');
+        return;
+    }
+
+    try {
+        const response = await fetch(API_BASE + 'save_comment.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ change_id: currentChange.id, comment_text: text })
+        });
+        const data = await response.json();
+
+        if (data.success) {
+            input.value = '';
+            showToast('Comment added');
+            loadActivityTimeline(currentChange.id);
+        } else {
+            showToast('Error: ' + data.error);
+        }
+    } catch (error) {
+        showToast('Error posting comment');
+    }
 }
 
 // ============ Filtering & Search ============
@@ -563,6 +821,20 @@ function openCreateChange() {
     document.getElementById('changeOutageEnd').value = '';
     document.getElementById('editorAttachmentList').innerHTML = '';
 
+    // Risk scoring
+    document.getElementById('riskLikelihood').value = '';
+    document.getElementById('riskImpactScore').value = '';
+    document.getElementById('riskScoreDisplay').textContent = '-';
+    document.getElementById('riskScoreDisplay').className = 'risk-score-display';
+
+    // PIR fields
+    document.querySelectorAll('input[name="pirWasSuccessful"]').forEach(r => r.checked = false);
+    document.getElementById('pirActualStart').value = '';
+    document.getElementById('pirActualEnd').value = '';
+    document.getElementById('pirLessonsLearned').value = '';
+    document.getElementById('pirFollowUp').value = '';
+    document.getElementById('pirStructuredFields').style.display = 'none';
+
     initEditors(() => {
         editorIds.forEach(id => {
             const editor = tinymce.get(id);
@@ -571,6 +843,7 @@ function openCreateChange() {
     });
 
     showView('editor');
+    updatePirVisibility();
 }
 
 function editCurrentChange() {
@@ -596,6 +869,20 @@ function editCurrentChange() {
     // Render existing attachments with delete buttons
     renderEditorAttachments(c.attachments || []);
 
+    // Risk scoring
+    document.getElementById('riskLikelihood').value = c.risk_likelihood || '';
+    document.getElementById('riskImpactScore').value = c.risk_impact_score || '';
+    updateRiskScore();
+
+    // PIR fields
+    document.querySelectorAll('input[name="pirWasSuccessful"]').forEach(r => {
+        r.checked = (c.pir_was_successful !== null && c.pir_was_successful !== '' && String(r.value) === String(c.pir_was_successful));
+    });
+    document.getElementById('pirActualStart').value = toDatetimeLocal(c.pir_actual_start);
+    document.getElementById('pirActualEnd').value = toDatetimeLocal(c.pir_actual_end);
+    document.getElementById('pirLessonsLearned').value = c.pir_lessons_learned || '';
+    document.getElementById('pirFollowUp').value = c.pir_follow_up || '';
+
     initEditors(() => {
         setEditorContent('editorDescription', c.description || '');
         setEditorContent('editorReason', c.reason_for_change || '');
@@ -606,6 +893,7 @@ function editCurrentChange() {
     });
 
     showView('editor');
+    updatePirVisibility();
 }
 
 function cancelEdit() {
@@ -648,7 +936,14 @@ async function saveChange() {
         risk_evaluation: getEditorContent('editorRisk'),
         test_plan: getEditorContent('editorTestplan'),
         rollback_plan: getEditorContent('editorRollback'),
-        post_implementation_review: getEditorContent('editorPir')
+        post_implementation_review: getEditorContent('editorPir'),
+        risk_likelihood: document.getElementById('riskLikelihood').value || null,
+        risk_impact_score: document.getElementById('riskImpactScore').value || null,
+        pir_was_successful: (() => { const r = document.querySelector('input[name="pirWasSuccessful"]:checked'); return r ? r.value : null; })(),
+        pir_actual_start: document.getElementById('pirActualStart').value || null,
+        pir_actual_end: document.getElementById('pirActualEnd').value || null,
+        pir_lessons_learned: document.getElementById('pirLessonsLearned').value || null,
+        pir_follow_up: document.getElementById('pirFollowUp').value || null
     };
 
     try {
@@ -909,6 +1204,37 @@ function switchTab(tab) {
     // Show correct panel
     document.querySelectorAll('.rich-text-panel').forEach(p => p.classList.remove('active'));
     document.getElementById('panel-' + tab).classList.add('active');
+}
+
+// ============ Risk Scoring & PIR Visibility ============
+
+function updateRiskScore() {
+    const likelihood = parseInt(document.getElementById('riskLikelihood').value) || 0;
+    const impact = parseInt(document.getElementById('riskImpactScore').value) || 0;
+    const display = document.getElementById('riskScoreDisplay');
+
+    if (likelihood && impact) {
+        const score = likelihood * impact;
+        let level, cssClass;
+        if (score <= 4) { level = 'Low'; cssClass = 'risk-low'; }
+        else if (score <= 9) { level = 'Medium'; cssClass = 'risk-medium'; }
+        else if (score <= 15) { level = 'High'; cssClass = 'risk-high'; }
+        else if (score <= 20) { level = 'Very High'; cssClass = 'risk-very-high'; }
+        else { level = 'Critical'; cssClass = 'risk-critical'; }
+        display.textContent = score + ' - ' + level;
+        display.className = 'risk-score-display ' + cssClass;
+    } else {
+        display.textContent = '-';
+        display.className = 'risk-score-display';
+    }
+}
+
+function updatePirVisibility() {
+    const status = document.getElementById('changeStatus').value;
+    const pirSection = document.getElementById('pirStructuredFields');
+    if (pirSection) {
+        pirSection.style.display = (status === 'Completed' || status === 'Failed') ? '' : 'none';
+    }
 }
 
 // ============ View Management ============

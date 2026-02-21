@@ -1,6 +1,6 @@
 <?php
 /**
- * API Endpoint: Get single change by ID with attachments
+ * API Endpoint: Get single change by ID with attachments and comments
  */
 session_start();
 require_once '../../config.php';
@@ -24,39 +24,18 @@ try {
     $conn = connectToDatabase();
 
     $sql = "SELECT
-                c.id,
-                c.title,
-                c.change_type,
-                c.status,
-                c.priority,
-                c.impact,
-                c.category,
-                c.requester_id,
-                c.assigned_to_id,
-                c.approver_id,
-                c.approval_datetime,
-                c.work_start_datetime,
-                c.work_end_datetime,
-                c.outage_start_datetime,
-                c.outage_end_datetime,
-                c.description,
-                c.reason_for_change,
-                c.risk_evaluation,
-                c.test_plan,
-                c.rollback_plan,
-                c.post_implementation_review,
-                c.created_by_id,
-                c.created_datetime,
-                c.modified_datetime,
+                c.*,
                 requester.full_name as requester_name,
                 assigned.full_name as assigned_to_name,
                 approver.full_name as approver_name,
-                creator.full_name as created_by_name
+                creator.full_name as created_by_name,
+                cat.name as category_name
             FROM changes c
             LEFT JOIN analysts requester ON c.requester_id = requester.id
             LEFT JOIN analysts assigned ON c.assigned_to_id = assigned.id
             LEFT JOIN analysts approver ON c.approver_id = approver.id
             LEFT JOIN analysts creator ON c.created_by_id = creator.id
+            LEFT JOIN change_categories cat ON c.category_id = cat.id
             WHERE c.id = ?";
 
     $stmt = $conn->prepare($sql);
@@ -76,6 +55,18 @@ try {
     $attStmt = $conn->prepare($attSql);
     $attStmt->execute([$changeId]);
     $change['attachments'] = $attStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Get comments
+    $commentSql = "SELECT c.id, c.analyst_id, c.comment_text, c.is_internal, c.created_datetime,
+                          a.full_name as analyst_name
+                   FROM change_comments c
+                   LEFT JOIN analysts a ON c.analyst_id = a.id
+                   WHERE c.change_id = ?
+                   ORDER BY c.created_datetime DESC
+                   LIMIT 100";
+    $commentStmt = $conn->prepare($commentSql);
+    $commentStmt->execute([$changeId]);
+    $change['comments'] = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
 
     echo json_encode([
         'success' => true,
