@@ -378,6 +378,29 @@ $schema = [
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    'ticket_dashboard_widgets' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'title'                 => 'VARCHAR(100) NOT NULL',
+        'description'           => 'VARCHAR(255) NULL',
+        'chart_type'            => "VARCHAR(20) NOT NULL DEFAULT 'bar'",
+        'aggregate_property'    => 'VARCHAR(50) NOT NULL',
+        'series_property'       => 'VARCHAR(20) NULL DEFAULT NULL',
+        'is_status_filterable'  => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'default_status'        => 'VARCHAR(50) NULL',
+        'display_order'         => 'INT NOT NULL DEFAULT 0',
+        'is_active'             => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'analyst_ticket_dashboard_widgets' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'        => 'INT NOT NULL',
+        'widget_id'         => 'INT NOT NULL',
+        'sort_order'        => 'INT NOT NULL DEFAULT 0',
+        'status_filter'     => 'VARCHAR(50) NULL',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'servers' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'vm_id'                 => 'VARCHAR(100) NOT NULL',

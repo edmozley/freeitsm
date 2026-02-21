@@ -352,6 +352,13 @@ The primary module. Three-panel Outlook-style interface.
 - **Ask AI**: Button in ticket detail view opens a slide-in chat panel that searches the knowledge base for relevant articles using ticket context
 - **Staff rota**: Weekly grid showing analyst shift patterns, WFH/office location, and on-call status with per-day entry management and configurable shift definitions
 - **Activity log**: Searchable, paginated log of imported and rejected emails per mailbox with clickable processing log details
+- **Dashboard** (`dashboard/`): Per-analyst customisable dashboard with Chart.js widgets
+  - Widget library with 15 pre-built charts (bar, pie, doughnut, line) covering status, priority, department, type, analyst, origin, first time fix, and time-series
+  - Time-series widgets: tickets created/closed per day (current month) and per month (last 12 months)
+  - Multi-series: stacked bar charts broken down by status or priority, and created-vs-closed comparison line charts
+  - Each analyst picks widgets for their own dashboard
+  - Status filtering on supported widgets
+  - Drag-and-drop reordering
 
 ### Assets (`asset-management/`)
 IT asset management with vCenter integration.
@@ -543,6 +550,14 @@ if (!isset($_SESSION['analyst_id'])) {
 | `get_rota.php` | GET | Get rota entries for a week |
 | `save_rota_entry.php` | POST | Create/update rota entry |
 | `delete_rota_entry.php` | POST | Delete rota entry |
+| `get_ticket_dashboard.php` | GET | Get analyst's dashboard widgets |
+| `get_ticket_widget_data.php` | GET | Aggregated data for a widget chart |
+| `get_ticket_widget_library.php` | GET | List all widget definitions |
+| `add_ticket_dashboard_widget.php` | POST | Add widget to dashboard |
+| `remove_ticket_dashboard_widget.php` | POST | Remove widget from dashboard |
+| `save_ticket_dashboard_widget.php` | POST | Create/update widget definition |
+| `reorder_ticket_dashboard_widgets.php` | POST | Reorder dashboard widgets |
+| `delete_ticket_dashboard_widget.php` | POST | Soft-delete a widget |
 | *...and more* | | |
 
 ### Assets (`api/assets/`)

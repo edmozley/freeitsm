@@ -1733,6 +1733,39 @@
                 "new_value": "Closed",
                 "created_datetime": "__RELATIVE_DATE:-15d__"
             }
+        ],
+
+        "analyst_ticket_dashboard_widgets": [
+            {
+                "analyst_id": "@analysts.admin",
+                "widget_id": 1,
+                "sort_order": 0
+            },
+            {
+                "analyst_id": "@analysts.admin",
+                "widget_id": 3,
+                "sort_order": 1
+            },
+            {
+                "analyst_id": "@analysts.admin",
+                "widget_id": 10,
+                "sort_order": 2
+            },
+            {
+                "analyst_id": "@analysts.admin",
+                "widget_id": 12,
+                "sort_order": 3
+            },
+            {
+                "analyst_id": "@analysts.admin",
+                "widget_id": 13,
+                "sort_order": 4
+            },
+            {
+                "analyst_id": "@analysts.admin",
+                "widget_id": 15,
+                "sort_order": 5
+            }
         ]
     }
 }

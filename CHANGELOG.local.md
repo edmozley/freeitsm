@@ -12,6 +12,10 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 077 | Tickets           | Feature     | Per-analyst customisable dashboard with widget library, Chart.js charts (bar/pie/doughnut/line), status filtering, and drag-and-drop reordering |
+| 078 | Tickets           | Feature     | Full-page widget library management with search, inline editing, duplicate, and delete for ticket dashboard widgets |
+| 079 | Tickets           | Feature     | Time-series widgets showing tickets created or closed per day (current month) and per month (last 12 months) with gap-filled labels |
+| 080 | Tickets           | Feature     | Multi-series stacked bar and multi-line charts with series breakdown by status or priority, and created-vs-closed comparison charts |
 
 ---
 
