@@ -387,7 +387,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
     <div class="modal" id="mailboxModal">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header" id="mailboxModalTitle">Add Mailbox</div>
-            <form id="mailboxForm" style="overflow-y: auto; flex: 1; padding: 20px 24px;">
+            <form id="mailboxForm" autocomplete="off" style="overflow-y: auto; flex: 1; padding: 20px 24px;">
                 <input type="hidden" id="mailboxId">
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
