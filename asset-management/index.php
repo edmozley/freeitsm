@@ -564,6 +564,81 @@ $path_prefix = '../';
             color: #888;
         }
 
+        /* Disk Usage Section */
+        .disks-section {
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .disks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
+            padding: 16px 20px;
+        }
+
+        .disk-card {
+            background: #f8f9fa;
+            border: 1px solid #e8e8e8;
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        .disk-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .disk-drive {
+            font-weight: 600;
+            font-size: 14px;
+            color: #333;
+            font-family: monospace;
+        }
+
+        .disk-label {
+            font-size: 12px;
+            color: #888;
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .disk-bar-container {
+            background: #e0e0e0;
+            border-radius: 4px;
+            height: 8px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .disk-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+
+        .disk-bar-fill.usage-low { background: #4caf50; }
+        .disk-bar-fill.usage-medium { background: #ff9800; }
+        .disk-bar-fill.usage-high { background: #f44336; }
+
+        .disk-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .disk-percent {
+            font-weight: 600;
+        }
+
+        .disk-percent.usage-low { color: #4caf50; }
+        .disk-percent.usage-medium { color: #e65100; }
+        .disk-percent.usage-high { color: #f44336; }
+
         /* Installed Software Section */
         .software-section {
             border-top: 1px solid #e0e0e0;
@@ -915,6 +990,14 @@ $path_prefix = '../';
                     </div>
                 </div>
                 <div class="asset-detail-scroll">
+                    <div class="disks-section">
+                        <div class="section-header">
+                            <span class="section-title">Storage</span>
+                        </div>
+                        <div class="disks-grid" id="disksGrid">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
                     <div class="software-section">
                         <div class="section-header">
                             <span class="section-title">Installed Software <span class="software-count-badge" id="softwareCountBadge">...</span></span>
@@ -931,8 +1014,9 @@ $path_prefix = '../';
                 </div>
             `;
 
-            // Load assigned users and installed software
+            // Load assigned users, disks, and installed software
             loadAssignedUsers(assetId);
+            loadDisks(assetId);
             loadInstalledSoftware(assetId);
         }
 
@@ -971,6 +1055,48 @@ $path_prefix = '../';
                 }
             } catch (error) {
                 console.error('Error loading assigned users:', error);
+            }
+        }
+
+        // Load disks for an asset
+        async function loadDisks(assetId) {
+            try {
+                const response = await fetch(`${API_BASE}get_asset_disks.php?asset_id=${assetId}`);
+                const data = await response.json();
+                const container = document.getElementById('disksGrid');
+
+                if (data.success && data.disks.length > 0) {
+                    container.innerHTML = data.disks.map(disk => {
+                        const pct = parseFloat(disk.used_percent) || 0;
+                        const sizeGB = (disk.size_bytes / 1073741824).toFixed(1);
+                        const freeGB = (disk.free_bytes / 1073741824).toFixed(1);
+                        const usedGB = (sizeGB - freeGB).toFixed(1);
+                        const level = pct >= 90 ? 'high' : pct >= 75 ? 'medium' : 'low';
+
+                        return `<div class="disk-card">
+                            <div class="disk-card-header">
+                                <span class="disk-drive">${escapeHtml(disk.drive)}</span>
+                                <span class="disk-label">${escapeHtml(disk.label || '')}</span>
+                            </div>
+                            <div class="disk-bar-container">
+                                <div class="disk-bar-fill usage-${level}" style="width: ${pct}%"></div>
+                            </div>
+                            <div class="disk-details">
+                                <span>${usedGB} GB used of ${sizeGB} GB</span>
+                                <span class="disk-percent usage-${level}">${pct}%</span>
+                            </div>
+                            <div class="disk-details" style="margin-top: 4px;">
+                                <span>${freeGB} GB free</span>
+                                <span>${escapeHtml(disk.file_system || '')}</span>
+                            </div>
+                        </div>`;
+                    }).join('');
+                } else if (data.success) {
+                    container.innerHTML = '<div class="empty-state" style="padding: 20px;">No disk data available</div>';
+                }
+            } catch (error) {
+                console.error('Error loading disks:', error);
+                document.getElementById('disksGrid').innerHTML = '<div class="empty-state" style="padding: 20px;">Error loading disks</div>';
             }
         }
 
