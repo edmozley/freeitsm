@@ -396,18 +396,22 @@ $path_prefix = '../../';
         ];
 
         async function init() {
-            // Load status types and dashboard in parallel
-            const [statusRes, dashRes] = await Promise.all([
-                fetch(API_BASE + 'get_asset_status_types.php').then(r => r.json()),
-                fetch(API_BASE + 'get_dashboard.php').then(r => r.json())
-            ]);
+            try {
+                // Load status types and dashboard in parallel
+                const [statusRes, dashRes] = await Promise.all([
+                    fetch(API_BASE + 'get_asset_status_types.php').then(r => r.json()).catch(() => ({ success: false })),
+                    fetch(API_BASE + 'get_dashboard.php').then(r => r.json()).catch(() => ({ success: false }))
+                ]);
 
-            if (statusRes.success) {
-                statusTypes = statusRes.asset_status_types || [];
-            }
+                if (statusRes.success) {
+                    statusTypes = statusRes.asset_status_types || [];
+                }
 
-            if (dashRes.success) {
-                dashboardWidgets = dashRes.widgets || [];
+                if (dashRes.success) {
+                    dashboardWidgets = dashRes.widgets || [];
+                }
+            } catch (err) {
+                console.error('Dashboard init error:', err);
             }
 
             renderDashboard();
@@ -564,13 +568,17 @@ $path_prefix = '../../';
             const modal = document.getElementById('libraryModal');
             const list = document.getElementById('libraryList');
 
-            // Load library if not cached
-            if (widgetLibrary.length === 0) {
-                const res = await fetch(API_BASE + 'get_widget_library.php');
-                const data = await res.json();
-                if (data.success) {
-                    widgetLibrary = data.widgets;
+            try {
+                // Load library if not cached
+                if (widgetLibrary.length === 0) {
+                    const res = await fetch(API_BASE + 'get_widget_library.php');
+                    const data = await res.json();
+                    if (data.success) {
+                        widgetLibrary = data.widgets;
+                    }
                 }
+            } catch (err) {
+                console.error('Failed to load widget library:', err);
             }
 
             const addedIds = new Set(dashboardWidgets.map(w => parseInt(w.widget_id)));
