@@ -1630,6 +1630,7 @@
 .cm-help-section {
     padding: 28px 0;
     border-bottom: 1px solid #eee;
+    scroll-margin-top: 20px;
 }
 
 .cm-help-section:last-child {
