@@ -12,6 +12,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 108 | Contracts         | Feature     | Add help page with guided overview of contract management, rich text terms, suppliers, contacts, settings, and best practice tips |
+| 107 | Service Status    | Feature     | Add help page with guided overview of status dashboard, status levels, incident management, incident history, service settings, and communication tips |
 | 106 | Knowledge         | Feature     | Add dedicated help page with left-pane navigation, scroll-spy, and 7 sections covering articles, review workflow, Ask AI, search, and sharing |
 | 087 | Calendar          | Fix         | Replace broken SVG chevron icons on month navigation buttons with reliable text-based chevrons |
 | 088 | Self-Service      | Feature     | Add self-service portal with user registration, login, and account claiming for passwordless users |

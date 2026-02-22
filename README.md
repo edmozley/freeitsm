@@ -530,12 +530,14 @@ Supplier and contract lifecycle management with configurable rich text terms.
 - **Suppliers** (`suppliers/`): Supplier register with legal/trading names, registration details, address, type/status, questionnaire tracking, and comments.
 - **Contacts** (`contacts/`): Supplier contacts with name, job title, email, direct dial, and switchboard fields.
 - **Settings** (`settings/`): Tabbed management of supplier types, supplier statuses, contract statuses, payment schedules, and contract term tabs.
+- **Help** (`help.php`): Guided help page with left-pane navigation, scroll-spy, and 7 sections covering contract management, rich text terms, suppliers, contacts, settings configuration, and best practice tips.
 
 ### Service Status (`service-status/`)
 Service health dashboard with incident-driven status tracking.
 
 - **Dashboard** (`index.php`): Grid view of all active services showing worst current impact from open incidents. Below, a list of active and recently resolved incidents. Create/edit incidents via modal with multi-service impact selector.
 - **Settings** (`settings/`): Manage the list of services (name, description, display order, active status).
+- **Help** (`help.php`): Guided help page with left-pane navigation, scroll-spy, and 6 sections covering the status dashboard, status levels, managing services and incidents, incident history, settings, and communication tips.
 
 ### Self-Service Portal (`self-service/`)
 End-user portal allowing ticket requesters to register, log in, and interact with the service desk directly.
