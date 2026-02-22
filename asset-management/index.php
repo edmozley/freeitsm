@@ -732,6 +732,92 @@ $path_prefix = '../';
             background-color: #e8eaf6;
             color: #3f51b5;
         }
+
+        /* Devices Section */
+        .devices-section {
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .devices-count-badge {
+            display: inline-block;
+            background-color: #e8eaf6;
+            color: #3f51b5;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .devices-list {
+            padding: 0;
+        }
+
+        .devices-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .devices-table thead th {
+            position: sticky;
+            top: 0;
+            background-color: #f0f0f0;
+            padding: 8px 20px;
+            text-align: left;
+            font-size: 11px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            z-index: 1;
+        }
+
+        .devices-table tbody td {
+            padding: 7px 20px;
+            font-size: 13px;
+            color: #333;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .devices-table tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .device-class-row td {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            font-size: 12px;
+            color: #555;
+            padding: 6px 20px !important;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .device-class-row:hover td {
+            background-color: #f8f9fa !important;
+        }
+
+        .device-status {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .device-status-ok {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .device-status-error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+
+        .device-status-degraded {
+            background-color: #fff3e0;
+            color: #e65100;
+        }
     </style>
 </head>
 <body>
@@ -998,6 +1084,14 @@ $path_prefix = '../';
                             <div class="loading"><div class="spinner"></div></div>
                         </div>
                     </div>
+                    <div class="devices-section">
+                        <div class="section-header">
+                            <span class="section-title">Devices <span class="devices-count-badge" id="devicesCountBadge">...</span></span>
+                        </div>
+                        <div class="devices-list" id="devicesList">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
                     <div class="software-section">
                         <div class="section-header">
                             <span class="section-title">Installed Software <span class="software-count-badge" id="softwareCountBadge">...</span></span>
@@ -1014,9 +1108,10 @@ $path_prefix = '../';
                 </div>
             `;
 
-            // Load assigned users, disks, and installed software
+            // Load assigned users, disks, devices, and installed software
             loadAssignedUsers(assetId);
             loadDisks(assetId);
+            loadDevices(assetId);
             loadInstalledSoftware(assetId);
         }
 
@@ -1097,6 +1192,62 @@ $path_prefix = '../';
             } catch (error) {
                 console.error('Error loading disks:', error);
                 document.getElementById('disksGrid').innerHTML = '<div class="empty-state" style="padding: 20px;">Error loading disks</div>';
+            }
+        }
+
+        // Load devices for an asset
+        async function loadDevices(assetId) {
+            try {
+                const response = await fetch(`${API_BASE}get_asset_devices.php?asset_id=${assetId}`);
+                const data = await response.json();
+
+                const container = document.getElementById('devicesList');
+                const badge = document.getElementById('devicesCountBadge');
+
+                if (data.success && data.devices.length > 0) {
+                    badge.textContent = data.devices.length;
+
+                    // Group by device_class
+                    const grouped = {};
+                    data.devices.forEach(d => {
+                        const cls = d.device_class || 'Other';
+                        if (!grouped[cls]) grouped[cls] = [];
+                        grouped[cls].push(d);
+                    });
+
+                    const classes = Object.keys(grouped).sort();
+                    let html = `<table class="devices-table">
+                        <thead><tr>
+                            <th>Device</th>
+                            <th>Manufacturer</th>
+                            <th>Driver Version</th>
+                            <th>Status</th>
+                        </tr></thead><tbody>`;
+
+                    classes.forEach(cls => {
+                        html += `<tr class="device-class-row"><td colspan="4">${escapeHtml(cls)} (${grouped[cls].length})</td></tr>`;
+                        grouped[cls].forEach(d => {
+                            const statusClass = d.status === 'OK' ? 'device-status-ok' :
+                                d.status === 'Error' ? 'device-status-error' :
+                                d.status === 'Degraded' ? 'device-status-degraded' : '';
+                            html += `<tr>
+                                <td style="padding-left: 36px;">${escapeHtml(d.device_name)}</td>
+                                <td>${escapeHtml(d.manufacturer || '-')}</td>
+                                <td>${escapeHtml(d.driver_version || '-')}</td>
+                                <td>${d.status ? `<span class="device-status ${statusClass}">${escapeHtml(d.status)}</span>` : '-'}</td>
+                            </tr>`;
+                        });
+                    });
+
+                    html += '</tbody></table>';
+                    container.innerHTML = html;
+                } else {
+                    badge.textContent = '0';
+                    container.innerHTML = '<div class="empty-state" style="padding: 20px;">No device data available</div>';
+                }
+            } catch (error) {
+                console.error('Error loading devices:', error);
+                document.getElementById('devicesList').innerHTML = '<div class="empty-state" style="padding: 20px;">Error loading devices</div>';
             }
         }
 

@@ -413,7 +413,8 @@ IT asset management with vCenter integration.
   - Status filtering on supported widgets
   - Drag-and-drop reordering
 - **Settings**: vCenter server URL, username, and password (encrypted)
-- **PowerShell inventory agent** (`scripts/Invoke-AssetInventory.ps1`): Collects hardware, disks, network, GPU, TPM, BitLocker, and installed software from Windows machines and posts to the system-info API
+- **Device Manager** (`api/external/device-manager/submit/`): Enumerates Windows Device Manager devices (category, name, driver manufacturer, driver version, status) and displays them grouped by class on the asset detail screen
+- **PowerShell inventory agent** (`scripts/Invoke-AssetInventory.ps1`): Collects hardware, disks, network, GPU, TPM, BitLocker, device manager, and installed software from Windows machines and posts to the system-info and device-manager APIs
 - **System-info API** (`api/external/system-info/submit/`): External endpoint that ingests asset inventory data, syncs disk and network adapter tables, and processes software inventory
 
 ### Knowledge (`knowledge/`)

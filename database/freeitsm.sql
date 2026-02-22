@@ -436,6 +436,20 @@ CREATE TABLE IF NOT EXISTS `asset_network_adapters` (
     CONSTRAINT `fk_asset_network_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `asset_devices` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `asset_id`          INT NOT NULL,
+    `device_class`      VARCHAR(100) NULL,
+    `device_name`       VARCHAR(255) NOT NULL,
+    `status`            VARCHAR(20) NULL,
+    `manufacturer`      VARCHAR(255) NULL,
+    `driver_version`    VARCHAR(50) NULL,
+    `driver_date`       DATE NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_asset_devices_asset` (`asset_id`),
+    CONSTRAINT `fk_asset_devices_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `asset_dashboard_widgets` (
     `id`                    INT NOT NULL AUTO_INCREMENT,
     `title`                 VARCHAR(100) NOT NULL,

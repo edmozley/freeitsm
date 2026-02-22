@@ -360,6 +360,17 @@ $schema = [
         'dhcp_enabled'  => 'TINYINT(1) NULL',
     ],
 
+    'asset_devices' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'asset_id'          => 'INT NOT NULL',
+        'device_class'      => 'VARCHAR(100) NULL',
+        'device_name'       => 'VARCHAR(255) NOT NULL',
+        'status'            => 'VARCHAR(20) NULL',
+        'manufacturer'      => 'VARCHAR(255) NULL',
+        'driver_version'    => 'VARCHAR(50) NULL',
+        'driver_date'       => 'DATE NULL',
+    ],
+
     'asset_dashboard_widgets' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'title'                 => 'VARCHAR(100) NOT NULL',

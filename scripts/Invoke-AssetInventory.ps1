@@ -168,6 +168,40 @@ if ($isAdmin) {
     Write-Host "  BitLocker info skipped (requires elevation)" -ForegroundColor Gray
 }
 
+# ─── Device Manager ─────────────────────────────────────────────────────────────
+
+$devices = @()
+try {
+    # Get present PnP devices (matches what Device Manager shows)
+    $pnpDevices = Get-PnpDevice -PresentOnly -Status OK, Error, Degraded -ErrorAction Stop |
+        Where-Object { $_.Class -and $_.FriendlyName }
+
+    # Build a lookup of driver info from Win32_PnPSignedDriver
+    $driverLookup = @{}
+    Get-CimInstance Win32_PnPSignedDriver -ErrorAction SilentlyContinue | ForEach-Object {
+        if ($_.DeviceID) {
+            $driverLookup[$_.DeviceID] = $_
+        }
+    }
+
+    foreach ($dev in $pnpDevices) {
+        $driver = $driverLookup[$dev.InstanceId]
+        $devices += @{
+            device_class   = $dev.Class
+            device_name    = $dev.FriendlyName
+            status         = $dev.Status
+            manufacturer   = if ($driver) { $driver.DriverProviderName } else { $null }
+            driver_version = if ($driver) { $driver.DriverVersion } else { $null }
+            driver_date    = if ($driver -and $driver.DriverDate) {
+                $driver.DriverDate.ToString("yyyy-MM-dd")
+            } else { $null }
+        }
+    }
+    Write-Host "  Device Manager info collected ($($devices.Count) devices)" -ForegroundColor Green
+} catch {
+    Write-Host "  Device Manager info skipped: $_" -ForegroundColor Yellow
+}
+
 # ─── Installed software ─────────────────────────────────────────────────────────
 
 $regPaths = @(
@@ -259,6 +293,9 @@ $payload = [ordered]@{
     tpm              = $tpm
     bitlocker        = $bitlocker
 
+    # Device Manager
+    devices          = $devices
+
     # Software inventory
     software         = $software
 }
@@ -293,7 +330,26 @@ if ($ApiUrl) {
         }
         exit 1
     }
+
+    # Post device manager data separately
+    if ($devices.Count -gt 0) {
+        $dmUrl = "$($ApiUrl.TrimEnd('/'))/api/external/device-manager/submit/"
+        $dmPayload = [ordered]@{
+            hostname = $env:COMPUTERNAME
+            devices  = $devices
+        }
+        $dmJson = $dmPayload | ConvertTo-Json -Depth 5 -Compress:$false
+
+        Write-Host ""
+        Write-Host "Posting device manager data to $dmUrl ..." -ForegroundColor Cyan
+        try {
+            $dmResponse = Invoke-RestMethod -Uri $dmUrl -Method POST -Headers $headers -Body ([System.Text.Encoding]::UTF8.GetBytes($dmJson)) -ContentType 'application/json; charset=utf-8'
+            Write-Host "  Devices synced: $($dmResponse.devices_synced)" -ForegroundColor Green
+        } catch {
+            Write-Host "  Warning: Device manager POST failed: $_" -ForegroundColor Yellow
+        }
+    }
 }
 
 Write-Host ""
-Write-Host "Done. Collected: $($software.Count) apps, $($logicalDisks.Count) drives, $($networkAdapters.Count) NICs, $($gpus.Count) GPUs" -ForegroundColor Cyan
+Write-Host "Done. Collected: $($software.Count) apps, $($logicalDisks.Count) drives, $($networkAdapters.Count) NICs, $($gpus.Count) GPUs, $($devices.Count) devices" -ForegroundColor Cyan
