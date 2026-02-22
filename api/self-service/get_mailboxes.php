@@ -6,6 +6,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/encryption.php';
 
 header('Content-Type: application/json');
 
@@ -22,6 +23,11 @@ try {
     );
     $stmt->execute();
     $mailboxes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Decrypt the target_mailbox column (it's stored encrypted)
+    foreach ($mailboxes as &$mb) {
+        $mb['target_mailbox'] = decryptValue($mb['target_mailbox']);
+    }
 
     echo json_encode(['success' => true, 'mailboxes' => $mailboxes]);
 
