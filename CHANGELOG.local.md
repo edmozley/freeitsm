@@ -12,6 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 100 | Knowledge         | Feature     | Add dedicated help page with left-pane navigation, scroll-spy, and 7 sections covering articles, review workflow, Ask AI, search, and sharing |
 | 087 | Calendar          | Fix         | Replace broken SVG chevron icons on month navigation buttons with reliable text-based chevrons |
 | 088 | Self-Service      | Feature     | Add self-service portal with user registration, login, and account claiming for passwordless users |
 | 089 | Self-Service      | Feature     | Add self-service dashboard showing ticket summary cards, recent tickets, and live system status |
@@ -28,6 +29,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 100 | Calendar          | Feature     | Add help page with guided overview of calendar views, event creation, categories, settings, and scheduling tips |
 | 101 | Morning Checks    | Feature     | Add help page with guided overview of daily checks, status types, trend chart, PDF export, and settings configuration |
 | 102 | Tickets           | Feature     | Add help page with guided overview of inbox, ticket management, comments, dashboard, calendar, rota, and settings |
+| 103 | Reporting         | Feature     | Add help page with guided overview of ticket reports, system logs, data interpretation, filters, and reporting best practices |
 
 ---
 
