@@ -13,7 +13,7 @@ It genuinely helps and means a lot!
 
 # FreeITSM - Open Source Service Desk Platform
 
-A comprehensive web-based IT Service Management (ITSM) platform with 11 integrated modules covering tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, and system administration. Includes analyst account management with password reset and TOTP multi-factor authentication.
+A comprehensive web-based IT Service Management (ITSM) platform with 13 integrated modules covering a unified attention dashboard, tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, and system administration. Includes analyst account management with password reset and TOTP multi-factor authentication.
 
 > **⚠️ Note for early adopters:** If you downloaded FreeITSM before 18 February 2026, the project required Microsoft SQL Server Express and ODBC drivers — sorry about that! The original choice of SQL Server made sense at the time (it was the database I was most familiar with), but it created a painful setup experience: downloading SQL Server Express, installing ODBC drivers, enabling Mixed Mode Authentication, and troubleshooting driver compatibility issues. That's a lot of friction for an open-source project that's supposed to be easy to get running.
 >
@@ -27,9 +27,11 @@ A comprehensive web-based IT Service Management (ITSM) platform with 11 integrat
   - [Configuration Files](#configuration-files)
 - [Technology Stack](#technology-stack)
 - [ITSM Modules](#itsm-modules)
+- [Screenshots](#screenshots)
 - [Directory Structure](#directory-structure)
 - [Shared Components](#shared-components)
 - [Module Details](#module-details)
+  - [Watchtower](#watchtower-watchtower)
   - [Tickets](#tickets-tickets)
   - [Assets](#assets-asset-management)
   - [Knowledge](#knowledge-knowledge)
@@ -150,10 +152,11 @@ A comprehensive web-based IT Service Management (ITSM) platform with 11 integrat
 
 ## ITSM Modules
 
-The platform is organised into 10 modules, accessible from a landing page (`index.php`) and a shared waffle menu for cross-module navigation.
+The platform is organised into 13 modules, accessible from a landing page (`index.php`) and a shared waffle menu for cross-module navigation.
 
 | Module | Folder | Colour | Description |
 |--------|--------|--------|-------------|
+| **Watchtower** | `watchtower/` | Slate `#1e293b` | Unified attention dashboard showing actionable items across all modules |
 | **Tickets** | `tickets/` | Blue `#0078d4` | Outlook-style ticket inbox with email integration, departments, teams, and audit trails |
 | **Assets** | `asset-management/` | Green `#107c10` | IT asset tracking, user assignments, and vCenter VM inventory |
 | **Knowledge** | `knowledge/` | Purple `#8764b8` | Rich-text knowledge base articles with AI chat and vector search |
@@ -163,7 +166,36 @@ The platform is organised into 10 modules, accessible from a landing page (`inde
 | **Reporting** | `reporting/` | Brown `#ca5010` | System logs, audit trails, and analytics |
 | **Software** | `software/` | Indigo `#5c6bc0` | Software inventory and deployment tracking |
 | **Forms** | `forms/` | Teal `#00897b` | Dynamic form builder with sidebar list, tabbed editor (Fields/Preview), filler, and submission reporting |
+| **Contracts** | `contracts/` | Amber `#f59e0b` | Supplier and contract lifecycle management with terms, financials, and notice tracking |
+| **Service Status** | `service-status/` | Emerald `#10b981` | Real-time service health dashboard with incident tracking |
 | **System** | `system/` | Blue-grey `#546e7a` | Encryption key management and module access control |
+
+## Screenshots
+
+<table>
+<tr>
+<td align="center"><strong>Watchtower</strong><br><img src="https://freeitsm.co.uk/images/screenshots/watchtower_1.png" width="350" alt="Watchtower"></td>
+<td align="center"><strong>Tickets</strong><br><img src="https://freeitsm.co.uk/images/screenshots/tickets_1.png" width="350" alt="Tickets"></td>
+<td align="center"><strong>Assets</strong><br><img src="https://freeitsm.co.uk/images/screenshots/assets_1.png" width="350" alt="Assets"></td>
+</tr>
+<tr>
+<td align="center"><strong>Knowledge</strong><br><img src="https://freeitsm.co.uk/images/screenshots/knowledge_1.png" width="350" alt="Knowledge"></td>
+<td align="center"><strong>Changes</strong><br><img src="https://freeitsm.co.uk/images/screenshots/changes_1.png" width="350" alt="Changes"></td>
+<td align="center"><strong>Calendar</strong><br><img src="https://freeitsm.co.uk/images/screenshots/calendar_1.png" width="350" alt="Calendar"></td>
+</tr>
+<tr>
+<td align="center"><strong>Morning Checks</strong><br><img src="https://freeitsm.co.uk/images/screenshots/checks_1.png" width="350" alt="Morning Checks"></td>
+<td align="center"><strong>Software</strong><br><img src="https://freeitsm.co.uk/images/screenshots/software_1.png" width="350" alt="Software"></td>
+<td align="center"><strong>Forms</strong><br><img src="https://freeitsm.co.uk/images/screenshots/forms_1.png" width="350" alt="Forms"></td>
+</tr>
+<tr>
+<td align="center"><strong>Contracts</strong><br><img src="https://freeitsm.co.uk/images/screenshots/contracts_1.png" width="350" alt="Contracts"></td>
+<td align="center"><strong>System Wiki</strong><br><img src="https://freeitsm.co.uk/images/screenshots/wiki_1.png" width="350" alt="System Wiki"></td>
+<td align="center"></td>
+</tr>
+</table>
+
+<p align="center"><a href="https://freeitsm.co.uk/screenshots.html"><strong>View all 57 screenshots →</strong></a></p>
 
 ---
 
