@@ -449,6 +449,7 @@ Event calendar with configurable categories.
 - Drag-and-drop to move events between days in month view
 - Category colour coding and filtering
 - Events visible in adjacent-month cells for context
+- **Help guide** (`help.php`): Interactive guide covering calendar views, event creation, categories, settings configuration, and scheduling tips for IT teams
 
 ### Morning Checks (`morning-checks/`)
 Daily infrastructure health check recording.
