@@ -26,6 +26,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 098 | Software          | Feature     | Add customisable dashboard with version distribution, top installed, and publisher widgets with click-to-drill-down and cog editing |
 | 099 | Assets            | Feature     | Add device manager enumeration showing device category, name, driver info, and status per asset |
 | 100 | Calendar          | Feature     | Add help page with guided overview of calendar views, event creation, categories, settings, and scheduling tips |
+| 101 | Morning Checks    | Feature     | Add help page with guided overview of daily checks, status types, trend chart, PDF export, and settings configuration |
 
 ---
 
