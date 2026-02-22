@@ -12,7 +12,6 @@ It genuinely helps and means a lot!
 <img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP 7.4+">
 <img src="https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 8.0+">
 <a href="https://github.com/edmozley/freeitsm/stargazers"><img src="https://img.shields.io/github/stars/edmozley/freeitsm?style=flat-square&color=gold" alt="GitHub stars"></a>
-<a href="https://github.com/edmozley/freeitsm/releases"><img src="https://img.shields.io/github/v/release/edmozley/freeitsm?style=flat-square&color=green" alt="Latest release"></a>
 </p>
 
 # FreeITSM - Open Source Service Desk Platform
