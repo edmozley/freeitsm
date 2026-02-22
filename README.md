@@ -519,6 +519,7 @@ Dynamic form builder and submission system with a unified sidebar + editor layou
 - **Submissions** (`submissions.php`): Table view of all submissions. Click rows for detail modal. Date range filtering. CSV export with UTF-8 BOM for Excel compatibility.
 - **Settings**: Gear icon in sidebar opens settings modal. Configurable logo alignment (left, centre, right) applied to both preview and fill-in views.
 - **Field types**: `text`, `textarea`, `checkbox`, `dropdown`
+- **Help Guide** (`help.php`): Full-page guide with left-pane navigation, scroll-spy, and 7 sections covering the form builder, field types, filling in forms, submissions, CSV export, settings, and quick tips.
 
 ### Contracts (`contracts/`)
 Supplier and contract lifecycle management with configurable rich text terms.
