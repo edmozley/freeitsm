@@ -12,6 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 101 | Watchtower        | Feature     | Add unified attention dashboard showing actionable items across all modules with color-coded status indicators and auto-refresh |
 | 100 | All Modules       | Feature     | Add interactive help pages with scroll-spy sidebar navigation to Tickets, Knowledge, Calendar, Morning Checks, Reporting, Software, Contracts, Forms, and Service Status modules |
 | 087 | Calendar          | Fix         | Replace broken SVG chevron icons on month navigation buttons with reliable text-based chevrons |
 | 088 | Self-Service      | Feature     | Add self-service portal with user registration, login, and account claiming for passwordless users |

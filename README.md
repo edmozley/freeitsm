@@ -374,6 +374,20 @@ Each module has its own `includes/header.php` that:
 
 ## Module Details
 
+### Watchtower (`watchtower/`)
+Unified attention dashboard — a single pane of glass showing actionable items across all modules.
+
+- **Attention cards**: Eight module-themed cards showing only items that need attention
+- **Morning Checks**: Completion status, failed/warning checks
+- **Tickets**: Open counts, urgent/high priority, unassigned tickets
+- **Changes**: Upcoming changes, pending approvals, in-progress changes
+- **Calendar**: Today's events, weekly event count
+- **Service Status**: Active incidents, degraded services
+- **Contracts**: Expiring contracts (30/90 day), upcoming notice periods
+- **Knowledge**: Recently published articles, overdue reviews
+- **Assets**: Total count, assets not seen in 7+ days
+- **Features**: Color-coded status dots (green/amber/red), auto-refresh every 5 minutes, click-through to each module
+
 ### Tickets (`tickets/`)
 The primary module. Three-panel Outlook-style interface.
 
@@ -696,6 +710,7 @@ if (!isset($_SESSION['analyst_id'])) {
 - `api/reporting/` — 2 endpoints for system logs
 - `api/software/` — 5 endpoints for software inventory and licence management
 - `api/service-status/` — 7 endpoints for services CRUD, incident management, and dashboard aggregation
+- `api/watchtower/` — 1 endpoint for unified attention dashboard aggregation across all modules
 - `api/system/` — 4 endpoints for encryption status and module access management
 - `api/external/software-inventory/submit/` — External API for automated software inventory collection
 - `api/external/system-info/submit/` — External API for full asset inventory ingestion (hardware, disks, network, software)
