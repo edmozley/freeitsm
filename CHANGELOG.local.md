@@ -12,6 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 087 | Calendar          | Fix         | Replace broken SVG chevron icons on month navigation buttons with reliable text-based chevrons |
 
 ---
 

@@ -40,16 +40,8 @@ $path_prefix = '../';
             <div class="calendar-header">
                 <div class="calendar-nav">
                     <button class="btn btn-secondary" onclick="goToToday()">Today</button>
-                    <button class="btn btn-icon" onclick="navigatePrev()" title="Previous">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="15 18 9 12 15 6"></polyline>
-                        </svg>
-                    </button>
-                    <button class="btn btn-icon" onclick="navigateNext()" title="Next">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <polyline points="9 18 15 12 9 6"></polyline>
-                        </svg>
-                    </button>
+                    <button class="btn btn-icon" onclick="navigatePrev()" title="Previous">&lsaquo;</button>
+                    <button class="btn btn-icon" onclick="navigateNext()" title="Next">&rsaquo;</button>
                     <h2 class="calendar-title" id="calendarTitle">February 2026</h2>
                 </div>
                 <div class="view-toggle">
