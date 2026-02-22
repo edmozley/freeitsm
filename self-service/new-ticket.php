@@ -205,8 +205,14 @@ require_once 'includes/auth.php';
         <div class="form-card" id="formCard">
             <form id="ticketForm" onsubmit="return handleSubmit(event)" autocomplete="off">
                 <div class="form-group">
+                    <label for="mailbox">Mailbox *</label>
+                    <select id="mailbox" required>
+                        <option value="">Loading...</option>
+                    </select>
+                </div>
+                <div class="form-group">
                     <label for="subject">Subject *</label>
-                    <input type="text" id="subject" required placeholder="Brief summary of your issue" autofocus>
+                    <input type="text" id="subject" required placeholder="Brief summary of your issue">
                 </div>
                 <div class="form-group">
                     <label for="priority">Priority</label>
@@ -229,6 +235,28 @@ require_once 'includes/auth.php';
     </div>
 
     <script>
+    document.addEventListener('DOMContentLoaded', loadMailboxes);
+
+    async function loadMailboxes() {
+        const select = document.getElementById('mailbox');
+        try {
+            const resp = await fetch('../api/self-service/get_mailboxes.php');
+            const data = await resp.json();
+            if (data.success && data.mailboxes.length > 0) {
+                select.innerHTML = data.mailboxes.map(m =>
+                    '<option value="' + m.id + '">' + escapeHtml(m.name) + ' (' + escapeHtml(m.target_mailbox) + ')</option>'
+                ).join('');
+                if (data.mailboxes.length === 1) {
+                    select.value = data.mailboxes[0].id;
+                }
+            } else {
+                select.innerHTML = '<option value="">No mailboxes available</option>';
+            }
+        } catch (err) {
+            select.innerHTML = '<option value="">Failed to load mailboxes</option>';
+        }
+    }
+
     async function handleSubmit(e) {
         e.preventDefault();
         const btn = document.getElementById('submitBtn');
@@ -244,6 +272,7 @@ require_once 'includes/auth.php';
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    mailbox_id: document.getElementById('mailbox').value || null,
                     subject: document.getElementById('subject').value.trim(),
                     priority: document.getElementById('priority').value,
                     description: document.getElementById('description').value.trim()

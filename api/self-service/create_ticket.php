@@ -25,6 +25,7 @@ $input = json_decode(file_get_contents('php://input'), true);
 $subject = trim($input['subject'] ?? '');
 $description = trim($input['description'] ?? '');
 $priority = $input['priority'] ?? 'Normal';
+$mailboxId = !empty($input['mailbox_id']) ? (int)$input['mailbox_id'] : null;
 
 if (empty($subject)) {
     echo json_encode(['success' => false, 'error' => 'Subject is required']);
@@ -81,8 +82,8 @@ try {
     $emailSql = "INSERT INTO emails (
         subject, from_address, from_name, to_recipients, received_datetime,
         body_preview, body_content, body_type, has_attachments, importance,
-        is_read, ticket_id, is_initial, direction
-    ) VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'html', 0, 'normal', 0, ?, 1, 'Portal')";
+        is_read, ticket_id, is_initial, direction, mailbox_id
+    ) VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'html', 0, 'normal', 0, ?, 1, 'Portal', ?)";
 
     $emailStmt = $conn->prepare($emailSql);
     $emailStmt->execute([
@@ -92,7 +93,8 @@ try {
         $fromEmail,
         $bodyPreview,
         $bodyHtml,
-        $ticketId
+        $ticketId,
+        $mailboxId
     ]);
 
     $conn->commit();
