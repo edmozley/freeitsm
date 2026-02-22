@@ -27,6 +27,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 099 | Assets            | Feature     | Add device manager enumeration showing device category, name, driver info, and status per asset |
 | 100 | Calendar          | Feature     | Add help page with guided overview of calendar views, event creation, categories, settings, and scheduling tips |
 | 101 | Morning Checks    | Feature     | Add help page with guided overview of daily checks, status types, trend chart, PDF export, and settings configuration |
+| 102 | Tickets           | Feature     | Add help page with guided overview of inbox, ticket management, comments, dashboard, calendar, rota, and settings |
 
 ---
 
