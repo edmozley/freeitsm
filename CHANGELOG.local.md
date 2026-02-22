@@ -17,6 +17,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 089 | Self-Service      | Feature     | Add self-service dashboard showing ticket summary cards, recent tickets, and live system status |
 | 090 | Self-Service      | Feature     | Add ticket creation and detail view pages in self-service portal |
 | 091 | Self-Service      | Feature     | Add mailbox selection dropdown to self-service new ticket form so replies are sent from the correct mailbox |
+| 092 | Self-Service      | Feature     | Add drag-and-drop file attachments to self-service new ticket form |
 
 ---
 

@@ -178,6 +178,59 @@ require_once 'includes/auth.php';
             color: #065f46;
             font-weight: 600;
         }
+
+        /* Attachment dropzone */
+        .dropzone {
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .dropzone:hover { border-color: #0078d4; color: #0078d4; }
+        .dropzone.dragover { border-color: #0078d4; background: #f0f7ff; color: #0078d4; }
+        .dropzone-icon { font-size: 24px; margin-bottom: 6px; }
+        .dropzone-browse { color: #0078d4; font-weight: 600; }
+
+        .attachment-list { margin-top: 10px; }
+        .attachment-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 10px;
+            background: #f9fafb;
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            margin-bottom: 6px;
+            font-size: 13px;
+        }
+        .attachment-item .file-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .attachment-item .file-name {
+            font-weight: 500;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .attachment-item .file-size { color: #999; white-space: nowrap; }
+        .attachment-item .remove-btn {
+            background: none;
+            border: none;
+            color: #999;
+            cursor: pointer;
+            font-size: 18px;
+            padding: 0 4px;
+            line-height: 1;
+        }
+        .attachment-item .remove-btn:hover { color: #c33; }
     </style>
 </head>
 <body>
@@ -226,6 +279,15 @@ require_once 'includes/auth.php';
                     <label for="description">Description</label>
                     <textarea id="description" placeholder="Provide as much detail as possible about your issue..."></textarea>
                 </div>
+                <div class="form-group">
+                    <label>Attachments</label>
+                    <div class="dropzone" id="dropzone">
+                        <div class="dropzone-icon">📎</div>
+                        Drag and drop files here or <span class="dropzone-browse">browse</span>
+                    </div>
+                    <input type="file" id="fileInput" multiple style="display:none">
+                    <div class="attachment-list" id="attachmentList"></div>
+                </div>
                 <div class="form-actions">
                     <a href="index.php" class="btn-cancel">Cancel</a>
                     <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
@@ -235,7 +297,80 @@ require_once 'includes/auth.php';
     </div>
 
     <script>
-    document.addEventListener('DOMContentLoaded', loadMailboxes);
+    let attachments = [];
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadMailboxes();
+        initDropzone();
+    });
+
+    function initDropzone() {
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            addFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', () => {
+            addFiles(fileInput.files);
+            fileInput.value = '';
+        });
+    }
+
+    function addFiles(files) {
+        for (const file of files) {
+            const duplicate = attachments.some(a => a.file.name === file.name && a.file.size === file.size);
+            if (!duplicate) {
+                attachments.push({ file });
+            }
+        }
+        renderAttachments();
+    }
+
+    function removeAttachment(index) {
+        attachments.splice(index, 1);
+        renderAttachments();
+    }
+
+    function renderAttachments() {
+        const list = document.getElementById('attachmentList');
+        if (attachments.length === 0) { list.innerHTML = ''; return; }
+
+        list.innerHTML = attachments.map((a, i) =>
+            '<div class="attachment-item">' +
+                '<div class="file-info">' +
+                    '<span class="file-name">' + escapeHtml(a.file.name) + '</span>' +
+                    '<span class="file-size">(' + formatFileSize(a.file.size) + ')</span>' +
+                '</div>' +
+                '<button type="button" class="remove-btn" onclick="removeAttachment(' + i + ')">&times;</button>' +
+            '</div>'
+        ).join('');
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    function fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result.split(',')[1]);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
 
     async function loadMailboxes() {
         const select = document.getElementById('mailbox');
@@ -268,6 +403,13 @@ require_once 'includes/auth.php';
         btn.textContent = 'Submitting...';
 
         try {
+            // Prepare attachments as base64
+            const attachmentData = [];
+            for (const a of attachments) {
+                const content = await fileToBase64(a.file);
+                attachmentData.push({ name: a.file.name, type: a.file.type, size: a.file.size, content });
+            }
+
             const resp = await fetch('../api/self-service/create_ticket.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -275,7 +417,8 @@ require_once 'includes/auth.php';
                     mailbox_id: document.getElementById('mailbox').value || null,
                     subject: document.getElementById('subject').value.trim(),
                     priority: document.getElementById('priority').value,
-                    description: document.getElementById('description').value.trim()
+                    description: document.getElementById('description').value.trim(),
+                    attachments: attachmentData
                 })
             });
             const data = await resp.json();

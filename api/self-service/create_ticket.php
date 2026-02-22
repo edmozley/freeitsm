@@ -26,6 +26,7 @@ $subject = trim($input['subject'] ?? '');
 $description = trim($input['description'] ?? '');
 $priority = $input['priority'] ?? 'Normal';
 $mailboxId = !empty($input['mailbox_id']) ? (int)$input['mailbox_id'] : null;
+$inputAttachments = $input['attachments'] ?? [];
 
 if (empty($subject)) {
     echo json_encode(['success' => false, 'error' => 'Subject is required']);
@@ -76,6 +77,7 @@ try {
     $ticketId = $conn->lastInsertId();
 
     // Create initial email entry
+    $hasAttachments = !empty($inputAttachments) ? 1 : 0;
     $bodyHtml = nl2br(htmlspecialchars($description));
     $bodyPreview = substr(strip_tags($description), 0, 200);
 
@@ -83,7 +85,7 @@ try {
         subject, from_address, from_name, to_recipients, received_datetime,
         body_preview, body_content, body_type, has_attachments, importance,
         is_read, ticket_id, is_initial, direction, mailbox_id
-    ) VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'html', 0, 'normal', 0, ?, 1, 'Portal', ?)";
+    ) VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'html', ?, 'normal', 0, ?, 1, 'Portal', ?)";
 
     $emailStmt = $conn->prepare($emailSql);
     $emailStmt->execute([
@@ -93,9 +95,51 @@ try {
         $fromEmail,
         $bodyPreview,
         $bodyHtml,
+        $hasAttachments,
         $ticketId,
         $mailboxId
     ]);
+
+    $emailId = $conn->lastInsertId();
+
+    // Save attachments to disk and create database records
+    if (!empty($inputAttachments)) {
+        $attachDir = realpath(__DIR__ . '/../../tickets/attachments');
+        $subdir = floor($emailId / 1000);
+        $emailDir = $attachDir . '/' . $subdir . '/' . $emailId;
+
+        if (!is_dir($emailDir)) {
+            mkdir($emailDir, 0755, true);
+        }
+
+        $attachStmt = $conn->prepare(
+            "INSERT INTO email_attachments (email_id, filename, content_type, file_path, file_size, is_inline, created_datetime)
+             VALUES (?, ?, ?, ?, ?, 0, UTC_TIMESTAMP())"
+        );
+
+        foreach ($inputAttachments as $att) {
+            $filename = preg_replace('/[^a-zA-Z0-9._\-]/', '_', $att['name'] ?? 'file');
+            $fileData = base64_decode($att['content'] ?? '');
+            $fileSize = strlen($fileData);
+
+            // Handle duplicate filenames
+            $savePath = $emailDir . '/' . $filename;
+            $counter = 1;
+            $info = pathinfo($filename);
+            while (file_exists($savePath)) {
+                $filename = $info['filename'] . '_' . $counter . '.' . ($info['extension'] ?? '');
+                $savePath = $emailDir . '/' . $filename;
+                $counter++;
+            }
+
+            file_put_contents($savePath, $fileData);
+
+            $relPath = $subdir . '/' . $emailId . '/' . $filename;
+            $contentType = $att['type'] ?? 'application/octet-stream';
+
+            $attachStmt->execute([$emailId, $filename, $contentType, $relPath, $fileSize]);
+        }
+    }
 
     $conn->commit();
 
