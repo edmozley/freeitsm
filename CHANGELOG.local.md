@@ -31,6 +31,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 102 | Tickets           | Feature     | Add help page with guided overview of inbox, ticket management, comments, dashboard, calendar, rota, and settings |
 | 103 | Reporting         | Feature     | Add help page with guided overview of ticket reports, system logs, data interpretation, filters, and reporting best practices |
 | 104 | Forms             | Feature     | Add help page with guided overview of form builder, field types, filling in forms, submissions, CSV export, and settings |
+| 105 | Software          | Feature     | Add help page with guided overview of software inventory, dashboard widgets, licence management, data collection, and settings |
 
 ---
 
