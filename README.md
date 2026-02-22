@@ -398,6 +398,7 @@ The primary module. Three-panel Outlook-style interface.
   - Status filtering on supported widgets
   - Inline editing: cog icon on each widget opens a modal to edit properties without leaving the dashboard
   - Drag-and-drop reordering
+- **Help guide** (`help.php`): Interactive guide covering inbox navigation, ticket lifecycle, comments and attachments, dashboard widgets, calendar, rota, and settings
 
 ### Assets (`asset-management/`)
 IT asset management with vCenter integration.
@@ -416,6 +417,7 @@ IT asset management with vCenter integration.
 - **Device Manager** (`api/external/device-manager/submit/`): Enumerates Windows Device Manager devices (category, name, driver manufacturer, driver version, status) and displays them grouped by class on the asset detail screen
 - **PowerShell inventory agent** (`scripts/Invoke-AssetInventory.ps1`): Collects hardware, disks, network, GPU, TPM, BitLocker, device manager, and installed software from Windows machines and posts to the system-info and device-manager APIs
 - **System-info API** (`api/external/system-info/submit/`): External endpoint that ingests asset inventory data, syncs disk and network adapter tables, and processes software inventory
+- **Help guide** (`help.php`): Interactive guide covering asset overview, detail screen, inventory script deployment, collected data, server management, and dashboard widgets
 
 ### Knowledge (`knowledge/`)
 Rich-text knowledge base with AI integration.
@@ -442,6 +444,7 @@ Change request tracking and approval workflows with ITIL-aligned processes.
 - Post-implementation review fields for completed/failed changes
 - Activity timeline combining comments and audit trail with inline commenting
 - Settings page with configurable form field visibility (show/hide fields per section)
+- **Help guide** (`help.php`): Interactive guide covering change types, lifecycle, recording changes, CAB review, risk assessment, and post-implementation review
 
 ### Calendar (`calendar/`)
 Event calendar with configurable categories.
@@ -460,6 +463,7 @@ Daily infrastructure health check recording.
 - 30-day trend charts — click any bar to jump to that day's checks
 - Settings page with tabbed layout, modal popups for add/edit, and drag-and-drop reordering
 - PDF export with selectable text, company logo, and coloured status values
+- **Help guide** (`help.php`): Interactive guide covering daily checks, status types, trend chart, PDF export, and settings configuration
 
 ### Reporting (`reporting/`)
 System logs and audit trails.
@@ -468,6 +472,7 @@ System logs and audit trails.
 - Email import logs
 - System event logs
 - Searchable and sortable tables
+- **Help guide** (`help.php`): Interactive guide covering ticket reports, system logs, data interpretation, filters, and reporting best practices
 
 ### Software (`software/`)
 Software inventory tracking across the estate.
@@ -487,6 +492,7 @@ Software inventory tracking across the estate.
   - Store licence keys, costs, portal URLs, vendor contacts, and notes
   - Searchable and sortable table with status badges (Active/Expired/Cancelled)
   - CSV export of all licence data
+- **Help guide** (`help.php`): Interactive guide covering software inventory, dashboard widgets, licence management, data collection, and settings
 
 ### System (`system/`)
 System administration and configuration.

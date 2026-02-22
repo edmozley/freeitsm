@@ -12,9 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
-| 108 | Contracts         | Feature     | Add help page with guided overview of contract management, rich text terms, suppliers, contacts, settings, and best practice tips |
-| 107 | Service Status    | Feature     | Add help page with guided overview of status dashboard, status levels, incident management, incident history, service settings, and communication tips |
-| 106 | Knowledge         | Feature     | Add dedicated help page with left-pane navigation, scroll-spy, and 7 sections covering articles, review workflow, Ask AI, search, and sharing |
+| 100 | All Modules       | Feature     | Add interactive help pages with scroll-spy sidebar navigation to Tickets, Knowledge, Calendar, Morning Checks, Reporting, Software, Contracts, Forms, and Service Status modules |
 | 087 | Calendar          | Fix         | Replace broken SVG chevron icons on month navigation buttons with reliable text-based chevrons |
 | 088 | Self-Service      | Feature     | Add self-service portal with user registration, login, and account claiming for passwordless users |
 | 089 | Self-Service      | Feature     | Add self-service dashboard showing ticket summary cards, recent tickets, and live system status |
@@ -28,12 +26,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 097 | Self-Service      | Improvement | Deduplicate MFA endpoints by making api/myaccount/ endpoints work for both analysts and self-service users via shared auth context helper |
 | 098 | Software          | Feature     | Add customisable dashboard with version distribution, top installed, and publisher widgets with click-to-drill-down and cog editing |
 | 099 | Assets            | Feature     | Add device manager enumeration showing device category, name, driver info, and status per asset |
-| 100 | Calendar          | Feature     | Add help page with guided overview of calendar views, event creation, categories, settings, and scheduling tips |
-| 101 | Morning Checks    | Feature     | Add help page with guided overview of daily checks, status types, trend chart, PDF export, and settings configuration |
-| 102 | Tickets           | Feature     | Add help page with guided overview of inbox, ticket management, comments, dashboard, calendar, rota, and settings |
-| 103 | Reporting         | Feature     | Add help page with guided overview of ticket reports, system logs, data interpretation, filters, and reporting best practices |
-| 104 | Forms             | Feature     | Add help page with guided overview of form builder, field types, filling in forms, submissions, CSV export, and settings |
-| 105 | Software          | Feature     | Add help page with guided overview of software inventory, dashboard widgets, licence management, data collection, and settings |
 
 ---
 
