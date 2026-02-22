@@ -617,7 +617,8 @@ $path_prefix = '../';
         .disk-bar-fill {
             height: 100%;
             border-radius: 4px;
-            transition: width 0.3s;
+            width: 0;
+            transition: width 0.8s ease-out;
         }
 
         .disk-bar-fill.usage-low { background: #4caf50; }
@@ -640,9 +641,6 @@ $path_prefix = '../';
         .disk-percent.usage-high { color: #f44336; }
 
         /* Installed Software Section */
-        .software-section {
-            border-top: 1px solid #e0e0e0;
-        }
 
         .software-list {
             padding: 0;
@@ -733,20 +731,77 @@ $path_prefix = '../';
             color: #3f51b5;
         }
 
-        /* Devices Section */
-        .devices-section {
+        /* Detail Tabs */
+        .detail-tabs {
+            display: flex;
+            gap: 0;
             border-top: 1px solid #e0e0e0;
+            border-bottom: 1px solid #e0e0e0;
+            background-color: #f8f9fa;
         }
 
-        .devices-count-badge {
+        .detail-tab {
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            cursor: pointer;
+            border: none;
+            background: none;
+            border-bottom: 2px solid transparent;
+            transition: color 0.15s, border-color 0.15s;
+        }
+
+        .detail-tab:hover {
+            color: #333;
+        }
+
+        .detail-tab.active {
+            color: #0078d4;
+            border-bottom-color: #0078d4;
+        }
+
+        .detail-tab .tab-count {
             display: inline-block;
-            background-color: #e8eaf6;
-            color: #3f51b5;
-            padding: 1px 8px;
+            background-color: #eee;
+            color: #666;
+            padding: 1px 6px;
             border-radius: 10px;
-            font-size: 12px;
-            font-weight: 600;
-            margin-left: 8px;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        .detail-tab.active .tab-count {
+            background-color: #e0ecf8;
+            color: #0078d4;
+        }
+
+        .detail-tab-panel {
+            display: none;
+        }
+
+        .detail-tab-panel.active {
+            display: block;
+        }
+
+        /* Devices Section */
+        .devices-search {
+            padding: 10px 20px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .devices-search input {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .devices-search input:focus {
+            border-color: #0078d4;
         }
 
         .devices-list {
@@ -898,6 +953,7 @@ $path_prefix = '../';
         let assetStatusTypes = [];
         let allAssetSoftware = [];
         let activeSwFilter = 'apps';
+        let allDevices = [];
 
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
@@ -1084,18 +1140,19 @@ $path_prefix = '../';
                             <div class="loading"><div class="spinner"></div></div>
                         </div>
                     </div>
-                    <div class="devices-section">
-                        <div class="section-header">
-                            <span class="section-title">Devices <span class="devices-count-badge" id="devicesCountBadge">...</span></span>
+                    <div class="detail-tabs">
+                        <button class="detail-tab active" onclick="switchDetailTab('devices')" data-dtab="devices">Devices <span class="tab-count" id="devicesCountBadge">...</span></button>
+                        <button class="detail-tab" onclick="switchDetailTab('software')" data-dtab="software">Software <span class="tab-count" id="softwareCountBadge">...</span></button>
+                    </div>
+                    <div class="detail-tab-panel active" id="devicesPanel">
+                        <div class="devices-search">
+                            <input type="text" id="devicesSearch" placeholder="Filter devices..." oninput="filterDevices()" autocomplete="off">
                         </div>
                         <div class="devices-list" id="devicesList">
                             <div class="loading"><div class="spinner"></div></div>
                         </div>
                     </div>
-                    <div class="software-section">
-                        <div class="section-header">
-                            <span class="section-title">Installed Software <span class="software-count-badge" id="softwareCountBadge">...</span></span>
-                        </div>
+                    <div class="detail-tab-panel" id="softwarePanel">
                         <div class="sw-filter-tabs">
                             <button class="sw-filter-tab active" data-swfilter="apps" onclick="switchSwTab('apps')">Applications <span class="sw-tab-count" id="swCountApps">0</span></button>
                             <button class="sw-filter-tab" data-swfilter="components" onclick="switchSwTab('components')">Components <span class="sw-tab-count" id="swCountComponents">0</span></button>
@@ -1174,7 +1231,7 @@ $path_prefix = '../';
                                 <span class="disk-label">${escapeHtml(disk.label || '')}</span>
                             </div>
                             <div class="disk-bar-container">
-                                <div class="disk-bar-fill usage-${level}" style="width: ${pct}%"></div>
+                                <div class="disk-bar-fill usage-${level}" data-pct="${pct}"></div>
                             </div>
                             <div class="disk-details">
                                 <span>${usedGB} GB used of ${sizeGB} GB</span>
@@ -1186,6 +1243,12 @@ $path_prefix = '../';
                             </div>
                         </div>`;
                     }).join('');
+                    // Animate bars from 0 to actual width
+                    requestAnimationFrame(() => {
+                        container.querySelectorAll('.disk-bar-fill').forEach(bar => {
+                            bar.style.width = bar.dataset.pct + '%';
+                        });
+                    });
                 } else if (data.success) {
                     container.innerHTML = '<div class="empty-state" style="padding: 20px;">No disk data available</div>';
                 }
@@ -1201,54 +1264,85 @@ $path_prefix = '../';
                 const response = await fetch(`${API_BASE}get_asset_devices.php?asset_id=${assetId}`);
                 const data = await response.json();
 
-                const container = document.getElementById('devicesList');
                 const badge = document.getElementById('devicesCountBadge');
 
                 if (data.success && data.devices.length > 0) {
+                    allDevices = data.devices;
                     badge.textContent = data.devices.length;
-
-                    // Group by device_class
-                    const grouped = {};
-                    data.devices.forEach(d => {
-                        const cls = d.device_class || 'Other';
-                        if (!grouped[cls]) grouped[cls] = [];
-                        grouped[cls].push(d);
-                    });
-
-                    const classes = Object.keys(grouped).sort();
-                    let html = `<table class="devices-table">
-                        <thead><tr>
-                            <th>Device</th>
-                            <th>Manufacturer</th>
-                            <th>Driver Version</th>
-                            <th>Status</th>
-                        </tr></thead><tbody>`;
-
-                    classes.forEach(cls => {
-                        html += `<tr class="device-class-row"><td colspan="4">${escapeHtml(cls)} (${grouped[cls].length})</td></tr>`;
-                        grouped[cls].forEach(d => {
-                            const statusClass = d.status === 'OK' ? 'device-status-ok' :
-                                d.status === 'Error' ? 'device-status-error' :
-                                d.status === 'Degraded' ? 'device-status-degraded' : '';
-                            html += `<tr>
-                                <td style="padding-left: 36px;">${escapeHtml(d.device_name)}</td>
-                                <td>${escapeHtml(d.manufacturer || '-')}</td>
-                                <td>${escapeHtml(d.driver_version || '-')}</td>
-                                <td>${d.status ? `<span class="device-status ${statusClass}">${escapeHtml(d.status)}</span>` : '-'}</td>
-                            </tr>`;
-                        });
-                    });
-
-                    html += '</tbody></table>';
-                    container.innerHTML = html;
+                    renderDevices(allDevices);
                 } else {
+                    allDevices = [];
                     badge.textContent = '0';
-                    container.innerHTML = '<div class="empty-state" style="padding: 20px;">No device data available</div>';
+                    document.getElementById('devicesList').innerHTML = '<div class="empty-state" style="padding: 20px;">No device data available</div>';
                 }
             } catch (error) {
                 console.error('Error loading devices:', error);
                 document.getElementById('devicesList').innerHTML = '<div class="empty-state" style="padding: 20px;">Error loading devices</div>';
             }
+        }
+
+        function renderDevices(devices) {
+            const container = document.getElementById('devicesList');
+            if (devices.length === 0) {
+                container.innerHTML = '<div class="empty-state" style="padding: 20px;">No matching devices</div>';
+                return;
+            }
+
+            const grouped = {};
+            devices.forEach(d => {
+                const cls = d.device_class || 'Other';
+                if (!grouped[cls]) grouped[cls] = [];
+                grouped[cls].push(d);
+            });
+
+            const classes = Object.keys(grouped).sort();
+            let html = `<table class="devices-table">
+                <thead><tr>
+                    <th>Device</th>
+                    <th>Manufacturer</th>
+                    <th>Driver Version</th>
+                    <th>Status</th>
+                </tr></thead><tbody>`;
+
+            classes.forEach(cls => {
+                html += `<tr class="device-class-row"><td colspan="4">${escapeHtml(cls)} (${grouped[cls].length})</td></tr>`;
+                grouped[cls].forEach(d => {
+                    const statusClass = d.status === 'OK' ? 'device-status-ok' :
+                        d.status === 'Error' ? 'device-status-error' :
+                        d.status === 'Degraded' ? 'device-status-degraded' : '';
+                    html += `<tr>
+                        <td style="padding-left: 36px;">${escapeHtml(d.device_name)}</td>
+                        <td>${escapeHtml(d.manufacturer || '-')}</td>
+                        <td>${escapeHtml(d.driver_version || '-')}</td>
+                        <td>${d.status ? `<span class="device-status ${statusClass}">${escapeHtml(d.status)}</span>` : '-'}</td>
+                    </tr>`;
+                });
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        function filterDevices() {
+            const query = (document.getElementById('devicesSearch').value || '').toLowerCase();
+            if (!query) {
+                renderDevices(allDevices);
+                return;
+            }
+            const filtered = allDevices.filter(d =>
+                (d.device_name || '').toLowerCase().includes(query) ||
+                (d.device_class || '').toLowerCase().includes(query) ||
+                (d.manufacturer || '').toLowerCase().includes(query) ||
+                (d.driver_version || '').toLowerCase().includes(query) ||
+                (d.status || '').toLowerCase().includes(query)
+            );
+            renderDevices(filtered);
+        }
+
+        function switchDetailTab(tab) {
+            document.querySelectorAll('.detail-tab').forEach(t => t.classList.toggle('active', t.dataset.dtab === tab));
+            document.getElementById('devicesPanel').classList.toggle('active', tab === 'devices');
+            document.getElementById('softwarePanel').classList.toggle('active', tab === 'software');
         }
 
         // Load installed software for an asset
