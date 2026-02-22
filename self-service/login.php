@@ -124,14 +124,14 @@ if (isset($_SESSION['ss_user_id'])) {
 
         <div class="error-message" id="errorMsg"></div>
 
-        <form id="loginForm" onsubmit="return handleLogin(event)">
+        <form id="loginForm" onsubmit="return handleLogin(event)" autocomplete="off">
             <div class="form-group">
                 <label for="email">Email</label>
-                <input type="email" id="email" required autofocus autocomplete="email">
+                <input type="email" id="email" required autofocus autocomplete="off">
             </div>
             <div class="form-group">
                 <label for="password">Password</label>
-                <input type="password" id="password" required autocomplete="current-password">
+                <input type="password" id="password" required autocomplete="off">
             </div>
             <button type="submit" class="login-button" id="loginBtn">Sign In</button>
         </form>
