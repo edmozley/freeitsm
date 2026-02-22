@@ -20,7 +20,8 @@ try {
 
     $stmt = $conn->prepare("SELECT atdw.id, atdw.widget_id, atdw.sort_order, atdw.status_filter,
                                    w.title, w.description, w.chart_type, w.aggregate_property,
-                                   w.series_property, w.is_status_filterable, w.default_status
+                                   w.series_property, w.is_status_filterable, w.default_status,
+                                   w.date_range, w.department_filter, w.time_grouping
                             FROM analyst_ticket_dashboard_widgets atdw
                             INNER JOIN ticket_dashboard_widgets w ON w.id = atdw.widget_id
                             WHERE atdw.analyst_id = ? AND w.is_active = 1

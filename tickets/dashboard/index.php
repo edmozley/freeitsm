@@ -436,7 +436,7 @@ $path_prefix = '../../';
 
             const ctx = canvas.getContext('2d');
             const isLine = chartType === 'line';
-            const isCreatedVsClosed = aggProp && aggProp.startsWith('created_vs_closed');
+            const isCreatedVsClosed = aggProp === 'created_vs_closed';
             const stacked = !isCreatedVsClosed && !isLine;
 
             const datasets = series.map((s, i) => {

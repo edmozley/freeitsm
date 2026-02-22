@@ -27,7 +27,9 @@ try {
     $conn = connectToDatabase();
 
     // Get widget definition
-    $wStmt = $conn->prepare("SELECT aggregate_property, series_property, is_status_filterable, default_status FROM ticket_dashboard_widgets WHERE id = ?");
+    $wStmt = $conn->prepare("SELECT aggregate_property, series_property, is_status_filterable,
+                                    default_status, date_range, department_filter, time_grouping
+                             FROM ticket_dashboard_widgets WHERE id = ?");
     $wStmt->execute([$widget_id]);
     $widget = $wStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -38,17 +40,40 @@ try {
 
     $prop = $widget['aggregate_property'];
     $seriesProp = $widget['series_property'];
-    $params = [];
-    $where = '';
+    $dateRange = $widget['date_range'];
+    $deptFilter = $widget['department_filter'] ? json_decode($widget['department_filter'], true) : null;
+    $timeGrouping = $widget['time_grouping'];
 
-    // Apply status filter
+    // Build composable WHERE clauses
+    $whereClauses = [];
+    $params = [];
+
+    // Status filter
     if (!empty($statusFilter) && $widget['is_status_filterable']) {
-        $where = ' WHERE t.status = ?';
+        $whereClauses[] = 't.status = ?';
         $params[] = $statusFilter;
     } elseif (!$widget['is_status_filterable'] && $widget['default_status']) {
-        $where = ' WHERE t.status = ?';
+        $whereClauses[] = 't.status = ?';
         $params[] = $widget['default_status'];
     }
+
+    // Department filter
+    [$deptWhere, $deptParams] = buildDepartmentWhere($deptFilter);
+    if ($deptWhere) {
+        $whereClauses[] = $deptWhere;
+        $params = array_merge($params, $deptParams);
+    }
+
+    // Date range filter (for categorical aggregates only — time-based handle their own)
+    if (!isTimeBased($prop) && !isCreatedVsClosed($prop)) {
+        [$dateWhere, $dateParam] = buildDateRangeWhere($dateRange, 'created_datetime');
+        if ($dateWhere) {
+            $whereClauses[] = $dateWhere;
+            $params[] = $dateParam;
+        }
+    }
+
+    $where = count($whereClauses) > 0 ? ' WHERE ' . implode(' AND ', $whereClauses) : '';
 
     // --- Categorical aggregates (no series) ---
     if (!$seriesProp && !isTimeBased($prop) && !isCreatedVsClosed($prop)) {
@@ -64,23 +89,23 @@ try {
         exit;
     }
 
-    // --- Time-based (daily/monthly), single series ---
+    // --- Time-based, single series ---
     if (!$seriesProp && isTimeBased($prop)) {
-        $result = getTimeData($conn, $prop, $where, $params);
+        $result = getTimeData($conn, $prop, $timeGrouping, $dateRange, $where, $params);
         echo json_encode(['success' => true, 'labels' => $result['labels'], 'values' => $result['values']]);
         exit;
     }
 
     // --- Time-based with series breakdown ---
     if ($seriesProp && isTimeBased($prop)) {
-        $result = getTimeWithSeries($conn, $prop, $seriesProp, $where, $params);
+        $result = getTimeWithSeries($conn, $prop, $seriesProp, $timeGrouping, $dateRange, $where, $params);
         echo json_encode(['success' => true, 'labels' => $result['labels'], 'series' => $result['series']]);
         exit;
     }
 
     // --- Created vs Closed (inherent 2-series) ---
     if (isCreatedVsClosed($prop)) {
-        $result = getCreatedVsClosedData($conn, $prop, $where, $params);
+        $result = getCreatedVsClosedData($conn, $timeGrouping, $dateRange, $where, $params);
         echo json_encode(['success' => true, 'labels' => $result['labels'], 'series' => $result['series']]);
         exit;
     }
@@ -94,28 +119,108 @@ try {
 // --- Helper functions ---
 
 function isTimeBased($prop) {
-    return in_array($prop, ['created_daily', 'created_monthly', 'closed_daily', 'closed_monthly']);
+    return in_array($prop, ['created', 'closed']);
 }
 
 function isCreatedVsClosed($prop) {
-    return in_array($prop, ['created_vs_closed_daily', 'created_vs_closed_monthly']);
+    return $prop === 'created_vs_closed';
 }
 
 function getDateField($prop) {
-    if (strpos($prop, 'closed') === 0) return 'closed_datetime';
+    if ($prop === 'closed') return 'closed_datetime';
     return 'created_datetime';
 }
 
-function isDaily($prop) {
-    return strpos($prop, 'daily') !== false;
+function buildDateRangeWhere($dateRange, $dateField) {
+    if (empty($dateRange) || $dateRange === 'all') {
+        return ['', null];
+    }
+
+    $now = new DateTime('now', new DateTimeZone('UTC'));
+    switch ($dateRange) {
+        case '7d':         $start = (clone $now)->modify('-7 days')->format('Y-m-d'); break;
+        case '30d':        $start = (clone $now)->modify('-30 days')->format('Y-m-d'); break;
+        case 'this_month': $start = $now->format('Y-m-01'); break;
+        case '3m':         $start = (clone $now)->modify('-3 months')->format('Y-m-d'); break;
+        case '6m':         $start = (clone $now)->modify('-6 months')->format('Y-m-d'); break;
+        case '12m':        $start = (clone $now)->modify('-12 months')->format('Y-m-d'); break;
+        case 'this_year':  $start = $now->format('Y-01-01'); break;
+        default:           return ['', null];
+    }
+
+    return ["t.{$dateField} >= ?", $start];
+}
+
+function buildDepartmentWhere($deptFilter) {
+    if (empty($deptFilter) || !is_array($deptFilter)) {
+        return ['', []];
+    }
+    $placeholders = implode(',', array_fill(0, count($deptFilter), '?'));
+    return ["t.department_id IN ({$placeholders})", array_map('intval', $deptFilter)];
+}
+
+function getDateExpr($timeGrouping, $dateField) {
+    switch ($timeGrouping) {
+        case 'day':   return "DATE(t.{$dateField})";
+        case 'month': return "DATE_FORMAT(t.{$dateField}, '%Y-%m')";
+        case 'year':  return "YEAR(t.{$dateField})";
+    }
+    return "DATE(t.{$dateField})";
+}
+
+function getTimeLabels($dateRange, $timeGrouping) {
+    $now = new DateTime('now', new DateTimeZone('UTC'));
+
+    switch ($dateRange) {
+        case '7d':         $start = (clone $now)->modify('-7 days'); break;
+        case '30d':        $start = (clone $now)->modify('-30 days'); break;
+        case 'this_month': $start = new DateTime($now->format('Y-m-01'), new DateTimeZone('UTC')); break;
+        case '3m':         $start = (clone $now)->modify('-3 months'); break;
+        case '6m':         $start = (clone $now)->modify('-6 months'); break;
+        case '12m':        $start = (clone $now)->modify('-12 months'); break;
+        case 'this_year':  $start = new DateTime($now->format('Y-01-01'), new DateTimeZone('UTC')); break;
+        default:           $start = (clone $now)->modify('-12 months'); break;
+    }
+
+    $labels = [];
+    switch ($timeGrouping) {
+        case 'day':
+            $cursor = clone $start;
+            while ($cursor <= $now) {
+                $labels[] = $cursor->format('Y-m-d');
+                $cursor->modify('+1 day');
+            }
+            break;
+        case 'month':
+            $cursor = new DateTime($start->format('Y-m-01'), new DateTimeZone('UTC'));
+            $end = new DateTime($now->format('Y-m-01'), new DateTimeZone('UTC'));
+            while ($cursor <= $end) {
+                $labels[] = $cursor->format('Y-m');
+                $cursor->modify('+1 month');
+            }
+            break;
+        case 'year':
+            $startYear = (int)$start->format('Y');
+            $endYear = (int)$now->format('Y');
+            for ($y = $startYear; $y <= $endYear; $y++) {
+                $labels[] = (string)$y;
+            }
+            break;
+    }
+    return $labels;
+}
+
+function formatLabel($raw, $timeGrouping) {
+    switch ($timeGrouping) {
+        case 'day':   return (new DateTime($raw))->format('j M');
+        case 'month': return (new DateTime($raw . '-01'))->format('M Y');
+        case 'year':  return (string)$raw;
+    }
+    return $raw;
 }
 
 function getCategoricalData($conn, $prop, $where, $params) {
-    $allowedSimple = ['status', 'priority'];
-    $allowedJoin = ['department', 'ticket_type', 'analyst', 'owner', 'origin'];
-    $allowedBool = ['first_time_fix', 'training_provided'];
-
-    if (in_array($prop, $allowedSimple)) {
+    if (in_array($prop, ['status', 'priority'])) {
         $col = $prop === 'status' ? 't.status' : 't.priority';
         $sql = "SELECT COALESCE({$col}, 'Unknown') AS label, COUNT(*) AS value FROM tickets t {$where} GROUP BY {$col} ORDER BY value DESC";
     } elseif ($prop === 'department') {
@@ -147,40 +252,31 @@ function getCategoricalData($conn, $prop, $where, $params) {
 }
 
 function getCategoricalWithSeries($conn, $prop, $seriesProp, $where, $params) {
-    // Get the label expression and JOIN for the primary aggregate
     $labelExpr = '';
     $join = '';
-    $groupCol = '';
 
     if ($prop === 'department') {
         $labelExpr = "COALESCE(d.name, 'Unassigned')";
         $join = 'LEFT JOIN departments d ON d.id = t.department_id';
-        $groupCol = 'd.name';
     } elseif ($prop === 'ticket_type') {
         $labelExpr = "COALESCE(tt.name, 'Unassigned')";
         $join = 'LEFT JOIN ticket_types tt ON tt.id = t.ticket_type_id';
-        $groupCol = 'tt.name';
     } elseif ($prop === 'analyst') {
         $labelExpr = "COALESCE(a.full_name, 'Unassigned')";
         $join = 'LEFT JOIN analysts a ON a.id = t.assigned_analyst_id';
-        $groupCol = 'a.full_name';
     } elseif ($prop === 'owner') {
         $labelExpr = "COALESCE(a.full_name, 'Unassigned')";
         $join = 'LEFT JOIN analysts a ON a.id = t.owner_id';
-        $groupCol = 'a.full_name';
     } elseif ($prop === 'origin') {
         $labelExpr = "COALESCE(o.name, 'Unknown')";
         $join = 'LEFT JOIN ticket_origins o ON o.id = t.origin_id';
-        $groupCol = 'o.name';
     } elseif ($prop === 'priority') {
         $labelExpr = "COALESCE(t.priority, 'Unknown')";
         $join = '';
-        $groupCol = 't.priority';
     } else {
         return ['labels' => [], 'series' => []];
     }
 
-    // Series column
     $seriesCol = $seriesProp === 'status' ? "COALESCE(t.status, 'Unknown')" : "COALESCE(t.priority, 'Unknown')";
 
     $sql = "SELECT {$labelExpr} AS label, {$seriesCol} AS series_val, COUNT(*) AS value
@@ -195,87 +291,67 @@ function getCategoricalWithSeries($conn, $prop, $seriesProp, $where, $params) {
     return pivotToSeries($data);
 }
 
-function getTimeData($conn, $prop, $where, $params) {
+function getTimeData($conn, $prop, $timeGrouping, $dateRange, $where, $params) {
     $dateField = getDateField($prop);
-    $daily = isDaily($prop);
+    $dateExpr = getDateExpr($timeGrouping, $dateField);
 
-    if ($daily) {
-        $firstOfMonth = date('Y-m-01');
-        $dateExpr = "DATE(t.{$dateField})";
-        $dateWhere = "t.{$dateField} >= ?";
-        $dateParams = array_merge($params, [$firstOfMonth]);
-        // Adjust WHERE
-        if ($where) {
-            $fullWhere = $where . " AND {$dateWhere}";
-        } else {
-            $fullWhere = " WHERE {$dateWhere}";
-        }
-        // For closed_daily, also require date field is not null
-        if ($dateField === 'closed_datetime') {
-            $fullWhere .= " AND t.{$dateField} IS NOT NULL";
-        }
+    // Add date range filter
+    [$dateWhere, $dateParam] = buildDateRangeWhere($dateRange, $dateField);
+    if ($dateWhere) {
+        $fullWhere = $where ? $where . " AND {$dateWhere}" : " WHERE {$dateWhere}";
+        $fullParams = array_merge($params, [$dateParam]);
     } else {
-        $twelveMonthsAgo = date('Y-m-01', strtotime('-11 months'));
-        $dateExpr = "DATE_FORMAT(t.{$dateField}, '%Y-%m')";
-        $dateWhere = "t.{$dateField} >= ?";
-        $dateParams = array_merge($params, [$twelveMonthsAgo]);
-        if ($where) {
-            $fullWhere = $where . " AND {$dateWhere}";
-        } else {
-            $fullWhere = " WHERE {$dateWhere}";
-        }
-        if ($dateField === 'closed_datetime') {
-            $fullWhere .= " AND t.{$dateField} IS NOT NULL";
-        }
+        $fullWhere = $where;
+        $fullParams = $params;
+    }
+
+    // For closed, require date field is not null
+    if ($dateField === 'closed_datetime') {
+        $notNull = "t.{$dateField} IS NOT NULL";
+        $fullWhere = $fullWhere ? $fullWhere . " AND {$notNull}" : " WHERE {$notNull}";
     }
 
     $sql = "SELECT {$dateExpr} AS label, COUNT(*) AS value FROM tickets t {$fullWhere} GROUP BY label ORDER BY label";
 
     $stmt = $conn->prepare($sql);
-    $stmt->execute($dateParams);
+    $stmt->execute($fullParams);
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Fill gaps
     $dataMap = [];
     foreach ($data as $row) {
-        $dataMap[$row['label']] = (int)$row['value'];
+        $dataMap[(string)$row['label']] = (int)$row['value'];
     }
 
-    $allLabels = $daily ? getDailyLabels() : getMonthlyLabels();
+    $allLabels = getTimeLabels($dateRange, $timeGrouping);
     $labels = [];
     $values = [];
     foreach ($allLabels as $l) {
-        $labels[] = $daily ? formatDailyLabel($l) : formatMonthlyLabel($l);
+        $labels[] = formatLabel($l, $timeGrouping);
         $values[] = $dataMap[$l] ?? 0;
     }
 
     return ['labels' => $labels, 'values' => $values];
 }
 
-function getTimeWithSeries($conn, $prop, $seriesProp, $where, $params) {
+function getTimeWithSeries($conn, $prop, $seriesProp, $timeGrouping, $dateRange, $where, $params) {
     $dateField = getDateField($prop);
-    $daily = isDaily($prop);
+    $dateExpr = getDateExpr($timeGrouping, $dateField);
     $seriesCol = $seriesProp === 'status' ? "COALESCE(t.status, 'Unknown')" : "COALESCE(t.priority, 'Unknown')";
 
-    if ($daily) {
-        $firstOfMonth = date('Y-m-01');
-        $dateExpr = "DATE(t.{$dateField})";
-        $dateWhere = "t.{$dateField} >= ?";
-        $dateParams = array_merge($params, [$firstOfMonth]);
+    // Add date range filter
+    [$dateWhere, $dateParam] = buildDateRangeWhere($dateRange, $dateField);
+    if ($dateWhere) {
+        $fullWhere = $where ? $where . " AND {$dateWhere}" : " WHERE {$dateWhere}";
+        $fullParams = array_merge($params, [$dateParam]);
     } else {
-        $twelveMonthsAgo = date('Y-m-01', strtotime('-11 months'));
-        $dateExpr = "DATE_FORMAT(t.{$dateField}, '%Y-%m')";
-        $dateWhere = "t.{$dateField} >= ?";
-        $dateParams = array_merge($params, [$twelveMonthsAgo]);
+        $fullWhere = $where;
+        $fullParams = $params;
     }
 
-    if ($where) {
-        $fullWhere = $where . " AND {$dateWhere}";
-    } else {
-        $fullWhere = " WHERE {$dateWhere}";
-    }
     if ($dateField === 'closed_datetime') {
-        $fullWhere .= " AND t.{$dateField} IS NOT NULL";
+        $notNull = "t.{$dateField} IS NOT NULL";
+        $fullWhere = $fullWhere ? $fullWhere . " AND {$notNull}" : " WHERE {$notNull}";
     }
 
     $sql = "SELECT {$dateExpr} AS label, {$seriesCol} AS series_val, COUNT(*) AS value
@@ -284,20 +360,20 @@ function getTimeWithSeries($conn, $prop, $seriesProp, $where, $params) {
             ORDER BY label, series_val";
 
     $stmt = $conn->prepare($sql);
-    $stmt->execute($dateParams);
+    $stmt->execute($fullParams);
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Get all unique series values
     $seriesNames = [];
     $rawMap = [];
     foreach ($data as $row) {
-        $seriesNames[$row['series_val']] = true;
-        $rawMap[$row['label']][$row['series_val']] = (int)$row['value'];
+        $seriesNames[(string)$row['series_val']] = true;
+        $rawMap[(string)$row['label']][(string)$row['series_val']] = (int)$row['value'];
     }
     $seriesNames = array_keys($seriesNames);
 
     // Fill gaps in time labels
-    $allLabels = $daily ? getDailyLabels() : getMonthlyLabels();
+    $allLabels = getTimeLabels($dateRange, $timeGrouping);
     $labels = [];
     $seriesData = [];
     foreach ($seriesNames as $sn) {
@@ -305,7 +381,7 @@ function getTimeWithSeries($conn, $prop, $seriesProp, $where, $params) {
     }
 
     foreach ($allLabels as $l) {
-        $labels[] = $daily ? formatDailyLabel($l) : formatMonthlyLabel($l);
+        $labels[] = formatLabel($l, $timeGrouping);
         foreach ($seriesNames as $sn) {
             $seriesData[$sn][] = $rawMap[$l][$sn] ?? 0;
         }
@@ -319,45 +395,53 @@ function getTimeWithSeries($conn, $prop, $seriesProp, $where, $params) {
     return ['labels' => $labels, 'series' => $series];
 }
 
-function getCreatedVsClosedData($conn, $prop, $where, $params) {
-    $daily = isDaily($prop);
-
-    if ($daily) {
-        $start = date('Y-m-01');
-        $dateExpr = "DATE(t.%s)";
-        $dateWhere = "t.%s >= ?";
-    } else {
-        $start = date('Y-m-01', strtotime('-11 months'));
-        $dateExpr = "DATE_FORMAT(t.%s, '%%Y-%%m')";
-        $dateWhere = "t.%s >= ?";
-    }
+function getCreatedVsClosedData($conn, $timeGrouping, $dateRange, $where, $params) {
+    $createdDateExpr = getDateExpr($timeGrouping, 'created_datetime');
+    $closedDateExpr = getDateExpr($timeGrouping, 'closed_datetime');
 
     // Created counts
-    $createdWhere = $where ? $where . " AND " . sprintf($dateWhere, 'created_datetime') : " WHERE " . sprintf($dateWhere, 'created_datetime');
-    $sqlCreated = "SELECT " . sprintf($dateExpr, 'created_datetime') . " AS label, COUNT(*) AS value FROM tickets t {$createdWhere} GROUP BY label ORDER BY label";
+    [$crDateWhere, $crDateParam] = buildDateRangeWhere($dateRange, 'created_datetime');
+    if ($crDateWhere) {
+        $createdWhere = $where ? $where . " AND {$crDateWhere}" : " WHERE {$crDateWhere}";
+        $createdParams = array_merge($params, [$crDateParam]);
+    } else {
+        $createdWhere = $where;
+        $createdParams = $params;
+    }
+
+    $sqlCreated = "SELECT {$createdDateExpr} AS label, COUNT(*) AS value FROM tickets t {$createdWhere} GROUP BY label ORDER BY label";
     $stmt = $conn->prepare($sqlCreated);
-    $stmt->execute(array_merge($params, [$start]));
+    $stmt->execute($createdParams);
     $createdData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Closed counts
-    $closedWhere = $where ? $where . " AND " . sprintf($dateWhere, 'closed_datetime') . " AND t.closed_datetime IS NOT NULL" : " WHERE " . sprintf($dateWhere, 'closed_datetime') . " AND t.closed_datetime IS NOT NULL";
-    $sqlClosed = "SELECT " . sprintf($dateExpr, 'closed_datetime') . " AS label, COUNT(*) AS value FROM tickets t {$closedWhere} GROUP BY label ORDER BY label";
+    [$clDateWhere, $clDateParam] = buildDateRangeWhere($dateRange, 'closed_datetime');
+    $closedNotNull = "t.closed_datetime IS NOT NULL";
+    if ($clDateWhere) {
+        $closedWhere = $where ? $where . " AND {$clDateWhere} AND {$closedNotNull}" : " WHERE {$clDateWhere} AND {$closedNotNull}";
+        $closedParams = array_merge($params, [$clDateParam]);
+    } else {
+        $closedWhere = $where ? $where . " AND {$closedNotNull}" : " WHERE {$closedNotNull}";
+        $closedParams = $params;
+    }
+
+    $sqlClosed = "SELECT {$closedDateExpr} AS label, COUNT(*) AS value FROM tickets t {$closedWhere} GROUP BY label ORDER BY label";
     $stmt = $conn->prepare($sqlClosed);
-    $stmt->execute(array_merge($params, [$start]));
+    $stmt->execute($closedParams);
     $closedData = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $createdMap = [];
-    foreach ($createdData as $row) $createdMap[$row['label']] = (int)$row['value'];
+    foreach ($createdData as $row) $createdMap[(string)$row['label']] = (int)$row['value'];
     $closedMap = [];
-    foreach ($closedData as $row) $closedMap[$row['label']] = (int)$row['value'];
+    foreach ($closedData as $row) $closedMap[(string)$row['label']] = (int)$row['value'];
 
-    $allLabels = $daily ? getDailyLabels() : getMonthlyLabels();
+    $allLabels = getTimeLabels($dateRange, $timeGrouping);
     $labels = [];
     $createdValues = [];
     $closedValues = [];
 
     foreach ($allLabels as $l) {
-        $labels[] = $daily ? formatDailyLabel($l) : formatMonthlyLabel($l);
+        $labels[] = formatLabel($l, $timeGrouping);
         $createdValues[] = $createdMap[$l] ?? 0;
         $closedValues[] = $closedMap[$l] ?? 0;
     }
@@ -395,37 +479,5 @@ function pivotToSeries($data) {
     }
 
     return ['labels' => $labels, 'series' => $series];
-}
-
-function getDailyLabels() {
-    $labels = [];
-    $start = new DateTime(date('Y-m-01'));
-    $end = new DateTime();
-    while ($start <= $end) {
-        $labels[] = $start->format('Y-m-d');
-        $start->modify('+1 day');
-    }
-    return $labels;
-}
-
-function getMonthlyLabels() {
-    $labels = [];
-    $start = new DateTime(date('Y-m-01', strtotime('-11 months')));
-    $end = new DateTime(date('Y-m-01'));
-    while ($start <= $end) {
-        $labels[] = $start->format('Y-m');
-        $start->modify('+1 month');
-    }
-    return $labels;
-}
-
-function formatDailyLabel($dateStr) {
-    $d = new DateTime($dateStr);
-    return $d->format('j M');
-}
-
-function formatMonthlyLabel($dateStr) {
-    $d = new DateTime($dateStr . '-01');
-    return $d->format('M Y');
 }
 ?>

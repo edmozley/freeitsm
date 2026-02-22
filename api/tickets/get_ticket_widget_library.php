@@ -17,7 +17,8 @@ try {
     $conn = connectToDatabase();
 
     $stmt = $conn->query("SELECT id, title, description, chart_type, aggregate_property, series_property,
-                                 is_status_filterable, default_status, display_order
+                                 is_status_filterable, default_status, date_range, department_filter,
+                                 time_grouping, display_order
                           FROM ticket_dashboard_widgets
                           WHERE is_active = 1
                           ORDER BY display_order ASC");

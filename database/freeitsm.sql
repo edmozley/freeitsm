@@ -488,6 +488,9 @@ CREATE TABLE IF NOT EXISTS `ticket_dashboard_widgets` (
     `series_property`       VARCHAR(20) NULL DEFAULT NULL,
     `is_status_filterable`  TINYINT(1) NOT NULL DEFAULT 1,
     `default_status`        VARCHAR(50) NULL,
+    `date_range`            VARCHAR(20) NULL DEFAULT NULL,
+    `department_filter`     JSON NULL DEFAULT NULL,
+    `time_grouping`         VARCHAR(10) NULL DEFAULT NULL,
     `display_order`         INT NOT NULL DEFAULT 0,
     `is_active`             TINYINT(1) NOT NULL DEFAULT 1,
     `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
@@ -508,22 +511,22 @@ CREATE TABLE IF NOT EXISTS `analyst_ticket_dashboard_widgets` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Seed: Ticket Dashboard Widgets
-INSERT IGNORE INTO `ticket_dashboard_widgets` (`id`, `title`, `description`, `chart_type`, `aggregate_property`, `series_property`, `is_status_filterable`, `default_status`, `display_order`) VALUES
-(1,  'Tickets by status',             'Distribution of tickets by current status',                 'doughnut', 'status',                       NULL,       0, NULL, 1),
-(2,  'Tickets by priority',           'Breakdown of tickets by priority level',                    'doughnut', 'priority',                     NULL,       1, NULL, 2),
-(3,  'Tickets by department',         'Ticket volume per department',                              'bar',      'department',                   NULL,       1, NULL, 3),
-(4,  'Tickets by type',               'Incidents, service requests, problems and tasks',           'doughnut', 'ticket_type',                  NULL,       1, NULL, 4),
-(5,  'Tickets by analyst',            'Ticket count per assigned analyst',                         'bar',      'analyst',                      NULL,       1, NULL, 5),
-(6,  'Tickets by origin',             'How tickets are being raised',                              'doughnut', 'origin',                       NULL,       1, NULL, 6),
-(7,  'First time fix rate',           'Proportion of tickets resolved on first contact',           'doughnut', 'first_time_fix',               NULL,       1, NULL, 7),
-(8,  'Created per day',               'Tickets created each day this month',                       'bar',      'created_daily',                NULL,       0, NULL, 8),
-(9,  'Closed per day',                'Tickets closed each day this month',                        'bar',      'closed_daily',                 NULL,       0, NULL, 9),
-(10, 'Created per month',             'Monthly ticket creation over the last 12 months',           'bar',      'created_monthly',              NULL,       0, NULL, 10),
-(11, 'Closed per month',              'Monthly ticket closures over the last 12 months',           'bar',      'closed_monthly',               NULL,       0, NULL, 11),
-(12, 'Created vs closed (monthly)',   'Compare ticket creation and closure rates by month',        'line',     'created_vs_closed_monthly',    NULL,       0, NULL, 12),
-(13, 'Monthly created by status',     'Monthly ticket creation broken down by current status',     'bar',      'created_monthly',              'status',   0, NULL, 13),
-(14, 'Monthly created by priority',   'Monthly ticket creation broken down by priority',           'bar',      'created_monthly',              'priority', 0, NULL, 14),
-(15, 'Dept breakdown by priority',    'Tickets per department broken down by priority level',      'bar',      'department',                   'priority', 1, NULL, 15);
+INSERT IGNORE INTO `ticket_dashboard_widgets` (`id`, `title`, `description`, `chart_type`, `aggregate_property`, `series_property`, `is_status_filterable`, `default_status`, `date_range`, `department_filter`, `time_grouping`, `display_order`) VALUES
+(1,  'Tickets by status',             'Distribution of tickets by current status',                 'doughnut', 'status',            NULL,       0, NULL, NULL,         NULL, NULL,    1),
+(2,  'Tickets by priority',           'Breakdown of tickets by priority level',                    'doughnut', 'priority',          NULL,       1, NULL, NULL,         NULL, NULL,    2),
+(3,  'Tickets by department',         'Ticket volume per department',                              'bar',      'department',        NULL,       1, NULL, NULL,         NULL, NULL,    3),
+(4,  'Tickets by type',               'Incidents, service requests, problems and tasks',           'doughnut', 'ticket_type',       NULL,       1, NULL, NULL,         NULL, NULL,    4),
+(5,  'Tickets by analyst',            'Ticket count per assigned analyst',                         'bar',      'analyst',           NULL,       1, NULL, NULL,         NULL, NULL,    5),
+(6,  'Tickets by origin',             'How tickets are being raised',                              'doughnut', 'origin',            NULL,       1, NULL, NULL,         NULL, NULL,    6),
+(7,  'First time fix rate',           'Proportion of tickets resolved on first contact',           'doughnut', 'first_time_fix',    NULL,       1, NULL, NULL,         NULL, NULL,    7),
+(8,  'Created per day',               'Tickets created each day this month',                       'bar',      'created',           NULL,       0, NULL, 'this_month', NULL, 'day',   8),
+(9,  'Closed per day',                'Tickets closed each day this month',                        'bar',      'closed',            NULL,       0, NULL, 'this_month', NULL, 'day',   9),
+(10, 'Created per month',             'Monthly ticket creation over the last 12 months',           'bar',      'created',           NULL,       0, NULL, '12m',        NULL, 'month', 10),
+(11, 'Closed per month',              'Monthly ticket closures over the last 12 months',           'bar',      'closed',            NULL,       0, NULL, '12m',        NULL, 'month', 11),
+(12, 'Created vs closed (monthly)',   'Compare ticket creation and closure rates by month',        'line',     'created_vs_closed', NULL,       0, NULL, '12m',        NULL, 'month', 12),
+(13, 'Monthly created by status',     'Monthly ticket creation broken down by current status',     'bar',      'created',           'status',   0, NULL, '12m',        NULL, 'month', 13),
+(14, 'Monthly created by priority',   'Monthly ticket creation broken down by priority',           'bar',      'created',           'priority', 0, NULL, '12m',        NULL, 'month', 14),
+(15, 'Dept breakdown by priority',    'Tickets per department broken down by priority level',      'bar',      'department',        'priority', 1, NULL, NULL,         NULL, NULL,    15);
 
 CREATE TABLE IF NOT EXISTS `servers` (
     `id`                INT NOT NULL AUTO_INCREMENT,

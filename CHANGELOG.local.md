@@ -19,6 +19,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 081 | System            | Feature     | Dashboard widgets demo data import with 15 pre-built ticket widgets and per-analyst dashboard layouts for 3 analysts |
 | 082 | Tickets           | Fix         | Fix tickets by analyst and owner dashboard widgets using wrong column name (a.name instead of a.full_name) |
 | 083 | Tickets           | Fix         | Setting ticket owner now also sets assigned_analyst_id so the analyst appears in dashboard widgets |
+| 084 | Tickets           | Feature     | Dashboard widgets now support configurable date range, department filter, and day/month/year time grouping |
 
 ---
 

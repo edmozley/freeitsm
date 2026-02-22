@@ -387,6 +387,9 @@ $schema = [
         'series_property'       => 'VARCHAR(20) NULL DEFAULT NULL',
         'is_status_filterable'  => 'TINYINT(1) NOT NULL DEFAULT 1',
         'default_status'        => 'VARCHAR(50) NULL',
+        'date_range'            => 'VARCHAR(20) NULL DEFAULT NULL',
+        'department_filter'     => 'JSON NULL',
+        'time_grouping'         => 'VARCHAR(10) NULL DEFAULT NULL',
         'display_order'         => 'INT NOT NULL DEFAULT 0',
         'is_active'             => 'TINYINT(1) NOT NULL DEFAULT 1',
         'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
@@ -1111,6 +1114,28 @@ try {
                 'status' => 'seeded',
                 'details' => ['Inserted 13 default dashboard widgets']
             ];
+        }
+    }
+
+    // Migration: convert old aggregate_property values to new format with time_grouping
+    $tktWidgetCheck = $conn->prepare("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = ? AND table_name = 'ticket_dashboard_widgets'");
+    $tktWidgetCheck->execute([DB_NAME]);
+    if ((int)$tktWidgetCheck->fetch(PDO::FETCH_ASSOC)['cnt'] > 0) {
+        $migCheck = $conn->query("SELECT COUNT(*) FROM ticket_dashboard_widgets WHERE aggregate_property IN ('created_daily','created_monthly','closed_daily','closed_monthly','created_vs_closed_daily','created_vs_closed_monthly')");
+        if ((int)$migCheck->fetchColumn() > 0) {
+            $migrations = [
+                ['created_daily',             'created',          'day',   'this_month'],
+                ['created_monthly',           'created',          'month', '12m'],
+                ['closed_daily',              'closed',           'day',   'this_month'],
+                ['closed_monthly',            'closed',           'month', '12m'],
+                ['created_vs_closed_daily',   'created_vs_closed','day',   'this_month'],
+                ['created_vs_closed_monthly', 'created_vs_closed','month', '12m'],
+            ];
+            foreach ($migrations as [$old, $new, $grouping, $dateRange]) {
+                $conn->prepare("UPDATE ticket_dashboard_widgets SET aggregate_property = ?, time_grouping = ?, date_range = COALESCE(date_range, ?) WHERE aggregate_property = ?")
+                     ->execute([$new, $grouping, $dateRange, $old]);
+            }
+            $results[] = ['table' => 'ticket_dashboard_widgets', 'status' => 'migrated', 'details' => ['Converted legacy aggregate properties to new format with time_grouping']];
         }
     }
 

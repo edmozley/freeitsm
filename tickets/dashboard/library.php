@@ -348,15 +348,20 @@ $path_prefix = '../../';
                             <option value="training_provided">Training provided</option>
                         </optgroup>
                         <optgroup label="Time series">
-                            <option value="created_daily">Created per day (this month)</option>
-                            <option value="created_monthly">Created per month (12 months)</option>
-                            <option value="closed_daily">Closed per day (this month)</option>
-                            <option value="closed_monthly">Closed per month (12 months)</option>
+                            <option value="created">Created</option>
+                            <option value="closed">Closed</option>
                         </optgroup>
                         <optgroup label="Comparison">
-                            <option value="created_vs_closed_daily">Created vs closed per day</option>
-                            <option value="created_vs_closed_monthly">Created vs closed per month</option>
+                            <option value="created_vs_closed">Created vs closed</option>
                         </optgroup>
+                    </select>
+                </div>
+                <div class="form-group" id="timeGroupingGroup" style="display:none;">
+                    <label>Time grouping</label>
+                    <select id="editTimeGrouping">
+                        <option value="day">Day</option>
+                        <option value="month">Month</option>
+                        <option value="year">Year</option>
                     </select>
                 </div>
                 <div class="form-group" id="seriesGroup">
@@ -366,6 +371,24 @@ $path_prefix = '../../';
                         <option value="status">By status</option>
                         <option value="priority">By priority</option>
                     </select>
+                </div>
+                <div class="form-group">
+                    <label>Date range</label>
+                    <select id="editDateRange">
+                        <option value="">All time</option>
+                        <option value="7d">Last 7 days</option>
+                        <option value="30d">Last 30 days</option>
+                        <option value="this_month">This month</option>
+                        <option value="3m">Last 3 months</option>
+                        <option value="6m">Last 6 months</option>
+                        <option value="12m">Last 12 months</option>
+                        <option value="this_year">This year</option>
+                    </select>
+                </div>
+                <div class="form-group full-width" id="deptFilterGroup">
+                    <label>Department filter</label>
+                    <div id="deptCheckboxes" style="display:flex;flex-wrap:wrap;gap:8px;padding:4px 0;"></div>
+                    <div style="font-size:11px;color:#888;margin-top:4px;">Leave all unchecked to include all departments</div>
                 </div>
                 <div class="form-group checkbox-group" id="filterableGroup">
                     <input type="checkbox" id="editFilterable" checked>
@@ -404,12 +427,19 @@ $path_prefix = '../../';
             status: 'Status', priority: 'Priority', department: 'Department',
             ticket_type: 'Ticket type', analyst: 'Assigned analyst', owner: 'Owner',
             origin: 'Origin', first_time_fix: 'First time fix', training_provided: 'Training provided',
-            created_daily: 'Created per day', created_monthly: 'Created per month',
-            closed_daily: 'Closed per day', closed_monthly: 'Closed per month',
-            created_vs_closed_daily: 'Created vs closed (daily)', created_vs_closed_monthly: 'Created vs closed (monthly)'
+            created: 'Created', closed: 'Closed', created_vs_closed: 'Created vs closed'
         };
 
         const SERIES_LABELS = { status: 'Status', priority: 'Priority' };
+
+        const TIME_GROUPING_LABELS = { day: 'Daily', month: 'Monthly', year: 'Yearly' };
+        const DATE_RANGE_LABELS = {
+            '': 'All time', '7d': 'Last 7 days', '30d': 'Last 30 days',
+            'this_month': 'This month', '3m': 'Last 3 months',
+            '6m': 'Last 6 months', '12m': 'Last 12 months', 'this_year': 'This year'
+        };
+
+        const TIME_AGGREGATES = ['created', 'closed', 'created_vs_closed'];
 
         // Rules for which series options are valid per aggregate
         const SERIES_RULES = {
@@ -422,37 +452,49 @@ $path_prefix = '../../';
             origin: ['status', 'priority'],
             first_time_fix: [],
             training_provided: [],
-            created_daily: ['status', 'priority'],
-            created_monthly: ['status', 'priority'],
-            closed_daily: ['status', 'priority'],
-            closed_monthly: ['status', 'priority'],
-            created_vs_closed_daily: [],
-            created_vs_closed_monthly: []
+            created: ['status', 'priority'],
+            closed: ['status', 'priority'],
+            created_vs_closed: []
         };
 
         // Rules for which chart types are valid
         function getValidChartTypes(aggProp, seriesProp) {
-            const isTime = ['created_daily', 'created_monthly', 'closed_daily', 'closed_monthly'].includes(aggProp);
-            const isComparison = aggProp.startsWith('created_vs_closed');
+            const isTime = TIME_AGGREGATES.includes(aggProp);
 
             if (seriesProp) return ['bar', 'line'];
-            if (isComparison) return ['bar', 'line'];
             if (isTime) return ['bar', 'line'];
             return ['bar', 'doughnut', 'pie'];
         }
 
+        let allDepartments = [];
+
         async function init() {
-            const [libRes, dashRes] = await Promise.all([
+            const [libRes, dashRes, deptRes] = await Promise.all([
                 fetch(API_BASE + 'get_ticket_widget_library.php').then(r => r.json()).catch(() => ({ success: false })),
-                fetch(API_BASE + 'get_ticket_dashboard.php').then(r => r.json()).catch(() => ({ success: false }))
+                fetch(API_BASE + 'get_ticket_dashboard.php').then(r => r.json()).catch(() => ({ success: false })),
+                fetch(API_BASE + 'get_departments.php').then(r => r.json()).catch(() => ({ success: false }))
             ]);
 
             if (libRes.success) allWidgets = libRes.widgets;
             if (dashRes.success) {
                 dashboardWidgetIds = new Set((dashRes.widgets || []).map(w => parseInt(w.widget_id)));
             }
+            if (deptRes.success) {
+                allDepartments = (deptRes.departments || []).filter(d => d.is_active);
+                buildDeptCheckboxes();
+            }
 
             renderTable();
+        }
+
+        function buildDeptCheckboxes() {
+            const container = document.getElementById('deptCheckboxes');
+            container.innerHTML = allDepartments.map(d =>
+                `<label style="display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:normal;cursor:pointer;">
+                    <input type="checkbox" value="${d.id}" class="dept-checkbox" style="width:14px;height:14px;">
+                    ${escapeHtml(d.name)}
+                </label>`
+            ).join('');
         }
 
         function renderTable() {
@@ -469,14 +511,22 @@ $path_prefix = '../../';
             tbody.innerHTML = filtered.map(w => {
                 const onDash = dashboardWidgetIds.has(parseInt(w.id));
                 const propLabel = PROPERTY_LABELS[w.aggregate_property] || w.aggregate_property;
+                const groupLabel = w.time_grouping ? TIME_GROUPING_LABELS[w.time_grouping] || w.time_grouping : '';
+                const propDisplay = groupLabel ? propLabel + ' (' + groupLabel + ')' : propLabel;
                 const seriesLabel = w.series_property ? SERIES_LABELS[w.series_property] || w.series_property : '';
+                const rangeLabel = w.date_range ? DATE_RANGE_LABELS[w.date_range] || w.date_range : '';
+                const deptCount = w.department_filter ? (typeof w.department_filter === 'string' ? JSON.parse(w.department_filter) : w.department_filter).length : 0;
+                const filterInfo = [rangeLabel, deptCount > 0 ? deptCount + ' dept' + (deptCount > 1 ? 's' : '') : ''].filter(Boolean).join(', ');
                 return `<tr>
                     <td>
                         <div class="widget-title">${escapeHtml(w.title)}</div>
                         <div class="widget-desc">${escapeHtml(w.description || '')}</div>
                     </td>
                     <td><span class="type-badge">${escapeHtml(w.chart_type)}</span></td>
-                    <td>${escapeHtml(propLabel)}</td>
+                    <td>
+                        ${escapeHtml(propDisplay)}
+                        ${filterInfo ? `<div class="widget-desc">${escapeHtml(filterInfo)}</div>` : ''}
+                    </td>
                     <td>${seriesLabel ? `<span class="series-badge">${escapeHtml(seriesLabel)}</span>` : '—'}</td>
                     <td>${parseInt(w.is_status_filterable) ? 'Yes' : 'No'}</td>
                     <td class="actions-cell">
@@ -505,9 +555,9 @@ $path_prefix = '../../';
         function onPropertyChange() {
             const prop = document.getElementById('editProperty').value;
             const seriesSelect = document.getElementById('editSeries');
-            const chartSelect = document.getElementById('editChartType');
             const seriesGroup = document.getElementById('seriesGroup');
-            const filterableGroup = document.getElementById('filterableGroup');
+            const timeGroupingGroup = document.getElementById('timeGroupingGroup');
+            const isTime = TIME_AGGREGATES.includes(prop);
 
             // Update series options
             const allowedSeries = SERIES_RULES[prop] || [];
@@ -521,6 +571,16 @@ $path_prefix = '../../';
                 seriesSelect.value = '';
             } else {
                 seriesGroup.style.display = '';
+            }
+
+            // Time grouping visibility
+            if (isTime) {
+                timeGroupingGroup.style.display = '';
+                if (!document.getElementById('editTimeGrouping').value) {
+                    document.getElementById('editTimeGrouping').value = 'month';
+                }
+            } else {
+                timeGroupingGroup.style.display = 'none';
             }
 
             // Update chart type options
@@ -581,6 +641,9 @@ $path_prefix = '../../';
             document.getElementById('editProperty').value = 'status';
             document.getElementById('editSeries').value = '';
             document.getElementById('editFilterable').checked = true;
+            document.getElementById('editDateRange').value = '';
+            document.getElementById('editTimeGrouping').value = 'month';
+            document.querySelectorAll('.dept-checkbox').forEach(cb => cb.checked = false);
             document.getElementById('seriesGroup').style.display = 'none';
             document.getElementById('filterableGroup').style.display = '';
             document.getElementById('editPanel').classList.add('active');
@@ -598,7 +661,7 @@ $path_prefix = '../../';
             document.getElementById('editDescription').value = w.description || '';
             document.getElementById('editProperty').value = w.aggregate_property;
 
-            // Trigger property change to populate series/chart options
+            // Trigger property change to populate series/chart options and time grouping visibility
             onPropertyChange();
 
             document.getElementById('editSeries').value = w.series_property || '';
@@ -606,6 +669,16 @@ $path_prefix = '../../';
             document.getElementById('editChartType').value = w.chart_type;
             document.getElementById('editFilterable').checked = parseInt(w.is_status_filterable) === 1;
             updateFilterableVisibility();
+
+            // Populate new fields
+            document.getElementById('editDateRange').value = w.date_range || '';
+            document.getElementById('editTimeGrouping').value = w.time_grouping || 'month';
+
+            // Department filter checkboxes
+            const deptIds = w.department_filter ? (typeof w.department_filter === 'string' ? JSON.parse(w.department_filter) : w.department_filter) : [];
+            document.querySelectorAll('.dept-checkbox').forEach(cb => {
+                cb.checked = deptIds.includes(parseInt(cb.value));
+            });
 
             document.getElementById('editPanel').classList.add('active');
             document.getElementById('editTitle').focus();
@@ -624,9 +697,20 @@ $path_prefix = '../../';
             const aggregate_property = document.getElementById('editProperty').value;
             const series_property = document.getElementById('editSeries').value || null;
             const is_status_filterable = document.getElementById('editFilterable').checked ? 1 : 0;
+            const date_range = document.getElementById('editDateRange').value || null;
+            const time_grouping = TIME_AGGREGATES.includes(aggregate_property)
+                ? document.getElementById('editTimeGrouping').value || null
+                : null;
+            const department_filter = [...document.querySelectorAll('.dept-checkbox:checked')]
+                .map(cb => parseInt(cb.value));
 
             if (!title) {
                 showToast('Title is required', 'error');
+                return;
+            }
+
+            if (TIME_AGGREGATES.includes(aggregate_property) && !time_grouping) {
+                showToast('Time grouping is required for time-based aggregates', 'error');
                 return;
             }
 
@@ -634,7 +718,11 @@ $path_prefix = '../../';
                 const res = await fetch(API_BASE + 'save_ticket_dashboard_widget.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id, title, description, chart_type, aggregate_property, series_property, is_status_filterable })
+                    body: JSON.stringify({
+                        id, title, description, chart_type, aggregate_property, series_property,
+                        is_status_filterable, date_range, time_grouping,
+                        department_filter: department_filter.length > 0 ? department_filter : null
+                    })
                 });
                 const data = await res.json();
 
@@ -672,7 +760,10 @@ $path_prefix = '../../';
                         chart_type: w.chart_type,
                         aggregate_property: w.aggregate_property,
                         series_property: w.series_property || null,
-                        is_status_filterable: parseInt(w.is_status_filterable)
+                        is_status_filterable: parseInt(w.is_status_filterable),
+                        date_range: w.date_range || null,
+                        time_grouping: w.time_grouping || null,
+                        department_filter: w.department_filter ? (typeof w.department_filter === 'string' ? JSON.parse(w.department_filter) : w.department_filter) : null
                     })
                 });
                 const data = await res.json();

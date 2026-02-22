@@ -31,6 +31,9 @@
                 "series_property": null,
                 "is_status_filterable": 0,
                 "default_status": null,
+                "date_range": null,
+                "department_filter": null,
+                "time_grouping": null,
                 "display_order": 1
             },
             {
@@ -42,6 +45,9 @@
                 "series_property": null,
                 "is_status_filterable": 1,
                 "default_status": null,
+                "date_range": null,
+                "department_filter": null,
+                "time_grouping": null,
                 "display_order": 2
             },
             {
@@ -53,6 +59,9 @@
                 "series_property": null,
                 "is_status_filterable": 1,
                 "default_status": null,
+                "date_range": null,
+                "department_filter": null,
+                "time_grouping": null,
                 "display_order": 3
             },
             {
@@ -64,6 +73,9 @@
                 "series_property": null,
                 "is_status_filterable": 1,
                 "default_status": null,
+                "date_range": null,
+                "department_filter": null,
+                "time_grouping": null,
                 "display_order": 4
             },
             {
@@ -75,6 +87,9 @@
                 "series_property": null,
                 "is_status_filterable": 1,
                 "default_status": null,
+                "date_range": null,
+                "department_filter": null,
+                "time_grouping": null,
                 "display_order": 5
             },
             {
@@ -86,6 +101,9 @@
                 "series_property": null,
                 "is_status_filterable": 1,
                 "default_status": null,
+                "date_range": null,
+                "department_filter": null,
+                "time_grouping": null,
                 "display_order": 6
             },
             {
@@ -97,6 +115,9 @@
                 "series_property": null,
                 "is_status_filterable": 1,
                 "default_status": null,
+                "date_range": null,
+                "department_filter": null,
+                "time_grouping": null,
                 "display_order": 7
             },
             {
@@ -104,10 +125,13 @@
                 "title": "Created per day",
                 "description": "Tickets created each day this month",
                 "chart_type": "bar",
-                "aggregate_property": "created_daily",
+                "aggregate_property": "created",
                 "series_property": null,
                 "is_status_filterable": 0,
                 "default_status": null,
+                "date_range": "this_month",
+                "department_filter": null,
+                "time_grouping": "day",
                 "display_order": 8
             },
             {
@@ -115,10 +139,13 @@
                 "title": "Closed per day",
                 "description": "Tickets closed each day this month",
                 "chart_type": "bar",
-                "aggregate_property": "closed_daily",
+                "aggregate_property": "closed",
                 "series_property": null,
                 "is_status_filterable": 0,
                 "default_status": null,
+                "date_range": "this_month",
+                "department_filter": null,
+                "time_grouping": "day",
                 "display_order": 9
             },
             {
@@ -126,10 +153,13 @@
                 "title": "Created per month",
                 "description": "Monthly ticket creation over the last 12 months",
                 "chart_type": "bar",
-                "aggregate_property": "created_monthly",
+                "aggregate_property": "created",
                 "series_property": null,
                 "is_status_filterable": 0,
                 "default_status": null,
+                "date_range": "12m",
+                "department_filter": null,
+                "time_grouping": "month",
                 "display_order": 10
             },
             {
@@ -137,10 +167,13 @@
                 "title": "Closed per month",
                 "description": "Monthly ticket closures over the last 12 months",
                 "chart_type": "bar",
-                "aggregate_property": "closed_monthly",
+                "aggregate_property": "closed",
                 "series_property": null,
                 "is_status_filterable": 0,
                 "default_status": null,
+                "date_range": "12m",
+                "department_filter": null,
+                "time_grouping": "month",
                 "display_order": 11
             },
             {
@@ -148,10 +181,13 @@
                 "title": "Created vs closed (monthly)",
                 "description": "Compare ticket creation and closure rates by month",
                 "chart_type": "line",
-                "aggregate_property": "created_vs_closed_monthly",
+                "aggregate_property": "created_vs_closed",
                 "series_property": null,
                 "is_status_filterable": 0,
                 "default_status": null,
+                "date_range": "12m",
+                "department_filter": null,
+                "time_grouping": "month",
                 "display_order": 12
             },
             {
@@ -159,10 +195,13 @@
                 "title": "Monthly created by status",
                 "description": "Monthly ticket creation broken down by current status",
                 "chart_type": "bar",
-                "aggregate_property": "created_monthly",
+                "aggregate_property": "created",
                 "series_property": "status",
                 "is_status_filterable": 0,
                 "default_status": null,
+                "date_range": "12m",
+                "department_filter": null,
+                "time_grouping": "month",
                 "display_order": 13
             },
             {
@@ -170,10 +209,13 @@
                 "title": "Monthly created by priority",
                 "description": "Monthly ticket creation broken down by priority",
                 "chart_type": "bar",
-                "aggregate_property": "created_monthly",
+                "aggregate_property": "created",
                 "series_property": "priority",
                 "is_status_filterable": 0,
                 "default_status": null,
+                "date_range": "12m",
+                "department_filter": null,
+                "time_grouping": "month",
                 "display_order": 14
             },
             {
@@ -185,6 +227,9 @@
                 "series_property": "priority",
                 "is_status_filterable": 1,
                 "default_status": null,
+                "date_range": null,
+                "department_filter": null,
+                "time_grouping": null,
                 "display_order": 15
             }
         ]

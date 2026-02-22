@@ -354,8 +354,10 @@ The primary module. Three-panel Outlook-style interface.
 - **Activity log**: Searchable, paginated log of imported and rejected emails per mailbox with clickable processing log details
 - **Dashboard** (`dashboard/`): Per-analyst customisable dashboard with Chart.js widgets
   - Widget library with 15 pre-built charts (bar, pie, doughnut, line) covering status, priority, department, type, analyst, origin, first time fix, and time-series
-  - Time-series widgets: tickets created/closed per day (current month) and per month (last 12 months)
+  - Time-series widgets with configurable grouping: day, month, or year
   - Multi-series: stacked bar charts broken down by status or priority, and created-vs-closed comparison line charts
+  - Configurable date range filter (last 7/30 days, this month, last 3/6/12 months, this year, all time)
+  - Department filter: scope any widget to specific departments
   - Each analyst picks widgets for their own dashboard
   - Status filtering on supported widgets
   - Drag-and-drop reordering
