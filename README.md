@@ -15,19 +15,42 @@ It genuinely helps and means a lot!
 
 A comprehensive web-based IT Service Management (ITSM) platform with 13 integrated modules covering a unified attention dashboard, tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, and system administration. Includes analyst account management with password reset and TOTP multi-factor authentication.
 
-> **⚠️ Note for early adopters:** If you downloaded FreeITSM before 18 February 2026, the project required Microsoft SQL Server Express and ODBC drivers — sorry about that! The original choice of SQL Server made sense at the time (it was the database I was most familiar with), but it created a painful setup experience: downloading SQL Server Express, installing ODBC drivers, enabling Mixed Mode Authentication, and troubleshooting driver compatibility issues. That's a lot of friction for an open-source project that's supposed to be easy to get running.
->
-> FreeITSM now runs on **MySQL**, which comes pre-installed with WAMP, XAMPP, and most web hosting stacks. No extra downloads, no driver headaches. If you've already set up with SQL Server, you'll need to migrate your data to MySQL and update your `db_config.php` — but for new installations, it's just clone and go.
+## Screenshots
+
+<table>
+<tr>
+<td align="center"><strong>Watchtower</strong><br><img src="https://freeitsm.co.uk/images/screenshots/watchtower_1.png" width="350" alt="Watchtower"></td>
+<td align="center"><strong>Tickets</strong><br><img src="https://freeitsm.co.uk/images/screenshots/tickets_1.png" width="350" alt="Tickets"></td>
+<td align="center"><strong>Assets</strong><br><img src="https://freeitsm.co.uk/images/screenshots/assets_1.png" width="350" alt="Assets"></td>
+</tr>
+<tr>
+<td align="center"><strong>Knowledge</strong><br><img src="https://freeitsm.co.uk/images/screenshots/knowledge_1.png" width="350" alt="Knowledge"></td>
+<td align="center"><strong>Changes</strong><br><img src="https://freeitsm.co.uk/images/screenshots/changes_1.png" width="350" alt="Changes"></td>
+<td align="center"><strong>Calendar</strong><br><img src="https://freeitsm.co.uk/images/screenshots/calendar_1.png" width="350" alt="Calendar"></td>
+</tr>
+<tr>
+<td align="center"><strong>Morning Checks</strong><br><img src="https://freeitsm.co.uk/images/screenshots/checks_1.png" width="350" alt="Morning Checks"></td>
+<td align="center"><strong>Software</strong><br><img src="https://freeitsm.co.uk/images/screenshots/software_1.png" width="350" alt="Software"></td>
+<td align="center"><strong>Forms</strong><br><img src="https://freeitsm.co.uk/images/screenshots/forms_1.png" width="350" alt="Forms"></td>
+</tr>
+<tr>
+<td align="center"><strong>Contracts</strong><br><img src="https://freeitsm.co.uk/images/screenshots/contracts_1.png" width="350" alt="Contracts"></td>
+<td align="center"><strong>System Wiki</strong><br><img src="https://freeitsm.co.uk/images/screenshots/wiki_1.png" width="350" alt="System Wiki"></td>
+<td align="center"></td>
+</tr>
+</table>
+
+<p align="center"><a href="https://freeitsm.co.uk/screenshots.html"><strong>View all 57 screenshots →</strong></a></p>
 
 ## Table of Contents
 
+- [Screenshots](#screenshots)
 - [Quick Start](#-quick-start)
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Configuration Files](#configuration-files)
 - [Technology Stack](#technology-stack)
 - [ITSM Modules](#itsm-modules)
-- [Screenshots](#screenshots)
 - [Directory Structure](#directory-structure)
 - [Shared Components](#shared-components)
 - [Module Details](#module-details)
@@ -62,6 +85,10 @@ A comprehensive web-based IT Service Management (ITSM) platform with 13 integrat
 - **Database**: MySQL 8.0 or higher (included with WAMP/XAMPP)
 - **Extensions**: PHP PDO, pdo_mysql, curl, openssl, mbstring
 - **Database credentials file**: A `db_config.php` file stored **outside your web root** (e.g. `C:\wamp64\db_config.php`) — see step 2 below. The path is configured in `config.php`.
+
+> **⚠️ Note for early adopters:** If you downloaded FreeITSM before 18 February 2026, the project required Microsoft SQL Server Express and ODBC drivers — sorry about that! The original choice of SQL Server made sense at the time (it was the database I was most familiar with), but it created a painful setup experience: downloading SQL Server Express, installing ODBC drivers, enabling Mixed Mode Authentication, and troubleshooting driver compatibility issues. That's a lot of friction for an open-source project that's supposed to be easy to get running.
+>
+> FreeITSM now runs on **MySQL**, which comes pre-installed with WAMP, XAMPP, and most web hosting stacks. No extra downloads, no driver headaches. If you've already set up with SQL Server, you'll need to migrate your data to MySQL and update your `db_config.php` — but for new installations, it's just clone and go.
 
 ### Installation
 
@@ -169,33 +196,6 @@ The platform is organised into 13 modules, accessible from a landing page (`inde
 | **Contracts** | `contracts/` | Amber `#f59e0b` | Supplier and contract lifecycle management with terms, financials, and notice tracking |
 | **Service Status** | `service-status/` | Emerald `#10b981` | Real-time service health dashboard with incident tracking |
 | **System** | `system/` | Blue-grey `#546e7a` | Encryption key management and module access control |
-
-## Screenshots
-
-<table>
-<tr>
-<td align="center"><strong>Watchtower</strong><br><img src="https://freeitsm.co.uk/images/screenshots/watchtower_1.png" width="350" alt="Watchtower"></td>
-<td align="center"><strong>Tickets</strong><br><img src="https://freeitsm.co.uk/images/screenshots/tickets_1.png" width="350" alt="Tickets"></td>
-<td align="center"><strong>Assets</strong><br><img src="https://freeitsm.co.uk/images/screenshots/assets_1.png" width="350" alt="Assets"></td>
-</tr>
-<tr>
-<td align="center"><strong>Knowledge</strong><br><img src="https://freeitsm.co.uk/images/screenshots/knowledge_1.png" width="350" alt="Knowledge"></td>
-<td align="center"><strong>Changes</strong><br><img src="https://freeitsm.co.uk/images/screenshots/changes_1.png" width="350" alt="Changes"></td>
-<td align="center"><strong>Calendar</strong><br><img src="https://freeitsm.co.uk/images/screenshots/calendar_1.png" width="350" alt="Calendar"></td>
-</tr>
-<tr>
-<td align="center"><strong>Morning Checks</strong><br><img src="https://freeitsm.co.uk/images/screenshots/checks_1.png" width="350" alt="Morning Checks"></td>
-<td align="center"><strong>Software</strong><br><img src="https://freeitsm.co.uk/images/screenshots/software_1.png" width="350" alt="Software"></td>
-<td align="center"><strong>Forms</strong><br><img src="https://freeitsm.co.uk/images/screenshots/forms_1.png" width="350" alt="Forms"></td>
-</tr>
-<tr>
-<td align="center"><strong>Contracts</strong><br><img src="https://freeitsm.co.uk/images/screenshots/contracts_1.png" width="350" alt="Contracts"></td>
-<td align="center"><strong>System Wiki</strong><br><img src="https://freeitsm.co.uk/images/screenshots/wiki_1.png" width="350" alt="System Wiki"></td>
-<td align="center"></td>
-</tr>
-</table>
-
-<p align="center"><a href="https://freeitsm.co.uk/screenshots.html"><strong>View all 57 screenshots →</strong></a></p>
 
 ---
 
