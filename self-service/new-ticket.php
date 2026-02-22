@@ -203,7 +203,7 @@ require_once 'includes/auth.php';
         <div class="success-message" id="successMsg"></div>
 
         <div class="form-card" id="formCard">
-            <form id="ticketForm" onsubmit="return handleSubmit(event)">
+            <form id="ticketForm" onsubmit="return handleSubmit(event)" autocomplete="off">
                 <div class="form-group">
                     <label for="subject">Subject *</label>
                     <input type="text" id="subject" required placeholder="Brief summary of your issue" autofocus>
