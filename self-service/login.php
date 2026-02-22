@@ -112,6 +112,38 @@ if (isset($_SESSION['ss_user_id'])) {
             color: #ccc;
             margin: 0 8px;
         }
+
+        /* MFA challenge */
+        .mfa-section { display: none; }
+        .mfa-section.active { display: block; }
+        .mfa-icon {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .mfa-icon svg { color: #667eea; }
+        .mfa-desc {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 20px;
+        }
+        .otp-input {
+            font-size: 22px !important;
+            letter-spacing: 8px;
+            text-align: center;
+            font-family: 'Consolas', monospace;
+        }
+        .mfa-back {
+            text-align: center;
+            margin-top: 16px;
+        }
+        .mfa-back a {
+            color: #667eea;
+            text-decoration: none;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .mfa-back a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -119,27 +151,47 @@ if (isset($_SESSION['ss_user_id'])) {
         <div class="login-header">
             <img src="../assets/images/CompanyLogo.png" alt="Company Logo">
             <h1>Self-Service Portal</h1>
-            <p>Sign in to view your tickets</p>
+            <p id="loginSubtitle">Sign in to view your tickets</p>
         </div>
 
         <div class="error-message" id="errorMsg"></div>
 
-        <form id="loginForm" onsubmit="return handleLogin(event)" autocomplete="off">
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" required autofocus autocomplete="off">
-            </div>
-            <div class="form-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" required autocomplete="off">
-            </div>
-            <button type="submit" class="login-button" id="loginBtn">Sign In</button>
-        </form>
+        <!-- Login Form -->
+        <div id="loginSection">
+            <form id="loginForm" onsubmit="return handleLogin(event)" autocomplete="off">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" required autofocus autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required autocomplete="off">
+                </div>
+                <button type="submit" class="login-button" id="loginBtn">Sign In</button>
+            </form>
 
-        <div class="login-links">
-            <a href="register.php">Create an account</a>
-            <span class="divider">|</span>
-            <a href="../login.php">Analyst login</a>
+            <div class="login-links">
+                <a href="register.php">Create an account</a>
+                <span class="divider">|</span>
+                <a href="../login.php">Analyst login</a>
+            </div>
+        </div>
+
+        <!-- MFA Challenge -->
+        <div id="mfaSection" class="mfa-section">
+            <div class="mfa-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <div class="mfa-desc">Enter the 6-digit code from your authenticator app</div>
+            <form id="mfaForm" onsubmit="return handleMfa(event)" autocomplete="off">
+                <div class="form-group">
+                    <input type="text" id="otpCode" class="otp-input" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code" required>
+                </div>
+                <button type="submit" class="login-button" id="mfaBtn">Verify</button>
+            </form>
+            <div class="mfa-back">
+                <a onclick="backToLogin()">Back to login</a>
+            </div>
         </div>
     </div>
 
@@ -163,7 +215,15 @@ if (isset($_SESSION['ss_user_id'])) {
             });
             const data = await resp.json();
             if (data.success) {
-                window.location.href = 'index.php';
+                if (data.mfa_required) {
+                    // Show MFA form
+                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('mfaSection').classList.add('active');
+                    document.getElementById('loginSubtitle').textContent = 'Multi-factor authentication';
+                    setTimeout(() => document.getElementById('otpCode').focus(), 100);
+                } else {
+                    window.location.href = 'index.php';
+                }
             } else {
                 errEl.textContent = data.error;
                 errEl.style.display = 'block';
@@ -176,6 +236,52 @@ if (isset($_SESSION['ss_user_id'])) {
             btn.disabled = false;
             btn.textContent = 'Sign In';
         }
+    }
+
+    async function handleMfa(e) {
+        e.preventDefault();
+        const btn = document.getElementById('mfaBtn');
+        const errEl = document.getElementById('errorMsg');
+        errEl.style.display = 'none';
+        btn.disabled = true;
+        btn.textContent = 'Verifying...';
+
+        try {
+            const resp = await fetch('../api/self-service/verify_login_otp.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    code: document.getElementById('otpCode').value.trim()
+                })
+            });
+            const data = await resp.json();
+            if (data.success) {
+                window.location.href = 'index.php';
+            } else {
+                errEl.textContent = data.error;
+                errEl.style.display = 'block';
+                btn.disabled = false;
+                btn.textContent = 'Verify';
+                document.getElementById('otpCode').value = '';
+                document.getElementById('otpCode').focus();
+            }
+        } catch (err) {
+            errEl.textContent = 'Verification failed. Please try again.';
+            errEl.style.display = 'block';
+            btn.disabled = false;
+            btn.textContent = 'Verify';
+        }
+    }
+
+    function backToLogin() {
+        document.getElementById('mfaSection').classList.remove('active');
+        document.getElementById('loginSection').style.display = '';
+        document.getElementById('loginSubtitle').textContent = 'Sign in to view your tickets';
+        document.getElementById('errorMsg').style.display = 'none';
+        document.getElementById('loginBtn').disabled = false;
+        document.getElementById('loginBtn').textContent = 'Sign In';
+        document.getElementById('password').value = '';
+        document.getElementById('otpCode').value = '';
     }
     </script>
 </body>

@@ -106,11 +106,14 @@ $schema = [
     ],
 
     'users' => [
-        'id'            => 'INT NOT NULL AUTO_INCREMENT',
-        'email'         => 'VARCHAR(255) NOT NULL',
-        'display_name'  => 'VARCHAR(255) NULL',
-        'password_hash' => 'VARCHAR(255) NULL',
-        'created_at'    => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'id'              => 'INT NOT NULL AUTO_INCREMENT',
+        'email'           => 'VARCHAR(255) NOT NULL',
+        'display_name'    => 'VARCHAR(255) NULL',
+        'preferred_name'  => 'VARCHAR(100) NULL',
+        'password_hash'   => 'VARCHAR(255) NULL',
+        'totp_secret'     => 'VARCHAR(500) NULL',
+        'totp_enabled'    => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_at'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     'tickets' => [

@@ -527,10 +527,13 @@ Service health dashboard with incident-driven status tracking.
 ### Self-Service Portal (`self-service/`)
 End-user portal allowing ticket requesters to register, log in, and interact with the service desk directly.
 
-- **Registration & Login**: Users register with email, name, and password. If a user already exists in the system (e.g. created via email processing) but has no password, they can claim their account by registering with their email. Separate authentication from the analyst login using `$_SESSION['ss_user_id']`.
+- **Registration & Login**: Users register with email, name, and password. If a user already exists in the system (e.g. created via email processing) but has no password, they can claim their account by registering with their email. Separate authentication from the analyst login using `$_SESSION['ss_user_id']`. Supports MFA (TOTP) login challenge.
 - **Dashboard** (`index.php`): Personalised overview showing ticket summary cards (Open, In Progress, On Hold, Total), a recent tickets table, and a live system status panel pulled from the Service Status module.
-- **New Ticket** (`new-ticket.php`): Submit a new support ticket with subject, priority, and description.
+- **New Ticket** (`new-ticket.php`): Submit a new support ticket with mailbox selection, subject, priority, description, and drag-and-drop file attachments.
 - **Ticket Detail** (`ticket.php`): View full ticket conversation thread and non-internal notes. Internal analyst notes are hidden from the portal.
+- **User Avatar Menu**: Initials circle in the header with dropdown for account management, MFA setup, password change, and logout.
+- **My Account**: Users can set a preferred name (e.g. "Ed" instead of "Ed Mozley") and change their password.
+- **Multi-Factor Authentication**: TOTP-based MFA using the same core libraries (`includes/totp.php`, `includes/encryption.php`) as the analyst system. Users can enable/disable MFA from their account menu.
 
 ---
 

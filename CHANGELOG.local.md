@@ -18,6 +18,10 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 090 | Self-Service      | Feature     | Add ticket creation and detail view pages in self-service portal |
 | 091 | Self-Service      | Feature     | Add mailbox selection dropdown to self-service new ticket form so replies are sent from the correct mailbox |
 | 092 | Self-Service      | Feature     | Add drag-and-drop file attachments to self-service new ticket form |
+| 093 | Self-Service      | Feature     | Add initials avatar circle with dropdown menu for account management on all portal pages |
+| 094 | Self-Service      | Feature     | Add multi-factor authentication (TOTP) support for self-service users reusing existing MFA libraries |
+| 095 | Self-Service      | Feature     | Add preferred name setting so users can choose how they are addressed (e.g. Ed instead of Ed Mozley) |
+| 096 | Self-Service      | Feature     | Add change password functionality to self-service user account menu |
 
 ---
 

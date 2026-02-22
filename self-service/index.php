@@ -58,16 +58,8 @@ require_once 'includes/auth.php';
         .portal-user {
             display: flex;
             align-items: center;
-            gap: 16px;
-            font-size: 13px;
+            position: relative;
         }
-        .portal-user .user-name { color: rgba(255,255,255,0.9); }
-        .portal-user a {
-            color: rgba(255,255,255,0.7);
-            text-decoration: none;
-            font-size: 12px;
-        }
-        .portal-user a:hover { color: white; }
 
         /* Layout */
         .portal-layout {
@@ -307,10 +299,7 @@ require_once 'includes/auth.php';
             <a href="index.php" class="active">Dashboard</a>
             <a href="new-ticket.php">New Ticket</a>
         </nav>
-        <div class="portal-user">
-            <span class="user-name"><?php echo htmlspecialchars($ss_user_name); ?></span>
-            <a href="logout.php">Logout</a>
-        </div>
+        <?php include 'includes/user-menu.php'; ?>
     </div>
 
     <div class="portal-layout">

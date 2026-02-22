@@ -125,11 +125,14 @@ CREATE TABLE IF NOT EXISTS `ticket_prefixes` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `users` (
-    `id`            INT NOT NULL AUTO_INCREMENT,
-    `email`         VARCHAR(255) NOT NULL,
-    `display_name`  VARCHAR(255) NULL,
-    `password_hash` VARCHAR(255) NULL,
-    `created_at`    DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `id`              INT NOT NULL AUTO_INCREMENT,
+    `email`           VARCHAR(255) NOT NULL,
+    `display_name`    VARCHAR(255) NULL,
+    `preferred_name`  VARCHAR(100) NULL,
+    `password_hash`   VARCHAR(255) NULL,
+    `totp_secret`     VARCHAR(500) NULL,
+    `totp_enabled`    TINYINT(1) NOT NULL DEFAULT 0,
+    `created_at`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_users_email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
