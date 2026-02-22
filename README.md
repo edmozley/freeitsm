@@ -260,6 +260,9 @@ sdtickets/
 │
 ├── software/                         # Software Module
 │   ├── index.php                     # Software inventory dashboard
+│   ├── dashboard/
+│   │   ├── index.php                 # Software dashboard (Chart.js widgets with drill-down)
+│   │   └── library.php               # Widget library management
 │   ├── licences/
 │   │   └── index.php                 # Licence management (CRUD, search, CSV export)
 │   ├── settings/
@@ -468,6 +471,12 @@ Software inventory tracking across the estate.
 
 - External API endpoint for automated inventory submission
 - Per-machine software mapping
+- **Dashboard** (`software/dashboard/`): Customisable Chart.js widget dashboard
+  - Widget types: version distribution per application, top installed applications, publisher distribution
+  - Chart types: bar, pie, doughnut
+  - Click any chart segment to drill down and see machines/details in a modal
+  - Cog icon for inline widget editing, drag-and-drop reordering
+  - Widget library for creating, editing, duplicating, and deleting widgets
 - **Licences** (`software/licences/`): Software licence management database
   - Record licences against applications in the software inventory
   - Licence types: Per User, Per Device, Site, Concurrent, Subscription, Other

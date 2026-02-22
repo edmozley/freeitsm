@@ -408,6 +408,27 @@ $schema = [
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    'software_dashboard_widgets' => [
+        'id'                        => 'INT NOT NULL AUTO_INCREMENT',
+        'title'                     => 'VARCHAR(100) NOT NULL',
+        'description'               => 'VARCHAR(255) NULL',
+        'chart_type'                => "VARCHAR(20) NOT NULL DEFAULT 'bar'",
+        'aggregate_property'        => "VARCHAR(50) NOT NULL DEFAULT 'version_distribution'",
+        'app_id'                    => 'INT NULL',
+        'exclude_system_components' => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'display_order'             => 'INT NOT NULL DEFAULT 0',
+        'is_active'                 => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'          => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'analyst_software_dashboard_widgets' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'        => 'INT NOT NULL',
+        'widget_id'         => 'INT NOT NULL',
+        'sort_order'        => 'INT NOT NULL DEFAULT 0',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'servers' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'vm_id'                 => 'VARCHAR(100) NOT NULL',
@@ -1140,6 +1161,24 @@ try {
                      ->execute([$new, $grouping, $dateRange, $old]);
             }
             $results[] = ['table' => 'ticket_dashboard_widgets', 'status' => 'migrated', 'details' => ['Converted legacy aggregate properties to new format with time_grouping']];
+        }
+    }
+
+    // Seed default software dashboard widgets if table is empty
+    $swWidgetCheck = $conn->prepare("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = ? AND table_name = 'software_dashboard_widgets'");
+    $swWidgetCheck->execute([DB_NAME]);
+    if ((int)$swWidgetCheck->fetch(PDO::FETCH_ASSOC)['cnt'] > 0) {
+        $swWidgetCount = (int) $conn->query("SELECT COUNT(*) FROM software_dashboard_widgets")->fetchColumn();
+        if ($swWidgetCount === 0) {
+            $conn->exec("INSERT INTO software_dashboard_widgets (id, title, description, chart_type, aggregate_property, app_id, exclude_system_components, display_order) VALUES
+                (1, 'Top Installed Applications', 'Most installed applications across all machines', 'bar', 'top_installed', NULL, 1, 1),
+                (2, 'Publisher Distribution', 'Software distribution by publisher', 'doughnut', 'publisher_distribution', NULL, 1, 2)
+            ");
+            $results[] = [
+                'table' => 'software_dashboard_widgets',
+                'status' => 'seeded',
+                'details' => ['Inserted 2 default software dashboard widgets']
+            ];
         }
     }
 

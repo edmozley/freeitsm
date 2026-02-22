@@ -23,6 +23,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 095 | Self-Service      | Feature     | Add preferred name setting so users can choose how they are addressed (e.g. Ed instead of Ed Mozley) |
 | 096 | Self-Service      | Feature     | Add change password functionality to self-service user account menu |
 | 097 | Self-Service      | Improvement | Deduplicate MFA endpoints by making api/myaccount/ endpoints work for both analysts and self-service users via shared auth context helper |
+| 098 | Software          | Feature     | Add customisable dashboard with version distribution, top installed, and publisher widgets with click-to-drill-down and cog editing |
 
 ---
 

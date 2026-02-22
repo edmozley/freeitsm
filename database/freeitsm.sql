@@ -532,6 +532,38 @@ INSERT IGNORE INTO `ticket_dashboard_widgets` (`id`, `title`, `description`, `ch
 (14, 'Monthly created by priority',   'Monthly ticket creation broken down by priority',           'bar',      'created',           'priority', 0, NULL, '12m',        NULL, 'month', 14),
 (15, 'Dept breakdown by priority',    'Tickets per department broken down by priority level',      'bar',      'department',        'priority', 1, NULL, NULL,         NULL, NULL,    15);
 
+CREATE TABLE IF NOT EXISTS `software_dashboard_widgets` (
+    `id`                        INT NOT NULL AUTO_INCREMENT,
+    `title`                     VARCHAR(100) NOT NULL,
+    `description`               VARCHAR(255) NULL,
+    `chart_type`                VARCHAR(20) NOT NULL DEFAULT 'bar',
+    `aggregate_property`        VARCHAR(50) NOT NULL DEFAULT 'version_distribution',
+    `app_id`                    INT NULL,
+    `exclude_system_components` TINYINT(1) NOT NULL DEFAULT 1,
+    `display_order`             INT NOT NULL DEFAULT 0,
+    `is_active`                 TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`          DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_sdw_app` FOREIGN KEY (`app_id`) REFERENCES `software_inventory_apps` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `analyst_software_dashboard_widgets` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `analyst_id`        INT NOT NULL,
+    `widget_id`         INT NOT NULL,
+    `sort_order`        INT NOT NULL DEFAULT 0,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_analyst_software_widget` (`analyst_id`, `widget_id`),
+    CONSTRAINT `fk_asdw_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`),
+    CONSTRAINT `fk_asdw_widget` FOREIGN KEY (`widget_id`) REFERENCES `software_dashboard_widgets` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seed: Software Dashboard Widgets
+INSERT IGNORE INTO `software_dashboard_widgets` (`id`, `title`, `description`, `chart_type`, `aggregate_property`, `app_id`, `exclude_system_components`, `display_order`) VALUES
+(1, 'Top Installed Applications', 'Most installed applications across all machines', 'bar', 'top_installed', NULL, 1, 1),
+(2, 'Publisher Distribution', 'Software distribution by publisher', 'doughnut', 'publisher_distribution', NULL, 1, 2);
+
 CREATE TABLE IF NOT EXISTS `servers` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `vm_id`             VARCHAR(100) NOT NULL,
