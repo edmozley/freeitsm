@@ -352,7 +352,7 @@ let _ssMfaEnabled = false;
 
 async function ssLoadMfaBadge() {
     try {
-        const resp = await fetch(_mfaApi + 'get_mfa_status.php');
+        const resp = await fetch(_mfaApi + 'get_mfa_status.php?ctx=user');
         const data = await resp.json();
         const badge = document.getElementById('ssMfaBadge');
         _ssMfaEnabled = data.success && data.mfa_enabled;
@@ -483,7 +483,7 @@ function ssShowMfaMsg(msg, type) {
 
 async function ssLoadMfaContent() {
     try {
-        const resp = await fetch(_mfaApi + 'get_mfa_status.php');
+        const resp = await fetch(_mfaApi + 'get_mfa_status.php?ctx=user');
         const data = await resp.json();
         _ssMfaEnabled = data.success && data.mfa_enabled;
         ssRenderMfaContent();
@@ -522,7 +522,7 @@ async function ssStartMfaSetup() {
     container.innerHTML = '<p style="color:#888;">Generating secret...</p>';
 
     try {
-        const resp = await fetch(_mfaApi + 'setup_mfa.php', {
+        const resp = await fetch(_mfaApi + 'setup_mfa.php?ctx=user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({})
@@ -576,7 +576,7 @@ async function ssVerifyMfaSetup() {
     btn.disabled = true;
 
     try {
-        const resp = await fetch(_mfaApi + 'verify_mfa.php', {
+        const resp = await fetch(_mfaApi + 'verify_mfa.php?ctx=user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ code: code })
@@ -608,7 +608,7 @@ async function ssDisableMfa() {
     }
 
     try {
-        const resp = await fetch(_mfaApi + 'disable_mfa.php', {
+        const resp = await fetch(_mfaApi + 'disable_mfa.php?ctx=user', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ password: pw })

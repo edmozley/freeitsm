@@ -11,7 +11,7 @@ require_once '../../includes/mfa_helpers.php';
 
 header('Content-Type: application/json');
 
-$ctx = getMfaAuthContext();
+$ctx = getMfaAuthContext($_GET['ctx'] ?? null);
 if (!$ctx) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
