@@ -12,28 +12,31 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
-| 102 | Watchtower        | Feature     | Add interactive help page with scroll-spy sidebar navigation covering dashboard layout, status dots, module cards, and auto-refresh |
-| 101 | Watchtower        | Feature     | Add unified attention dashboard showing actionable items across all modules with color-coded status indicators and auto-refresh |
-| 100 | All Modules       | Feature     | Add interactive help pages with scroll-spy sidebar navigation to Tickets, Knowledge, Calendar, Morning Checks, Reporting, Software, Contracts, Forms, and Service Status modules |
-| 087 | Calendar          | Fix         | Replace broken SVG chevron icons on month navigation buttons with reliable text-based chevrons |
-| 088 | Self-Service      | Feature     | Add self-service portal with user registration, login, and account claiming for passwordless users |
-| 089 | Self-Service      | Feature     | Add self-service dashboard showing ticket summary cards, recent tickets, and live system status |
-| 090 | Self-Service      | Feature     | Add ticket creation and detail view pages in self-service portal |
-| 091 | Self-Service      | Feature     | Add mailbox selection dropdown to self-service new ticket form so replies are sent from the correct mailbox |
-| 092 | Self-Service      | Feature     | Add drag-and-drop file attachments to self-service new ticket form |
-| 093 | Self-Service      | Feature     | Add initials avatar circle with dropdown menu for account management on all portal pages |
-| 094 | Self-Service      | Feature     | Add multi-factor authentication (TOTP) support for self-service users reusing existing MFA libraries |
-| 095 | Self-Service      | Feature     | Add preferred name setting so users can choose how they are addressed (e.g. Ed instead of Ed Mozley) |
-| 096 | Self-Service      | Feature     | Add change password functionality to self-service user account menu |
-| 097 | Self-Service      | Improvement | Deduplicate MFA endpoints by making api/myaccount/ endpoints work for both analysts and self-service users via shared auth context helper |
-| 098 | Software          | Feature     | Add customisable dashboard with version distribution, top installed, and publisher widgets with click-to-drill-down and cog editing |
-| 099 | Assets            | Feature     | Add device manager enumeration showing device category, name, driver info, and status per asset |
 
 ---
 
 ## Published
 
 ### 22 February 2026
+
+| ID  | Module            | Type        | Description |
+|-----|-------------------|-------------|-------------|
+| 102 | Watchtower        | Feature     | Add interactive help page with scroll-spy sidebar navigation covering dashboard layout, status dots, module cards, and auto-refresh |
+| 101 | Watchtower        | Feature     | Add unified attention dashboard showing actionable items across all modules with color-coded status indicators and auto-refresh |
+| 100 | All Modules       | Feature     | Add interactive help pages with scroll-spy sidebar navigation to Tickets, Knowledge, Calendar, Morning Checks, Reporting, Software, Contracts, Forms, and Service Status modules |
+| 099 | Assets            | Feature     | Add device manager enumeration showing device category, name, driver info, and status per asset |
+| 098 | Software          | Feature     | Add customisable dashboard with version distribution, top installed, and publisher widgets with click-to-drill-down and cog editing |
+| 097 | Self-Service      | Improvement | Deduplicate MFA endpoints by making api/myaccount/ endpoints work for both analysts and self-service users via shared auth context helper |
+| 096 | Self-Service      | Feature     | Add change password functionality to self-service user account menu |
+| 095 | Self-Service      | Feature     | Add preferred name setting so users can choose how they are addressed (e.g. Ed instead of Ed Mozley) |
+| 094 | Self-Service      | Feature     | Add multi-factor authentication (TOTP) support for self-service users reusing existing MFA libraries |
+| 093 | Self-Service      | Feature     | Add initials avatar circle with dropdown menu for account management on all portal pages |
+| 092 | Self-Service      | Feature     | Add drag-and-drop file attachments to self-service new ticket form |
+| 091 | Self-Service      | Feature     | Add mailbox selection dropdown to self-service new ticket form so replies are sent from the correct mailbox |
+| 090 | Self-Service      | Feature     | Add ticket creation and detail view pages in self-service portal |
+| 089 | Self-Service      | Feature     | Add self-service dashboard showing ticket summary cards, recent tickets, and live system status |
+| 088 | Self-Service      | Feature     | Add self-service portal with user registration, login, and account claiming for passwordless users |
+| 087 | Calendar          | Fix         | Replace broken SVG chevron icons on month navigation buttons with reliable text-based chevrons |
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
