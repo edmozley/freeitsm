@@ -428,6 +428,7 @@ Rich-text knowledge base with AI integration.
 - Article review workflow
 - Article versioning — save as new version to archive previous content with full version history
 - Article archiving with recycle bin (soft delete, restore, configurable auto-purge)
+- **Help guide** (`help.php`): Interactive guide covering article creation, review workflow, Ask AI, search and navigation, sharing and export, with scroll-spy sidebar navigation
 
 ### Change Management (`change-management/`)
 Change request tracking and approval workflows with ITIL-aligned processes.
