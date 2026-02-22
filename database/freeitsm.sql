@@ -128,6 +128,7 @@ CREATE TABLE IF NOT EXISTS `users` (
     `id`            INT NOT NULL AUTO_INCREMENT,
     `email`         VARCHAR(255) NOT NULL,
     `display_name`  VARCHAR(255) NULL,
+    `password_hash` VARCHAR(255) NULL,
     `created_at`    DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_users_email` (`email`)

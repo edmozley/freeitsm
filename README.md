@@ -42,6 +42,7 @@ A comprehensive web-based IT Service Management (ITSM) platform with 11 integrat
   - [Forms](#forms-forms)
   - [Contracts](#contracts-contracts)
   - [Service Status](#service-status-service-status)
+  - [Self-Service Portal](#self-service-portal-self-service)
 - [API Reference](#api-reference)
 - [Database](#database)
 - [Security](#security)
@@ -522,6 +523,14 @@ Service health dashboard with incident-driven status tracking.
 
 - **Dashboard** (`index.php`): Grid view of all active services showing worst current impact from open incidents. Below, a list of active and recently resolved incidents. Create/edit incidents via modal with multi-service impact selector.
 - **Settings** (`settings/`): Manage the list of services (name, description, display order, active status).
+
+### Self-Service Portal (`self-service/`)
+End-user portal allowing ticket requesters to register, log in, and interact with the service desk directly.
+
+- **Registration & Login**: Users register with email, name, and password. If a user already exists in the system (e.g. created via email processing) but has no password, they can claim their account by registering with their email. Separate authentication from the analyst login using `$_SESSION['ss_user_id']`.
+- **Dashboard** (`index.php`): Personalised overview showing ticket summary cards (Open, In Progress, On Hold, Total), a recent tickets table, and a live system status panel pulled from the Service Status module.
+- **New Ticket** (`new-ticket.php`): Submit a new support ticket with subject, priority, and description.
+- **Ticket Detail** (`ticket.php`): View full ticket conversation thread and non-internal notes. Internal analyst notes are hidden from the portal.
 
 ---
 

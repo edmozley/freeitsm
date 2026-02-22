@@ -13,6 +13,9 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
 | 087 | Calendar          | Fix         | Replace broken SVG chevron icons on month navigation buttons with reliable text-based chevrons |
+| 088 | Self-Service      | Feature     | Add self-service portal with user registration, login, and account claiming for passwordless users |
+| 089 | Self-Service      | Feature     | Add self-service dashboard showing ticket summary cards, recent tickets, and live system status |
+| 090 | Self-Service      | Feature     | Add ticket creation and detail view pages in self-service portal |
 
 ---
 
