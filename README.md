@@ -508,6 +508,8 @@ System administration and configuration.
 - **Demo Data** (`system/demo-data/`): One-click import of realistic sample data across all modules
   - Populates tickets, assets, knowledge articles, changes, calendar events, morning checks, contracts, services, software, forms, analysts, and end users
   - Designed for fresh installations — makes the system feel alive for evaluation and testing
+- **Games** (`system/games/`): Easter egg games for a bit of fun
+  - Delivery Dash (`system/games/delivery-dash/`): Pseudo-3D food delivery simulator with ITSM-themed restaurants, sat-nav minimap, temperature mechanic, and scoring
 
 ### Forms (`forms/`)
 Dynamic form builder and submission system with a unified sidebar + editor layout.
