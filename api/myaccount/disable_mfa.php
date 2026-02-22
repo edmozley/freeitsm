@@ -1,15 +1,18 @@
 <?php
 /**
  * API: Disable MFA
- * POST - Verifies password and disables MFA for the current analyst
+ * POST - Verifies password and disables MFA
+ * Works for both analysts and self-service users via getMfaAuthContext()
  */
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/mfa_helpers.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['analyst_id'])) {
+$ctx = getMfaAuthContext();
+if (!$ctx) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
@@ -24,23 +27,26 @@ if (empty($password)) {
 
 try {
     $conn = connectToDatabase();
-    $analystId = $_SESSION['analyst_id'];
 
     // Verify password
-    $sql = "SELECT password_hash FROM analysts WHERE id = ?";
+    $sql = "SELECT password_hash FROM {$ctx['table']} WHERE id = ?";
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$analystId]);
-    $analyst = $stmt->fetch(PDO::FETCH_ASSOC);
+    $stmt->execute([$ctx['id']]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    if (!$analyst || !password_verify($password, $analyst['password_hash'])) {
+    if (!$row || !password_verify($password, $row['password_hash'])) {
         echo json_encode(['success' => false, 'error' => 'Incorrect password']);
         exit;
     }
 
     // Disable MFA
-    $updateSql = "UPDATE analysts SET totp_enabled = 0, totp_secret = NULL, last_modified_datetime = UTC_TIMESTAMP() WHERE id = ?";
+    if ($ctx['type'] === 'analyst') {
+        $updateSql = "UPDATE {$ctx['table']} SET totp_enabled = 0, totp_secret = NULL, last_modified_datetime = UTC_TIMESTAMP() WHERE id = ?";
+    } else {
+        $updateSql = "UPDATE {$ctx['table']} SET totp_enabled = 0, totp_secret = NULL WHERE id = ?";
+    }
     $updateStmt = $conn->prepare($updateSql);
-    $updateStmt->execute([$analystId]);
+    $updateStmt->execute([$ctx['id']]);
 
     echo json_encode(['success' => true, 'message' => 'MFA has been disabled']);
 } catch (Exception $e) {

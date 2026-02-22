@@ -2,16 +2,19 @@
 /**
  * API: Verify MFA setup
  * POST - Verifies OTP code against pending secret, enables MFA if valid
+ * Works for both analysts and self-service users via getMfaAuthContext()
  */
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/totp.php';
 require_once '../../includes/encryption.php';
+require_once '../../includes/mfa_helpers.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['analyst_id'])) {
+$ctx = getMfaAuthContext();
+if (!$ctx) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
@@ -43,9 +46,13 @@ try {
     // Encrypt the secret before storing
     $encryptedSecret = encryptValue($secret);
 
-    $sql = "UPDATE analysts SET totp_secret = ?, totp_enabled = 1, last_modified_datetime = UTC_TIMESTAMP() WHERE id = ?";
+    if ($ctx['type'] === 'analyst') {
+        $sql = "UPDATE {$ctx['table']} SET totp_secret = ?, totp_enabled = 1, last_modified_datetime = UTC_TIMESTAMP() WHERE id = ?";
+    } else {
+        $sql = "UPDATE {$ctx['table']} SET totp_secret = ?, totp_enabled = 1 WHERE id = ?";
+    }
     $stmt = $conn->prepare($sql);
-    $stmt->execute([$encryptedSecret, $_SESSION['analyst_id']]);
+    $stmt->execute([$encryptedSecret, $ctx['id']]);
 
     // Clear pending secret from session
     unset($_SESSION['pending_totp_secret']);

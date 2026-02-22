@@ -22,6 +22,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 094 | Self-Service      | Feature     | Add multi-factor authentication (TOTP) support for self-service users reusing existing MFA libraries |
 | 095 | Self-Service      | Feature     | Add preferred name setting so users can choose how they are addressed (e.g. Ed instead of Ed Mozley) |
 | 096 | Self-Service      | Feature     | Add change password functionality to self-service user account menu |
+| 097 | Self-Service      | Improvement | Deduplicate MFA endpoints by making api/myaccount/ endpoints work for both analysts and self-service users via shared auth context helper |
 
 ---
 
