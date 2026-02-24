@@ -9,7 +9,7 @@ It genuinely helps and means a lot!
 
 <p align="center">
 <a href="https://github.com/edmozley/freeitsm/blob/main/LICENSE"><img src="https://img.shields.io/github/license/edmozley/freeitsm?style=flat-square&color=blue" alt="MIT License"></a>
-<img src="https://img.shields.io/badge/PHP-7.4%2B-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP 7.4+">
+<img src="https://img.shields.io/badge/PHP-7.4--8.4-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP 7.4–8.4">
 <img src="https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 8.0+">
 <a href="https://github.com/edmozley/freeitsm/stargazers"><img src="https://img.shields.io/github/stars/edmozley/freeitsm?style=flat-square&color=gold" alt="GitHub stars"></a>
 </p>
@@ -84,7 +84,7 @@ A comprehensive web-based IT Service Management (ITSM) platform with 13 integrat
 
 ### Prerequisites
 - **Web Server**: WAMP, XAMPP, LAMP, or any PHP-capable web server
-- **PHP**: 7.4 or higher
+- **PHP**: 7.4 or higher (tested up to 8.4)
 - **Database**: MySQL 8.0 or higher (included with WAMP/XAMPP)
 - **Extensions**: PHP PDO, pdo_mysql, curl, openssl, mbstring
 - **Database credentials file**: A `db_config.php` file stored **outside your web root** (e.g. `C:\wamp64\db_config.php`) — see step 2 below. The path is configured in `config.php`.
@@ -170,7 +170,7 @@ A comprehensive web-based IT Service Management (ITSM) platform with 13 integrat
 
 | Component | Technology |
 |-----------|------------|
-| Backend | PHP 7.4+ |
+| Backend | PHP 7.4–8.4 |
 | Database | MySQL 8.0+ (PDO MySQL) |
 | Frontend | Vanilla JavaScript, HTML5, CSS3 (no frameworks) |
 | Rich Text Editor | TinyMCE 6+ |
