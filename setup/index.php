@@ -116,7 +116,16 @@ if (file_exists($configPath)) {
     $checks[] = ['name' => 'config.php', 'status' => 'fail', 'detail' => 'Not found — copy config.php to the application root'];
 }
 
-// 6. PHP extensions (always check, regardless of config)
+// 6. PHP version
+$phpVersion = phpversion();
+$phpMajorMinor = (float)$phpVersion;
+if ($phpMajorMinor >= 7.4) {
+    $checks[] = ['name' => 'PHP version', 'status' => 'pass', 'detail' => $phpVersion];
+} else {
+    $checks[] = ['name' => 'PHP version', 'status' => 'fail', 'detail' => "$phpVersion — PHP 7.4 or higher is required"];
+}
+
+// 7. PHP extensions (always check, regardless of config)
 $requiredExtensions = ['pdo', 'curl', 'openssl', 'mbstring'];
 $mysqlLoaded = extension_loaded('pdo_mysql');
 foreach ($requiredExtensions as $ext) {
@@ -443,7 +452,7 @@ $totalCount = count($checks);
             Once your system is in production, delete the <strong>/setup</strong> folder for security.
         </div>
 
-        <div class="php-version">PHP <?= phpversion() ?></div>
+        <div class="php-version">FreeITSM Setup Verification</div>
     </div>
 
     <script>
