@@ -11,6 +11,7 @@ It genuinely helps and means a lot!
 <a href="https://github.com/edmozley/freeitsm/blob/main/LICENSE"><img src="https://img.shields.io/github/license/edmozley/freeitsm?style=flat-square&color=blue" alt="MIT License"></a>
 <img src="https://img.shields.io/badge/PHP-7.4--8.4-777BB4?style=flat-square&logo=php&logoColor=white" alt="PHP 7.4–8.4">
 <img src="https://img.shields.io/badge/MySQL-8.0%2B-4479A1?style=flat-square&logo=mysql&logoColor=white" alt="MySQL 8.0+">
+<img src="https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker Ready">
 <a href="https://github.com/edmozley/freeitsm/stargazers"><img src="https://img.shields.io/github/stars/edmozley/freeitsm?style=flat-square&color=gold" alt="GitHub stars"></a>
 </p>
 
@@ -49,8 +50,8 @@ A comprehensive web-based IT Service Management (ITSM) platform with 13 integrat
 
 - [Screenshots](#screenshots)
 - [Quick Start](#-quick-start)
-  - [Prerequisites](#prerequisites)
-  - [Installation](#installation)
+  - [Docker (Recommended)](#docker-recommended)
+  - [Manual Installation](#manual-installation)
   - [Configuration Files](#configuration-files)
 - [Technology Stack](#technology-stack)
 - [ITSM Modules](#itsm-modules)
@@ -82,7 +83,25 @@ A comprehensive web-based IT Service Management (ITSM) platform with 13 integrat
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Docker (Recommended)
+
+The fastest way to get FreeITSM running — no PHP, MySQL, or web server setup required.
+
+```bash
+git clone https://github.com/edmozley/freeitsm.git
+cd freeitsm
+docker compose up -d
+```
+
+Then open [http://localhost:8080/setup/](http://localhost:8080/setup/) to verify the installation and create your admin account.
+
+> Requires [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows/Mac) or Docker Engine (Linux).
+
+---
+
+### Manual Installation
+
+#### Prerequisites
 - **Web Server**: WAMP, XAMPP, LAMP, or any PHP-capable web server
 - **PHP**: 7.4 or higher (tested up to 8.4)
 - **Database**: MySQL 8.0 or higher (included with WAMP/XAMPP)
@@ -93,7 +112,7 @@ A comprehensive web-based IT Service Management (ITSM) platform with 13 integrat
 >
 > FreeITSM now runs on **MySQL**, which comes pre-installed with WAMP, XAMPP, and most web hosting stacks. No extra downloads, no driver headaches. If you've already set up with SQL Server, you'll need to migrate your data to MySQL and update your `db_config.php` — but for new installations, it's just clone and go.
 
-### Installation
+#### Installation
 
 > **Tip:** After completing these steps, navigate to `/setup/` to verify everything is configured correctly.
 

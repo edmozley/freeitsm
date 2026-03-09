@@ -1,0 +1,39 @@
+services:
+  app:
+    build: .
+    ports:
+      - "8080:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      - DB_SERVER=db
+      - DB_NAME=freeitsm
+      - DB_USERNAME=freeitsm
+      - DB_PASSWORD=freeitsm
+    volumes:
+      - attachments:/var/www/html/tickets/attachments
+      - cm-attachments:/var/www/html/change-management/attachments
+
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: freeitsm
+      MYSQL_USER: freeitsm
+      MYSQL_PASSWORD: freeitsm
+    ports:
+      - "3307:3306"
+    volumes:
+      - db-data:/var/lib/mysql
+      - ./database/freeitsm.sql:/docker-entrypoint-initdb.d/01-schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  db-data:
+  attachments:
+  cm-attachments:
