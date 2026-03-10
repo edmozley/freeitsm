@@ -32,7 +32,7 @@ try {
     if ($hasTeamFilter) {
         // User has team assignments - filter to only their departments
         // First get the list of accessible department IDs
-        $accessibleDeptsSql = "SELECT DISTINCT CAST(dt.department_id AS INT) as dept_id
+        $accessibleDeptsSql = "SELECT DISTINCT dt.department_id as dept_id
                                FROM department_teams dt
                                INNER JOIN analyst_teams ant ON dt.team_id = ant.team_id
                                WHERE ant.analyst_id = ?";

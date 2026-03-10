@@ -12,6 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 106 | Tickets           | Fix         | Fix ticket folder list not loading when user has team assignments due to MySQL-incompatible CAST AS INT |
 | 105 | System            | Improvement | Auto-generate unique encryption key on Docker first boot; encryption key path now configurable via environment variable for both Docker and manual installs |
 | 104 | System            | Feature     | Add Docker support with Dockerfile, docker-compose.yml, and auto-configured database for one-command deployment |
 | 103 | System            | Improvement | Show current PHP version as a checklist item on the setup verification page with pass/fail based on minimum 7.4 requirement |
