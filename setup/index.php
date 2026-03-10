@@ -433,6 +433,10 @@ $totalCount = count($checks);
             <div class="admin-section">
                 <h2>No user accounts found</h2>
                 <p>The database has no analyst accounts. Create a default admin account to get started.</p>
+                <div class="credentials" style="margin-bottom: 15px;">
+                    Username: <strong>admin</strong><br>
+                    Password: <strong>freeitsm</strong>
+                </div>
                 <form method="POST">
                     <button type="submit" name="create_admin" value="1" class="admin-btn">Create</button>
                 </form>
