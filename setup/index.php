@@ -60,7 +60,7 @@ if (file_exists($configPath)) {
 
             // Handle admin account creation POST
             if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_admin'])) {
-                if ($analystCount === 0) {
+                if ($analystCount === 0 || $analystCount === null) {
                     try {
                         $hash = password_hash('freeitsm', PASSWORD_DEFAULT);
                         $stmt = $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active, created_datetime) VALUES (?, ?, ?, ?, 1, UTC_TIMESTAMP())");
@@ -429,7 +429,7 @@ $totalCount = count($checks);
             <div class="admin-error">
                 Failed to create admin account: <?= htmlspecialchars($adminError) ?>
             </div>
-        <?php elseif ($dbConnected && $analystCount === 0): ?>
+        <?php elseif ($dbConnected && ($analystCount === 0 || $analystCount === null)): ?>
             <div class="admin-section">
                 <h2>No user accounts found</h2>
                 <p>The database has no analyst accounts. Create a default admin account to get started.</p>
