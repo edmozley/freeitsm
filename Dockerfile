@@ -30,8 +30,9 @@ RUN mkdir -p /var/www/html/tickets/attachments \
     && chmod 700 /var/www/encryption_keys
 
 # Copy entrypoint script (auto-generates encryption key on first boot)
+# sed strips Windows CRLF line endings that break bash in Linux
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 80
 
