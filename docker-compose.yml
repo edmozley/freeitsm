@@ -11,9 +11,11 @@ services:
       - DB_NAME=freeitsm
       - DB_USERNAME=freeitsm
       - DB_PASSWORD=freeitsm
+      - ENCRYPTION_KEY_PATH=/var/www/encryption_keys/freeitsm.key
     volumes:
       - attachments:/var/www/html/tickets/attachments
       - cm-attachments:/var/www/html/change-management/attachments
+      - encryption-keys:/var/www/encryption_keys
 
   db:
     image: mysql:8.0
@@ -37,3 +39,4 @@ volumes:
   db-data:
   attachments:
   cm-attachments:
+  encryption-keys:

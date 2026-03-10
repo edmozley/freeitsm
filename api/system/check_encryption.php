@@ -14,7 +14,9 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
-$keyPath = 'c:\\wamp64\\encryption_keys\\sdtickets.key';
+require_once '../../includes/encryption.php';
+
+$keyPath = ENCRYPTION_KEY_PATH;
 $keyExists = file_exists($keyPath);
 $keyValid = false;
 

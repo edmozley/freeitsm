@@ -21,10 +21,18 @@ COPY . /var/www/html/
 COPY docker/config.php /var/www/html/config.php
 COPY docker/db_config.php /var/www/html/db_config.php
 
-# Create directories for uploads and attachments with correct permissions
+# Create directories for uploads, attachments, and encryption keys
 RUN mkdir -p /var/www/html/tickets/attachments \
     /var/www/html/change-management/attachments \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html
+    /var/www/encryption_keys \
+    && chown -R www-data:www-data /var/www/html /var/www/encryption_keys \
+    && chmod -R 755 /var/www/html \
+    && chmod 700 /var/www/encryption_keys
+
+# Copy entrypoint script (auto-generates encryption key on first boot)
+COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 EXPOSE 80
+
+ENTRYPOINT ["entrypoint.sh"]

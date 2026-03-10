@@ -9,7 +9,15 @@
  * The ENC: prefix allows gradual migration - unencrypted values pass through unchanged.
  */
 
-define('ENCRYPTION_KEY_PATH', 'c:\\wamp64\\encryption_keys\\sdtickets.key');
+// Key path: check environment variable first, then fall back to default
+// Docker sets ENCRYPTION_KEY_PATH env var; manual installs use the default below
+$_encKeyPath = getenv('ENCRYPTION_KEY_PATH');
+if ($_encKeyPath === false || $_encKeyPath === '') {
+    $_encKeyPath = PHP_OS_FAMILY === 'Windows'
+        ? 'c:\\wamp64\\encryption_keys\\sdtickets.key'
+        : '/var/www/encryption_keys/freeitsm.key';
+}
+define('ENCRYPTION_KEY_PATH', $_encKeyPath);
 define('ENCRYPTION_CIPHER', 'aes-256-gcm');
 define('ENCRYPTION_IV_LENGTH', 12);   // 96-bit nonce (recommended for GCM)
 define('ENCRYPTION_TAG_LENGTH', 16);  // 128-bit auth tag

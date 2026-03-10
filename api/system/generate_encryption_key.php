@@ -17,7 +17,9 @@ if (!isset($_SESSION['analyst_id'])) {
 $input = json_decode(file_get_contents('php://input'), true);
 $overwrite = isset($input['overwrite']) && $input['overwrite'] === true;
 
-$keyPath = 'c:\\wamp64\\encryption_keys\\sdtickets.key';
+require_once '../../includes/encryption.php';
+
+$keyPath = ENCRYPTION_KEY_PATH;
 $keyDir = dirname($keyPath);
 
 // Check if key already exists
