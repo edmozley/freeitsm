@@ -452,6 +452,17 @@ $totalCount = count($checks);
         </div>
         <?php endif; ?>
 
+        <?php if ($dbConnected): ?>
+        <div class="admin-section">
+            <h2>Default Login</h2>
+            <p>A default admin account is created when you run Database Verify.</p>
+            <div class="credentials">
+                Username: <strong>admin</strong><br>
+                Password: <strong>freeitsm</strong>
+            </div>
+        </div>
+        <?php endif; ?>
+
         <div class="footer-warning">
             Once your system is in production, delete the <strong>/setup</strong> folder for security.
         </div>
