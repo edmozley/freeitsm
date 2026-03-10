@@ -908,7 +908,7 @@ CREATE TABLE IF NOT EXISTS `software_inventory_apps` (
     `publisher`         VARCHAR(512) NULL,
     `first_detected`    DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `ux_app_display_publisher` (`display_name`, `publisher`)
+    UNIQUE KEY `ux_app_display_publisher` (`display_name`(400), `publisher`(360))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `software_inventory_detail` (
