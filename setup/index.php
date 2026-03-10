@@ -9,9 +9,6 @@ session_start();
 $_SESSION['setup_access'] = true;
 
 $checks = [];
-$adminCreated = false;
-$adminError = null;
-$analystCount = null;
 $dbConnected = false;
 
 // 1. Check config.php exists
@@ -50,28 +47,6 @@ if (file_exists($configPath)) {
             $driverInfo = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
             $checks[] = ['name' => 'Database connection', 'status' => 'pass', 'detail' => "Connected (driver: $driverInfo)"];
 
-            // Check if analysts table has any rows
-            try {
-                $countStmt = $conn->query("SELECT COUNT(*) FROM analysts");
-                $analystCount = (int) $countStmt->fetchColumn();
-            } catch (Exception $e) {
-                // Table may not exist yet — leave $analystCount as null
-            }
-
-            // Handle admin account creation POST
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_admin'])) {
-                if ($analystCount === 0 || $analystCount === null) {
-                    try {
-                        $hash = password_hash('freeitsm', PASSWORD_DEFAULT);
-                        $stmt = $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active, created_datetime) VALUES (?, ?, ?, ?, 1, UTC_TIMESTAMP())");
-                        $stmt->execute(['admin', $hash, 'Administrator', 'admin@localhost']);
-                        $adminCreated = true;
-                        $analystCount = 1;
-                    } catch (Exception $e) {
-                        $adminError = $e->getMessage();
-                    }
-                }
-            }
         } catch (Exception $e) {
             $checks[] = ['name' => 'Database connection', 'status' => 'fail', 'detail' => $e->getMessage()];
         }
@@ -296,28 +271,7 @@ $totalCount = count($checks);
             background: #5a6fd6;
         }
 
-        .admin-success {
-            margin-top: 25px;
-            padding: 20px;
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            border-radius: 6px;
-        }
-
-        .admin-success h2 {
-            font-size: 16px;
-            font-weight: 600;
-            color: #155724;
-            margin-bottom: 8px;
-        }
-
-        .admin-success p {
-            font-size: 13px;
-            color: #155724;
-            margin-bottom: 4px;
-        }
-
-        .admin-success .credentials {
+        .credentials {
             margin-top: 10px;
             padding: 10px 15px;
             background: white;
@@ -325,35 +279,6 @@ $totalCount = count($checks);
             font-family: monospace;
             font-size: 13px;
             color: #333;
-        }
-
-        .next-steps {
-            margin-top: 12px;
-        }
-
-        .next-steps p {
-            margin-bottom: 6px;
-        }
-
-        .next-steps ol {
-            margin: 0;
-            padding-left: 20px;
-        }
-
-        .next-steps li {
-            font-size: 13px;
-            color: #155724;
-            padding: 2px 0;
-        }
-
-        .admin-error {
-            margin-top: 25px;
-            padding: 15px;
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #721c24;
         }
 
         .footer-warning {
@@ -405,43 +330,6 @@ $totalCount = count($checks);
                 </li>
             <?php endforeach; ?>
         </ul>
-
-        <?php if ($adminCreated): ?>
-            <div class="admin-success">
-                <h2>Admin account created</h2>
-                <div class="credentials">
-                    Username: <strong>admin</strong><br>
-                    Password: <strong>freeitsm</strong>
-                </div>
-                <div class="next-steps">
-                    <p><strong>Next steps:</strong></p>
-                    <ol>
-                        <li>Log in with the credentials above</li>
-                        <li>Go to Tickets &rarr; Settings &rarr; Analysts</li>
-                        <li>Create a new account for yourself</li>
-                        <li>Delete the admin account</li>
-                        <li>Log out and log back in with your new account</li>
-                    </ol>
-                </div>
-                <a href="../login.php" target="_blank" class="admin-btn" style="margin-top: 15px; text-decoration: none;">Log in</a>
-            </div>
-        <?php elseif ($adminError): ?>
-            <div class="admin-error">
-                Failed to create admin account: <?= htmlspecialchars($adminError) ?>
-            </div>
-        <?php elseif ($dbConnected && ($analystCount === 0 || $analystCount === null)): ?>
-            <div class="admin-section">
-                <h2>No user accounts found</h2>
-                <p>The database has no analyst accounts. Create a default admin account to get started.</p>
-                <div class="credentials" style="margin-bottom: 15px;">
-                    Username: <strong>admin</strong><br>
-                    Password: <strong>freeitsm</strong>
-                </div>
-                <form method="POST">
-                    <button type="submit" name="create_admin" value="1" class="admin-btn">Create</button>
-                </form>
-            </div>
-        <?php endif; ?>
 
         <?php if ($dbConnected): ?>
         <div class="admin-section" id="dbVerifySection">
