@@ -19,6 +19,7 @@ $defaultModuleColors = [
     'contracts'      => ['#f59e0b', '#d97706'],
     'service-status' => ['#10b981', '#059669'],
     'wiki'           => ['#c62828', '#b71c1c'],
+    'process-mapper' => ['#6366f1', '#4f46e5'],
     'system'        => ['#546e7a', '#37474f'],
 ];
 

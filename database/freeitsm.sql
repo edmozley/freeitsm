@@ -1234,6 +1234,45 @@ CREATE TABLE IF NOT EXISTS `contract_term_values` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
+-- Process Mapper
+-- ----------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `processes` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `title`             VARCHAR(255) NOT NULL,
+    `description`       TEXT NULL,
+    `created_by`        INT NULL,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `process_steps` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `process_id`        INT NOT NULL,
+    `type`              VARCHAR(50) NOT NULL DEFAULT 'process',
+    `label`             VARCHAR(255) NOT NULL DEFAULT '',
+    `description`       TEXT NULL,
+    `x`                 INT NOT NULL DEFAULT 0,
+    `y`                 INT NOT NULL DEFAULT 0,
+    `width`             INT NOT NULL DEFAULT 160,
+    `height`            INT NOT NULL DEFAULT 80,
+    `color`             VARCHAR(20) NULL DEFAULT '#0078d4',
+    PRIMARY KEY (`id`),
+    KEY `idx_ps_process` (`process_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `process_connectors` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `process_id`        INT NOT NULL,
+    `from_step_id`      INT NOT NULL,
+    `to_step_id`        INT NOT NULL,
+    `label`             VARCHAR(255) NULL DEFAULT '',
+    PRIMARY KEY (`id`),
+    KEY `idx_pc_process` (`process_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
 -- System
 -- ----------------------------------------------------------
 

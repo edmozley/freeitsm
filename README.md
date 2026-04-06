@@ -40,7 +40,7 @@ A comprehensive web-based IT Service Management (ITSM) platform with 13 integrat
 <tr>
 <td align="center"><strong>Contracts</strong><br><img src="https://freeitsm.co.uk/images/screenshots/contracts_1.png" width="350" alt="Contracts"></td>
 <td align="center"><strong>System Wiki</strong><br><img src="https://freeitsm.co.uk/images/screenshots/wiki_1.png" width="350" alt="System Wiki"></td>
-<td align="center"></td>
+<td align="center"><strong>Process Mapper</strong><br>Visual flowchart builder with drag-and-drop steps, connector lines, and snap-to-grid canvas</td>
 </tr>
 </table>
 

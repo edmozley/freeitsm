@@ -12,6 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 108 | Process Mapper    | Feature     | Add Process Mapper module with visual flowchart builder, dot-grid canvas with snap-to-grid, drag-and-drop steps, connector lines with optional text labels, multi-select with Ctrl and arrow key nudge, and slide-in detail panel |
 | 107 | System            | Feature     | Add forgot password flow with email reset link sent via configured mailbox, secure token with 1-hour expiry, and reset page |
 
 ---
