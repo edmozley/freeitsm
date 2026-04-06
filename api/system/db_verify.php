@@ -669,6 +669,15 @@ $schema = [
         'expires_datetime'   => 'DATETIME NOT NULL',
     ],
 
+    'password_reset_tokens' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'        => 'INT NOT NULL',
+        'token_hash'        => 'VARCHAR(255) NOT NULL',
+        'expires_datetime'  => 'DATETIME NOT NULL',
+        'used'              => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'knowledge_articles' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'title'                 => 'VARCHAR(255) NOT NULL',

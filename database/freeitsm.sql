@@ -1264,6 +1264,18 @@ CREATE TABLE IF NOT EXISTS `trusted_devices` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `analyst_id`        INT NOT NULL,
+    `token_hash`        VARCHAR(255) NOT NULL,
+    `expires_datetime`  DATETIME NOT NULL,
+    `used`              TINYINT(1) NOT NULL DEFAULT 0,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_prt_token` (`token_hash`),
+    KEY `idx_prt_analyst` (`analyst_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ----------------------------------------------------------
 -- Service Status
 -- ----------------------------------------------------------

@@ -338,6 +338,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             transform: translateY(0);
         }
 
+        .forgot-link {
+            display: block;
+            text-align: center;
+            margin-top: 16px;
+            color: #999;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .forgot-link:hover { color: #666; }
+
         /* MFA challenge styles */
         .mfa-icon {
             text-align: center;
@@ -492,6 +503,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <button type="submit" class="login-button">Sign In</button>
             </form>
+            <a href="forgot-password.php" class="forgot-link">Forgot password?</a>
         <?php endif; ?>
     </div>
 </body>
