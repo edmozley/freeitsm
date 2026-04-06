@@ -81,6 +81,7 @@ try {
         . '</div>';
 
     // Parse token data
+    $provider = $mailbox['provider'] ?? 'microsoft';
     $cleanedTokenData = preg_replace('/[\x00-\x1F\x7F]/', '', $mailbox['token_data']);
     $tokenData = json_decode($cleanedTokenData, true);
 
@@ -90,47 +91,63 @@ try {
     }
 
     // Refresh access token if needed
-    $accessToken = getValidAccessToken($conn, $mailbox, $tokenData);
+    if ($provider === 'google') {
+        require_once dirname(dirname(__DIR__)) . '/includes/gmail.php';
+        $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
+    } else {
+        $accessToken = getValidAccessToken($conn, $mailbox, $tokenData);
+    }
     if (!$accessToken) {
         echo json_encode(['success' => false, 'error' => 'Password reset is not available. Email authentication has expired. Please contact your administrator.']);
         exit;
     }
 
-    // Send via Graph API
-    $message = [
-        'message' => [
-            'subject' => 'Password Reset',
-            'body' => [
-                'contentType' => 'HTML',
-                'content' => $htmlBody
+    // Send email via appropriate provider
+    if ($provider === 'google') {
+        try {
+            $fromAddress = $mailbox['target_mailbox'] ?? '';
+            gmailSendEmail($accessToken, $analyst['email'], 'Password Reset', $htmlBody, $fromAddress);
+        } catch (Exception $sendEx) {
+            error_log('Password reset email failed (Gmail): ' . $sendEx->getMessage());
+            echo json_encode(['success' => false, 'error' => 'Failed to send reset email. Please try again or contact your administrator.']);
+            exit;
+        }
+    } else {
+        $message = [
+            'message' => [
+                'subject' => 'Password Reset',
+                'body' => [
+                    'contentType' => 'HTML',
+                    'content' => $htmlBody
+                ],
+                'toRecipients' => [
+                    ['emailAddress' => ['address' => $analyst['email']]]
+                ]
             ],
-            'toRecipients' => [
-                ['emailAddress' => ['address' => $analyst['email']]]
-            ]
-        ],
-        'saveToSentItems' => false
-    ];
+            'saveToSentItems' => false
+        ];
 
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, 'https://graph.microsoft.com/v1.0/me/sendMail');
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Authorization: Bearer ' . $accessToken,
-        'Content-Type: application/json'
-    ]);
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, 'https://graph.microsoft.com/v1.0/me/sendMail');
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($message));
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $accessToken,
+            'Content-Type: application/json'
+        ]);
 
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
 
-    if ($httpCode !== 202 && $httpCode !== 200) {
-        error_log('Password reset email failed: HTTP ' . $httpCode . ' - ' . $response);
-        echo json_encode(['success' => false, 'error' => 'Failed to send reset email. Please try again or contact your administrator.']);
-        exit;
+        if ($httpCode !== 202 && $httpCode !== 200) {
+            error_log('Password reset email failed: HTTP ' . $httpCode . ' - ' . $response);
+            echo json_encode(['success' => false, 'error' => 'Failed to send reset email. Please try again or contact your administrator.']);
+            exit;
+        }
     }
 
     echo json_encode(['success' => true, 'message' => $genericMessage]);

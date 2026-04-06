@@ -50,7 +50,13 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger): void
         }
 
         // Get valid access token (refresh if needed)
-        $accessToken = templateGetValidAccessToken($conn, $mailbox, $tokenData);
+        $provider = $mailbox['provider'] ?? 'microsoft';
+        if ($provider === 'google') {
+            require_once __DIR__ . '/gmail.php';
+            $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
+        } else {
+            $accessToken = templateGetValidAccessToken($conn, $mailbox, $tokenData);
+        }
         if (!$accessToken) {
             error_log("Template email: failed to get access token for mailbox {$mailbox['id']}");
             return;
@@ -71,23 +77,26 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger): void
         // Build HTML body with reply marker
         $fullBody = buildTemplateEmailBody($body, $ticketNumber);
 
-        // Build Graph API message
-        $message = [
-            'message' => [
-                'subject' => $fullSubject,
-                'body' => [
-                    'contentType' => 'HTML',
-                    'content' => $fullBody
+        // Send via appropriate API
+        if ($provider === 'google') {
+            $fromAddress = $mailbox['target_mailbox'] ?? '';
+            gmailSendEmail($accessToken, $recipientEmail, $fullSubject, $fullBody, $fromAddress);
+        } else {
+            $message = [
+                'message' => [
+                    'subject' => $fullSubject,
+                    'body' => [
+                        'contentType' => 'HTML',
+                        'content' => $fullBody
+                    ],
+                    'toRecipients' => [
+                        ['emailAddress' => ['address' => $recipientEmail]]
+                    ]
                 ],
-                'toRecipients' => [
-                    ['emailAddress' => ['address' => $recipientEmail]]
-                ]
-            ],
-            'saveToSentItems' => true
-        ];
-
-        // Send via Graph API
-        templateSendViaGraph($accessToken, $message);
+                'saveToSentItems' => true
+            ];
+            templateSendViaGraph($accessToken, $message);
+        }
 
         // Save to emails table
         templateSaveSentEmail($conn, $ticketId, $mailbox, $recipientEmail, $fullSubject, $body);

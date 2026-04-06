@@ -67,6 +67,9 @@ try {
         throw new Exception('Mailbox "' . $mailbox['target_mailbox'] . '" is not authenticated. Please authenticate in Settings.');
     }
 
+    // Determine provider
+    $provider = $mailbox['provider'] ?? 'microsoft';
+
     // Parse token data (clean any control characters)
     $cleanedTokenData = preg_replace('/[\x00-\x1F\x7F]/', '', $mailbox['token_data']);
     $tokenData = json_decode($cleanedTokenData, true);
@@ -76,7 +79,12 @@ try {
     }
 
     // Get valid access token (will refresh if needed)
-    $accessToken = getValidAccessToken($conn, $mailbox, $tokenData);
+    if ($provider === 'google') {
+        require_once dirname(dirname(__DIR__)) . '/includes/gmail.php';
+        $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
+    } else {
+        $accessToken = getValidAccessToken($conn, $mailbox, $tokenData);
+    }
 
     if (!$accessToken) {
         throw new Exception('Failed to obtain valid access token. Please re-authenticate the mailbox.');
@@ -89,11 +97,17 @@ try {
         $bodyForSending = buildFullEmailBody($conn, $ticketId, $body, $type);
     }
 
-    // Build the email message for Graph API (send assembled body with thread)
-    $message = buildEmailMessage($to, $cc, $subject, $bodyForSending, $attachments);
+    if ($provider === 'google') {
+        // Send via Gmail API
+        $fromAddress = $mailbox['target_mailbox'] ?? '';
+        gmailSendEmail($accessToken, $to, $subject, $bodyForSending, $fromAddress);
+    } else {
+        // Build the email message for Graph API (send assembled body with thread)
+        $message = buildEmailMessage($to, $cc, $subject, $bodyForSending, $attachments);
 
-    // Send the email via Graph API
-    $result = sendEmailViaGraph($accessToken, $message);
+        // Send the email via Graph API
+        $result = sendEmailViaGraph($accessToken, $message);
+    }
 
     // Save only the analyst's new content to DB (not the assembled thread)
     saveSentEmail($conn, $ticketId, $mailbox, $to, $cc, $subject, $body);

@@ -486,6 +486,14 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 <input type="hidden" id="mailboxId">
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="mailboxProvider">Provider *</label>
+                        <select id="mailboxProvider" onchange="toggleProviderFields()">
+                            <option value="microsoft">Microsoft 365 (Exchange / Graph API)</option>
+                            <option value="google">Google Workspace (Gmail API)</option>
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label for="mailboxName">Display Name *</label>
                         <input type="text" id="mailboxName" required placeholder="e.g., Service Desk">
@@ -496,18 +504,18 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                         <input type="email" id="mailboxEmail" required placeholder="e.g., servicedesk@company.com">
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group provider-microsoft">
                         <label for="mailboxTenantId">Azure Tenant ID *</label>
-                        <input type="text" id="mailboxTenantId" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                        <input type="text" id="mailboxTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                     </div>
 
-                    <div class="form-group">
-                        <label for="mailboxClientId">Azure Client ID *</label>
+                    <div class="form-group" id="clientIdGroup">
+                        <label for="mailboxClientId" id="clientIdLabel">Client ID *</label>
                         <input type="text" id="mailboxClientId" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
-                        <label for="mailboxClientSecret">Azure Client Secret *</label>
+                        <label for="mailboxClientSecret" id="clientSecretLabel">Client Secret *</label>
                         <input type="password" id="mailboxClientSecret" placeholder="Leave blank to keep existing (when editing)">
                         <small style="color: #666;">Required for new mailboxes. Leave blank when editing to keep existing secret.</small>
                     </div>
@@ -517,7 +525,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                         <input type="url" id="mailboxRedirectUri" required placeholder="https://yoursite.com/oauth_callback.php">
                     </div>
 
-                    <div class="form-group" style="grid-column: span 2;">
+                    <div class="form-group provider-microsoft" style="grid-column: span 2;">
                         <label for="mailboxScopes">OAuth Scopes</label>
                         <input type="text" id="mailboxScopes" value="openid email offline_access Mail.Read Mail.ReadWrite Mail.Send">
                     </div>
@@ -1463,9 +1471,13 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>`;
 
+                const providerBadge = (mb.provider === 'google')
+                    ? ' <span class="status-badge" style="background:#e8f5e9;color:#2e7d32;">Google</span>'
+                    : ' <span class="status-badge" style="background:#e3f2fd;color:#1565c0;">Microsoft</span>';
+
                 return `
                     <tr>
-                        <td><strong>${escapeHtml(mb.name)}</strong>${activeBadge}</td>
+                        <td><strong>${escapeHtml(mb.name)}</strong>${providerBadge}${activeBadge}</td>
                         <td>${escapeHtml(mb.target_mailbox)}</td>
                         <td>${statusBadge}</td>
                         <td>${lastChecked}</td>
@@ -1478,6 +1490,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
         async function openMailboxModal(mailbox = null) {
             document.getElementById('mailboxModalTitle').textContent = mailbox ? 'Edit Mailbox' : 'Add Mailbox';
             document.getElementById('mailboxId').value = mailbox ? mailbox.id : '';
+            document.getElementById('mailboxProvider').value = mailbox ? (mailbox.provider || 'microsoft') : 'microsoft';
             document.getElementById('mailboxName').value = mailbox ? mailbox.name : '';
             document.getElementById('mailboxEmail').value = mailbox ? mailbox.target_mailbox : '';
             document.getElementById('mailboxTenantId').value = mailbox ? mailbox.azure_tenant_id : '';
@@ -1487,6 +1500,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             document.getElementById('mailboxScopes').value = mailbox ? mailbox.oauth_scopes : 'openid email offline_access Mail.Read Mail.ReadWrite Mail.Send';
             document.getElementById('mailboxImapServer').value = mailbox ? mailbox.imap_server : 'outlook.office365.com';
             document.getElementById('mailboxImapPort').value = mailbox ? mailbox.imap_port : 993;
+            toggleProviderFields();
             document.getElementById('mailboxFolder').value = mailbox ? mailbox.email_folder : 'INBOX';
             document.getElementById('mailboxMaxEmails').value = mailbox ? mailbox.max_emails_per_check : 10;
             document.getElementById('mailboxRejectedAction').value = mailbox ? (mailbox.rejected_action || 'delete') : 'delete';
@@ -1516,6 +1530,34 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
 
         function closeMailboxModal() {
             document.getElementById('mailboxModal').classList.remove('active');
+        }
+
+        function toggleProviderFields() {
+            const provider = document.getElementById('mailboxProvider').value;
+            const isMicrosoft = provider === 'microsoft';
+
+            // Show/hide Microsoft-only fields
+            document.querySelectorAll('.provider-microsoft').forEach(el => {
+                el.style.display = isMicrosoft ? '' : 'none';
+            });
+
+            // Update labels
+            document.getElementById('clientIdLabel').textContent = isMicrosoft ? 'Azure Client ID *' : 'Google Client ID *';
+            document.getElementById('clientSecretLabel').textContent = isMicrosoft ? 'Azure Client Secret *' : 'Google Client Secret *';
+
+            // Update placeholders
+            const clientIdInput = document.getElementById('mailboxClientId');
+            clientIdInput.placeholder = isMicrosoft
+                ? 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+                : 'xxxxxxxxxx-xxxxxxxxx.apps.googleusercontent.com';
+
+            const redirectInput = document.getElementById('mailboxRedirectUri');
+            if (!document.getElementById('mailboxId').value) {
+                // Only auto-fill for new mailboxes
+                redirectInput.placeholder = isMicrosoft
+                    ? 'https://yoursite.com/oauth_callback.php'
+                    : 'https://yoursite.com/google_oauth_callback.php';
+            }
         }
 
         function toggleImportedFolder() {
@@ -1616,19 +1658,34 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 return;
             }
 
-            // Build OAuth URL with mailbox-specific settings
-            const state = 'mailbox_' + id + '_' + Math.random().toString(36).substring(2, 18);
-            const params = new URLSearchParams({
-                client_id: mailbox.azure_client_id,
-                response_type: 'code',
-                redirect_uri: mailbox.oauth_redirect_uri,
-                response_mode: 'query',
-                scope: mailbox.oauth_scopes,
-                state: state
-            });
+            const provider = mailbox.provider || 'microsoft';
 
-            const authUrl = 'https://login.microsoftonline.com/' + mailbox.azure_tenant_id + '/oauth2/v2.0/authorize?' + params.toString();
-            window.location.href = authUrl;
+            if (provider === 'google') {
+                // Google OAuth flow
+                const state = 'google_mailbox_' + id + '_' + Math.random().toString(36).substring(2, 18);
+                const params = new URLSearchParams({
+                    client_id: mailbox.azure_client_id,
+                    redirect_uri: mailbox.oauth_redirect_uri,
+                    response_type: 'code',
+                    scope: 'https://www.googleapis.com/auth/gmail.modify https://www.googleapis.com/auth/gmail.send',
+                    access_type: 'offline',
+                    prompt: 'consent',
+                    state: state
+                });
+                window.location.href = 'https://accounts.google.com/o/oauth2/v2/auth?' + params.toString();
+            } else {
+                // Microsoft OAuth flow
+                const state = 'mailbox_' + id + '_' + Math.random().toString(36).substring(2, 18);
+                const params = new URLSearchParams({
+                    client_id: mailbox.azure_client_id,
+                    response_type: 'code',
+                    redirect_uri: mailbox.oauth_redirect_uri,
+                    response_mode: 'query',
+                    scope: mailbox.oauth_scopes,
+                    state: state
+                });
+                window.location.href = 'https://login.microsoftonline.com/' + mailbox.azure_tenant_id + '/oauth2/v2.0/authorize?' + params.toString();
+            }
         }
 
         async function logoutMailbox(id) {
@@ -1760,6 +1817,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
 
             const formData = {
                 id: document.getElementById('mailboxId').value || null,
+                provider: document.getElementById('mailboxProvider').value,
                 name: document.getElementById('mailboxName').value,
                 target_mailbox: document.getElementById('mailboxEmail').value,
                 azure_tenant_id: document.getElementById('mailboxTenantId').value,

@@ -23,8 +23,12 @@ if (!$data) {
     exit;
 }
 
-// Validate required fields
-$requiredFields = ['name', 'azure_tenant_id', 'azure_client_id', 'oauth_redirect_uri', 'target_mailbox'];
+// Validate required fields — tenant ID only required for Microsoft
+$provider = $data['provider'] ?? 'microsoft';
+$requiredFields = ['name', 'azure_client_id', 'oauth_redirect_uri', 'target_mailbox'];
+if ($provider === 'microsoft') {
+    $requiredFields[] = 'azure_tenant_id';
+}
 foreach ($requiredFields as $field) {
     if (empty($data[$field])) {
         echo json_encode(['success' => false, 'error' => "Missing required field: $field"]);
@@ -37,7 +41,8 @@ try {
 
     $id = $data['id'] ?? null;
     $name = $data['name'];
-    $azure_tenant_id = encryptValue($data['azure_tenant_id']);
+    $provider = $data['provider'] ?? 'microsoft';
+    $azure_tenant_id = encryptValue($data['azure_tenant_id'] ?? '');
     $azure_client_id = encryptValue($data['azure_client_id']);
     $azure_client_secret = $data['azure_client_secret'] ?? '';
     $oauth_redirect_uri = encryptValue($data['oauth_redirect_uri']);
@@ -65,7 +70,7 @@ try {
         // If azure_client_secret is empty or just asterisks, don't update it
         if (empty($azure_client_secret) || preg_match('/^\*+/', $azure_client_secret)) {
             $sql = "UPDATE target_mailboxes SET
-                        name = ?, azure_tenant_id = ?, azure_client_id = ?,
+                        name = ?, provider = ?, azure_tenant_id = ?, azure_client_id = ?,
                         oauth_redirect_uri = ?, oauth_scopes = ?, imap_server = ?,
                         imap_port = ?, imap_encryption = ?, target_mailbox = ?,
                         email_folder = ?, max_emails_per_check = ?, mark_as_read = ?,
@@ -73,7 +78,7 @@ try {
                         is_active = ?
                     WHERE id = ?";
             $params = [
-                $name, $azure_tenant_id, $azure_client_id,
+                $name, $provider, $azure_tenant_id, $azure_client_id,
                 $oauth_redirect_uri, $oauth_scopes, $imap_server,
                 $imap_port, $imap_encryption, $target_mailbox,
                 $email_folder, $max_emails_per_check, $mark_as_read,
@@ -83,7 +88,7 @@ try {
         } else {
             $azure_client_secret = encryptValue($azure_client_secret);
             $sql = "UPDATE target_mailboxes SET
-                        name = ?, azure_tenant_id = ?, azure_client_id = ?,
+                        name = ?, provider = ?, azure_tenant_id = ?, azure_client_id = ?,
                         azure_client_secret = ?, oauth_redirect_uri = ?, oauth_scopes = ?,
                         imap_server = ?, imap_port = ?, imap_encryption = ?,
                         target_mailbox = ?, email_folder = ?, max_emails_per_check = ?,
@@ -91,7 +96,7 @@ try {
                         imported_folder = ?, is_active = ?
                     WHERE id = ?";
             $params = [
-                $name, $azure_tenant_id, $azure_client_id,
+                $name, $provider, $azure_tenant_id, $azure_client_id,
                 $azure_client_secret, $oauth_redirect_uri, $oauth_scopes,
                 $imap_server, $imap_port, $imap_encryption,
                 $target_mailbox, $email_folder, $max_emails_per_check,
@@ -118,16 +123,16 @@ try {
         $azure_client_secret = encryptValue($azure_client_secret);
 
         $sql = "INSERT INTO target_mailboxes (
-                    name, azure_tenant_id, azure_client_id, azure_client_secret,
+                    name, provider, azure_tenant_id, azure_client_id, azure_client_secret,
                     oauth_redirect_uri, oauth_scopes, imap_server, imap_port,
                     imap_encryption, target_mailbox, email_folder, max_emails_per_check,
                     mark_as_read, rejected_action, imported_action, imported_folder,
                     is_active
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([
-            $name, $azure_tenant_id, $azure_client_id, $azure_client_secret,
+            $name, $provider, $azure_tenant_id, $azure_client_id, $azure_client_secret,
             $oauth_redirect_uri, $oauth_scopes, $imap_server, $imap_port,
             $imap_encryption, $target_mailbox, $email_folder, $max_emails_per_check,
             $mark_as_read, $rejected_action, $imported_action, $imported_folder,

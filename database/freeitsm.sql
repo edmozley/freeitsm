@@ -198,6 +198,7 @@ CREATE TABLE IF NOT EXISTS `ticket_notes` (
 CREATE TABLE IF NOT EXISTS `target_mailboxes` (
     `id`                    INT NOT NULL AUTO_INCREMENT,
     `name`                  VARCHAR(100) NOT NULL,
+    `provider`              VARCHAR(20) NOT NULL DEFAULT 'microsoft',
     `azure_tenant_id`       VARCHAR(100) NOT NULL,
     `azure_client_id`       VARCHAR(100) NOT NULL,
     `azure_client_secret`   VARCHAR(255) NOT NULL,

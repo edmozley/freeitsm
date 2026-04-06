@@ -48,6 +48,9 @@ try {
         exit;
     }
 
+    // Determine provider
+    $provider = $mailbox['provider'] ?? 'microsoft';
+
     // Get valid access token
     // Clean token data by removing any null bytes or control characters
     $rawTokenData = $mailbox['token_data'];
@@ -70,7 +73,12 @@ try {
     }
 
     try {
-        $accessToken = getValidAccessToken($conn, $mailbox, $tokenData);
+        if ($provider === 'google') {
+            require_once dirname(dirname(__DIR__)) . '/includes/gmail.php';
+            $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
+        } else {
+            $accessToken = getValidAccessToken($conn, $mailbox, $tokenData);
+        }
     } catch (Exception $e) {
         echo json_encode([
             'success' => false,
@@ -90,8 +98,12 @@ try {
         exit;
     }
 
-    // Fetch emails from Graph API
-    $emails = getEmails($accessToken, $mailbox);
+    // Fetch emails — branch by provider
+    if ($provider === 'google') {
+        $emails = gmailGetEmails($accessToken, $mailbox);
+    } else {
+        $emails = getEmails($accessToken, $mailbox);
+    }
 
     if (empty($emails)) {
         // Update last checked time
@@ -148,7 +160,7 @@ try {
             // Reject: handle according to rejected_action setting
             $postAction = ['step' => 'post_action', 'action' => $rejectedAction];
             try {
-                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $rejectedAction);
+                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $rejectedAction, null, $provider);
                 $postAction['result'] = 'success';
                 $postAction['http_code'] = $httpCode;
             } catch (Exception $delEx) {
@@ -200,7 +212,7 @@ try {
                 $postAction['folder'] = $importedFolder;
             }
             try {
-                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $importedAction, $importedFolder);
+                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $importedAction, $importedFolder, $provider);
                 $postAction['result'] = 'success';
                 $postAction['http_code'] = $httpCode;
             } catch (Exception $delEx) {
@@ -611,7 +623,25 @@ function markEmailAsRead($accessToken, $messageId) {
  * Handle email after processing based on action setting
  * Actions: 'delete' (permanent), 'move_to_deleted' (Deleted Items), 'mark_read' (leave in inbox), 'move_to_folder' (custom folder)
  */
-function handleEmailAfterProcessing($accessToken, $messageId, $action, $folderName = null) {
+function handleEmailAfterProcessing($accessToken, $messageId, $action, $folderName = null, $provider = 'microsoft') {
+    if ($provider === 'google') {
+        switch ($action) {
+            case 'mark_read':
+                gmailMarkAsRead($accessToken, $messageId);
+                return 200;
+            case 'move_to_deleted':
+            case 'delete':
+            default:
+                gmailTrashMessage($accessToken, $messageId);
+                return 200;
+            case 'move_to_folder':
+                // Gmail doesn't support arbitrary folders the same way — mark as read instead
+                gmailMarkAsRead($accessToken, $messageId);
+                return 200;
+        }
+    }
+
+    // Microsoft (default)
     switch ($action) {
         case 'move_to_deleted':
             return moveEmailToFolder($accessToken, $messageId, 'deleteditems');

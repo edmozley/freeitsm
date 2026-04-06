@@ -18,7 +18,7 @@ if (!isset($_SESSION['analyst_id'])) {
 try {
     $conn = connectToDatabase();
 
-    $sql = "SELECT id, name, azure_tenant_id, azure_client_id, azure_client_secret,
+    $sql = "SELECT id, name, provider, azure_tenant_id, azure_client_id, azure_client_secret,
                    oauth_redirect_uri, oauth_scopes, imap_server, imap_port, imap_encryption,
                    target_mailbox, email_folder, max_emails_per_check, mark_as_read,
                    rejected_action, imported_action, imported_folder,
