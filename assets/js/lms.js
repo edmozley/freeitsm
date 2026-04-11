@@ -384,7 +384,7 @@ const LMS = (() => {
     function renderProgress(data) {
         const tbody = document.getElementById('progressBody');
         if (!data.length) {
-            tbody.innerHTML = '<tr><td colspan="7" class="lms-empty">No progress data found</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="8" class="lms-empty">No progress data found</td></tr>';
             return;
         }
         tbody.innerHTML = data.map(row => {
@@ -400,6 +400,10 @@ const LMS = (() => {
             const lastAccess = row.last_access ? new Date(row.last_access).toLocaleString() : '';
             const trStyle = row.is_overdue ? ' style="background: #fff5f5;"' : '';
 
+            const viewBtn = row.status !== 'not_started'
+                ? `<button class="lms-action-btn" onclick="LMS.viewLearnerData(${row.analyst_id}, ${row.course_id})">View</button>`
+                : '';
+
             return `<tr${trStyle}>
                 <td>${esc(row.analyst_name)}</td>
                 <td>${esc(row.course_title)}</td>
@@ -408,8 +412,178 @@ const LMS = (() => {
                 <td>${score}</td>
                 <td>${deadline}</td>
                 <td>${lastAccess}</td>
+                <td class="lms-actions">${viewBtn}</td>
             </tr>`;
         }).join('');
+    }
+
+    // =========================================================
+    //  Learner Data View
+    // =========================================================
+    async function viewLearnerData(analystId, courseId) {
+        const body = document.getElementById('learnerDataBody');
+        body.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">Loading...</div>';
+        openModal('learnerDataModal');
+
+        try {
+            const r = await fetch(API_BASE + 'learner_data.php?analyst_id=' + analystId + '&course_id=' + courseId);
+            const d = await r.json();
+            if (!d.success) {
+                body.innerHTML = '<div style="color:#c33; padding:20px;">' + esc(d.error) + '</div>';
+                return;
+            }
+
+            const p = d.progress;
+            document.getElementById('learnerDataTitle').textContent = p.analyst_name + ' — ' + p.course_title;
+
+            let html = '';
+
+            // Summary cards
+            const statusLabel = (p.status || 'not_started').replace('_', ' ');
+            const scoreDisplay = p.score_raw !== null ? p.score_raw + (p.score_max ? ' / ' + p.score_max : '') : '—';
+            html += `<div class="ld-summary">
+                <div class="ld-stat"><div class="ld-stat-value"><span class="lms-status ${p.status}">${statusLabel}</span></div><div class="ld-stat-label">Status</div></div>
+                <div class="ld-stat"><div class="ld-stat-value">${esc(scoreDisplay)}</div><div class="ld-stat-label">Score</div></div>
+                <div class="ld-stat"><div class="ld-stat-value">${p.attempt_count || 0}</div><div class="ld-stat-label">Attempts</div></div>
+                <div class="ld-stat"><div class="ld-stat-value">${formatTime(p.total_time)}</div><div class="ld-stat-label">Time Spent</div></div>
+                <div class="ld-stat"><div class="ld-stat-value">${p.first_access ? new Date(p.first_access).toLocaleDateString() : '—'}</div><div class="ld-stat-label">First Access</div></div>
+                <div class="ld-stat"><div class="ld-stat-value">${p.last_access ? new Date(p.last_access).toLocaleDateString() : '—'}</div><div class="ld-stat-label">Last Access</div></div>
+            </div>`;
+
+            // Interactions (quiz responses)
+            if (d.interactions.length > 0) {
+                html += `<div class="ld-section">
+                    <div class="ld-section-title">Responses <span class="ld-count">${d.interactions.length}</span></div>`;
+
+                d.interactions.forEach((ix, i) => {
+                    const result = ix.result || '';
+                    let resultClass = 'neutral';
+                    if (/correct/i.test(result)) resultClass = 'correct';
+                    else if (/wrong|incorrect/i.test(result)) resultClass = 'wrong';
+
+                    html += `<div class="ld-interaction">
+                        <div class="ld-interaction-header">
+                            <span class="ld-interaction-id">${esc(ix.id || 'Question ' + (i + 1))}</span>
+                            ${result ? '<span class="ld-result ' + resultClass + '">' + esc(result) + '</span>' : ''}
+                        </div>`;
+
+                    if (ix.description) html += `<div class="ld-field"><span class="ld-field-label">Question</span><span class="ld-field-value">${esc(ix.description)}</span></div>`;
+                    if (ix.type) html += `<div class="ld-field"><span class="ld-field-label">Type</span><span class="ld-field-value">${esc(ix.type)}</span></div>`;
+                    if (ix.learner_response || ix.student_response) html += `<div class="ld-field"><span class="ld-field-label">Response</span><span class="ld-field-value">${esc(ix.learner_response || ix.student_response)}</span></div>`;
+                    if (ix.correct_responses) html += `<div class="ld-field"><span class="ld-field-label">Correct Answer</span><span class="ld-field-value">${esc(ix.correct_responses)}</span></div>`;
+                    if (ix.weighting) html += `<div class="ld-field"><span class="ld-field-label">Weight</span><span class="ld-field-value">${esc(ix.weighting)}</span></div>`;
+                    if (ix.latency) html += `<div class="ld-field"><span class="ld-field-label">Time Taken</span><span class="ld-field-value">${esc(ix.latency)}</span></div>`;
+
+                    html += '</div>';
+                });
+
+                html += '</div>';
+            }
+
+            // Objectives
+            if (d.objectives.length > 0) {
+                html += `<div class="ld-section">
+                    <div class="ld-section-title">Objectives <span class="ld-count">${d.objectives.length}</span></div>`;
+                d.objectives.forEach(obj => {
+                    const objStatus = obj.status || obj.completion_status || '';
+                    html += `<div class="ld-interaction">
+                        <div class="ld-interaction-header">
+                            <span class="ld-interaction-id">${esc(obj.id || 'Objective')}</span>
+                            ${objStatus ? '<span class="lms-status ' + objStatus + '">' + esc(objStatus) + '</span>' : ''}
+                        </div>`;
+                    if (obj.description) html += `<div class="ld-field"><span class="ld-field-label">Description</span><span class="ld-field-value">${esc(obj.description)}</span></div>`;
+                    if (obj.score_raw) html += `<div class="ld-field"><span class="ld-field-label">Score</span><span class="ld-field-value">${esc(obj.score_raw)}${obj.score_max ? ' / ' + esc(obj.score_max) : ''}</span></div>`;
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+
+            // Suspend data
+            if (d.suspend_data_raw) {
+                html += `<div class="ld-section">
+                    <div class="ld-section-title">Learner Data (suspend_data)</div>`;
+
+                if (d.suspend_data_decoded) {
+                    html += '<div class="ld-suspend ld-suspend-json">' + formatJson(d.suspend_data_decoded) + '</div>';
+                } else {
+                    // Try to detect and format common patterns
+                    const raw = d.suspend_data_raw;
+                    if (raw.length > 2000) {
+                        html += '<div class="ld-suspend">' + esc(raw.substring(0, 2000)) + '... (' + raw.length + ' chars total)</div>';
+                    } else {
+                        html += '<div class="ld-suspend">' + esc(raw) + '</div>';
+                    }
+                }
+                html += '</div>';
+            }
+
+            // All CMI data (raw key-value pairs)
+            if (d.general.length > 0) {
+                html += `<div class="ld-section">
+                    <div class="ld-section-title">All Data Elements <span class="ld-count">${d.general.length}</span></div>
+                    <table class="ld-kv-table">`;
+                d.general.forEach(g => {
+                    const val = g.value || '';
+                    const displayVal = val.length > 200 ? esc(val.substring(0, 200)) + '...' : esc(val);
+                    html += `<tr><td>${esc(g.element)}</td><td>${displayVal}</td></tr>`;
+                });
+                html += '</table></div>';
+            }
+
+            if (!d.interactions.length && !d.objectives.length && !d.suspend_data_raw && !d.general.length) {
+                html += '<div style="text-align:center; padding:30px; color:#999;">No detailed data recorded by this course yet.</div>';
+            }
+
+            body.innerHTML = html;
+
+        } catch (e) {
+            body.innerHTML = '<div style="color:#c33; padding:20px;">Failed to load learner data.</div>';
+        }
+    }
+
+    function formatTime(timeStr) {
+        if (!timeStr) return '—';
+        // Handle SCORM time formats: "00:05:30" or "PT5M30S"
+        if (timeStr.startsWith('PT')) {
+            const h = (timeStr.match(/(\d+)H/) || [])[1] || 0;
+            const m = (timeStr.match(/(\d+)M/) || [])[1] || 0;
+            const s = (timeStr.match(/(\d+(?:\.\d+)?)S/) || [])[1] || 0;
+            if (+h > 0) return h + 'h ' + m + 'm';
+            if (+m > 0) return m + 'm ' + Math.round(+s) + 's';
+            return Math.round(+s) + 's';
+        }
+        // HH:MM:SS format
+        const parts = timeStr.split(':');
+        if (parts.length === 3) {
+            const h = parseInt(parts[0]);
+            const m = parseInt(parts[1]);
+            const s = Math.round(parseFloat(parts[2]));
+            if (h > 0) return h + 'h ' + m + 'm';
+            if (m > 0) return m + 'm ' + s + 's';
+            return s + 's';
+        }
+        return timeStr;
+    }
+
+    function formatJson(obj, indent = 0) {
+        if (obj === null) return '<span class="ld-json-null">null</span>';
+        if (typeof obj === 'boolean') return '<span class="ld-json-bool">' + obj + '</span>';
+        if (typeof obj === 'number') return '<span class="ld-json-number">' + obj + '</span>';
+        if (typeof obj === 'string') return '<span class="ld-json-string">"' + esc(obj) + '"</span>';
+
+        const pad = '  '.repeat(indent);
+        const pad1 = '  '.repeat(indent + 1);
+
+        if (Array.isArray(obj)) {
+            if (obj.length === 0) return '[]';
+            const items = obj.map(item => pad1 + formatJson(item, indent + 1));
+            return '[\n' + items.join(',\n') + '\n' + pad + ']';
+        }
+
+        const keys = Object.keys(obj);
+        if (keys.length === 0) return '{}';
+        const entries = keys.map(k => pad1 + '<span class="ld-json-key">"' + esc(k) + '"</span>: ' + formatJson(obj[k], indent + 1));
+        return '{\n' + entries.join(',\n') + '\n' + pad + '}';
     }
 
     // =========================================================
@@ -442,6 +616,6 @@ const LMS = (() => {
         switchTab, openUploadModal, deleteCourse,
         openGroupModal, editGroup, deleteGroup,
         openAssignModal, deleteAssignment,
-        loadProgress, closeModal
+        loadProgress, viewLearnerData, closeModal
     };
 })();

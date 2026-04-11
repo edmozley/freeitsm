@@ -127,10 +127,11 @@ $path_prefix = '../';
                         <th>Score</th>
                         <th>Deadline</th>
                         <th>Last Access</th>
+                        <th style="width: 60px;"></th>
                     </tr>
                 </thead>
                 <tbody id="progressBody">
-                    <tr><td colspan="7" class="lms-empty">Loading...</td></tr>
+                    <tr><td colspan="8" class="lms-empty">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -217,6 +218,17 @@ $path_prefix = '../';
                     <button type="submit" class="btn btn-primary">Assign</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Learner Data Modal -->
+    <div class="modal" id="learnerDataModal">
+        <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
+            <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
+                <span id="learnerDataTitle">Learner Data</span>
+                <button style="background:none;border:none;font-size:22px;cursor:pointer;color:#999;" onclick="LMS.closeModal('learnerDataModal')">&times;</button>
+            </div>
+            <div id="learnerDataBody" style="padding: 20px 24px; overflow-y: auto; flex: 1;"></div>
         </div>
     </div>
 
