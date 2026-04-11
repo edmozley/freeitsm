@@ -12,16 +12,21 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+
+---
+
+## Published
+
+### 11 April 2026
+
+| ID  | Module            | Type        | Description |
+|-----|-------------------|-------------|-------------|
 | 112 | LMS               | Feature     | Add learner data viewer showing quiz responses, objectives, scores, and suspend data with syntax-highlighted JSON for admin review |
 | 111 | LMS               | Feature     | Add LMS module with SCORM 1.1/1.2/2004 course player, course upload with manifest parsing, learning groups, course-to-group assignments with deadlines, per-user progress tracking, and admin dashboard with overdue highlighting |
 | 110 | System            | Feature     | Add IP-based brute force protection that bans IPs after repeated login attempts against non-existent or locked accounts, with escalating strictness and configurable thresholds |
 | 109 | Tickets           | Feature     | Add Google Workspace (Gmail API) mailbox support alongside existing Microsoft 365 integration with provider selector, Google OAuth callback, and Gmail send/receive/delete operations |
 | 108 | Process Mapper    | Feature     | Add Process Mapper module with visual flowchart builder, dot-grid canvas with snap-to-grid, drag-and-drop steps, connector lines with optional text labels, multi-select with Ctrl and arrow key nudge, and slide-in detail panel |
 | 107 | System            | Feature     | Add forgot password flow with email reset link sent via configured mailbox, secure token with 1-hour expiry, and reset page |
-
----
-
-## Published
 
 ### 10 March 2026
 
