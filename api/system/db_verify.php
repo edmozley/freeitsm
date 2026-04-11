@@ -688,6 +688,74 @@ $schema = [
         'last_attempt'      => 'DATETIME NULL',
     ],
 
+    'lms_courses' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'title'                 => 'VARCHAR(255) NOT NULL',
+        'description'           => 'LONGTEXT NULL',
+        'scorm_version'         => 'VARCHAR(20) NULL',
+        'manifest_identifier'   => 'VARCHAR(255) NULL',
+        'launch_url'            => 'VARCHAR(500) NULL',
+        'original_filename'     => 'VARCHAR(255) NULL',
+        'is_active'             => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_by_id'         => 'INT NULL',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'lms_learning_groups' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'name'                  => 'VARCHAR(100) NOT NULL',
+        'description'           => 'VARCHAR(500) NULL',
+        'is_active'             => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_by_id'         => 'INT NULL',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'lms_learning_group_members' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'group_id'              => 'INT NOT NULL',
+        'analyst_id'            => 'INT NOT NULL',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'lms_course_assignments' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'course_id'             => 'INT NOT NULL',
+        'group_id'              => 'INT NOT NULL',
+        'deadline'              => 'DATETIME NULL',
+        'assigned_by_id'        => 'INT NULL',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'lms_progress' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'analyst_id'            => 'INT NOT NULL',
+        'course_id'             => 'INT NOT NULL',
+        'status'                => "VARCHAR(20) NOT NULL DEFAULT 'not_started'",
+        'score_raw'             => 'DECIMAL(10,2) NULL',
+        'score_min'             => 'DECIMAL(10,2) NULL',
+        'score_max'             => 'DECIMAL(10,2) NULL',
+        'total_time'            => 'VARCHAR(50) NULL',
+        'bookmark'              => 'VARCHAR(500) NULL',
+        'suspend_data'          => 'LONGTEXT NULL',
+        'completion_datetime'   => 'DATETIME NULL',
+        'first_access'          => 'DATETIME NULL',
+        'last_access'           => 'DATETIME NULL',
+        'attempt_count'         => 'INT NOT NULL DEFAULT 0',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'lms_cmi_data' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'progress_id'           => 'INT NOT NULL',
+        'element'               => 'VARCHAR(255) NOT NULL',
+        'value'                 => 'LONGTEXT NULL',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'processes' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'title'             => 'VARCHAR(255) NOT NULL',

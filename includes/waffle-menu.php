@@ -93,6 +93,11 @@ $modules = [
         'path' => 'system-wiki/',
         'icon' => '<circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>'
     ],
+    'lms' => [
+        'name' => 'LMS',
+        'path' => 'lms/',
+        'icon' => '<path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"></path>'
+    ],
     'process-mapper' => [
         'name' => 'Processes',
         'path' => 'process-mapper/',

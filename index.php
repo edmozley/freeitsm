@@ -332,6 +332,18 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
             </a>
             <?php endif; ?>
 
+            <?php if ($allowed_modules === null || in_array('lms', $allowed_modules)): ?>
+            <a href="lms/" class="module-card lms" title="Learning Management System with SCORM course player">
+                <div class="module-icon lms">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                        <path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"></path>
+                    </svg>
+                </div>
+                <div class="module-name">LMS</div>
+            </a>
+            <?php endif; ?>
+
             <?php if ($allowed_modules === null || in_array('process-mapper', $allowed_modules)): ?>
             <a href="process-mapper/" class="module-card process-mapper" title="Visual flowchart and process mapping tool">
                 <div class="module-icon process-mapper">

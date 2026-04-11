@@ -42,6 +42,11 @@ A comprehensive web-based IT Service Management (ITSM) platform with 13 integrat
 <td align="center"><strong>System Wiki</strong><br><img src="https://freeitsm.co.uk/images/screenshots/wiki_1.png" width="350" alt="System Wiki"></td>
 <td align="center"><strong>Process Mapper</strong><br>Visual flowchart builder with drag-and-drop steps, connector lines, and snap-to-grid canvas</td>
 </tr>
+<tr>
+<td align="center"><strong>LMS</strong><br>Learning Management System with SCORM 1.1/1.2/2004 course player, learning groups, assignments, deadlines, and progress tracking</td>
+<td align="center"></td>
+<td align="center"></td>
+</tr>
 </table>
 
 <p align="center"><a href="https://freeitsm.co.uk/screenshots.html"><strong>View all 57 screenshots →</strong></a></p>

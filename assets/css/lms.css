@@ -1,0 +1,334 @@
+/* =============================================================
+   LMS Module Styles
+   ============================================================= */
+
+.lms-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* --- Tabs --------------------------------------------------- */
+.lms-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid #e0e0e0;
+    margin-bottom: 20px;
+}
+
+.lms-tab {
+    padding: 10px 24px;
+    border: none;
+    background: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.15s;
+}
+
+.lms-tab:hover { color: #333; }
+
+.lms-tab.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+}
+
+/* --- Panel -------------------------------------------------- */
+.lms-panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.lms-panel-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+}
+
+.lms-filters {
+    display: flex;
+    gap: 8px;
+}
+
+.lms-filters select {
+    padding: 7px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    background: #fff;
+}
+
+/* --- Table -------------------------------------------------- */
+.lms-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+
+.lms-table thead th {
+    background: #f8f9fa;
+    padding: 10px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.lms-table tbody td {
+    padding: 10px 14px;
+    font-size: 13px;
+    color: #333;
+    border-bottom: 1px solid #f0f0f0;
+    vertical-align: middle;
+}
+
+.lms-table tbody tr:hover {
+    background: #f8f9fa;
+}
+
+.lms-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.lms-empty {
+    text-align: center;
+    color: #999;
+    padding: 30px 14px !important;
+}
+
+/* --- Status badges ----------------------------------------- */
+.lms-status {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: capitalize;
+}
+
+.lms-status.not_started { background: #f0f0f0; color: #666; }
+.lms-status.incomplete  { background: #fff3e0; color: #e65100; }
+.lms-status.completed   { background: #e8f5e9; color: #2e7d32; }
+.lms-status.passed      { background: #e8f5e9; color: #1b5e20; }
+.lms-status.failed      { background: #fce4ec; color: #c62828; }
+.lms-status.overdue     { background: #fce4ec; color: #c62828; }
+
+/* --- Action buttons ---------------------------------------- */
+.lms-actions {
+    display: flex;
+    gap: 4px;
+}
+
+.lms-action-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: #555;
+    font-size: 12px;
+    transition: all 0.15s;
+}
+
+.lms-action-btn:hover {
+    background: #f0f0f0;
+    border-color: #ccc;
+}
+
+.lms-action-btn.delete:hover {
+    background: #fce4ec;
+    border-color: #ef9a9a;
+    color: #c62828;
+}
+
+.lms-action-btn.launch {
+    background: #2563eb;
+    color: #fff;
+    border-color: #2563eb;
+}
+
+.lms-action-btn.launch:hover {
+    background: #1d4ed8;
+}
+
+/* --- Buttons ----------------------------------------------- */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary { background: #e0e0e0; color: #333; }
+.btn-secondary:hover { background: #d0d0d0; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* --- Forms ------------------------------------------------- */
+.form-group {
+    margin-bottom: 14px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 4px;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #2563eb;
+}
+
+/* --- Modal ------------------------------------------------- */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    width: 100%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-header {
+    padding: 16px 24px;
+    font-size: 16px;
+    font-weight: 600;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+/* --- Member checkboxes ------------------------------------- */
+.member-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 4px;
+    font-size: 13px;
+}
+
+.member-item:hover { background: #f8f9fa; }
+
+.member-item input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
+/* --- Toast ------------------------------------------------- */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    color: #fff;
+    background: #333;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.3s, transform 0.3s;
+    z-index: 1100;
+    pointer-events: none;
+}
+
+.toast.show { opacity: 1; transform: translateY(0); }
+.toast.success { background: #2e7d32; }
+.toast.error { background: #c33; }
+
+/* --- SCORM version badge ----------------------------------- */
+.scorm-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #e3f2fd;
+    color: #1565c0;
+}
+
+/* --- Player page ------------------------------------------- */
+.lms-player {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 48px);
+}
+
+.lms-player-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.lms-player-toolbar .course-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+
+.lms-player-frame {
+    flex: 1;
+    border: none;
+    width: 100%;
+}
