@@ -17,7 +17,7 @@ It genuinely helps and means a lot!
 
 # FreeITSM - Open Source Service Desk Platform
 
-A comprehensive web-based IT Service Management (ITSM) platform with 13 integrated modules covering a unified attention dashboard, tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, and system administration. Includes analyst account management with password reset and TOTP multi-factor authentication.
+A comprehensive web-based IT Service Management (ITSM) platform with 16 integrated modules covering a unified attention dashboard, tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, process mapping, LMS with SCORM course player, and system administration. Includes analyst account management with password reset, forgot password via email, TOTP multi-factor authentication, and IP-based brute force protection.
 
 ## Screenshots
 
@@ -77,6 +77,8 @@ A comprehensive web-based IT Service Management (ITSM) platform with 13 integrat
   - [Contracts](#contracts-contracts)
   - [Service Status](#service-status-service-status)
   - [Self-Service Portal](#self-service-portal-self-service)
+  - [LMS](#lms-lms)
+  - [Process Mapper](#process-mapper-process-mapper)
 - [API Reference](#api-reference)
 - [Database](#database)
 - [Security](#security)
@@ -198,7 +200,7 @@ Then open [http://localhost:8080/setup/](http://localhost:8080/setup/) to verify
 | Database | MySQL 8.0+ (PDO MySQL) |
 | Frontend | Vanilla JavaScript, HTML5, CSS3 (no frameworks) |
 | Rich Text Editor | TinyMCE 6+ |
-| Email Integration | Microsoft Graph API (OAuth 2.0) |
+| Email Integration | Microsoft Graph API + Gmail API (OAuth 2.0) |
 | Encryption | AES-256-GCM (sensitive data at rest) |
 | Web Server | Apache (WAMP/XAMPP/LAMP) or any PHP-capable server |
 
@@ -206,7 +208,7 @@ Then open [http://localhost:8080/setup/](http://localhost:8080/setup/) to verify
 
 ## ITSM Modules
 
-The platform is organised into 13 modules, accessible from a landing page (`index.php`) and a shared waffle menu for cross-module navigation.
+The platform is organised into 16 modules, accessible from a landing page (`index.php`) and a shared waffle menu for cross-module navigation.
 
 | Module | Folder | Colour | Description |
 |--------|--------|--------|-------------|
@@ -222,7 +224,10 @@ The platform is organised into 13 modules, accessible from a landing page (`inde
 | **Forms** | `forms/` | Teal `#00897b` | Dynamic form builder with sidebar list, tabbed editor (Fields/Preview), filler, and submission reporting |
 | **Contracts** | `contracts/` | Amber `#f59e0b` | Supplier and contract lifecycle management with terms, financials, and notice tracking |
 | **Service Status** | `service-status/` | Emerald `#10b981` | Real-time service health dashboard with incident tracking |
-| **System** | `system/` | Blue-grey `#546e7a` | Encryption key management and module access control |
+| **Wiki** | `system-wiki/` | Red `#c62828` | Auto-generated codebase documentation browser |
+| **LMS** | `lms/` | Blue `#2563eb` | Learning Management System with SCORM 1.1/1.2/2004 course player, learning groups, assignments, deadlines, and progress tracking |
+| **Processes** | `process-mapper/` | Indigo `#6366f1` | Visual flowchart builder with dot-grid canvas, snap-to-grid, connectors, and slide-in detail panel |
+| **System** | `system/` | Blue-grey `#546e7a` | Encryption key management, security settings, and module access control |
 
 ---
 
@@ -238,12 +243,18 @@ sdtickets/
 ├── admin_settings.php                # Legacy admin panel (tickets settings)
 ├── check_email.php                   # Scheduled email import (all mailboxes)
 ├── oauth_callback.php                # Microsoft OAuth 2.0 callback
+├── google_oauth_callback.php         # Google OAuth 2.0 callback
+├── forgot-password.php               # Password reset request page
+├── reset-password.php                # Password reset (with token from email)
 │
 ├── includes/                         # Shared PHP components
 │   ├── functions.php                 # Database connection helper
 │   ├── waffle-menu.php               # Cross-module navigation menu + user account menu
 │   ├── encryption.php                # AES-256-GCM encryption/decryption
-│   └── totp.php                      # Pure PHP TOTP (RFC 6238) for MFA
+│   ├── totp.php                      # Pure PHP TOTP (RFC 6238) for MFA
+│   ├── gmail.php                     # Gmail API helper (send, read, refresh tokens)
+│   ├── template_email.php            # Automated email templates for ticket events
+│   └── module-colors.php             # Module colour definitions
 │
 ├── assets/                           # Static assets
 │   ├── css/
@@ -344,10 +355,20 @@ sdtickets/
 │   ├── create_tables.sql             # Database schema
 │   └── includes/
 │
+├── lms/                              # LMS Module
+│   ├── index.php                     # Dashboard with courses, groups, assignments, progress
+│   ├── player.php                    # SCORM player with iframe + API bridge
+│   ├── content/                      # Uploaded SCORM packages (one folder per course)
+│   └── includes/
+│
+├── process-mapper/                   # Process Mapper Module
+│   ├── index.php                     # Visual flowchart editor
+│   └── includes/
+│
 ├── setup/                            # Setup verification (delete after going live)
 │   └── index.php                     # Diagnostic checks page
 │
-├── api/                              # REST API endpoints (~125 total)
+├── api/                              # REST API endpoints (~140 total)
 │   ├── tickets/                      # ~48 endpoints
 │   ├── assets/                       # 8 endpoints (inc. vCenter sync)
 │   ├── knowledge/                    # 16 endpoints (inc. AI chat)
@@ -360,6 +381,9 @@ sdtickets/
 │   ├── settings/                     # 2 endpoints
 │   ├── system/                       # 4 endpoints (encryption, module access)
 │   ├── myaccount/                    # 6 endpoints (password, MFA setup/verify/disable)
+│   ├── auth/                         # 2 endpoints (password reset request/confirm)
+│   ├── lms/                          # 9 endpoints (courses, groups, assignments, progress, SCORM data)
+│   ├── process-mapper/               # 4 endpoints (list, get, save, delete)
 │   └── external/                     # External API (software inventory)
 │
 └── database/                         # SQL schema scripts
@@ -454,7 +478,7 @@ The primary module. Three-panel Outlook-style interface.
 - **Middle panel**: Ticket list (searchable)
 - **Right panel**: Reading pane with full email thread
 - **Features**: Create tickets, reply/forward emails, attachments, internal notes, audit trail, team-based filtering, scheduling
-- **Settings**: Departments, ticket types, origins, mailboxes (Office 365), email templates, analysts, teams
+- **Settings**: Departments, ticket types, origins, mailboxes (Microsoft 365 + Google Workspace), email templates, analysts, teams
 - **Mailbox whitelist**: Per-mailbox domain and email address whitelisting — non-whitelisted senders are rejected
 - **Email actions**: Configurable per-mailbox actions for rejected emails (delete, move to Deleted Items, mark as read) and imported emails (delete, move to folder) with folder verification
 - **Email templates**: Automated email responses triggered by ticket events (new ticket from email, ticket assigned, ticket closed) with merge codes for ticket reference, requester name, analyst name, and more
@@ -628,6 +652,27 @@ End-user portal allowing ticket requesters to register, log in, and interact wit
 - **User Avatar Menu**: Initials circle in the header with dropdown for account management, MFA setup, password change, and logout.
 - **My Account**: Users can set a preferred name (e.g. "Ed" instead of "Ed Mozley") and change their password.
 - **Multi-Factor Authentication**: TOTP-based MFA using the same core libraries (`includes/totp.php`, `includes/encryption.php`) as the analyst system. Users can enable/disable MFA from their account menu.
+
+### LMS (`lms/`)
+Learning Management System with SCORM course player and progress tracking.
+
+- **Course Management**: Upload SCORM 1.1, 1.2, and 2004 ZIP packages. Manifest is auto-parsed to detect version and launch URL.
+- **SCORM Player** (`player.php`): Full-viewport iframe with dual JavaScript API bridge — exposes both `window.API` (SCORM 1.x) and `window.API_1484_11` (SCORM 2004) so courses find whichever they look for.
+- **Progress Tracking**: Per-user status (not started, incomplete, completed, passed, failed), scores, bookmarks, suspend data, and resume support. All CMI data stored as key/value pairs.
+- **Learning Groups**: Create groups of analysts with many-to-many membership. Assign courses to groups with optional deadlines.
+- **Admin Dashboard**: Four tabs — Courses, Groups, Assignments, Progress. Progress tab shows every assigned analyst's completion status with overdue highlighting. Filterable by course, group, or status.
+- **Learner Data Viewer**: View button per learner showing quiz responses with correct/incorrect badges, objectives, scores, suspend data with syntax-highlighted JSON, and all raw CMI elements.
+
+### Process Mapper (`process-mapper/`)
+Visual flowchart builder for documenting processes and workflows.
+
+- **Dot-grid canvas** with 20px snap-to-grid on all movements
+- **Shape types**: Process (rounded rect), Decision (diamond), Terminal/Start-End (pill), Document (wavy bottom)
+- **Connectors**: Drag from edge handles to draw arrows between steps. Optional text labels on connectors (double-click to edit).
+- **Multi-select**: Ctrl+click to toggle, rubber-band drag to select a region, Ctrl+A to select all
+- **Arrow key nudge**: Move selected steps by one grid unit with cursor keys
+- **Slide-in detail panel**: Click a step to edit label, type, colour, description, and view/edit its connectors
+- **Save/load**: Full persistence with sidebar listing all saved processes
 
 ---
 
@@ -923,7 +968,9 @@ Controls which modules an analyst can access. No rows = full access to all modul
 - PDO prepared statements throughout (SQL injection prevention)
 - Output encoding with `htmlspecialchars()` (XSS prevention)
 - Client-side escaping via DOM `textContent` → `innerHTML` pattern
-- OAuth 2.0 for Microsoft 365 email integration
+- OAuth 2.0 for Microsoft 365 and Google Workspace email integration
+- Forgot password flow with secure email reset links (1-hour expiry, single-use tokens)
+- IP-based brute force protection: escalating bans for IPs attempting logins against non-existent or locked accounts (configurable thresholds, 24-hour bans)
 - Team-based access control for ticket visibility
 - Module-level access control per analyst (configurable via System module)
 - Audit logging for all ticket changes
