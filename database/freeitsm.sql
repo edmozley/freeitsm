@@ -1316,6 +1316,17 @@ CREATE TABLE IF NOT EXISTS `password_reset_tokens` (
     KEY `idx_prt_analyst` (`analyst_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `ip_login_bans` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `ip_address`        VARCHAR(45) NOT NULL,
+    `attempt_count`     INT NOT NULL DEFAULT 0,
+    `ban_count`         INT NOT NULL DEFAULT 0,
+    `banned_until`      DATETIME NULL,
+    `last_attempt`      DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_ip_bans_ip` (`ip_address`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ----------------------------------------------------------
 -- Service Status
 -- ----------------------------------------------------------

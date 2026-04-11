@@ -679,6 +679,15 @@ $schema = [
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    'ip_login_bans' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'ip_address'        => 'VARCHAR(45) NOT NULL',
+        'attempt_count'     => 'INT NOT NULL DEFAULT 0',
+        'ban_count'         => 'INT NOT NULL DEFAULT 0',
+        'banned_until'      => 'DATETIME NULL',
+        'last_attempt'      => 'DATETIME NULL',
+    ],
+
     'processes' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'title'             => 'VARCHAR(255) NOT NULL',

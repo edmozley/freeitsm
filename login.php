@@ -73,6 +73,64 @@ if (isset($_GET['cancel_mfa'])) {
 
 $error = '';
 $mfa_required = isset($_SESSION['mfa_pending_analyst_id']);
+$ip_banned = false;
+
+/**
+ * Check if an IP is currently banned. Returns minutes remaining or 0.
+ */
+function checkIpBan($conn, $ip) {
+    try {
+        $stmt = $conn->prepare("SELECT banned_until FROM ip_login_bans WHERE ip_address = ? AND banned_until > UTC_TIMESTAMP()");
+        $stmt->execute([$ip]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $until = new DateTime($row['banned_until']);
+            $now = new DateTime('now', new DateTimeZone('UTC'));
+            return max(1, (int)ceil(($until->getTimestamp() - $now->getTimestamp()) / 60));
+        }
+    } catch (Exception $e) { /* table may not exist yet */ }
+    return 0;
+}
+
+/**
+ * Record a suspicious IP attempt (non-existent user or locked account).
+ * Bans the IP if the threshold is reached.
+ */
+function recordIpAttempt($conn, $ip) {
+    try {
+        $maxAttempts = (int)(getSecuritySetting($conn, 'max_ip_attempts') ?? 0);
+        if ($maxAttempts <= 0) return; // Feature disabled
+
+        $minAttempts = (int)(getSecuritySetting($conn, 'min_ip_attempts') ?? 2);
+
+        // Upsert the IP record
+        $stmt = $conn->prepare("SELECT id, attempt_count, ban_count, banned_until FROM ip_login_bans WHERE ip_address = ?");
+        $stmt->execute([$ip]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if (!$row) {
+            $conn->prepare("INSERT INTO ip_login_bans (ip_address, attempt_count, ban_count, last_attempt) VALUES (?, 1, 0, UTC_TIMESTAMP())")
+                ->execute([$ip]);
+            return;
+        }
+
+        // If previously banned but ban expired, keep ban_count but reset attempt_count
+        $attempts = $row['attempt_count'] + 1;
+        $banCount = $row['ban_count'];
+
+        // Calculate current threshold: max_attempts - ban_count, floored at min_attempts
+        $threshold = max($minAttempts, $maxAttempts - $banCount);
+
+        if ($attempts >= $threshold) {
+            // Ban for 24 hours
+            $conn->prepare("UPDATE ip_login_bans SET attempt_count = 0, ban_count = ban_count + 1, banned_until = DATE_ADD(UTC_TIMESTAMP(), INTERVAL 24 HOUR), last_attempt = UTC_TIMESTAMP() WHERE id = ?")
+                ->execute([$row['id']]);
+        } else {
+            $conn->prepare("UPDATE ip_login_bans SET attempt_count = ?, last_attempt = UTC_TIMESTAMP() WHERE id = ?")
+                ->execute([$attempts, $row['id']]);
+        }
+    } catch (Exception $e) { /* table may not exist yet */ }
+}
 
 // Handle login form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -87,6 +145,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $dsn = "mysql:host=" . DB_SERVER . ";dbname=" . DB_NAME . ";charset=utf8mb4";
             $conn = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+            // Check IP ban
+            $clientIp = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+            $banMinutes = checkIpBan($conn, $clientIp);
+            if ($banMinutes > 0) {
+                http_response_code(429);
+                $ip_banned = true;
+                if ($banMinutes >= 60) {
+                    $hours = floor($banMinutes / 60);
+                    $error = 'Too many failed attempts. Try again in ' . $hours . ' hour' . ($hours > 1 ? 's' : '') . '.';
+                } else {
+                    $error = 'Too many failed attempts. Try again in ' . $banMinutes . ' minute' . ($banMinutes !== 1 ? 's' : '') . '.';
+                }
+                logLoginAttempt($conn, null, $username, false);
+                throw new Exception('__ip_banned__');
+            }
 
             // Query for user (include MFA, lockout, trust, and password fields)
             // Falls back to basic query if security columns don't exist yet (pre db-verify)
@@ -114,6 +188,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($mins < 1) $mins = 1;
                     $error = 'Account locked. Try again in ' . $mins . ' minute' . ($mins !== 1 ? 's' : '') . '.';
                     logLoginAttempt($conn, $analyst['id'], $username, false);
+                    recordIpAttempt($conn, $clientIp);
                 } else {
                     // Lockout expired — reset
                     $resetStmt = $conn->prepare("UPDATE analysts SET failed_login_count = 0, locked_until = NULL WHERE id = ?");
@@ -226,10 +301,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 logLoginAttempt($conn, $analyst ? $analyst['id'] : null, $username, false);
                 $error = 'Invalid username or password';
+
+                // Track IP for non-existent accounts (brute force enumeration)
+                if (!$analyst) {
+                    recordIpAttempt($conn, $clientIp);
+                }
             }
 
         } catch (Exception $e) {
-            $error = 'Login error: ' . $e->getMessage();
+            if ($e->getMessage() !== '__ip_banned__') {
+                $error = 'Login error: ' . $e->getMessage();
+            }
         }
     }
 }

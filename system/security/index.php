@@ -197,6 +197,31 @@ $path_prefix = '../../';
                 </div>
             </div>
 
+            <!-- IP Ban -->
+            <div class="settings-card">
+                <h3>IP Ban</h3>
+                <p class="card-desc">Automatically ban IP addresses that repeatedly attempt logins against non-existent or locked accounts. Each ban lasts 24 hours. After each ban the threshold drops by 1 (down to the minimum), making repeat offenders harder to abuse. Set max attempts to 0 to disable.</p>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <strong>First ban threshold</strong>
+                        Failed attempts before the IP is banned the first time
+                    </div>
+                    <input type="number" class="setting-input" id="maxIpAttempts" min="0" max="20" value="5">
+                    <span class="setting-unit">attempts</span>
+                </div>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <strong>Minimum threshold</strong>
+                        The threshold stops reducing once it reaches this floor
+                    </div>
+                    <input type="number" class="setting-input" id="minIpAttempts" min="1" max="10" value="2">
+                    <span class="setting-unit">attempts</span>
+                </div>
+                <div class="info-note">
+                    <strong>Example:</strong> With max 5 and min 2, the first ban triggers after 5 failed attempts, the second after 4, then 3, then 2. It stays at 2 for every subsequent ban. Only attempts against non-existent usernames or already-locked accounts count.
+                </div>
+            </div>
+
             <div class="save-area">
                 <button type="submit" class="btn btn-primary">Save</button>
             </div>
@@ -216,6 +241,8 @@ $path_prefix = '../../';
                 document.getElementById('passwordExpiryDays').value = s.password_expiry_days || '0';
                 document.getElementById('maxFailedLogins').value = s.max_failed_logins || '0';
                 document.getElementById('lockoutDuration').value = s.lockout_duration_minutes || '30';
+                document.getElementById('maxIpAttempts').value = s.max_ip_attempts || '5';
+                document.getElementById('minIpAttempts').value = s.min_ip_attempts || '2';
             }
         } catch (e) {
             console.error('Failed to load settings', e);
@@ -231,7 +258,9 @@ $path_prefix = '../../';
             trusted_device_days: document.getElementById('trustedDeviceDays').value,
             password_expiry_days: document.getElementById('passwordExpiryDays').value,
             max_failed_logins: document.getElementById('maxFailedLogins').value,
-            lockout_duration_minutes: document.getElementById('lockoutDuration').value
+            lockout_duration_minutes: document.getElementById('lockoutDuration').value,
+            max_ip_attempts: document.getElementById('maxIpAttempts').value,
+            min_ip_attempts: document.getElementById('minIpAttempts').value
         };
 
         try {
