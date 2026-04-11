@@ -1310,6 +1310,40 @@ try {
         }
     }
 
+    // Ensure unique indexes exist on LMS tables (db_verify only creates columns, not indexes)
+    $uniqueIndexes = [
+        ['lms_cmi_data', 'uq_lcd_progress_element', '(`progress_id`, `element`)'],
+        ['lms_progress', 'uq_lp_analyst_course', '(`analyst_id`, `course_id`)'],
+        ['lms_learning_group_members', 'uq_lgm_group_analyst', '(`group_id`, `analyst_id`)'],
+        ['lms_course_assignments', 'uq_lca_course_group', '(`course_id`, `group_id`)'],
+    ];
+
+    foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {
+        try {
+            // Check if table exists
+            $tblCheck = $conn->prepare("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = ? AND table_name = ?");
+            $tblCheck->execute([DB_NAME, $tbl]);
+            if ((int)$tblCheck->fetch(PDO::FETCH_ASSOC)['cnt'] === 0) continue;
+
+            // Check if index exists
+            $idxCheck = $conn->prepare("SELECT COUNT(*) as cnt FROM information_schema.statistics WHERE table_schema = ? AND table_name = ? AND index_name = ?");
+            $idxCheck->execute([DB_NAME, $tbl, $idxName]);
+            if ((int)$idxCheck->fetch(PDO::FETCH_ASSOC)['cnt'] > 0) continue;
+
+            // For lms_cmi_data: clean up duplicates before adding unique key
+            if ($tbl === 'lms_cmi_data') {
+                $conn->exec("DELETE d1 FROM lms_cmi_data d1
+                             INNER JOIN lms_cmi_data d2
+                             ON d1.progress_id = d2.progress_id AND d1.element = d2.element AND d1.id < d2.id");
+            }
+
+            $conn->exec("ALTER TABLE `$tbl` ADD UNIQUE KEY `$idxName` $cols");
+            $results[] = ['table' => $tbl, 'status' => 'updated', 'details' => ["Added unique index $idxName"]];
+        } catch (Exception $e) {
+            // Index may already exist under a different name — ignore
+        }
+    }
+
     echo json_encode([
         'success' => true,
         'results' => $results,

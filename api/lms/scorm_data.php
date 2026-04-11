@@ -85,13 +85,19 @@ try {
 
     $conn->beginTransaction();
 
-    // Upsert each CMI element
-    $upsert = $conn->prepare("INSERT INTO lms_cmi_data (progress_id, element, value, updated_datetime)
-                               VALUES (?, ?, ?, UTC_TIMESTAMP())
-                               ON DUPLICATE KEY UPDATE value = VALUES(value), updated_datetime = UTC_TIMESTAMP()");
+    // Upsert each CMI element (check-then-insert/update to handle missing unique key)
+    $checkStmt = $conn->prepare("SELECT id FROM lms_cmi_data WHERE progress_id = ? AND element = ? LIMIT 1");
+    $updateStmt = $conn->prepare("UPDATE lms_cmi_data SET value = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?");
+    $insertStmt = $conn->prepare("INSERT INTO lms_cmi_data (progress_id, element, value, updated_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())");
 
     foreach ($elements as $el) {
-        $upsert->execute([$progressId, $el['element'], $el['value']]);
+        $checkStmt->execute([$progressId, $el['element']]);
+        $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        if ($existing) {
+            $updateStmt->execute([$el['value'], $existing['id']]);
+        } else {
+            $insertStmt->execute([$progressId, $el['element'], $el['value']]);
+        }
     }
 
     // Denormalize key fields into lms_progress
