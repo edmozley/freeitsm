@@ -12,6 +12,8 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 113 | Watchtower        | Feature     | Add Chrome/Edge browser extension with API-key-authenticated endpoint, rate limiting, badge count, and popup dashboard showing Watchtower summary |
+| 114 | Software          | Improvement | Add label and owner columns to API key management with analyst binding on key generation |
 
 ---
 

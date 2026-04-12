@@ -953,11 +953,24 @@ CREATE TABLE IF NOT EXISTS `software_licences` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `apikeys` (
-    `id`        INT NOT NULL AUTO_INCREMENT,
-    `apikey`    VARCHAR(50) NULL,
-    `datestamp` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-    `active`    TINYINT(1) NULL DEFAULT 1,
-    PRIMARY KEY (`id`)
+    `id`         INT NOT NULL AUTO_INCREMENT,
+    `apikey`     VARCHAR(50) NULL,
+    `analyst_id` INT NULL,
+    `label`      VARCHAR(100) NULL,
+    `datestamp`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `active`     TINYINT(1) NULL DEFAULT 1,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_apikeys_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `api_rate_limits` (
+    `id`            INT NOT NULL AUTO_INCREMENT,
+    `apikey_id`     INT NOT NULL,
+    `request_count` INT NOT NULL DEFAULT 0,
+    `window_start`  DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_apikey_window` (`apikey_id`, `window_start`),
+    CONSTRAINT `fk_rate_limits_apikey` FOREIGN KEY (`apikey_id`) REFERENCES `apikeys` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------

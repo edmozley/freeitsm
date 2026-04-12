@@ -1,7 +1,7 @@
 <?php
 /**
  * API Endpoint: Get API Keys
- * Returns all API keys for the software inventory external API
+ * Returns all API keys with owner information
  */
 session_start();
 require_once '../../config.php';
@@ -17,11 +17,13 @@ if (!isset($_SESSION['analyst_id'])) {
 try {
     $conn = connectToDatabase();
 
-    $sql = "SELECT id, apikey,
-                   DATE_FORMAT(datestamp, '%Y-%m-%d %H:%i:%s') AS created_at,
-                   active
-            FROM apikeys
-            ORDER BY datestamp DESC";
+    $sql = "SELECT k.id, k.apikey, k.label,
+                   DATE_FORMAT(k.datestamp, '%Y-%m-%d %H:%i:%s') AS created_at,
+                   k.active, k.analyst_id,
+                   a.full_name AS analyst_name
+            FROM apikeys k
+            LEFT JOIN analysts a ON k.analyst_id = a.id
+            ORDER BY k.datestamp DESC";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute();

@@ -868,10 +868,19 @@ $schema = [
     ],
 
     'apikeys' => [
-        'id'        => 'INT NOT NULL AUTO_INCREMENT',
-        'apikey'    => 'VARCHAR(50) NULL',
-        'datestamp' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
-        'active'    => 'TINYINT(1) NULL DEFAULT 1',
+        'id'         => 'INT NOT NULL AUTO_INCREMENT',
+        'apikey'     => 'VARCHAR(50) NULL',
+        'analyst_id' => 'INT NULL',
+        'label'      => 'VARCHAR(100) NULL',
+        'datestamp'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'active'     => 'TINYINT(1) NULL DEFAULT 1',
+    ],
+
+    'api_rate_limits' => [
+        'id'            => 'INT NOT NULL AUTO_INCREMENT',
+        'apikey_id'     => 'INT NOT NULL',
+        'request_count' => 'INT NOT NULL DEFAULT 0',
+        'window_start'  => 'DATETIME NOT NULL',
     ],
 
     'forms' => [

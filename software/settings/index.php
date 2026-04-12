@@ -336,17 +336,21 @@ $path_prefix = '../../';
                     </svg>
                     API Keys
                 </h3>
-                <button class="btn btn-primary" onclick="generateKey()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    Generate
-                </button>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <input type="text" id="keyLabelInput" placeholder="Label (optional)" maxlength="100"
+                           style="padding:7px 12px;border:1px solid #ddd;border-radius:4px;font-size:13px;width:180px;">
+                    <button class="btn btn-primary" onclick="generateKey()">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Generate
+                    </button>
+                </div>
             </div>
             <div class="section-description">
-                API keys are used to authenticate requests to the software inventory submission endpoint.<br>
-                Clients send the key in the <code>Authorization</code> header when submitting inventory data to <code>/api/external/software-inventory/submit/</code>
+                API keys authenticate requests to external APIs (software inventory, device manager, Watchtower extension).<br>
+                Clients send the key in the <code>Authorization</code> header. Each key is bound to the analyst who created it.
             </div>
             <div id="newKeyBanner" class="new-key-banner">
                 <p>New API key generated. Copy it now — it won't be shown in full again.</p>
@@ -366,13 +370,15 @@ $path_prefix = '../../';
                     <thead>
                         <tr>
                             <th>API Key</th>
+                            <th>Label</th>
+                            <th>Owner</th>
                             <th>Created</th>
                             <th>Status</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="keyTableBody">
-                        <tr><td colspan="4">
+                        <tr><td colspan="6">
                             <div class="loading-spinner"><div class="spinner"></div></div>
                         </td></tr>
                     </tbody>
@@ -420,12 +426,12 @@ $path_prefix = '../../';
                     renderTable();
                 } else {
                     document.getElementById('keyTableBody').innerHTML =
-                        '<tr><td colspan="4"><div class="empty-state">Error: ' + escapeHtml(data.error) + '</div></td></tr>';
+                        '<tr><td colspan="6"><div class="empty-state">Error: ' + escapeHtml(data.error) + '</div></td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading keys:', error);
                 document.getElementById('keyTableBody').innerHTML =
-                    '<tr><td colspan="4"><div class="empty-state">Failed to load API keys</div></td></tr>';
+                    '<tr><td colspan="6"><div class="empty-state">Failed to load API keys</div></td></tr>';
             }
         }
 
@@ -433,7 +439,7 @@ $path_prefix = '../../';
             const tbody = document.getElementById('keyTableBody');
 
             if (allKeys.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">No API keys configured. Generate one to enable inventory submissions.</div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state">No API keys configured. Generate one to enable inventory submissions.</div></td></tr>';
                 return;
             }
 
@@ -444,6 +450,8 @@ $path_prefix = '../../';
                 const statusText = isActive ? 'Active' : 'Revoked';
                 const toggleBtnClass = isActive ? 'btn-warning' : 'btn-success';
                 const toggleBtnText = isActive ? 'Revoke' : 'Activate';
+                const label = key.label || '<span style="color:#bbb">—</span>';
+                const owner = key.analyst_name || '<span style="color:#bbb">—</span>';
 
                 return `
                 <tr>
@@ -458,6 +466,8 @@ $path_prefix = '../../';
                             </button>
                         </span>
                     </td>
+                    <td>${label}</td>
+                    <td>${owner}</td>
                     <td>${formatDate(key.created_at)}</td>
                     <td><span class="${statusClass}">${statusText}</span></td>
                     <td>
@@ -484,17 +494,20 @@ $path_prefix = '../../';
         }
 
         async function generateKey() {
+            const labelInput = document.getElementById('keyLabelInput');
+            const label = labelInput.value.trim();
             try {
                 const response = await fetch(API_BASE + 'generate_apikey.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({})
+                    body: JSON.stringify({ label: label || null })
                 });
                 const data = await response.json();
                 if (data.success) {
                     newlyGeneratedKey = data.apikey;
                     document.getElementById('newKeyValue').textContent = data.apikey;
                     document.getElementById('newKeyBanner').style.display = 'block';
+                    labelInput.value = '';
                     loadKeys();
                 } else {
                     alert('Error: ' + data.error);

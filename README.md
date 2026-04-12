@@ -17,7 +17,7 @@ It genuinely helps and means a lot!
 
 # FreeITSM - Open Source Service Desk Platform
 
-A comprehensive web-based IT Service Management (ITSM) platform with 16 integrated modules covering a unified attention dashboard, tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, process mapping, LMS with SCORM course player, and system administration. Includes analyst account management with password reset, forgot password via email, TOTP multi-factor authentication, and IP-based brute force protection.
+A comprehensive web-based IT Service Management (ITSM) platform with 16 integrated modules covering a unified attention dashboard, tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, process mapping, LMS with SCORM course player, and system administration. Includes a Chrome/Edge browser extension for Watchtower dashboard monitoring, analyst account management with password reset, forgot password via email, TOTP multi-factor authentication, and IP-based brute force protection.
 
 ## Screenshots
 
@@ -79,6 +79,7 @@ A comprehensive web-based IT Service Management (ITSM) platform with 16 integrat
   - [Self-Service Portal](#self-service-portal-self-service)
   - [LMS](#lms-lms)
   - [Process Mapper](#process-mapper-process-mapper)
+- [Browser Extension](#browser-extension)
 - [API Reference](#api-reference)
 - [Database](#database)
 - [Security](#security)
@@ -384,7 +385,15 @@ sdtickets/
 │   ├── auth/                         # 2 endpoints (password reset request/confirm)
 │   ├── lms/                          # 9 endpoints (courses, groups, assignments, progress, SCORM data)
 │   ├── process-mapper/               # 4 endpoints (list, get, save, delete)
-│   └── external/                     # External API (software inventory)
+│   ├── external/                     # External API (software inventory)
+│   └── watchtower/                   # Watchtower API (session + extension endpoints)
+│
+├── browser-extension/                # Chrome/Edge Watchtower extension (Manifest V3)
+│   ├── manifest.json
+│   ├── background.js                 # Service worker (polling + badge)
+│   ├── popup.html/js/css             # Extension popup UI
+│   ├── options.html/js               # Settings page
+│   └── icons/                        # Extension icons
 │
 └── database/                         # SQL schema scripts
     ├── create_teams_tables.sql
@@ -673,6 +682,26 @@ Visual flowchart builder for documenting processes and workflows.
 - **Arrow key nudge**: Move selected steps by one grid unit with cursor keys
 - **Slide-in detail panel**: Click a step to edit label, type, colour, description, and view/edit its connectors
 - **Save/load**: Full persistence with sidebar listing all saved processes
+
+---
+
+## Browser Extension
+
+A Chrome/Edge browser extension that shows your Watchtower dashboard summary in a popup with a badge count for items needing attention.
+
+### Setup
+
+1. **Generate an API key**: Go to **Software > Settings > API Keys**, enter a label (e.g. "Chrome extension"), and click **Generate**. Copy the key.
+2. **Install the extension**: Open `chrome://extensions`, enable **Developer mode**, click **Load unpacked**, and select the `browser-extension/` folder from this repository.
+3. **Configure**: Click the extension icon, then **Settings**. Enter your FreeITSM server URL and paste the API key. Click **Test** to verify, then **Save**.
+
+### Features
+
+- **Badge count**: Shows the number of items needing attention (urgent tickets, unapproved changes, active incidents, etc.)
+- **Popup dashboard**: Compact 8-module summary matching the full Watchtower view
+- **Configurable polling**: 1 to 30 minute refresh intervals
+- **Rate limited API**: 60 requests per minute per key (configurable in system settings)
+- **Works in Chrome and Edge** (Manifest V3)
 
 ---
 

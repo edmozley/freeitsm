@@ -1,0 +1,250 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 380px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: #f5f5f5;
+    color: #333;
+    font-size: 13px;
+}
+
+/* Header */
+
+.header {
+    background: #0078d4;
+    color: #fff;
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.header h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.last-updated {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+.refresh-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+}
+
+.refresh-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.refresh-btn.spinning svg {
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Error banner */
+
+.error-banner {
+    background: #fce4ec;
+    color: #c62828;
+    padding: 10px 16px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    line-height: 1.4;
+}
+
+.error-banner svg {
+    flex-shrink: 0;
+}
+
+/* Cards grid */
+
+.cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 10px;
+}
+
+.card {
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px 14px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+
+.card-icon {
+    width: 18px;
+    height: 18px;
+    color: #0078d4;
+    flex-shrink: 0;
+}
+
+.card-title {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #666;
+}
+
+.card-metric {
+    font-size: 22px;
+    font-weight: 700;
+    color: #333;
+    line-height: 1.2;
+}
+
+.card-detail {
+    font-size: 11px;
+    color: #888;
+    margin-top: 4px;
+    line-height: 1.4;
+}
+
+.card-detail .highlight {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.card-detail .warn {
+    color: #f57c00;
+    font-weight: 600;
+}
+
+.card-detail .good {
+    color: #2e7d32;
+    font-weight: 600;
+}
+
+/* Status badges */
+
+.badge-operational {
+    display: inline-block;
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+.badge-degraded {
+    display: inline-block;
+    background: #fce4ec;
+    color: #c62828;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+}
+
+/* Footer */
+
+.footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 16px;
+    border-top: 1px solid #e0e0e0;
+    background: #fff;
+}
+
+.footer a {
+    color: #0078d4;
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* Loading state */
+
+.loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #888;
+    gap: 12px;
+}
+
+.loading .spinner {
+    width: 24px;
+    height: 24px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #0078d4;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+/* Not configured state */
+
+.not-configured {
+    padding: 30px 20px;
+    text-align: center;
+    color: #666;
+}
+
+.not-configured p {
+    margin-bottom: 12px;
+    line-height: 1.5;
+}
+
+.not-configured .setup-btn {
+    display: inline-block;
+    background: #0078d4;
+    color: #fff;
+    padding: 8px 20px;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.not-configured .setup-btn:hover {
+    background: #005a9e;
+}
