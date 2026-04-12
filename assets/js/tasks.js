@@ -648,6 +648,7 @@ function renderDetailPanel(task) {
     if (tinyEditor) { tinyEditor.destroy(); tinyEditor = null; }
     tinymce.init({
         target: document.getElementById('descriptionEditor'),
+        license_key: 'gpl',
         menubar: false,
         statusbar: false,
         height: 200,
