@@ -177,10 +177,26 @@ function formatDueBadge(dateStr) {
 function showQuickAdd(status) {
     const container = document.getElementById('quickAdd-' + status);
     container.style.display = 'block';
-    container.querySelector('input').focus();
+    const input = container.querySelector('input');
+    input.value = '';
+    input.focus();
+
+    // Hide on blur if empty
+    input.onblur = () => {
+        setTimeout(() => {
+            if (!input.value.trim()) {
+                container.style.display = 'none';
+            }
+        }, 150);
+    };
 }
 
 async function handleQuickAdd(event, status) {
+    if (event.key === 'Escape') {
+        event.target.value = '';
+        event.target.parentElement.style.display = 'none';
+        return;
+    }
     if (event.key !== 'Enter') return;
     const input = event.target;
     const title = input.value.trim();
@@ -188,19 +204,26 @@ async function handleQuickAdd(event, status) {
 
     input.disabled = true;
     try {
-        const data = await fetch(API_BASE + 'save.php', {
+        const resp = await fetch(API_BASE + 'save.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ title, status, assigned_analyst_id: ANALYST_ID })
-        }).then(r => r.json());
+            body: JSON.stringify({ title: title, status: status, assigned_analyst_id: ANALYST_ID || null })
+        });
+        const data = await resp.json();
 
         if (data.success) {
             input.value = '';
             input.parentElement.style.display = 'none';
             loadTasks();
             showToast('Task created');
+        } else {
+            console.error('Save failed:', data.error);
+            showToast('Error: ' + (data.error || 'Failed to create task'));
         }
-    } catch (e) { console.error(e); }
+    } catch (e) {
+        console.error('Quick add error:', e);
+        showToast('Failed to create task');
+    }
     input.disabled = false;
 }
 
