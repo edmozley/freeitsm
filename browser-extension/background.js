@@ -150,6 +150,10 @@ function computeAttentionCount(data) {
     } else if (data.morning_checks && data.morning_checks.statuses) {
         count += (data.morning_checks.statuses['Fail'] || 0);
     }
+    if (data.tasks) {
+        count += (data.tasks.overdue || 0);
+        count += (data.tasks.due_today || 0);
+    }
     return count;
 }
 

@@ -974,6 +974,47 @@ CREATE TABLE IF NOT EXISTS `api_rate_limits` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
+-- Tasks
+-- ----------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `tasks` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `title`               VARCHAR(255) NOT NULL,
+    `description`         LONGTEXT NULL,
+    `status`              VARCHAR(20) NOT NULL DEFAULT 'To Do',
+    `priority`            VARCHAR(20) NOT NULL DEFAULT 'Medium',
+    `due_date`            DATE NULL,
+    `assigned_analyst_id` INT NULL,
+    `assigned_team_id`    INT NULL,
+    `parent_task_id`      INT NULL,
+    `ticket_id`           INT NULL,
+    `change_id`           INT NULL,
+    `board_position`      INT NOT NULL DEFAULT 0,
+    `created_by_id`       INT NOT NULL,
+    `created_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `completed_datetime`  DATETIME NULL,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_tasks_analyst` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_tasks_team` FOREIGN KEY (`assigned_team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_tasks_parent` FOREIGN KEY (`parent_task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_tasks_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_tasks_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_tasks_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `task_comments` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `task_id`           INT NOT NULL,
+    `analyst_id`        INT NOT NULL,
+    `comment`           LONGTEXT NOT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_task_comments_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_task_comments_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
 -- Forms
 -- ----------------------------------------------------------
 

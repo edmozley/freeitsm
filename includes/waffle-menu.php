@@ -103,6 +103,11 @@ $modules = [
         'path' => 'process-mapper/',
         'icon' => '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>'
     ],
+    'tasks' => [
+        'name' => 'Tasks',
+        'path' => 'tasks/',
+        'icon' => '<path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>'
+    ],
     'system' => [
         'name' => 'System',
         'path' => 'system/',

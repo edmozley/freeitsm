@@ -411,6 +411,20 @@ $path_prefix = '../';
                 </div>
                 <div class="wt-card-body"><div class="wt-card-loading"><div class="wt-spinner"></div></div></div>
             </div>
+
+            <!-- Tasks -->
+            <div class="wt-card" id="wtTasks">
+                <div class="wt-card-header">
+                    <div class="wt-card-header-left">
+                        <div class="wt-card-icon" style="background:#7c3aed;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                        </div>
+                        <div class="wt-card-name"><a href="../tasks/">Tasks</a></div>
+                    </div>
+                    <div class="wt-status-dot" id="wtTasksDot"></div>
+                </div>
+                <div class="wt-card-body"><div class="wt-card-loading"><div class="wt-spinner"></div></div></div>
+            </div>
         </div>
     </div>
 
@@ -694,6 +708,38 @@ $path_prefix = '../';
         setBody('wtAssets', html);
     }
 
+    function renderTasks(d) {
+        if (!d.tasks) return;
+        const t = d.tasks;
+
+        if (t.overdue > 0) {
+            setDot('wtTasksDot', 'red');
+        } else if (t.due_today > 0) {
+            setDot('wtTasksDot', 'amber');
+        } else {
+            setDot('wtTasksDot', 'green');
+        }
+
+        let html = '<div class="wt-metrics">';
+        html += metric(t.todo, 'To Do', '#334155');
+        html += metric(t.in_progress, 'Active', '#0078d4');
+        html += '</div>';
+
+        html += '<div class="wt-attention">';
+        if (t.overdue > 0) {
+            html += attentionItem('red', '<span class="wt-attention-bold">' + t.overdue + '</span> overdue task(s)');
+        }
+        if (t.due_today > 0) {
+            html += attentionItem('amber', '<span class="wt-attention-bold">' + t.due_today + '</span> due today');
+        }
+        if (t.overdue === 0 && t.due_today === 0) {
+            html += attentionItem('green', 'No overdue tasks');
+        }
+        html += '</div>';
+
+        setBody('wtTasks', html);
+    }
+
     function loadDashboard() {
         const btn = document.getElementById('wtRefreshBtn');
         btn.classList.add('spinning');
@@ -714,6 +760,7 @@ $path_prefix = '../';
                 renderContracts(d);
                 renderKnowledge(d);
                 renderAssets(d);
+                renderTasks(d);
 
                 // Update timestamp
                 const now = new Date();

@@ -17,7 +17,7 @@ It genuinely helps and means a lot!
 
 # FreeITSM - Open Source Service Desk Platform
 
-A comprehensive web-based IT Service Management (ITSM) platform with 16 integrated modules covering a unified attention dashboard, tickets, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, process mapping, LMS with SCORM course player, and system administration. Includes a Chrome/Edge browser extension for Watchtower dashboard monitoring, analyst account management with password reset, forgot password via email, TOTP multi-factor authentication, and IP-based brute force protection.
+A comprehensive web-based IT Service Management (ITSM) platform with 17 integrated modules covering a unified attention dashboard, tickets, tasks with Kanban board, assets, knowledge, change management, calendar, morning checks, reporting, software inventory, dynamic forms, contracts, service status, process mapping, LMS with SCORM course player, and system administration. Includes a Chrome/Edge browser extension for Watchtower dashboard monitoring, analyst account management with password reset, forgot password via email, TOTP multi-factor authentication, and IP-based brute force protection.
 
 ## Screenshots
 
@@ -79,6 +79,7 @@ A comprehensive web-based IT Service Management (ITSM) platform with 16 integrat
   - [Self-Service Portal](#self-service-portal-self-service)
   - [LMS](#lms-lms)
   - [Process Mapper](#process-mapper-process-mapper)
+  - [Tasks](#tasks-tasks)
 - [Browser Extension](#browser-extension)
 - [API Reference](#api-reference)
 - [Database](#database)
@@ -682,6 +683,19 @@ Visual flowchart builder for documenting processes and workflows.
 - **Arrow key nudge**: Move selected steps by one grid unit with cursor keys
 - **Slide-in detail panel**: Click a step to edit label, type, colour, description, and view/edit its connectors
 - **Save/load**: Full persistence with sidebar listing all saved processes
+
+### Tasks (`tasks/`)
+Kanban-style task management with board and list views for tracking internal work.
+
+- **Board view**: Three-column Kanban board (To Do, In Progress, Done) with drag-and-drop card movement
+- **List view**: Sortable table with all task fields
+- **Quick create**: Inline task creation from each board column
+- **Detail panel**: Slide-in panel with inline editing, auto-save, and TinyMCE rich text description
+- **Subtasks**: Two-level hierarchy with checkbox toggling and progress display on parent cards
+- **Linking**: Link tasks to tickets or changes via searchable dropdowns
+- **Team assignment**: Assign tasks to analysts and teams, filter board by team/analyst/personal
+- **Comments**: Threaded comments on each task
+- **Watchtower integration**: Overdue and due-today counts shown on attention dashboard
 
 ---
 

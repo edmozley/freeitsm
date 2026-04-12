@@ -210,6 +210,41 @@ function getWatchtowerData($conn) {
         'not_seen_7d' => $asNotSeen
     ];
 
+    // -- Tasks --
+
+    $taskOverdue = (int)$conn->query(
+        "SELECT COUNT(*) FROM tasks
+         WHERE due_date < CURDATE()
+           AND status NOT IN ('Done', 'Cancelled')
+           AND parent_task_id IS NULL"
+    )->fetchColumn();
+
+    $taskDueToday = (int)$conn->query(
+        "SELECT COUNT(*) FROM tasks
+         WHERE due_date = CURDATE()
+           AND status NOT IN ('Done', 'Cancelled')
+           AND parent_task_id IS NULL"
+    )->fetchColumn();
+
+    $taskInProgress = (int)$conn->query(
+        "SELECT COUNT(*) FROM tasks
+         WHERE status = 'In Progress'
+           AND parent_task_id IS NULL"
+    )->fetchColumn();
+
+    $taskTodo = (int)$conn->query(
+        "SELECT COUNT(*) FROM tasks
+         WHERE status = 'To Do'
+           AND parent_task_id IS NULL"
+    )->fetchColumn();
+
+    $tasksWt = [
+        'overdue'     => $taskOverdue,
+        'due_today'   => $taskDueToday,
+        'in_progress' => $taskInProgress,
+        'todo'        => $taskTodo
+    ];
+
     return [
         'morning_checks' => $morningChecks,
         'tickets'        => $tickets,
@@ -218,6 +253,7 @@ function getWatchtowerData($conn) {
         'service_status' => $serviceStatus,
         'contracts'      => $contracts,
         'knowledge'      => $knowledge,
-        'assets'         => $assets
+        'assets'         => $assets,
+        'tasks'          => $tasksWt
     ];
 }

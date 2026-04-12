@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 |-----|-------------------|-------------|-------------|
 | 113 | Watchtower        | Feature     | Add Chrome/Edge browser extension with API-key-authenticated endpoint, rate limiting, badge count, and popup dashboard showing Watchtower summary |
 | 114 | Software          | Improvement | Add label and owner columns to API key management with analyst binding on key generation |
+| 115 | Tasks             | Feature     | Add Tasks module with Kanban board, drag-and-drop, list view, subtasks, comments, ticket/change linking, team assignment, and Watchtower integration |
 
 ---
 

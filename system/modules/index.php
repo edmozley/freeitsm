@@ -307,6 +307,7 @@ $path_prefix = '../../';
         'forms': 'Forms',
         'contracts': 'Contracts',
         'wiki': 'Wiki',
+        'tasks': 'Tasks',
         'system': 'System'
     };
 

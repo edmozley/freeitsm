@@ -99,6 +99,7 @@ function renderDashboard(data) {
             ${renderContracts(data.contracts)}
             ${renderKnowledge(data.knowledge)}
             ${renderAssets(data.assets)}
+            ${renderTasks(data.tasks)}
         </div>
     `;
     document.getElementById('content').innerHTML = html;
@@ -310,6 +311,34 @@ function renderAssets(as) {
             </div>
             <div class="card-metric">${as.total || 0}</div>
             <div class="card-detail">${detail}</div>
+        </div>
+    `;
+}
+
+function renderTasks(tk) {
+    if (!tk) return '';
+    let detail = '';
+    if (tk.overdue > 0) {
+        detail = `<span class="highlight">${tk.overdue} overdue</span>`;
+    } else if (tk.due_today > 0) {
+        detail = `<span class="warn">${tk.due_today} due today</span>`;
+    } else {
+        detail = '<span class="good">No overdue tasks</span>';
+    }
+
+    const total = (tk.todo || 0) + (tk.in_progress || 0);
+
+    return `
+        <div class="card">
+            <div class="card-header">
+                <svg class="card-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 11l3 3L22 4"></path>
+                    <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                </svg>
+                <span class="card-title">Tasks</span>
+            </div>
+            <div class="card-metric">${total}</div>
+            <div class="card-detail">active &middot; ${detail}</div>
         </div>
     `;
 }

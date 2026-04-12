@@ -883,6 +883,33 @@ $schema = [
         'window_start'  => 'DATETIME NOT NULL',
     ],
 
+    'tasks' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'title'               => 'VARCHAR(255) NOT NULL',
+        'description'         => 'LONGTEXT NULL',
+        'status'              => "VARCHAR(20) NOT NULL DEFAULT 'To Do'",
+        'priority'            => "VARCHAR(20) NOT NULL DEFAULT 'Medium'",
+        'due_date'            => 'DATE NULL',
+        'assigned_analyst_id' => 'INT NULL',
+        'assigned_team_id'    => 'INT NULL',
+        'parent_task_id'      => 'INT NULL',
+        'ticket_id'           => 'INT NULL',
+        'change_id'           => 'INT NULL',
+        'board_position'      => 'INT NOT NULL DEFAULT 0',
+        'created_by_id'       => 'INT NOT NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'completed_datetime'  => 'DATETIME NULL',
+    ],
+
+    'task_comments' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'task_id'           => 'INT NOT NULL',
+        'analyst_id'        => 'INT NOT NULL',
+        'comment'           => 'LONGTEXT NOT NULL',
+        'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'forms' => [
         'id'            => 'INT NOT NULL AUTO_INCREMENT',
         'title'         => 'VARCHAR(255) NOT NULL',

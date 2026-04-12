@@ -21,6 +21,7 @@ $defaultModuleColors = [
     'wiki'           => ['#c62828', '#b71c1c'],
     'lms'            => ['#2563eb', '#1d4ed8'],
     'process-mapper' => ['#6366f1', '#4f46e5'],
+    'tasks'          => ['#7c3aed', '#6d28d9'],
     'system'        => ['#546e7a', '#37474f'],
 ];
 
