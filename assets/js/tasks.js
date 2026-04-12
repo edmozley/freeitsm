@@ -600,21 +600,40 @@ function renderDetailPanel(task) {
             </div>` : ''}
         </div>
 
+        <!-- Parent breadcrumb (if subtask) -->
+        ${task.parent_task ? `
+        <div class="parent-breadcrumb">
+            <a href="#" onclick="openDetailPanel(${task.parent_task.id}); return false;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                ${esc(task.parent_task.title)}
+            </a>
+        </div>` : ''}
+
         <!-- Subtasks -->
+        ${!task.parent_task_id ? `
         <div class="subtask-section">
             <h4>Subtasks</h4>
             <div class="subtask-list" id="subtaskList">
-                ${(task.subtasks || []).map(s => `
-                    <div class="subtask-item">
-                        <input type="checkbox" ${s.status === 'Done' ? 'checked' : ''} onchange="toggleSubtask(${s.id})">
+                ${(task.subtasks || []).map(s => {
+                    const dueBadge = s.due_date ? formatDueBadge(s.due_date) : '';
+                    const assignee = s.analyst_name ? esc(s.analyst_name) : '';
+                    const priorityCls = (s.priority || 'medium').toLowerCase();
+                    return `
+                    <div class="subtask-item" onclick="openDetailPanel(${s.id})">
+                        <input type="checkbox" ${s.status === 'Done' ? 'checked' : ''} onchange="event.stopPropagation(); toggleSubtask(${s.id})">
+                        <span class="priority-dot ${priorityCls}" title="${esc(s.priority || '')}"></span>
                         <span class="subtask-title ${s.status === 'Done' ? 'completed' : ''}">${esc(s.title)}</span>
-                    </div>
-                `).join('')}
+                        <span class="subtask-meta">
+                            ${assignee ? '<span class="subtask-assignee">' + assignee + '</span>' : ''}
+                            ${dueBadge}
+                        </span>
+                    </div>`;
+                }).join('')}
             </div>
             <div class="subtask-add">
                 <input type="text" placeholder="Add subtask..." id="newSubtaskInput" onkeydown="if(event.key==='Enter')addSubtask()">
             </div>
-        </div>
+        </div>` : ''}
 
         <!-- Comments -->
         <div class="comments-section">

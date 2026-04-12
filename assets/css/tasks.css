@@ -493,33 +493,76 @@ body { overflow: auto; height: auto; padding-top: 0; }
 
 .subtask-list { display: flex; flex-direction: column; gap: 4px; }
 
+/* Parent breadcrumb */
+.parent-breadcrumb {
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.parent-breadcrumb a {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #7c3aed;
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.parent-breadcrumb a:hover { text-decoration: underline; }
+
 .subtask-item {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 8px;
+    padding: 8px 10px;
     border-radius: 6px;
     transition: background 0.1s;
+    cursor: pointer;
+    border: 1px solid transparent;
 }
 
-.subtask-item:hover { background: #f8f8f8; }
+.subtask-item:hover { background: #f5f5f5; border-color: #e0e0e0; }
 
 .subtask-item input[type="checkbox"] {
     width: 16px;
     height: 16px;
     accent-color: #7c3aed;
     cursor: pointer;
+    flex-shrink: 0;
 }
 
 .subtask-item .subtask-title {
     font-size: 13px;
     color: #333;
     flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .subtask-item .subtask-title.completed {
     text-decoration: line-through;
     color: #999;
+}
+
+.subtask-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.subtask-assignee {
+    font-size: 11px;
+    color: #888;
+    max-width: 80px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .subtask-add {

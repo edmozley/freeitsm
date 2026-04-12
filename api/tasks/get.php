@@ -45,13 +45,22 @@ try {
         exit;
     }
 
-    // Get subtasks
+    // Get parent task info if this is a subtask
+    if ($task['parent_task_id']) {
+        $stmt = $conn->prepare("SELECT id, title FROM tasks WHERE id = ?");
+        $stmt->execute([$task['parent_task_id']]);
+        $task['parent_task'] = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    // Get subtasks with assignee names
     $stmt = $conn->prepare(
-        "SELECT id, title, status, priority, due_date, assigned_analyst_id, board_position,
-                completed_datetime
-         FROM tasks
-         WHERE parent_task_id = ?
-         ORDER BY board_position ASC, created_datetime ASC"
+        "SELECT t.id, t.title, t.status, t.priority, t.due_date,
+                t.assigned_analyst_id, t.board_position, t.completed_datetime,
+                a.full_name AS analyst_name
+         FROM tasks t
+         LEFT JOIN analysts a ON t.assigned_analyst_id = a.id
+         WHERE t.parent_task_id = ?
+         ORDER BY t.board_position ASC, t.created_datetime ASC"
     );
     $stmt->execute([$id]);
     $task['subtasks'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
