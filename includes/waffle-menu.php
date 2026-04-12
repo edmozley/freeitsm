@@ -164,7 +164,7 @@ $modules = [
         border-radius: 8px;
         box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25);
         padding: 20px;
-        min-width: 280px;
+        min-width: 360px;
         z-index: 1000;
         display: none;
     }
@@ -184,7 +184,7 @@ $modules = [
 
     .waffle-modules {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 8px;
     }
 
@@ -192,7 +192,7 @@ $modules = [
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 15px 10px;
+        padding: 12px 8px;
         border-radius: 8px;
         text-decoration: none;
         color: #333;
