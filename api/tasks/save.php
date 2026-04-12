@@ -89,12 +89,12 @@ try {
             $input['description'] ?? null,
             $status,
             $priority,
-            $input['due_date'] ?: null,
-            $input['assigned_analyst_id'] ?: null,
-            $input['assigned_team_id'] ?: null,
-            $input['parent_task_id'] ?: null,
-            $input['ticket_id'] ?: null,
-            $input['change_id'] ?: null,
+            !empty($input['due_date']) ? $input['due_date'] : null,
+            !empty($input['assigned_analyst_id']) ? $input['assigned_analyst_id'] : null,
+            !empty($input['assigned_team_id']) ? $input['assigned_team_id'] : null,
+            !empty($input['parent_task_id']) ? $input['parent_task_id'] : null,
+            !empty($input['ticket_id']) ? $input['ticket_id'] : null,
+            !empty($input['change_id']) ? $input['change_id'] : null,
             $boardPos,
             $analystId
         ]);
