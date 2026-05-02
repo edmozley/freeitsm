@@ -12,6 +12,15 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+
+---
+
+## Published
+
+### 2 May 2026
+
+| ID  | Module            | Type        | Description |
+|-----|-------------------|-------------|-------------|
 | 116 | Assets            | Feature     | Add Microsoft InTune settings tab in asset settings for tenant ID, client ID, client secret (encrypted at rest), and verify-SSL toggle |
 | 117 | Assets            | Feature     | Add `intune_devices` and `intune_sync_jobs` tables to support upcoming Microsoft InTune device sync (sync code lands in a follow-up) |
 | 118 | Assets            | Feature     | Add Microsoft InTune device sync via Microsoft Graph with detached worker, progress bar, hostname-based asset matching, auto-stub creation for unknown devices, and an InTune tab on the asset detail panel |
@@ -21,10 +30,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 122 | Assets            | Improvement | Add inventory freshness bar chart (Chart.js) on the InTune settings tab showing how many Intune-eligible assets have software data <1d, 1d–6d, 7+d, or never; refreshes after each sync job |
 | 123 | Assets            | Improvement | Show a red warning banner under the Verify SSL checkbox on the InTune settings tab when verification is disabled, explaining the man-in-the-middle risk in plain English |
 | 124 | Repo              | Improvement | Gitignore module-specific runtime content directories (`change-management/attachments/`, `lms/content/`, `tickets/attachments/`) so tenant-specific uploads are never accidentally committed |
-
----
-
-## Published
 
 ### 12 April 2026
 
