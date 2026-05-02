@@ -124,6 +124,15 @@ $path_prefix = '../../';
         .btn-primary { background-color: #107c10; color: white; }
         .btn-primary:hover { background-color: #0b5c0b; }
         .btn-primary:disabled { background-color: #999; cursor: not-allowed; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        .btn-secondary:disabled { background-color: #b0b6bb; cursor: not-allowed; }
+
+        .intune-progress { margin-top: 18px; }
+        .intune-progress-bar { background: #e0e0e0; border-radius: 4px; height: 10px; overflow: hidden; }
+        .intune-progress-fill { background: #107c10; height: 100%; width: 0; transition: width 0.3s ease-out; }
+        .intune-progress-meta { font-size: 12px; color: #666; margin-top: 6px; }
+        .intune-progress.intune-error .intune-progress-fill { background: #d13438; }
 
 
         .password-wrapper { position: relative; }
@@ -293,6 +302,12 @@ $path_prefix = '../../';
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" id="intuneSaveBtn">Save</button>
+                            <button type="button" class="btn btn-secondary" id="intuneSyncBtn" onclick="startIntuneSync()">Sync</button>
+                            <span id="intuneLastSync" class="form-hint" style="margin-left: auto;"></span>
+                        </div>
+                        <div id="intuneSyncProgress" class="intune-progress" style="display: none;">
+                            <div class="intune-progress-bar"><div class="intune-progress-fill" id="intuneProgressFill"></div></div>
+                            <div class="intune-progress-meta" id="intuneProgressMeta">Starting...</div>
                         </div>
                     </form>
                 </div>
@@ -618,6 +633,103 @@ $path_prefix = '../../';
             if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
             else { input.type = 'password'; btn.textContent = 'Show'; }
         }
+
+        // InTune sync
+        const API_INTUNE = '../../api/intune/';
+        let intunePollTimer = null;
+
+        async function startIntuneSync() {
+            const btn = document.getElementById('intuneSyncBtn');
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+            showIntuneProgress(0, 'Starting...', false);
+
+            try {
+                const response = await fetch(API_INTUNE + 'sync.php', { method: 'POST' });
+                const data = await response.json();
+                if (!data.success) {
+                    showIntuneProgress(0, 'Error: ' + data.error, true);
+                    btn.disabled = false;
+                    btn.textContent = 'Sync';
+                    return;
+                }
+                pollIntuneStatus(data.id);
+            } catch (e) {
+                showIntuneProgress(0, 'Network error starting sync', true);
+                btn.disabled = false;
+                btn.textContent = 'Sync';
+            }
+        }
+
+        function pollIntuneStatus(jobId) {
+            clearTimeout(intunePollTimer);
+            const tick = async () => {
+                try {
+                    const response = await fetch(API_INTUNE + 'sync_status.php?id=' + encodeURIComponent(jobId));
+                    const data = await response.json();
+                    if (!data.success || !data.job) {
+                        showIntuneProgress(0, 'Status unavailable', true);
+                        resetIntuneSyncButton();
+                        return;
+                    }
+                    const job = data.job;
+                    showIntuneProgress(job.percent, job.message || job.status, job.status === 'error');
+
+                    if (job.status === 'running') {
+                        intunePollTimer = setTimeout(tick, 1500);
+                    } else {
+                        resetIntuneSyncButton();
+                        loadIntuneLastSync();
+                    }
+                } catch (e) {
+                    showIntuneProgress(0, 'Network error polling status', true);
+                    resetIntuneSyncButton();
+                }
+            };
+            tick();
+        }
+
+        function showIntuneProgress(percent, message, isError) {
+            const wrap = document.getElementById('intuneSyncProgress');
+            const fill = document.getElementById('intuneProgressFill');
+            const meta = document.getElementById('intuneProgressMeta');
+            wrap.style.display = '';
+            wrap.classList.toggle('intune-error', !!isError);
+            fill.style.width = (Math.max(0, Math.min(100, percent || 0))) + '%';
+            meta.textContent = message || '';
+        }
+
+        function resetIntuneSyncButton() {
+            const btn = document.getElementById('intuneSyncBtn');
+            btn.disabled = false;
+            btn.textContent = 'Sync';
+        }
+
+        async function loadIntuneLastSync() {
+            try {
+                const response = await fetch(API_INTUNE + 'sync_status.php');
+                const data = await response.json();
+                const last = document.getElementById('intuneLastSync');
+                if (data.success && data.job) {
+                    const job = data.job;
+                    if (job.status === 'running') {
+                        last.textContent = '';
+                        pollIntuneStatus(job.id);
+                        return;
+                    }
+                    const when = job.finished_datetime || job.started_datetime;
+                    const date = when ? new Date(when + 'Z').toLocaleString('en-GB') : '';
+                    last.textContent = 'Last sync: ' + date + ' (' + job.status + ')';
+                } else {
+                    last.textContent = '';
+                }
+            } catch (e) {
+                document.getElementById('intuneLastSync').textContent = '';
+            }
+        }
+
+        // Pull last-sync info on first load
+        document.addEventListener('DOMContentLoaded', loadIntuneLastSync);
 
         function escapeHtml(text) {
             if (!text) return '';

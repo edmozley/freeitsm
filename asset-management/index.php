@@ -1140,11 +1140,11 @@ $path_prefix = '../';
                             <div class="loading"><div class="spinner"></div></div>
                         </div>
                     </div>
-                    <div class="detail-tabs">
+                    <div class="detail-tabs" id="detailTabs">
                         <button class="detail-tab active" onclick="switchDetailTab('devices')" data-dtab="devices">Devices <span class="tab-count" id="devicesCountBadge">...</span></button>
                         <button class="detail-tab" onclick="switchDetailTab('software')" data-dtab="software">Software <span class="tab-count" id="softwareCountBadge">...</span></button>
                     </div>
-                    <div class="detail-tab-panel active" id="devicesPanel">
+                    <div class="detail-tab-panel active" id="devicesPanel" data-dtab-panel="devices">
                         <div class="devices-search">
                             <input type="text" id="devicesSearch" placeholder="Filter devices..." oninput="filterDevices()" autocomplete="off">
                         </div>
@@ -1152,7 +1152,7 @@ $path_prefix = '../';
                             <div class="loading"><div class="spinner"></div></div>
                         </div>
                     </div>
-                    <div class="detail-tab-panel" id="softwarePanel">
+                    <div class="detail-tab-panel" id="softwarePanel" data-dtab-panel="software">
                         <div class="sw-filter-tabs">
                             <button class="sw-filter-tab active" data-swfilter="apps" onclick="switchSwTab('apps')">Applications <span class="sw-tab-count" id="swCountApps">0</span></button>
                             <button class="sw-filter-tab" data-swfilter="components" onclick="switchSwTab('components')">Components <span class="sw-tab-count" id="swCountComponents">0</span></button>
@@ -1165,11 +1165,12 @@ $path_prefix = '../';
                 </div>
             `;
 
-            // Load assigned users, disks, devices, and installed software
+            // Load assigned users, disks, devices, installed software, and (if matched) Intune data
             loadAssignedUsers(assetId);
             loadDisks(assetId);
             loadDevices(assetId);
             loadInstalledSoftware(assetId);
+            loadIntuneDevice(assetId);
         }
 
         // Load assigned users for an asset
@@ -1341,8 +1342,77 @@ $path_prefix = '../';
 
         function switchDetailTab(tab) {
             document.querySelectorAll('.detail-tab').forEach(t => t.classList.toggle('active', t.dataset.dtab === tab));
-            document.getElementById('devicesPanel').classList.toggle('active', tab === 'devices');
-            document.getElementById('softwarePanel').classList.toggle('active', tab === 'software');
+            document.querySelectorAll('.detail-tab-panel').forEach(p => p.classList.toggle('active', p.dataset.dtabPanel === tab));
+        }
+
+        // Load Intune device data for this asset, if any. Renders a third tab when matched.
+        async function loadIntuneDevice(assetId) {
+            try {
+                const response = await fetch(`../api/intune/get_intune_device.php?asset_id=${assetId}`);
+                const data = await response.json();
+                if (!data.success || !data.device) return;
+                renderIntuneTab(data.device);
+            } catch (e) {
+                // Intune endpoint may not exist on older deployments — fail silently
+            }
+        }
+
+        function renderIntuneTab(d) {
+            const tabs = document.getElementById('detailTabs');
+            const scrollContainer = tabs ? tabs.parentNode : null;
+            if (!tabs || !scrollContainer) return;
+
+            const tabBtn = document.createElement('button');
+            tabBtn.className = 'detail-tab';
+            tabBtn.dataset.dtab = 'intune';
+            tabBtn.textContent = 'InTune';
+            tabBtn.onclick = () => switchDetailTab('intune');
+            tabs.appendChild(tabBtn);
+
+            const panel = document.createElement('div');
+            panel.className = 'detail-tab-panel';
+            panel.dataset.dtabPanel = 'intune';
+            panel.innerHTML = renderIntuneTabBody(d);
+            scrollContainer.appendChild(panel);
+        }
+
+        function renderIntuneTabBody(d) {
+            const totalGB = d.total_storage_bytes ? (d.total_storage_bytes / 1073741824).toFixed(1) : null;
+            const freeGB  = d.free_storage_bytes  ? (d.free_storage_bytes  / 1073741824).toFixed(1) : null;
+            const storage = (totalGB && freeGB) ? `${freeGB} GB free of ${totalGB} GB` : '-';
+
+            const fields = [
+                ['Compliance State',     d.compliance_state],
+                ['Management State',     d.management_state],
+                ['Owner Type',           d.managed_device_owner_type],
+                ['Enrollment Type',      d.device_enrollment_type],
+                ['Registration State',   d.device_registration_state],
+                ['Enrolled',             d.enrolled_datetime ? formatDate(d.enrolled_datetime) : '-'],
+                ['Last Check-in',        d.last_sync_datetime ? formatDateTime(d.last_sync_datetime) : '-'],
+                ['Primary User',         d.user_display_name || '-'],
+                ['User Principal Name',  d.user_principal_name || '-'],
+                ['OS / Version',         (d.operating_system || '-') + (d.os_version ? ' ' + d.os_version : '')],
+                ['Manufacturer',         d.manufacturer || '-'],
+                ['Model',                d.model || '-'],
+                ['Serial Number',        d.serial_number || '-'],
+                ['Storage',              storage],
+                ['Encrypted',            d.is_encrypted == 1 ? 'Yes' : (d.is_encrypted == 0 ? 'No' : '-')],
+                ['Supervised',           d.is_supervised == 1 ? 'Yes' : (d.is_supervised == 0 ? 'No' : '-')],
+                ['Jail Broken / Rooted', d.jail_broken || '-'],
+                ['IMEI',                 d.imei || '-'],
+                ['MEID',                 d.meid || '-'],
+                ['Wi-Fi MAC',            d.wifi_mac_address || '-'],
+                ['Ethernet MAC',         d.ethernet_mac_address || '-'],
+                ['Azure AD Device ID',   d.azure_ad_device_id || '-'],
+                ['Intune Device ID',     d.intune_id || '-'],
+                ['Cached',               d.last_seen_local ? formatDateTime(d.last_seen_local) : '-'],
+            ];
+
+            return `<div class="asset-info-grid">${fields.map(([k, v]) => `
+                <div class="info-item">
+                    <span class="info-label">${escapeHtml(k)}</span>
+                    <span class="info-value">${escapeHtml(v == null ? '-' : String(v))}</span>
+                </div>`).join('')}</div>`;
         }
 
         // Load installed software for an asset

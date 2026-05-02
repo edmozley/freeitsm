@@ -457,6 +457,50 @@ $schema = [
         'raw_data'              => 'LONGTEXT NULL',
     ],
 
+    'intune_devices' => [
+        'id'                            => 'INT NOT NULL AUTO_INCREMENT',
+        'intune_id'                     => 'VARCHAR(64) NOT NULL',
+        'asset_id'                      => 'INT NULL',
+        'device_name'                   => 'VARCHAR(256) NULL',
+        'user_principal_name'           => 'VARCHAR(256) NULL',
+        'user_display_name'             => 'VARCHAR(256) NULL',
+        'user_id'                       => 'VARCHAR(64) NULL',
+        'operating_system'              => 'VARCHAR(64) NULL',
+        'os_version'                    => 'VARCHAR(64) NULL',
+        'compliance_state'              => 'VARCHAR(32) NULL',
+        'management_state'              => 'VARCHAR(32) NULL',
+        'managed_device_owner_type'     => 'VARCHAR(32) NULL',
+        'device_enrollment_type'        => 'VARCHAR(64) NULL',
+        'device_registration_state'     => 'VARCHAR(32) NULL',
+        'enrolled_datetime'             => 'DATETIME NULL',
+        'last_sync_datetime'            => 'DATETIME NULL',
+        'model'                         => 'VARCHAR(128) NULL',
+        'manufacturer'                  => 'VARCHAR(128) NULL',
+        'serial_number'                 => 'VARCHAR(128) NULL',
+        'imei'                          => 'VARCHAR(64) NULL',
+        'meid'                          => 'VARCHAR(64) NULL',
+        'wifi_mac_address'              => 'VARCHAR(64) NULL',
+        'ethernet_mac_address'          => 'VARCHAR(64) NULL',
+        'azure_ad_device_id'            => 'VARCHAR(64) NULL',
+        'is_encrypted'                  => 'TINYINT(1) NULL',
+        'is_supervised'                 => 'TINYINT(1) NULL',
+        'jail_broken'                   => 'VARCHAR(16) NULL',
+        'total_storage_bytes'           => 'BIGINT NULL',
+        'free_storage_bytes'            => 'BIGINT NULL',
+        'raw_json'                      => 'LONGTEXT NULL',
+        'last_seen_local'               => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'intune_sync_jobs' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'started_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'finished_datetime'     => 'DATETIME NULL',
+        'status'                => "VARCHAR(16) NOT NULL DEFAULT 'running'",
+        'total'                 => 'INT NOT NULL DEFAULT 0',
+        'processed'             => 'INT NOT NULL DEFAULT 0',
+        'message'               => 'LONGTEXT NULL',
+    ],
+
     'changes' => [
         'id'                            => 'INT NOT NULL AUTO_INCREMENT',
         'title'                         => 'VARCHAR(255) NOT NULL',
@@ -1352,6 +1396,7 @@ try {
         ['lms_progress', 'uq_lp_analyst_course', '(`analyst_id`, `course_id`)'],
         ['lms_learning_group_members', 'uq_lgm_group_analyst', '(`group_id`, `analyst_id`)'],
         ['lms_course_assignments', 'uq_lca_course_group', '(`course_id`, `group_id`)'],
+        ['intune_devices', 'uq_intune_devices_intune_id', '(`intune_id`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {
