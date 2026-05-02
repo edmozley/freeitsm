@@ -19,9 +19,10 @@ if (!isset($_SESSION['analyst_id'])) {
 
 try {
     $data = json_decode(file_get_contents('php://input'), true);
-    $provider = $data['provider'] ?? '';
-    $apiKey   = $data['api_key']  ?? '';
-    $model    = trim($data['model'] ?? '');
+    $provider  = $data['provider']   ?? '';
+    $apiKey    = $data['api_key']    ?? '';
+    $model     = trim($data['model'] ?? '');
+    $verifySsl = !(isset($data['verify_ssl']) && $data['verify_ssl'] === '0');
 
     if (!in_array($provider, ['anthropic', 'openai'], true)) {
         throw new Exception('Provider must be anthropic or openai');
@@ -46,8 +47,8 @@ try {
 
     $start = microtime(true);
     $result = $provider === 'anthropic'
-        ? rfpTestAnthropic($apiKey, $model)
-        : rfpTestOpenAI($apiKey, $model);
+        ? rfpTestAnthropic($apiKey, $model, $verifySsl)
+        : rfpTestOpenAI($apiKey, $model, $verifySsl);
     $elapsedMs = (int)((microtime(true) - $start) * 1000);
 
     echo json_encode([
@@ -63,7 +64,7 @@ try {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
 
-function rfpTestAnthropic(string $apiKey, string $model): array {
+function rfpTestAnthropic(string $apiKey, string $model, bool $verifySsl): array {
     $body = json_encode([
         'model'      => $model,
         'max_tokens' => 16,
@@ -81,6 +82,8 @@ function rfpTestAnthropic(string $apiKey, string $model): array {
         ],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 30,
+        CURLOPT_SSL_VERIFYPEER => $verifySsl,
+        CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0,
     ]);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -111,7 +114,7 @@ function rfpTestAnthropic(string $apiKey, string $model): array {
     ];
 }
 
-function rfpTestOpenAI(string $apiKey, string $model): array {
+function rfpTestOpenAI(string $apiKey, string $model, bool $verifySsl): array {
     $body = json_encode([
         'model'      => $model,
         'max_tokens' => 16,
@@ -128,6 +131,8 @@ function rfpTestOpenAI(string $apiKey, string $model): array {
         ],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 30,
+        CURLOPT_SSL_VERIFYPEER => $verifySsl,
+        CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0,
     ]);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);

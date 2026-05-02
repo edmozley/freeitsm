@@ -16,7 +16,7 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
-const RFP_AI_KEYS = ['rfp_ai_provider', 'rfp_ai_api_key', 'rfp_ai_model'];
+const RFP_AI_KEYS = ['rfp_ai_provider', 'rfp_ai_api_key', 'rfp_ai_model', 'rfp_ai_verify_ssl'];
 
 try {
     $conn = connectToDatabase();
@@ -25,7 +25,12 @@ try {
     $stmt = $conn->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ($placeholders)");
     $stmt->execute(RFP_AI_KEYS);
 
-    $values = ['rfp_ai_provider' => '', 'rfp_ai_api_key' => '', 'rfp_ai_model' => ''];
+    $values = [
+        'rfp_ai_provider'   => '',
+        'rfp_ai_api_key'    => '',
+        'rfp_ai_model'      => '',
+        'rfp_ai_verify_ssl' => '',
+    ];
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $value = $row['setting_value'];
         if (isEncryptedSettingKey($row['setting_key'])) {

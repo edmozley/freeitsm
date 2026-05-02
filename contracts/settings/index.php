@@ -74,6 +74,20 @@ $path_prefix = '../../';
         .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.15s; }
         .btn-primary { background-color: #f59e0b; color: white; }
         .btn-primary:hover { background-color: #d97706; }
+
+        .rfp-ai-ssl-warning {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: #fdecea;
+            border: 1px solid #f5c6cb;
+            border-left: 4px solid #d13438;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #5a1c1c;
+            max-width: 640px;
+        }
+        .rfp-ai-ssl-warning strong { color: #b71c1c; }
     </style>
 </head>
 <body>
@@ -259,6 +273,22 @@ $path_prefix = '../../';
                             Encrypted at rest. Leave blank or unchanged to keep the existing key.
                             Anthropic keys: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#f59e0b;">console.anthropic.com</a>.
                             OpenAI keys: <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:#f59e0b;">platform.openai.com</a>.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <span class="toggle-switch">
+                                <input type="checkbox" id="aiVerifySsl" checked onchange="updateAiSslWarning()">
+                                <span class="toggle-slider"></span>
+                            </span>
+                            Verify SSL
+                        </label>
+                        <div style="font-size:12px; color:#888; margin-top:4px;">
+                            Disable only for testing against environments with self-signed certificates (e.g. behind an inspecting proxy).
+                        </div>
+                        <div id="aiVerifySslWarning" class="rfp-ai-ssl-warning" style="display:none;">
+                            <strong>Warning:</strong> SSL verification is turned off. FreeITSM will accept any TLS certificate from the AI provider without checking it. Anyone with access to your network (or your DNS, or a compromised certificate authority) could pose as the provider, intercept the traffic, and steal your API key &mdash; along with every prompt and response that follows. Only leave this off in test environments with self-signed certificates &mdash; never in production.
                         </div>
                     </div>
 
@@ -599,9 +629,17 @@ $path_prefix = '../../';
                 document.getElementById('aiApiKey').placeholder = data.has_key
                     ? 'Stored — leave unchanged to keep'
                     : '(no key stored — paste a fresh one to set)';
+                // verify_ssl: default to true unless explicitly stored as "0"
+                document.getElementById('aiVerifySsl').checked = s.rfp_ai_verify_ssl !== '0';
+                updateAiSslWarning();
             } catch (err) {
                 setAiTestStatus('Could not load settings: ' + err.message, 'error');
             }
+        }
+
+        function updateAiSslWarning() {
+            const checked = document.getElementById('aiVerifySsl').checked;
+            document.getElementById('aiVerifySslWarning').style.display = checked ? 'none' : '';
         }
 
         function setAiTestStatus(msg, kind) {
@@ -627,9 +665,10 @@ $path_prefix = '../../';
         document.getElementById('aiSettingsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const payload = {
-                provider: document.getElementById('aiProvider').value,
-                model:    document.getElementById('aiModel').value.trim(),
-                api_key:  document.getElementById('aiApiKey').value,
+                provider:   document.getElementById('aiProvider').value,
+                model:      document.getElementById('aiModel').value.trim(),
+                api_key:    document.getElementById('aiApiKey').value,
+                verify_ssl: document.getElementById('aiVerifySsl').checked ? '1' : '0',
             };
             try {
                 const res = await fetch(RFP_AI_API + 'save_ai_settings.php', {
@@ -649,9 +688,10 @@ $path_prefix = '../../';
         async function testAiConnection() {
             const btn = document.getElementById('aiTestBtn');
             const payload = {
-                provider: document.getElementById('aiProvider').value,
-                model:    document.getElementById('aiModel').value.trim(),
-                api_key:  document.getElementById('aiApiKey').value,
+                provider:   document.getElementById('aiProvider').value,
+                model:      document.getElementById('aiModel').value.trim(),
+                api_key:    document.getElementById('aiApiKey').value,
+                verify_ssl: document.getElementById('aiVerifySsl').checked ? '1' : '0',
             };
             if (!payload.model) {
                 setAiTestStatus('Pick a model first', 'error');
