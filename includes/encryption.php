@@ -39,6 +39,48 @@ define('ENCRYPTED_SETTING_KEYS', [
 ]);
 
 /**
+ * system_settings keys whose values must NEVER be returned in plaintext to
+ * the client. The get endpoint replaces these with a "****<last4>" mask;
+ * the save endpoint treats incoming values that are empty or start with
+ * asterisks as "no change" so the existing encrypted value is preserved.
+ *
+ * Tenant IDs / client IDs are encrypted at rest but NOT masked — they're
+ * shown in form fields for editing. Only true secrets belong here.
+ */
+define('MASKED_SETTING_KEYS', [
+    'vcenter_password',
+    'knowledge_ai_api_key',
+    'knowledge_openai_api_key',
+    'intune_client_secret',
+]);
+
+/**
+ * Check if a system_settings key should be masked when returned to the client.
+ */
+function isMaskedSettingKey($key) {
+    return in_array($key, MASKED_SETTING_KEYS, true);
+}
+
+/**
+ * Produce a "****<last4>" mask. Empty input returns ''.
+ */
+function maskSecret($value) {
+    if ($value === null || $value === '') return '';
+    $tail = strlen($value) >= 4 ? substr($value, -4) : '';
+    return '****' . $tail;
+}
+
+/**
+ * Treat a save-time value as "leave existing untouched" when it's empty,
+ * null, or starts with one or more asterisks (i.e. the user submitted the
+ * masked placeholder unchanged).
+ */
+function isMaskedNoChangeValue($value) {
+    if ($value === null || $value === '') return true;
+    return (bool)preg_match('/^\*+/', $value);
+}
+
+/**
  * target_mailboxes columns that should be encrypted at rest.
  */
 define('ENCRYPTED_MAILBOX_COLUMNS', [

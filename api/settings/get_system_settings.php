@@ -23,12 +23,16 @@ try {
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Convert to key-value object, decrypting sensitive values
+    // Convert to key-value object, decrypting sensitive values, then masking
+    // any true secrets so plaintext credentials never leave the server.
     $settings = [];
     foreach ($rows as $row) {
         $value = $row['setting_value'];
         if (isEncryptedSettingKey($row['setting_key'])) {
             $value = decryptValue($value);
+        }
+        if (isMaskedSettingKey($row['setting_key'])) {
+            $value = maskSecret($value);
         }
         $settings[$row['setting_key']] = $value;
     }

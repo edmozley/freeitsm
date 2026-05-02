@@ -450,6 +450,8 @@ Currently encrypted in `system_settings`:
 - `knowledge_ai_api_key`, `knowledge_openai_api_key`
 - `intune_tenant_id`, `intune_client_id`, `intune_client_secret`
 
+Of those, the true secrets (`vcenter_password`, `knowledge_ai_api_key`, `knowledge_openai_api_key`, `intune_client_secret`) are also listed in `MASKED_SETTING_KEYS` — `api/settings/get_system_settings.php` returns them as `****<last4>` rather than plaintext, and `api/settings/save_system_settings.php` treats blank or asterisk-prefixed submissions as "leave unchanged" so the encrypted value is preserved when the user saves the form without re-typing the secret.
+
 Currently encrypted in `target_mailboxes`:
 - `azure_tenant_id`, `azure_client_id`, `azure_client_secret`
 - `oauth_redirect_uri`, `imap_server`, `target_mailbox`

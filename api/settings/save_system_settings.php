@@ -29,6 +29,13 @@ try {
     $conn = connectToDatabase();
 
     foreach ($settings as $key => $value) {
+        // For masked secret keys, treat blank or asterisk-prefixed values as
+        // "leave existing untouched" so the user can submit the form without
+        // re-entering the secret every time.
+        if (isMaskedSettingKey($key) && isMaskedNoChangeValue($value)) {
+            continue;
+        }
+
         // Encrypt sensitive values before storing
         if (isEncryptedSettingKey($key) && $value !== '') {
             $value = encryptValue($value);

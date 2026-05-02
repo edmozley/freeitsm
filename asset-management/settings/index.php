@@ -252,6 +252,7 @@ $path_prefix = '../../';
                                 <input type="password" class="form-input" id="vcenterPassword" placeholder="Enter password">
                                 <button type="button" class="password-toggle" onclick="togglePassword()">Show</button>
                             </div>
+                            <div class="form-hint">Leave unchanged to keep the saved password</div>
                         </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
@@ -292,6 +293,7 @@ $path_prefix = '../../';
                                 <input type="password" class="form-input" id="intuneClientSecret" placeholder="Enter client secret">
                                 <button type="button" class="password-toggle" onclick="toggleIntuneSecret()">Show</button>
                             </div>
+                            <div class="form-hint">Leave unchanged to keep the saved secret</div>
                         </div>
                         <div class="form-group">
                             <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
@@ -534,7 +536,10 @@ $path_prefix = '../../';
             if (e.target === this && modalMouseDownTarget === this) closeModal();
         });
 
-        // Integration settings (vCenter + InTune)
+        // Integration settings (vCenter + InTune). Secret fields are left empty;
+        // the placeholder tells the user one is already saved. The save endpoint
+        // treats blank/asterisk values as "keep existing", so leaving them
+        // alone preserves the stored secret.
         async function loadIntegrationSettings() {
             try {
                 const response = await fetch(API_SETTINGS + 'get_system_settings.php');
@@ -542,11 +547,19 @@ $path_prefix = '../../';
                 if (data.success && data.settings) {
                     document.getElementById('vcenterServer').value = data.settings.vcenter_server || '';
                     document.getElementById('vcenterUser').value = data.settings.vcenter_user || '';
-                    document.getElementById('vcenterPassword').value = data.settings.vcenter_password || '';
+                    const vcPwField = document.getElementById('vcenterPassword');
+                    vcPwField.value = '';
+                    vcPwField.placeholder = data.settings.vcenter_password
+                        ? 'Saved (enter new password to change)'
+                        : 'Enter password';
 
                     document.getElementById('intuneTenantId').value = data.settings.intune_tenant_id || '';
                     document.getElementById('intuneClientId').value = data.settings.intune_client_id || '';
-                    document.getElementById('intuneClientSecret').value = data.settings.intune_client_secret || '';
+                    const intSecField = document.getElementById('intuneClientSecret');
+                    intSecField.value = '';
+                    intSecField.placeholder = data.settings.intune_client_secret
+                        ? 'Saved (enter new secret to change)'
+                        : 'Enter client secret';
                     // verify_ssl: default to true unless explicitly stored as "0"
                     document.getElementById('intuneVerifySsl').checked = data.settings.intune_verify_ssl !== '0';
                 }
@@ -576,6 +589,7 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     showToast('Settings saved successfully', 'success');
+                    loadIntegrationSettings();
                 } else {
                     showToast('Error: ' + data.error, 'error');
                 }
@@ -609,6 +623,7 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     showToast('Settings saved successfully', 'success');
+                    loadIntegrationSettings();
                 } else {
                     showToast('Error: ' + data.error, 'error');
                 }

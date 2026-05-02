@@ -15,6 +15,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 116 | Assets            | Feature     | Add Microsoft InTune settings tab in asset settings for tenant ID, client ID, client secret (encrypted at rest), and verify-SSL toggle |
 | 117 | Assets            | Feature     | Add `intune_devices` and `intune_sync_jobs` tables to support upcoming Microsoft InTune device sync (sync code lands in a follow-up) |
 | 118 | Assets            | Feature     | Add Microsoft InTune device sync via Microsoft Graph with detached worker, progress bar, hostname-based asset matching, auto-stub creation for unknown devices, and an InTune tab on the asset detail panel |
+| 119 | System            | Improvement | Mask sensitive system_settings values (vCenter password, InTune client secret, knowledge AI/OpenAI keys) in the get_system_settings API and skip overwriting them on save when the field is left blank or unchanged |
 
 ---
 
