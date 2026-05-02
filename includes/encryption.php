@@ -33,6 +33,9 @@ define('ENCRYPTED_SETTING_KEYS', [
     'vcenter_password',
     'knowledge_ai_api_key',
     'knowledge_openai_api_key',
+    'intune_tenant_id',
+    'intune_client_id',
+    'intune_client_secret',
 ]);
 
 /**

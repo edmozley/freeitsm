@@ -448,6 +448,7 @@ $mailbox = decryptMailboxRow($mailbox);
 Currently encrypted in `system_settings`:
 - `vcenter_server`, `vcenter_user`, `vcenter_password`
 - `knowledge_ai_api_key`, `knowledge_openai_api_key`
+- `intune_tenant_id`, `intune_client_id`, `intune_client_secret`
 
 Currently encrypted in `target_mailboxes`:
 - `azure_tenant_id`, `azure_client_id`, `azure_client_secret`
@@ -520,7 +521,7 @@ IT asset management with vCenter integration.
   - Each analyst picks widgets for their own dashboard
   - Status filtering on supported widgets
   - Drag-and-drop reordering
-- **Settings**: vCenter server URL, username, and password (encrypted)
+- **Settings**: vCenter server URL, username, and password (encrypted); Microsoft InTune tenant ID, client ID, client secret, and verify-SSL toggle (sensitive values encrypted)
 - **Device Manager** (`api/external/device-manager/submit/`): Enumerates Windows Device Manager devices (category, name, driver manufacturer, driver version, status) and displays them grouped by class on the asset detail screen
 - **PowerShell inventory agent** (`scripts/Invoke-AssetInventory.ps1`): Collects hardware, disks, network, GPU, TPM, BitLocker, device manager, and installed software from Windows machines and posts to the system-info and device-manager APIs
 - **System-info API** (`api/external/system-info/submit/`): External endpoint that ingests asset inventory data, syncs disk and network adapter tables, and processes software inventory

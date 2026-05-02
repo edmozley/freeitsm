@@ -164,6 +164,7 @@ $path_prefix = '../../';
             <button class="tab active" data-tab="asset-types" onclick="switchTab('asset-types')">Asset Types</button>
             <button class="tab" data-tab="asset-statuses" onclick="switchTab('asset-statuses')">Asset Statuses</button>
             <button class="tab" data-tab="vcenter" onclick="switchTab('vcenter')">vCenter</button>
+            <button class="tab" data-tab="intune" onclick="switchTab('intune')">InTune</button>
         </div>
 
         <!-- Asset Types Tab -->
@@ -250,6 +251,53 @@ $path_prefix = '../../';
                 </div>
             </div>
         </div>
+
+        <!-- InTune Tab -->
+        <div class="tab-content" id="intune-tab">
+            <div class="settings-section">
+                <div class="settings-section-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="4" width="18" height="12" rx="2" ry="2"></rect>
+                        <line x1="8" y1="20" x2="16" y2="20"></line>
+                        <line x1="12" y1="16" x2="12" y2="20"></line>
+                    </svg>
+                    <h2>Microsoft InTune Integration</h2>
+                </div>
+                <div class="settings-section-body">
+                    <p class="settings-description">
+                        Connect to Microsoft InTune via Microsoft Graph using an Azure AD app registration to import managed device inventory.
+                    </p>
+                    <form id="intuneForm" onsubmit="saveIntuneSettings(event)">
+                        <div class="form-group">
+                            <label class="form-label" for="intuneTenantId">Tenant ID</label>
+                            <input type="text" class="form-input" id="intuneTenantId" placeholder="e.g. 00000000-0000-0000-0000-000000000000">
+                            <div class="form-hint">Azure AD directory (tenant) ID</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="intuneClientId">Client ID</label>
+                            <input type="text" class="form-input" id="intuneClientId" placeholder="Application (client) ID">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="intuneClientSecret">Client Secret</label>
+                            <div class="password-wrapper">
+                                <input type="password" class="form-input" id="intuneClientSecret" placeholder="Enter client secret">
+                                <button type="button" class="password-toggle" onclick="toggleIntuneSecret()">Show</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
+                                <input type="checkbox" id="intuneVerifySsl" checked style="width: auto;">
+                                Verify SSL
+                            </label>
+                            <div class="form-hint">Disable only for testing against environments with self-signed certificates</div>
+                        </div>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary" id="intuneSaveBtn">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Edit/Add Modal -->
@@ -313,7 +361,7 @@ $path_prefix = '../../';
         document.addEventListener('DOMContentLoaded', function() {
             loadItems('asset-type');
             loadItems('asset-status');
-            loadVcenterSettings();
+            loadIntegrationSettings();
         });
 
         function switchTab(tab) {
@@ -471,8 +519,8 @@ $path_prefix = '../../';
             if (e.target === this && modalMouseDownTarget === this) closeModal();
         });
 
-        // vCenter settings
-        async function loadVcenterSettings() {
+        // Integration settings (vCenter + InTune)
+        async function loadIntegrationSettings() {
             try {
                 const response = await fetch(API_SETTINGS + 'get_system_settings.php');
                 const data = await response.json();
@@ -480,6 +528,12 @@ $path_prefix = '../../';
                     document.getElementById('vcenterServer').value = data.settings.vcenter_server || '';
                     document.getElementById('vcenterUser').value = data.settings.vcenter_user || '';
                     document.getElementById('vcenterPassword').value = data.settings.vcenter_password || '';
+
+                    document.getElementById('intuneTenantId').value = data.settings.intune_tenant_id || '';
+                    document.getElementById('intuneClientId').value = data.settings.intune_client_id || '';
+                    document.getElementById('intuneClientSecret').value = data.settings.intune_client_secret || '';
+                    // verify_ssl: default to true unless explicitly stored as "0"
+                    document.getElementById('intuneVerifySsl').checked = data.settings.intune_verify_ssl !== '0';
                 }
             } catch (error) {
                 console.error('Error loading settings:', error);
@@ -515,11 +569,51 @@ $path_prefix = '../../';
             }
 
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Save Settings';
+            saveBtn.textContent = 'Save';
+        }
+
+        async function saveIntuneSettings(e) {
+            e.preventDefault();
+            const saveBtn = document.getElementById('intuneSaveBtn');
+            saveBtn.disabled = true;
+            saveBtn.textContent = 'Saving...';
+
+            try {
+                const response = await fetch(API_SETTINGS + 'save_system_settings.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        settings: {
+                            intune_tenant_id: document.getElementById('intuneTenantId').value.trim(),
+                            intune_client_id: document.getElementById('intuneClientId').value.trim(),
+                            intune_client_secret: document.getElementById('intuneClientSecret').value,
+                            intune_verify_ssl: document.getElementById('intuneVerifySsl').checked ? '1' : '0'
+                        }
+                    })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast('Settings saved successfully', 'success');
+                } else {
+                    showToast('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to save settings', 'error');
+            }
+
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
         }
 
         function togglePassword() {
             const input = document.getElementById('vcenterPassword');
+            const btn = input.nextElementSibling;
+            if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
+            else { input.type = 'password'; btn.textContent = 'Show'; }
+        }
+
+        function toggleIntuneSecret() {
+            const input = document.getElementById('intuneClientSecret');
             const btn = input.nextElementSibling;
             if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
             else { input.type = 'password'; btn.textContent = 'Show'; }

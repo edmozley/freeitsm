@@ -12,6 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 116 | Assets            | Feature     | Add Microsoft InTune settings tab in asset settings for tenant ID, client ID, client secret (encrypted at rest), and verify-SSL toggle |
 
 ---
 
