@@ -1,0 +1,12 @@
+# Block direct web access to uploaded RFP source documents.
+# Files in this directory contain tenant-specific requirements docs and
+# should only be served via authenticated endpoints (or not at all —
+# Phase 1 only re-reads them server-side for text extraction).
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order Deny,Allow
+    Deny from all
+</IfModule>

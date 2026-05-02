@@ -98,6 +98,8 @@ uploads/*
 change-management/attachments/
 lms/content/
 tickets/attachments/
+contracts/rfp-builder/uploads/*
+!contracts/rfp-builder/uploads/.htaccess
 
 # ============================================
 # NODE MODULES (if you use npm/Node.js)

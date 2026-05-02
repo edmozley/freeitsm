@@ -213,9 +213,9 @@ $path_prefix = '../../';
                     num: 1, title: 'Source documents', phase: 1,
                     desc: 'Upload .docx files from each contributing department.',
                     stats: [{label: 'Documents', value: r.document_count}],
-                    ready: true, // Phase 1 step 4 will wire this up
-                    cta: 'Coming in Phase 1 (next step)',
-                    href: null
+                    ready: true,
+                    cta: '',
+                    href: 'documents.php?id=' + r.id
                 },
                 {
                     num: 2, title: 'Extracted requirements', phase: 2,
