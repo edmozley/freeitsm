@@ -311,6 +311,76 @@ function intuneLinkDevicesToAssets(PDO $conn): array {
 }
 
 /**
+ * Map an Intune operating_system string to a sensible "drive" label for
+ * asset_disks. Intune only gives us a single device-level total/free figure,
+ * so we fake a single drive entry whose name reflects the platform.
+ */
+function intuneOsToDrive(?string $os): string {
+    if ($os === null || $os === '') return 'System';
+    $lc = strtolower($os);
+    if (strpos($lc, 'windows') !== false) return 'C:';
+    if (strpos($lc, 'macos') !== false || strpos($lc, 'mac os') !== false) return '/';
+    if (strpos($lc, 'linux') !== false) return '/';
+    if (strpos($lc, 'ios') !== false || strpos($lc, 'ipados') !== false) return 'Internal';
+    if (strpos($lc, 'android') !== false) return 'Internal';
+    return 'System';
+}
+
+/**
+ * Populate asset_disks with the single device-level total/free figure Intune
+ * provides — but only for assets that have NO agent-sourced rows. The PS
+ * inventory agent's per-drive data is more accurate, so we never overwrite it.
+ *
+ * Returns the number of asset_disks rows inserted (one per eligible asset).
+ */
+function intuneSyncDisks(PDO $conn): int {
+    // Find linked devices with a usable storage figure. LEFT JOIN against
+    // asset_disks restricted to source='agent' so we can filter to assets
+    // where the agent has NOT reported any rows.
+    $devices = $conn->query(
+        "SELECT id_dev.asset_id, id_dev.operating_system,
+                id_dev.total_storage_bytes, id_dev.free_storage_bytes
+           FROM intune_devices id_dev
+          WHERE id_dev.asset_id IS NOT NULL
+            AND id_dev.total_storage_bytes IS NOT NULL
+            AND id_dev.total_storage_bytes > 0
+            AND NOT EXISTS (
+                SELECT 1 FROM asset_disks ad
+                 WHERE ad.asset_id = id_dev.asset_id
+                   AND ad.source = 'agent'
+            )"
+    )->fetchAll(PDO::FETCH_ASSOC);
+
+    if (!$devices) return 0;
+
+    $deleteIntune = $conn->prepare("DELETE FROM asset_disks WHERE asset_id = ? AND source = 'intune'");
+    $insert = $conn->prepare(
+        "INSERT INTO asset_disks (asset_id, drive, label, file_system, size_bytes, free_bytes, used_percent, source)
+         VALUES (?, ?, NULL, NULL, ?, ?, ?, 'intune')"
+    );
+
+    $count = 0;
+    foreach ($devices as $d) {
+        $size = (int)$d['total_storage_bytes'];
+        $free = $d['free_storage_bytes'] !== null ? (int)$d['free_storage_bytes'] : null;
+        $usedPct = ($free !== null && $size > 0)
+            ? round((($size - $free) / $size) * 100, 1)
+            : null;
+
+        $deleteIntune->execute([$d['asset_id']]);
+        $insert->execute([
+            (int)$d['asset_id'],
+            intuneOsToDrive($d['operating_system']),
+            $size,
+            $free,
+            $usedPct,
+        ]);
+        $count++;
+    }
+    return $count;
+}
+
+/**
  * Run the full sync for a given job id. Updates intune_sync_jobs as it goes
  * so the UI progress bar can poll. Designed for CLI worker use.
  */
@@ -392,7 +462,11 @@ function intuneRunSync(PDO $conn, int $jobId): void {
         $linkResult = intuneLinkDevicesToAssets($conn);
         $log("linking done: linked={$linkResult['linked']}, stubs_created={$linkResult['stubs_created']}");
 
-        $msg = "Synced $processed devices. {$linkResult['linked']} linked to assets ({$linkResult['stubs_created']} new asset stubs created).";
+        $setProgress($processed, $processed, 'running', 'Updating disk usage...', false);
+        $disksWritten = intuneSyncDisks($conn);
+        $log("disk sync done: rows_written=$disksWritten (only for assets with no agent disk data)");
+
+        $msg = "Synced $processed devices. {$linkResult['linked']} linked to assets ({$linkResult['stubs_created']} new asset stubs created). $disksWritten disk rows populated from Intune.";
         if ($failed > 0) $msg .= " ($failed failed — see logs/intune_sync.log)";
         $setProgress($processed, $processed, 'done', $msg, true);
         $log("done, processed=$processed, failed=$failed");

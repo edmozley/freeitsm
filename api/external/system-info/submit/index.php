@@ -237,12 +237,14 @@ try {
 $disksSynced = 0;
 
 try {
+    // Wipe all rows for this asset (any source) — the agent has authoritative
+    // per-drive data, so it owns asset_disks for any host it reports for.
     $conn->prepare("DELETE FROM asset_disks WHERE asset_id = ?")->execute([$hostId]);
 
     if (!empty($data['disks']['logical']) && is_array($data['disks']['logical'])) {
         $stmt = $conn->prepare("
-            INSERT INTO asset_disks (asset_id, drive, label, file_system, size_bytes, free_bytes, used_percent)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO asset_disks (asset_id, drive, label, file_system, size_bytes, free_bytes, used_percent, source)
+            VALUES (?, ?, ?, ?, ?, ?, ?, 'agent')
         ");
 
         foreach ($data['disks']['logical'] as $disk) {

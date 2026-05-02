@@ -420,6 +420,7 @@ CREATE TABLE IF NOT EXISTS `asset_disks` (
     `size_bytes`    BIGINT NULL,
     `free_bytes`    BIGINT NULL,
     `used_percent`  DECIMAL(5,1) NULL,
+    `source`        VARCHAR(20) NOT NULL DEFAULT 'agent',
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_asset_disks_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
