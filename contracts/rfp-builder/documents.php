@@ -219,12 +219,13 @@ $path_prefix = '../../';
                         <th>Department</th>
                         <th>Status</th>
                         <th>Size</th>
+                        <th>Reqs</th>
                         <th>Uploaded</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody id="docsList">
-                    <tr><td colspan="6" class="empty-state">Loading...</td></tr>
+                    <tr><td colspan="7" class="empty-state">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -308,7 +309,7 @@ $path_prefix = '../../';
         function renderDocs(docs) {
             const tbody = document.getElementById('docsList');
             if (docs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No documents yet. Upload a .docx above to get started.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No documents yet. Upload a .docx above to get started.</td></tr>';
                 return;
             }
             tbody.innerHTML = docs.map(d => {
@@ -316,16 +317,24 @@ $path_prefix = '../../';
                     ? `<span class="dept-badge" style="background:${escapeHtml(d.department_colour || '#6c757d')};">${escapeHtml(d.department_name)}</span>`
                     : `<span class="dept-badge empty">Unassigned</span>`;
                 const sizeText = d.has_text ? formatNumber(d.char_count) + ' chars' : '—';
+                const reqsCell = d.extracted_count > 0
+                    ? `<span style="display:inline-block; min-width:24px; padding:2px 8px; background:#d1fae5; color:#065f46; border-radius:10px; text-align:center; font-size:12px; font-weight:600;">${d.extracted_count}</span>`
+                    : `<span style="color:#bbb;">—</span>`;
+                const extractTitle = d.extracted_count > 0 ? 'Re-extract requirements with AI' : 'Extract requirements with AI';
                 return `
                     <tr>
                         <td><span class="filename">${escapeHtml(d.original_filename)}</span></td>
                         <td>${deptBadge}</td>
                         <td><span class="doc-status ${d.status}">${escapeHtml(d.status)}</span></td>
                         <td>${sizeText}</td>
+                        <td>${reqsCell}</td>
                         <td>${formatDateTime(d.uploaded_datetime)}</td>
                         <td>
                             <button class="action-btn" title="View extracted text" onclick="viewText(${d.id})" ${d.has_text ? '' : 'disabled'}>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                            <button class="action-btn" title="${extractTitle}" onclick="extractRequirements(${d.id}, this)" ${d.has_text ? '' : 'disabled'}>
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"></path><path d="M12 18v3"></path><path d="M5.6 5.6l2.1 2.1"></path><path d="M16.3 16.3l2.1 2.1"></path><path d="M3 12h3"></path><path d="M18 12h3"></path><path d="M5.6 18.4l2.1-2.1"></path><path d="M16.3 7.7l2.1-2.1"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             </button>
                             <button class="action-btn" title="Re-run text extraction" onclick="reExtract(${d.id}, this)">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg>
@@ -337,6 +346,35 @@ $path_prefix = '../../';
                     </tr>
                 `;
             }).join('');
+        }
+
+        async function extractRequirements(id, btn) {
+            const wasExtracted = btn.title.startsWith('Re-extract');
+            if (wasExtracted && !confirm('Re-running will discard the current extracted requirements for this document and replace them. Continue?')) return;
+
+            btn.disabled = true;
+            setStatus('Extracting requirements with AI... this can take 10-30 seconds per document.', 'busy');
+            try {
+                const res = await fetch(API_BASE + 'extract_requirements.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({document_id: id})
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                const cacheNote = (data.cache_read || data.cache_write)
+                    ? ` · cache: ${data.cache_read || 0} read / ${data.cache_write || 0} written`
+                    : '';
+                setStatus(
+                    `Extracted ${data.count} requirements in ${(data.duration_ms / 1000).toFixed(1)}s — ${data.tokens_in} in / ${data.tokens_out} out tokens${cacheNote}.`,
+                    'success'
+                );
+                await loadDocuments();
+            } catch (err) {
+                setStatus('Extraction failed: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         document.getElementById('uploadForm').addEventListener('submit', async (e) => {
