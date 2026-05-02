@@ -510,7 +510,14 @@ function intuneFindPhpExe(?string $override): string {
  * Spawn the CLI worker so it survives the web request. Returns true on success.
  */
 function intuneSpawnWorker(int $jobId, ?string $phpExeOverride): bool {
-    $worker = realpath(__DIR__ . '/../intune_worker.php');
+    return intuneSpawnGenericWorker('intune_worker.php', $jobId, $phpExeOverride);
+}
+
+/**
+ * Generic spawn helper used by both the device sync and the app sync workers.
+ */
+function intuneSpawnGenericWorker(string $workerScriptName, int $jobId, ?string $phpExeOverride): bool {
+    $worker = realpath(__DIR__ . '/../' . $workerScriptName);
     if (!$worker) return false;
 
     $phpExe = intuneFindPhpExe($phpExeOverride);
@@ -526,4 +533,325 @@ function intuneSpawnWorker(int $jobId, ?string $phpExeOverride): bool {
     if ($h === false) return false;
     pclose($h);
     return true;
+}
+
+// ============================================================================
+// App (software) sync — Graph $expand=detectedApps, batched into manual jobs
+// ============================================================================
+
+/**
+ * Read the configured app sync batch size from system_settings, with a sane
+ * default and bounds (1..500).
+ */
+function intuneGetAppBatchSize(PDO $conn): int {
+    $stmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'intune_app_batch_size'");
+    $stmt->execute();
+    $val = $stmt->fetchColumn();
+    $n = $val === false ? 30 : (int)$val;
+    if ($n < 1) $n = 1;
+    if ($n > 500) $n = 500;
+    return $n;
+}
+
+/**
+ * Pick the next $limit assets that are good candidates for an Intune app sync:
+ *   - Have a linked intune_devices row (with a usable Graph id)
+ *   - Have NO 'agent'-sourced rows in software_inventory_detail (agent wins)
+ *   - Aren't already pending/running in another job
+ * Ordered: assets that have never been Intune-synced first, then oldest synced.
+ */
+function intuneGetAppSyncCandidates(PDO $conn, int $limit): array {
+    $sql = "
+        SELECT a.id AS asset_id, a.hostname, id_dev.intune_id,
+               (SELECT MAX(d.last_seen)
+                  FROM software_inventory_detail d
+                 WHERE d.host_id = a.id AND d.source = 'intune') AS last_intune_sync
+          FROM assets a
+          JOIN intune_devices id_dev ON id_dev.asset_id = a.id
+         WHERE id_dev.intune_id IS NOT NULL
+           AND id_dev.intune_id <> ''
+           AND NOT EXISTS (
+               SELECT 1 FROM software_inventory_detail d
+                WHERE d.host_id = a.id AND d.source = 'agent'
+           )
+           AND NOT EXISTS (
+               SELECT 1 FROM intune_app_sync_job_assets ja
+                JOIN intune_app_sync_jobs j ON j.id = ja.job_id
+                WHERE ja.asset_id = a.id
+                  AND ja.status = 'pending'
+                  AND j.status IN ('pending','running')
+           )
+         ORDER BY (last_intune_sync IS NULL) DESC,
+                  last_intune_sync ASC,
+                  a.id ASC
+         LIMIT " . (int)$limit;
+    return $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
+}
+
+/**
+ * Create a new app-sync job for the next batch of candidate assets.
+ * Returns ['job_id' => int, 'asset_count' => int, 'reused' => bool].
+ * If a pending/running job already exists, returns it (reused=true).
+ */
+function intuneCreateAppSyncJob(PDO $conn): array {
+    // Concurrency lock — only one app-sync job at a time
+    $running = $conn->query(
+        "SELECT id FROM intune_app_sync_jobs WHERE status IN ('pending','running') ORDER BY id DESC LIMIT 1"
+    )->fetchColumn();
+    if ($running) {
+        $count = (int)$conn->query("SELECT COUNT(*) FROM intune_app_sync_job_assets WHERE job_id = " . (int)$running)->fetchColumn();
+        return ['job_id' => (int)$running, 'asset_count' => $count, 'reused' => true];
+    }
+
+    // Self-heal: any 'running' job older than 10 minutes that hasn't progressed
+    // is a worker that died. Mark it errored.
+    $conn->exec(
+        "UPDATE intune_app_sync_jobs
+            SET status = 'error',
+                message = 'Auto-failed: worker did not progress within 10 minutes',
+                finished_datetime = UTC_TIMESTAMP()
+          WHERE status = 'running'
+            AND processed = 0
+            AND started_datetime < (UTC_TIMESTAMP() - INTERVAL 10 MINUTE)"
+    );
+
+    $batch = intuneGetAppBatchSize($conn);
+    $candidates = intuneGetAppSyncCandidates($conn, $batch);
+    if (!$candidates) {
+        return ['job_id' => 0, 'asset_count' => 0, 'reused' => false];
+    }
+
+    $conn->beginTransaction();
+    try {
+        $conn->prepare(
+            "INSERT INTO intune_app_sync_jobs (started_datetime, status, total, processed, failed, message)
+             VALUES (UTC_TIMESTAMP(), 'pending', ?, 0, 0, 'Queued')"
+        )->execute([count($candidates)]);
+        $jobId = (int)$conn->lastInsertId();
+
+        $insChild = $conn->prepare(
+            "INSERT INTO intune_app_sync_job_assets (job_id, asset_id, status) VALUES (?, ?, 'pending')"
+        );
+        foreach ($candidates as $c) {
+            $insChild->execute([$jobId, (int)$c['asset_id']]);
+        }
+        $conn->commit();
+    } catch (Throwable $e) {
+        $conn->rollBack();
+        throw $e;
+    }
+
+    return ['job_id' => $jobId, 'asset_count' => count($candidates), 'reused' => false];
+}
+
+/**
+ * Fetch the detectedApps array for a single Intune-managed device.
+ */
+function intuneFetchDeviceApps(string $intuneId, array $settings): array {
+    $url = 'https://graph.microsoft.com/beta/deviceManagement/managedDevices/'
+         . rawurlencode($intuneId) . '?$expand=detectedApps';
+    $r = intuneGraphGet($url, $settings);
+    return $r['detectedApps'] ?? [];
+}
+
+/**
+ * Wipe and re-write the source='intune' software rows for a single asset.
+ * Apps catalogue (software_inventory_apps) is shared with the agent — we
+ * dedupe on (display_name, publisher).
+ */
+function intuneUpsertSoftwareForAsset(PDO $conn, int $assetId, array $apps): int {
+    // Wipe previous Intune rows for this asset so the import is idempotent.
+    $conn->prepare("DELETE FROM software_inventory_detail WHERE host_id = ? AND source = 'intune'")
+         ->execute([$assetId]);
+
+    $appCache = [];
+    $count = 0;
+
+    $findApp = $conn->prepare(
+        "SELECT id FROM software_inventory_apps
+          WHERE display_name = ? AND (publisher IS NULL AND ? IS NULL OR publisher = ?)"
+    );
+    $insertApp = $conn->prepare(
+        "INSERT INTO software_inventory_apps (display_name, publisher) VALUES (?, ?)"
+    );
+    $insertDetail = $conn->prepare(
+        "INSERT INTO software_inventory_detail
+            (host_id, app_id, display_version, estimated_size, system_component, created_at, last_seen, source)
+         VALUES (?, ?, ?, ?, 0, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 'intune')"
+    );
+
+    foreach ($apps as $app) {
+        $displayName = isset($app['displayName']) ? trim((string)$app['displayName']) : '';
+        if ($displayName === '') continue;
+
+        $publisher = (isset($app['publisher']) && trim((string)$app['publisher']) !== '')
+            ? trim((string)$app['publisher']) : null;
+        $version = isset($app['version']) ? (string)$app['version'] : null;
+        $sizeBytes = (isset($app['sizeInByte']) && is_numeric($app['sizeInByte']))
+            ? (string)$app['sizeInByte'] : null;
+
+        $appKey = strtolower($displayName) . '|' . strtolower($publisher ?? '');
+        if (isset($appCache[$appKey])) {
+            $appId = $appCache[$appKey];
+        } else {
+            $findApp->execute([$displayName, $publisher, $publisher]);
+            $row = $findApp->fetch(PDO::FETCH_ASSOC);
+            if ($row) {
+                $appId = (int)$row['id'];
+            } else {
+                $insertApp->execute([$displayName, $publisher]);
+                $appId = (int)$conn->lastInsertId();
+            }
+            $appCache[$appKey] = $appId;
+        }
+
+        $insertDetail->execute([$assetId, $appId, $version, $sizeBytes]);
+        $count++;
+    }
+
+    return $count;
+}
+
+/**
+ * Run an app-sync job: iterate its child rows, fetch detectedApps from Graph
+ * for each asset, upsert into software_inventory_*, and tick progress.
+ * Designed for CLI worker use.
+ */
+function intuneRunAppSyncJob(PDO $conn, int $jobId): void {
+    $logFile = __DIR__ . '/../logs/intune_app_sync.log';
+    @mkdir(dirname($logFile), 0775, true);
+    $log = function (string $msg) use ($logFile, $jobId) {
+        @file_put_contents(
+            $logFile,
+            sprintf("[%s] job=%d %s\n", gmdate('Y-m-d H:i:s'), $jobId, $msg),
+            FILE_APPEND
+        );
+    };
+
+    $jobUpdate = $conn->prepare(
+        "UPDATE intune_app_sync_jobs
+            SET status = :status, processed = :processed, failed = :failed,
+                finished_datetime = :finished, message = :message
+          WHERE id = :id"
+    );
+    $childUpdate = $conn->prepare(
+        "UPDATE intune_app_sync_job_assets
+            SET status = :status, error_message = :error_message,
+                synced_datetime = :synced, app_count = :app_count
+          WHERE id = :id"
+    );
+
+    try {
+        $log('app sync worker started');
+
+        $settings = intuneGetSettings($conn);
+        if ($settings === null) {
+            throw new RuntimeException('InTune credentials not configured.');
+        }
+
+        $jobUpdate->execute([
+            ':status' => 'running', ':processed' => 0, ':failed' => 0,
+            ':finished' => null, ':message' => 'Running...', ':id' => $jobId,
+        ]);
+
+        $children = $conn->prepare(
+            "SELECT ja.id AS child_id, ja.asset_id, id_dev.intune_id, a.hostname
+               FROM intune_app_sync_job_assets ja
+               JOIN assets a ON a.id = ja.asset_id
+          LEFT JOIN intune_devices id_dev ON id_dev.asset_id = ja.asset_id
+              WHERE ja.job_id = ? AND ja.status = 'pending'
+              ORDER BY ja.id"
+        );
+        $children->execute([$jobId]);
+        $rows = $children->fetchAll(PDO::FETCH_ASSOC);
+
+        $processed = 0;
+        $failed = 0;
+
+        foreach ($rows as $row) {
+            $childId = (int)$row['child_id'];
+            $assetId = (int)$row['asset_id'];
+            $intuneId = $row['intune_id'] ?? null;
+            $hostname = $row['hostname'] ?? '?';
+
+            if (!$intuneId) {
+                $childUpdate->execute([
+                    ':status' => 'obsolete',
+                    ':error_message' => 'No linked intune_devices row',
+                    ':synced' => null, ':app_count' => null, ':id' => $childId,
+                ]);
+                $log("asset_id=$assetId ($hostname) skipped: no intune_id");
+                $processed++;
+                $jobUpdate->execute([
+                    ':status' => 'running', ':processed' => $processed, ':failed' => $failed,
+                    ':finished' => null, ':message' => "Processing $processed of " . count($rows) . "...",
+                    ':id' => $jobId,
+                ]);
+                continue;
+            }
+
+            try {
+                $apps = intuneFetchDeviceApps($intuneId, $settings);
+                $count = intuneUpsertSoftwareForAsset($conn, $assetId, $apps);
+                $childUpdate->execute([
+                    ':status' => 'done',
+                    ':error_message' => null,
+                    ':synced' => gmdate('Y-m-d H:i:s'),
+                    ':app_count' => $count,
+                    ':id' => $childId,
+                ]);
+                $log("asset_id=$assetId ($hostname) ok: $count apps");
+                $processed++;
+            } catch (Throwable $e) {
+                $msg = $e->getMessage();
+                // 404 = device deleted in Intune since the device sync ran
+                if (stripos($msg, 'HTTP 404') !== false) {
+                    $childUpdate->execute([
+                        ':status' => 'obsolete',
+                        ':error_message' => 'Device not found in Intune (likely deleted)',
+                        ':synced' => null, ':app_count' => null, ':id' => $childId,
+                    ]);
+                    $log("asset_id=$assetId ($hostname) obsolete: 404");
+                    $processed++;
+                } else {
+                    $childUpdate->execute([
+                        ':status' => 'error',
+                        ':error_message' => substr($msg, 0, 1000),
+                        ':synced' => null, ':app_count' => null, ':id' => $childId,
+                    ]);
+                    $log("asset_id=$assetId ($hostname) FAIL: $msg");
+                    $failed++;
+                }
+            }
+
+            $jobUpdate->execute([
+                ':status' => 'running', ':processed' => $processed, ':failed' => $failed,
+                ':finished' => null, ':message' => "Processing " . ($processed + $failed) . " of " . count($rows) . "...",
+                ':id' => $jobId,
+            ]);
+        }
+
+        $msg = "Synced apps for $processed of " . count($rows) . " assets.";
+        if ($failed > 0) $msg .= " ($failed failed — see logs/intune_app_sync.log)";
+        $jobUpdate->execute([
+            ':status' => 'done', ':processed' => $processed, ':failed' => $failed,
+            ':finished' => gmdate('Y-m-d H:i:s'), ':message' => $msg, ':id' => $jobId,
+        ]);
+        $log("done, processed=$processed, failed=$failed");
+
+    } catch (Throwable $e) {
+        $msg = $e->getMessage();
+        $jobUpdate->execute([
+            ':status' => 'error', ':processed' => 0, ':failed' => 0,
+            ':finished' => gmdate('Y-m-d H:i:s'), ':message' => $msg, ':id' => $jobId,
+        ]);
+        $log("ERROR: $msg\n" . $e->getTraceAsString());
+    }
+}
+
+/**
+ * Spawn the CLI app-sync worker.
+ */
+function intuneSpawnAppWorker(int $jobId, ?string $phpExeOverride): bool {
+    return intuneSpawnGenericWorker('intune_app_worker.php', $jobId, $phpExeOverride);
 }

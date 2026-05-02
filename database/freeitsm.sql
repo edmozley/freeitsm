@@ -650,6 +650,33 @@ CREATE TABLE IF NOT EXISTS `intune_sync_jobs` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `intune_app_sync_jobs` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `started_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `finished_datetime` DATETIME NULL,
+    `status`            VARCHAR(16) NOT NULL DEFAULT 'pending',
+    `total`             INT NOT NULL DEFAULT 0,
+    `processed`         INT NOT NULL DEFAULT 0,
+    `failed`            INT NOT NULL DEFAULT 0,
+    `message`           LONGTEXT NULL,
+    PRIMARY KEY (`id`),
+    KEY `ix_intune_app_sync_jobs_status` (`status`),
+    KEY `ix_intune_app_sync_jobs_started` (`started_datetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `intune_app_sync_job_assets` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `job_id`            INT NOT NULL,
+    `asset_id`          INT NOT NULL,
+    `status`            VARCHAR(16) NOT NULL DEFAULT 'pending',
+    `error_message`     LONGTEXT NULL,
+    `synced_datetime`   DATETIME NULL,
+    `app_count`         INT NULL,
+    PRIMARY KEY (`id`),
+    KEY `ix_intune_app_sync_job_assets_job` (`job_id`),
+    KEY `ix_intune_app_sync_job_assets_status` (`status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ----------------------------------------------------------
 -- Change Management
 -- ----------------------------------------------------------
@@ -978,6 +1005,7 @@ CREATE TABLE IF NOT EXISTS `software_inventory_detail` (
     `system_component`  TINYINT(1) NOT NULL DEFAULT 0,
     `created_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `last_seen`         DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `source`            VARCHAR(20) NOT NULL DEFAULT 'agent',
     PRIMARY KEY (`id`),
     UNIQUE KEY `ux_software_detail_host_app` (`host_id`, `app_id`),
     CONSTRAINT `fk_software_detail_app` FOREIGN KEY (`app_id`) REFERENCES `software_inventory_apps` (`id`)

@@ -502,6 +502,27 @@ $schema = [
         'message'               => 'LONGTEXT NULL',
     ],
 
+    'intune_app_sync_jobs' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'started_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'finished_datetime' => 'DATETIME NULL',
+        'status'            => "VARCHAR(16) NOT NULL DEFAULT 'pending'",
+        'total'             => 'INT NOT NULL DEFAULT 0',
+        'processed'         => 'INT NOT NULL DEFAULT 0',
+        'failed'            => 'INT NOT NULL DEFAULT 0',
+        'message'           => 'LONGTEXT NULL',
+    ],
+
+    'intune_app_sync_job_assets' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'job_id'            => 'INT NOT NULL',
+        'asset_id'          => 'INT NOT NULL',
+        'status'            => "VARCHAR(16) NOT NULL DEFAULT 'pending'",
+        'error_message'     => 'LONGTEXT NULL',
+        'synced_datetime'   => 'DATETIME NULL',
+        'app_count'         => 'INT NULL',
+    ],
+
     'changes' => [
         'id'                            => 'INT NOT NULL AUTO_INCREMENT',
         'title'                         => 'VARCHAR(255) NOT NULL',
@@ -890,6 +911,7 @@ $schema = [
         'system_component'  => 'TINYINT(1) NOT NULL DEFAULT 0',
         'created_at'        => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'last_seen'         => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'source'            => "VARCHAR(20) NOT NULL DEFAULT 'agent'",
     ],
 
     'software_licences' => [

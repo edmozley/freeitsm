@@ -17,6 +17,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 118 | Assets            | Feature     | Add Microsoft InTune device sync via Microsoft Graph with detached worker, progress bar, hostname-based asset matching, auto-stub creation for unknown devices, and an InTune tab on the asset detail panel |
 | 119 | System            | Improvement | Mask sensitive system_settings values (vCenter password, InTune client secret, knowledge AI/OpenAI keys) in the get_system_settings API and skip overwriting them on save when the field is left blank or unchanged |
 | 120 | Assets            | Improvement | Intune sync now populates asset_disks with the device-level total/free storage figure (drive letter inferred from OS) for assets that have no PowerShell-agent disk rows, so the Storage section is never empty for Intune-only devices; new `source` column on asset_disks separates agent-owned and Intune-owned rows |
+| 121 | Assets            | Feature     | Add Intune software inventory sync via Microsoft Graph `$expand=detectedApps`, batched into manual jobs of configurable size (default 30) to stay inside Graph throttling. New `source` column on software_inventory_detail keeps PowerShell-agent and Intune rows separate; agent always wins. New "Sync software" button + recent-jobs list on the InTune settings tab |
 
 ---
 

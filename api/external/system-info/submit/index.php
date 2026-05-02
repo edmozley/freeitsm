@@ -333,9 +333,11 @@ $deletedDetails = 0;
 
 if (!empty($data['software']) && is_array($data['software'])) {
     try {
-        // Load existing host/app mappings
+        // Load existing host/app mappings — scoped to source='agent' so the
+        // delete-of-orphans below only touches our own rows. Intune-sourced
+        // rows for the same host stay untouched.
         $existingAppIds = [];
-        $stmt = $conn->prepare("SELECT app_id FROM software_inventory_detail WHERE host_id = ?");
+        $stmt = $conn->prepare("SELECT app_id FROM software_inventory_detail WHERE host_id = ? AND source = 'agent'");
         $stmt->execute([$hostId]);
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
             $existingAppIds[(int)$row['app_id']] = true;
@@ -384,8 +386,10 @@ if (!empty($data['software']) && is_array($data['software'])) {
 
             $seenAppIds[$appId] = true;
 
-            // Upsert detail row
-            $stmt = $conn->prepare("SELECT id FROM software_inventory_detail WHERE host_id = ? AND app_id = ?");
+            // Upsert detail row — every read/write here is scoped to source='agent'
+            // so the agent only ever touches its own rows. Intune-sourced rows
+            // for the same (host_id, app_id) coexist as separate detail rows.
+            $stmt = $conn->prepare("SELECT id FROM software_inventory_detail WHERE host_id = ? AND app_id = ? AND source = 'agent'");
             $stmt->execute([$hostId, $appId]);
             $detailRow = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -395,15 +399,15 @@ if (!empty($data['software']) && is_array($data['software'])) {
                         display_version = ?, install_date = ?, uninstall_string = ?,
                         install_location = ?, estimated_size = ?, system_component = ?,
                         last_seen = UTC_TIMESTAMP()
-                    WHERE host_id = ? AND app_id = ?
+                    WHERE host_id = ? AND app_id = ? AND source = 'agent'
                 ");
                 $stmt->execute([$displayVersion, $installDate, $uninstallString, $installLocation, $estimatedSize, $systemComponent, $hostId, $appId]);
                 $updatedDetails++;
             } else {
                 $stmt = $conn->prepare("
                     INSERT INTO software_inventory_detail
-                        (host_id, app_id, display_version, install_date, uninstall_string, install_location, estimated_size, system_component, created_at, last_seen)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())
+                        (host_id, app_id, display_version, install_date, uninstall_string, install_location, estimated_size, system_component, created_at, last_seen, source)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 'agent')
                 ");
                 $stmt->execute([$hostId, $appId, $displayVersion, $installDate, $uninstallString, $installLocation, $estimatedSize, $systemComponent]);
                 $insertedDetails++;
@@ -412,10 +416,10 @@ if (!empty($data['software']) && is_array($data['software'])) {
             $softwareProcessed++;
         }
 
-        // Delete mappings for software no longer present
+        // Delete agent-owned mappings for software no longer present in the submit
         $toDelete = array_diff_key($existingAppIds, $seenAppIds);
         if (!empty($toDelete)) {
-            $stmt = $conn->prepare("DELETE FROM software_inventory_detail WHERE host_id = ? AND app_id = ?");
+            $stmt = $conn->prepare("DELETE FROM software_inventory_detail WHERE host_id = ? AND app_id = ? AND source = 'agent'");
             foreach ($toDelete as $appId => $_) {
                 $stmt->execute([$hostId, $appId]);
                 $deletedDetails++;

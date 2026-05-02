@@ -134,6 +134,19 @@ $path_prefix = '../../';
         .intune-progress-meta { font-size: 12px; color: #666; margin-top: 6px; }
         .intune-progress.intune-error .intune-progress-fill { background: #d13438; }
 
+        .intune-software-section { margin-top: 30px; padding-top: 25px; border-top: 1px solid #eee; }
+        .intune-subsection-title { font-size: 15px; font-weight: 600; color: #333; margin: 0 0 8px 0; }
+        .intune-jobs-list { margin-top: 18px; }
+        .intune-jobs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .intune-jobs-table th { text-align: left; padding: 8px 10px; background: #f8f9fa; color: #666; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid #e0e0e0; }
+        .intune-jobs-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; color: #333; }
+        .intune-jobs-table tbody tr:hover { background: #fafafa; }
+        .intune-job-status { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .intune-job-status.pending { background: #fff3e0; color: #e65100; }
+        .intune-job-status.running { background: #e3f2fd; color: #1565c0; }
+        .intune-job-status.done    { background: #e8f5e9; color: #2e7d32; }
+        .intune-job-status.error   { background: #ffebee; color: #c62828; }
+
 
         .password-wrapper { position: relative; }
         .password-wrapper .form-input { padding-right: 45px; }
@@ -302,6 +315,11 @@ $path_prefix = '../../';
                             </label>
                             <div class="form-hint">Disable only for testing against environments with self-signed certificates</div>
                         </div>
+                        <div class="form-group">
+                            <label class="form-label" for="intuneAppBatchSize">Software sync batch size</label>
+                            <input type="number" class="form-input" id="intuneAppBatchSize" min="1" max="500" value="30" style="max-width: 140px;">
+                            <div class="form-hint">Number of devices included in a single software-sync job (1–500). Smaller batches finish quicker but need more clicks to cover the estate.</div>
+                        </div>
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary" id="intuneSaveBtn">Save</button>
                             <button type="button" class="btn btn-secondary" id="intuneSyncBtn" onclick="startIntuneSync()">Sync</button>
@@ -312,6 +330,22 @@ $path_prefix = '../../';
                             <div class="intune-progress-meta" id="intuneProgressMeta">Starting...</div>
                         </div>
                     </form>
+
+                    <div class="intune-software-section">
+                        <h3 class="intune-subsection-title">Software inventory sync</h3>
+                        <p class="settings-description">
+                            Pulls the list of installed applications from Microsoft Graph (<code>$expand=detectedApps</code>) for Intune-managed devices and merges into the existing software inventory. Each click queues one batch — keep clicking <strong>Sync software</strong> to work through the estate over time.
+                        </p>
+                        <div class="form-actions" style="border-top: none; padding-top: 0;">
+                            <button type="button" class="btn btn-secondary" id="intuneAppSyncBtn" onclick="startAppSync()">Sync software</button>
+                            <span id="intuneAppEligible" class="form-hint" style="margin-left: auto;"></span>
+                        </div>
+                        <div id="intuneAppSyncProgress" class="intune-progress" style="display: none;">
+                            <div class="intune-progress-bar"><div class="intune-progress-fill" id="intuneAppProgressFill"></div></div>
+                            <div class="intune-progress-meta" id="intuneAppProgressMeta">Starting...</div>
+                        </div>
+                        <div id="intuneAppJobsList" class="intune-jobs-list"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -562,6 +596,9 @@ $path_prefix = '../../';
                         : 'Enter client secret';
                     // verify_ssl: default to true unless explicitly stored as "0"
                     document.getElementById('intuneVerifySsl').checked = data.settings.intune_verify_ssl !== '0';
+                    // batch size: default to 30 if not stored
+                    const batch = parseInt(data.settings.intune_app_batch_size, 10);
+                    document.getElementById('intuneAppBatchSize').value = (batch > 0 ? batch : 30);
                 }
             } catch (error) {
                 console.error('Error loading settings:', error);
@@ -616,7 +653,8 @@ $path_prefix = '../../';
                             intune_tenant_id: document.getElementById('intuneTenantId').value.trim(),
                             intune_client_id: document.getElementById('intuneClientId').value.trim(),
                             intune_client_secret: document.getElementById('intuneClientSecret').value,
-                            intune_verify_ssl: document.getElementById('intuneVerifySsl').checked ? '1' : '0'
+                            intune_verify_ssl: document.getElementById('intuneVerifySsl').checked ? '1' : '0',
+                            intune_app_batch_size: String(Math.max(1, Math.min(500, parseInt(document.getElementById('intuneAppBatchSize').value, 10) || 30)))
                         }
                     })
                 });
@@ -745,6 +783,132 @@ $path_prefix = '../../';
 
         // Pull last-sync info on first load
         document.addEventListener('DOMContentLoaded', loadIntuneLastSync);
+
+        // ─── Software (app) sync ────────────────────────────────────────────
+        let appSyncPollTimer = null;
+
+        async function startAppSync() {
+            const btn = document.getElementById('intuneAppSyncBtn');
+            btn.disabled = true;
+            btn.textContent = 'Starting...';
+            showAppSyncProgress(0, 'Starting...', false);
+
+            try {
+                const response = await fetch(API_INTUNE + 'create_app_sync_job.php', { method: 'POST' });
+                const data = await response.json();
+                if (!data.success) {
+                    showAppSyncProgress(0, 'Error: ' + data.error, true);
+                    resetAppSyncButton();
+                    return;
+                }
+                showAppSyncProgress(0, (data.reused ? 'Resuming existing job' : 'Job queued') + ` for ${data.asset_count} asset${data.asset_count === 1 ? '' : 's'}...`, false);
+                pollAppSyncStatus(data.id);
+            } catch (e) {
+                showAppSyncProgress(0, 'Network error starting software sync', true);
+                resetAppSyncButton();
+            }
+        }
+
+        function pollAppSyncStatus(jobId) {
+            clearTimeout(appSyncPollTimer);
+            const tick = async () => {
+                try {
+                    const response = await fetch(API_INTUNE + 'app_sync_job_status.php?id=' + encodeURIComponent(jobId));
+                    const data = await response.json();
+                    if (!data.success || !data.job) {
+                        showAppSyncProgress(0, 'Status unavailable', true);
+                        resetAppSyncButton();
+                        return;
+                    }
+                    const job = data.job;
+                    const r = job.rollup || {};
+                    const summary = `${job.processed} of ${job.total} done` +
+                                    (job.failed > 0 ? `, ${job.failed} failed` : '') +
+                                    ((r.obsolete || 0) > 0 ? `, ${r.obsolete} obsolete` : '');
+                    const message = job.message ? `${job.message} (${summary})` : summary;
+                    showAppSyncProgress(job.percent, message, job.status === 'error');
+
+                    if (job.status === 'pending' || job.status === 'running') {
+                        appSyncPollTimer = setTimeout(tick, 2000);
+                    } else {
+                        resetAppSyncButton();
+                        loadAppSyncJobs();
+                    }
+                } catch (e) {
+                    showAppSyncProgress(0, 'Network error polling status', true);
+                    resetAppSyncButton();
+                }
+            };
+            tick();
+        }
+
+        function showAppSyncProgress(percent, message, isError) {
+            const wrap = document.getElementById('intuneAppSyncProgress');
+            const fill = document.getElementById('intuneAppProgressFill');
+            const meta = document.getElementById('intuneAppProgressMeta');
+            wrap.style.display = '';
+            wrap.classList.toggle('intune-error', !!isError);
+            fill.style.width = (Math.max(0, Math.min(100, percent || 0))) + '%';
+            meta.textContent = message || '';
+        }
+
+        function resetAppSyncButton() {
+            const btn = document.getElementById('intuneAppSyncBtn');
+            btn.disabled = false;
+            btn.textContent = 'Sync software';
+        }
+
+        async function loadAppSyncJobs() {
+            try {
+                const response = await fetch(API_INTUNE + 'list_app_sync_jobs.php');
+                const data = await response.json();
+                const list = document.getElementById('intuneAppJobsList');
+                const eligible = document.getElementById('intuneAppEligible');
+
+                if (!data.success) {
+                    list.innerHTML = '';
+                    eligible.textContent = '';
+                    return;
+                }
+
+                eligible.textContent = data.eligible_assets > 0
+                    ? `${data.eligible_assets} asset${data.eligible_assets === 1 ? '' : 's'} eligible for sync`
+                    : 'No eligible assets';
+
+                if (!data.jobs || data.jobs.length === 0) {
+                    list.innerHTML = '<div class="form-hint" style="margin-top: 12px;">No app-sync jobs yet.</div>';
+                    return;
+                }
+
+                // If the latest job is still mid-flight, resume polling
+                const latest = data.jobs[0];
+                if (latest && (latest.status === 'pending' || latest.status === 'running')) {
+                    pollAppSyncStatus(latest.id);
+                }
+
+                list.innerHTML = `
+                    <table class="intune-jobs-table">
+                        <thead>
+                            <tr><th>Job</th><th>Status</th><th>Started</th><th>Finished</th><th>Result</th></tr>
+                        </thead>
+                        <tbody>
+                            ${data.jobs.map(j => `
+                                <tr>
+                                    <td>#${j.id}</td>
+                                    <td><span class="intune-job-status ${escapeHtml(j.status)}">${escapeHtml(j.status)}</span></td>
+                                    <td>${j.started_datetime ? new Date(j.started_datetime + 'Z').toLocaleString('en-GB') : '-'}</td>
+                                    <td>${j.finished_datetime ? new Date(j.finished_datetime + 'Z').toLocaleString('en-GB') : '-'}</td>
+                                    <td>${j.processed}/${j.total}${j.failed > 0 ? ` (${j.failed} failed)` : ''}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>`;
+            } catch (e) {
+                console.error('Error loading app sync jobs:', e);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadAppSyncJobs);
 
         function escapeHtml(text) {
             if (!text) return '';
