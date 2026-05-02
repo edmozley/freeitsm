@@ -135,6 +135,19 @@ $path_prefix = '../../';
         .intune-progress-meta { font-size: 12px; color: #666; margin-top: 6px; }
         .intune-progress.intune-error .intune-progress-fill { background: #d13438; }
 
+        .intune-ssl-warning {
+            margin-top: 10px;
+            padding: 10px 14px;
+            background: #fdecea;
+            border: 1px solid #f5c2c0;
+            border-left: 4px solid #d13438;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #5a1c1c;
+        }
+        .intune-ssl-warning strong { color: #b71c1c; }
+
         .intune-software-section { margin-top: 30px; padding-top: 25px; border-top: 1px solid #eee; }
         .intune-subsection-title { font-size: 15px; font-weight: 600; color: #333; margin: 0 0 8px 0; }
         .intune-freshness-wrap { margin-top: 22px; padding: 14px 16px; background: #fafbfc; border: 1px solid #eee; border-radius: 6px; }
@@ -314,10 +327,13 @@ $path_prefix = '../../';
                         </div>
                         <div class="form-group">
                             <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-                                <input type="checkbox" id="intuneVerifySsl" checked style="width: auto;">
+                                <input type="checkbox" id="intuneVerifySsl" checked style="width: auto;" onchange="updateVerifySslWarning()">
                                 Verify SSL
                             </label>
                             <div class="form-hint">Disable only for testing against environments with self-signed certificates</div>
+                            <div id="intuneVerifySslWarning" class="intune-ssl-warning" style="display: none;">
+                                <strong>Warning:</strong> SSL verification is turned off. FreeITSM will accept any TLS certificate from Microsoft's servers without checking it. Anyone with access to your network (or your DNS, or a compromised certificate authority) could pose as Microsoft, intercept the traffic, and steal your tenant ID, client ID, client secret, and the access tokens that follow. Only leave this off in test environments with self-signed certificates &mdash; never in production.
+                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="intuneAppBatchSize">Software sync batch size</label>
@@ -604,6 +620,7 @@ $path_prefix = '../../';
                         : 'Enter client secret';
                     // verify_ssl: default to true unless explicitly stored as "0"
                     document.getElementById('intuneVerifySsl').checked = data.settings.intune_verify_ssl !== '0';
+                    updateVerifySslWarning();
                     // batch size: default to 30 if not stored
                     const batch = parseInt(data.settings.intune_app_batch_size, 10);
                     document.getElementById('intuneAppBatchSize').value = (batch > 0 ? batch : 30);
@@ -686,6 +703,11 @@ $path_prefix = '../../';
             const btn = input.nextElementSibling;
             if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
             else { input.type = 'password'; btn.textContent = 'Show'; }
+        }
+
+        function updateVerifySslWarning() {
+            const checked = document.getElementById('intuneVerifySsl').checked;
+            document.getElementById('intuneVerifySslWarning').style.display = checked ? 'none' : '';
         }
 
         function toggleIntuneSecret() {

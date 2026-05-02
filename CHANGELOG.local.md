@@ -19,6 +19,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 120 | Assets            | Improvement | Intune sync now populates asset_disks with the device-level total/free storage figure (drive letter inferred from OS) for assets that have no PowerShell-agent disk rows, so the Storage section is never empty for Intune-only devices; new `source` column on asset_disks separates agent-owned and Intune-owned rows |
 | 121 | Assets            | Feature     | Add Intune software inventory sync via Microsoft Graph `$expand=detectedApps`, batched into manual jobs of configurable size (default 30) to stay inside Graph throttling. New `source` column on software_inventory_detail keeps PowerShell-agent and Intune rows separate; agent always wins. New "Sync software" button + recent-jobs list on the InTune settings tab |
 | 122 | Assets            | Improvement | Add inventory freshness bar chart (Chart.js) on the InTune settings tab showing how many Intune-eligible assets have software data <1d, 1d–6d, 7+d, or never; refreshes after each sync job |
+| 123 | Assets            | Improvement | Show a red warning banner under the Verify SSL checkbox on the InTune settings tab when verification is disabled, explaining the man-in-the-middle risk in plain English |
 
 ---
 
