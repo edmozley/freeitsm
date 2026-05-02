@@ -16,6 +16,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 126 | RFP Builder       | Feature     | Add RFP Builder list page and per-RFP overview at `/contracts/rfp-builder/` with create/edit/delete and status transitions (draft → collecting → consolidating → generating → scoring → closed). New RFP Builder tab in the Contracts module navigation; per-RFP overview shows phase tiles tracking progress through the workflow |
 | 127 | RFP Builder       | Feature     | Add RFP Departments lookup CRUD (Phase 1 step 3) as a new tab on the Contracts settings page. Maintains the master list of internal departments that contribute requirements docs (e.g. IT, Finance, HR), with name, colour swatch, sort order, and active toggle |
 | 128 | RFP Builder       | Feature     | Add per-RFP source-document management (Phase 1 step 4): .docx upload (max 20 MB) tagged with department, dependency-free DOCX text extraction, view/re-extract/delete actions, and a raw-text preview modal. Files stored under `contracts/rfp-builder/uploads/` (gitignored) with an .htaccess blocking direct web access |
+| 129 | RFP Builder       | Feature     | Add RFP AI tab on the Contracts settings page (Phase 2 prep): pick provider (Anthropic Claude or OpenAI), enter an API key (encrypted at rest, masked in API responses, leave blank to keep existing), choose a model (datalist of suggested IDs per provider), and a Test button that runs a tiny round-trip request and reports latency and token usage |
 
 ---
 

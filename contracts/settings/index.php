@@ -87,6 +87,7 @@ $path_prefix = '../../';
             <button class="tab" data-tab="payment-schedules" onclick="switchTab('payment-schedules')">Payment Schedules</button>
             <button class="tab" data-tab="contract-term-tabs" onclick="switchTab('contract-term-tabs')">Contract Terms</button>
             <button class="tab" data-tab="rfp-departments" onclick="switchTab('rfp-departments')">RFP Departments</button>
+            <button class="tab" data-tab="rfp-ai" onclick="switchTab('rfp-ai')">RFP AI</button>
         </div>
 
         <!-- Supplier Types Tab -->
@@ -222,6 +223,53 @@ $path_prefix = '../../';
                 </tbody>
             </table>
         </div>
+
+        <!-- RFP AI Tab -->
+        <div class="tab-content" id="rfp-ai-tab">
+            <div class="section-header">
+                <h2>RFP AI</h2>
+            </div>
+            <p style="color:#888; font-size:13px; margin: 0 0 20px 0; max-width: 720px;">
+                Configure the AI provider used by the RFP Builder for requirement extraction, consolidation, and document generation. The API key is encrypted at rest. Use <strong>Test</strong> to verify the key and model work before saving.
+            </p>
+
+            <div style="max-width: 640px;">
+                <form id="aiSettingsForm" autocomplete="off">
+                    <div class="form-group">
+                        <label for="aiProvider">Provider</label>
+                        <select id="aiProvider">
+                            <option value="anthropic">Anthropic (Claude)</option>
+                            <option value="openai">OpenAI (GPT)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aiModel">Model</label>
+                        <input type="text" id="aiModel" list="aiModelOptions" placeholder="e.g. claude-sonnet-4-6">
+                        <datalist id="aiModelOptions"></datalist>
+                        <div style="font-size:12px; color:#888; margin-top:4px;" id="aiModelHelp">
+                            Pick from the suggestions or paste a model id supported by the chosen provider.
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aiApiKey">API key</label>
+                        <input type="text" id="aiApiKey" autocomplete="off" placeholder="(no key stored — paste a fresh one to set)">
+                        <div style="font-size:12px; color:#888; margin-top:4px;">
+                            Encrypted at rest. Leave blank or unchanged to keep the existing key.
+                            Anthropic keys: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#f59e0b;">console.anthropic.com</a>.
+                            OpenAI keys: <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:#f59e0b;">platform.openai.com</a>.
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:8px; align-items:center; margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn" id="aiTestBtn" onclick="testAiConnection()" style="background:white; border:1px solid #ddd; color:#333;">Test</button>
+                        <span id="aiTestStatus" style="font-size:13px; margin-left:8px;"></span>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Edit/Add Modal -->
@@ -352,6 +400,7 @@ $path_prefix = '../../';
             loadItems('payment-schedule');
             loadItems('contract-term-tab');
             loadRfpDepartments();
+            loadAiSettings();
         });
 
         // ============================================================
@@ -503,6 +552,134 @@ $path_prefix = '../../';
         document.getElementById('rfpDeptModal').addEventListener('click', function(e) {
             if (e.target === this && rfpDeptModalMouseDownTarget === this) closeRfpDeptModal();
         });
+
+        // ============================================================
+        // RFP AI settings (provider, model, encrypted API key, test)
+        // ============================================================
+        const RFP_AI_API = '../../api/rfp-builder/';
+        const RFP_AI_MODEL_OPTIONS = {
+            anthropic: [
+                { id: 'claude-opus-4-7',           label: 'Opus 4.7 — most capable' },
+                { id: 'claude-sonnet-4-6',         label: 'Sonnet 4.6 — recommended for extraction (best balance)' },
+                { id: 'claude-haiku-4-5-20251001', label: 'Haiku 4.5 — fastest and cheapest' },
+            ],
+            openai: [
+                { id: 'gpt-4.1',      label: 'GPT-4.1 — most capable' },
+                { id: 'gpt-4o',       label: 'GPT-4o — recommended default' },
+                { id: 'gpt-4o-mini',  label: 'GPT-4o mini — fastest and cheapest' },
+            ],
+        };
+        const RFP_AI_DEFAULT_MODEL = {
+            anthropic: 'claude-sonnet-4-6',
+            openai:    'gpt-4o',
+        };
+        let rfpAiOriginalKeyMask = '';
+
+        function refreshAiModelOptions() {
+            const provider = document.getElementById('aiProvider').value;
+            const list = document.getElementById('aiModelOptions');
+            const opts = RFP_AI_MODEL_OPTIONS[provider] || [];
+            list.innerHTML = opts.map(m => `<option value="${m.id}">${escapeHtml(m.label)}</option>`).join('');
+            const helpEl = document.getElementById('aiModelHelp');
+            helpEl.textContent = 'Pick from the suggestions or paste a model id supported by the chosen provider.';
+        }
+
+        async function loadAiSettings() {
+            try {
+                const res = await fetch(RFP_AI_API + 'get_ai_settings.php');
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                const s = data.settings || {};
+                document.getElementById('aiProvider').value = s.rfp_ai_provider || 'anthropic';
+                refreshAiModelOptions();
+                document.getElementById('aiModel').value =
+                    s.rfp_ai_model || RFP_AI_DEFAULT_MODEL[document.getElementById('aiProvider').value];
+                rfpAiOriginalKeyMask = s.rfp_ai_api_key || '';
+                document.getElementById('aiApiKey').value = rfpAiOriginalKeyMask;
+                document.getElementById('aiApiKey').placeholder = data.has_key
+                    ? 'Stored — leave unchanged to keep'
+                    : '(no key stored — paste a fresh one to set)';
+            } catch (err) {
+                setAiTestStatus('Could not load settings: ' + err.message, 'error');
+            }
+        }
+
+        function setAiTestStatus(msg, kind) {
+            const el = document.getElementById('aiTestStatus');
+            el.textContent = msg;
+            if (kind === 'success') el.style.color = '#065f46';
+            else if (kind === 'error') el.style.color = '#d13438';
+            else if (kind === 'busy') el.style.color = '#b45309';
+            else el.style.color = '#555';
+        }
+
+        document.getElementById('aiProvider').addEventListener('change', function() {
+            refreshAiModelOptions();
+            // If the model is empty or doesn't match the new provider's options, reset to that provider's default.
+            const modelEl = document.getElementById('aiModel');
+            const provider = this.value;
+            const known = (RFP_AI_MODEL_OPTIONS[provider] || []).map(m => m.id);
+            if (!modelEl.value || !known.includes(modelEl.value)) {
+                modelEl.value = RFP_AI_DEFAULT_MODEL[provider];
+            }
+        });
+
+        document.getElementById('aiSettingsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const payload = {
+                provider: document.getElementById('aiProvider').value,
+                model:    document.getElementById('aiModel').value.trim(),
+                api_key:  document.getElementById('aiApiKey').value,
+            };
+            try {
+                const res = await fetch(RFP_AI_API + 'save_ai_settings.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                setAiTestStatus('Saved.', 'success');
+                await loadAiSettings();
+            } catch (err) {
+                setAiTestStatus('Save failed: ' + err.message, 'error');
+            }
+        });
+
+        async function testAiConnection() {
+            const btn = document.getElementById('aiTestBtn');
+            const payload = {
+                provider: document.getElementById('aiProvider').value,
+                model:    document.getElementById('aiModel').value.trim(),
+                api_key:  document.getElementById('aiApiKey').value,
+            };
+            if (!payload.model) {
+                setAiTestStatus('Pick a model first', 'error');
+                return;
+            }
+            btn.disabled = true;
+            setAiTestStatus('Testing...', 'busy');
+            try {
+                const res = await fetch(RFP_AI_API + 'test_ai_connection.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload),
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+                const tokens = (data.tokens_in != null && data.tokens_out != null)
+                    ? ` — ${data.tokens_in} in / ${data.tokens_out} out tokens`
+                    : '';
+                setAiTestStatus(
+                    `OK — ${data.provider} · ${data.model} · ${data.latency_ms}ms${tokens}`,
+                    'success'
+                );
+            } catch (err) {
+                setAiTestStatus('Failed: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
 
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
