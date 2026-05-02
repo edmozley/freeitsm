@@ -16,6 +16,7 @@ $path_prefix = '../../';
     <title>Service Desk - Asset Settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/toast.js"></script>
+    <script src="../../assets/js/chart.min.js"></script>
     <style>
         body {
             overflow: auto;
@@ -136,6 +137,9 @@ $path_prefix = '../../';
 
         .intune-software-section { margin-top: 30px; padding-top: 25px; border-top: 1px solid #eee; }
         .intune-subsection-title { font-size: 15px; font-weight: 600; color: #333; margin: 0 0 8px 0; }
+        .intune-freshness-wrap { margin-top: 22px; padding: 14px 16px; background: #fafbfc; border: 1px solid #eee; border-radius: 6px; }
+        .intune-freshness-title { font-size: 12px; color: #666; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 8px; }
+        .intune-freshness-canvas-wrap { position: relative; height: 180px; }
         .intune-jobs-list { margin-top: 18px; }
         .intune-jobs-table { width: 100%; border-collapse: collapse; font-size: 13px; }
         .intune-jobs-table th { text-align: left; padding: 8px 10px; background: #f8f9fa; color: #666; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; border-bottom: 1px solid #e0e0e0; }
@@ -343,6 +347,10 @@ $path_prefix = '../../';
                         <div id="intuneAppSyncProgress" class="intune-progress" style="display: none;">
                             <div class="intune-progress-bar"><div class="intune-progress-fill" id="intuneAppProgressFill"></div></div>
                             <div class="intune-progress-meta" id="intuneAppProgressMeta">Starting...</div>
+                        </div>
+                        <div class="intune-freshness-wrap" id="intuneFreshnessWrap" style="display: none;">
+                            <div class="intune-freshness-title">Inventory freshness</div>
+                            <div class="intune-freshness-canvas-wrap"><canvas id="intuneFreshnessChart"></canvas></div>
                         </div>
                         <div id="intuneAppJobsList" class="intune-jobs-list"></div>
                     </div>
@@ -833,6 +841,7 @@ $path_prefix = '../../';
                     } else {
                         resetAppSyncButton();
                         loadAppSyncJobs();
+                        loadIntuneFreshness();
                     }
                 } catch (e) {
                     showAppSyncProgress(0, 'Network error polling status', true);
@@ -909,6 +918,74 @@ $path_prefix = '../../';
         }
 
         document.addEventListener('DOMContentLoaded', loadAppSyncJobs);
+        document.addEventListener('DOMContentLoaded', loadIntuneFreshness);
+
+        // ─── Inventory freshness chart ──────────────────────────────────────
+        let intuneFreshnessChart = null;
+
+        async function loadIntuneFreshness() {
+            try {
+                const response = await fetch(API_INTUNE + 'app_sync_freshness.php');
+                const data = await response.json();
+                if (!data.success) return;
+
+                const wrap = document.getElementById('intuneFreshnessWrap');
+                const buckets = data.buckets || {};
+                const labels = ['<1d', '1d', '2d', '3d', '4d', '5d', '6d', '7+d', 'never'];
+                const values = labels.map(k => buckets[k] || 0);
+                const total = values.reduce((s, n) => s + n, 0);
+
+                // Hide chart entirely when there's nothing to show (e.g. no
+                // Intune-eligible assets — no point rendering an empty chart).
+                if (total === 0) {
+                    wrap.style.display = 'none';
+                    return;
+                }
+                wrap.style.display = '';
+
+                // Fresh = green, ageing = amber gradient, never = red
+                const colours = ['#107c10', '#3fa83f', '#76c043', '#a8c93a', '#d4c537',
+                                 '#e6a82e', '#e07a26', '#d65420', '#d13438'];
+
+                const ctx = document.getElementById('intuneFreshnessChart').getContext('2d');
+                if (intuneFreshnessChart) {
+                    intuneFreshnessChart.data.datasets[0].data = values;
+                    intuneFreshnessChart.update();
+                    return;
+                }
+
+                intuneFreshnessChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Assets',
+                            data: values,
+                            backgroundColor: colours,
+                            borderWidth: 0,
+                        }],
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => `${ctx.parsed.y} asset${ctx.parsed.y === 1 ? '' : 's'}`,
+                                },
+                            },
+                        },
+                        scales: {
+                            x: { grid: { display: false } },
+                            y: { beginAtZero: true, ticks: { precision: 0 } },
+                        },
+                    },
+                });
+            } catch (e) {
+                console.error('Error loading freshness chart:', e);
+            }
+        }
 
         function escapeHtml(text) {
             if (!text) return '';
