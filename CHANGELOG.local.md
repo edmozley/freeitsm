@@ -14,6 +14,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 |-----|-------------------|-------------|-------------|
 | 125 | RFP Builder       | Feature     | Add database schema for new RFP Builder feature in the Contracts module (Phase 1 of feature build): 13 tables covering RFPs, departments, categories, source documents, raw extracted requirements, consolidated/deduplicated requirements with source attribution, conflict tracking, generated output sections with version history, invited suppliers, multi-analyst scoring, and AI processing log |
 | 126 | RFP Builder       | Feature     | Add RFP Builder list page and per-RFP overview at `/contracts/rfp-builder/` with create/edit/delete and status transitions (draft → collecting → consolidating → generating → scoring → closed). New RFP Builder tab in the Contracts module navigation; per-RFP overview shows phase tiles tracking progress through the workflow |
+| 127 | RFP Builder       | Feature     | Add RFP Departments lookup CRUD (Phase 1 step 3) as a new tab on the Contracts settings page. Maintains the master list of internal departments that contribute requirements docs (e.g. IT, Finance, HR), with name, colour swatch, sort order, and active toggle |
 
 ---
 
