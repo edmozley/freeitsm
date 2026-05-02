@@ -93,6 +93,12 @@ temp/
 uploads/*
 !uploads/.gitkeep
 
+# Module-specific runtime content (attachments, uploaded LMS courses, etc.)
+# These are populated by the running app and are tenant-specific — never commit.
+change-management/attachments/
+lms/content/
+tickets/attachments/
+
 # ============================================
 # NODE MODULES (if you use npm/Node.js)
 # ============================================

@@ -20,6 +20,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 121 | Assets            | Feature     | Add Intune software inventory sync via Microsoft Graph `$expand=detectedApps`, batched into manual jobs of configurable size (default 30) to stay inside Graph throttling. New `source` column on software_inventory_detail keeps PowerShell-agent and Intune rows separate; agent always wins. New "Sync software" button + recent-jobs list on the InTune settings tab |
 | 122 | Assets            | Improvement | Add inventory freshness bar chart (Chart.js) on the InTune settings tab showing how many Intune-eligible assets have software data <1d, 1d–6d, 7+d, or never; refreshes after each sync job |
 | 123 | Assets            | Improvement | Show a red warning banner under the Verify SSL checkbox on the InTune settings tab when verification is disabled, explaining the man-in-the-middle risk in plain English |
+| 124 | Repo              | Improvement | Gitignore module-specific runtime content directories (`change-management/attachments/`, `lms/content/`, `tickets/attachments/`) so tenant-specific uploads are never accidentally committed |
 
 ---
 
