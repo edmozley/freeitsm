@@ -221,9 +221,9 @@ $path_prefix = '../../';
                     num: 2, title: 'Extracted requirements', phase: 2,
                     desc: 'AI extracts each requirement, pain point and challenge from every uploaded document.',
                     stats: [{label: 'Extracted', value: r.extracted_count}],
-                    ready: false,
-                    cta: 'Coming in Phase 2',
-                    href: null
+                    ready: r.extracted_count > 0,
+                    cta: r.extracted_count > 0 ? '' : 'Run extraction from Documents first',
+                    href: r.extracted_count > 0 ? 'extracted.php?id=' + r.id : null
                 },
                 {
                     num: 3, title: 'Consolidate &amp; resolve conflicts', phase: 3,
