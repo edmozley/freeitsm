@@ -1208,6 +1208,152 @@ $schema = [
         'created_datetime'          => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // RFP Builder (feature of the Contracts module)
+    'rfps' => [
+        'id'                       => 'INT NOT NULL AUTO_INCREMENT',
+        'name'                     => 'VARCHAR(200) NOT NULL',
+        'status'                   => "VARCHAR(50) NOT NULL DEFAULT 'draft'",
+        'contract_id'              => 'INT NULL',
+        'chosen_supplier_id'       => 'INT NULL',
+        'style_guide'              => 'LONGTEXT NULL',
+        'created_by_analyst_id'    => 'INT NULL',
+        'created_datetime'         => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'         => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_departments' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'name'              => 'VARCHAR(100) NOT NULL',
+        'colour'            => "VARCHAR(7) NOT NULL DEFAULT '#6c757d'",
+        'sort_order'        => 'INT NOT NULL DEFAULT 0',
+        'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_categories' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'            => 'INT NOT NULL',
+        'name'              => 'VARCHAR(200) NOT NULL',
+        'description'       => 'LONGTEXT NULL',
+        'sort_order'        => 'INT NOT NULL DEFAULT 0',
+        'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_documents' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'            => 'INT NOT NULL',
+        'department_id'     => 'INT NULL',
+        'filename'          => 'VARCHAR(255) NOT NULL',
+        'original_filename' => 'VARCHAR(255) NOT NULL',
+        'file_path'         => 'VARCHAR(500) NOT NULL',
+        'raw_text'          => 'LONGTEXT NULL',
+        'status'            => "VARCHAR(50) NOT NULL DEFAULT 'uploaded'",
+        'uploaded_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_extracted_requirements' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'            => 'INT NOT NULL',
+        'document_id'       => 'INT NOT NULL',
+        'requirement_text'  => 'LONGTEXT NOT NULL',
+        'requirement_type'  => "VARCHAR(50) NOT NULL DEFAULT 'requirement'",
+        'source_quote'      => 'LONGTEXT NULL',
+        'ai_confidence'     => 'DECIMAL(3,2) NULL',
+        'is_consolidated'   => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_consolidated_requirements' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'            => 'INT NOT NULL',
+        'category_id'       => 'INT NULL',
+        'requirement_text'  => 'LONGTEXT NOT NULL',
+        'requirement_type'  => "VARCHAR(50) NOT NULL DEFAULT 'requirement'",
+        'priority'          => "VARCHAR(20) NOT NULL DEFAULT 'medium'",
+        'ai_rationale'      => 'LONGTEXT NULL',
+        'is_locked'         => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_consolidated_sources' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'consolidated_id'   => 'INT NOT NULL',
+        'extracted_id'      => 'INT NOT NULL',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_conflicts' => [
+        'id'                       => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'                   => 'INT NOT NULL',
+        'consolidated_id_a'        => 'INT NOT NULL',
+        'consolidated_id_b'        => 'INT NOT NULL',
+        'ai_explanation'           => 'LONGTEXT NULL',
+        'resolution'               => "VARCHAR(50) NOT NULL DEFAULT 'open'",
+        'resolution_notes'         => 'LONGTEXT NULL',
+        'resolved_by_analyst_id'   => 'INT NULL',
+        'resolved_datetime'        => 'DATETIME NULL',
+        'created_datetime'         => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_output_sections' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'              => 'INT NOT NULL',
+        'category_id'         => 'INT NOT NULL',
+        'section_title'       => 'VARCHAR(300) NOT NULL',
+        'section_content'     => 'LONGTEXT NULL',
+        'version'             => 'INT NOT NULL DEFAULT 1',
+        'is_manually_edited'  => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'requirements_hash'   => 'VARCHAR(64) NULL',
+        'generated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'edited_datetime'     => 'DATETIME NULL',
+    ],
+
+    'rfp_section_history' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'section_id'          => 'INT NOT NULL',
+        'version'             => 'INT NOT NULL',
+        'section_content'     => 'LONGTEXT NULL',
+        'is_manually_edited'  => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_datetime'    => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_invited_suppliers' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'            => 'INT NOT NULL',
+        'supplier_id'       => 'INT NOT NULL',
+        'invited_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'demo_date'         => 'DATE NULL',
+        'notes'             => 'LONGTEXT NULL',
+    ],
+
+    'rfp_scores' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'            => 'INT NOT NULL',
+        'supplier_id'       => 'INT NOT NULL',
+        'analyst_id'        => 'INT NOT NULL',
+        'consolidated_id'   => 'INT NOT NULL',
+        'score'             => 'INT NULL',
+        'notes'             => 'LONGTEXT NULL',
+        'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_processing_log' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'            => 'INT NOT NULL',
+        'document_id'       => 'INT NULL',
+        'section_id'        => 'INT NULL',
+        'action'            => 'VARCHAR(100) NOT NULL',
+        'status'            => 'VARCHAR(50) NOT NULL',
+        'details'           => 'LONGTEXT NULL',
+        'tokens_in'         => 'INT NULL',
+        'tokens_out'        => 'INT NULL',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     // Service Status module
     'status_services' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
@@ -1420,6 +1566,10 @@ try {
         ['lms_learning_group_members', 'uq_lgm_group_analyst', '(`group_id`, `analyst_id`)'],
         ['lms_course_assignments', 'uq_lca_course_group', '(`course_id`, `group_id`)'],
         ['intune_devices', 'uq_intune_devices_intune_id', '(`intune_id`)'],
+        ['rfp_departments', 'uq_rfp_departments_name', '(`name`)'],
+        ['rfp_consolidated_sources', 'uq_rfp_consolidated_sources', '(`consolidated_id`, `extracted_id`)'],
+        ['rfp_invited_suppliers', 'uq_rfp_invited_suppliers', '(`rfp_id`, `supplier_id`)'],
+        ['rfp_scores', 'uq_rfp_scores', '(`rfp_id`, `supplier_id`, `analyst_id`, `consolidated_id`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {

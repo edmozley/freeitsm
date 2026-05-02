@@ -12,6 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 125 | RFP Builder       | Feature     | Add database schema for new RFP Builder feature in the Contracts module (Phase 1 of feature build): 13 tables covering RFPs, departments, categories, source documents, raw extracted requirements, consolidated/deduplicated requirements with source attribution, conflict tracking, generated output sections with version history, invited suppliers, multi-analyst scoring, and AI processing log |
 
 ---
 

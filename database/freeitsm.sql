@@ -1371,6 +1371,219 @@ CREATE TABLE IF NOT EXISTS `contract_term_values` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
+-- RFP Builder (feature of the Contracts module)
+-- ----------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `rfps` (
+    `id`                       INT NOT NULL AUTO_INCREMENT,
+    `name`                     VARCHAR(200) NOT NULL,
+    `status`                   VARCHAR(50) NOT NULL DEFAULT 'draft',
+    `contract_id`              INT NULL,
+    `chosen_supplier_id`       INT NULL,
+    `style_guide`              LONGTEXT NULL,
+    `created_by_analyst_id`    INT NULL,
+    `created_datetime`         DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`         DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rfps_status` (`status`),
+    KEY `idx_rfps_contract_id` (`contract_id`),
+    KEY `idx_rfps_supplier_id` (`chosen_supplier_id`),
+    CONSTRAINT `fk_rfps_contract` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_rfps_supplier` FOREIGN KEY (`chosen_supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_rfps_creator` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_departments` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(100) NOT NULL,
+    `colour`            VARCHAR(7) NOT NULL DEFAULT '#6c757d',
+    `sort_order`        INT NOT NULL DEFAULT 0,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_rfp_departments_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_categories` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`            INT NOT NULL,
+    `name`              VARCHAR(200) NOT NULL,
+    `description`       LONGTEXT NULL,
+    `sort_order`        INT NOT NULL DEFAULT 0,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rfp_categories_rfp_id` (`rfp_id`),
+    CONSTRAINT `fk_rfp_categories_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_documents` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`            INT NOT NULL,
+    `department_id`     INT NULL,
+    `filename`          VARCHAR(255) NOT NULL,
+    `original_filename` VARCHAR(255) NOT NULL,
+    `file_path`         VARCHAR(500) NOT NULL,
+    `raw_text`          LONGTEXT NULL,
+    `status`            VARCHAR(50) NOT NULL DEFAULT 'uploaded',
+    `uploaded_datetime` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rfp_documents_rfp_id` (`rfp_id`),
+    KEY `idx_rfp_documents_department_id` (`department_id`),
+    CONSTRAINT `fk_rfp_documents_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_documents_department` FOREIGN KEY (`department_id`) REFERENCES `rfp_departments` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_extracted_requirements` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`            INT NOT NULL,
+    `document_id`       INT NOT NULL,
+    `requirement_text`  LONGTEXT NOT NULL,
+    `requirement_type`  VARCHAR(50) NOT NULL DEFAULT 'requirement',
+    `source_quote`      LONGTEXT NULL,
+    `ai_confidence`     DECIMAL(3,2) NULL,
+    `is_consolidated`   TINYINT(1) NOT NULL DEFAULT 0,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rfp_extracted_rfp_id` (`rfp_id`),
+    KEY `idx_rfp_extracted_doc_id` (`document_id`),
+    CONSTRAINT `fk_rfp_extracted_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_extracted_document` FOREIGN KEY (`document_id`) REFERENCES `rfp_documents` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_consolidated_requirements` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`            INT NOT NULL,
+    `category_id`       INT NULL,
+    `requirement_text`  LONGTEXT NOT NULL,
+    `requirement_type`  VARCHAR(50) NOT NULL DEFAULT 'requirement',
+    `priority`          VARCHAR(20) NOT NULL DEFAULT 'medium',
+    `ai_rationale`      LONGTEXT NULL,
+    `is_locked`         TINYINT(1) NOT NULL DEFAULT 0,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rfp_consolidated_rfp_id` (`rfp_id`),
+    KEY `idx_rfp_consolidated_category_id` (`category_id`),
+    CONSTRAINT `fk_rfp_consolidated_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_consolidated_category` FOREIGN KEY (`category_id`) REFERENCES `rfp_categories` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_consolidated_sources` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `consolidated_id`   INT NOT NULL,
+    `extracted_id`      INT NOT NULL,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_rfp_consolidated_sources` (`consolidated_id`, `extracted_id`),
+    CONSTRAINT `fk_rfp_csrcs_consolidated` FOREIGN KEY (`consolidated_id`) REFERENCES `rfp_consolidated_requirements` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_csrcs_extracted` FOREIGN KEY (`extracted_id`) REFERENCES `rfp_extracted_requirements` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_conflicts` (
+    `id`                       INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`                   INT NOT NULL,
+    `consolidated_id_a`        INT NOT NULL,
+    `consolidated_id_b`        INT NOT NULL,
+    `ai_explanation`           LONGTEXT NULL,
+    `resolution`               VARCHAR(50) NOT NULL DEFAULT 'open',
+    `resolution_notes`         LONGTEXT NULL,
+    `resolved_by_analyst_id`   INT NULL,
+    `resolved_datetime`        DATETIME NULL,
+    `created_datetime`         DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rfp_conflicts_rfp_id` (`rfp_id`),
+    KEY `idx_rfp_conflicts_a` (`consolidated_id_a`),
+    KEY `idx_rfp_conflicts_b` (`consolidated_id_b`),
+    CONSTRAINT `fk_rfp_conflicts_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_conflicts_a` FOREIGN KEY (`consolidated_id_a`) REFERENCES `rfp_consolidated_requirements` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_conflicts_b` FOREIGN KEY (`consolidated_id_b`) REFERENCES `rfp_consolidated_requirements` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_conflicts_resolver` FOREIGN KEY (`resolved_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_output_sections` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`              INT NOT NULL,
+    `category_id`         INT NOT NULL,
+    `section_title`       VARCHAR(300) NOT NULL,
+    `section_content`     LONGTEXT NULL,
+    `version`             INT NOT NULL DEFAULT 1,
+    `is_manually_edited`  TINYINT(1) NOT NULL DEFAULT 0,
+    `requirements_hash`   VARCHAR(64) NULL,
+    `generated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `edited_datetime`     DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_rfp_sections_rfp_id` (`rfp_id`),
+    KEY `idx_rfp_sections_category_id` (`category_id`),
+    CONSTRAINT `fk_rfp_sections_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_sections_category` FOREIGN KEY (`category_id`) REFERENCES `rfp_categories` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_section_history` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `section_id`          INT NOT NULL,
+    `version`             INT NOT NULL,
+    `section_content`     LONGTEXT NULL,
+    `is_manually_edited`  TINYINT(1) NOT NULL DEFAULT 0,
+    `created_datetime`    DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rfp_section_history_section_id` (`section_id`),
+    CONSTRAINT `fk_rfp_section_history_section` FOREIGN KEY (`section_id`) REFERENCES `rfp_output_sections` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_invited_suppliers` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`            INT NOT NULL,
+    `supplier_id`       INT NOT NULL,
+    `invited_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `demo_date`         DATE NULL,
+    `notes`             LONGTEXT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_rfp_invited_suppliers` (`rfp_id`, `supplier_id`),
+    CONSTRAINT `fk_rfp_invited_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_invited_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_scores` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`            INT NOT NULL,
+    `supplier_id`       INT NOT NULL,
+    `analyst_id`        INT NOT NULL,
+    `consolidated_id`   INT NOT NULL,
+    `score`             INT NULL,
+    `notes`             LONGTEXT NULL,
+    `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_rfp_scores` (`rfp_id`, `supplier_id`, `analyst_id`, `consolidated_id`),
+    KEY `idx_rfp_scores_rfp_id` (`rfp_id`),
+    CONSTRAINT `fk_rfp_scores_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_scores_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_scores_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_scores_consolidated` FOREIGN KEY (`consolidated_id`) REFERENCES `rfp_consolidated_requirements` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_processing_log` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`            INT NOT NULL,
+    `document_id`       INT NULL,
+    `section_id`        INT NULL,
+    `action`            VARCHAR(100) NOT NULL,
+    `status`            VARCHAR(50) NOT NULL,
+    `details`           LONGTEXT NULL,
+    `tokens_in`         INT NULL,
+    `tokens_out`        INT NULL,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_rfp_log_rfp_id` (`rfp_id`),
+    KEY `idx_rfp_log_action` (`action`),
+    CONSTRAINT `fk_rfp_log_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_rfp_log_document` FOREIGN KEY (`document_id`) REFERENCES `rfp_documents` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_rfp_log_section` FOREIGN KEY (`section_id`) REFERENCES `rfp_output_sections` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
 -- LMS (Learning Management System)
 -- ----------------------------------------------------------
 
