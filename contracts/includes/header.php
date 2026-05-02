@@ -51,6 +51,16 @@ require_once $path_prefix . 'includes/waffle-menu.php';
             </svg>
             <span>Contacts</span>
         </a>
+        <a href="<?php echo $path_prefix; ?>contracts/rfp-builder/" class="nav-btn <?php echo $current_page === 'rfp-builder' ? 'active' : ''; ?>" title="RFP Builder">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <path d="M9 13h6"></path>
+                <path d="M9 17h6"></path>
+                <circle cx="9" cy="9" r="0.5" fill="currentColor"></circle>
+            </svg>
+            <span>RFP Builder</span>
+        </a>
         <a href="<?php echo $path_prefix; ?>contracts/settings/" class="nav-btn <?php echo $current_page === 'settings' ? 'active' : ''; ?>" title="Settings">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"></circle>
