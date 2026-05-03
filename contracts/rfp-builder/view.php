@@ -416,9 +416,16 @@ $path_prefix = '../../';
                         {label: 'Categories', value: r.category_count},
                         {label: 'Sections', value: r.section_count}
                     ],
-                    ready: false,
-                    cta: 'Coming in Phase 4',
-                    href: null
+                    // Generation requires the consolidated set to be fully locked.
+                    // locked_count reaches consolidated_count when the user clicks
+                    // "Lock for generation" on the consolidate page.
+                    ready: r.consolidated_count > 0 && r.locked_count === r.consolidated_count,
+                    cta: r.consolidated_count === 0
+                        ? 'Run consolidation first'
+                        : (r.locked_count !== r.consolidated_count ? 'Lock consolidated requirements first' : ''),
+                    href: (r.consolidated_count > 0 && r.locked_count === r.consolidated_count)
+                        ? 'document.php?id=' + r.id
+                        : null
                 },
                 {
                     num: 5, title: 'Suppliers &amp; scoring', phase: 5,

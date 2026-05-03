@@ -12,6 +12,7 @@
  * Public surface (others can grow as more passes land):
  *   rfpAiExtractRequirements(PDO, rfpId, documentId, rawText, departmentName)
  *   rfpAiConsolidate(PDO, rfpId, extractedRows)
+ *   rfpAiGenerateSectionStreaming(PDO, rfpId, categoryId, eventCallback)
  *
  * Lower-level helpers (rfpAiCall, rfpAiGetSettings) are reusable for
  * the consolidation / generation passes coming in Phases 3 and 4.
@@ -840,6 +841,221 @@ function rfpAiConsolidateStreaming(PDO $conn, int $rfpId, array $extractedRows, 
         rfpAiLogAction(
             $conn, $rfpId, null, null,
             'consolidate', 'error',
+            $e->getMessage(),
+            null, null
+        );
+        throw $e;
+    }
+}
+
+// ---------------------------------------------------------------
+// Pass 3 — Generate Section (per category, streaming)
+// ---------------------------------------------------------------
+
+const RFP_AI_GENERATE_SYSTEM = <<<PROMPT
+You are an expert business analyst writing a section of a Request for Proposal (RFP) document. The organisation is procuring a new system or service, and your job is to translate raw consolidated requirements into clear, professional prose suitable for a formal procurement document that will be sent to suppliers.
+
+The user message will tell you which section you are writing (its title and description) and provide the consolidated requirements that belong to that section, each tagged with its priority, type, and the contributing departments. Your job is to write the section's body content.
+
+# OUTPUT FORMAT
+
+Return ONLY the HTML for this section's body content. Do not include the section title (the document layer renders that separately). Do not wrap in <html>, <body>, or any page-level scaffolding. Use:
+
+- <h3> for sub-headings within the section
+- <h4> sparingly for sub-sub-headings if the structure genuinely needs them
+- <p> for narrative paragraphs
+- <ul> and <li> for bulleted lists of requirements or pain points
+- <ol> and <li> for ordered/numbered lists where order genuinely matters
+- <strong> and <em> for emphasis used sparingly
+- <table> with <thead> and <tbody> for tabular data only when the content is genuinely tabular (e.g. comparison rows, parameter/value listings)
+
+Do NOT use:
+- <h1> or <h2> — reserved for the document and section title levels above this one
+- Inline styles (style="..."), CSS classes (class="..."), or data-* attributes
+- <div>, <span>, or any non-semantic wrappers
+- Markdown of any kind — output must be valid HTML
+- Code fences, leading prose, trailing prose — return only the HTML, nothing else
+
+# SECTION STRUCTURE
+
+Each section should typically follow this pattern. Adjust as needed for the content — do not force every sub-heading if there is no material to put under it:
+
+1. **Overview paragraph** — one paragraph at the top (no sub-heading) summarising what this section covers and why it matters to the organisation. Two or three sentences.
+
+2. **Requirements** — under an <h3>Requirements</h3> sub-heading, a <ul> listing the consolidated requirements as professionally re-stated bullet points. Critical and high-priority items first, then medium, then low — but do NOT state priority levels in the output text (the document layer handles priority visually elsewhere). Each list item ends with a parenthetical naming the contributing departments, e.g. "(IT, Finance)".
+
+3. **Current pain points** — under an <h3>Current pain points</h3> sub-heading, a <ul> describing what is broken in the current way of working. Brief — these contextualise the requirements above. Include this sub-heading only if the input has any items typed pain_point.
+
+4. **Challenges and concerns** — under an <h3>Challenges and concerns</h3> sub-heading, a <ul> noting the obstacles, risks, or change-management concerns the organisation has flagged for the migration or future state. Include this sub-heading only if the input has any items typed challenge.
+
+5. **Department-specific considerations** — under an <h3>Department-specific considerations</h3> sub-heading, a short paragraph or list noting any items unique to a single department that are unusual or niche enough to call out separately. Include this only if the section genuinely has such items — otherwise omit.
+
+# RULES
+
+- Every consolidated requirement, pain point, and challenge from the input MUST be addressed somewhere in the output. Do not omit any.
+- Do not introduce capability or constraints that the input does not mention. Do not editorialise.
+- Do not state priority levels in the output text — departments yes, priorities no.
+- Use formal, neutral, professional language suitable for a senior procurement audience. No marketing copy, no sales language, no first-person plurals beyond an occasional "the organisation".
+- British English spelling unless the user style guide says otherwise.
+- Tables only when the data is genuinely tabular. Most RFP requirements are list-of-bullets, not table rows.
+- If the style guide below conflicts with anything above, the style guide wins.
+PROMPT;
+
+/**
+ * Run Pass 3 (generate one section, streaming) for a single category.
+ *
+ * Pulls the consolidated requirements for the category, joins out to
+ * the department info via the M:N source-link table, builds the user
+ * prompt, and streams the AI response. The caller (typically an SSE
+ * endpoint) is responsible for relaying the streaming events to the
+ * browser via the supplied callback.
+ *
+ * Returns:
+ *   content       string  Full generated HTML
+ *   tokens_in     int|null
+ *   tokens_out    int|null
+ *   cache_read    int|null
+ *   cache_write   int|null
+ *   duration_ms   int
+ *   inputs_hash   string  md5 of the input requirements (used for skip-if-unchanged)
+ *
+ * Throws if the category has no consolidated requirements assigned.
+ */
+function rfpAiGenerateSectionStreaming(PDO $conn, int $rfpId, int $categoryId, callable $onEvent): array
+{
+    $catStmt = $conn->prepare(
+        "SELECT id, name, description FROM rfp_categories WHERE id = ? AND rfp_id = ?"
+    );
+    $catStmt->execute([$categoryId, $rfpId]);
+    $category = $catStmt->fetch(PDO::FETCH_ASSOC);
+    if (!$category) {
+        throw new RuntimeException('Category not found for this RFP');
+    }
+
+    $reqStmt = $conn->prepare(
+        "SELECT id, requirement_text, requirement_type, priority
+           FROM rfp_consolidated_requirements
+          WHERE rfp_id = ? AND category_id = ?
+       ORDER BY FIELD(priority,'critical','high','medium','low'), id"
+    );
+    $reqStmt->execute([$rfpId, $categoryId]);
+    $requirements = $reqStmt->fetchAll(PDO::FETCH_ASSOC);
+    if (empty($requirements)) {
+        throw new RuntimeException('No consolidated requirements in this category');
+    }
+
+    // Department contributions per consolidated row, traversed via the
+    // M:N source link table.
+    $reqIds = array_map(fn($r) => (int)$r['id'], $requirements);
+    $place  = implode(',', array_fill(0, count($reqIds), '?'));
+    $deptStmt = $conn->prepare(
+        "SELECT cs.consolidated_id, dept.name AS department_name
+           FROM rfp_consolidated_sources cs
+      INNER JOIN rfp_extracted_requirements er ON cs.extracted_id = er.id
+       LEFT JOIN rfp_documents   d    ON er.document_id = d.id
+       LEFT JOIN rfp_departments dept ON d.department_id = dept.id
+          WHERE cs.consolidated_id IN ($place)
+       GROUP BY cs.consolidated_id, dept.name
+       ORDER BY dept.name"
+    );
+    $deptStmt->execute($reqIds);
+    $deptsByReq = [];
+    foreach ($deptStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+        $rid = (int)$row['consolidated_id'];
+        $deptsByReq[$rid][] = $row['department_name'] ?: 'Unassigned';
+    }
+
+    // Style guide — per-RFP override, falling back to a sensible default.
+    // The system_settings-level default is a Phase 6 polish task.
+    $sgStmt = $conn->prepare("SELECT style_guide FROM rfps WHERE id = ?");
+    $sgStmt->execute([$rfpId]);
+    $rfpStyle = $sgStmt->fetchColumn();
+    $styleGuide = (is_string($rfpStyle) && trim($rfpStyle) !== '')
+        ? trim($rfpStyle)
+        : "Default style: clear, formal, neutral. British English. Active voice where natural. No marketing language. Keep paragraphs short — three sentences maximum where possible. Avoid jargon; spell out acronyms on first use within a section.";
+
+    // System prompt = static instructions + the style guide. Both get
+    // cached together so re-running on more categories within the same
+    // RFP reuses the cached prefix at ~10% of input-token cost.
+    $systemPrompt = RFP_AI_GENERATE_SYSTEM . "\n\n# STYLE GUIDE FOR THIS RFP\n\n" . $styleGuide;
+
+    $lines = [];
+    foreach ($requirements as $req) {
+        $rid     = (int)$req['id'];
+        $depts   = $deptsByReq[$rid] ?? [];
+        $deptStr = !empty($depts) ? '[Departments: ' . implode(', ', $depts) . ']' : '[Departments: none linked]';
+        $lines[] = "[Priority: {$req['priority']}] [Type: {$req['requirement_type']}] {$deptStr}\n"
+                 . trim($req['requirement_text'] ?? '');
+    }
+
+    $catName = trim($category['name']);
+    $catDesc = trim($category['description'] ?? '');
+
+    $userPrompt = "Section title: {$catName}\n";
+    if ($catDesc !== '') {
+        $userPrompt .= "Category description: {$catDesc}\n";
+    }
+    $userPrompt .= "\nWrite the body of the \"{$catName}\" section using these consolidated requirements:\n\n"
+                . implode("\n\n", $lines);
+
+    // md5 of the input requirements + style guide. Used by the caller
+    // to skip regeneration if nothing has changed since last run.
+    $inputsHash = md5(serialize([
+        'cat'         => $catName,
+        'desc'        => $catDesc,
+        'requirements' => array_map(fn($r) => [
+            'id'       => (int)$r['id'],
+            'text'     => trim($r['requirement_text']),
+            'type'     => $r['requirement_type'],
+            'priority' => $r['priority'],
+            'depts'    => $deptsByReq[(int)$r['id']] ?? [],
+        ], $requirements),
+        'style' => $styleGuide,
+    ]));
+
+    try {
+        $resp = rfpAiCallAnthropicStreaming($conn, [
+            'system'      => $systemPrompt,
+            'user'        => $userPrompt,
+            'max_tokens'  => 8000,
+            'temperature' => 0.2,
+        ], $onEvent);
+
+        $content = $resp['content'];
+        $content = preg_replace('/^\s*```(?:html)?\s*\r?\n/', '', $content);
+        $content = preg_replace('/\r?\n\s*```\s*$/', '', $content);
+        $content = trim($content);
+
+        rfpAiLogAction(
+            $conn, $rfpId, null, null,
+            'generate_section', 'success',
+            json_encode([
+                'category_id'   => $categoryId,
+                'category_name' => $catName,
+                'req_count'     => count($requirements),
+                'duration_ms'   => $resp['duration_ms'],
+                'cache_read'    => $resp['cache_read'],
+                'cache_write'   => $resp['cache_write'],
+                'model'         => $resp['model'],
+                'inputs_hash'   => $inputsHash,
+            ]),
+            $resp['tokens_in'],
+            $resp['tokens_out']
+        );
+
+        return [
+            'content'     => $content,
+            'tokens_in'   => $resp['tokens_in'],
+            'tokens_out'  => $resp['tokens_out'],
+            'cache_read'  => $resp['cache_read'],
+            'cache_write' => $resp['cache_write'],
+            'duration_ms' => $resp['duration_ms'],
+            'inputs_hash' => $inputsHash,
+        ];
+    } catch (Throwable $e) {
+        rfpAiLogAction(
+            $conn, $rfpId, null, null,
+            'generate_section', 'error',
             $e->getMessage(),
             null, null
         );
