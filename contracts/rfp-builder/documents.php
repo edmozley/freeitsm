@@ -17,6 +17,7 @@ $path_prefix = '../../';
     <title>Service Desk - RFP Documents</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
+        body { overflow: auto; height: auto; }
         .page-wrap { padding: 30px 40px; background: #f5f5f5; min-height: calc(100vh - 48px); box-sizing: border-box; }
 
         .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
