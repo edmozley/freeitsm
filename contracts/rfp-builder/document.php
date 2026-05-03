@@ -24,6 +24,7 @@ $path_prefix  = '../../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - RFP Document</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script src="../../assets/js/tinymce/tinymce.min.js"></script>
     <style>
         body { overflow: auto; height: auto; }
         .page-wrap { padding: 30px 40px; background: #f5f5f5; min-height: calc(100vh - 48px); box-sizing: border-box; }
@@ -176,6 +177,60 @@ $path_prefix  = '../../';
             resize: vertical; min-height: 100px;
         }
         .form-row textarea.tall { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+
+        /* Version history modal */
+        .modal-history-shell {
+            background: white; border-radius: 12px; width: 820px; max-width: 92vw;
+            height: 86vh; display: flex; flex-direction: column;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
+        }
+        .history-list-empty {
+            padding: 28px 20px; text-align: center; color: #999; font-size: 13px;
+        }
+        .history-row {
+            border: 1px solid #e5e7eb; border-radius: 8px;
+            margin-bottom: 10px; overflow: hidden;
+        }
+        .history-row.current { border-color: #6ee7b7; background: #f0fdf4; }
+        .history-row-header {
+            padding: 10px 14px; display: flex; align-items: center; gap: 12px;
+            cursor: pointer; user-select: none;
+            background: #fafbfc; border-bottom: 1px solid #eef0f2;
+        }
+        .history-row.current .history-row-header { background: #ecfdf5; }
+        .history-row-header:hover { background: #f3f4f6; }
+        .history-row-header .ver-pill {
+            background: #e5e7eb; color: #374151;
+            padding: 2px 9px; border-radius: 10px;
+            font-size: 12px; font-weight: 700;
+        }
+        .history-row.current .ver-pill { background: #d1fae5; color: #047857; }
+        .history-row-header .ver-meta {
+            font-size: 12px; color: #666; flex: 1;
+        }
+        .history-row-header .ver-meta .edited-tag {
+            background: #ede9fe; color: #5b21b6;
+            padding: 1px 7px; border-radius: 9px; font-size: 11px; font-weight: 600;
+            margin-left: 6px;
+        }
+        .history-row-header .ver-actions {
+            display: flex; gap: 6px;
+        }
+        .history-row-body {
+            display: none;
+            padding: 12px 14px; font-size: 13px; line-height: 1.55; color: #333;
+            max-height: 320px; overflow-y: auto;
+            background: white;
+        }
+        .history-row.open .history-row-body { display: block; }
+        .history-row-body h3 { font-size: 13px; font-weight: 700; margin: 10px 0 6px 0; }
+        .history-row-body h4 { font-size: 12px; font-weight: 700; margin: 8px 0 4px 0; }
+        .history-row-body p  { margin: 0 0 8px 0; }
+        .history-row-body ul, .history-row-body ol { margin: 0 0 8px 22px; }
+        .history-row-body li { margin-bottom: 3px; }
+
+        /* The Edit button on category cards mirrors the framing actions area */
+        .cat-header .cat-actions .btn { white-space: nowrap; }
 
         .category-card {
             background: white; border-radius: 10px; margin-bottom: 16px;
@@ -388,7 +443,7 @@ $path_prefix  = '../../';
         </div>
     </div>
 
-    <!-- Framing edit modal — manual edit of one framing section's HTML -->
+    <!-- Framing edit modal — manual edit of one framing section's HTML, TinyMCE-backed -->
     <div id="framingEditModal" class="modal-backdrop" style="display:none;">
         <div class="modal-edit-shell">
             <div class="modal-edit-header">
@@ -397,14 +452,51 @@ $path_prefix  = '../../';
             </div>
             <div class="modal-edit-body">
                 <div class="form-row">
-                    <label>HTML content</label>
-                    <div class="help">Edit the section's HTML directly. Use &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;/&lt;li&gt;, &lt;strong&gt;, &lt;em&gt;. Saving marks the section "manually edited" so it won't be overwritten by Generate-all unless you re-generate it explicitly.</div>
-                    <textarea id="framingEditField" class="tall" rows="14"></textarea>
+                    <label>Content</label>
+                    <div class="help">WYSIWYG editor — what you see is what the document will show. Saving marks the section "manually edited" so it won't be overwritten by Generate-all unless you re-generate it explicitly.</div>
+                    <textarea id="framingEditField"></textarea>
                 </div>
             </div>
             <div class="modal-edit-footer">
                 <button class="btn btn-secondary" onclick="closeFramingEdit()">Cancel</button>
                 <button class="btn btn-primary" id="framingEditSaveBtn" onclick="saveFramingEdit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category section edit modal — TinyMCE-backed -->
+    <div id="sectionEditModal" class="modal-backdrop" style="display:none;">
+        <div class="modal-edit-shell">
+            <div class="modal-edit-header">
+                <h3 id="sectionEditTitle">Edit section</h3>
+                <button class="close-x" onclick="closeSectionEdit()">&times;</button>
+            </div>
+            <div class="modal-edit-body">
+                <div class="form-row">
+                    <label>Section content</label>
+                    <div class="help">Edit the AI-generated HTML directly. Saving creates a new version (the prior version is kept in history) and marks the section "manually edited".</div>
+                    <textarea id="sectionEditField"></textarea>
+                </div>
+            </div>
+            <div class="modal-edit-footer">
+                <button class="btn btn-secondary" onclick="closeSectionEdit()">Cancel</button>
+                <button class="btn btn-primary" id="sectionEditSaveBtn" onclick="saveSectionEdit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Version history modal -->
+    <div id="historyModal" class="modal-backdrop" style="display:none;">
+        <div class="modal-history-shell">
+            <div class="modal-edit-header">
+                <h3 id="historyTitle">Version history</h3>
+                <button class="close-x" onclick="closeHistoryModal()">&times;</button>
+            </div>
+            <div class="modal-edit-body" id="historyBody">
+                <div class="loading" style="padding:40px 0;">Loading…</div>
+            </div>
+            <div class="modal-edit-footer">
+                <button class="btn btn-secondary" onclick="closeHistoryModal()">Close</button>
             </div>
         </div>
     </div>
@@ -617,6 +709,8 @@ $path_prefix  = '../../';
 
             const actions = canGenerate ? `
                 <button class="btn btn-secondary" onclick="generateOne(${c.id}, ${hasSection})">${hasSection ? 'Re-generate' : 'Generate'}</button>
+                ${hasSection ? `<button class="btn btn-secondary" onclick="openSectionEdit(${c.section_id})">Edit</button>` : ''}
+                ${hasSection && c.version > 1 ? `<button class="btn btn-secondary" onclick="openHistoryModal(${c.section_id})">History</button>` : ''}
             ` : '';
 
             const body = hasSection
@@ -907,6 +1001,53 @@ $path_prefix  = '../../';
             }
         }
 
+        // ─── TinyMCE editor lifecycle ─────────────────────────────────
+        //
+        // Both edit modals (framing + category section) use the same
+        // editor configuration. We init TinyMCE on demand when a modal
+        // opens against the visible textarea, then destroy on close so
+        // the next open gets a fresh editor on the right textarea.
+
+        function initTinyOn(textareaId, initialHtml) {
+            // Destroy any existing instance — TinyMCE happily reattaches
+            // to whichever textarea you tell it to but we want a clean
+            // editor each time.
+            destroyAllTiny();
+            return new Promise((resolve) => {
+                tinymce.init({
+                    target: document.getElementById(textareaId),
+                    license_key: 'gpl',
+                    menubar: false,
+                    statusbar: false,
+                    height: 460,
+                    plugins: 'lists link table',
+                    // h1/h2 deliberately absent — the document layer renders
+                    // those for us. Section content uses h3/h4 internally.
+                    block_formats: 'Paragraph=p; Heading 3=h3; Heading 4=h4',
+                    toolbar: 'undo redo | blocks | bold italic | bullist numlist | link table | removeformat',
+                    content_style: 'body { font-family: Georgia, "Times New Roman", serif; font-size: 14px; line-height: 1.55; color: #1f2937; } h3 { font-family: "Segoe UI", Tahoma, sans-serif; font-size: 15px; margin: 16px 0 6px 0; } h4 { font-family: "Segoe UI", Tahoma, sans-serif; font-size: 13px; margin: 12px 0 4px 0; } p { margin: 0 0 10px 0; } ul, ol { margin: 0 0 10px 22px; }',
+                    setup: editor => {
+                        editor.on('init', () => {
+                            editor.setContent(initialHtml || '');
+                            resolve(editor);
+                        });
+                    }
+                });
+            });
+        }
+
+        function destroyAllTiny() {
+            if (window.tinymce && tinymce.editors) {
+                // Iterate over a copy — destroying mutates the array.
+                tinymce.editors.slice().forEach(e => e.remove());
+            }
+        }
+
+        function getTinyContent(textareaId) {
+            const ed = tinymce.get(textareaId);
+            return ed ? ed.getContent() : (document.getElementById(textareaId).value || '');
+        }
+
         // ─── Framing edit modal ───────────────────────────────────────
 
         let editingFramingId = null;
@@ -916,11 +1057,14 @@ $path_prefix  = '../../';
             if (!f) return;
             editingFramingId = framingId;
             document.getElementById('framingEditTitle').textContent = 'Edit ' + (f.section_title || 'framing section');
-            document.getElementById('framingEditField').value = f.section_content || '';
             document.getElementById('framingEditModal').style.display = 'flex';
+            // initTinyOn returns a promise, but we don't need to await —
+            // the editor populates itself on init.
+            initTinyOn('framingEditField', f.section_content || '');
         }
         function closeFramingEdit() {
             document.getElementById('framingEditModal').style.display = 'none';
+            destroyAllTiny();
         }
         async function saveFramingEdit() {
             const btn = document.getElementById('framingEditSaveBtn');
@@ -931,7 +1075,7 @@ $path_prefix  = '../../';
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({
                         id: editingFramingId,
-                        section_content: document.getElementById('framingEditField').value
+                        section_content: getTinyContent('framingEditField')
                     })
                 });
                 const data = await res.json();
@@ -942,6 +1086,136 @@ $path_prefix  = '../../';
                 alert('Save failed: ' + err.message);
             } finally {
                 btn.disabled = false;
+            }
+        }
+
+        // ─── Category section edit modal ──────────────────────────────
+
+        let editingSectionId = null;
+
+        function openSectionEdit(sectionId) {
+            const cat = pageData.categories.find(c => c.section_id === sectionId);
+            if (!cat) return;
+            editingSectionId = sectionId;
+            document.getElementById('sectionEditTitle').textContent = 'Edit "' + cat.name + '" section';
+            document.getElementById('sectionEditModal').style.display = 'flex';
+            initTinyOn('sectionEditField', cat.section_content || '');
+        }
+        function closeSectionEdit() {
+            document.getElementById('sectionEditModal').style.display = 'none';
+            destroyAllTiny();
+        }
+        async function saveSectionEdit() {
+            const btn = document.getElementById('sectionEditSaveBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'update_section.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        id: editingSectionId,
+                        section_content: getTinyContent('sectionEditField')
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Save failed');
+                closeSectionEdit();
+                loadAll();
+            } catch (err) {
+                alert('Save failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ─── Version history modal ────────────────────────────────────
+
+        let historySectionId = null;
+
+        async function openHistoryModal(sectionId) {
+            historySectionId = sectionId;
+            document.getElementById('historyModal').style.display = 'flex';
+            document.getElementById('historyBody').innerHTML = '<div class="loading" style="padding:40px 0;">Loading…</div>';
+            try {
+                const res = await fetch(API_BASE + 'get_section_history.php?section_id=' + encodeURIComponent(sectionId));
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Load failed');
+                renderHistory(data);
+            } catch (err) {
+                document.getElementById('historyBody').innerHTML =
+                    '<div class="error-state" style="padding:40px 0;">' + escapeHtml(err.message) + '</div>';
+            }
+        }
+
+        function closeHistoryModal() {
+            document.getElementById('historyModal').style.display = 'none';
+        }
+
+        function renderHistory(data) {
+            const cur = data.current;
+            const hist = data.history || [];
+
+            document.getElementById('historyTitle').textContent =
+                'Version history — ' + (cur.category_name || 'Section');
+
+            const currentRow = `
+                <div class="history-row current open" data-h="current">
+                    <div class="history-row-header" onclick="toggleHistoryRow(this)">
+                        <span class="ver-pill">v${cur.version}</span>
+                        <div class="ver-meta">
+                            <strong>Current</strong>
+                            ${cur.is_manually_edited ? '<span class="edited-tag">manually edited</span>' : ''}
+                            · ${escapeHtml(formatDateTime(cur.edited_datetime || cur.generated_datetime))}
+                        </div>
+                        <div class="ver-actions"></div>
+                    </div>
+                    <div class="history-row-body">${cur.section_content || '<em>(empty)</em>'}</div>
+                </div>
+            `;
+
+            const histRows = hist.map(h => `
+                <div class="history-row" data-h="${h.id}">
+                    <div class="history-row-header" onclick="toggleHistoryRow(this)">
+                        <span class="ver-pill">v${h.version}</span>
+                        <div class="ver-meta">
+                            ${h.is_manually_edited ? '<span class="edited-tag">manually edited</span>' : 'AI-generated'}
+                            · ${escapeHtml(formatDateTime(h.created_datetime))}
+                        </div>
+                        <div class="ver-actions">
+                            <button class="btn btn-secondary" onclick="event.stopPropagation(); restoreVersion(${h.id});">Restore</button>
+                        </div>
+                    </div>
+                    <div class="history-row-body">${h.section_content || '<em>(empty)</em>'}</div>
+                </div>
+            `).join('');
+
+            const empty = hist.length === 0
+                ? '<div class="history-list-empty">No earlier versions yet — every save and re-generation will appear here.</div>'
+                : '';
+
+            document.getElementById('historyBody').innerHTML = currentRow + histRows + empty;
+        }
+
+        function toggleHistoryRow(headerEl) {
+            headerEl.parentElement.classList.toggle('open');
+        }
+
+        async function restoreVersion(historyId) {
+            if (!confirm('Restore this earlier version?\n\nThe current version will be snapshotted into history first, so this is reversible.')) {
+                return;
+            }
+            try {
+                const res = await fetch(API_BASE + 'restore_section_version.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ section_id: historySectionId, history_id: historyId })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Restore failed');
+                closeHistoryModal();
+                loadAll();
+            } catch (err) {
+                alert('Restore failed: ' + err.message);
             }
         }
 
