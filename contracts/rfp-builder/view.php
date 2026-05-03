@@ -429,8 +429,8 @@ $path_prefix = '../../';
                 },
                 {
                     num: 5, title: 'Suppliers &amp; scoring', phase: 5,
-                    desc: 'Invite existing or prospective suppliers, then score their responses requirement-by-requirement.',
-                    stats: [{label: 'Invited', value: r.supplier_count}],
+                    desc: 'Add the suppliers being evaluated, then score their responses requirement-by-requirement.',
+                    stats: [{label: 'Suppliers', value: r.supplier_count}],
                     // Same gate as Phase 4 — scoring requires the consolidation
                     // set to be locked. You can invite suppliers as soon as it's
                     // locked, even before sections are generated.

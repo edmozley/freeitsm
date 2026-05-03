@@ -19,7 +19,7 @@ $path_prefix  = '../../';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Invited suppliers</title>
+    <title>Service Desk - Suppliers</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         body { overflow: auto; height: auto; }
@@ -170,14 +170,14 @@ $path_prefix  = '../../';
             <a href="../">Contracts</a><span class="sep">›</span>
             <a href="./">RFP Builder</a><span class="sep">›</span>
             <a id="bcRfp" href="#">-</a><span class="sep">›</span>
-            <span>Invited suppliers</span>
+            <span>Suppliers</span>
         </div>
 
         <div class="page-header">
-            <h1>Invited suppliers</h1>
+            <h1>Suppliers</h1>
             <div class="page-actions">
                 <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
-                <button id="inviteBtn" class="btn btn-primary" onclick="openInviteModal()">+ Invite supplier</button>
+                <button id="inviteBtn" class="btn btn-primary" onclick="openInviteModal()">+ Add supplier</button>
             </div>
         </div>
 
@@ -190,7 +190,7 @@ $path_prefix  = '../../';
     <div id="inviteModal" class="modal-backdrop" style="display:none;">
         <div class="modal-shell">
             <div class="modal-header">
-                <h3>Invite supplier</h3>
+                <h3>Add supplier</h3>
                 <button class="close-x" onclick="closeInviteModal()">&times;</button>
             </div>
             <div class="modal-tabs">
@@ -246,13 +246,13 @@ $path_prefix  = '../../';
                         <textarea id="newNotes" rows="2"></textarea>
                     </div>
                     <div class="help" style="background:#fef3c7;border:1px solid #fde68a;border-radius:6px;padding:8px 12px;color:#92400e;font-size:12px;">
-                        This creates a new entry in the suppliers list (status: Prospective if available) and invites them to this RFP. You can flesh out the supplier record later from the Suppliers module.
+                        This creates a new entry in the suppliers list (status: Prospective if that lookup exists) and adds them to this RFP. You can flesh out the supplier record later from the Suppliers module.
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeInviteModal()">Cancel</button>
-                <button class="btn btn-primary" id="inviteSaveBtn" onclick="saveInvite()">Invite</button>
+                <button class="btn btn-primary" id="inviteSaveBtn" onclick="saveInvite()">Add</button>
             </div>
         </div>
     </div>
@@ -300,8 +300,8 @@ $path_prefix  = '../../';
             if (!rows || rows.length === 0) {
                 contentEl.innerHTML = `
                     <div class="empty-card">
-                        <p><strong>No suppliers invited yet.</strong></p>
-                        <p>Click <em>Invite supplier</em> to add one from your existing suppliers list, or create a new prospective supplier inline.</p>
+                        <p><strong>No suppliers added yet.</strong></p>
+                        <p>Click <em>+ Add supplier</em> to add one from your existing suppliers list, or create a new prospective supplier inline.</p>
                     </div>
                 `;
                 return;
@@ -322,7 +322,7 @@ $path_prefix  = '../../';
                 ? '<span class="status-pill ' + escapeHtml(statusKey) + '">' + escapeHtml(r.status_name) + '</span>'
                 : '';
             const invited = r.invited_datetime
-                ? '<div class="invited-at">Invited ' + escapeHtml(formatDate(r.invited_datetime)) + '</div>'
+                ? '<div class="invited-at">Added ' + escapeHtml(formatDate(r.invited_datetime)) + '</div>'
                 : '';
 
             return `
@@ -346,6 +346,7 @@ $path_prefix  = '../../';
                         <div class="save-status" id="ss-${r.id}-notes"></div>
                     </div>
                     <div class="supplier-actions">
+                        <a class="btn btn-primary" href="scoring.php?id=${encodeURIComponent(rfpId)}&supplier=${r.supplier_id}">Score</a>
                         <button class="btn btn-danger" onclick="removeInvitation(${r.id})">Remove</button>
                     </div>
                 </div>
@@ -406,7 +407,7 @@ $path_prefix  = '../../';
         // ─── Remove ────────────────────────────────────────────────
 
         async function removeInvitation(invitationId) {
-            if (!confirm('Remove this supplier from the RFP?\n\nAny scores submitted against them will be deleted. The supplier record itself stays in the suppliers list.')) {
+            if (!confirm('Remove this supplier from the RFP?\n\nAny scores already entered for them will be deleted. The supplier record itself stays in your main suppliers list.')) {
                 return;
             }
             try {
