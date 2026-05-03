@@ -186,6 +186,49 @@ $path_prefix  = '../../';
             margin-top: 8px; font-size: 12px; color: #888;
         }
         .conflict-resolution.resolved { color: #047857; }
+        .conflict-actions {
+            margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap;
+        }
+        .conflict-actions .btn-resolve {
+            background: white; border: 1px solid #d1d5db; border-radius: 6px;
+            padding: 5px 10px; font-size: 12px; color: #374151; cursor: pointer;
+            font-family: inherit;
+        }
+        .conflict-actions .btn-resolve:hover { background: #f5f5f5; color: #111827; }
+        .conflict-actions .btn-resolve.choose-a { border-color: #93c5fd; color: #1e40af; }
+        .conflict-actions .btn-resolve.choose-a:hover { background: #eff6ff; }
+        .conflict-actions .btn-resolve.choose-b { border-color: #c4b5fd; color: #5b21b6; }
+        .conflict-actions .btn-resolve.choose-b:hover { background: #f5f3ff; }
+        .conflict-actions .btn-resolve.merge    { border-color: #86efac; color: #047857; }
+        .conflict-actions .btn-resolve.merge:hover    { background: #ecfdf5; }
+        .conflict-actions .btn-resolve.dismiss  { border-color: #d1d5db; color: #6b7280; }
+        .conflict-actions .btn-resolve.reopen   { border-color: #fbbf24; color: #b45309; }
+
+        .resolved-section {
+            margin-top: 18px; border-top: 1px dashed #e5e7eb; padding-top: 12px;
+        }
+        .resolved-section-label {
+            font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 0 22px; margin-bottom: 6px;
+        }
+        .conflict-row.resolved-row { opacity: 0.65; }
+        .conflict-row.resolved-row .conflict-pair { background: #fafbfc; }
+        .resolution-badge {
+            display: inline-block; padding: 1px 8px; border-radius: 9px;
+            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+            margin-right: 6px;
+        }
+        .resolution-badge.chose_a   { background: #dbeafe; color: #1e40af; }
+        .resolution-badge.chose_b   { background: #ede9fe; color: #5b21b6; }
+        .resolution-badge.merged    { background: #d1fae5; color: #047857; }
+        .resolution-badge.split     { background: #fef3c7; color: #92400e; }
+        .resolution-badge.dismissed { background: #e5e7eb; color: #4b5563; }
+
+        .conflict-resolution-notes {
+            margin-top: 6px; padding: 6px 10px; background: #f9fafb;
+            border-left: 3px solid #6b7280; border-radius: 4px;
+            font-size: 12px; color: #555;
+        }
 
         .loading, .error-state { text-align: center; padding: 40px; color: #999; }
         .error-state { color: #d13438; }
@@ -405,7 +448,12 @@ $path_prefix  = '../../';
                 <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
                 <button id="addBtn" class="btn btn-secondary" onclick="openAddModal()" style="display:none;">+ Add custom</button>
                 <button id="runBtn" class="btn btn-primary" onclick="runConsolidation()">Run consolidation</button>
+                <button id="lockBtn" class="btn btn-primary" onclick="toggleLock()" style="display:none;">Lock for generation</button>
             </div>
+        </div>
+
+        <div id="lockedBanner" style="display:none;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+            <strong>Locked for generation.</strong> Editing is disabled. Phase 4 (section generation) will use these requirements as-is. Click <em>Unlock</em> to make changes.
         </div>
 
         <div id="streamModal" class="modal-backdrop" style="display:none;">
@@ -556,6 +604,27 @@ $path_prefix  = '../../';
         </div>
     </div>
 
+    <!-- Resolve conflict modal (notes only — actual resolution flag set by caller) -->
+    <div id="resolveModal" class="modal-backdrop" style="display:none;">
+        <div class="edit-modal">
+            <div class="edit-modal-header">
+                <span id="resolveModalTitle">Resolve conflict</span>
+                <button class="close-x" onclick="closeResolveModal()">&times;</button>
+            </div>
+            <div class="edit-modal-body">
+                <div id="resolveContext" style="margin-bottom:14px;font-size:13px;color:#555;"></div>
+                <div class="form-row">
+                    <label for="resolveNotes">Notes (optional, captured to audit trail)</label>
+                    <textarea id="resolveNotes" rows="3" placeholder="Why this resolution? Helpful for stakeholders reviewing the decision later."></textarea>
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button class="btn btn-secondary" onclick="closeResolveModal()">Cancel</button>
+                <button class="btn btn-primary" id="resolveConfirmBtn" onclick="saveResolve()">Resolve</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Merge modal -->
     <div id="mergeModal" class="modal-backdrop" style="display:none;">
         <div class="edit-modal">
@@ -645,14 +714,25 @@ $path_prefix  = '../../';
 
         function render(data) {
             pageData = data;
-            // Selection survives a refresh only for rows that still exist.
+
+            // Lock state is true if we have rows AND every row is_locked.
+            // Empty RFPs are always treated as unlocked.
+            const lockState = data.consolidated.length > 0
+                && data.consolidated.every(c => c.is_locked);
+            applyLockState(lockState, data.consolidated.length);
+
+            // Selection survives a refresh only for rows that still exist,
+            // and cleared entirely when locked (no merging while locked).
             for (const id of [...selectedIds]) {
                 if (!data.consolidated.find(c => c.id === id)) selectedIds.delete(id);
             }
+            if (lockState) selectedIds.clear();
             updateMergeBar();
 
-            // Show "+ Add custom" once we have at least one category to put a custom req into.
-            document.getElementById('addBtn').style.display = data.categories.length > 0 ? '' : 'none';
+            // Show "+ Add custom" once we have at least one category to put a custom req into,
+            // and we're not locked.
+            document.getElementById('addBtn').style.display =
+                (data.categories.length > 0 && !lockState) ? '' : 'none';
 
             const consByCat = new Map();
             data.consolidated.forEach(c => {
@@ -734,23 +814,26 @@ $path_prefix  = '../../';
         }
 
         function renderReqRow(r) {
-            const sources = r.sources || [];
+            const sources  = r.sources || [];
             const canSplit = sources.length >= 2;
+            const locked   = !!r.is_locked;
             return `
                 <div class="req-row" data-id="${r.id}" id="row-${r.id}">
                     <div class="req-row-top">
-                        <input type="checkbox" class="req-select" data-id="${r.id}" onchange="onSelectRow(${r.id}, this.checked)">
+                        ${locked ? '' : `<input type="checkbox" class="req-select" data-id="${r.id}" onchange="onSelectRow(${r.id}, this.checked)">`}
                         <span class="pill type-${escapeHtml(r.requirement_type)}">${escapeHtml(r.requirement_type.replace('_', ' '))}</span>
                         <span class="pill prio-${escapeHtml(r.priority)}">${escapeHtml(r.priority)}</span>
                         <div class="req-row-text">
                             ${escapeHtml(r.requirement_text)}
                             ${r.ai_rationale ? `<div class="req-row-rationale">${escapeHtml(r.ai_rationale)}</div>` : ''}
                         </div>
-                        <div class="req-row-actions">
-                            <button class="icon-btn" onclick="openEditModal(${r.id})">Edit</button>
-                            ${canSplit ? `<button class="icon-btn" onclick="openSplitModal(${r.id})">Split</button>` : ''}
-                            <button class="icon-btn danger" onclick="deleteRow(${r.id})">Delete</button>
-                        </div>
+                        ${locked ? '' : `
+                            <div class="req-row-actions">
+                                <button class="icon-btn" onclick="openEditModal(${r.id})">Edit</button>
+                                ${canSplit ? `<button class="icon-btn" onclick="openSplitModal(${r.id})">Split</button>` : ''}
+                                <button class="icon-btn danger" onclick="deleteRow(${r.id})">Delete</button>
+                            </div>
+                        `}
                     </div>
                     <div class="source-toggle">
                         <button class="btn-link" onclick="toggleSources(${r.id})">
@@ -774,36 +857,82 @@ $path_prefix  = '../../';
         }
 
         function renderConflicts(conflicts, consById) {
+            const open     = conflicts.filter(c => c.resolution === 'open');
+            const resolved = conflicts.filter(c => c.resolution !== 'open');
+
             return `
                 <div class="conflicts-card">
                     <div class="conflicts-header">
-                        <h2>Flagged conflicts (${conflicts.length})</h2>
+                        <h2>Flagged conflicts (${open.length} open${resolved.length ? ' · ' + resolved.length + ' resolved' : ''})</h2>
                     </div>
-                    ${conflicts.map(c => {
-                        const aText = c.a_text || '<em>(deleted)</em>';
-                        const bText = c.b_text || '<em>(deleted)</em>';
-                        const resolved = c.resolution !== 'open';
-                        return `
-                            <div class="conflict-row">
-                                <div class="conflict-pair">
-                                    <div class="conflict-side">
-                                        <div class="side-label">Side A · ${escapeHtml(c.a_priority || '')}</div>
-                                        <div class="side-text">${typeof aText === 'string' && aText.startsWith('<em>') ? aText : escapeHtml(aText)}</div>
-                                    </div>
-                                    <div class="conflict-side">
-                                        <div class="side-label">Side B · ${escapeHtml(c.b_priority || '')}</div>
-                                        <div class="side-text">${typeof bText === 'string' && bText.startsWith('<em>') ? bText : escapeHtml(bText)}</div>
-                                    </div>
-                                </div>
-                                ${c.ai_explanation ? `<div class="conflict-explanation"><strong>Why this conflicts:</strong> ${escapeHtml(c.ai_explanation)}</div>` : ''}
-                                <div class="conflict-resolution ${resolved ? 'resolved' : ''}">
-                                    Status: ${escapeHtml(c.resolution)}${c.resolved_by_name ? ' by ' + escapeHtml(c.resolved_by_name) : ''}
-                                </div>
-                            </div>
-                        `;
-                    }).join('')}
+                    ${open.map(c => renderConflictRow(c, false)).join('')}
+                    ${resolved.length ? `
+                        <div class="resolved-section">
+                            <div class="resolved-section-label">Resolved</div>
+                            ${resolved.map(c => renderConflictRow(c, true)).join('')}
+                        </div>
+                    ` : ''}
                 </div>
             `;
+        }
+
+        function renderConflictRow(c, isResolved) {
+            const aMissing = !c.a_text;
+            const bMissing = !c.b_text;
+            const aText = aMissing ? '<em>(deleted)</em>' : escapeHtml(c.a_text);
+            const bText = bMissing ? '<em>(deleted)</em>' : escapeHtml(c.b_text);
+
+            const resolutionBlock = isResolved ? `
+                <div class="conflict-resolution resolved">
+                    <span class="resolution-badge ${escapeHtml(c.resolution)}">${escapeHtml(c.resolution.replace('_', ' '))}</span>
+                    ${c.resolved_by_name ? 'by ' + escapeHtml(c.resolved_by_name) : ''}
+                    ${c.resolved_datetime ? ' · ' + escapeHtml(formatDateTime(c.resolved_datetime)) : ''}
+                </div>
+                ${c.resolution_notes ? `<div class="conflict-resolution-notes">${escapeHtml(c.resolution_notes)}</div>` : ''}
+            ` : '';
+
+            // While locked, no resolution actions — analyst must unlock first.
+            const locked = pageData.consolidated.length > 0 && pageData.consolidated.every(r => r.is_locked);
+            let actions = '';
+            if (!locked) {
+                actions = isResolved
+                    ? `<div class="conflict-actions">
+                           <button class="btn-resolve reopen" onclick="reopenConflict(${c.id})">Re-open</button>
+                       </div>`
+                    : `<div class="conflict-actions">
+                           ${aMissing || bMissing ? '' : `
+                               <button class="btn-resolve choose-a" onclick="openResolveModal(${c.id}, 'chose_a')">Choose A</button>
+                               <button class="btn-resolve choose-b" onclick="openResolveModal(${c.id}, 'chose_b')">Choose B</button>
+                               <button class="btn-resolve merge"    onclick="mergeFromConflict(${c.id}, ${c.consolidated_id_a}, ${c.consolidated_id_b})">Merge into one</button>
+                           `}
+                           <button class="btn-resolve dismiss" onclick="openResolveModal(${c.id}, 'dismissed')">Dismiss</button>
+                       </div>`;
+            }
+
+            return `
+                <div class="conflict-row ${isResolved ? 'resolved-row' : ''}" data-conflict-id="${c.id}">
+                    <div class="conflict-pair">
+                        <div class="conflict-side">
+                            <div class="side-label">Side A · ${escapeHtml(c.a_priority || '')}</div>
+                            <div class="side-text">${aText}</div>
+                        </div>
+                        <div class="conflict-side">
+                            <div class="side-label">Side B · ${escapeHtml(c.b_priority || '')}</div>
+                            <div class="side-text">${bText}</div>
+                        </div>
+                    </div>
+                    ${c.ai_explanation ? `<div class="conflict-explanation"><strong>Why this conflicts:</strong> ${escapeHtml(c.ai_explanation)}</div>` : ''}
+                    ${resolutionBlock}
+                    ${actions}
+                </div>
+            `;
+        }
+
+        function formatDateTime(s) {
+            if (!s) return '';
+            const d = new Date(s.replace(' ', 'T'));
+            if (isNaN(d)) return s;
+            return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
         }
 
         function toggleSources(consId) {
@@ -999,6 +1128,50 @@ $path_prefix  = '../../';
             const el = document.getElementById('errorEl');
             el.innerHTML = html;
             el.style.display = 'block';
+        }
+
+        // ─── Lock state ──────────────────────────────────────────────
+
+        function applyLockState(locked, rowCount) {
+            const banner  = document.getElementById('lockedBanner');
+            const lockBtn = document.getElementById('lockBtn');
+            const runBtn  = document.getElementById('runBtn');
+            banner.style.display  = locked ? '' : 'none';
+            // Lock button only after we have rows to lock.
+            lockBtn.style.display = rowCount > 0 ? '' : 'none';
+            lockBtn.textContent   = locked ? 'Unlock' : 'Lock for generation';
+            lockBtn.classList.toggle('btn-secondary', locked);
+            lockBtn.classList.toggle('btn-primary',   !locked);
+            // Re-running consolidation while locked would wipe everything,
+            // including the lock — surface intent by hiding the run button
+            // until the user explicitly unlocks.
+            runBtn.style.display = locked ? 'none' : '';
+        }
+
+        async function toggleLock() {
+            const isLocked = pageData.consolidated.length > 0 && pageData.consolidated.every(r => r.is_locked);
+            const wantLock = !isLocked;
+            const msg = wantLock
+                ? 'Lock all ' + pageData.consolidated.length + ' consolidated requirements for Phase 4 generation?\n\nAll editing tools will be disabled until you unlock again.'
+                : 'Unlock the consolidated requirements for editing?\n\nIf Phase 4 generation has already used these, regenerated sections will reflect any changes you make.';
+            if (!confirm(msg)) return;
+
+            const btn = document.getElementById('lockBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'lock_consolidation.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ rfp_id: parseInt(rfpId, 10), lock: wantLock })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Lock failed');
+                loadAll();
+            } catch (err) {
+                alert('Failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         // ─── Selection / merge bar ───────────────────────────────────
@@ -1376,6 +1549,110 @@ $path_prefix  = '../../';
             } catch (err) {
                 alert('Merge failed: ' + err.message);
             }
+        }
+
+        // ─── Conflict resolution ─────────────────────────────────────
+
+        let resolvingConflictId = null;
+        let resolvingResolution = null;
+
+        function openResolveModal(conflictId, resolution) {
+            const conflict = pageData.conflicts.find(c => c.id === conflictId);
+            if (!conflict) return;
+            resolvingConflictId = conflictId;
+            resolvingResolution = resolution;
+
+            const titles = {
+                chose_a:   'Choose Side A',
+                chose_b:   'Choose Side B',
+                dismissed: 'Dismiss conflict'
+            };
+            document.getElementById('resolveModalTitle').textContent = titles[resolution] || 'Resolve conflict';
+
+            const aText = conflict.a_text || '(deleted)';
+            const bText = conflict.b_text || '(deleted)';
+            let context;
+            if (resolution === 'chose_a') {
+                context = '<strong>Going with Side A:</strong> ' + escapeHtml(aText) +
+                          '<br><br><span style="color:#888;">Side B will remain in the consolidated list — delete or edit it manually if you want it gone.</span>';
+            } else if (resolution === 'chose_b') {
+                context = '<strong>Going with Side B:</strong> ' + escapeHtml(bText) +
+                          '<br><br><span style="color:#888;">Side A will remain in the consolidated list — delete or edit it manually if you want it gone.</span>';
+            } else {
+                context = '<strong>Dismissing as not a real conflict.</strong><br><br>' +
+                          '<span style="color:#888;">Both sides remain in the consolidated list. The conflict will move to the resolved section.</span>';
+            }
+            document.getElementById('resolveContext').innerHTML = context;
+            document.getElementById('resolveNotes').value = '';
+            document.getElementById('resolveModal').style.display = 'flex';
+        }
+
+        function closeResolveModal() {
+            document.getElementById('resolveModal').style.display = 'none';
+        }
+
+        async function saveResolve() {
+            const btn = document.getElementById('resolveConfirmBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'resolve_conflict.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        id: resolvingConflictId,
+                        resolution: resolvingResolution,
+                        notes: document.getElementById('resolveNotes').value.trim()
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Resolve failed');
+                closeResolveModal();
+                loadAll();
+            } catch (err) {
+                alert('Resolve failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function reopenConflict(conflictId) {
+            if (!confirm('Re-open this conflict? Its current resolution and notes will be cleared.')) return;
+            try {
+                const res = await fetch(API_BASE + 'resolve_conflict.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id: conflictId, resolution: 'open' })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Re-open failed');
+                loadAll();
+            } catch (err) {
+                alert('Re-open failed: ' + err.message);
+            }
+        }
+
+        // "Merge into one" from a conflict pre-selects the two rows in
+        // the global selection and pops the merge modal — reuses all
+        // the existing merge plumbing. The conflict row cascade-deletes
+        // when the merge succeeds (the rows it referenced are gone),
+        // which is the natural audit trail: the merged row's rationale
+        // says "Merged from #A, #B" and the AI explanation lives in
+        // rfp_processing_log.
+        function mergeFromConflict(conflictId, aId, bId) {
+            clearSelection();
+            selectedIds.add(aId);
+            selectedIds.add(bId);
+            updateMergeBar();
+            // Tick the checkboxes so the visible state matches
+            const cbA = document.querySelector('.req-select[data-id="' + aId + '"]');
+            const cbB = document.querySelector('.req-select[data-id="' + bId + '"]');
+            if (cbA) cbA.checked = true;
+            if (cbB) cbB.checked = true;
+            const rowA = document.getElementById('row-' + aId);
+            const rowB = document.getElementById('row-' + bId);
+            if (rowA) rowA.classList.add('selected');
+            if (rowB) rowB.classList.add('selected');
+            openMergeModal();
         }
 
         function escapeHtml(str) {
