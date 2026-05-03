@@ -95,14 +95,31 @@ $path_prefix  = '../../';
 
         .req-row {
             padding: 14px 22px; border-bottom: 1px solid #f5f5f5;
+            position: relative;
         }
         .req-row:last-child { border-bottom: none; }
+        .req-row.selected { background: #fffbeb; }
         .req-row-top { display: flex; gap: 10px; align-items: flex-start; }
+        .req-select {
+            margin-top: 4px; cursor: pointer; flex-shrink: 0;
+        }
         .req-row-text { flex: 1; font-size: 14px; color: #222; line-height: 1.5; }
         .req-row-rationale {
             font-size: 12px; color: #888; font-style: italic;
             margin-top: 6px; line-height: 1.5;
         }
+        .req-row-actions {
+            display: flex; gap: 4px; flex-shrink: 0;
+            opacity: 0; transition: opacity 0.15s;
+        }
+        .req-row:hover .req-row-actions { opacity: 1; }
+        .req-row-actions .icon-btn {
+            background: white; border: 1px solid #ddd; border-radius: 5px;
+            padding: 3px 8px; font-size: 12px; color: #555; cursor: pointer;
+            font-family: inherit;
+        }
+        .req-row-actions .icon-btn:hover { background: #f5f5f5; color: #222; }
+        .req-row-actions .icon-btn.danger:hover { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
 
         .pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
@@ -257,6 +274,118 @@ $path_prefix  = '../../';
             padding: 12px 22px; border-top: 1px solid #eee;
             display: flex; justify-content: flex-end; gap: 8px;
         }
+
+        /* Merge selection bar — fixed at bottom when 2+ rows are checked */
+        .merge-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: #1f2937; color: white; padding: 12px 24px;
+            display: none; align-items: center; gap: 14px;
+            box-shadow: 0 -4px 12px rgba(0,0,0,0.15);
+            z-index: 800;
+        }
+        .merge-bar.active { display: flex; }
+        .merge-bar .merge-count {
+            font-weight: 600; font-size: 14px;
+        }
+        .merge-bar .spacer { flex: 1; }
+        .merge-bar .btn-primary { background: #f59e0b; }
+        .merge-bar .btn-secondary { background: transparent; color: white; border-color: rgba(255,255,255,0.3); }
+        .merge-bar .btn-secondary:hover { background: rgba(255,255,255,0.1); }
+
+        /* Generic edit/add/split/merge modal */
+        .edit-modal {
+            background: white; border-radius: 12px; width: 640px; max-width: 92vw;
+            max-height: 86vh; display: flex; flex-direction: column;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
+        }
+        .edit-modal.wide { width: 820px; }
+        .edit-modal-header {
+            padding: 14px 22px; border-bottom: 1px solid #eee;
+            font-size: 16px; font-weight: 600; color: #222;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .edit-modal-header .close-x {
+            background: none; border: none; font-size: 22px; color: #888;
+            cursor: pointer; padding: 0; line-height: 1;
+        }
+        .edit-modal-body {
+            padding: 18px 22px; overflow-y: auto; flex: 1;
+        }
+        .edit-modal-footer {
+            padding: 12px 22px; border-top: 1px solid #eee;
+            display: flex; justify-content: flex-end; gap: 8px;
+        }
+        .form-row {
+            display: flex; flex-direction: column; gap: 5px;
+            margin-bottom: 14px;
+        }
+        .form-row label {
+            font-size: 12px; font-weight: 600; color: #555;
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .form-row input, .form-row select, .form-row textarea {
+            padding: 8px 10px; font-size: 14px; font-family: inherit;
+            border: 1px solid #d1d5db; border-radius: 6px;
+            color: #222; background: white;
+        }
+        .form-row textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
+        .form-row .form-help {
+            font-size: 12px; color: #888;
+        }
+        .form-row-grid {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
+            margin-bottom: 14px;
+        }
+        .form-row-grid .form-row { margin-bottom: 0; }
+
+        .source-pick-list {
+            max-height: 260px; overflow-y: auto;
+            border: 1px solid #e5e7eb; border-radius: 6px;
+            background: #fafbfc;
+        }
+        .source-pick-row {
+            padding: 9px 12px; border-bottom: 1px solid #eef0f2;
+            display: flex; align-items: flex-start; gap: 10px;
+            font-size: 13px;
+        }
+        .source-pick-row:last-child { border-bottom: none; }
+        .source-pick-row .source-pick-info { flex: 1; min-width: 0; }
+        .source-pick-row .source-pick-info .source-text {
+            color: #333; line-height: 1.45;
+        }
+        .source-pick-row .source-pick-info .source-meta {
+            font-size: 11px; color: #888; margin-top: 2px;
+        }
+        .source-pick-row select {
+            flex-shrink: 0; padding: 4px 8px; font-size: 12px;
+            border: 1px solid #d1d5db; border-radius: 5px;
+            font-family: inherit; background: white;
+        }
+
+        .split-row-card {
+            border: 1px solid #e5e7eb; border-radius: 8px;
+            padding: 12px 14px; margin-bottom: 12px; background: #fafbfc;
+            position: relative;
+        }
+        .split-row-card .split-row-num {
+            display: inline-block; background: #6b7280; color: white;
+            border-radius: 10px; padding: 1px 9px; font-size: 11px; font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .split-row-card .split-row-remove {
+            position: absolute; top: 8px; right: 10px;
+            background: none; border: none; color: #999; cursor: pointer;
+            font-size: 18px; line-height: 1;
+        }
+        .split-row-card .split-row-remove:hover { color: #b91c1c; }
+
+        .merge-summary {
+            margin-bottom: 14px; padding: 10px 12px;
+            background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px;
+            font-size: 13px; color: #92400e;
+        }
+        .merge-summary ul { margin: 6px 0 0 18px; padding: 0; }
+        .merge-summary li { margin-bottom: 3px; }
     </style>
 </head>
 <body>
@@ -274,6 +403,7 @@ $path_prefix  = '../../';
             <h1>Consolidated requirements</h1>
             <div class="page-actions">
                 <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
+                <button id="addBtn" class="btn btn-secondary" onclick="openAddModal()" style="display:none;">+ Add custom</button>
                 <button id="runBtn" class="btn btn-primary" onclick="runConsolidation()">Run consolidation</button>
             </div>
         </div>
@@ -339,10 +469,151 @@ $path_prefix  = '../../';
         <div id="errorEl" class="error-state" style="display:none;"></div>
     </div>
 
+    <!-- Merge selection bar -->
+    <div id="mergeBar" class="merge-bar">
+        <span class="merge-count" id="mergeCount">0 selected</span>
+        <span class="spacer"></span>
+        <button class="btn btn-secondary" onclick="clearSelection()">Cancel</button>
+        <button class="btn btn-primary" onclick="openMergeModal()">Merge</button>
+    </div>
+
+    <!-- Edit / Add modal (shared form, mode flag controls behaviour) -->
+    <div id="editModal" class="modal-backdrop" style="display:none;">
+        <div class="edit-modal">
+            <div class="edit-modal-header">
+                <span id="editModalTitle">Edit requirement</span>
+                <button class="close-x" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="edit-modal-body">
+                <div class="form-row">
+                    <label for="editText">Requirement text</label>
+                    <textarea id="editText" rows="4"></textarea>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label for="editType">Type</label>
+                        <select id="editType">
+                            <option value="requirement">Requirement</option>
+                            <option value="pain_point">Pain point</option>
+                            <option value="challenge">Challenge</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="editPriority">Priority</label>
+                        <select id="editPriority">
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="editCategory">Category</label>
+                        <select id="editCategory"></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label for="editRationale">Rationale (optional)</label>
+                    <textarea id="editRationale" rows="2" placeholder="Why this requirement is here, why it merged with its sources, etc."></textarea>
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                <button class="btn btn-primary" id="editSaveBtn" onclick="saveEdit()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Split modal -->
+    <div id="splitModal" class="modal-backdrop" style="display:none;">
+        <div class="edit-modal wide">
+            <div class="edit-modal-header">
+                <span>Split requirement</span>
+                <button class="close-x" onclick="closeSplitModal()">&times;</button>
+            </div>
+            <div class="edit-modal-body">
+                <div class="form-row">
+                    <label>Original requirement (will be replaced)</label>
+                    <div id="splitOriginalText" style="padding:10px 12px;background:#f3f4f6;border-radius:6px;font-size:13px;color:#555;line-height:1.5;"></div>
+                </div>
+
+                <div class="form-row">
+                    <label>Assign each source to a new row</label>
+                    <div class="form-help">Each source must go to one of the new rows below. Source items dropped here will not appear on any new row.</div>
+                    <div id="splitSourceList" class="source-pick-list" style="margin-top:6px;"></div>
+                </div>
+
+                <div class="form-row">
+                    <label>New rows</label>
+                    <div id="splitRowsContainer"></div>
+                    <button class="btn btn-secondary" onclick="addSplitRow()" style="align-self:flex-start;">+ Add another row</button>
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button class="btn btn-secondary" onclick="closeSplitModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveSplit()">Split</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Merge modal -->
+    <div id="mergeModal" class="modal-backdrop" style="display:none;">
+        <div class="edit-modal">
+            <div class="edit-modal-header">
+                <span>Merge selected requirements</span>
+                <button class="close-x" onclick="closeMergeModal()">&times;</button>
+            </div>
+            <div class="edit-modal-body">
+                <div id="mergeSummary" class="merge-summary"></div>
+
+                <div class="form-row">
+                    <label for="mergeText">Merged requirement text</label>
+                    <textarea id="mergeText" rows="4"></textarea>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label for="mergeType">Type</label>
+                        <select id="mergeType">
+                            <option value="requirement">Requirement</option>
+                            <option value="pain_point">Pain point</option>
+                            <option value="challenge">Challenge</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="mergePriority">Priority</label>
+                        <select id="mergePriority">
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium">Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label for="mergeCategory">Category</label>
+                        <select id="mergeCategory"></select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <label for="mergeRationale">Rationale (optional)</label>
+                    <textarea id="mergeRationale" rows="2"></textarea>
+                </div>
+            </div>
+            <div class="edit-modal-footer">
+                <button class="btn btn-secondary" onclick="closeMergeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveMerge()">Merge</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '../../api/rfp-builder/';
         const rfpId = new URLSearchParams(location.search).get('id');
         let rfpName = '';
+        // Cached page data so action handlers can find rows / categories
+        // without re-fetching. Refreshed by loadAll() after every mutation.
+        let pageData = { categories: [], consolidated: [], conflicts: [] };
+        // Set of selected consolidated IDs for merge mode
+        const selectedIds = new Set();
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId) {
@@ -373,6 +644,16 @@ $path_prefix  = '../../';
         }
 
         function render(data) {
+            pageData = data;
+            // Selection survives a refresh only for rows that still exist.
+            for (const id of [...selectedIds]) {
+                if (!data.consolidated.find(c => c.id === id)) selectedIds.delete(id);
+            }
+            updateMergeBar();
+
+            // Show "+ Add custom" once we have at least one category to put a custom req into.
+            document.getElementById('addBtn').style.display = data.categories.length > 0 ? '' : 'none';
+
             const consByCat = new Map();
             data.consolidated.forEach(c => {
                 const k = c.category_id || 0;
@@ -427,6 +708,14 @@ $path_prefix  = '../../';
                 : '';
 
             contentEl.innerHTML = catBlocks.join('') + conflictsHtml;
+
+            // Re-apply selection state after the DOM was re-rendered
+            selectedIds.forEach(id => {
+                const cb = document.querySelector('.req-select[data-id="' + id + '"]');
+                const row = document.getElementById('row-' + id);
+                if (cb)  cb.checked = true;
+                if (row) row.classList.add('selected');
+            });
         }
 
         function renderCategoryBlock(cat, reqs) {
@@ -446,14 +735,21 @@ $path_prefix  = '../../';
 
         function renderReqRow(r) {
             const sources = r.sources || [];
+            const canSplit = sources.length >= 2;
             return `
-                <div class="req-row" data-id="${r.id}">
+                <div class="req-row" data-id="${r.id}" id="row-${r.id}">
                     <div class="req-row-top">
+                        <input type="checkbox" class="req-select" data-id="${r.id}" onchange="onSelectRow(${r.id}, this.checked)">
                         <span class="pill type-${escapeHtml(r.requirement_type)}">${escapeHtml(r.requirement_type.replace('_', ' '))}</span>
                         <span class="pill prio-${escapeHtml(r.priority)}">${escapeHtml(r.priority)}</span>
                         <div class="req-row-text">
                             ${escapeHtml(r.requirement_text)}
-                            ${r.ai_rationale ? `<div class="req-row-rationale">AI: ${escapeHtml(r.ai_rationale)}</div>` : ''}
+                            ${r.ai_rationale ? `<div class="req-row-rationale">${escapeHtml(r.ai_rationale)}</div>` : ''}
+                        </div>
+                        <div class="req-row-actions">
+                            <button class="icon-btn" onclick="openEditModal(${r.id})">Edit</button>
+                            ${canSplit ? `<button class="icon-btn" onclick="openSplitModal(${r.id})">Split</button>` : ''}
+                            <button class="icon-btn danger" onclick="deleteRow(${r.id})">Delete</button>
                         </div>
                     </div>
                     <div class="source-toggle">
@@ -703,6 +999,383 @@ $path_prefix  = '../../';
             const el = document.getElementById('errorEl');
             el.innerHTML = html;
             el.style.display = 'block';
+        }
+
+        // ─── Selection / merge bar ───────────────────────────────────
+
+        function onSelectRow(id, checked) {
+            if (checked) selectedIds.add(id); else selectedIds.delete(id);
+            const row = document.getElementById('row-' + id);
+            if (row) row.classList.toggle('selected', checked);
+            updateMergeBar();
+        }
+
+        function clearSelection() {
+            selectedIds.clear();
+            document.querySelectorAll('.req-select').forEach(cb => { cb.checked = false; });
+            document.querySelectorAll('.req-row.selected').forEach(r => r.classList.remove('selected'));
+            updateMergeBar();
+        }
+
+        function updateMergeBar() {
+            const bar = document.getElementById('mergeBar');
+            const count = selectedIds.size;
+            if (count >= 2) {
+                bar.classList.add('active');
+                document.getElementById('mergeCount').textContent = count + ' selected for merge';
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        // ─── Helpers ─────────────────────────────────────────────────
+
+        function findCons(id) {
+            return pageData.consolidated.find(c => c.id === id);
+        }
+
+        function populateCategoryDropdown(selectEl, selectedId) {
+            const opts = ['<option value="">(Uncategorised)</option>']
+                .concat(pageData.categories.map(c =>
+                    '<option value="' + c.id + '"' + (c.id === selectedId ? ' selected' : '') + '>' +
+                    escapeHtml(c.name) + '</option>'
+                ));
+            selectEl.innerHTML = opts.join('');
+        }
+
+        // ─── Edit modal (also used for "Add custom") ─────────────────
+
+        let editMode = 'edit';   // 'edit' or 'add'
+        let editingId = null;
+
+        function openEditModal(id) {
+            const r = findCons(id);
+            if (!r) return;
+            editMode = 'edit';
+            editingId = id;
+            document.getElementById('editModalTitle').textContent = 'Edit requirement';
+            document.getElementById('editText').value      = r.requirement_text || '';
+            document.getElementById('editType').value      = r.requirement_type || 'requirement';
+            document.getElementById('editPriority').value  = r.priority || 'medium';
+            populateCategoryDropdown(document.getElementById('editCategory'), r.category_id);
+            document.getElementById('editRationale').value = r.ai_rationale || '';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function openAddModal() {
+            editMode = 'add';
+            editingId = null;
+            document.getElementById('editModalTitle').textContent = 'Add custom requirement';
+            document.getElementById('editText').value      = '';
+            document.getElementById('editType').value      = 'requirement';
+            document.getElementById('editPriority').value  = 'medium';
+            populateCategoryDropdown(document.getElementById('editCategory'), null);
+            document.getElementById('editRationale').value = '';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        async function saveEdit() {
+            const payload = {
+                requirement_text: document.getElementById('editText').value.trim(),
+                requirement_type: document.getElementById('editType').value,
+                priority:         document.getElementById('editPriority').value,
+                category_id:      document.getElementById('editCategory').value || null,
+                ai_rationale:     document.getElementById('editRationale').value.trim()
+            };
+            if (!payload.requirement_text) { alert('Requirement text is required.'); return; }
+
+            const btn = document.getElementById('editSaveBtn');
+            btn.disabled = true;
+            try {
+                let url, body;
+                if (editMode === 'edit') {
+                    url  = API_BASE + 'update_consolidated.php';
+                    body = JSON.stringify({ id: editingId, ...payload });
+                } else {
+                    url  = API_BASE + 'add_consolidated.php';
+                    body = JSON.stringify({ rfp_id: parseInt(rfpId, 10), ...payload });
+                }
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Save failed');
+                closeEditModal();
+                loadAll();
+            } catch (err) {
+                alert('Save failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ─── Delete ──────────────────────────────────────────────────
+
+        async function deleteRow(id) {
+            const r = findCons(id);
+            if (!r) return;
+            if (!confirm('Delete this consolidated requirement?\n\n"' + r.requirement_text.slice(0, 120) + '"\n\nThe linked source items remain untouched.')) {
+                return;
+            }
+            try {
+                const res = await fetch(API_BASE + 'delete_consolidated.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Delete failed');
+                selectedIds.delete(id);
+                loadAll();
+            } catch (err) {
+                alert('Delete failed: ' + err.message);
+            }
+        }
+
+        // ─── Split modal ─────────────────────────────────────────────
+
+        let splittingId = null;
+        let splitRowCount = 0;
+
+        function openSplitModal(id) {
+            const r = findCons(id);
+            if (!r) return;
+            splittingId = id;
+            splitRowCount = 0;
+
+            document.getElementById('splitOriginalText').textContent = r.requirement_text;
+
+            // Source pickers — each source gets a dropdown to pick which new row it belongs to.
+            const srcList = document.getElementById('splitSourceList');
+            const sources = r.sources || [];
+            srcList.innerHTML = sources.map(s => `
+                <div class="source-pick-row" data-extracted-id="${s.extracted_id}">
+                    <div class="source-pick-info">
+                        <div class="source-text">${escapeHtml(s.requirement_text)}</div>
+                        <div class="source-meta">${escapeHtml(s.department_name || 'Unassigned')} · ${escapeHtml(s.document_filename || '')} · extracted #${s.extracted_id}</div>
+                    </div>
+                    <select data-source-target>
+                        <option value="">(Drop)</option>
+                    </select>
+                </div>
+            `).join('');
+
+            // Reset rows container, start with two empty rows (most splits
+            // are into two; user can add more).
+            const container = document.getElementById('splitRowsContainer');
+            container.innerHTML = '';
+            addSplitRow();
+            addSplitRow();
+            // Default each source to "row 1" — analyst usually keeps
+            // most sources together and reassigns a few to row 2.
+            document.querySelectorAll('#splitSourceList select[data-source-target]').forEach(sel => {
+                sel.value = '1';
+            });
+
+            document.getElementById('splitModal').style.display = 'flex';
+        }
+
+        function closeSplitModal() {
+            document.getElementById('splitModal').style.display = 'none';
+        }
+
+        function addSplitRow() {
+            splitRowCount++;
+            const num = splitRowCount;
+            const container = document.getElementById('splitRowsContainer');
+            const div = document.createElement('div');
+            div.className = 'split-row-card';
+            div.dataset.splitRow = num;
+            div.innerHTML = `
+                <span class="split-row-num">Row ${num}</span>
+                <button class="split-row-remove" type="button" title="Remove this row" onclick="removeSplitRow(${num})">&times;</button>
+                <div class="form-row">
+                    <textarea data-split-text placeholder="Requirement text"></textarea>
+                </div>
+                <div class="form-row-grid">
+                    <div class="form-row">
+                        <label>Type</label>
+                        <select data-split-type>
+                            <option value="requirement">Requirement</option>
+                            <option value="pain_point">Pain point</option>
+                            <option value="challenge">Challenge</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Priority</label>
+                        <select data-split-priority>
+                            <option value="critical">Critical</option>
+                            <option value="high">High</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <label>Category</label>
+                        <select data-split-category></select>
+                    </div>
+                </div>
+            `;
+            container.appendChild(div);
+            populateCategoryDropdown(div.querySelector('select[data-split-category]'), null);
+            // Pre-fill type from the original row to save clicks
+            const orig = findCons(splittingId);
+            if (orig) {
+                div.querySelector('select[data-split-type]').value     = orig.requirement_type || 'requirement';
+                div.querySelector('select[data-split-priority]').value = orig.priority         || 'medium';
+                const catSel = div.querySelector('select[data-split-category]');
+                if (orig.category_id) catSel.value = String(orig.category_id);
+            }
+            // Refresh source-target dropdowns to include this row
+            refreshSplitSourceOptions();
+        }
+
+        function removeSplitRow(num) {
+            const card = document.querySelector('.split-row-card[data-split-row="' + num + '"]');
+            if (!card) return;
+            // Don't allow fewer than 2 rows
+            if (document.querySelectorAll('.split-row-card').length <= 2) {
+                alert('A split needs at least 2 rows. Cancel the split if you only want one.');
+                return;
+            }
+            card.remove();
+            // Renumber visible cards
+            renumberSplitRows();
+            refreshSplitSourceOptions();
+        }
+
+        function renumberSplitRows() {
+            const cards = document.querySelectorAll('.split-row-card');
+            cards.forEach((card, i) => {
+                const num = i + 1;
+                card.dataset.splitRow = num;
+                card.querySelector('.split-row-num').textContent = 'Row ' + num;
+                card.querySelector('.split-row-remove').setAttribute('onclick', 'removeSplitRow(' + num + ')');
+            });
+            splitRowCount = cards.length;
+        }
+
+        function refreshSplitSourceOptions() {
+            const cards = document.querySelectorAll('.split-row-card');
+            const opts = ['<option value="">(Drop)</option>']
+                .concat(Array.from(cards).map((_, i) => '<option value="' + (i + 1) + '">Row ' + (i + 1) + '</option>'));
+            document.querySelectorAll('#splitSourceList select[data-source-target]').forEach(sel => {
+                const prev = sel.value;
+                sel.innerHTML = opts.join('');
+                if (prev !== '' && parseInt(prev, 10) <= cards.length) sel.value = prev;
+            });
+        }
+
+        async function saveSplit() {
+            const cards = document.querySelectorAll('.split-row-card');
+            const newRows = Array.from(cards).map((card, i) => {
+                const num = i + 1;
+                // Source IDs assigned to this row
+                const sources = [];
+                document.querySelectorAll('#splitSourceList .source-pick-row').forEach(row => {
+                    const sel = row.querySelector('select[data-source-target]');
+                    if (sel.value === String(num)) {
+                        sources.push(parseInt(row.dataset.extractedId, 10));
+                    }
+                });
+                return {
+                    requirement_text:    card.querySelector('textarea[data-split-text]').value.trim(),
+                    requirement_type:    card.querySelector('select[data-split-type]').value,
+                    priority:            card.querySelector('select[data-split-priority]').value,
+                    category_id:         card.querySelector('select[data-split-category]').value || null,
+                    source_extracted_ids: sources
+                };
+            });
+
+            if (newRows.some(r => !r.requirement_text)) {
+                alert('Every new row needs a requirement text.');
+                return;
+            }
+
+            try {
+                const res = await fetch(API_BASE + 'split_consolidated.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ id: splittingId, new_rows: newRows })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Split failed');
+                closeSplitModal();
+                loadAll();
+            } catch (err) {
+                alert('Split failed: ' + err.message);
+            }
+        }
+
+        // ─── Merge modal ─────────────────────────────────────────────
+
+        function openMergeModal() {
+            const ids = Array.from(selectedIds);
+            if (ids.length < 2) {
+                alert('Select at least 2 requirements to merge.');
+                return;
+            }
+            const rows = ids.map(findCons).filter(Boolean);
+
+            // Pre-fill the merged form from the first row, summarise the
+            // others in a help block so the analyst can see what they're
+            // merging.
+            const first = rows[0];
+            document.getElementById('mergeText').value      = first.requirement_text;
+            document.getElementById('mergeType').value      = first.requirement_type;
+            document.getElementById('mergePriority').value  = first.priority;
+            populateCategoryDropdown(document.getElementById('mergeCategory'), first.category_id);
+            document.getElementById('mergeRationale').value = '';
+
+            document.getElementById('mergeSummary').innerHTML =
+                '<strong>Merging ' + rows.length + ' rows.</strong> Source items from all rows will be unioned onto the merged row. Conflicts attached to the merged-away rows will be removed (re-detect on next consolidation if needed).' +
+                '<ul>' + rows.map(r => '<li>' + escapeHtml(r.requirement_text.slice(0, 140)) + (r.requirement_text.length > 140 ? '…' : '') + '</li>').join('') + '</ul>';
+
+            document.getElementById('mergeModal').style.display = 'flex';
+        }
+
+        function closeMergeModal() {
+            document.getElementById('mergeModal').style.display = 'none';
+        }
+
+        async function saveMerge() {
+            const ids = Array.from(selectedIds);
+            if (ids.length < 2) { closeMergeModal(); return; }
+            const payload = {
+                ids,
+                merged: {
+                    requirement_text: document.getElementById('mergeText').value.trim(),
+                    requirement_type: document.getElementById('mergeType').value,
+                    priority:         document.getElementById('mergePriority').value,
+                    category_id:      document.getElementById('mergeCategory').value || null,
+                    ai_rationale:     document.getElementById('mergeRationale').value.trim()
+                }
+            };
+            if (!payload.merged.requirement_text) {
+                alert('Merged requirement text is required.');
+                return;
+            }
+
+            try {
+                const res = await fetch(API_BASE + 'merge_consolidated.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Merge failed');
+                closeMergeModal();
+                clearSelection();
+                loadAll();
+            } catch (err) {
+                alert('Merge failed: ' + err.message);
+            }
         }
 
         function escapeHtml(str) {
