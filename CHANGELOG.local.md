@@ -12,6 +12,15 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+
+---
+
+## Published
+
+### 3 May 2026
+
+| ID  | Module            | Type        | Description |
+|-----|-------------------|-------------|-------------|
 | 125 | RFP Builder       | Feature     | Add database schema for new RFP Builder feature in the Contracts module (Phase 1 of feature build): 13 tables covering RFPs, departments, categories, source documents, raw extracted requirements, consolidated/deduplicated requirements with source attribution, conflict tracking, generated output sections with version history, invited suppliers, multi-analyst scoring, and AI processing log |
 | 126 | RFP Builder       | Feature     | Add RFP Builder list page and per-RFP overview at `/contracts/rfp-builder/` with create/edit/delete and status transitions (draft → collecting → consolidating → generating → scoring → closed). New RFP Builder tab in the Contracts module navigation; per-RFP overview shows phase tiles tracking progress through the workflow |
 | 127 | RFP Builder       | Feature     | Add RFP Departments lookup CRUD (Phase 1 step 3) as a new tab on the Contracts settings page. Maintains the master list of internal departments that contribute requirements docs (e.g. IT, Finance, HR), with name, colour swatch, sort order, and active toggle |
@@ -44,10 +53,6 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 | 154 | RFP Builder       | Feature     | Add system-default style guide (Phase 6 polish). New "Default style guide" textarea on the Contracts → Settings → RFP AI tab; saved to `system_settings` key `rfp_default_style_guide`. New `rfpAiResolveStyleGuide()` helper centralises the resolution: per-RFP override first, then system default, then a hardcoded fallback. Pass 3 generation, Pass 4 restyle, and framing generation all use the helper |
 | 155 | RFP Builder       | Feature     | Add full audit trail page (Phase 6 polish) at `/contracts/rfp-builder/audit.php`. Stats strip (runs, successful, errors, total tokens in/out, cached input), filter card (by action, status, target text), and a paginated-ish table of every AI call ever made for this RFP up to 2000 rows. Linked from the AI activity panel on the RFP overview via a new "View full audit trail" link. The existing `get_processing_log.php` endpoint now accepts `limit=0` meaning "give me everything" (capped at 2000) |
 | 156 | RFP Builder       | Feature     | Add in-app user guide (Phase 6 polish, completes Phase 6) at `/contracts/rfp-builder/help.php`. Sticky-sidebar navigation + main content pane covering: overview, six-phase workflow strip, cost expectations table per AI pass, one card per phase explaining what to do, key concepts (lock gate / multi-analyst scoring / prompt caching / audit trail), and a FAQ. Help links from the RFP Builder list page sidebar (Quick Links section) and the per-RFP overview page header |
-
----
-
-## Published
 
 ### 2 May 2026
 
