@@ -27,6 +27,33 @@ const RFP_AI_RETRY_BACKOFF_MS    = 2000;
 const RFP_AI_HTTP_TIMEOUT        = 120;
 const RFP_AI_VALID_PROVIDERS     = ['anthropic', 'openai'];
 
+const RFP_AI_FALLBACK_STYLE_GUIDE = "Default style: clear, formal, neutral. British English. Active voice where natural. No marketing language. Keep paragraphs short — three sentences maximum where possible. Avoid jargon; spell out acronyms on first use within a section.";
+
+/**
+ * Resolve the style guide for an RFP. Order of precedence:
+ *   1. The RFP's own `rfps.style_guide` override (per-RFP)
+ *   2. The system-wide `system_settings.rfp_default_style_guide`
+ *   3. A safe hardcoded fallback
+ */
+function rfpAiResolveStyleGuide(PDO $conn, int $rfpId): string
+{
+    $rfpStmt = $conn->prepare("SELECT style_guide FROM rfps WHERE id = ?");
+    $rfpStmt->execute([$rfpId]);
+    $rfpStyle = $rfpStmt->fetchColumn();
+    if (is_string($rfpStyle) && trim($rfpStyle) !== '') {
+        return trim($rfpStyle);
+    }
+
+    $sysStmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'rfp_default_style_guide'");
+    $sysStmt->execute();
+    $sysStyle = $sysStmt->fetchColumn();
+    if (is_string($sysStyle) && trim($sysStyle) !== '') {
+        return trim($sysStyle);
+    }
+
+    return RFP_AI_FALLBACK_STYLE_GUIDE;
+}
+
 /**
  * Load the configured provider, model, decrypted API key and
  * SSL-verify flag. Throws if any required piece is missing — callers
@@ -967,14 +994,8 @@ function rfpAiGenerateSectionStreaming(PDO $conn, int $rfpId, int $categoryId, c
         $deptsByReq[$rid][] = $row['department_name'] ?: 'Unassigned';
     }
 
-    // Style guide — per-RFP override, falling back to a sensible default.
-    // The system_settings-level default is a Phase 6 polish task.
-    $sgStmt = $conn->prepare("SELECT style_guide FROM rfps WHERE id = ?");
-    $sgStmt->execute([$rfpId]);
-    $rfpStyle = $sgStmt->fetchColumn();
-    $styleGuide = (is_string($rfpStyle) && trim($rfpStyle) !== '')
-        ? trim($rfpStyle)
-        : "Default style: clear, formal, neutral. British English. Active voice where natural. No marketing language. Keep paragraphs short — three sentences maximum where possible. Avoid jargon; spell out acronyms on first use within a section.";
+    // Style guide — per-RFP override, then system default, then hardcoded fallback.
+    $styleGuide = rfpAiResolveStyleGuide($conn, $rfpId);
 
     // System prompt = static instructions + the style guide. Both get
     // cached together so re-running on more categories within the same
@@ -1198,10 +1219,8 @@ function rfpAiGenerateFramingStreaming(PDO $conn, int $rfpId, string $sectionKey
     $deptStmt->execute([$rfpId]);
     $departments = $deptStmt->fetchAll(PDO::FETCH_COLUMN);
 
-    // Style guide — same source as Pass 3 generation.
-    $styleGuide = (is_string($rfp['style_guide']) && trim($rfp['style_guide']) !== '')
-        ? trim($rfp['style_guide'])
-        : "Default style: clear, formal, neutral. British English. Active voice where natural. No marketing language. Keep paragraphs short — three sentences maximum where possible. Avoid jargon; spell out acronyms on first use within a section.";
+    // Style guide — per-RFP override, then system default, then hardcoded fallback.
+    $styleGuide = rfpAiResolveStyleGuide($conn, $rfpId);
 
     $systemPrompt = RFP_AI_FRAMING_SYSTEM . "\n\n# STYLE GUIDE FOR THIS RFP\n\n" . $styleGuide;
 
@@ -1324,13 +1343,8 @@ function rfpAiRestyleStreaming(PDO $conn, int $rfpId, string $existingHtml, stri
         throw new RuntimeException('Cannot restyle empty content');
     }
 
-    // Style guide — same source as the generation passes.
-    $sgStmt = $conn->prepare("SELECT style_guide FROM rfps WHERE id = ?");
-    $sgStmt->execute([$rfpId]);
-    $rfpStyle = $sgStmt->fetchColumn();
-    $styleGuide = (is_string($rfpStyle) && trim($rfpStyle) !== '')
-        ? trim($rfpStyle)
-        : "Default style: clear, formal, neutral. British English. Active voice where natural. No marketing language. Keep paragraphs short — three sentences maximum where possible. Avoid jargon; spell out acronyms on first use within a section.";
+    // Style guide — per-RFP override, then system default, then hardcoded fallback.
+    $styleGuide = rfpAiResolveStyleGuide($conn, $rfpId);
 
     $systemPrompt = RFP_AI_RESTYLE_SYSTEM . "\n\n# STYLE GUIDE FOR THIS RFP\n\n" . $styleGuide;
     $userPrompt   = "Apply the style guide to this HTML. Return only the restyled HTML.\n\n" . $existingHtml;

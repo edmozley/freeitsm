@@ -25,7 +25,14 @@ try {
     if ($rfp_id <= 0) {
         throw new Exception('Missing or invalid rfp_id');
     }
-    $limit = isset($_GET['limit']) ? max(1, min(100, (int)$_GET['limit'])) : 25;
+    // Limit clamps to 100 by default for the small overview panel,
+    // but the audit page asks for full history via limit=0 -> 2000.
+    $rawLimit = isset($_GET['limit']) ? (int)$_GET['limit'] : 25;
+    if ($rawLimit === 0) {
+        $limit = 2000;
+    } else {
+        $limit = max(1, min(2000, $rawLimit));
+    }
 
     $conn = connectToDatabase();
 

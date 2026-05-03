@@ -199,6 +199,7 @@ $path_prefix = '../../';
                 </h1>
                 <div class="rfp-actions">
                     <a href="./" class="btn btn-secondary">&larr; Back</a>
+                    <a href="help.php" class="btn btn-secondary">Help</a>
                     <button class="btn btn-secondary" onclick="editRfp()">Edit</button>
                     <button class="btn btn-danger" onclick="deleteRfp()">Delete</button>
                 </div>
@@ -271,8 +272,9 @@ $path_prefix = '../../';
             if (!totals || totals.run_count === 0) return; // hide entirely until first run
             document.getElementById('aiActivityCard').style.display = 'block';
 
-            document.getElementById('aiActivityLastRun').textContent =
-                totals.last_run ? 'Last run ' + formatDateTime(totals.last_run) : '';
+            document.getElementById('aiActivityLastRun').innerHTML =
+                (totals.last_run ? 'Last run ' + escapeHtml(formatDateTime(totals.last_run)) + ' · ' : '') +
+                '<a href="audit.php?id=' + encodeURIComponent(rfpId) + '" style="color:#888;">View full audit trail</a>';
 
             const cachePct = totals.tokens_in_recent > 0
                 ? Math.round((totals.cache_read_recent / totals.tokens_in_recent) * 100)

@@ -24,10 +24,11 @@ try {
         throw new Exception('Invalid request');
     }
 
-    $provider  = $data['provider']   ?? '';
-    $apiKey    = $data['api_key']    ?? '';
-    $model     = trim($data['model'] ?? '');
-    $verifySsl = isset($data['verify_ssl']) && $data['verify_ssl'] === '0' ? '0' : '1';
+    $provider          = $data['provider']            ?? '';
+    $apiKey            = $data['api_key']             ?? '';
+    $model             = trim($data['model'] ?? '');
+    $verifySsl         = isset($data['verify_ssl']) && $data['verify_ssl'] === '0' ? '0' : '1';
+    $defaultStyleGuide = isset($data['default_style_guide']) ? trim($data['default_style_guide']) : '';
 
     if (!in_array($provider, $VALID_PROVIDERS, true)) {
         throw new Exception('Provider must be anthropic or openai');
@@ -38,9 +39,10 @@ try {
 
     $conn = connectToDatabase();
     $writes = [
-        'rfp_ai_provider'   => $provider,
-        'rfp_ai_model'      => $model,
-        'rfp_ai_verify_ssl' => $verifySsl,
+        'rfp_ai_provider'         => $provider,
+        'rfp_ai_model'            => $model,
+        'rfp_ai_verify_ssl'       => $verifySsl,
+        'rfp_default_style_guide' => $defaultStyleGuide,
     ];
 
     // Only persist a new api key if the user actually supplied one.

@@ -16,7 +16,7 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
-const RFP_AI_KEYS = ['rfp_ai_provider', 'rfp_ai_api_key', 'rfp_ai_model', 'rfp_ai_verify_ssl'];
+const RFP_AI_KEYS = ['rfp_ai_provider', 'rfp_ai_api_key', 'rfp_ai_model', 'rfp_ai_verify_ssl', 'rfp_default_style_guide'];
 
 try {
     $conn = connectToDatabase();
@@ -26,10 +26,11 @@ try {
     $stmt->execute(RFP_AI_KEYS);
 
     $values = [
-        'rfp_ai_provider'   => '',
-        'rfp_ai_api_key'    => '',
-        'rfp_ai_model'      => '',
-        'rfp_ai_verify_ssl' => '',
+        'rfp_ai_provider'         => '',
+        'rfp_ai_api_key'          => '',
+        'rfp_ai_model'            => '',
+        'rfp_ai_verify_ssl'       => '',
+        'rfp_default_style_guide' => '',
     ];
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
         $value = $row['setting_value'];

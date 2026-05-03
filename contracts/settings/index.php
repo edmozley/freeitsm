@@ -292,6 +292,14 @@ $path_prefix = '../../';
                         </div>
                     </div>
 
+                    <div class="form-group">
+                        <label for="aiDefaultStyleGuide">Default style guide</label>
+                        <textarea id="aiDefaultStyleGuide" rows="6" placeholder="Optional. Used as the default style guide for any RFP that doesn't have its own override. Examples: tone of voice, British vs US English, sentence-case vs title-case headings, specific terminology preferences."></textarea>
+                        <div style="font-size:12px; color:#888; margin-top:4px;">
+                            Applied at every AI generation step that produces document text (Pass 3 section generation, Pass 4 restyle, framing-section generation). Each individual RFP can override this on its own settings.
+                        </div>
+                    </div>
+
                     <div style="display:flex; gap:8px; align-items:center; margin-top: 20px;">
                         <button type="submit" class="btn btn-primary">Save</button>
                         <button type="button" class="btn" id="aiTestBtn" onclick="testAiConnection()" style="background:white; border:1px solid #ddd; color:#333;">Test</button>
@@ -632,6 +640,7 @@ $path_prefix = '../../';
                 // verify_ssl: default to true unless explicitly stored as "0"
                 document.getElementById('aiVerifySsl').checked = s.rfp_ai_verify_ssl !== '0';
                 updateAiSslWarning();
+                document.getElementById('aiDefaultStyleGuide').value = s.rfp_default_style_guide || '';
             } catch (err) {
                 setAiTestStatus('Could not load settings: ' + err.message, 'error');
             }
@@ -669,6 +678,7 @@ $path_prefix = '../../';
                 model:      document.getElementById('aiModel').value.trim(),
                 api_key:    document.getElementById('aiApiKey').value,
                 verify_ssl: document.getElementById('aiVerifySsl').checked ? '1' : '0',
+                default_style_guide: document.getElementById('aiDefaultStyleGuide').value,
             };
             try {
                 const res = await fetch(RFP_AI_API + 'save_ai_settings.php', {
