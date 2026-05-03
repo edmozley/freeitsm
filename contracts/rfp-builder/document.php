@@ -82,6 +82,101 @@ $path_prefix  = '../../';
         }
         .empty-card p { color: #666; margin: 6px 0; }
 
+        /* Document framing panel — sits above the category cards */
+        .framing-panel {
+            background: white; border-radius: 10px; margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
+            border-left: 4px solid #0ea5e9;
+        }
+        .framing-panel-header {
+            padding: 14px 22px; background: #f0f9ff; border-bottom: 1px solid #e0f2fe;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .framing-panel-header h2 {
+            margin: 0; font-size: 15px; font-weight: 700; color: #075985;
+            letter-spacing: 0.3px; text-transform: uppercase;
+            flex: 1;
+        }
+        .framing-panel-header .header-actions { display: flex; gap: 8px; }
+        .framing-context-block {
+            padding: 12px 22px; background: #fafbfc; font-size: 13px;
+            color: #444; line-height: 1.5; border-bottom: 1px solid #eef0f2;
+        }
+        .framing-context-block .ctx-label {
+            font-size: 11px; color: #888; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-bottom: 4px;
+        }
+        .framing-context-block .ctx-empty { color: #999; font-style: italic; }
+        .framing-card {
+            padding: 14px 22px; border-bottom: 1px solid #f0f0f0;
+        }
+        .framing-card:last-child { border-bottom: none; }
+        .framing-card-header {
+            display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px;
+        }
+        .framing-card-header h3 {
+            margin: 0; font-size: 14px; font-weight: 700; color: #222;
+            flex: 1;
+        }
+        .framing-card-header .meta {
+            font-size: 11px; color: #999;
+            display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+        }
+        .framing-card-header .meta .badge {
+            padding: 1px 7px; border-radius: 8px; background: #eef0f2; color: #555;
+        }
+        .framing-card-header .meta .badge.edited { background: #ede9fe; color: #5b21b6; }
+        .framing-card-header .meta .badge.fresh  { background: #d1fae5; color: #047857; }
+        .framing-card-header .meta .badge.empty  { background: #fef3c7; color: #92400e; }
+        .framing-card-header .actions {
+            display: flex; gap: 6px; flex-shrink: 0;
+        }
+        .framing-card-body { font-size: 13px; line-height: 1.55; color: #333; }
+        .framing-card-body h3 {
+            font-size: 13px; font-weight: 700; color: #1f2937;
+            margin: 12px 0 6px 0;
+        }
+        .framing-card-body p { margin: 0 0 8px 0; }
+        .framing-card-body ul, .framing-card-body ol { margin: 0 0 8px 22px; }
+        .framing-card-body li { margin-bottom: 3px; }
+        .framing-card-body.empty {
+            color: #999; font-style: italic;
+            padding: 14px 0; text-align: center; background: #fafbfc;
+            border-radius: 6px;
+        }
+
+        /* Generic edit modal (re-used for context note and framing edit) */
+        .modal-edit-shell {
+            background: white; border-radius: 12px; width: 720px; max-width: 92vw;
+            max-height: 86vh; display: flex; flex-direction: column;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
+        }
+        .modal-edit-header {
+            padding: 14px 22px; border-bottom: 1px solid #eee;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .modal-edit-header h3 { margin: 0; font-size: 15px; font-weight: 600; color: #222; }
+        .modal-edit-header .close-x {
+            background: none; border: none; font-size: 22px; color: #888; cursor: pointer; padding: 0; line-height: 1;
+        }
+        .modal-edit-body { padding: 18px 22px; overflow-y: auto; flex: 1; }
+        .modal-edit-footer {
+            padding: 12px 22px; border-top: 1px solid #eee;
+            display: flex; justify-content: flex-end; gap: 8px;
+        }
+        .form-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+        .form-row label {
+            font-size: 12px; font-weight: 600; color: #555;
+            text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .form-row .help { font-size: 12px; color: #888; }
+        .form-row textarea {
+            padding: 10px 12px; font-size: 13px; font-family: inherit;
+            border: 1px solid #d1d5db; border-radius: 6px; line-height: 1.5;
+            resize: vertical; min-height: 100px;
+        }
+        .form-row textarea.tall { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
+
         .category-card {
             background: white; border-radius: 10px; margin-bottom: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
@@ -238,6 +333,7 @@ $path_prefix  = '../../';
             <h1>Generated document</h1>
             <div class="page-actions">
                 <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
+                <a id="previewLink" class="btn btn-secondary" target="_blank" style="display:none;">Preview document</a>
                 <button id="generateAllBtn" class="btn btn-primary" onclick="generateAll(false)" style="display:none;">Generate all</button>
             </div>
         </div>
@@ -271,6 +367,48 @@ $path_prefix  = '../../';
         <div id="errorEl" class="error-state" style="display:none;"></div>
     </div>
 
+    <!-- Framing context modal — analyst's optional "why we're procuring this" note -->
+    <div id="contextModal" class="modal-backdrop" style="display:none;">
+        <div class="modal-edit-shell">
+            <div class="modal-edit-header">
+                <h3>Procurement context</h3>
+                <button class="close-x" onclick="closeContextModal()">&times;</button>
+            </div>
+            <div class="modal-edit-body">
+                <div class="form-row">
+                    <label for="ctxField">Optional context note</label>
+                    <div class="help">A short paragraph telling the AI why the organisation is procuring this — e.g. replacing a legacy system, scaling up, compliance change. Used to ground the introduction. Two or three sentences is plenty.</div>
+                    <textarea id="ctxField" rows="6" placeholder="Example: We are replacing our existing on-premise ITSM tool, which has reached end of life and no longer supports the integrations needed by our hybrid workforce. Driven by the move to cloud-first under the IT strategy refresh."></textarea>
+                </div>
+            </div>
+            <div class="modal-edit-footer">
+                <button class="btn btn-secondary" onclick="closeContextModal()">Cancel</button>
+                <button class="btn btn-primary" id="ctxSaveBtn" onclick="saveContext()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Framing edit modal — manual edit of one framing section's HTML -->
+    <div id="framingEditModal" class="modal-backdrop" style="display:none;">
+        <div class="modal-edit-shell">
+            <div class="modal-edit-header">
+                <h3 id="framingEditTitle">Edit framing section</h3>
+                <button class="close-x" onclick="closeFramingEdit()">&times;</button>
+            </div>
+            <div class="modal-edit-body">
+                <div class="form-row">
+                    <label>HTML content</label>
+                    <div class="help">Edit the section's HTML directly. Use &lt;p&gt;, &lt;h3&gt;, &lt;ul&gt;/&lt;li&gt;, &lt;strong&gt;, &lt;em&gt;. Saving marks the section "manually edited" so it won't be overwritten by Generate-all unless you re-generate it explicitly.</div>
+                    <textarea id="framingEditField" class="tall" rows="14"></textarea>
+                </div>
+            </div>
+            <div class="modal-edit-footer">
+                <button class="btn btn-secondary" onclick="closeFramingEdit()">Cancel</button>
+                <button class="btn btn-primary" id="framingEditSaveBtn" onclick="saveFramingEdit()">Save</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Batch generation modal -->
     <div id="batchModal" class="modal-backdrop" style="display:none;">
         <div class="batch-modal">
@@ -300,7 +438,15 @@ $path_prefix  = '../../';
     <script>
         const API_BASE = '../../api/rfp-builder/';
         const rfpId = new URLSearchParams(location.search).get('id');
-        let pageData = { categories: [], lock: { all_locked: false } };
+        let pageData = { categories: [], framing: [], lock: { all_locked: false }, framing_context: null };
+
+        // Framing has a fixed list of three section keys, each with a
+        // user-facing label. Order matters in the document.
+        const FRAMING_KEYS = [
+            { key: 'introduction',          label: 'Introduction' },
+            { key: 'scope',                 label: 'Scope' },
+            { key: 'response_instructions', label: 'Response instructions' }
+        ];
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId) {
@@ -334,34 +480,50 @@ $path_prefix  = '../../';
 
         function render(data) {
             const cats = data.categories;
-            const generated = cats.filter(c => c.section_id !== null).length;
-            const pending   = cats.length - generated;
-            const edited    = cats.filter(c => c.is_manually_edited === true).length;
+            const framing = data.framing || [];
+            const framingByKey = new Map(framing.map(f => [f.section_key, f]));
+
+            const catGenerated = cats.filter(c => c.section_id !== null).length;
+            const catPending   = cats.length - catGenerated;
+            const framingGenerated = FRAMING_KEYS.filter(k => framingByKey.has(k.key)).length;
+            const framingPending   = FRAMING_KEYS.length - framingGenerated;
+            const totalGenerated = catGenerated + framingGenerated;
+            const totalPending   = catPending + framingPending;
+            const edited =
+                cats.filter(c => c.is_manually_edited === true).length +
+                framing.filter(f => f.is_manually_edited === true).length;
 
             document.getElementById('statCats').textContent    = cats.length;
-            document.getElementById('statGen').textContent     = generated;
-            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statGen').textContent     = totalGenerated;
+            document.getElementById('statPending').textContent = totalPending;
             document.getElementById('statEdited').textContent  = edited;
             document.getElementById('statsStrip').style.display = cats.length > 0 ? 'grid' : 'none';
 
-            const banner = document.getElementById('gateBanner');
-            const generateBtn = document.getElementById('generateAllBtn');
+            const banner       = document.getElementById('gateBanner');
+            const generateBtn  = document.getElementById('generateAllBtn');
+            const previewLink  = document.getElementById('previewLink');
 
             if (cats.length === 0) {
                 banner.style.display = 'flex';
                 document.getElementById('gateMsg').innerHTML =
                     '<strong>No categories yet.</strong> Run consolidation on this RFP first to produce a category structure.';
                 generateBtn.style.display = 'none';
+                previewLink.style.display = 'none';
             } else if (!data.lock.all_locked) {
                 banner.style.display = 'flex';
                 document.getElementById('gateMsg').innerHTML =
                     '<strong>Consolidated requirements are not locked.</strong> Section generation is gated on a fully-locked consolidation set so the inputs do not drift mid-generation. ' +
                     '<a href="consolidate.php?id=' + encodeURIComponent(rfpId) + '" style="color:#92400e;text-decoration:underline;">Open consolidation</a> to lock.';
                 generateBtn.style.display = 'none';
+                previewLink.style.display = 'none';
             } else {
                 banner.style.display = 'none';
                 generateBtn.style.display = '';
-                generateBtn.textContent = generated === 0 ? 'Generate all' : (pending > 0 ? 'Generate pending' : 'Re-generate all');
+                generateBtn.textContent = totalGenerated === 0
+                    ? 'Generate all'
+                    : (totalPending > 0 ? 'Generate pending' : 'Re-generate all');
+                previewLink.style.display = totalGenerated > 0 ? '' : 'none';
+                previewLink.href = 'preview.php?id=' + encodeURIComponent(rfpId);
             }
 
             const contentEl = document.getElementById('contentEl');
@@ -372,7 +534,72 @@ $path_prefix  = '../../';
                 return;
             }
 
-            contentEl.innerHTML = cats.map(c => renderCategoryCard(c)).join('');
+            contentEl.innerHTML =
+                renderFramingPanel(data.lock.all_locked, framingByKey, data.framing_context) +
+                cats.map(c => renderCategoryCard(c)).join('');
+        }
+
+        function renderFramingPanel(allLocked, framingByKey, contextNote) {
+            const cards = FRAMING_KEYS.map(spec => {
+                const f = framingByKey.get(spec.key);
+                const hasContent = !!f && !!f.section_content;
+                const editedBadge = (f && f.is_manually_edited)
+                    ? '<span class="badge edited">manually edited</span>'
+                    : '';
+                const stateBadge = hasContent
+                    ? '<span class="badge fresh">drafted</span>'
+                    : '<span class="badge empty">not yet drafted</span>';
+                const generatedAt = f && f.generated_datetime
+                    ? '<span>generated ' + escapeHtml(formatDateTime(f.generated_datetime)) + '</span>'
+                    : '';
+                const actions = allLocked ? `
+                    <button class="btn btn-secondary" onclick="generateFraming('${spec.key}', ${hasContent ? 'true' : 'false'})">${hasContent ? 'Re-generate' : 'Generate'}</button>
+                    ${hasContent ? `<button class="btn btn-secondary" onclick="openFramingEdit(${f.id})">Edit</button>` : ''}
+                ` : '';
+                const body = hasContent
+                    ? `<div class="framing-card-body">${f.section_content}</div>`
+                    : '<div class="framing-card-body empty">' + escapeHtml(spec.label) + ' has not been drafted yet.</div>';
+
+                return `
+                    <div class="framing-card" data-key="${spec.key}">
+                        <div class="framing-card-header">
+                            <h3>${escapeHtml(spec.label)}</h3>
+                            <div class="meta">
+                                ${stateBadge}
+                                ${editedBadge}
+                                ${generatedAt}
+                            </div>
+                            <div class="actions">${actions}</div>
+                        </div>
+                        ${body}
+                    </div>
+                `;
+            }).join('');
+
+            const ctx = contextNote && contextNote.trim() !== '' ? contextNote.trim() : '';
+            const ctxBlock = `
+                <div class="framing-context-block">
+                    <div class="ctx-label">Procurement context (used by the AI when drafting framing)</div>
+                    ${ctx
+                        ? '<div>' + escapeHtml(ctx) + '</div>'
+                        : '<div class="ctx-empty">None set. The AI will infer context from the categories alone — better intros come from a short note here.</div>'}
+                </div>
+            `;
+
+            const headerActions = allLocked
+                ? `<button class="btn btn-secondary" onclick="openContextModal()">Set context</button>`
+                : '';
+
+            return `
+                <div class="framing-panel">
+                    <div class="framing-panel-header">
+                        <h2>Document framing</h2>
+                        <div class="header-actions">${headerActions}</div>
+                    </div>
+                    ${ctxBlock}
+                    ${cards}
+                </div>
+            `;
         }
 
         function renderCategoryCard(c) {
@@ -429,23 +656,41 @@ $path_prefix  = '../../';
         let batchCancelRequested = false;
         let batchForceRegen = false;
 
+        // Batch queue items have one of two shapes so we can mix
+        // framing and category jobs in one run:
+        //   { kind: 'framing',  key: 'introduction', label: 'Introduction' }
+        //   { kind: 'category', id: 7, label: 'Identity and access management' }
+
         function generateOne(categoryId, force) {
-            startBatch([categoryId], !!force);
+            const cat = pageData.categories.find(c => c.id === categoryId);
+            startBatch([{ kind: 'category', id: categoryId, label: cat ? cat.name : 'Category #' + categoryId }], !!force);
+        }
+
+        function generateFraming(sectionKey, exists) {
+            // Per-row Generate / Re-generate on the framing panel.
+            // If a section already has content we always force regen,
+            // otherwise the API would skip and the user wouldn't see
+            // any change.
+            const spec = FRAMING_KEYS.find(s => s.key === sectionKey);
+            startBatch([{ kind: 'framing', key: sectionKey, label: spec ? spec.label : sectionKey }], !!exists);
         }
 
         function generateAll(forceAll) {
-            // Queue every category that has at least one consolidated req.
-            // The generate_section endpoint will hash-skip sections that
-            // haven't changed unless force is set, so re-running over an
-            // already-generated set is cheap.
-            const queue = pageData.categories
+            // Queue framing first (intro / scope / response_instructions),
+            // then every category that has consolidated requirements. The
+            // hash-skip optimisation in each endpoint cheaply skips
+            // up-to-date sections, so re-running on an already-generated
+            // RFP costs nothing for unchanged work.
+            const queue = [];
+            FRAMING_KEYS.forEach(spec => queue.push({ kind: 'framing', key: spec.key, label: spec.label }));
+            pageData.categories
                 .filter(c => c.req_count > 0)
-                .map(c => c.id);
+                .forEach(c => queue.push({ kind: 'category', id: c.id, label: c.name }));
             if (queue.length === 0) {
-                alert('No categories with consolidated requirements to generate.');
+                alert('Nothing to generate yet — run consolidation first.');
                 return;
             }
-            if (!confirm('Generate ' + queue.length + ' sections?\n\nEach takes 30-90 seconds. Already-generated sections whose inputs have not changed will be skipped automatically.')) {
+            if (!confirm('Generate ' + queue.length + ' sections?\n\n• ' + FRAMING_KEYS.length + ' framing sections (introduction, scope, response instructions)\n• ' + (queue.length - FRAMING_KEYS.length) + ' category sections\n\nEach takes 30-90 seconds. Already-generated sections whose inputs have not changed will be skipped automatically.')) {
                 return;
             }
             startBatch(queue, !!forceAll);
@@ -464,15 +709,15 @@ $path_prefix  = '../../';
 
             openBatchModal();
 
-            // Render task list
             const tasksEl = document.getElementById('batchTasks');
-            tasksEl.innerHTML = queue.map((catId, i) => {
-                const cat = pageData.categories.find(c => c.id === catId);
+            tasksEl.innerHTML = queue.map((item, i) => {
+                const tid = taskIdFor(item);
+                const labelPrefix = item.kind === 'framing' ? '<em style="color:#0369a1;">Framing — </em>' : '';
                 return `
-                    <div class="batch-task" id="btask-${catId}" data-cat-id="${catId}">
+                    <div class="batch-task" id="${tid}">
                         <div class="pico">${i + 1}</div>
-                        <div class="plabel">${escapeHtml(cat ? cat.name : 'Category #' + catId)}</div>
-                        <div class="pcount" id="btask-count-${catId}"></div>
+                        <div class="plabel">${labelPrefix}${escapeHtml(item.label)}</div>
+                        <div class="pcount" id="${tid}-count"></div>
                     </div>
                 `;
             }).join('');
@@ -484,24 +729,35 @@ $path_prefix  = '../../';
             processNext();
         }
 
+        function taskIdFor(item) {
+            return item.kind === 'framing'
+                ? 'btask-fr-' + item.key
+                : 'btask-cat-' + item.id;
+        }
+
         function processNext() {
             if (batchCancelRequested || batchIndex >= batchQueue.length) {
                 finishBatch();
                 return;
             }
-            const catId = batchQueue[batchIndex];
-            const taskEl = document.getElementById('btask-' + catId);
+            const item   = batchQueue[batchIndex];
+            const tid    = taskIdFor(item);
+            const taskEl = document.getElementById(tid);
             taskEl.classList.add('active');
             document.getElementById('batchStream').textContent = '';
 
-            const url = API_BASE + 'generate_section.php?rfp_id=' + encodeURIComponent(rfpId)
-                      + '&category_id=' + encodeURIComponent(catId)
-                      + (batchForceRegen ? '&force=1' : '');
+            const url = item.kind === 'framing'
+                ? API_BASE + 'generate_framing.php?rfp_id=' + encodeURIComponent(rfpId)
+                    + '&section_key=' + encodeURIComponent(item.key)
+                    + (batchForceRegen ? '&force=1' : '')
+                : API_BASE + 'generate_section.php?rfp_id=' + encodeURIComponent(rfpId)
+                    + '&category_id=' + encodeURIComponent(item.id)
+                    + (batchForceRegen ? '&force=1' : '');
             batchActiveStream = new EventSource(url);
 
             batchActiveStream.addEventListener('phase', (e) => {
                 const data = JSON.parse(e.data);
-                document.getElementById('btask-count-' + catId).textContent = data.message || data.phase;
+                document.getElementById(tid + '-count').textContent = data.message || data.phase;
             });
 
             batchActiveStream.addEventListener('text', (e) => {
@@ -509,16 +765,10 @@ $path_prefix  = '../../';
                 appendBatchStream(data.delta || '');
             });
 
-            batchActiveStream.addEventListener('usage', (e) => {
-                const data = JSON.parse(e.data);
-                if (data.tokens_in  != null) batchTokensIn  += 0; // tokens are per-call cumulative; below we track on complete
-            });
-
             batchActiveStream.addEventListener('skipped', (e) => {
-                const data = JSON.parse(e.data);
                 taskEl.classList.remove('active');
                 taskEl.classList.add('skip');
-                document.getElementById('btask-count-' + catId).textContent = 'skipped (unchanged)';
+                document.getElementById(tid + '-count').textContent = 'skipped (unchanged)';
                 advanceBatch();
             });
 
@@ -532,8 +782,9 @@ $path_prefix  = '../../';
                 document.getElementById('batchCacheRead').textContent = batchCacheRead.toLocaleString();
                 taskEl.classList.remove('active');
                 taskEl.classList.add('done');
-                document.getElementById('btask-count-' + catId).textContent =
-                    'v' + data.version + ' · ' + (data.duration_ms / 1000).toFixed(1) + 's';
+                const versionLabel = data.version ? ('v' + data.version + ' · ') : '';
+                document.getElementById(tid + '-count').textContent =
+                    versionLabel + (data.duration_ms / 1000).toFixed(1) + 's';
                 advanceBatch();
             });
 
@@ -544,7 +795,7 @@ $path_prefix  = '../../';
                 }
                 taskEl.classList.remove('active');
                 taskEl.classList.add('error');
-                document.getElementById('btask-count-' + catId).textContent = 'error: ' + msg.slice(0, 80);
+                document.getElementById(tid + '-count').textContent = 'error: ' + msg.slice(0, 80);
                 advanceBatch();
             });
         }
@@ -622,6 +873,76 @@ $path_prefix  = '../../';
             const d = new Date(s.replace(' ', 'T'));
             if (isNaN(d)) return s;
             return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // ─── Procurement context modal ────────────────────────────────
+
+        function openContextModal() {
+            document.getElementById('ctxField').value = pageData.framing_context || '';
+            document.getElementById('contextModal').style.display = 'flex';
+        }
+        function closeContextModal() {
+            document.getElementById('contextModal').style.display = 'none';
+        }
+        async function saveContext() {
+            const btn = document.getElementById('ctxSaveBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'update_framing_context.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        rfp_id: parseInt(rfpId, 10),
+                        context: document.getElementById('ctxField').value
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Save failed');
+                closeContextModal();
+                loadAll();
+            } catch (err) {
+                alert('Save failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ─── Framing edit modal ───────────────────────────────────────
+
+        let editingFramingId = null;
+
+        function openFramingEdit(framingId) {
+            const f = (pageData.framing || []).find(x => x.id === framingId);
+            if (!f) return;
+            editingFramingId = framingId;
+            document.getElementById('framingEditTitle').textContent = 'Edit ' + (f.section_title || 'framing section');
+            document.getElementById('framingEditField').value = f.section_content || '';
+            document.getElementById('framingEditModal').style.display = 'flex';
+        }
+        function closeFramingEdit() {
+            document.getElementById('framingEditModal').style.display = 'none';
+        }
+        async function saveFramingEdit() {
+            const btn = document.getElementById('framingEditSaveBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'update_framing.php', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        id: editingFramingId,
+                        section_content: document.getElementById('framingEditField').value
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Save failed');
+                closeFramingEdit();
+                loadAll();
+            } catch (err) {
+                alert('Save failed: ' + err.message);
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         function escapeHtml(str) {

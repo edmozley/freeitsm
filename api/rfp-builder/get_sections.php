@@ -69,11 +69,36 @@ try {
     $ls = $lockState->fetch(PDO::FETCH_ASSOC) ?: ['total' => 0, 'locked' => 0];
     $allLocked = ((int)$ls['total']) > 0 && ((int)$ls['locked']) === ((int)$ls['total']);
 
+    // Framing sections (intro / scope / response_instructions) and the
+    // analyst's optional context note. The page renders a placeholder
+    // for any framing key that isn't in the result set yet.
+    $frStmt = $conn->prepare(
+        "SELECT id, section_key, section_title, section_content,
+                sort_order, is_manually_edited, inputs_hash,
+                generated_datetime, edited_datetime
+           FROM rfp_document_sections
+          WHERE rfp_id = ?
+       ORDER BY sort_order, id"
+    );
+    $frStmt->execute([$rfpId]);
+    $framing = $frStmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($framing as &$f) {
+        $f['is_manually_edited'] = (bool)$f['is_manually_edited'];
+    }
+    unset($f);
+
+    $ctxStmt = $conn->prepare("SELECT name, framing_context_text FROM rfps WHERE id = ?");
+    $ctxStmt->execute([$rfpId]);
+    $rfpRow = $ctxStmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
     echo json_encode([
-        'success'  => true,
-        'rfp_id'   => $rfpId,
+        'success'    => true,
+        'rfp_id'     => $rfpId,
+        'rfp_name'   => $rfpRow['name'] ?? null,
         'categories' => $rows,
-        'lock'     => [
+        'framing'    => $framing,
+        'framing_context' => $rfpRow['framing_context_text'] ?? null,
+        'lock'       => [
             'total'      => (int)$ls['total'],
             'locked'     => (int)$ls['locked'],
             'all_locked' => $allLocked,

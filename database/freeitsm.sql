@@ -1381,6 +1381,7 @@ CREATE TABLE IF NOT EXISTS `rfps` (
     `contract_id`              INT NULL,
     `chosen_supplier_id`       INT NULL,
     `style_guide`              LONGTEXT NULL,
+    `framing_context_text`     LONGTEXT NULL,
     `created_by_analyst_id`    INT NULL,
     `created_datetime`         DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`         DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1519,6 +1520,23 @@ CREATE TABLE IF NOT EXISTS `rfp_output_sections` (
     KEY `idx_rfp_sections_category_id` (`category_id`),
     CONSTRAINT `fk_rfp_sections_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_rfp_sections_category` FOREIGN KEY (`category_id`) REFERENCES `rfp_categories` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `rfp_document_sections` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `rfp_id`              INT NOT NULL,
+    `section_key`         VARCHAR(50) NOT NULL,
+    `section_title`       VARCHAR(200) NOT NULL,
+    `section_content`     LONGTEXT NULL,
+    `sort_order`          INT NOT NULL DEFAULT 0,
+    `is_manually_edited`  TINYINT(1) NOT NULL DEFAULT 0,
+    `inputs_hash`         VARCHAR(64) NULL,
+    `generated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `edited_datetime`     DATETIME NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_rfp_doc_section` (`rfp_id`, `section_key`),
+    KEY `idx_rfp_doc_section_rfp_id` (`rfp_id`),
+    CONSTRAINT `fk_rfp_doc_section_rfp` FOREIGN KEY (`rfp_id`) REFERENCES `rfps` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `rfp_section_history` (

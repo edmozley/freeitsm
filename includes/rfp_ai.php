@@ -13,6 +13,7 @@
  *   rfpAiExtractRequirements(PDO, rfpId, documentId, rawText, departmentName)
  *   rfpAiConsolidate(PDO, rfpId, extractedRows)
  *   rfpAiGenerateSectionStreaming(PDO, rfpId, categoryId, eventCallback)
+ *   rfpAiGenerateFramingStreaming(PDO, rfpId, sectionKey, eventCallback)
  *
  * Lower-level helpers (rfpAiCall, rfpAiGetSettings) are reusable for
  * the consolidation / generation passes coming in Phases 3 and 4.
@@ -1056,6 +1057,226 @@ function rfpAiGenerateSectionStreaming(PDO $conn, int $rfpId, int $categoryId, c
         rfpAiLogAction(
             $conn, $rfpId, null, null,
             'generate_section', 'error',
+            $e->getMessage(),
+            null, null
+        );
+        throw $e;
+    }
+}
+
+// ---------------------------------------------------------------
+// Pass 5 — Generate document framing (introduction / scope /
+// response_instructions). Single shared system prompt covers all
+// three keys; the user message specifies which to write so prompt
+// caching reuses the meaty instructions across all three calls.
+// ---------------------------------------------------------------
+
+const RFP_AI_FRAMING_SYSTEM = <<<PROMPT
+You are an expert business analyst writing the framing sections of a Request for Proposal (RFP) document — the introduction, scope statement, and response instructions that surround the body of detailed requirements. The organisation is procuring a new system or service.
+
+The user message will tell you EXACTLY one section to write — INTRODUCTION, SCOPE, or RESPONSE_INSTRUCTIONS — along with context about the RFP (its name, the categories of requirements it covers, an optional short context note from the analyst, and a count of total consolidated requirements). Write only the section requested.
+
+# OUTPUT FORMAT
+
+Return ONLY the HTML for the requested section's body content. Do not include the section title (the document layer renders that separately). Do not wrap in <html>, <body>, or any page-level scaffolding. Use:
+
+- <h3> for sub-headings within the section
+- <p> for narrative paragraphs
+- <ul> and <li> for bulleted lists where appropriate
+- <ol> and <li> for ordered/numbered lists where order matters
+- <strong> and <em> for emphasis used sparingly
+
+Do NOT use:
+- <h1> or <h2> — reserved for the document and section title levels above this one
+- Inline styles, classes, or data-* attributes
+- <div>, <span>, or any non-semantic wrappers
+- Markdown of any kind — output must be valid HTML
+- Code fences, leading prose, trailing prose — return only the HTML, nothing else
+
+# WHAT EACH SECTION SHOULD CONTAIN
+
+## INTRODUCTION
+
+Two or three paragraphs (no sub-headings). Should cover, in flowing professional prose:
+
+1. What the organisation is procuring (a system, service, or capability — be specific where the inputs allow). The RFP name itself usually hints at this.
+2. The business context: why now, what's driving the procurement (cite the analyst's context note if provided, otherwise infer from the requirement categories).
+3. A high-level overview of the areas the requirements cover — naming three to six of the most prominent categories so the supplier knows what to expect in the body of the document. Do NOT list every category exhaustively.
+4. A brief mention of the scale (total number of consolidated requirements, number of contributing departments) where it adds credibility.
+
+The introduction should set the right tone: confident, clear, formal, but not bureaucratic. Suppliers reading this should understand the organisation's situation and feel the document is well-prepared.
+
+## SCOPE
+
+One or two paragraphs followed optionally by an <h3>In scope</h3> bullet list and an <h3>Out of scope</h3> bullet list, only if the inputs make those distinctions clear.
+
+If the analyst's context note doesn't clarify scope boundaries explicitly, write a careful single paragraph stating the scope at the level of "the procurement covers [the systems / capabilities implied by the requirements]" without manufacturing artificial in/out distinctions. Do NOT invent scope boundaries the inputs do not support.
+
+## RESPONSE_INSTRUCTIONS
+
+Three or four short sub-sections under <h3> headings. Use this structure:
+
+- <h3>Submission</h3> — paragraph stating that suppliers should respond against every requirement in the body of the document, indicating compliance level and providing supporting detail. Mention that requirement IDs (or section/category names) should be referenced clearly. Indicate the format expected (typically a written response document plus any optional supporting materials).
+- <h3>Evaluation</h3> — paragraph stating that responses will be evaluated against the priority levels assigned to each requirement (critical, high, medium, low), with multiple stakeholders scoring independently and an aggregate average determining final placement. Mention that demos may be requested for shortlisted suppliers.
+- <h3>Timeline</h3> — paragraph using PLACEHOLDERS for dates the analyst will fill in later: write \"[response deadline]\", \"[shortlist date]\", \"[demo dates]\", \"[decision date]\" verbatim. The analyst will swap these for real dates before issuing the RFP.
+- <h3>Contact</h3> — short paragraph using \"[procurement contact name and email]\" placeholder for the analyst to fill in.
+
+This section is the most boilerplate-heavy. Lean on the standard structure above; do not invent novel evaluation criteria or unusual submission formats.
+
+# RULES
+
+- Do NOT introduce specific functional capabilities or requirements — those live in the body of the document. Framing sections describe the document and the procurement, not the requirements themselves.
+- Do not editorialise about supplier expectations.
+- Use formal, neutral, professional language. No marketing copy.
+- British English spelling unless the user style guide says otherwise.
+- If the style guide below conflicts with anything above, the style guide wins.
+PROMPT;
+
+const RFP_AI_FRAMING_KEYS = [
+    'introduction'          => 'Introduction',
+    'scope'                 => 'Scope',
+    'response_instructions' => 'Response instructions',
+];
+
+/**
+ * Streaming generator for one framing section.
+ *
+ * Uses the shared RFP_AI_FRAMING_SYSTEM so all three calls (intro,
+ * scope, response_instructions) within an RFP hit the same cached
+ * prefix — the system prompt + style guide is identical, only the
+ * user message differs by section_key.
+ *
+ * Inputs come from rfp metadata + category list. We do NOT send the
+ * raw consolidated requirements — too many tokens, and framing
+ * sections shouldn't get into specifics anyway. Categories are
+ * enough.
+ *
+ * Returns the same shape as rfpAiGenerateSectionStreaming():
+ *   content, tokens_in, tokens_out, cache_read, cache_write,
+ *   duration_ms, inputs_hash
+ */
+function rfpAiGenerateFramingStreaming(PDO $conn, int $rfpId, string $sectionKey, callable $onEvent): array
+{
+    if (!array_key_exists($sectionKey, RFP_AI_FRAMING_KEYS)) {
+        throw new RuntimeException('Unknown framing section key: ' . $sectionKey);
+    }
+
+    $rfpStmt = $conn->prepare(
+        "SELECT name, style_guide, framing_context_text FROM rfps WHERE id = ?"
+    );
+    $rfpStmt->execute([$rfpId]);
+    $rfp = $rfpStmt->fetch(PDO::FETCH_ASSOC);
+    if (!$rfp) {
+        throw new RuntimeException('RFP not found');
+    }
+
+    $catStmt = $conn->prepare(
+        "SELECT c.id, c.name, c.description,
+                (SELECT COUNT(*) FROM rfp_consolidated_requirements cr WHERE cr.category_id = c.id) AS req_count
+           FROM rfp_categories c
+          WHERE c.rfp_id = ?
+       ORDER BY c.sort_order, c.id"
+    );
+    $catStmt->execute([$rfpId]);
+    $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
+    if (empty($categories)) {
+        throw new RuntimeException('No categories yet — run consolidation first');
+    }
+
+    $totalReqs = 0;
+    foreach ($categories as $c) $totalReqs += (int)$c['req_count'];
+
+    $deptStmt = $conn->prepare(
+        "SELECT DISTINCT dept.name
+           FROM rfp_extracted_requirements er
+      INNER JOIN rfp_documents   d    ON er.document_id = d.id
+      INNER JOIN rfp_departments dept ON d.department_id = dept.id
+          WHERE er.rfp_id = ?
+       ORDER BY dept.name"
+    );
+    $deptStmt->execute([$rfpId]);
+    $departments = $deptStmt->fetchAll(PDO::FETCH_COLUMN);
+
+    // Style guide — same source as Pass 3 generation.
+    $styleGuide = (is_string($rfp['style_guide']) && trim($rfp['style_guide']) !== '')
+        ? trim($rfp['style_guide'])
+        : "Default style: clear, formal, neutral. British English. Active voice where natural. No marketing language. Keep paragraphs short — three sentences maximum where possible. Avoid jargon; spell out acronyms on first use within a section.";
+
+    $systemPrompt = RFP_AI_FRAMING_SYSTEM . "\n\n# STYLE GUIDE FOR THIS RFP\n\n" . $styleGuide;
+
+    $context = trim($rfp['framing_context_text'] ?? '');
+
+    $catLines = array_map(fn($c) =>
+        "- {$c['name']}" . (((int)$c['req_count']) > 0 ? " ({$c['req_count']} req" . ((int)$c['req_count'] === 1 ? '' : 's') . ")" : '')
+            . ($c['description'] ? "\n  " . trim($c['description']) : ''),
+        $categories
+    );
+
+    $userPrompt = "SECTION TO WRITE: " . strtoupper($sectionKey) . "\n\n";
+    $userPrompt .= "RFP NAME: " . trim($rfp['name']) . "\n";
+    $userPrompt .= "TOTAL CONSOLIDATED REQUIREMENTS: {$totalReqs}\n";
+    $userPrompt .= "CONTRIBUTING DEPARTMENTS: " . (empty($departments) ? '(none recorded)' : implode(', ', $departments)) . "\n";
+    if ($context !== '') {
+        $userPrompt .= "\nANALYST CONTEXT NOTE:\n" . $context . "\n";
+    }
+    $userPrompt .= "\nCATEGORIES OF REQUIREMENTS:\n" . implode("\n", $catLines) . "\n\n";
+    $userPrompt .= "Write the " . strtoupper($sectionKey) . " section now. Return only the HTML body of that section.";
+
+    $inputsHash = md5(serialize([
+        'key'    => $sectionKey,
+        'rfp'    => trim($rfp['name']),
+        'ctx'    => $context,
+        'cats'   => array_map(fn($c) => [
+            'name'  => trim($c['name']),
+            'desc'  => trim($c['description'] ?? ''),
+            'count' => (int)$c['req_count'],
+        ], $categories),
+        'depts'  => $departments,
+        'style'  => $styleGuide,
+        'total'  => $totalReqs,
+    ]));
+
+    try {
+        $resp = rfpAiCallAnthropicStreaming($conn, [
+            'system'      => $systemPrompt,
+            'user'        => $userPrompt,
+            'max_tokens'  => 4000,
+            'temperature' => 0.3,
+        ], $onEvent);
+
+        $content = $resp['content'];
+        $content = preg_replace('/^\s*```(?:html)?\s*\r?\n/', '', $content);
+        $content = preg_replace('/\r?\n\s*```\s*$/', '', $content);
+        $content = trim($content);
+
+        rfpAiLogAction(
+            $conn, $rfpId, null, null,
+            'generate_framing', 'success',
+            json_encode([
+                'section_key'   => $sectionKey,
+                'duration_ms'   => $resp['duration_ms'],
+                'cache_read'    => $resp['cache_read'],
+                'cache_write'   => $resp['cache_write'],
+                'model'         => $resp['model'],
+                'inputs_hash'   => $inputsHash,
+            ]),
+            $resp['tokens_in'],
+            $resp['tokens_out']
+        );
+
+        return [
+            'content'     => $content,
+            'tokens_in'   => $resp['tokens_in'],
+            'tokens_out'  => $resp['tokens_out'],
+            'cache_read'  => $resp['cache_read'],
+            'cache_write' => $resp['cache_write'],
+            'duration_ms' => $resp['duration_ms'],
+            'inputs_hash' => $inputsHash,
+        ];
+    } catch (Throwable $e) {
+        rfpAiLogAction(
+            $conn, $rfpId, null, null,
+            'generate_framing', 'error',
             $e->getMessage(),
             null, null
         );

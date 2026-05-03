@@ -1216,6 +1216,7 @@ $schema = [
         'contract_id'              => 'INT NULL',
         'chosen_supplier_id'       => 'INT NULL',
         'style_guide'              => 'LONGTEXT NULL',
+        'framing_context_text'     => 'LONGTEXT NULL',
         'created_by_analyst_id'    => 'INT NULL',
         'created_datetime'         => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'         => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
@@ -1319,6 +1320,19 @@ $schema = [
         'section_content'     => 'LONGTEXT NULL',
         'is_manually_edited'  => 'TINYINT(1) NOT NULL DEFAULT 0',
         'created_datetime'    => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'rfp_document_sections' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'rfp_id'              => 'INT NOT NULL',
+        'section_key'         => 'VARCHAR(50) NOT NULL',
+        'section_title'       => 'VARCHAR(200) NOT NULL',
+        'section_content'     => 'LONGTEXT NULL',
+        'sort_order'          => 'INT NOT NULL DEFAULT 0',
+        'is_manually_edited'  => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'inputs_hash'         => 'VARCHAR(64) NULL',
+        'generated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'edited_datetime'     => 'DATETIME NULL',
     ],
 
     'rfp_invited_suppliers' => [
