@@ -446,9 +446,11 @@ $path_prefix = '../../';
                     num: 6, title: 'Compare &amp; decide', phase: 6,
                     desc: 'Cross-supplier radar &amp; category-winner table to drive the final decision.',
                     stats: [],
-                    ready: false,
-                    cta: 'Coming in Phase 6',
-                    href: null
+                    // Active as soon as suppliers exist; the page itself
+                    // shows an empty state until at least one is scored.
+                    ready: r.supplier_count > 0,
+                    cta: r.supplier_count === 0 ? 'Add suppliers first' : '',
+                    href: r.supplier_count > 0 ? 'compare.php?id=' + r.id : null
                 }
             ];
 
