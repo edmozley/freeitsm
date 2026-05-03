@@ -14,6 +14,7 @@
  *   rfpAiConsolidate(PDO, rfpId, extractedRows)
  *   rfpAiGenerateSectionStreaming(PDO, rfpId, categoryId, eventCallback)
  *   rfpAiGenerateFramingStreaming(PDO, rfpId, sectionKey, eventCallback)
+ *   rfpAiRestyleStreaming(PDO, rfpId, existingHtml, logContext, eventCallback)
  *
  * Lower-level helpers (rfpAiCall, rfpAiGetSettings) are reusable for
  * the consolidation / generation passes coming in Phases 3 and 4.
@@ -1278,6 +1279,104 @@ function rfpAiGenerateFramingStreaming(PDO $conn, int $rfpId, string $sectionKey
             $conn, $rfpId, null, null,
             'generate_framing', 'error',
             $e->getMessage(),
+            null, null
+        );
+        throw $e;
+    }
+}
+
+// ---------------------------------------------------------------
+// Pass 4 — Restyle (per section, streaming)
+//
+// Re-runs the AI over an existing section's HTML to apply the
+// style guide without changing the substance. Lifted from the
+// prototype's restyle prompt — small, deliberately constrained:
+// "fix style, do not change meaning, do not change structure".
+// ---------------------------------------------------------------
+
+const RFP_AI_RESTYLE_SYSTEM = <<<PROMPT
+You are a professional copy editor. Your job is to apply the style guide below to an HTML document section without changing the substance of what it says.
+
+CRITICAL RULES:
+- ONLY fix style issues covered by the style guide.
+- Do NOT change the meaning or substance of any content. Every fact, requirement, and intent must come through unchanged.
+- Do NOT add new content. Do NOT remove content. Do NOT reorganise content.
+- Do NOT change the HTML structure or tag types. If the input has an <h3> followed by a <ul>, your output must have an <h3> followed by a <ul>.
+- Departments listed in parentheticals stay as parentheticals; bullet points stay as bullet points.
+- Return ONLY the restyled HTML. No explanation. No commentary. No markdown. No code fences. No leading or trailing prose.
+PROMPT;
+
+/**
+ * Streaming restyle pass over an existing piece of section HTML.
+ *
+ * Caller supplies the rfp_id (so we can pull the right style guide),
+ * the existing HTML, and a context label used for log readability
+ * (e.g. "section #42" or "framing introduction"). Returns the
+ * restyled HTML plus the usual usage stats.
+ *
+ * Caller is responsible for the DB write — this function only does
+ * the AI call and the audit log.
+ */
+function rfpAiRestyleStreaming(PDO $conn, int $rfpId, string $existingHtml, string $logContext, callable $onEvent): array
+{
+    $existingHtml = trim($existingHtml);
+    if ($existingHtml === '') {
+        throw new RuntimeException('Cannot restyle empty content');
+    }
+
+    // Style guide — same source as the generation passes.
+    $sgStmt = $conn->prepare("SELECT style_guide FROM rfps WHERE id = ?");
+    $sgStmt->execute([$rfpId]);
+    $rfpStyle = $sgStmt->fetchColumn();
+    $styleGuide = (is_string($rfpStyle) && trim($rfpStyle) !== '')
+        ? trim($rfpStyle)
+        : "Default style: clear, formal, neutral. British English. Active voice where natural. No marketing language. Keep paragraphs short — three sentences maximum where possible. Avoid jargon; spell out acronyms on first use within a section.";
+
+    $systemPrompt = RFP_AI_RESTYLE_SYSTEM . "\n\n# STYLE GUIDE FOR THIS RFP\n\n" . $styleGuide;
+    $userPrompt   = "Apply the style guide to this HTML. Return only the restyled HTML.\n\n" . $existingHtml;
+
+    try {
+        $resp = rfpAiCallAnthropicStreaming($conn, [
+            'system'      => $systemPrompt,
+            'user'        => $userPrompt,
+            'max_tokens'  => 8000,
+            'temperature' => 0.1, // very low — restyle is deterministic-leaning
+        ], $onEvent);
+
+        $content = $resp['content'];
+        $content = preg_replace('/^\s*```(?:html)?\s*\r?\n/', '', $content);
+        $content = preg_replace('/\r?\n\s*```\s*$/', '', $content);
+        $content = trim($content);
+
+        rfpAiLogAction(
+            $conn, $rfpId, null, null,
+            'restyle_section', 'success',
+            json_encode([
+                'context'     => $logContext,
+                'duration_ms' => $resp['duration_ms'],
+                'cache_read'  => $resp['cache_read'],
+                'cache_write' => $resp['cache_write'],
+                'model'       => $resp['model'],
+                'input_chars' => strlen($existingHtml),
+                'output_chars'=> strlen($content),
+            ]),
+            $resp['tokens_in'],
+            $resp['tokens_out']
+        );
+
+        return [
+            'content'     => $content,
+            'tokens_in'   => $resp['tokens_in'],
+            'tokens_out'  => $resp['tokens_out'],
+            'cache_read'  => $resp['cache_read'],
+            'cache_write' => $resp['cache_write'],
+            'duration_ms' => $resp['duration_ms'],
+        ];
+    } catch (Throwable $e) {
+        rfpAiLogAction(
+            $conn, $rfpId, null, null,
+            'restyle_section', 'error',
+            $e->getMessage() . ' [' . $logContext . ']',
             null, null
         );
         throw $e;

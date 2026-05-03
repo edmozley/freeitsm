@@ -646,6 +646,7 @@ $path_prefix  = '../../';
                     : '';
                 const actions = allLocked ? `
                     <button class="btn btn-secondary" onclick="generateFraming('${spec.key}', ${hasContent ? 'true' : 'false'})">${hasContent ? 'Re-generate' : 'Generate'}</button>
+                    ${hasContent ? `<button class="btn btn-secondary" onclick="restyleFraming('${spec.key}')">Restyle</button>` : ''}
                     ${hasContent ? `<button class="btn btn-secondary" onclick="openFramingEdit(${f.id})">Edit</button>` : ''}
                 ` : '';
                 const body = hasContent
@@ -709,6 +710,7 @@ $path_prefix  = '../../';
 
             const actions = canGenerate ? `
                 <button class="btn btn-secondary" onclick="generateOne(${c.id}, ${hasSection})">${hasSection ? 'Re-generate' : 'Generate'}</button>
+                ${hasSection ? `<button class="btn btn-secondary" onclick="restyleSection(${c.section_id})">Restyle</button>` : ''}
                 ${hasSection ? `<button class="btn btn-secondary" onclick="openSectionEdit(${c.section_id})">Edit</button>` : ''}
                 ${hasSection && c.version > 1 ? `<button class="btn btn-secondary" onclick="openHistoryModal(${c.section_id})">History</button>` : ''}
             ` : '';
@@ -757,7 +759,7 @@ $path_prefix  = '../../';
 
         function generateOne(categoryId, force) {
             const cat = pageData.categories.find(c => c.id === categoryId);
-            startBatch([{ kind: 'category', id: categoryId, label: cat ? cat.name : 'Category #' + categoryId }], !!force);
+            startBatch([{ kind: 'category', action: 'generate', id: categoryId, label: cat ? cat.name : 'Category #' + categoryId }], !!force);
         }
 
         function generateFraming(sectionKey, exists) {
@@ -766,7 +768,27 @@ $path_prefix  = '../../';
             // otherwise the API would skip and the user wouldn't see
             // any change.
             const spec = FRAMING_KEYS.find(s => s.key === sectionKey);
-            startBatch([{ kind: 'framing', key: sectionKey, label: spec ? spec.label : sectionKey }], !!exists);
+            startBatch([{ kind: 'framing', action: 'generate', key: sectionKey, label: spec ? spec.label : sectionKey }], !!exists);
+        }
+
+        function restyleSection(sectionId) {
+            const cat = pageData.categories.find(c => c.section_id === sectionId);
+            if (!confirm('Restyle "' + (cat ? cat.name : 'this section') + '"?\n\nThe AI will apply the style guide to the existing content without changing what it says. The current version will be snapshotted into history first.')) {
+                return;
+            }
+            startBatch([{
+                kind: 'category', action: 'restyle',
+                id: sectionId, // for restyle action this is section_id, not category_id
+                label: (cat ? cat.name : 'Section #' + sectionId)
+            }], false);
+        }
+
+        function restyleFraming(sectionKey) {
+            const spec = FRAMING_KEYS.find(s => s.key === sectionKey);
+            if (!confirm('Restyle the ' + (spec ? spec.label.toLowerCase() : sectionKey) + '?\n\nThe AI will apply the style guide to the existing content without changing what it says.')) {
+                return;
+            }
+            startBatch([{ kind: 'framing', action: 'restyle', key: sectionKey, label: spec ? spec.label : sectionKey }], false);
         }
 
         function generateAll(forceAll) {
@@ -776,10 +798,10 @@ $path_prefix  = '../../';
             // up-to-date sections, so re-running on an already-generated
             // RFP costs nothing for unchanged work.
             const queue = [];
-            FRAMING_KEYS.forEach(spec => queue.push({ kind: 'framing', key: spec.key, label: spec.label }));
+            FRAMING_KEYS.forEach(spec => queue.push({ kind: 'framing', action: 'generate', key: spec.key, label: spec.label }));
             pageData.categories
                 .filter(c => c.req_count > 0)
-                .forEach(c => queue.push({ kind: 'category', id: c.id, label: c.name }));
+                .forEach(c => queue.push({ kind: 'category', action: 'generate', id: c.id, label: c.name }));
             if (queue.length === 0) {
                 alert('Nothing to generate yet — run consolidation first.');
                 return;
@@ -806,11 +828,15 @@ $path_prefix  = '../../';
             const tasksEl = document.getElementById('batchTasks');
             tasksEl.innerHTML = queue.map((item, i) => {
                 const tid = taskIdFor(item);
-                const labelPrefix = item.kind === 'framing' ? '<em style="color:#0369a1;">Framing — </em>' : '';
+                const action = item.action || 'generate';
+                const framingTag = item.kind === 'framing' ? '<em style="color:#0369a1;">Framing — </em>' : '';
+                const actionTag  = action === 'restyle'
+                    ? '<em style="color:#7c3aed;">Restyle — </em>'
+                    : '';
                 return `
                     <div class="batch-task" id="${tid}">
                         <div class="pico">${i + 1}</div>
-                        <div class="plabel">${labelPrefix}${escapeHtml(item.label)}</div>
+                        <div class="plabel">${actionTag}${framingTag}${escapeHtml(item.label)}</div>
                         <div class="pcount" id="${tid}-count"></div>
                     </div>
                 `;
@@ -824,9 +850,11 @@ $path_prefix  = '../../';
         }
 
         function taskIdFor(item) {
-            return item.kind === 'framing'
-                ? 'btask-fr-' + item.key
-                : 'btask-cat-' + item.id;
+            const suffix = item.kind === 'framing' ? ('fr-' + item.key) : ('cat-' + item.id);
+            // Include the action so a generate row and a restyle row in
+            // the same batch don't collide on DOM ids (rare case but
+            // possible if we ever queue both for the same target).
+            return 'btask-' + (item.action || 'generate') + '-' + suffix;
         }
 
         function processNext() {
@@ -840,13 +868,23 @@ $path_prefix  = '../../';
             taskEl.classList.add('active');
             document.getElementById('batchStream').textContent = '';
 
-            const url = item.kind === 'framing'
-                ? API_BASE + 'generate_framing.php?rfp_id=' + encodeURIComponent(rfpId)
-                    + '&section_key=' + encodeURIComponent(item.key)
-                    + (batchForceRegen ? '&force=1' : '')
-                : API_BASE + 'generate_section.php?rfp_id=' + encodeURIComponent(rfpId)
-                    + '&category_id=' + encodeURIComponent(item.id)
-                    + (batchForceRegen ? '&force=1' : '');
+            const action = item.action || 'generate';
+            let url;
+            if (action === 'restyle') {
+                url = item.kind === 'framing'
+                    ? API_BASE + 'restyle_framing.php?rfp_id=' + encodeURIComponent(rfpId)
+                        + '&section_key=' + encodeURIComponent(item.key)
+                    : API_BASE + 'restyle_section.php?rfp_id=' + encodeURIComponent(rfpId)
+                        + '&section_id=' + encodeURIComponent(item.id);
+            } else {
+                url = item.kind === 'framing'
+                    ? API_BASE + 'generate_framing.php?rfp_id=' + encodeURIComponent(rfpId)
+                        + '&section_key=' + encodeURIComponent(item.key)
+                        + (batchForceRegen ? '&force=1' : '')
+                    : API_BASE + 'generate_section.php?rfp_id=' + encodeURIComponent(rfpId)
+                        + '&category_id=' + encodeURIComponent(item.id)
+                        + (batchForceRegen ? '&force=1' : '');
+            }
             batchActiveStream = new EventSource(url);
 
             batchActiveStream.addEventListener('phase', (e) => {
