@@ -449,6 +449,7 @@ $path_prefix  = '../../';
             <h1>Consolidated requirements</h1>
             <div class="page-actions">
                 <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
+                <a id="coverageLink" href="#" class="btn btn-secondary" style="display:none;">Coverage map</a>
                 <button id="addBtn" class="btn btn-secondary" onclick="openAddModal()" style="display:none;">+ Add custom</button>
                 <button id="runBtn" class="btn btn-primary" onclick="runConsolidation()">Run consolidation</button>
                 <button id="lockBtn" class="btn btn-primary" onclick="toggleLock()" style="display:none;">Lock for generation</button>
@@ -736,6 +737,15 @@ $path_prefix  = '../../';
             // and we're not locked.
             document.getElementById('addBtn').style.display =
                 (data.categories.length > 0 && !lockState) ? '' : 'none';
+
+            // Coverage link visible once we have any consolidated data.
+            const coverageLink = document.getElementById('coverageLink');
+            if (data.consolidated.length > 0) {
+                coverageLink.style.display = '';
+                coverageLink.href = 'coverage.php?id=' + encodeURIComponent(rfpId);
+            } else {
+                coverageLink.style.display = 'none';
+            }
 
             const consByCat = new Map();
             data.consolidated.forEach(c => {
