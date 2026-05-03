@@ -404,9 +404,9 @@ $path_prefix = '../../';
                         {label: 'Locked', value: r.locked_count},
                         {label: 'Open conflicts', value: r.open_conflicts}
                     ],
-                    ready: false,
-                    cta: 'Coming in Phase 3',
-                    href: null
+                    ready: r.extracted_count > 0,
+                    cta: r.extracted_count > 0 ? '' : 'Run extraction first',
+                    href: r.extracted_count > 0 ? 'consolidate.php?id=' + r.id : null
                 },
                 {
                     num: 4, title: 'Generate RFP document', phase: 4,
