@@ -203,6 +203,40 @@ $path_prefix  = '../../';
         .stream-phase.done    { background: #ecfdf5; color: #047857; border-bottom-color: #a7f3d0; }
         .stream-phase.error   { background: #fef2f2; color: #991b1b; border-bottom-color: #fecaca; }
 
+        .progress-tracker {
+            padding: 12px 22px; border-bottom: 1px solid #eee;
+            display: flex; flex-direction: column; gap: 7px;
+            background: white;
+        }
+        .ptask {
+            display: flex; align-items: center; gap: 12px;
+            font-size: 13px; color: #555;
+        }
+        .ptask .pico {
+            width: 18px; height: 18px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 11px; font-weight: 700; flex-shrink: 0;
+            background: #f3f4f6; color: #aaa; border: 1px solid #e5e7eb;
+        }
+        .ptask.active .pico {
+            background: #fef3c7; color: #b45309; border-color: #fcd34d;
+            animation: pulse 1.2s ease-in-out infinite;
+        }
+        .ptask.done .pico {
+            background: #d1fae5; color: #047857; border-color: #6ee7b7;
+        }
+        .ptask.active .plabel { color: #222; font-weight: 600; }
+        .ptask.done   .plabel { color: #047857; }
+        .ptask .pcount {
+            margin-left: auto; font-variant-numeric: tabular-nums;
+            color: #888; font-size: 12px;
+        }
+        .ptask.active .pcount, .ptask.done .pcount { color: #444; }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+        }
+
         .stream-body {
             flex: 1; overflow-y: auto; padding: 14px 22px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -250,6 +284,23 @@ $path_prefix  = '../../';
                     <h3 id="streamTitle">Running consolidation</h3>
                 </div>
                 <div id="streamPhase" class="stream-phase">Starting…</div>
+                <div class="progress-tracker">
+                    <div id="ptaskCats" class="ptask">
+                        <div class="pico">1</div>
+                        <div class="plabel">Categorising</div>
+                        <div class="pcount" id="pcountCats">—</div>
+                    </div>
+                    <div id="ptaskCons" class="ptask">
+                        <div class="pico">2</div>
+                        <div class="plabel">Consolidating requirements</div>
+                        <div class="pcount" id="pcountCons">—</div>
+                    </div>
+                    <div id="ptaskConf" class="ptask">
+                        <div class="pico">3</div>
+                        <div class="plabel">Detecting conflicts</div>
+                        <div class="pcount" id="pcountConf">—</div>
+                    </div>
+                </div>
                 <div id="streamBody" class="stream-body"></div>
                 <div class="stream-meta">
                     <span class="meta-item">Tokens in: <strong id="streamTokensIn">0</strong></span>
@@ -469,6 +520,7 @@ $path_prefix  = '../../';
         let activeStream = null;
         let streamStart = 0;
         let elapsedTimer = null;
+        let streamAccumulated = '';
 
         function runConsolidation() {
             if (!confirm('Run AI consolidation now?\n\nThis takes 60-180 seconds and replaces any existing consolidation, categories and conflicts for this RFP.\n\nYou can watch the AI work live in the modal that opens.')) {
@@ -491,7 +543,10 @@ $path_prefix  = '../../';
 
             activeStream.addEventListener('text', (e) => {
                 const data = JSON.parse(e.data);
-                appendStreamText(data.delta || '');
+                const delta = data.delta || '';
+                streamAccumulated += delta;
+                appendStreamText(delta);
+                updateProgressTracker(streamAccumulated);
             });
 
             activeStream.addEventListener('usage', (e) => {
@@ -532,6 +587,49 @@ $path_prefix  = '../../';
             document.getElementById('streamCloseBtn').disabled = true;
             document.getElementById('streamTitle').textContent = 'Running consolidation';
             document.getElementById('runBtn').disabled = true;
+            // Reset tracker
+            streamAccumulated = '';
+            ['Cats', 'Cons', 'Conf'].forEach(k => {
+                document.getElementById('ptask' + k).className = 'ptask';
+                document.getElementById('pcount' + k).textContent = '—';
+            });
+        }
+
+        // Parse the accumulated streamed JSON for progress markers. JSON
+        // escaping guarantees these byte sequences only appear as actual
+        // top-level keys, not inside string content (where they'd be
+        // \"name\": etc), so a plain match is safe.
+        function updateProgressTracker(text) {
+            const catCount  = (text.match(/"name"\s*:/g)                 || []).length;
+            const consCount = (text.match(/"requirement_text"\s*:/g)     || []).length;
+            const confCount = (text.match(/"consolidated_a_index"\s*:/g) || []).length;
+
+            const hasCons = text.includes('"consolidated_requirements"');
+            const hasConf = text.includes('"conflicts"');
+
+            // Categories: active until the consolidated section opens, then done.
+            // Consolidated: pending until the consolidated key arrives, active until conflicts opens, then done.
+            // Conflicts: pending until the conflicts key arrives, active thereafter (becomes done on stream complete).
+            setPTask('Cats', hasCons ? 'done' : 'active', catCount);
+            setPTask('Cons',
+                hasConf ? 'done' : (hasCons ? 'active' : 'pending'),
+                hasCons ? consCount : null);
+            setPTask('Conf',
+                hasConf ? 'active' : 'pending',
+                hasConf ? confCount : null);
+        }
+
+        function setPTask(key, state, count) {
+            const row = document.getElementById('ptask' + key);
+            row.className = 'ptask' + (state === 'pending' ? '' : ' ' + state);
+            const cnt = document.getElementById('pcount' + key);
+            if (count === null || count === undefined) {
+                cnt.textContent = state === 'pending' ? '—' : '0';
+            } else {
+                const noun = key === 'Cats' ? 'category' : (key === 'Cons' ? 'req' : 'conflict');
+                const plural = count === 1 ? noun : noun.replace(/y$/, 'ie') + 's';
+                cnt.textContent = count + ' ' + plural;
+            }
         }
 
         function closeStreamModal() {
@@ -565,6 +663,12 @@ $path_prefix  = '../../';
             if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
             document.getElementById('streamSpinner').classList.add('done');
             document.getElementById('streamTitle').textContent = 'Consolidation complete';
+            // Mark all three tasks done with their final committed counts
+            // (these come from the server, which match the actual DB state
+            // — slightly more authoritative than the live stream parsing).
+            setPTask('Cats', 'done', data.counts.categories);
+            setPTask('Cons', 'done', data.counts.consolidated);
+            setPTask('Conf', 'done', data.counts.conflicts);
             setPhase(
                 data.counts.categories + ' categories · ' +
                 data.counts.consolidated + ' consolidated · ' +
