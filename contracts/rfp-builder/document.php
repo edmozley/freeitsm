@@ -143,7 +143,10 @@ $path_prefix  = '../../';
         }
         .batch-modal {
             background: white; border-radius: 12px; width: 820px; max-width: 92vw;
-            max-height: 86vh; display: flex; flex-direction: column;
+            /* Fixed height (not max-height) so the modal doesn't jitter
+               as the streaming text preview grows and resets between
+               sections — internal panes scroll on overflow. */
+            height: 86vh; display: flex; flex-direction: column;
             box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
         }
         .batch-modal-header {

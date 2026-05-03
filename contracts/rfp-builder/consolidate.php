@@ -241,7 +241,10 @@ $path_prefix  = '../../';
         }
         .stream-modal {
             background: white; border-radius: 12px; width: 720px; max-width: 92vw;
-            max-height: 86vh; display: flex; flex-direction: column;
+            /* Fixed height (not max-height) so the modal doesn't jitter
+               as the streaming text preview grows — the inner body
+               scrolls on overflow instead. */
+            height: 86vh; display: flex; flex-direction: column;
             box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
         }
         .stream-modal-header {
