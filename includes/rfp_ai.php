@@ -107,11 +107,22 @@ function rfpAiCall(PDO $conn, array $opts): array
 
 function rfpAiCallAnthropic(array $settings, array $opts): array
 {
+    // Wrap the system prompt as a single text block with a cache_control
+    // breakpoint so identical system prompts across calls (e.g. extracting
+    // 5 docs in a row) reuse a server-side cache for ~5 min — cache reads
+    // cost ~10% of normal input tokens. The user message stays uncached
+    // since it's the per-doc raw text and changes every call.
     $body = json_encode([
         'model'       => $settings['model'],
         'max_tokens'  => $opts['max_tokens'],
         'temperature' => $opts['temperature'],
-        'system'      => $opts['system'],
+        'system'      => [
+            [
+                'type'          => 'text',
+                'text'          => $opts['system'],
+                'cache_control' => ['type' => 'ephemeral'],
+            ],
+        ],
         'messages'    => [['role' => 'user', 'content' => $opts['user']]],
     ]);
 
