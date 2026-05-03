@@ -1,11 +1,18 @@
 <?php
 /**
  * RFP Builder — supplier scoring (Phase 5 step 5b).
- * Score one supplier at a time against every consolidated requirement.
- * Sidebar lets you switch between suppliers without leaving the page.
- * Autosave on every score / notes change. Per-category and overall
- * averages live at the foot, plus the team's average from other
- * analysts (if any have also scored).
+ *
+ * Score one supplier at a time against every consolidated requirement
+ * with click-to-light score boxes (0–5, red-to-green colour gradient)
+ * and a generously-sized notes field below each. Left sidebar carries
+ * the supplier picker and a live "Score by category" panel that
+ * updates as you score. Sticky bottom bar shows the running totals
+ * plus a spider-web button that opens a full-screen radar chart of
+ * the per-category averages.
+ *
+ * All scores autosave on change. Multi-analyst rollup is single-blind
+ * (other analysts' counts and averages, never names or individual
+ * scores).
  */
 session_start();
 require_once '../../config.php';
@@ -20,6 +27,7 @@ $path_prefix  = '../../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Scoring</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script src="../../assets/js/chart.min.js"></script>
     <style>
         body { overflow: auto; height: auto; }
         .page-wrap { padding: 30px 40px; background: #f5f5f5; min-height: calc(100vh - 48px); box-sizing: border-box; }
@@ -45,38 +53,53 @@ $path_prefix  = '../../';
         .btn-secondary { background: white; color: #333; border-color: #ddd; }
         .btn-secondary:hover { background: #f5f5f5; }
 
-        /* Two-column layout: supplier sidebar | scoring main */
-        .scoring-layout {
-            display: grid; grid-template-columns: 240px 1fr; gap: 16px;
-            margin-bottom: 80px; /* space for the sticky averages bar */
-        }
+        /* ─── Layout ─────────────────────────────────────────────── */
 
-        .supplier-sidebar {
-            background: white; border-radius: 10px; padding: 14px;
+        .scoring-layout {
+            display: grid; grid-template-columns: 300px 1fr; gap: 16px;
+            margin-bottom: 80px; /* clear of sticky bottom bar */
+        }
+        .scoring-sidebar {
+            background: white; border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             position: sticky; top: 16px; align-self: start;
             max-height: calc(100vh - 80px); overflow-y: auto;
         }
-        .supplier-sidebar h3 {
+        .sidebar-section { padding: 14px 16px; }
+        .sidebar-section + .sidebar-section { border-top: 1px solid #eef0f2; }
+        .sidebar-section h3 {
             font-size: 11px; color: #888; text-transform: uppercase;
             letter-spacing: 0.5px; margin: 0 0 8px 0;
         }
+
         .supplier-link {
-            display: block; padding: 8px 10px; border-radius: 6px;
-            font-size: 14px; color: #333; text-decoration: none;
-            margin-bottom: 3px;
+            display: block; padding: 7px 10px; border-radius: 5px;
+            font-size: 13px; color: #333; text-decoration: none;
+            margin-bottom: 2px; line-height: 1.3;
         }
         .supplier-link:hover { background: #f5f5f5; }
         .supplier-link.active { background: #fff7ed; color: #f59e0b; font-weight: 600; }
-        .supplier-link .avg {
-            font-size: 11px; color: #888; margin-top: 2px;
-            display: block;
-        }
-        .supplier-link.active .avg { color: #d97706; }
 
-        .scoring-main {
-            display: flex; flex-direction: column; gap: 16px;
+        .cat-score-row {
+            display: flex; align-items: center; gap: 8px;
+            padding: 7px 10px; border-radius: 5px;
+            font-size: 13px; cursor: pointer; user-select: none;
+            margin-bottom: 2px; line-height: 1.3;
         }
+        .cat-score-row:hover { background: #f5f5f5; }
+        .cat-score-row .cat-name { flex: 1; color: #333; min-width: 0;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .cat-score-row .cat-avg {
+            font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums;
+            color: #888; min-width: 32px; text-align: right;
+        }
+        .cat-score-row.has-score .cat-avg { color: #047857; }
+        .cat-score-row .cat-count {
+            font-size: 11px; color: #aaa; font-variant-numeric: tabular-nums;
+        }
+
+        .scoring-main { display: flex; flex-direction: column; gap: 16px; }
 
         .supplier-banner {
             background: white; border-radius: 10px; padding: 18px 22px;
@@ -87,13 +110,14 @@ $path_prefix  = '../../';
         .supplier-banner .name .display { font-size: 18px; font-weight: 700; color: #222; }
         .supplier-banner .name .legal { font-size: 12px; color: #888; margin-top: 2px; }
         .supplier-banner .summary { display: flex; gap: 18px; font-size: 12px; color: #666; }
-        .supplier-banner .summary strong {
+        .supplier-banner .summary .sm-block strong {
             display: block; color: #222; font-size: 18px; font-variant-numeric: tabular-nums;
         }
 
         .category-card {
             background: white; border-radius: 10px; overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            scroll-margin-top: 16px;
         }
         .cat-header {
             padding: 12px 22px; background: #fafbfc; border-bottom: 1px solid #f0f0f0;
@@ -102,25 +126,21 @@ $path_prefix  = '../../';
         .cat-header h2 {
             margin: 0; font-size: 15px; font-weight: 600; color: #222; flex: 1;
         }
-        .cat-header .cat-avg {
-            font-size: 13px; color: #555;
+        .cat-header .cat-avg-inline {
+            font-size: 13px; color: #555; font-variant-numeric: tabular-nums;
         }
-        .cat-header .cat-avg strong {
-            color: #222; font-variant-numeric: tabular-nums;
-        }
+        .cat-header .cat-avg-inline strong { color: #222; }
 
         .req-row {
-            padding: 14px 22px; border-bottom: 1px solid #f5f5f5;
-            display: grid; grid-template-columns: 1fr 100px 240px;
-            gap: 16px; align-items: start;
+            padding: 18px 22px; border-bottom: 1px solid #f5f5f5;
+            display: flex; flex-direction: column; gap: 12px;
         }
         .req-row:last-child { border-bottom: none; }
+
         .req-text {
-            font-size: 14px; color: #222; line-height: 1.5;
+            font-size: 14px; color: #222; line-height: 1.55;
         }
-        .req-text .pills {
-            display: flex; gap: 6px; margin-bottom: 6px;
-        }
+        .req-text .pills { display: flex; gap: 6px; margin-bottom: 6px; }
         .pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
             font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
@@ -139,40 +159,62 @@ $path_prefix  = '../../';
             font-size: 11px; font-weight: 500;
         }
 
-        .score-control {
-            display: flex; flex-direction: column; gap: 4px;
+        /* ─── Score boxes (0-5 click-to-light) ───────────────────── */
+
+        .score-row { display: flex; align-items: center; gap: 14px; }
+        .score-row .score-label {
+            font-size: 11px; font-weight: 600; color: #555;
+            text-transform: uppercase; letter-spacing: 0.4px;
+            min-width: 50px;
         }
-        .score-control label {
+        .score-boxes { display: flex; gap: 6px; }
+        .score-box {
+            width: 42px; height: 42px;
+            display: flex; align-items: center; justify-content: center;
+            border: 2px solid #d1d5db; border-radius: 8px;
+            background: white; color: #6b7280;
+            font-size: 16px; font-weight: 700;
+            cursor: pointer; user-select: none;
+            transition: all 0.12s;
+            font-family: inherit;
+        }
+        .score-box:hover {
+            border-color: #9ca3af; color: #374151;
+            transform: translateY(-1px);
+        }
+        /* Selected state: each score gets its own colour on the
+           red→green spectrum. Lit-up box uses solid background + white
+           text + matching darker border + small shadow for tactile feel. */
+        .score-box.selected.s0 { background: #ef4444; border-color: #b91c1c; color: white; box-shadow: 0 2px 6px rgba(239,68,68,0.4); }
+        .score-box.selected.s1 { background: #f97316; border-color: #c2410c; color: white; box-shadow: 0 2px 6px rgba(249,115,22,0.4); }
+        .score-box.selected.s2 { background: #eab308; border-color: #a16207; color: white; box-shadow: 0 2px 6px rgba(234,179,8,0.4); }
+        .score-box.selected.s3 { background: #84cc16; border-color: #4d7c0f; color: white; box-shadow: 0 2px 6px rgba(132,204,22,0.4); }
+        .score-box.selected.s4 { background: #22c55e; border-color: #15803d; color: white; box-shadow: 0 2px 6px rgba(34,197,94,0.4); }
+        .score-box.selected.s5 { background: #16a34a; border-color: #166534; color: white; box-shadow: 0 2px 6px rgba(22,163,74,0.5); }
+
+        .score-row .save-status {
+            font-size: 11px; color: #888; min-width: 80px;
+        }
+        .score-row .save-status.saving { color: #b45309; }
+        .score-row .save-status.saved  { color: #047857; }
+        .score-row .save-status.error  { color: #b91c1c; }
+
+        /* ─── Notes (full width) ─────────────────────────────────── */
+
+        .notes-block { display: flex; flex-direction: column; gap: 4px; }
+        .notes-block label {
             font-size: 11px; font-weight: 600; color: #555;
             text-transform: uppercase; letter-spacing: 0.4px;
         }
-        .score-control select {
-            padding: 7px 10px; font-size: 14px; font-family: inherit;
-            border: 1px solid #d1d5db; border-radius: 5px;
-            background: white;
-        }
-        .score-control select.scored { background: #ecfdf5; border-color: #6ee7b7; }
-        .score-control .save-status {
-            font-size: 11px; color: #888; min-height: 14px;
-        }
-        .score-control .save-status.saving { color: #b45309; }
-        .score-control .save-status.saved  { color: #047857; }
-        .score-control .save-status.error  { color: #b91c1c; }
-
-        .score-notes {
-            display: flex; flex-direction: column; gap: 4px;
-        }
-        .score-notes label {
-            font-size: 11px; font-weight: 600; color: #555;
-            text-transform: uppercase; letter-spacing: 0.4px;
-        }
-        .score-notes textarea {
-            padding: 7px 10px; font-size: 13px; font-family: inherit;
-            border: 1px solid #d1d5db; border-radius: 5px;
-            resize: vertical; min-height: 38px;
+        .notes-block textarea {
+            padding: 10px 12px; font-size: 13px; font-family: inherit;
+            border: 1px solid #d1d5db; border-radius: 6px;
+            resize: vertical; min-height: 70px; line-height: 1.5;
+            width: 100%; box-sizing: border-box;
         }
 
-        /* Sticky bottom bar — shows running totals */
+        /* ─── Sticky bottom bar ──────────────────────────────────── */
+
         .averages-bar {
             position: fixed; bottom: 0; left: 0; right: 0;
             background: #1f2937; color: white; padding: 12px 24px;
@@ -193,6 +235,46 @@ $path_prefix  = '../../';
             margin-top: 2px;
         }
         .averages-bar .ab-grow { flex: 1; }
+        .averages-bar .ab-spider {
+            background: rgba(255,255,255,0.1); color: white;
+            border: 1px solid rgba(255,255,255,0.2); border-radius: 8px;
+            padding: 8px 14px; font-size: 13px; cursor: pointer;
+            display: flex; align-items: center; gap: 8px;
+            font-family: inherit;
+        }
+        .averages-bar .ab-spider:hover { background: rgba(255,255,255,0.2); }
+        .averages-bar .ab-spider svg { width: 18px; height: 18px; }
+
+        /* ─── Spider modal (full screen) ─────────────────────────── */
+
+        .spider-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
+        }
+        .spider-modal {
+            background: white; border-radius: 12px;
+            width: 90vw; height: 90vh; max-width: 1100px;
+            display: flex; flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4); overflow: hidden;
+        }
+        .spider-header {
+            padding: 14px 22px; border-bottom: 1px solid #eee;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .spider-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #222; flex: 1; }
+        .spider-header .close-x {
+            background: none; border: none; font-size: 24px; color: #888;
+            cursor: pointer; padding: 0; line-height: 1;
+        }
+        .spider-body {
+            flex: 1; padding: 24px; display: flex; align-items: center; justify-content: center;
+            min-height: 0; /* required so canvas inside doesn't blow out */
+        }
+        .spider-body canvas { max-width: 100%; max-height: 100%; }
+        .spider-empty {
+            color: #999; font-size: 14px; font-style: italic; text-align: center;
+        }
 
         .empty-card, .loading, .error-state {
             background: white; border-radius: 10px; padding: 40px 24px;
@@ -223,7 +305,16 @@ $path_prefix  = '../../';
 
         <div id="loadingEl" class="loading">Loading…</div>
         <div id="contentEl" class="scoring-layout" style="display:none;">
-            <aside class="supplier-sidebar" id="supplierSidebar"></aside>
+            <aside class="scoring-sidebar">
+                <div class="sidebar-section">
+                    <h3>Suppliers</h3>
+                    <div id="sbSuppliers"></div>
+                </div>
+                <div class="sidebar-section">
+                    <h3>Score by category</h3>
+                    <div id="sbCategories"></div>
+                </div>
+            </aside>
             <main class="scoring-main" id="scoringMain"></main>
         </div>
         <div id="errorEl" class="error-state" style="display:none;"></div>
@@ -247,6 +338,34 @@ $path_prefix  = '../../';
             <span class="ab-label">Autosaved</span>
             <span class="ab-value" id="abLastSaved" style="font-size:13px;">—</span>
         </div>
+        <button class="ab-spider" onclick="openSpiderModal()" title="Show category radar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 3 21 9 19 19 5 19 3 9 12 3"/>
+                <polygon points="12 7 17.5 10.5 16.5 16 7.5 16 6.5 10.5 12 7"/>
+                <line x1="12" y1="3"  x2="12" y2="19"/>
+                <line x1="3"  y1="9"  x2="21" y2="9"/>
+                <line x1="5"  y1="19" x2="19" y2="19"/>
+                <line x1="3"  y1="9"  x2="19" y2="19"/>
+                <line x1="21" y1="9"  x2="5"  y2="19"/>
+            </svg>
+            Spider
+        </button>
+    </div>
+
+    <!-- Spider modal -->
+    <div id="spiderModal" class="spider-backdrop" style="display:none;">
+        <div class="spider-modal">
+            <div class="spider-header">
+                <h3 id="spiderTitle">Score by category</h3>
+                <button class="close-x" onclick="closeSpiderModal()">&times;</button>
+            </div>
+            <div class="spider-body">
+                <canvas id="spiderCanvas"></canvas>
+                <div id="spiderEmpty" class="spider-empty" style="display:none;">
+                    No scores yet — score a few requirements and the chart will fill in.
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -255,8 +374,9 @@ $path_prefix  = '../../';
         const rfpId      = params.get('id');
         const supplierId = params.get('supplier');
         let pageData = null;
-        let suppliersList = []; // for sidebar
-        const saveTimers = {};
+        let suppliersList = [];
+        const noteSaveTimers = {};
+        let spiderChart = null;
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId || !supplierId) {
@@ -296,14 +416,15 @@ $path_prefix  = '../../';
             document.getElementById('contentEl').style.display = 'grid';
             document.getElementById('averagesBar').style.display = 'flex';
 
-            renderSidebar();
+            renderSidebarSuppliers();
             renderMain();
             updateAverages();
+            renderSidebarCategories(); // depends on the per-category averages
         }
 
-        function renderSidebar() {
-            const sb = document.getElementById('supplierSidebar');
-            sb.innerHTML = '<h3>Suppliers</h3>' + suppliersList.map(s => {
+        function renderSidebarSuppliers() {
+            const sb = document.getElementById('sbSuppliers');
+            sb.innerHTML = suppliersList.map(s => {
                 const isActive = String(s.supplier_id) === String(supplierId);
                 return `
                     <a class="supplier-link ${isActive ? 'active' : ''}"
@@ -312,6 +433,38 @@ $path_prefix  = '../../';
                     </a>
                 `;
             }).join('');
+        }
+
+        function renderSidebarCategories() {
+            // Build a row per category that has at least one requirement,
+            // showing my running average and "X / Y scored" count. Click
+            // scrolls the main pane to that category.
+            const reqsByCat = groupReqsByCategory();
+            const cats = pageData.categories.concat(
+                reqsByCat.has(0) ? [{ id: 0, name: 'Uncategorised' }] : []
+            );
+
+            const sb = document.getElementById('sbCategories');
+            sb.innerHTML = cats.map(c => {
+                const reqs = reqsByCat.get(c.id) || [];
+                if (reqs.length === 0) return '';
+                const scored = reqs.filter(r => r.my && r.my.score !== null);
+                const avg = scored.length ? (scored.reduce((s, r) => s + r.my.score, 0) / scored.length) : null;
+                const hasScore = scored.length > 0;
+                const avgText = avg === null ? '—' : avg.toFixed(2);
+                return `
+                    <div class="cat-score-row ${hasScore ? 'has-score' : ''}" onclick="scrollToCategory(${c.id})">
+                        <div class="cat-name" title="${escapeHtml(c.name)}">${escapeHtml(c.name)}</div>
+                        <div class="cat-count">${scored.length}/${reqs.length}</div>
+                        <div class="cat-avg">${avgText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function scrollToCategory(catId) {
+            const el = document.getElementById('cat-card-' + catId);
+            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
 
         function renderMain() {
@@ -328,12 +481,12 @@ $path_prefix  = '../../';
                             : ''}
                     </div>
                     <div class="summary">
-                        <div>
+                        <div class="sm-block">
                             <strong>${agg.scorer_count}</strong>
                             <div>analyst${agg.scorer_count === 1 ? '' : 's'} scoring</div>
                         </div>
                         ${agg.avg_score !== null ? `
-                            <div>
+                            <div class="sm-block">
                                 <strong>${agg.avg_score.toFixed(2)}</strong>
                                 <div>team average</div>
                             </div>
@@ -342,38 +495,37 @@ $path_prefix  = '../../';
                 </div>
             `;
 
-            // Group requirements by category in their original order
-            const reqsByCat = new Map();
-            pageData.requirements.forEach(r => {
-                const key = r.category_id || 0;
-                if (!reqsByCat.has(key)) reqsByCat.set(key, []);
-                reqsByCat.get(key).push(r);
-            });
-
+            const reqsByCat = groupReqsByCategory();
             const blocks = [];
             pageData.categories.forEach(c => {
                 const rs = reqsByCat.get(c.id) || [];
                 if (!rs.length) return;
                 blocks.push(renderCategoryBlock(c, rs));
             });
-            // Orphans (uncategorised)
             const orphans = reqsByCat.get(0) || [];
             if (orphans.length) {
-                blocks.push(renderCategoryBlock(
-                    { id: 0, name: 'Uncategorised' },
-                    orphans
-                ));
+                blocks.push(renderCategoryBlock({ id: 0, name: 'Uncategorised' }, orphans));
             }
 
             main.innerHTML = banner + blocks.join('');
         }
 
+        function groupReqsByCategory() {
+            const m = new Map();
+            pageData.requirements.forEach(r => {
+                const key = r.category_id || 0;
+                if (!m.has(key)) m.set(key, []);
+                m.get(key).push(r);
+            });
+            return m;
+        }
+
         function renderCategoryBlock(cat, reqs) {
             return `
-                <div class="category-card">
+                <div class="category-card" id="cat-card-${cat.id}">
                     <div class="cat-header">
                         <h2>${escapeHtml(cat.name)}</h2>
-                        <div class="cat-avg" id="cat-avg-${cat.id}">—</div>
+                        <div class="cat-avg-inline" id="cat-avg-${cat.id}">—</div>
                     </div>
                     ${reqs.map(r => renderReqRow(r)).join('')}
                 </div>
@@ -381,13 +533,18 @@ $path_prefix  = '../../';
         }
 
         function renderReqRow(r) {
-            const myScore = r.my && r.my.score !== null ? r.my.score : '';
+            const myScore = r.my && r.my.score !== null ? r.my.score : null;
             const myNotes = r.my && r.my.notes ? r.my.notes : '';
             const others  = r.others;
 
             const othersTag = others
                 ? `<span class="others-tag">${others.scorer_count} other${others.scorer_count === 1 ? '' : 's'} avg ${others.avg_score.toFixed(2)}</span>`
                 : '';
+
+            const scoreBoxes = [0,1,2,3,4,5].map(n => {
+                const selected = myScore === n;
+                return `<button type="button" class="score-box ${selected ? 'selected s' + n : ''}" data-score="${n}" onclick="selectScore(${r.id}, ${n})">${n}</button>`;
+            }).join('');
 
             return `
                 <div class="req-row" data-req-id="${r.id}" data-cat-id="${r.category_id || 0}">
@@ -399,62 +556,58 @@ $path_prefix  = '../../';
                         ${escapeHtml(r.requirement_text)}
                         ${othersTag}
                     </div>
-                    <div class="score-control">
-                        <label>Score</label>
-                        <select class="${myScore !== '' ? 'scored' : ''}"
-                                onchange="onScoreChange(${r.id}, this)">
-                            <option value="">— Not scored —</option>
-                            <option value="0">0 — Does not meet</option>
-                            <option value="1">1 — Poor</option>
-                            <option value="2">2 — Below par</option>
-                            <option value="3">3 — Acceptable</option>
-                            <option value="4">4 — Good</option>
-                            <option value="5">5 — Excellent</option>
-                        </select>
-                        <div class="save-status" id="ss-${r.id}-score"></div>
+                    <div class="score-row">
+                        <span class="score-label">Score</span>
+                        <div class="score-boxes" id="boxes-${r.id}">${scoreBoxes}</div>
+                        <span class="save-status" id="ss-${r.id}"></span>
                     </div>
-                    <div class="score-notes">
+                    <div class="notes-block">
                         <label>Notes</label>
-                        <textarea rows="2" oninput="onNotesChange(${r.id}, this)" placeholder="Why this score, evidence, caveats…">${escapeHtml(myNotes)}</textarea>
+                        <textarea rows="3" oninput="onNotesChange(${r.id}, this)" placeholder="Why this score, evidence, caveats…">${escapeHtml(myNotes)}</textarea>
                     </div>
                 </div>
             `;
         }
 
-        // After render, set selected option on each select. Doing this
-        // post-render keeps the template above clean.
-        function applySelections() {
-            pageData.requirements.forEach(r => {
-                if (r.my && r.my.score !== null) {
-                    const sel = document.querySelector('.req-row[data-req-id="' + r.id + '"] select');
-                    if (sel) sel.value = String(r.my.score);
-                }
-            });
-        }
+        // ─── Score selection ─────────────────────────────────────
 
-        // ─── Save handlers ────────────────────────────────────────
+        function selectScore(reqId, value) {
+            // Click-to-toggle: clicking the already-selected box clears it.
+            const r = pageData.requirements.find(x => x.id === reqId);
+            const wasSelected = r && r.my && r.my.score === value;
+            const newScore = wasSelected ? null : value;
 
-        function onScoreChange(reqId, selEl) {
-            selEl.classList.toggle('scored', selEl.value !== '');
-            saveScore(reqId, selEl.value, getNotesFor(reqId), 'score');
+            // Optimistic UI — update boxes immediately.
+            const boxesEl = document.getElementById('boxes-' + reqId);
+            if (boxesEl) {
+                boxesEl.querySelectorAll('.score-box').forEach(btn => {
+                    const n = parseInt(btn.dataset.score, 10);
+                    const isSel = newScore !== null && n === newScore;
+                    btn.classList.toggle('selected', isSel);
+                    // Strip any prior s0..s5 class then add the right one
+                    [...btn.classList].forEach(c => { if (/^s[0-5]$/.test(c)) btn.classList.remove(c); });
+                    if (isSel) btn.classList.add('s' + n);
+                });
+            }
+
+            saveScore(reqId, newScore, getNotesFor(reqId));
         }
 
         function onNotesChange(reqId, taEl) {
             const key = reqId + '-notes';
-            const statusEl = document.getElementById('ss-' + reqId + '-score');
+            const statusEl = document.getElementById('ss-' + reqId);
             if (statusEl) {
                 statusEl.textContent = 'saving…';
                 statusEl.className = 'save-status saving';
             }
-            clearTimeout(saveTimers[key]);
-            // Debounce notes — don't fire on every keystroke.
-            saveTimers[key] = setTimeout(() => {
-                saveScore(reqId, getScoreFor(reqId), taEl.value, 'notes');
+            clearTimeout(noteSaveTimers[key]);
+            noteSaveTimers[key] = setTimeout(() => {
+                saveScore(reqId, getScoreFor(reqId), taEl.value);
             }, 600);
         }
 
-        async function saveScore(reqId, score, notes, source) {
-            const statusEl = document.getElementById('ss-' + reqId + '-score');
+        async function saveScore(reqId, score, notes) {
+            const statusEl = document.getElementById('ss-' + reqId);
             if (statusEl) {
                 statusEl.textContent = 'saving…';
                 statusEl.className = 'save-status saving';
@@ -467,7 +620,7 @@ $path_prefix  = '../../';
                         rfp_id: parseInt(rfpId, 10),
                         supplier_id: parseInt(supplierId, 10),
                         consolidated_id: reqId,
-                        score: score === '' ? null : score,
+                        score: score,
                         notes: notes || null
                     })
                 });
@@ -480,81 +633,178 @@ $path_prefix  = '../../';
                         if (statusEl.textContent === 'saved') statusEl.textContent = '';
                     }, 1500);
                 }
-                // Update local data so the running averages stay correct.
+                // Update local data
                 const r = pageData.requirements.find(x => x.id === reqId);
                 if (r) {
                     if (!r.my) r.my = { score: null, notes: null };
-                    r.my.score = score === '' ? null : (typeof score === 'string' ? parseInt(score, 10) : score);
+                    r.my.score = (score === null || score === '') ? null : parseInt(score, 10);
                     r.my.notes = notes || null;
                 }
                 updateAverages();
+                renderSidebarCategories();
                 document.getElementById('abLastSaved').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
             } catch (err) {
                 if (statusEl) {
-                    statusEl.textContent = 'error: ' + err.message;
+                    statusEl.textContent = 'error';
                     statusEl.className = 'save-status error';
+                    statusEl.title = err.message;
                 }
             }
         }
 
         function getScoreFor(reqId) {
-            const sel = document.querySelector('.req-row[data-req-id="' + reqId + '"] select');
-            return sel ? sel.value : '';
+            const r = pageData.requirements.find(x => x.id === reqId);
+            return r && r.my && r.my.score !== null ? r.my.score : null;
         }
         function getNotesFor(reqId) {
             const ta = document.querySelector('.req-row[data-req-id="' + reqId + '"] textarea');
             return ta ? ta.value : '';
         }
 
-        // ─── Running averages ─────────────────────────────────────
+        // ─── Averages ─────────────────────────────────────────────
 
         function updateAverages() {
-            // My overall
             const scored = pageData.requirements.filter(r => r.my && r.my.score !== null);
             const myAvg = scored.length > 0
                 ? (scored.reduce((sum, r) => sum + r.my.score, 0) / scored.length)
                 : null;
-            document.getElementById('abMyOverall').textContent = myAvg === null ? '—' : myAvg.toFixed(2);
+            document.getElementById('abMyOverall').textContent  = myAvg === null ? '—' : myAvg.toFixed(2);
             document.getElementById('abScoredCount').textContent = scored.length + ' / ' + pageData.requirements.length;
 
-            // Per-category averages
+            // Per-category inline averages
             const byCat = new Map();
             scored.forEach(r => {
                 const k = r.category_id || 0;
                 if (!byCat.has(k)) byCat.set(k, []);
                 byCat.get(k).push(r.my.score);
             });
-            // Walk each category in DOM and update its avg label
             pageData.categories.concat([{id: 0}]).forEach(c => {
                 const cell = document.getElementById('cat-avg-' + c.id);
                 if (!cell) return;
                 const arr = byCat.get(c.id) || [];
+                const tot = pageData.requirements.filter(r => (r.category_id || 0) === c.id).length;
                 if (arr.length === 0) {
-                    cell.innerHTML = '— · 0 / ' + pageData.requirements.filter(r => (r.category_id || 0) === c.id).length;
+                    cell.innerHTML = '— · 0 / ' + tot;
                 } else {
                     const a = arr.reduce((s, x) => s + x, 0) / arr.length;
-                    const tot = pageData.requirements.filter(r => (r.category_id || 0) === c.id).length;
                     cell.innerHTML = '<strong>' + a.toFixed(2) + '</strong> · ' + arr.length + ' / ' + tot;
                 }
             });
 
-            // Team overall (mine averaged in with others' aggregate). The
-            // server-side aggregate doesn't refresh as I score, so estimate
-            // it locally: assume the team average updates by replacing my
-            // contribution proportionally. For an MVP it's enough to show
-            // the server's number until a refresh.
             const agg = pageData.aggregate;
             if (agg && agg.scorer_count > 0 && agg.avg_score !== null) {
                 document.getElementById('abTeamBlock').style.display = '';
                 document.getElementById('abTeamOverall').textContent = agg.avg_score.toFixed(2);
             } else if (myAvg !== null) {
-                // I'm the first analyst. Show my own average in the team slot.
                 document.getElementById('abTeamBlock').style.display = '';
                 document.getElementById('abTeamOverall').textContent = myAvg.toFixed(2);
             } else {
                 document.getElementById('abTeamBlock').style.display = 'none';
             }
         }
+
+        // ─── Spider/radar modal ──────────────────────────────────
+
+        function openSpiderModal() {
+            document.getElementById('spiderModal').style.display = 'flex';
+            document.getElementById('spiderTitle').textContent =
+                'Score by category — ' + (pageData.supplier.display_name || '');
+            // Defer so the modal has its size before Chart.js measures
+            setTimeout(renderSpider, 30);
+        }
+
+        function closeSpiderModal() {
+            document.getElementById('spiderModal').style.display = 'none';
+            if (spiderChart) {
+                spiderChart.destroy();
+                spiderChart = null;
+            }
+        }
+
+        function renderSpider() {
+            const reqsByCat = groupReqsByCategory();
+            const labels = [];
+            const myData = [];
+            const othersData = [];
+            let anyOthers = false;
+
+            pageData.categories.forEach(c => {
+                const reqs = reqsByCat.get(c.id) || [];
+                if (reqs.length === 0) return;
+                labels.push(c.name);
+                const myScored = reqs.filter(r => r.my && r.my.score !== null);
+                myData.push(myScored.length ? (myScored.reduce((s, r) => s + r.my.score, 0) / myScored.length) : 0);
+
+                // Others' avg per category — average of per-requirement avg_score
+                const othersScored = reqs.filter(r => r.others && r.others.scorer_count > 0);
+                if (othersScored.length > 0) {
+                    anyOthers = true;
+                    othersData.push(othersScored.reduce((s, r) => s + r.others.avg_score, 0) / othersScored.length);
+                } else {
+                    othersData.push(0);
+                }
+            });
+
+            const empty = document.getElementById('spiderEmpty');
+            const canvas = document.getElementById('spiderCanvas');
+            const myAny = myData.some(v => v > 0);
+
+            if (!myAny && !anyOthers) {
+                canvas.style.display = 'none';
+                empty.style.display = '';
+                return;
+            }
+            canvas.style.display = '';
+            empty.style.display = 'none';
+
+            if (spiderChart) { spiderChart.destroy(); spiderChart = null; }
+
+            const datasets = [{
+                label: 'My scores',
+                data: myData,
+                backgroundColor: 'rgba(245, 158, 11, 0.25)',
+                borderColor: '#f59e0b',
+                borderWidth: 2,
+                pointBackgroundColor: '#f59e0b',
+                pointRadius: 4,
+            }];
+            if (anyOthers) {
+                datasets.push({
+                    label: 'Other analysts (avg)',
+                    data: othersData,
+                    backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                    borderColor: '#8b5cf6',
+                    borderWidth: 2,
+                    borderDash: [4, 4],
+                    pointBackgroundColor: '#8b5cf6',
+                    pointRadius: 3,
+                });
+            }
+
+            spiderChart = new Chart(canvas, {
+                type: 'radar',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            min: 0, max: 5,
+                            ticks: { stepSize: 1, color: '#666', backdropColor: 'transparent' },
+                            angleLines: { color: '#ddd' },
+                            grid: { color: '#eee' },
+                            pointLabels: { font: { size: 12, family: 'Segoe UI, Tahoma, sans-serif' } }
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { font: { family: 'Segoe UI, Tahoma, sans-serif' } } },
+                        tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.raw === 0 ? '—' : ctx.raw.toFixed(2)) } }
+                    }
+                }
+            });
+        }
+
+        // ─── Helpers ─────────────────────────────────────────────
 
         function showError(html) {
             document.getElementById('loadingEl').style.display = 'none';
@@ -569,16 +819,6 @@ $path_prefix  = '../../';
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
-
-        // After initial render, apply selected option values on every select
-        // (templating selected options in markup is fiddly; this is cleaner).
-        const renderObserver = new MutationObserver(() => {
-            if (pageData && document.querySelector('.req-row select')) {
-                applySelections();
-                renderObserver.disconnect();
-            }
-        });
-        renderObserver.observe(document.getElementById('scoringMain'), { childList: true });
     </script>
 </body>
 </html>
