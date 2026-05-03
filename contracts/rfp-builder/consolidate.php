@@ -171,17 +171,57 @@ $path_prefix  = '../../';
 
         .loading, .error-state { text-align: center; padding: 40px; color: #999; }
         .error-state { color: #d13438; }
-        .running-banner {
-            background: #fff7ed; border: 1px solid #fed7aa; border-radius: 8px;
-            padding: 14px 18px; color: #9a3412; margin-bottom: 16px;
-            display: flex; align-items: center; gap: 12px; font-size: 14px;
+
+        /* Streaming progress modal */
+        .modal-backdrop {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 1000;
         }
-        .running-banner .spinner {
+        .stream-modal {
+            background: white; border-radius: 12px; width: 720px; max-width: 92vw;
+            max-height: 86vh; display: flex; flex-direction: column;
+            box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
+        }
+        .stream-modal-header {
+            padding: 16px 22px; border-bottom: 1px solid #eee;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .stream-modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #222; flex: 1; }
+        .stream-modal-header .spinner {
             width: 16px; height: 16px; border: 2px solid #fed7aa;
             border-top-color: #9a3412; border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
+        .stream-modal-header .spinner.done { display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        .stream-phase {
+            padding: 10px 22px; background: #fff7ed; color: #9a3412;
+            font-size: 13px; border-bottom: 1px solid #fed7aa;
+        }
+        .stream-phase.done    { background: #ecfdf5; color: #047857; border-bottom-color: #a7f3d0; }
+        .stream-phase.error   { background: #fef2f2; color: #991b1b; border-bottom-color: #fecaca; }
+
+        .stream-body {
+            flex: 1; overflow-y: auto; padding: 14px 22px;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: 12px; line-height: 1.55; color: #333;
+            white-space: pre-wrap; word-break: break-word;
+            background: #fafbfc; min-height: 200px;
+        }
+
+        .stream-meta {
+            padding: 10px 22px; border-top: 1px solid #eee; background: #fafbfc;
+            display: flex; gap: 18px; font-size: 12px; color: #666;
+            justify-content: space-between; flex-wrap: wrap;
+        }
+        .stream-meta .meta-item strong { color: #222; font-variant-numeric: tabular-nums; }
+
+        .stream-modal-footer {
+            padding: 12px 22px; border-top: 1px solid #eee;
+            display: flex; justify-content: flex-end; gap: 8px;
+        }
     </style>
 </head>
 <body>
@@ -203,10 +243,23 @@ $path_prefix  = '../../';
             </div>
         </div>
 
-        <div id="runningBanner" class="running-banner" style="display:none;">
-            <div class="spinner"></div>
-            <div>
-                <strong>Consolidation running…</strong> typically 60-120 seconds. Don't refresh the page.
+        <div id="streamModal" class="modal-backdrop" style="display:none;">
+            <div class="stream-modal">
+                <div class="stream-modal-header">
+                    <div id="streamSpinner" class="spinner"></div>
+                    <h3 id="streamTitle">Running consolidation</h3>
+                </div>
+                <div id="streamPhase" class="stream-phase">Starting…</div>
+                <div id="streamBody" class="stream-body"></div>
+                <div class="stream-meta">
+                    <span class="meta-item">Tokens in: <strong id="streamTokensIn">0</strong></span>
+                    <span class="meta-item">Tokens out: <strong id="streamTokensOut">0</strong></span>
+                    <span class="meta-item">Cached: <strong id="streamCacheRead">0</strong></span>
+                    <span class="meta-item">Elapsed: <strong id="streamElapsed">0s</strong></span>
+                </div>
+                <div class="stream-modal-footer">
+                    <button id="streamCloseBtn" class="btn btn-secondary" onclick="closeStreamModal()" disabled>Close</button>
+                </div>
             </div>
         </div>
 
@@ -413,40 +466,131 @@ $path_prefix  = '../../';
             label.textContent = (isOpen ? 'Hide' : 'Show') + ' sources (' + count + ')';
         }
 
-        async function runConsolidation() {
-            const runBtn = document.getElementById('runBtn');
-            const banner = document.getElementById('runningBanner');
-            if (!confirm('Run AI consolidation now?\n\nThis takes 60-120 seconds and replaces any existing consolidation, categories and conflicts for this RFP.')) {
+        let activeStream = null;
+        let streamStart = 0;
+        let elapsedTimer = null;
+
+        function runConsolidation() {
+            if (!confirm('Run AI consolidation now?\n\nThis takes 60-180 seconds and replaces any existing consolidation, categories and conflicts for this RFP.\n\nYou can watch the AI work live in the modal that opens.')) {
                 return;
             }
-            runBtn.disabled = true;
-            banner.style.display = 'flex';
-            try {
-                const res = await fetch(API_BASE + 'run_consolidation.php', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({rfp_id: parseInt(rfpId, 10)})
-                });
-                const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Consolidation failed');
-                banner.style.display = 'none';
-                runBtn.disabled = false;
-                alert(
-                    'Consolidation complete:\n' +
-                    '• ' + data.counts.categories       + ' categories\n' +
-                    '• ' + data.counts.consolidated     + ' consolidated requirements\n' +
-                    '• ' + data.counts.conflicts        + ' conflicts flagged\n' +
-                    '• ' + data.counts.orphan_extracted + ' input items not linked\n' +
-                    'Tokens: ' + data.tokens_in + ' in / ' + data.tokens_out + ' out' +
-                    (data.cache_read ? ' (cache read ' + data.cache_read + ')' : '') +
-                    '\nDuration: ' + (data.duration_ms / 1000).toFixed(1) + 's'
-                );
-                loadAll();
-            } catch (err) {
-                banner.style.display = 'none';
-                runBtn.disabled = false;
-                alert('Consolidation failed: ' + err.message);
-            }
+            openStreamModal();
+
+            // EventSource is the simplest browser API for SSE — connection
+            // automatically reopens on transient drops and parses the
+            // event/data framing for us. GET-only, so rfp_id goes in the URL.
+            const url = API_BASE + 'run_consolidation.php?rfp_id=' + encodeURIComponent(rfpId);
+            activeStream = new EventSource(url);
+            streamStart = Date.now();
+            elapsedTimer = setInterval(updateElapsed, 250);
+
+            activeStream.addEventListener('phase', (e) => {
+                const data = JSON.parse(e.data);
+                setPhase(data.message || data.phase, false);
+            });
+
+            activeStream.addEventListener('text', (e) => {
+                const data = JSON.parse(e.data);
+                appendStreamText(data.delta || '');
+            });
+
+            activeStream.addEventListener('usage', (e) => {
+                const data = JSON.parse(e.data);
+                if (data.tokens_in  != null) document.getElementById('streamTokensIn').textContent  = formatNum(data.tokens_in);
+                if (data.tokens_out != null) document.getElementById('streamTokensOut').textContent = formatNum(data.tokens_out);
+                if (data.cache_read != null) document.getElementById('streamCacheRead').textContent = formatNum(data.cache_read);
+            });
+
+            activeStream.addEventListener('complete', (e) => {
+                const data = JSON.parse(e.data);
+                finishStream(data);
+            });
+
+            activeStream.addEventListener('error', (e) => {
+                // Two ways this fires: (a) explicit `event: error` from the
+                // server with a JSON message, or (b) connection-level
+                // failures where e.data is undefined. Handle both.
+                let msg = 'Connection error';
+                if (e.data) {
+                    try { msg = (JSON.parse(e.data).error) || msg; } catch (_) { msg = e.data; }
+                }
+                failStream(msg);
+            });
+        }
+
+        function openStreamModal() {
+            document.getElementById('streamModal').style.display = 'flex';
+            document.getElementById('streamBody').textContent = '';
+            document.getElementById('streamTokensIn').textContent  = '0';
+            document.getElementById('streamTokensOut').textContent = '0';
+            document.getElementById('streamCacheRead').textContent = '0';
+            document.getElementById('streamElapsed').textContent   = '0s';
+            const phase = document.getElementById('streamPhase');
+            phase.textContent = 'Starting…';
+            phase.className = 'stream-phase';
+            document.getElementById('streamSpinner').classList.remove('done');
+            document.getElementById('streamCloseBtn').disabled = true;
+            document.getElementById('streamTitle').textContent = 'Running consolidation';
+            document.getElementById('runBtn').disabled = true;
+        }
+
+        function closeStreamModal() {
+            if (activeStream) { activeStream.close(); activeStream = null; }
+            if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+            document.getElementById('streamModal').style.display = 'none';
+            document.getElementById('runBtn').disabled = false;
+        }
+
+        function setPhase(message, isDone) {
+            const phase = document.getElementById('streamPhase');
+            phase.textContent = message;
+            phase.classList.toggle('done', isDone === true);
+            phase.classList.toggle('error', isDone === 'error');
+        }
+
+        function appendStreamText(delta) {
+            const body = document.getElementById('streamBody');
+            const wasAtBottom = (body.scrollHeight - body.scrollTop - body.clientHeight) < 30;
+            body.textContent += delta;
+            if (wasAtBottom) body.scrollTop = body.scrollHeight;
+        }
+
+        function updateElapsed() {
+            const sec = Math.floor((Date.now() - streamStart) / 1000);
+            document.getElementById('streamElapsed').textContent = sec + 's';
+        }
+
+        function finishStream(data) {
+            if (activeStream) { activeStream.close(); activeStream = null; }
+            if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+            document.getElementById('streamSpinner').classList.add('done');
+            document.getElementById('streamTitle').textContent = 'Consolidation complete';
+            setPhase(
+                data.counts.categories + ' categories · ' +
+                data.counts.consolidated + ' consolidated · ' +
+                data.counts.conflicts + ' conflicts · ' +
+                (data.counts.orphan_extracted > 0 ? data.counts.orphan_extracted + ' orphans · ' : '') +
+                (data.duration_ms / 1000).toFixed(1) + 's',
+                true
+            );
+            document.getElementById('streamCloseBtn').disabled = false;
+            // Refresh page data behind the modal — when user closes the
+            // modal they see the populated tree instantly.
+            loadAll();
+        }
+
+        function failStream(msg) {
+            if (activeStream) { activeStream.close(); activeStream = null; }
+            if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+            document.getElementById('streamSpinner').classList.add('done');
+            document.getElementById('streamTitle').textContent = 'Consolidation failed';
+            setPhase('Error: ' + msg, 'error');
+            document.getElementById('streamCloseBtn').disabled = false;
+        }
+
+        function formatNum(n) {
+            n = Number(n) || 0;
+            return n.toLocaleString();
         }
 
         function showError(html) {

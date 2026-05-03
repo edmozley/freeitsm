@@ -1,40 +1,68 @@
 <?php
 /**
- * Run Pass 2 (AI consolidation + categorisation + conflict detection) for an RFP.
+ * Run Pass 2 (AI consolidation) as a Server-Sent Events stream so the
+ * browser can show live output (claude.ai-style) instead of waiting
+ * 60-180s on a spinner. Same DB shape as before — categories,
+ * consolidated rows, M:N source links, conflicts — but the AI call
+ * is streamed and progress is forwarded to the browser.
  *
- * Fetches every extracted requirement for the RFP, calls the AI helper,
- * then in a single transaction wipes any prior consolidation output
- * (categories, consolidated rows, sources, conflicts) and inserts the
- * fresh result. The wipe is destructive — re-running discards any manual
- * edits the analyst made in the consolidate page. Once `is_locked` is set
- * on rows in Phase 3e we'll guard re-runs more strongly.
+ * Event protocol emitted to the browser:
+ *   event: phase   data: { phase, message }
+ *   event: text    data: { delta }              per-token chunk
+ *   event: usage   data: { tokens_in, tokens_out, cache_read, cache_write }
+ *   event: complete data: { counts, tokens_*, duration_ms, ... }
+ *   event: error   data: { error }
  *
- * The AI call itself is uncommitted DB work — we open the transaction
- * AFTER the call returns so we don't hold a write lock for 60+ seconds.
+ * The DB transaction only runs after the stream finishes successfully —
+ * if anything fails mid-stream, no data is written.
  */
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rfp_ai.php';
 
-header('Content-Type: application/json');
+// Disable output buffering at every level so SSE events flush immediately.
+@ini_set('zlib.output_compression', '0');
+@ini_set('output_buffering', '0');
+@ini_set('implicit_flush', '1');
+while (ob_get_level() > 0) ob_end_flush();
+ob_implicit_flush(true);
+
+header('Content-Type: text/event-stream');
+header('Cache-Control: no-cache, no-transform');
+header('X-Accel-Buffering: no'); // disable nginx proxy buffering
+header('Connection: keep-alive');
+
+set_time_limit(0);
+
+/**
+ * Send one SSE event to the browser. Always flushes.
+ */
+function sse(string $event, array $data): void
+{
+    echo "event: {$event}\n";
+    echo "data: " . json_encode($data, JSON_UNESCAPED_SLASHES) . "\n\n";
+    @flush();
+}
 
 if (!isset($_SESSION['analyst_id'])) {
-    echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+    sse('error', ['error' => 'Not authenticated']);
     exit;
 }
 
-// Pass 2 is the heaviest call in the whole app — give it room to retry on 429.
-set_time_limit(600);
+// Browser sends rfp_id as a query parameter on EventSource (which only
+// supports GET) — POST body would force fetch+ReadableStream complexity
+// for no real gain.
+$rfpId = isset($_GET['rfp_id']) ? (int)$_GET['rfp_id'] : 0;
+if ($rfpId <= 0) {
+    sse('error', ['error' => 'Missing or invalid rfp_id']);
+    exit;
+}
 
 try {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $rfpId = isset($data['rfp_id']) ? (int)$data['rfp_id'] : 0;
-    if ($rfpId <= 0) {
-        throw new Exception('Missing or invalid rfp_id');
-    }
-
     $conn = connectToDatabase();
+
+    sse('phase', ['phase' => 'loading', 'message' => 'Loading extracted requirements…']);
 
     $extractStmt = $conn->prepare(
         "SELECT er.id, er.requirement_text, er.requirement_type, er.source_quote,
@@ -49,7 +77,8 @@ try {
     $extracted = $extractStmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (empty($extracted)) {
-        throw new Exception('No extracted requirements yet — run Pass 1 extraction on each document first');
+        sse('error', ['error' => 'No extracted requirements yet — run Pass 1 extraction on each document first']);
+        exit;
     }
 
     $validExtractedIds = [];
@@ -57,26 +86,32 @@ try {
         $validExtractedIds[(int)$row['id']] = true;
     }
 
-    $result  = rfpAiConsolidate($conn, $rfpId, $extracted);
+    sse('phase', [
+        'phase'   => 'calling_ai',
+        'message' => 'Calling Claude — categorising, deduplicating and detecting conflicts across ' . count($extracted) . ' extracted items…',
+    ]);
+
+    // The streaming helper invokes this callback for every text delta
+    // and usage update. We just relay each to the browser.
+    $relay = function (string $eventType, array $data): void {
+        sse($eventType, $data);
+    };
+
+    $result  = rfpAiConsolidateStreaming($conn, $rfpId, $extracted, $relay);
     $payload = $result['payload'];
+
+    sse('phase', ['phase' => 'saving', 'message' => 'AI complete — saving categories, requirements and conflicts…']);
 
     $validTypes      = ['requirement', 'pain_point', 'challenge'];
     $validPriorities = ['critical', 'high', 'medium', 'low'];
 
     $conn->beginTransaction();
     try {
-        // Wipe prior consolidation. Order matters: consolidated first
-        // so its CASCADE on rfp_consolidated_sources / rfp_conflicts
-        // fires before we drop the categories. Categories use SET NULL
-        // on the consolidated.category_id FK so they could go either way,
-        // but doing consolidated first keeps the dependency direction obvious.
         $conn->prepare("DELETE FROM rfp_consolidated_requirements WHERE rfp_id = ?")
              ->execute([$rfpId]);
         $conn->prepare("DELETE FROM rfp_categories WHERE rfp_id = ?")
              ->execute([$rfpId]);
 
-        // Insert categories, capturing the new DB id keyed by the
-        // 0-based index the AI used in its output.
         $catInsert = $conn->prepare(
             "INSERT INTO rfp_categories (rfp_id, name, description, sort_order)
              VALUES (?, ?, ?, ?)"
@@ -91,9 +126,6 @@ try {
             $catIdByIndex[$idx] = (int)$conn->lastInsertId();
         }
 
-        // Insert consolidated rows next, capturing new IDs by index.
-        // Conflicts reference rows by index, so the index → id map has
-        // to be complete before we touch conflicts.
         $consInsert = $conn->prepare(
             "INSERT INTO rfp_consolidated_requirements
                 (rfp_id, category_id, requirement_text, requirement_type, priority, ai_rationale)
@@ -128,8 +160,6 @@ try {
             if (is_array($sourceIds)) {
                 foreach ($sourceIds as $sid) {
                     $sid = (int)$sid;
-                    // Hallucination guard — only link IDs that actually
-                    // exist in this RFP's extracted set.
                     if (!isset($validExtractedIds[$sid])) continue;
                     $sourceInsert->execute([$newId, $sid]);
                     $linkedSourceIds[$sid] = true;
@@ -137,9 +167,6 @@ try {
             }
         }
 
-        // Insert conflicts, dropping any pair that references an index
-        // we never saved (e.g. AI referenced a consolidated row whose
-        // text was empty and got skipped above).
         $conflictInsert = $conn->prepare(
             "INSERT INTO rfp_conflicts
                 (rfp_id, consolidated_id_a, consolidated_id_b, ai_explanation, resolution)
@@ -157,8 +184,6 @@ try {
             $conflictsInserted++;
         }
 
-        // Status transitions: collecting → consolidating once we have a
-        // first consolidation result. Don't downgrade further-along statuses.
         $conn->prepare(
             "UPDATE rfps
                 SET status = CASE WHEN status IN ('draft','collecting') THEN 'consolidating' ELSE status END,
@@ -177,15 +202,14 @@ try {
         if (!isset($linkedSourceIds[$sid])) $orphanCount++;
     }
 
-    echo json_encode([
-        'success' => true,
-        'rfp_id'  => $rfpId,
-        'counts'  => [
-            'extracted_input'     => count($extracted),
-            'categories'          => count($catIdByIndex),
-            'consolidated'        => count($consIdByIndex),
-            'conflicts'           => $conflictsInserted,
-            'orphan_extracted'    => $orphanCount, // input items the AI didn't link to any consolidated row
+    sse('complete', [
+        'rfp_id' => $rfpId,
+        'counts' => [
+            'extracted_input'  => count($extracted),
+            'categories'       => count($catIdByIndex),
+            'consolidated'     => count($consIdByIndex),
+            'conflicts'        => $conflictsInserted,
+            'orphan_extracted' => $orphanCount,
         ],
         'tokens_in'   => $result['tokens_in'],
         'tokens_out'  => $result['tokens_out'],
@@ -194,5 +218,5 @@ try {
         'duration_ms' => $result['duration_ms'],
     ]);
 } catch (Throwable $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+    sse('error', ['error' => $e->getMessage()]);
 }
