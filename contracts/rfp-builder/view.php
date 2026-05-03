@@ -431,9 +431,16 @@ $path_prefix = '../../';
                     num: 5, title: 'Suppliers &amp; scoring', phase: 5,
                     desc: 'Invite existing or prospective suppliers, then score their responses requirement-by-requirement.',
                     stats: [{label: 'Invited', value: r.supplier_count}],
-                    ready: false,
-                    cta: 'Coming in Phase 5',
-                    href: null
+                    // Same gate as Phase 4 — scoring requires the consolidation
+                    // set to be locked. You can invite suppliers as soon as it's
+                    // locked, even before sections are generated.
+                    ready: r.consolidated_count > 0 && r.locked_count === r.consolidated_count,
+                    cta: r.consolidated_count === 0
+                        ? 'Run consolidation first'
+                        : (r.locked_count !== r.consolidated_count ? 'Lock consolidated requirements first' : ''),
+                    href: (r.consolidated_count > 0 && r.locked_count === r.consolidated_count)
+                        ? 'suppliers.php?id=' + r.id
+                        : null
                 },
                 {
                     num: 6, title: 'Compare &amp; decide', phase: 6,
