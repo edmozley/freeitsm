@@ -104,10 +104,15 @@ $path_prefix = '../../';
         .meta-card {
             background: white; border-radius: 10px; padding: 20px 24px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 16px;
         }
         .meta-card h2 {
             margin: 0 0 14px 0; font-size: 14px; font-weight: 600;
             color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .meta-card h2 .h2-extra {
+            font-size: 12px; font-weight: 500; color: #aaa; text-transform: none; letter-spacing: 0;
         }
         .meta-row {
             display: flex; gap: 16px; padding: 8px 0;
@@ -116,6 +121,59 @@ $path_prefix = '../../';
         .meta-row:last-child { border-bottom: none; }
         .meta-row .meta-label { color: #888; min-width: 160px; }
         .meta-row .meta-value { color: #333; flex: 1; }
+
+        .ai-stats {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px; margin-bottom: 14px;
+        }
+        .ai-stat {
+            background: #f9fafb; border-radius: 8px; padding: 12px 14px;
+            border: 1px solid #f0f0f0;
+        }
+        .ai-stat .ai-stat-num {
+            font-size: 20px; font-weight: 700; color: #222; line-height: 1.1;
+        }
+        .ai-stat .ai-stat-label {
+            font-size: 11px; color: #888; text-transform: uppercase;
+            letter-spacing: 0.5px; margin-top: 4px;
+        }
+        .ai-stat.error .ai-stat-num   { color: #b91c1c; }
+        .ai-stat.cached .ai-stat-num  { color: #047857; }
+
+        .ai-log-table {
+            width: 100%; border-collapse: collapse; font-size: 13px;
+        }
+        .ai-log-table th {
+            text-align: left; padding: 8px 10px; font-weight: 600;
+            color: #888; border-bottom: 1px solid #eee;
+            text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;
+        }
+        .ai-log-table td {
+            padding: 9px 10px; border-bottom: 1px solid #f5f5f5;
+            color: #333; vertical-align: top;
+        }
+        .ai-log-table tr:last-child td { border-bottom: none; }
+        .ai-log-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+        .ai-log-table .target { color: #555; }
+        .ai-log-table .target em { color: #999; font-style: normal; }
+        .ai-log-table .err {
+            color: #b91c1c; font-size: 12px; margin-top: 3px;
+            white-space: normal; overflow-wrap: anywhere;
+        }
+        .status-pill {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
+        }
+        .status-pill.success { background: #d1fae5; color: #065f46; }
+        .status-pill.error   { background: #fee2e2; color: #991b1b; }
+        .action-pill {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            background: #e5e7eb; color: #374151;
+            font-size: 11px; font-weight: 500;
+        }
+        .ai-empty {
+            text-align: center; padding: 28px 16px; color: #999; font-size: 13px;
+        }
 
         .loading, .error-state { text-align: center; padding: 60px; color: #999; }
         .error-state { color: #d13438; }
@@ -147,6 +205,15 @@ $path_prefix = '../../';
 
             <div class="phase-grid" id="phaseGrid">
                 <!-- Tiles rendered by JS -->
+            </div>
+
+            <div class="meta-card" id="aiActivityCard" style="display:none;">
+                <h2>
+                    AI activity
+                    <span class="h2-extra" id="aiActivityLastRun"></span>
+                </h2>
+                <div class="ai-stats" id="aiStats"></div>
+                <div id="aiLog"></div>
             </div>
 
             <div class="meta-card">
@@ -182,9 +249,113 @@ $path_prefix = '../../';
                 if (!data.success) throw new Error(data.error || 'Failed to load');
                 currentRfp = data.rfp;
                 render(currentRfp);
+                loadAiActivity();
             } catch (err) {
                 showError(escapeHtml(err.message));
             }
+        }
+
+        async function loadAiActivity() {
+            try {
+                const res = await fetch(API_BASE + 'get_processing_log.php?rfp_id=' + encodeURIComponent(rfpId) + '&limit=25');
+                const data = await res.json();
+                if (!data.success) return; // silent — secondary panel
+                renderAiActivity(data.totals, data.entries);
+            } catch (_) {
+                // ignore — panel is non-critical
+            }
+        }
+
+        function renderAiActivity(totals, entries) {
+            if (!totals || totals.run_count === 0) return; // hide entirely until first run
+            document.getElementById('aiActivityCard').style.display = 'block';
+
+            document.getElementById('aiActivityLastRun').textContent =
+                totals.last_run ? 'Last run ' + formatDateTime(totals.last_run) : '';
+
+            const cachePct = totals.tokens_in_recent > 0
+                ? Math.round((totals.cache_read_recent / totals.tokens_in_recent) * 100)
+                : 0;
+
+            const stats = [
+                { num: totals.run_count,        label: 'AI runs' },
+                { num: totals.success_count,    label: 'Successful' },
+                { num: totals.error_count,      label: 'Errors', cls: totals.error_count > 0 ? 'error' : '' },
+                { num: formatTokens(totals.total_tokens_in),  label: 'Input tokens' },
+                { num: formatTokens(totals.total_tokens_out), label: 'Output tokens' },
+                {
+                    num: formatTokens(totals.cache_read_recent),
+                    label: 'Cached input' + (cachePct > 0 ? ' (' + cachePct + '%)' : ''),
+                    cls: 'cached'
+                }
+            ];
+            document.getElementById('aiStats').innerHTML = stats.map(s => `
+                <div class="ai-stat ${s.cls || ''}">
+                    <div class="ai-stat-num">${s.num}</div>
+                    <div class="ai-stat-label">${escapeHtml(s.label)}</div>
+                </div>
+            `).join('');
+
+            const logEl = document.getElementById('aiLog');
+            if (!entries.length) {
+                logEl.innerHTML = '<div class="ai-empty">No AI activity yet.</div>';
+                return;
+            }
+            logEl.innerHTML = `
+                <table class="ai-log-table">
+                    <thead>
+                        <tr>
+                            <th>When</th>
+                            <th>Action</th>
+                            <th>Target</th>
+                            <th>Status</th>
+                            <th class="num">In</th>
+                            <th class="num">Out</th>
+                            <th class="num">Cached</th>
+                            <th class="num">Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${entries.map(e => renderLogRow(e)).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderLogRow(e) {
+            const target = e.document_filename
+                ? escapeHtml(e.document_filename)
+                : (e.section_title ? escapeHtml(e.section_title) : '<em>—</em>');
+            const errLine = e.error
+                ? `<div class="err">${escapeHtml(truncate(e.error, 200))}</div>`
+                : '';
+            const dur = e.duration_ms !== null && e.duration_ms !== undefined
+                ? (e.duration_ms >= 1000 ? (e.duration_ms / 1000).toFixed(1) + 's' : e.duration_ms + 'ms')
+                : '—';
+            return `
+                <tr>
+                    <td>${escapeHtml(formatDateTime(e.created_datetime))}</td>
+                    <td><span class="action-pill">${escapeHtml(e.action)}</span></td>
+                    <td class="target">${target}${errLine}</td>
+                    <td><span class="status-pill ${escapeHtml(e.status)}">${escapeHtml(e.status)}</span></td>
+                    <td class="num">${e.tokens_in  !== null ? formatTokens(e.tokens_in)  : '—'}</td>
+                    <td class="num">${e.tokens_out !== null ? formatTokens(e.tokens_out) : '—'}</td>
+                    <td class="num">${e.cache_read !== null && e.cache_read !== undefined ? formatTokens(e.cache_read) : '—'}</td>
+                    <td class="num">${dur}</td>
+                </tr>
+            `;
+        }
+
+        function formatTokens(n) {
+            if (n === null || n === undefined) return '—';
+            n = Number(n);
+            if (n >= 1000) return (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k';
+            return n.toString();
+        }
+
+        function truncate(s, n) {
+            if (!s) return '';
+            return s.length > n ? s.slice(0, n) + '…' : s;
         }
 
         function render(r) {
