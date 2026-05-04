@@ -12,6 +12,8 @@ if (!isset($_SESSION['analyst_id'])) {
 }
 
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
+$analyst_email = $_SESSION['analyst_email'] ?? '';
+$analyst_id = $_SESSION['analyst_id'] ?? 0;
 $current_page = 'dashboard';
 $path_prefix = '../';
 ?>
@@ -92,6 +94,57 @@ $path_prefix = '../';
         </div>
     </div>
 
+    <!-- Raise Ticket Modal -->
+    <div id="raiseTicketModal" class="modal">
+        <div class="modal-content" style="max-width: 640px;">
+            <span class="close" onclick="closeRaiseTicketModal()">&times;</span>
+            <h2>Raise a ticket</h2>
+            <p>Create a ticket linked to this morning check. The check name, status and notes are pre-filled below.</p>
+            <form id="raiseTicketForm">
+                <div class="form-group">
+                    <label for="rtSubject">Subject *</label>
+                    <input type="text" id="rtSubject" required>
+                </div>
+                <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label for="rtPriority">Priority</label>
+                        <select id="rtPriority">
+                            <option value="Low">Low</option>
+                            <option value="Normal">Normal</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rtDepartment">Department</label>
+                        <select id="rtDepartment">
+                            <option value="">-- Select --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="rtTicketType">Type</label>
+                        <select id="rtTicketType">
+                            <option value="">-- Select --</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="rtAssignee">Assign to</label>
+                    <select id="rtAssignee">
+                        <option value="">Unassigned</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="rtBody">Description</label>
+                    <textarea id="rtBody" rows="6"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary" id="rtSubmitBtn">Create ticket</button>
+                    <button type="button" class="btn-secondary" onclick="closeRaiseTicketModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Sticky Footer Chart -->
     <div class="chart-footer">
         <div class="chart-footer-header" onclick="toggleChart()">
@@ -108,6 +161,15 @@ $path_prefix = '../';
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <script>
         const API_BASE = '../api/morning-checks/';
+        const TICKETS_API = '../api/tickets/';
+        const SESSION_ANALYST = {
+            id: <?php echo (int)$analyst_id; ?>,
+            name: <?php echo json_encode($analyst_name); ?>,
+            email: <?php echo json_encode($analyst_email); ?>
+        };
+        let rtAnalystOptions = [];
+        let rtDepartmentOptions = [];
+        let rtTicketTypeOptions = [];
 
         // Load checks for selected date
         async function loadChecks() {
@@ -169,7 +231,12 @@ $path_prefix = '../';
                 return;
             }
 
-            tbody.innerHTML = checks.map(check => `
+            tbody.innerHTML = checks.map(check => {
+                const showRaise = check.Status === 'Amber' || check.Status === 'Red';
+                const raiseBtn = showRaise
+                    ? `<button class="raise-ticket-btn" onclick="openRaiseTicketModal(${check.CheckID}, '${escapeJsString(check.CheckName)}', '${escapeJsString(check.CheckDescription || '')}', '${check.Status}', '${escapeJsString(check.Notes || '')}')">+ Raise ticket</button>`
+                    : '';
+                return `
                 <tr data-check-id="${check.CheckID}" class="status-${check.Status ? check.Status.toLowerCase() : 'none'}">
                     <td><strong>${escapeHtml(check.CheckName)}</strong></td>
                     <td>${escapeHtml(check.CheckDescription || '')}</td>
@@ -182,10 +249,12 @@ $path_prefix = '../';
                             <button class="status-btn red ${check.Status === 'Red' ? 'active' : ''}"
                                     onclick="handleStatusClick(${check.CheckID}, 'Red', '${escapeJsString(check.Notes || '')}')">Red</button>
                         </div>
+                        ${raiseBtn}
                     </td>
                     <td class="notes-display">${check.Notes ? escapeHtml(check.Notes) : '-'}</td>
                 </tr>
-            `).join('');
+                `;
+            }).join('');
         }
 
         function escapeHtml(text) {
@@ -262,11 +331,116 @@ $path_prefix = '../';
         });
 
         window.onclick = function(event) {
-            const modal = document.getElementById('notesModal');
-            if (event.target === modal && modal.classList.contains('active')) {
+            const notesModal = document.getElementById('notesModal');
+            if (event.target === notesModal && notesModal.classList.contains('active')) {
                 closeNotesModal();
             }
+            const raiseModal = document.getElementById('raiseTicketModal');
+            if (event.target === raiseModal && raiseModal.classList.contains('active')) {
+                closeRaiseTicketModal();
+            }
         }
+
+        // Raise Ticket from morning check
+        async function openRaiseTicketModal(checkId, checkName, checkDesc, status, notes) {
+            // Lazy-load lookup lists
+            try {
+                if (!rtAnalystOptions.length) {
+                    const r = await fetch(TICKETS_API + 'get_analysts.php');
+                    const d = await r.json();
+                    if (d.success) rtAnalystOptions = (d.analysts || []).filter(a => a.is_active);
+                }
+                if (!rtDepartmentOptions.length) {
+                    const r = await fetch(TICKETS_API + 'get_departments.php');
+                    const d = await r.json();
+                    if (d.success) rtDepartmentOptions = (d.departments || []).filter(x => x.is_active);
+                }
+                if (!rtTicketTypeOptions.length) {
+                    const r = await fetch(TICKETS_API + 'get_ticket_types.php');
+                    const d = await r.json();
+                    if (d.success) rtTicketTypeOptions = (d.ticket_types || []).filter(x => x.is_active);
+                }
+            } catch (e) {
+                showToast('Failed to load lookup lists: ' + e.message, 'error');
+                return;
+            }
+
+            const checkDate = document.getElementById('checkDate').value;
+            const subject = `[Morning Check] ${checkName} (${status})`;
+            let body = `Morning check '${checkName}' was set to ${status} on ${checkDate}.`;
+            if (checkDesc) body += `\n\nCheck description: ${checkDesc}`;
+            if (notes)     body += `\n\nNotes: ${notes}`;
+
+            document.getElementById('rtSubject').value = subject;
+            document.getElementById('rtBody').value = body;
+            document.getElementById('rtPriority').value = status === 'Red' ? 'High' : 'Normal';
+
+            // Populate selects
+            const assigneeSel = document.getElementById('rtAssignee');
+            assigneeSel.innerHTML = '<option value="">Unassigned</option>' +
+                rtAnalystOptions.map(a =>
+                    `<option value="${a.id}" ${a.id === SESSION_ANALYST.id ? 'selected' : ''}>${escapeHtml(a.full_name)}</option>`
+                ).join('');
+
+            const deptSel = document.getElementById('rtDepartment');
+            deptSel.innerHTML = '<option value="">-- Select --</option>' +
+                rtDepartmentOptions.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
+
+            const typeSel = document.getElementById('rtTicketType');
+            typeSel.innerHTML = '<option value="">-- Select --</option>' +
+                rtTicketTypeOptions.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+
+            // Stash check id for reference (currently not persisted; included in description above)
+            document.getElementById('raiseTicketModal').dataset.checkId = String(checkId);
+            document.getElementById('raiseTicketModal').classList.add('active');
+        }
+
+        function closeRaiseTicketModal() {
+            document.getElementById('raiseTicketModal').classList.remove('active');
+            document.getElementById('raiseTicketForm').reset();
+        }
+
+        document.getElementById('raiseTicketForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('rtSubmitBtn');
+            const subject = document.getElementById('rtSubject').value.trim();
+            if (!subject) {
+                showToast('Subject is required', 'error');
+                return;
+            }
+            if (!SESSION_ANALYST.email) {
+                showToast('Your analyst account has no email — set one before raising tickets', 'error');
+                return;
+            }
+            btn.disabled = true;
+            try {
+                const resp = await fetch(TICKETS_API + 'create_ticket.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from_name: SESSION_ANALYST.name,
+                        from_email: SESSION_ANALYST.email,
+                        subject: subject,
+                        body: document.getElementById('rtBody').value,
+                        priority: document.getElementById('rtPriority').value,
+                        department_id: document.getElementById('rtDepartment').value || null,
+                        ticket_type_id: document.getElementById('rtTicketType').value || null,
+                        assigned_analyst_id: document.getElementById('rtAssignee').value || null
+                    })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showToast('Ticket ' + data.ticket_number + ' created', 'success');
+                    closeRaiseTicketModal();
+                } else {
+                    showToast('Error: ' + (data.error || 'Failed to create ticket'), 'error');
+                }
+            } catch (err) {
+                showToast('Error creating ticket: ' + err.message, 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        });
 
         // Chart functionality
         let chartInstance = null;

@@ -574,6 +574,7 @@ Daily infrastructure health check recording.
 - 30-day trend charts — click any bar to jump to that day's checks
 - Settings page with tabbed layout, modal popups for add/edit, and drag-and-drop reordering
 - PDF export with selectable text, company logo, and coloured status values
+- **Raise ticket from a check**: amber and red rows show a "+ Raise ticket" button that opens a modal pre-filled with the check name, status, date and notes. The analyst picks priority, assignee, department and type, and a ticket is created with the current analyst as the requester
 - **Help guide** (`help.php`): Interactive guide covering daily checks, status types, trend chart, PDF export, and settings configuration
 
 ### Reporting (`reporting/`)

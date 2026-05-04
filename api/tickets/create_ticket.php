@@ -33,6 +33,7 @@ $body = trim($input['body'] ?? '');
 $departmentId = !empty($input['department_id']) ? (int)$input['department_id'] : null;
 $ticketTypeId = !empty($input['ticket_type_id']) ? (int)$input['ticket_type_id'] : null;
 $priority = $input['priority'] ?? 'Normal';
+$assignedAnalystId = !empty($input['assigned_analyst_id']) ? (int)$input['assigned_analyst_id'] : $analystId;
 
 // Validate required fields
 if (empty($fromName)) {
@@ -92,7 +93,7 @@ try {
         $priority,
         $departmentId,
         $ticketTypeId,
-        $analystId,  // Assign to the creating analyst
+        $assignedAnalystId,
         $userId,
         $fromName,
         $fromEmail

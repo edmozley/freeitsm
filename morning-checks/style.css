@@ -473,6 +473,50 @@ tr.status-red {
     white-space: nowrap;
 }
 
+/* Raise Ticket button (amber/red rows) */
+.raise-ticket-btn {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #00838f;
+    background: #e0f7fa;
+    border: 1px solid #b2ebf2;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s, border-color 0.15s;
+}
+.raise-ticket-btn:hover {
+    background: #b2ebf2;
+    border-color: #80deea;
+}
+
+/* Form fields inside modal */
+.modal-content .form-group {
+    margin-bottom: 14px;
+}
+.modal-content .form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    font-size: 13px;
+    color: #333;
+}
+.modal-content .form-group input[type="text"],
+.modal-content .form-group input[type="email"],
+.modal-content .form-group select,
+.modal-content .form-group textarea {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+.modal-content .form-group textarea { resize: vertical; }
+
 /* Modal */
 .modal {
     position: fixed;
