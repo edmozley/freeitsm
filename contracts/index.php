@@ -338,14 +338,17 @@ $path_prefix = '../';
         }
 
         function getContractStatus(c) {
-            if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
             if (!c.is_active) return { class: 'expired', label: 'Inactive' };
-            if (!c.contract_end) return { class: 'active', label: 'Active' };
-            const end = new Date(c.contract_end);
-            const today = new Date(); today.setHours(0,0,0,0);
-            const daysLeft = Math.ceil((end - today) / (1000*60*60*24));
-            if (daysLeft < 0) return { class: 'expired', label: 'Expired' };
-            if (daysLeft <= 90) return { class: 'expiring', label: 'Expiring' };
+            if (c.contract_end) {
+                const end = new Date(c.contract_end);
+                const today = new Date(); today.setHours(0,0,0,0);
+                const daysLeft = Math.ceil((end - today) / (1000*60*60*24));
+                if (daysLeft < 0) return { class: 'expired', label: 'Expired' };
+                if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
+                if (daysLeft <= 90) return { class: 'expiring', label: 'Expiring' };
+                return { class: 'active', label: 'Active' };
+            }
+            if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
             return { class: 'active', label: 'Active' };
         }
 

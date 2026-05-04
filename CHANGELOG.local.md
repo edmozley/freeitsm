@@ -12,6 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 157 | Contracts         | Fix         | Fix contract status badge on the contracts list and view pages so a contract whose end date has passed always shows as "Expired". Previously a manually-set status (e.g. "Expiring Soon") took precedence over the date check, leaving long-expired contracts displaying the wrong badge. The expiry-date check now runs first; the manual status is only honoured for non-expired contracts |
 
 ---
 
