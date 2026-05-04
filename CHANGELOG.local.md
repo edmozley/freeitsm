@@ -12,16 +12,21 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+
+---
+
+## Published
+
+### 4 May 2026
+
+| ID  | Module            | Type        | Description |
+|-----|-------------------|-------------|-------------|
 | 157 | Contracts         | Fix         | Fix contract status badge on the contracts list and view pages so a contract whose end date has passed always shows as "Expired". Previously a manually-set status (e.g. "Expiring Soon") took precedence over the date check, leaving long-expired contracts displaying the wrong badge. The expiry-date check now runs first; the manual status is only honoured for non-expired contracts |
 | 158 | Contracts         | Feature     | Add cross-module synergies on the contract view page: new **Task** and **Calendar** buttons in the header open lightweight modals to create a task (with assignee, team, due date, priority, status) or a calendar event (with category, all-day toggle, start date, location), each pre-filled with sensible defaults from the contract (title, description, due date = notice/end date, assignee = contract owner). Created items link back via a new `contract_id` column on `tasks` and `calendar_events` (FK with ON DELETE SET NULL). Below the contract details, **Related Tasks** and **Related Calendar Events** sections list everything linked to the contract with status pill, assignee, and due date / start date. Tasks list endpoint gains a `filter=contract&contract_id=X` mode; calendar `get_events.php` accepts an optional `contract_id` filter that bypasses the date-range requirement |
 | 159 | Contracts         | Fix         | Fix the contract Task and Calendar modals showing only a grey backdrop and no modal content. The new modal markup used generic `.modal` / `.modal-overlay` classes, which collided with the global `.modal` rule in `assets/css/inbox.css` that turns any `.modal` element into a full-screen invisible layer (`opacity: 0; visibility: hidden`). Renamed the contract-view modal classes to a `.cv-modal*` namespace so they no longer pick up the inbox styles |
 | 160 | Morning Checks    | Feature     | Add a **+ Raise ticket** button next to the Status buttons on every amber and red check row. Click it to open a modal pre-filled with the check name, status, date, description and notes. The analyst picks priority (defaulting to High for Red, Normal for Amber), assignee (defaulting to themselves), department and ticket type, and a new ticket is created with the current analyst as the requester. Works on the day's check or after-the-fact on any historical amber/red row when navigating back through the date picker. The `create_ticket.php` API endpoint now accepts an optional `assigned_analyst_id` so the assignee can be specified at creation time instead of always defaulting to the creating analyst |
 | 161 | Forms             | Feature     | Add **AI Assist** to the form builder. Toolbar button opens a modal where the analyst describes the form in plain English ("a holiday request form with name, dates, leave type and a notes field") and a streaming Claude call generates a complete form definition — title, description, fields with the right types, sensible labels, required flags, and dropdown options. The streamed JSON appears live in a monospace preview pane (claude.ai-style) with running counters for fields detected and tokens in/out/cached, and the final cleaned JSON is validated server-side (field types restricted to text/textarea/checkbox/dropdown, dropdown options sanitised) before the builder swaps in the generated title/description/fields. Three example prompts on the modal for quick starts. Reuses the Anthropic provider/model/API key configured for the RFP Builder under Contracts → Settings → RFP AI; new endpoint at `/api/forms/ai_generate.php` |
 | 162 | Forms             | Fix         | Move the AI Assist button into the actual form builder UI. The previous attempt added the button to `forms/builder.php`, but the live builder UI lives in `forms/index.php` (sidebar + editor view), so the button never surfaced when users navigated to `/forms/`. Reverted `forms/builder.php` to its original state and added the AI Assist button, modal, streaming UI and JS handlers to `forms/index.php` instead. The button now appears in the editor toolbar between Cancel and Save whenever you open or create a form. After successful generation the editor switches to the Preview tab so the result is visible immediately |
-
----
-
-## Published
 
 ### 3 May 2026
 
