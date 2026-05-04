@@ -56,7 +56,11 @@ try {
 
     $compliance = [];
     foreach ($complianceCounts as $state => $count) {
-        $compliance[] = ['label' => ucwords(str_replace(['_', '-'], ' ', $state)), 'value' => $count];
+        $compliance[] = [
+            'label' => ucwords(str_replace(['_', '-'], ' ', $state)),
+            'value' => $count,
+            'raw'   => $state,
+        ];
     }
 
     // ---------- Operating system breakdown (doughnut) ----------
@@ -69,7 +73,7 @@ try {
     );
     $osBreakdown = [];
     while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $osBreakdown[] = ['label' => $r['os'], 'value' => (int)$r['c']];
+        $osBreakdown[] = ['label' => $r['os'], 'value' => (int)$r['c'], 'raw' => $r['os']];
     }
 
     // ---------- Owner type (doughnut) ----------
@@ -82,7 +86,11 @@ try {
     );
     $ownerType = [];
     while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $ownerType[] = ['label' => ucwords(str_replace(['_', '-'], ' ', $r['owner'])), 'value' => (int)$r['c']];
+        $ownerType[] = [
+            'label' => ucwords(str_replace(['_', '-'], ' ', $r['owner'])),
+            'value' => (int)$r['c'],
+            'raw'   => $r['owner'],
+        ];
     }
 
     // ---------- Manufacturer top 10 (bar) ----------
@@ -96,26 +104,28 @@ try {
     );
     $manufacturers = [];
     while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $manufacturers[] = ['label' => $r['m'], 'value' => (int)$r['c']];
+        $manufacturers[] = ['label' => $r['m'], 'value' => (int)$r['c'], 'raw' => $r['m']];
     }
 
     // ---------- OS version top 10 (bar) ----------
 
     $stmt = $conn->query(
-        "SELECT CONCAT(
-                  COALESCE(NULLIF(operating_system,''), '?'),
-                  ' ',
-                  COALESCE(NULLIF(os_version,''), '?')
-                ) AS v,
-                COUNT(*) AS c
+        "SELECT COALESCE(NULLIF(operating_system,''), '?') AS os,
+                COALESCE(NULLIF(os_version,''), '?')        AS ver,
+                COUNT(*)                                    AS c
            FROM intune_devices
-       GROUP BY v
+       GROUP BY os, ver
        ORDER BY c DESC
           LIMIT 10"
     );
     $osVersions = [];
     while ($r = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        $osVersions[] = ['label' => $r['v'], 'value' => (int)$r['c']];
+        $osVersions[] = [
+            'label' => $r['os'] . ' ' . $r['ver'],
+            'value' => (int)$r['c'],
+            // Raw is "os||version" so the drill-down endpoint can split safely
+            'raw'   => $r['os'] . '||' . $r['ver'],
+        ];
     }
 
     // ---------- Enrolment trend last 90 days (line) ----------
@@ -136,7 +146,7 @@ try {
     $enrolmentTrend = [];
     for ($i = 89; $i >= 0; $i--) {
         $day = date('Y-m-d', strtotime("-{$i} days"));
-        $enrolmentTrend[] = ['label' => $day, 'value' => $byDay[$day] ?? 0];
+        $enrolmentTrend[] = ['label' => $day, 'value' => $byDay[$day] ?? 0, 'raw' => $day];
     }
 
     // ---------- Last sync distribution (bar) ----------
@@ -155,12 +165,12 @@ try {
         FROM intune_devices";
     $row = $conn->query($bucketSql)->fetch(PDO::FETCH_ASSOC);
     $lastSync = [
-        ['label' => 'Today',     'value' => (int)$row['today']],
-        ['label' => '1-7 days',  'value' => (int)$row['week']],
-        ['label' => '8-30 days', 'value' => (int)$row['month']],
-        ['label' => '31-90 days','value' => (int)$row['quarter']],
-        ['label' => '90+ days',  'value' => (int)$row['old']],
-        ['label' => 'Never',     'value' => (int)$row['never']],
+        ['label' => 'Today',     'value' => (int)$row['today'],   'raw' => 'today'],
+        ['label' => '1-7 days',  'value' => (int)$row['week'],    'raw' => 'week'],
+        ['label' => '8-30 days', 'value' => (int)$row['month'],   'raw' => 'month'],
+        ['label' => '31-90 days','value' => (int)$row['quarter'], 'raw' => 'quarter'],
+        ['label' => '90+ days',  'value' => (int)$row['old'],     'raw' => 'old'],
+        ['label' => 'Never',     'value' => (int)$row['never'],   'raw' => 'never'],
     ];
 
     // ---------- Encryption by OS (stacked bar) ----------
