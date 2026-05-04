@@ -643,7 +643,7 @@ Supplier and contract lifecycle management with configurable rich text terms.
 
 - **Dashboard** (`index.php`): Left sidebar with overview stats (contracts, active, expiring, suppliers, contacts), quick links, and universal search across contracts, suppliers, and contacts. Main area shows the full contracts table.
 - **Add/Edit** (`edit.php`): Sectioned form with contract details, dates, financial, documents, and terms & data protection fields. Below the main form, a "Contract Terms Detail" section displays configurable TinyMCE rich text tabs for detailed contract terms (e.g. Special terms, KPIs, SLAs).
-- **View** (`view.php`): Read-only detail view with all fields organised into sections. Contract terms content displayed in read-only tabs.
+- **View** (`view.php`): Read-only detail view with all fields organised into sections. Contract terms content displayed in read-only tabs. Header buttons to **Create Task** and **Add to Calendar** open inline modals that prefill sensible defaults from the contract (title, description, due date = notice date or end date, assignee = contract owner) and link the new item back to the contract via `contract_id`. Below the contract details, **Related Tasks** and **Related Calendar Events** sections list everything currently linked to the contract.
 - **Suppliers** (`suppliers/`): Supplier register with legal/trading names, registration details, address, type/status, questionnaire tracking, and comments.
 - **Contacts** (`contacts/`): Supplier contacts with name, job title, email, direct dial, and switchboard fields.
 - **Settings** (`settings/`): Tabbed management of supplier types, supplier statuses, contract statuses, payment schedules, and contract term tabs.

@@ -47,6 +47,9 @@ try {
     } elseif ($filter === 'analyst' && isset($_GET['analyst_id'])) {
         $where[] = 't.assigned_analyst_id = ?';
         $params[] = (int)$_GET['analyst_id'];
+    } elseif ($filter === 'contract' && isset($_GET['contract_id'])) {
+        $where[] = 't.contract_id = ?';
+        $params[] = (int)$_GET['contract_id'];
     }
     // filter === 'all' has no extra conditions
 
@@ -59,7 +62,7 @@ try {
 
     $sql = "SELECT t.id, t.title, t.status, t.priority, t.due_date,
                    t.assigned_analyst_id, t.assigned_team_id,
-                   t.ticket_id, t.change_id, t.board_position,
+                   t.ticket_id, t.change_id, t.contract_id, t.board_position,
                    t.created_by_id, t.created_datetime, t.updated_datetime,
                    t.completed_datetime,
                    a.full_name AS analyst_name,

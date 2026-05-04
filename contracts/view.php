@@ -21,6 +21,7 @@ if (!$contract_id) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - View Contract</title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script src="../assets/js/toast.js"></script>
     <style>
         body { overflow: auto; height: auto; }
 
@@ -127,6 +128,92 @@ if (!$contract_id) {
         .terms-view-panel .rich-content { font-size: 14px; line-height: 1.6; color: #333; }
         .terms-view-panel .rich-content table { border-collapse: collapse; width: 100%; }
         .terms-view-panel .rich-content td, .terms-view-panel .rich-content th { border: 1px solid #ddd; padding: 8px; }
+
+        .btn-create-task { background: #6366f1; color: white; border: none; }
+        .btn-create-task:hover { background: #4f46e5; }
+        .btn-create-event { background: #0ea5e9; color: white; border: none; }
+        .btn-create-event:hover { background: #0284c7; }
+
+        .related-list { padding: 0 30px 20px 30px; }
+        .related-section { margin-bottom: 24px; }
+        .related-section h3 {
+            margin: 0 0 10px 0; font-size: 13px; font-weight: 600;
+            color: #f59e0b; text-transform: uppercase; letter-spacing: 0.5px;
+            padding-top: 16px; border-top: 1px solid #eee;
+        }
+        .related-empty { color: #999; font-size: 13px; padding: 8px 0; }
+        .related-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 10px 0; border-bottom: 1px solid #f0f0f0;
+            font-size: 13px;
+        }
+        .related-item:last-child { border-bottom: none; }
+        .related-item a { color: #f59e0b; text-decoration: none; font-weight: 500; }
+        .related-item a:hover { text-decoration: underline; }
+        .related-item .meta { color: #666; }
+        .related-item .meta-sep { color: #ccc; margin: 0 4px; }
+        .related-pill {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            font-size: 11px; font-weight: 500; background: #eee; color: #333;
+        }
+        .related-pill.todo { background: #e5e7eb; color: #374151; }
+        .related-pill.in-progress { background: #fde68a; color: #92400e; }
+        .related-pill.done { background: #d1fae5; color: #065f46; }
+        .related-pill.cancelled { background: #f3f4f6; color: #6b7280; }
+        .related-pill.high, .related-pill.urgent { background: #fee2e2; color: #991b1b; }
+        .related-cat-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: none; align-items: center; justify-content: center; z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #fff; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 480px; max-width: calc(100vw - 40px); max-height: calc(100vh - 40px); overflow: auto;
+        }
+        .modal-header {
+            padding: 16px 20px; border-bottom: 1px solid #eee;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h3 { margin: 0; font-size: 16px; color: #333; }
+        .modal-close {
+            background: none; border: none; font-size: 22px; line-height: 1;
+            color: #999; cursor: pointer; padding: 0;
+        }
+        .modal-close:hover { color: #333; }
+        .modal-body { padding: 20px; }
+        .modal-body .form-group { margin-bottom: 14px; }
+        .modal-body label {
+            display: block; margin-bottom: 6px; font-weight: 500;
+            font-size: 13px; color: #333;
+        }
+        .modal-body input, .modal-body select, .modal-body textarea {
+            width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px;
+            font-size: 13px; box-sizing: border-box; font-family: inherit;
+        }
+        .modal-body textarea { height: 70px; resize: vertical; }
+        .modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus {
+            outline: none; border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
+        }
+        .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .modal-footer {
+            padding: 14px 20px; border-top: 1px solid #eee;
+            display: flex; justify-content: flex-end; gap: 8px;
+        }
+        .modal-footer .btn {
+            padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500;
+            cursor: pointer; border: none; transition: all 0.2s;
+        }
+        .modal-footer .btn-primary { background: #f59e0b; color: white; }
+        .modal-footer .btn-primary:hover { background: #d97706; }
+        .modal-footer .btn-primary:disabled { background: #fcd34d; cursor: not-allowed; }
+        .modal-footer .btn-secondary { background: #e0e0e0; color: #333; }
+        .modal-footer .btn-secondary:hover { background: #d0d0d0; }
+        .checkbox-row { display: flex; align-items: center; gap: 8px; }
+        .checkbox-row input { width: auto; }
+        .checkbox-row label { margin: 0; }
     </style>
 </head>
 <body>
@@ -140,7 +227,13 @@ if (!$contract_id) {
 
     <script>
         const API_BASE = '../api/contracts/';
+        const TASKS_API = '../api/tasks/';
+        const CALENDAR_API = '../api/calendar/';
         const contractId = <?php echo json_encode($contract_id); ?>;
+        let currentContract = null;
+        let analystOptions = [];
+        let teamOptions = [];
+        let categoryOptions = [];
 
         document.addEventListener('DOMContentLoaded', loadContract);
 
@@ -149,8 +242,10 @@ if (!$contract_id) {
                 const response = await fetch(API_BASE + 'get_contract.php?id=' + contractId);
                 const data = await response.json();
                 if (data.success) {
+                    currentContract = data.contract;
                     renderContract(data.contract);
                     loadAndRenderContractTerms();
+                    loadRelatedItems();
                 } else {
                     document.getElementById('contractCard').innerHTML =
                         '<div class="loading" style="color:#d13438;">Error: ' + escapeHtml(data.error) + '</div>';
@@ -170,6 +265,8 @@ if (!$contract_id) {
                     <h2>${escapeHtml(c.contract_number)} — ${escapeHtml(c.title)}</h2>
                     <div class="actions">
                         <a href="index.php" class="btn btn-back">Back</a>
+                        <button type="button" class="btn btn-create-task" onclick="openTaskModal()">Task</button>
+                        <button type="button" class="btn btn-create-event" onclick="openEventModal()">Calendar</button>
                         <a href="edit.php?id=${c.id}" class="btn btn-edit-contract">Edit</a>
                     </div>
                 </div>
@@ -265,6 +362,16 @@ if (!$contract_id) {
                     <div class="detail-group">
                         <label>Active</label>
                         <div class="value">${c.is_active ? '<span class="bool-yes">Yes</span>' : '<span class="bool-no">No</span>'}</div>
+                    </div>
+                </div>
+                <div class="related-list">
+                    <div class="related-section" id="relatedTasksSection">
+                        <h3>Related Tasks</h3>
+                        <div id="relatedTasksList" class="related-empty">Loading...</div>
+                    </div>
+                    <div class="related-section" id="relatedEventsSection">
+                        <h3>Related Calendar Events</h3>
+                        <div id="relatedEventsList" class="related-empty">Loading...</div>
                     </div>
                 </div>
             `;
@@ -364,6 +471,350 @@ if (!$contract_id) {
             document.querySelectorAll('.terms-view-panel').forEach(p => p.classList.remove('active'));
             document.getElementById('viewTermPanel_' + tabId).classList.add('active');
         }
+
+        // Related items
+        async function loadRelatedItems() {
+            loadRelatedTasks();
+            loadRelatedEvents();
+        }
+
+        async function loadRelatedTasks() {
+            const list = document.getElementById('relatedTasksList');
+            try {
+                const resp = await fetch(TASKS_API + 'list.php?filter=contract&contract_id=' + contractId);
+                const data = await resp.json();
+                if (!data.success) {
+                    list.innerHTML = '<div class="related-empty">Failed to load tasks</div>';
+                    return;
+                }
+                if (!data.tasks.length) {
+                    list.className = '';
+                    list.innerHTML = '<div class="related-empty">No related tasks</div>';
+                    return;
+                }
+                list.className = '';
+                list.innerHTML = data.tasks.map(t => {
+                    const statusClass = (t.status || '').toLowerCase().replace(/\s+/g, '-');
+                    return `<div class="related-item">
+                        <a href="../tasks/index.php?task=${t.id}">${escapeHtml(t.title)}</a>
+                        <span class="related-pill ${statusClass}">${escapeHtml(t.status || '')}</span>
+                        <span class="meta">
+                            ${t.analyst_name ? escapeHtml(t.analyst_name) : (t.team_name ? escapeHtml(t.team_name) : 'Unassigned')}
+                            ${t.due_date ? '<span class="meta-sep">•</span>Due ' + formatDate(t.due_date) : ''}
+                        </span>
+                    </div>`;
+                }).join('');
+            } catch (e) {
+                list.innerHTML = '<div class="related-empty">Failed to load tasks</div>';
+            }
+        }
+
+        async function loadRelatedEvents() {
+            const list = document.getElementById('relatedEventsList');
+            try {
+                const resp = await fetch(CALENDAR_API + 'get_events.php?contract_id=' + contractId);
+                const data = await resp.json();
+                if (!data.success) {
+                    list.innerHTML = '<div class="related-empty">Failed to load events</div>';
+                    return;
+                }
+                if (!data.events.length) {
+                    list.className = '';
+                    list.innerHTML = '<div class="related-empty">No related events</div>';
+                    return;
+                }
+                list.className = '';
+                list.innerHTML = data.events.map(e => {
+                    const dot = e.category_color ? `<span class="related-cat-dot" style="background:${escapeHtml(e.category_color)}"></span>` : '';
+                    return `<div class="related-item">
+                        <a href="../calendar/index.php?event=${e.id}">${dot}${escapeHtml(e.title)}</a>
+                        <span class="meta">
+                            ${formatDateTime(e.start_datetime, e.all_day)}
+                            ${e.category_name ? '<span class="meta-sep">•</span>' + escapeHtml(e.category_name) : ''}
+                        </span>
+                    </div>`;
+                }).join('');
+            } catch (err) {
+                list.innerHTML = '<div class="related-empty">Failed to load events</div>';
+            }
+        }
+
+        function formatDateTime(dtStr, allDay) {
+            if (!dtStr) return '-';
+            const d = new Date(dtStr.replace(' ', 'T'));
+            if (allDay) return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        // Modals
+        async function openTaskModal() {
+            // Lazy-load analyst & team lists
+            if (!analystOptions.length) {
+                try {
+                    const [aResp, tResp] = await Promise.all([
+                        fetch(TASKS_API + 'list.php?analysts=1'),
+                        fetch(TASKS_API + 'list.php?teams=1')
+                    ]);
+                    const aData = await aResp.json();
+                    const tData = await tResp.json();
+                    if (aData.success) analystOptions = aData.analysts;
+                    if (tData.success) teamOptions = tData.teams;
+                } catch (e) {
+                    showToast('Failed to load assignee list', 'error');
+                    return;
+                }
+            }
+
+            const c = currentContract;
+            const titleDefault = `Contract: ${c.contract_number} — ${c.title}`;
+            const dueDefault = c.notice_date || c.contract_end || '';
+            // Default assignee = contract owner if present
+            const assigneeDefault = c.contract_owner_id || '';
+
+            document.getElementById('taskTitle').value = titleDefault;
+            document.getElementById('taskDescription').value = `Linked to contract ${c.contract_number} — ${c.title}` + (c.supplier_name ? ` (Supplier: ${c.supplier_name})` : '');
+            document.getElementById('taskDueDate').value = dueDefault ? dueDefault.substring(0, 10) : '';
+            document.getElementById('taskPriority').value = 'Medium';
+            document.getElementById('taskStatus').value = 'To Do';
+
+            const analystSel = document.getElementById('taskAnalyst');
+            analystSel.innerHTML = '<option value="">Unassigned</option>' +
+                analystOptions.map(a => `<option value="${a.id}" ${a.id == assigneeDefault ? 'selected' : ''}>${escapeHtml(a.name)}</option>`).join('');
+
+            const teamSel = document.getElementById('taskTeam');
+            teamSel.innerHTML = '<option value="">No team</option>' +
+                teamOptions.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+
+            document.getElementById('taskModal').classList.add('active');
+        }
+
+        function closeTaskModal() {
+            document.getElementById('taskModal').classList.remove('active');
+        }
+
+        async function saveTask() {
+            const btn = document.getElementById('taskSaveBtn');
+            const title = document.getElementById('taskTitle').value.trim();
+            if (!title) {
+                showToast('Title is required', 'error');
+                return;
+            }
+            btn.disabled = true;
+            try {
+                const resp = await fetch(TASKS_API + 'save.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: title,
+                        description: document.getElementById('taskDescription').value,
+                        status: document.getElementById('taskStatus').value,
+                        priority: document.getElementById('taskPriority').value,
+                        due_date: document.getElementById('taskDueDate').value || null,
+                        assigned_analyst_id: document.getElementById('taskAnalyst').value || null,
+                        assigned_team_id: document.getElementById('taskTeam').value || null,
+                        contract_id: contractId
+                    })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showToast('Task created', 'success');
+                    closeTaskModal();
+                    loadRelatedTasks();
+                } else {
+                    showToast('Error: ' + (data.error || 'Failed to save'), 'error');
+                }
+            } catch (e) {
+                showToast('Failed to save task', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function openEventModal() {
+            if (!categoryOptions.length) {
+                try {
+                    const resp = await fetch(CALENDAR_API + 'get_categories.php?active_only=1');
+                    const data = await resp.json();
+                    if (data.success) categoryOptions = data.categories;
+                } catch (e) {
+                    showToast('Failed to load categories', 'error');
+                    return;
+                }
+            }
+
+            const c = currentContract;
+            const dateDefault = c.contract_end || c.notice_date || '';
+            const titleDefault = `${c.contract_number} — ${c.title}`;
+
+            document.getElementById('eventTitle').value = titleDefault;
+            document.getElementById('eventDescription').value = `Linked to contract ${c.contract_number} — ${c.title}` + (c.supplier_name ? ` (Supplier: ${c.supplier_name})` : '');
+            document.getElementById('eventStart').value = dateDefault ? dateDefault.substring(0, 10) : '';
+            document.getElementById('eventAllDay').checked = true;
+            document.getElementById('eventLocation').value = '';
+
+            const catSel = document.getElementById('eventCategory');
+            catSel.innerHTML = '<option value="">No category</option>' +
+                categoryOptions.map(cat => `<option value="${cat.id}">${escapeHtml(cat.name)}</option>`).join('');
+
+            updateEventStartType();
+            document.getElementById('eventModal').classList.add('active');
+        }
+
+        function closeEventModal() {
+            document.getElementById('eventModal').classList.remove('active');
+        }
+
+        function updateEventStartType() {
+            const allDay = document.getElementById('eventAllDay').checked;
+            document.getElementById('eventStart').type = allDay ? 'date' : 'datetime-local';
+        }
+
+        async function saveEvent() {
+            const btn = document.getElementById('eventSaveBtn');
+            const title = document.getElementById('eventTitle').value.trim();
+            const start = document.getElementById('eventStart').value;
+            if (!title) {
+                showToast('Title is required', 'error');
+                return;
+            }
+            if (!start) {
+                showToast('Start date is required', 'error');
+                return;
+            }
+            const allDay = document.getElementById('eventAllDay').checked;
+            // Calendar API expects 'YYYY-MM-DD HH:MM:SS'. For date-only, default to start of day.
+            const startDateTime = allDay ? start + ' 00:00:00' : start.replace('T', ' ') + ':00';
+
+            btn.disabled = true;
+            try {
+                const resp = await fetch(CALENDAR_API + 'save_event.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        title: title,
+                        description: document.getElementById('eventDescription').value,
+                        category_id: document.getElementById('eventCategory').value || null,
+                        start_datetime: startDateTime,
+                        end_datetime: startDateTime,
+                        all_day: allDay,
+                        location: document.getElementById('eventLocation').value,
+                        contract_id: contractId
+                    })
+                });
+                const data = await resp.json();
+                if (data.success) {
+                    showToast('Event added to calendar', 'success');
+                    closeEventModal();
+                    loadRelatedEvents();
+                } else {
+                    showToast('Error: ' + (data.error || 'Failed to save'), 'error');
+                }
+            } catch (e) {
+                showToast('Failed to save event', 'error');
+            } finally {
+                btn.disabled = false;
+            }
+        }
     </script>
+
+    <!-- Create Task Modal -->
+    <div class="modal-overlay" id="taskModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>New task for this contract</h3>
+                <button type="button" class="modal-close" onclick="closeTaskModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="taskTitle" />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="taskDescription"></textarea>
+                </div>
+                <div class="modal-row">
+                    <div class="form-group">
+                        <label>Assignee</label>
+                        <select id="taskAnalyst"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Team</label>
+                        <select id="taskTeam"></select>
+                    </div>
+                </div>
+                <div class="modal-row">
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" id="taskDueDate" />
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="taskPriority">
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                            <option value="Urgent">Urgent</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="taskStatus">
+                        <option value="To Do" selected>To Do</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Blocked">Blocked</option>
+                        <option value="Done">Done</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="taskSaveBtn" onclick="saveTask()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Event Modal -->
+    <div class="modal-overlay" id="eventModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add to calendar</h3>
+                <button type="button" class="modal-close" onclick="closeEventModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Title</label>
+                    <input type="text" id="eventTitle" />
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="eventDescription"></textarea>
+                </div>
+                <div class="form-group checkbox-row">
+                    <input type="checkbox" id="eventAllDay" checked onchange="updateEventStartType()" />
+                    <label for="eventAllDay">All day</label>
+                </div>
+                <div class="modal-row">
+                    <div class="form-group">
+                        <label>Start</label>
+                        <input type="date" id="eventStart" />
+                    </div>
+                    <div class="form-group">
+                        <label>Category</label>
+                        <select id="eventCategory"></select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="eventLocation" />
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeEventModal()">Cancel</button>
+                <button type="button" class="btn btn-primary" id="eventSaveBtn" onclick="saveEvent()">Save</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

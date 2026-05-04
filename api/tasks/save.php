@@ -31,7 +31,7 @@ try {
         // Build SET clause dynamically from provided fields
         $allowed = ['title', 'description', 'status', 'priority', 'due_date',
                      'assigned_analyst_id', 'assigned_team_id', 'parent_task_id',
-                     'ticket_id', 'change_id', 'board_position'];
+                     'ticket_id', 'change_id', 'contract_id', 'board_position'];
         $sets = ['updated_datetime = UTC_TIMESTAMP()'];
         $params = [];
 
@@ -80,8 +80,8 @@ try {
 
         $sql = "INSERT INTO tasks (title, description, status, priority, due_date,
                     assigned_analyst_id, assigned_team_id, parent_task_id,
-                    ticket_id, change_id, board_position, created_by_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                    ticket_id, change_id, contract_id, board_position, created_by_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([
@@ -95,6 +95,7 @@ try {
             !empty($input['parent_task_id']) ? $input['parent_task_id'] : null,
             !empty($input['ticket_id']) ? $input['ticket_id'] : null,
             !empty($input['change_id']) ? $input['change_id'] : null,
+            !empty($input['contract_id']) ? $input['contract_id'] : null,
             $boardPos,
             $analystId
         ]);

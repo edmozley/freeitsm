@@ -17,8 +17,10 @@ if (!isset($_SESSION['analyst_id'])) {
 $startDate = $_GET['start'] ?? null;
 $endDate = $_GET['end'] ?? null;
 $categoryIds = isset($_GET['categories']) ? explode(',', $_GET['categories']) : null;
+$contractId = isset($_GET['contract_id']) && $_GET['contract_id'] !== '' ? (int)$_GET['contract_id'] : null;
 
-if (!$startDate || !$endDate) {
+// Date range is required unless filtering by contract_id
+if (!$contractId && (!$startDate || !$endDate)) {
     echo json_encode(['success' => false, 'error' => 'Start and end dates are required']);
     exit;
 }
@@ -27,19 +29,29 @@ try {
     $conn = connectToDatabase();
 
     $sql = "SELECT e.id, e.title, e.description, e.category_id, e.start_datetime, e.end_datetime,
-                   e.all_day, e.location, e.created_by, e.created_at, e.updated_at,
+                   e.all_day, e.location, e.contract_id, e.created_by, e.created_at, e.updated_at,
                    c.name as category_name, c.color as category_color,
                    a.full_name as created_by_name
             FROM calendar_events e
             LEFT JOIN calendar_categories c ON e.category_id = c.id
             LEFT JOIN analysts a ON e.created_by = a.id
-            WHERE (
-                (e.start_datetime >= ? AND e.start_datetime < ?)
-                OR (e.end_datetime > ? AND e.end_datetime <= ?)
-                OR (e.start_datetime < ? AND e.end_datetime > ?)
-            )";
+            WHERE 1=1";
 
-    $params = [$startDate, $endDate, $startDate, $endDate, $startDate, $endDate];
+    $params = [];
+
+    if ($startDate && $endDate) {
+        $sql .= " AND (
+                    (e.start_datetime >= ? AND e.start_datetime < ?)
+                    OR (e.end_datetime > ? AND e.end_datetime <= ?)
+                    OR (e.start_datetime < ? AND e.end_datetime > ?)
+                  )";
+        array_push($params, $startDate, $endDate, $startDate, $endDate, $startDate, $endDate);
+    }
+
+    if ($contractId) {
+        $sql .= " AND e.contract_id = ?";
+        $params[] = $contractId;
+    }
 
     // Filter by categories if specified
     if ($categoryIds && count($categoryIds) > 0) {

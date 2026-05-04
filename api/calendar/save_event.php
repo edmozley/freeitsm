@@ -24,6 +24,7 @@ $startDatetime = $input['start_datetime'] ?? null;
 $endDatetime = isset($input['end_datetime']) && $input['end_datetime'] !== '' ? $input['end_datetime'] : null;
 $allDay = isset($input['all_day']) ? (bool)$input['all_day'] : false;
 $location = trim($input['location'] ?? '');
+$contractId = isset($input['contract_id']) && $input['contract_id'] !== '' ? (int)$input['contract_id'] : null;
 
 if (empty($title)) {
     echo json_encode(['success' => false, 'error' => 'Event title is required']);
@@ -47,7 +48,7 @@ try {
         // Update existing event
         $sql = "UPDATE calendar_events
                 SET title = ?, description = ?, category_id = ?, start_datetime = ?,
-                    end_datetime = ?, all_day = ?, location = ?, updated_at = UTC_TIMESTAMP()
+                    end_datetime = ?, all_day = ?, location = ?, contract_id = ?, updated_at = UTC_TIMESTAMP()
                 WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->execute([
@@ -58,6 +59,7 @@ try {
             $endDatetime,
             $allDay ? 1 : 0,
             $location,
+            $contractId,
             $id
         ]);
 
@@ -68,8 +70,8 @@ try {
         ]);
     } else {
         // Create new event
-        $sql = "INSERT INTO calendar_events (title, description, category_id, start_datetime, end_datetime, all_day, location, created_by)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        $sql = "INSERT INTO calendar_events (title, description, category_id, start_datetime, end_datetime, all_day, location, contract_id, created_by)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = $conn->prepare($sql);
         $stmt->execute([
             $title,
@@ -79,6 +81,7 @@ try {
             $endDatetime,
             $allDay ? 1 : 0,
             $location,
+            $contractId,
             $_SESSION['analyst_id']
         ]);
         $newId = $conn->lastInsertId();

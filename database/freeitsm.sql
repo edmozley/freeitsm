@@ -888,11 +888,13 @@ CREATE TABLE IF NOT EXISTS `calendar_events` (
     `end_datetime`      DATETIME NULL,
     `all_day`           TINYINT(1) NOT NULL DEFAULT 0,
     `location`          VARCHAR(255) NULL,
+    `contract_id`       INT NULL,
     `created_by`        INT NOT NULL,
     `created_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at`        DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_calendar_events_category` FOREIGN KEY (`category_id`) REFERENCES `calendar_categories` (`id`)
+    CONSTRAINT `fk_calendar_events_category` FOREIGN KEY (`category_id`) REFERENCES `calendar_categories` (`id`),
+    CONSTRAINT `fk_calendar_events_contract` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
@@ -1071,6 +1073,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     `parent_task_id`      INT NULL,
     `ticket_id`           INT NULL,
     `change_id`           INT NULL,
+    `contract_id`         INT NULL,
     `board_position`      INT NOT NULL DEFAULT 0,
     `created_by_id`       INT NOT NULL,
     `created_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1082,6 +1085,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     CONSTRAINT `fk_tasks_parent` FOREIGN KEY (`parent_task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_tasks_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_tasks_contract` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
