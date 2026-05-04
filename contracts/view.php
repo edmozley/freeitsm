@@ -163,54 +163,54 @@ if (!$contract_id) {
         .related-pill.high, .related-pill.urgent { background: #fee2e2; color: #991b1b; }
         .related-cat-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
 
-        /* Modal */
-        .modal-overlay {
+        /* Modal (namespaced to avoid clash with .modal in inbox.css) */
+        .cv-modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-            display: none; align-items: center; justify-content: center; z-index: 1000;
+            display: none; align-items: center; justify-content: center; z-index: 2500;
         }
-        .modal-overlay.active { display: flex; }
-        .modal {
+        .cv-modal-overlay.active { display: flex; }
+        .cv-modal {
             background: #fff; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             width: 480px; max-width: calc(100vw - 40px); max-height: calc(100vh - 40px); overflow: auto;
         }
-        .modal-header {
+        .cv-modal-header {
             padding: 16px 20px; border-bottom: 1px solid #eee;
             display: flex; justify-content: space-between; align-items: center;
         }
-        .modal-header h3 { margin: 0; font-size: 16px; color: #333; }
-        .modal-close {
+        .cv-modal-header h3 { margin: 0; font-size: 16px; color: #333; }
+        .cv-modal-close {
             background: none; border: none; font-size: 22px; line-height: 1;
             color: #999; cursor: pointer; padding: 0;
         }
-        .modal-close:hover { color: #333; }
-        .modal-body { padding: 20px; }
-        .modal-body .form-group { margin-bottom: 14px; }
-        .modal-body label {
+        .cv-modal-close:hover { color: #333; }
+        .cv-modal-body { padding: 20px; }
+        .cv-modal-body .form-group { margin-bottom: 14px; }
+        .cv-modal-body label {
             display: block; margin-bottom: 6px; font-weight: 500;
             font-size: 13px; color: #333;
         }
-        .modal-body input, .modal-body select, .modal-body textarea {
+        .cv-modal-body input, .cv-modal-body select, .cv-modal-body textarea {
             width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 4px;
             font-size: 13px; box-sizing: border-box; font-family: inherit;
         }
-        .modal-body textarea { height: 70px; resize: vertical; }
-        .modal-body input:focus, .modal-body select:focus, .modal-body textarea:focus {
+        .cv-modal-body textarea { height: 70px; resize: vertical; }
+        .cv-modal-body input:focus, .cv-modal-body select:focus, .cv-modal-body textarea:focus {
             outline: none; border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
         }
-        .modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .modal-footer {
+        .cv-modal-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .cv-modal-footer {
             padding: 14px 20px; border-top: 1px solid #eee;
             display: flex; justify-content: flex-end; gap: 8px;
         }
-        .modal-footer .btn {
+        .cv-modal-footer .btn {
             padding: 8px 16px; border-radius: 4px; font-size: 13px; font-weight: 500;
             cursor: pointer; border: none; transition: all 0.2s;
         }
-        .modal-footer .btn-primary { background: #f59e0b; color: white; }
-        .modal-footer .btn-primary:hover { background: #d97706; }
-        .modal-footer .btn-primary:disabled { background: #fcd34d; cursor: not-allowed; }
-        .modal-footer .btn-secondary { background: #e0e0e0; color: #333; }
-        .modal-footer .btn-secondary:hover { background: #d0d0d0; }
+        .cv-modal-footer .btn-primary { background: #f59e0b; color: white; }
+        .cv-modal-footer .btn-primary:hover { background: #d97706; }
+        .cv-modal-footer .btn-primary:disabled { background: #fcd34d; cursor: not-allowed; }
+        .cv-modal-footer .btn-secondary { background: #e0e0e0; color: #333; }
+        .cv-modal-footer .btn-secondary:hover { background: #d0d0d0; }
         .checkbox-row { display: flex; align-items: center; gap: 8px; }
         .checkbox-row input { width: auto; }
         .checkbox-row label { margin: 0; }
@@ -718,13 +718,13 @@ if (!$contract_id) {
     </script>
 
     <!-- Create Task Modal -->
-    <div class="modal-overlay" id="taskModal">
-        <div class="modal">
-            <div class="modal-header">
+    <div class="cv-modal-overlay" id="taskModal">
+        <div class="cv-modal">
+            <div class="cv-modal-header">
                 <h3>New task for this contract</h3>
-                <button type="button" class="modal-close" onclick="closeTaskModal()">&times;</button>
+                <button type="button" class="cv-modal-close" onclick="closeTaskModal()">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="cv-modal-body">
                 <div class="form-group">
                     <label>Title</label>
                     <input type="text" id="taskTitle" />
@@ -733,7 +733,7 @@ if (!$contract_id) {
                     <label>Description</label>
                     <textarea id="taskDescription"></textarea>
                 </div>
-                <div class="modal-row">
+                <div class="cv-modal-row">
                     <div class="form-group">
                         <label>Assignee</label>
                         <select id="taskAnalyst"></select>
@@ -743,7 +743,7 @@ if (!$contract_id) {
                         <select id="taskTeam"></select>
                     </div>
                 </div>
-                <div class="modal-row">
+                <div class="cv-modal-row">
                     <div class="form-group">
                         <label>Due Date</label>
                         <input type="date" id="taskDueDate" />
@@ -768,7 +768,7 @@ if (!$contract_id) {
                     </select>
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="cv-modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
                 <button type="button" class="btn btn-primary" id="taskSaveBtn" onclick="saveTask()">Save</button>
             </div>
@@ -776,13 +776,13 @@ if (!$contract_id) {
     </div>
 
     <!-- Create Event Modal -->
-    <div class="modal-overlay" id="eventModal">
-        <div class="modal">
-            <div class="modal-header">
+    <div class="cv-modal-overlay" id="eventModal">
+        <div class="cv-modal">
+            <div class="cv-modal-header">
                 <h3>Add to calendar</h3>
-                <button type="button" class="modal-close" onclick="closeEventModal()">&times;</button>
+                <button type="button" class="cv-modal-close" onclick="closeEventModal()">&times;</button>
             </div>
-            <div class="modal-body">
+            <div class="cv-modal-body">
                 <div class="form-group">
                     <label>Title</label>
                     <input type="text" id="eventTitle" />
@@ -795,7 +795,7 @@ if (!$contract_id) {
                     <input type="checkbox" id="eventAllDay" checked onchange="updateEventStartType()" />
                     <label for="eventAllDay">All day</label>
                 </div>
-                <div class="modal-row">
+                <div class="cv-modal-row">
                     <div class="form-group">
                         <label>Start</label>
                         <input type="date" id="eventStart" />
@@ -810,7 +810,7 @@ if (!$contract_id) {
                     <input type="text" id="eventLocation" />
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="cv-modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeEventModal()">Cancel</button>
                 <button type="button" class="btn btn-primary" id="eventSaveBtn" onclick="saveEvent()">Save</button>
             </div>
