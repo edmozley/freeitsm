@@ -633,6 +633,7 @@ System administration and configuration.
 Dynamic form builder and submission system with a unified sidebar + editor layout.
 
 - **Form List & Builder** (`index.php`): Sidebar shows searchable list of all forms with quick actions (Fill In, Submissions, Delete). Main area has full-width title/description inputs with tabbed Fields and Preview panels. Click a form in the sidebar to edit it inline. Unsaved changes indicator with browser leave warning. Toast notifications on save/delete.
+- **AI Assist** (`builder.php`): Toolbar button opens a modal where the analyst describes the form in plain English. A streaming Claude call (claude.ai-style live token output) generates a complete form definition — title, description, field types, labels, required flags and dropdown options — and applies it to the builder. Reuses the Anthropic API key configured for the RFP Builder under Contracts → Settings → RFP AI. Three example prompts on the modal for quick starts.
 - **Filler** (`fill.php`): A4-style form rendering with company logo (alignment configurable). Required field validation.
 - **Submissions** (`submissions.php`): Table view of all submissions. Click rows for detail modal. Date range filtering. CSV export with UTF-8 BOM for Excel compatibility.
 - **Settings**: Gear icon in sidebar opens settings modal. Configurable logo alignment (left, centre, right) applied to both preview and fill-in views.
@@ -832,6 +833,7 @@ if (!isset($_SESSION['analyst_id'])) {
 | `save_form.php` | POST | Create/update form with fields |
 | `delete_form.php` | POST | Delete form and all submissions |
 | `submit_form.php` | POST | Submit a filled-in form |
+| `ai_generate.php` | POST | Streaming SSE endpoint — generates a form definition from a plain-English description |
 | `get_submissions.php` | GET | Submissions for a form (with field data) |
 | `delete_submission.php` | POST | Delete a submission |
 | `get_settings.php` | GET | Get forms module settings (logo alignment) |

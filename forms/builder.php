@@ -395,6 +395,101 @@ $path_prefix = '../';
             font-size: 13px;
         }
 
+        /* AI Assist */
+        .btn-ai-assist {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+        }
+        .btn-ai-assist:hover { background: linear-gradient(135deg, #4f46e5, #4338ca); }
+
+        .ai-modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+            display: none; align-items: center; justify-content: center; z-index: 2500;
+        }
+        .ai-modal-overlay.active { display: flex; }
+        .ai-modal {
+            background: #fff; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 640px; max-width: calc(100vw - 40px); max-height: calc(100vh - 40px); overflow: hidden;
+            display: flex; flex-direction: column;
+        }
+        .ai-modal-header {
+            padding: 16px 20px; border-bottom: 1px solid #eee;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .ai-modal-header h3 {
+            margin: 0; font-size: 16px; color: #333;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .ai-sparkle {
+            display: inline-block; font-size: 16px;
+            background: linear-gradient(135deg, #6366f1, #ec4899);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .ai-modal-close {
+            background: none; border: none; font-size: 22px; line-height: 1;
+            color: #999; cursor: pointer; padding: 0;
+        }
+        .ai-modal-close:hover { color: #333; }
+        .ai-modal-body { padding: 20px; overflow-y: auto; flex: 1; }
+        .ai-modal-body label {
+            display: block; margin-bottom: 6px; font-weight: 500;
+            font-size: 13px; color: #333;
+        }
+        .ai-modal-body textarea {
+            width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 5px;
+            font-size: 13px; box-sizing: border-box; font-family: inherit;
+            min-height: 110px; resize: vertical;
+        }
+        .ai-modal-body textarea:focus {
+            outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.12);
+        }
+        .ai-modal-body .ai-hint {
+            color: #888; font-size: 12px; margin-top: 6px;
+        }
+        .ai-modal-body .ai-examples {
+            font-size: 12px; color: #6b7280; margin-top: 14px;
+        }
+        .ai-modal-body .ai-examples strong { color: #4b5563; }
+        .ai-modal-body .ai-examples ul { margin: 6px 0 0 0; padding-left: 18px; }
+        .ai-modal-body .ai-examples li { margin-bottom: 3px; cursor: pointer; }
+        .ai-modal-body .ai-examples li:hover { color: #4f46e5; text-decoration: underline; }
+
+        .ai-progress {
+            margin-top: 16px; padding: 14px;
+            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
+            font-size: 12px; color: #475569;
+        }
+        .ai-progress .ai-progress-status {
+            display: flex; align-items: center; gap: 8px; font-weight: 500; margin-bottom: 8px;
+        }
+        .ai-progress .ai-spinner {
+            width: 12px; height: 12px; border-radius: 50%;
+            border: 2px solid #c7d2fe; border-top-color: #4f46e5;
+            animation: ai-spin 0.8s linear infinite;
+        }
+        @keyframes ai-spin { to { transform: rotate(360deg); } }
+        .ai-progress .ai-progress-counters {
+            display: flex; gap: 14px; font-size: 11px; color: #6b7280; margin-bottom: 8px;
+        }
+        .ai-progress .ai-progress-counters span strong { color: #1f2937; }
+        .ai-progress pre.ai-stream {
+            margin: 0; max-height: 180px; overflow: auto;
+            background: #0f172a; color: #cbd5e1; padding: 10px;
+            border-radius: 4px; font-size: 11px; line-height: 1.45;
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            white-space: pre-wrap; word-break: break-word;
+        }
+        .ai-progress.error {
+            background: #fef2f2; border-color: #fecaca; color: #991b1b;
+        }
+
+        .ai-modal-footer {
+            padding: 14px 20px; border-top: 1px solid #eee;
+            display: flex; justify-content: flex-end; gap: 8px;
+        }
+        .ai-modal-footer .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
     </style>
 </head>
 <body>
@@ -406,6 +501,10 @@ $path_prefix = '../';
                 <h2 id="pageTitle">New Form</h2>
                 <div class="toolbar-actions">
                     <a href="./" class="btn btn-secondary">Cancel</a>
+                    <button class="btn btn-ai-assist" onclick="openAiModal()" title="Describe your form and let AI build it">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.9 5.8L20 10l-5.8 1.9L12 18l-1.9-5.8L4 10l6.1-2.2z"></path><path d="M19 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"></path><path d="M5 16l.6 1.8L7.5 18l-1.9.6L5 20l-.6-1.4L2.5 18l2-.2z"></path></svg>
+                        AI Assist
+                    </button>
                     <button class="btn btn-primary" onclick="saveForm()">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                         Save Form
@@ -709,6 +808,221 @@ $path_prefix = '../';
             div.textContent = text;
             return div.innerHTML;
         }
+
+        // ---------------- AI Assist ----------------
+        let aiAbortController = null;
+
+        function openAiModal() {
+            document.getElementById('aiModal').classList.add('active');
+            const ta = document.getElementById('aiDescription');
+            ta.value = '';
+            setTimeout(() => ta.focus(), 50);
+            resetAiProgress();
+
+            // Wire example clicks (idempotent — flag the element so we only attach once)
+            document.querySelectorAll('.ai-example').forEach(el => {
+                if (el.dataset.wired) return;
+                el.dataset.wired = '1';
+                el.addEventListener('click', () => {
+                    document.getElementById('aiDescription').value = el.dataset.text || '';
+                    document.getElementById('aiDescription').focus();
+                });
+            });
+        }
+
+        function closeAiModal() {
+            // Abort any in-flight stream
+            if (aiAbortController) { aiAbortController.abort(); aiAbortController = null; }
+            document.getElementById('aiModal').classList.remove('active');
+        }
+
+        function resetAiProgress() {
+            const prog = document.getElementById('aiProgress');
+            prog.style.display = 'none';
+            prog.classList.remove('error');
+            document.getElementById('aiStream').textContent = '';
+            document.getElementById('aiStatus').textContent = '';
+            document.getElementById('aiTokensIn').textContent = '0';
+            document.getElementById('aiTokensOut').textContent = '0';
+            document.getElementById('aiCacheRead').textContent = '0';
+            document.getElementById('aiFieldCount').textContent = '0';
+        }
+
+        async function runAiGeneration() {
+            const description = document.getElementById('aiDescription').value.trim();
+            if (!description) {
+                showToast('Please describe the form you want to build', 'error');
+                return;
+            }
+            if (description.length > 2000) {
+                showToast('Description is too long (max 2000 characters)', 'error');
+                return;
+            }
+
+            const replaceConfirm = (fields.length > 0)
+                ? confirm('This will replace the current form title, description and fields. Continue?')
+                : true;
+            if (!replaceConfirm) return;
+
+            const generateBtn = document.getElementById('aiGenerateBtn');
+            generateBtn.disabled = true;
+
+            const prog = document.getElementById('aiProgress');
+            prog.style.display = 'block';
+            prog.classList.remove('error');
+            const status = document.getElementById('aiStatus');
+            const stream = document.getElementById('aiStream');
+            stream.textContent = '';
+            status.textContent = 'Designing your form…';
+
+            aiAbortController = new AbortController();
+
+            try {
+                const resp = await fetch(API_BASE + 'ai_generate.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ description: description }),
+                    signal: aiAbortController.signal
+                });
+
+                if (!resp.body) throw new Error('Streaming not supported by your browser');
+                const reader = resp.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let lastEventName = '';
+                let dataLines = [];
+
+                let acc = '';
+                let detectedFields = 0;
+
+                const handleEvent = (eventName, dataStr) => {
+                    if (!dataStr) return;
+                    let data;
+                    try { data = JSON.parse(dataStr); } catch (e) { return; }
+
+                    switch (eventName) {
+                        case 'text': {
+                            const delta = data.delta || '';
+                            acc += delta;
+                            stream.textContent = acc;
+                            stream.scrollTop = stream.scrollHeight;
+                            // Heuristic field counter: count occurrences of "field_type"
+                            const matches = acc.match(/"field_type"\s*:/g);
+                            const newCount = matches ? matches.length : 0;
+                            if (newCount !== detectedFields) {
+                                detectedFields = newCount;
+                                document.getElementById('aiFieldCount').textContent = String(detectedFields);
+                            }
+                            break;
+                        }
+                        case 'usage':
+                            if (data.tokens_in != null)  document.getElementById('aiTokensIn').textContent  = String(data.tokens_in);
+                            if (data.tokens_out != null) document.getElementById('aiTokensOut').textContent = String(data.tokens_out);
+                            if (data.cache_read != null) document.getElementById('aiCacheRead').textContent  = String(data.cache_read);
+                            break;
+                        case 'done':
+                            applyGeneratedForm(data.form);
+                            const seconds = data.duration_ms ? (data.duration_ms / 1000).toFixed(1) : '?';
+                            const fieldWord = data.form.fields.length === 1 ? 'field' : 'fields';
+                            showToast(`Form built — ${data.form.fields.length} ${fieldWord} in ${seconds}s`, 'success');
+                            closeAiModal();
+                            break;
+                        case 'error':
+                            throw new Error(data.message || 'AI request failed');
+                    }
+                };
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    buffer += decoder.decode(value, { stream: true });
+
+                    // Split off complete SSE events (\n\n delimiter)
+                    let idx;
+                    while ((idx = buffer.indexOf('\n\n')) !== -1) {
+                        const block = buffer.slice(0, idx);
+                        buffer = buffer.slice(idx + 2);
+
+                        let eventName = '';
+                        let dataStr = '';
+                        for (const line of block.split('\n')) {
+                            if (line.startsWith('event: ')) eventName = line.slice(7).trim();
+                            else if (line.startsWith('data: ')) dataStr += line.slice(6);
+                        }
+                        if (eventName) handleEvent(eventName, dataStr);
+                    }
+                }
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    // User cancelled; nothing to do
+                } else {
+                    prog.classList.add('error');
+                    document.getElementById('aiStatus').textContent = 'Error: ' + err.message;
+                    showToast('AI Assist failed: ' + err.message, 'error');
+                }
+            } finally {
+                generateBtn.disabled = false;
+                aiAbortController = null;
+            }
+        }
+
+        function applyGeneratedForm(form) {
+            document.getElementById('formTitle').value = form.title || '';
+            document.getElementById('formDesc').value  = form.description || '';
+            fields = (form.fields || []).map(f => ({
+                field_type:  f.field_type || 'text',
+                label:       f.label || '',
+                options:     Array.isArray(f.options) ? f.options.slice() : [],
+                is_required: !!f.is_required
+            }));
+            renderFields();
+            updatePreview();
+        }
     </script>
+
+    <!-- AI Assist Modal -->
+    <div class="ai-modal-overlay" id="aiModal">
+        <div class="ai-modal">
+            <div class="ai-modal-header">
+                <h3><span class="ai-sparkle">&#10024;</span> AI Assist &mdash; describe your form</h3>
+                <button type="button" class="ai-modal-close" onclick="closeAiModal()">&times;</button>
+            </div>
+            <div class="ai-modal-body">
+                <label for="aiDescription">What's the form for?</label>
+                <textarea id="aiDescription" placeholder="e.g. A holiday request form for staff. Capture the requester's name, the start and end date, the type of leave (annual / sick / parental / unpaid), an optional note, and a confirmation checkbox that they've checked the team rota."></textarea>
+                <div class="ai-hint">Tell it what the form does and what info it needs to capture. The more specific you are, the better the result.</div>
+
+                <div class="ai-examples">
+                    <strong>Try:</strong>
+                    <ul>
+                        <li class="ai-example" data-text="A new starter onboarding form for the IT team. Capture the new starter's name, job title, start date, line manager, software needed (Outlook, Teams, Adobe, Visual Studio), and a notes field for special equipment.">New starter onboarding form for IT</li>
+                        <li class="ai-example" data-text="A leaver form for HR. Capture the leaver's name, last working day, line manager, reason for leaving (resignation / retirement / redundancy / dismissal / end of contract), exit interview required (yes/no), and a notes field.">HR leaver form</li>
+                        <li class="ai-example" data-text="An incident reporting form for end users. Subject, description, severity (low / medium / high / critical), affected service, when it started (date as text), and a checkbox confirming they've already tried restarting.">User incident reporting form</li>
+                    </ul>
+                </div>
+
+                <div class="ai-progress" id="aiProgress" style="display:none;">
+                    <div class="ai-progress-status">
+                        <div class="ai-spinner"></div>
+                        <span id="aiStatus">Designing your form&hellip;</span>
+                    </div>
+                    <div class="ai-progress-counters">
+                        <span>Fields detected: <strong id="aiFieldCount">0</strong></span>
+                        <span>Tokens in: <strong id="aiTokensIn">0</strong></span>
+                        <span>Tokens out: <strong id="aiTokensOut">0</strong></span>
+                        <span>Cached: <strong id="aiCacheRead">0</strong></span>
+                    </div>
+                    <pre class="ai-stream" id="aiStream"></pre>
+                </div>
+            </div>
+            <div class="ai-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeAiModal()">Cancel</button>
+                <button type="button" class="btn btn-ai-assist" id="aiGenerateBtn" onclick="runAiGeneration()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.9 5.8L20 10l-5.8 1.9L12 18l-1.9-5.8L4 10l6.1-2.2z"></path></svg>
+                    Generate
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
