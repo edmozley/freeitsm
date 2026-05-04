@@ -584,6 +584,7 @@ System logs and audit trails.
 - Email import logs
 - System event logs
 - Searchable and sortable tables
+- **Intune Dashboard** (`reporting/intune/`): Curated dashboard of Microsoft Intune device aggregations — KPI strip (total devices, compliant %, encrypted %, stale 30+ days, recently enrolled) plus eight Chart.js widgets covering compliance breakdown, OS distribution, owner type (corporate vs personal), top manufacturers, top OS versions, last-sync window distribution, 90-day enrolment trend, and encryption-by-OS stacked bar. Single API call returns all aggregates; threshold-based KPI tone (green/red) flags compliance and encryption issues at a glance. Shows the timestamp of the most recent Intune sync job in the toolbar.
 - **Help guide** (`help.php`): Interactive guide covering ticket reports, system logs, data interpretation, filters, and reporting best practices
 
 ### Software (`software/`)

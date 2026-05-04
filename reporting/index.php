@@ -114,6 +114,16 @@ $path_prefix = '../';
                     <h3>Ticket Dashboards</h3>
                     <p>KPI dashboards for ticket performance, resolution times, and team workload.</p>
                 </a>
+
+                <a href="intune/" class="report-card">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                    </svg>
+                    <h3>Intune Dashboard</h3>
+                    <p>Compliance, encryption, OS distribution, enrolment trend, and last-sync health across every managed device.</p>
+                </a>
             </div>
         </div>
     </div>

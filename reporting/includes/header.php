@@ -45,6 +45,14 @@ require_once $path_prefix . 'includes/waffle-menu.php';
             </svg>
             <span>Tickets</span>
         </a>
+        <a href="<?php echo $path_prefix; ?>reporting/intune/" class="nav-btn <?php echo $current_page === 'intune' ? 'active' : ''; ?>" title="Intune Dashboard">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                <line x1="8" y1="21" x2="16" y2="21"></line>
+                <line x1="12" y1="17" x2="12" y2="21"></line>
+            </svg>
+            <span>Intune</span>
+        </a>
         <a href="<?php echo $path_prefix; ?>reporting/help.php" class="nav-btn <?php echo $current_page === 'help' ? 'active' : ''; ?>" title="Help">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>

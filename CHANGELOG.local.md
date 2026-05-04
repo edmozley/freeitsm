@@ -12,6 +12,7 @@ When publishing to the website, move entries from **Unpublished** to the **Publi
 
 | ID  | Module            | Type        | Description |
 |-----|-------------------|-------------|-------------|
+| 163 | Reporting         | Feature     | Add **Intune Dashboard** at `/reporting/intune/`. KPI strip across the top (total devices, compliant %, encrypted %, stale 30+ days, recently enrolled in last 30 days) with green/amber/red tone thresholds, plus an eight-widget Chart.js grid: compliance breakdown (doughnut), OS breakdown (doughnut), owner type corporate-vs-personal (doughnut), top 10 manufacturers (bar), top 10 OS+version combos (bar), last-sync window distribution (today / 1-7 / 8-30 / 31-90 / 90+ / never), 90-day enrolment trend (line, fill-zero days), and encryption-by-OS stacked bar (encrypted vs unencrypted). One backend call to a new `api/intune/dashboard_data.php` returns every aggregation in a single payload. Reporting landing page gains an Intune card and the reporting header gains an Intune nav button. Empty-state banner shown when no Intune devices have been synced yet, pointing the user to the Assets module to run a sync |
 
 ---
 
