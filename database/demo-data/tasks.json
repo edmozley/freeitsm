@@ -1,0 +1,523 @@
+{
+    "tier1": {
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            },
+            {
+                "_ref": "jsmith",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "jsmith"
+            },
+            {
+                "_ref": "swilliams",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "swilliams"
+            },
+            {
+                "_ref": "mjones",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "mjones"
+            },
+            {
+                "_ref": "lbrown",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "lbrown"
+            }
+        ],
+        "teams": [
+            {
+                "_ref": "servicedesk",
+                "_skip_insert": true,
+                "_match_by": "name",
+                "_match_value": "Service Desk"
+            },
+            {
+                "_ref": "escalation",
+                "_skip_insert": true,
+                "_match_by": "name",
+                "_match_value": "Escalation Team"
+            }
+        ]
+    },
+    "tier2": {
+        "tasks": [
+            {
+                "_ref": "t_access_review",
+                "title": "Quarterly access review for privileged accounts",
+                "description": "<p>Review all members of Domain Admins, Enterprise Admins, and the Tier 0 PIM group. Confirm with line managers that elevated rights are still required, and remove anyone who has changed role.</p><p>Output: signed-off spreadsheet stored in IT Compliance SharePoint.</p>",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+10d__",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "assigned_team_id": "@teams.escalation",
+                "board_position": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-3d__",
+                "updated_datetime": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "_ref": "t_ups_battery",
+                "title": "Replace failed UPS battery in main server room",
+                "description": "<p>UPS-A2 reported battery failure on Sunday. Replacement battery pack arrived Monday. Schedule a 30-minute window to swap and run a self-test.</p>",
+                "status": "To Do",
+                "priority": "High",
+                "due_date": "__RELATIVE_DATEONLY:+2d__",
+                "assigned_analyst_id": "@analysts.mjones",
+                "assigned_team_id": "@teams.escalation",
+                "board_position": 1,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-1d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "t_vpn_rollout",
+                "title": "Roll out new GlobalProtect VPN client (v6.3)",
+                "description": "<p>Phased rollout of the new VPN client to all staff laptops. Old client to be retired by end of month.</p>",
+                "status": "To Do",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+18d__",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "assigned_team_id": "@teams.escalation",
+                "board_position": 2,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "t_ssl_renew",
+                "title": "Renew SSL certificate for portal.example.com",
+                "description": "<p>Wildcard cert *.example.com expires in 9 days. Generate CSR, request renewal from DigiCert, install on the load balancer and verify chain.</p>",
+                "status": "To Do",
+                "priority": "Critical",
+                "due_date": "__RELATIVE_DATEONLY:+5d__",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 3,
+                "created_by_id": "@analysts.mjones",
+                "created_datetime": "__RELATIVE_DATE:-1d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "t_doc_printer",
+                "title": "Document the new MFP install process",
+                "description": "<p>Write up the deployment process for the Konica C300i fleet - driver source, IP reservation, follow-me print queue setup. Publish to KB.</p>",
+                "status": "To Do",
+                "priority": "Low",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 4,
+                "created_by_id": "@analysts.jsmith",
+                "created_datetime": "__RELATIVE_DATE:-4d__",
+                "updated_datetime": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "_ref": "t_onboarding",
+                "title": "Onboarding - Karen Hall (Marketing, starts Monday)",
+                "description": "<p>New starter Karen Hall joins the Marketing team next Monday. Standard onboarding: account, mailbox, laptop, security groups, induction.</p>",
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+4d__",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 0,
+                "created_by_id": "@analysts.jsmith",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "t_fileshares",
+                "title": "Migrate file shares to SharePoint (Phase 2 - Finance & HR)",
+                "description": "<p>Phase 2 of the file share retirement project. Finance (480 GB) and HR (210 GB) shares to be migrated to dedicated SharePoint sites with the same NTFS-equivalent permissions.</p><p>Phase 1 (IT and Marketing) completed last month.</p>",
+                "status": "In Progress",
+                "priority": "High",
+                "due_date": "__RELATIVE_DATEONLY:+14d__",
+                "assigned_analyst_id": "@analysts.mjones",
+                "assigned_team_id": "@teams.escalation",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "_ref": "t_image_refresh",
+                "title": "Refresh laptop SOE image - Windows 11 24H2",
+                "description": "<p>Build the next-gen Standard Operating Environment image based on Windows 11 24H2. Includes corporate apps, security baseline, and updated branding.</p>",
+                "status": "In Progress",
+                "priority": "Medium",
+                "due_date": "__RELATIVE_DATEONLY:+21d__",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "assigned_team_id": "@teams.escalation",
+                "board_position": 2,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "_ref": "t_citrix_decom",
+                "title": "Decommission legacy Citrix farm",
+                "description": "<p>Now that Azure Virtual Desktop is the strategic remote-access platform, the legacy Citrix XenApp 7.15 farm can be retired. Power down session hosts, reclaim VLAN/IPs, and notify Finance to cancel licences.</p>",
+                "status": "In Progress",
+                "priority": "High",
+                "due_date": "__RELATIVE_DATEONLY:+30d__",
+                "assigned_analyst_id": "@analysts.mjones",
+                "assigned_team_id": "@teams.escalation",
+                "board_position": 3,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-20d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "_ref": "t_audit_mailboxes",
+                "title": "Audit shared mailboxes for stale accounts",
+                "description": "<p>Identify shared mailboxes with no logins in the last 90 days. Confirm with owning department, then archive and remove.</p>",
+                "status": "Done",
+                "priority": "Low",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 0,
+                "created_by_id": "@analysts.lbrown",
+                "created_datetime": "__RELATIVE_DATE:-25d__",
+                "updated_datetime": "__RELATIVE_DATE:-14d__",
+                "completed_datetime": "__RELATIVE_DATE:-14d__"
+            },
+            {
+                "_ref": "t_phishing_sim",
+                "title": "Run quarterly phishing simulation campaign",
+                "description": "<p>Q1 phishing simulation via KnowBe4. Three templates targeted at Finance, Sales, and All Staff. Compile results and feed into the security awareness report.</p>",
+                "status": "Done",
+                "priority": "Medium",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "assigned_team_id": "@teams.escalation",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__",
+                "updated_datetime": "__RELATIVE_DATE:-7d__",
+                "completed_datetime": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "_ref": "t_boardroom_display",
+                "title": "Replace boardroom 2 conference display",
+                "description": "<p>Old Samsung 65\" panel had repeated HDMI handshake failures. Replaced with a Logitech Rally Bar Mini and a new 75\" LG display. Tested with Teams Rooms.</p>",
+                "status": "Done",
+                "priority": "Low",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "assigned_team_id": "@teams.servicedesk",
+                "board_position": 2,
+                "created_by_id": "@analysts.jsmith",
+                "created_datetime": "__RELATIVE_DATE:-18d__",
+                "updated_datetime": "__RELATIVE_DATE:-9d__",
+                "completed_datetime": "__RELATIVE_DATE:-9d__"
+            },
+
+            {
+                "title": "Create AD account & assign licences",
+                "status": "Done",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_onboarding",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "board_position": 0,
+                "created_by_id": "@analysts.jsmith",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-5d__",
+                "completed_datetime": "__RELATIVE_DATE:-5d__"
+            },
+            {
+                "title": "Set up Outlook mailbox & distribution lists",
+                "status": "Done",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_onboarding",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "board_position": 1,
+                "created_by_id": "@analysts.jsmith",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-4d__",
+                "completed_datetime": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "title": "Provision laptop and ship to home address",
+                "status": "In Progress",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_onboarding",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "board_position": 2,
+                "created_by_id": "@analysts.jsmith",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "title": "Add to Marketing security groups & SharePoint sites",
+                "status": "To Do",
+                "priority": "Low",
+                "parent_task_id": "@tasks.t_onboarding",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "board_position": 3,
+                "created_by_id": "@analysts.jsmith",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-6d__"
+            },
+            {
+                "title": "Schedule Day 1 induction call",
+                "status": "To Do",
+                "priority": "Low",
+                "parent_task_id": "@tasks.t_onboarding",
+                "assigned_analyst_id": "@analysts.jsmith",
+                "board_position": 4,
+                "created_by_id": "@analysts.jsmith",
+                "created_datetime": "__RELATIVE_DATE:-6d__",
+                "updated_datetime": "__RELATIVE_DATE:-6d__"
+            },
+
+            {
+                "title": "Inventory shares and map permissions",
+                "status": "Done",
+                "priority": "High",
+                "parent_task_id": "@tasks.t_fileshares",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-9d__",
+                "completed_datetime": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "title": "Pilot Finance team migration",
+                "status": "In Progress",
+                "priority": "High",
+                "parent_task_id": "@tasks.t_fileshares",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "title": "Migrate HR share with retention review",
+                "status": "To Do",
+                "priority": "High",
+                "parent_task_id": "@tasks.t_fileshares",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 2,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-12d__"
+            },
+            {
+                "title": "Decommission legacy file server FS-OLD",
+                "status": "To Do",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_fileshares",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 3,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-12d__",
+                "updated_datetime": "__RELATIVE_DATE:-12d__"
+            },
+
+            {
+                "title": "Build base 24H2 image in MDT",
+                "status": "Done",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_image_refresh",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "board_position": 0,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-7d__",
+                "completed_datetime": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "title": "Layer in corporate apps and security baseline",
+                "status": "In Progress",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_image_refresh",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "board_position": 1,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "title": "Validate driver compatibility (Lenovo & Dell)",
+                "status": "To Do",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_image_refresh",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "board_position": 2,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-9d__"
+            },
+            {
+                "title": "Pilot deployment to IT department",
+                "status": "To Do",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_image_refresh",
+                "assigned_analyst_id": "@analysts.swilliams",
+                "board_position": 3,
+                "created_by_id": "@analysts.swilliams",
+                "created_datetime": "__RELATIVE_DATE:-9d__",
+                "updated_datetime": "__RELATIVE_DATE:-9d__"
+            },
+
+            {
+                "title": "Notify users of cutover date",
+                "status": "Done",
+                "priority": "High",
+                "parent_task_id": "@tasks.t_citrix_decom",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-20d__",
+                "updated_datetime": "__RELATIVE_DATE:-15d__",
+                "completed_datetime": "__RELATIVE_DATE:-15d__"
+            },
+            {
+                "title": "Republish remaining apps in AVD",
+                "status": "Done",
+                "priority": "High",
+                "parent_task_id": "@tasks.t_citrix_decom",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-20d__",
+                "updated_datetime": "__RELATIVE_DATE:-10d__",
+                "completed_datetime": "__RELATIVE_DATE:-10d__"
+            },
+            {
+                "title": "Power down Citrix session hosts",
+                "status": "In Progress",
+                "priority": "High",
+                "parent_task_id": "@tasks.t_citrix_decom",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 2,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-20d__",
+                "updated_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "title": "Reclaim VLAN/IPs and update DNS",
+                "status": "To Do",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_citrix_decom",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 3,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-20d__",
+                "updated_datetime": "__RELATIVE_DATE:-20d__"
+            },
+            {
+                "title": "Notify Finance to cancel Citrix licences",
+                "status": "To Do",
+                "priority": "Low",
+                "parent_task_id": "@tasks.t_citrix_decom",
+                "assigned_analyst_id": "@analysts.mjones",
+                "board_position": 4,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-20d__",
+                "updated_datetime": "__RELATIVE_DATE:-20d__"
+            },
+
+            {
+                "title": "Test new VPN client in lab",
+                "status": "To Do",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_vpn_rollout",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "board_position": 0,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "title": "Pilot with IT team (10 users)",
+                "status": "To Do",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_vpn_rollout",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "board_position": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "title": "Phased rollout to all staff via Intune",
+                "status": "To Do",
+                "priority": "Medium",
+                "parent_task_id": "@tasks.t_vpn_rollout",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "board_position": 2,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "title": "Retire legacy GlobalProtect 5.x client",
+                "status": "To Do",
+                "priority": "Low",
+                "parent_task_id": "@tasks.t_vpn_rollout",
+                "assigned_analyst_id": "@analysts.lbrown",
+                "board_position": 3,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-2d__",
+                "updated_datetime": "__RELATIVE_DATE:-2d__"
+            }
+        ],
+        "task_comments": [
+            {
+                "task_id": "@tasks.t_onboarding",
+                "analyst_id": "@analysts.jsmith",
+                "comment": "Account and mailbox done. Laptop ordered from Lenovo, ETA Thursday. Will ship straight to her home address.",
+                "created_datetime": "__RELATIVE_DATE:-4d__"
+            },
+            {
+                "task_id": "@tasks.t_onboarding",
+                "analyst_id": "@analysts.lbrown",
+                "comment": "Laptop arrived this morning - imaging now. Should be out for delivery tomorrow.",
+                "created_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "task_id": "@tasks.t_fileshares",
+                "analyst_id": "@analysts.mjones",
+                "comment": "Finance pilot kicked off Monday. 240 GB synced overnight. Hit one issue with a 12-level nested folder structure that breached SharePoint path limits - flattened it with the team's blessing.",
+                "created_datetime": "__RELATIVE_DATE:-3d__"
+            },
+            {
+                "task_id": "@tasks.t_fileshares",
+                "analyst_id": "@analysts.admin",
+                "comment": "Good catch on the path-length issue. Worth adding that to the runbook before HR's turn.",
+                "created_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "task_id": "@tasks.t_ssl_renew",
+                "analyst_id": "@analysts.mjones",
+                "comment": "CSR generated. DigiCert order placed - waiting on validation email to the abuse@ alias. Setting reminder for tomorrow if it hasn't landed.",
+                "created_datetime": "__RELATIVE_DATE:-1d__"
+            },
+            {
+                "task_id": "@tasks.t_citrix_decom",
+                "analyst_id": "@analysts.mjones",
+                "comment": "All published apps now live in AVD. Citrix usage telemetry shows 4 sessions in the last 7 days - tracking those users down individually before we power off.",
+                "created_datetime": "__RELATIVE_DATE:-2d__"
+            },
+            {
+                "task_id": "@tasks.t_phishing_sim",
+                "analyst_id": "@analysts.swilliams",
+                "comment": "Final results: 14% click rate (down from 22% last quarter), 3% credential entry (down from 7%). Awareness training is paying off. Full report uploaded to the security folder.",
+                "created_datetime": "__RELATIVE_DATE:-7d__"
+            },
+            {
+                "task_id": "@tasks.t_audit_mailboxes",
+                "analyst_id": "@analysts.lbrown",
+                "comment": "Found 11 stale shared mailboxes - 7 archived, 3 retained at owner's request, 1 already deleted. Sign-off attached.",
+                "created_datetime": "__RELATIVE_DATE:-14d__"
+            }
+        ]
+    }
+}

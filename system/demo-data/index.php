@@ -406,6 +406,16 @@ if (!isset($_SESSION['analyst_id'])) {
                 </div>
                 <div class="error-text" id="err-forms" style="display:none"></div>
             </div>
+
+            <div class="module-card" data-module="tasks">
+                <h4>Tasks</h4>
+                <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments.</p>
+                <div class="module-footer">
+                    <span class="record-count">~42 records</span>
+                    <button class="import-btn" id="btn-tasks" onclick="importModule('tasks', this)" disabled>Import</button>
+                </div>
+                <div class="error-text" id="err-tasks" style="display:none"></div>
+            </div>
         </div>
 
         <!-- Bonus: cross-module linking (appears after both software + assets imported) -->
@@ -487,7 +497,7 @@ if (!isset($_SESSION['analyst_id'])) {
         }
 
         function enableModuleButtons() {
-            const modules = ['tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks', 'contracts', 'services', 'software', 'forms'];
+            const modules = ['tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks', 'contracts', 'services', 'software', 'forms', 'tasks'];
             modules.forEach(function(m) {
                 const btn = document.getElementById('btn-' + m);
                 if (btn && !btn.classList.contains('success')) {
