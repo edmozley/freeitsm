@@ -25,11 +25,16 @@ try {
 
     // Get the task
     $stmt = $conn->prepare(
-        "SELECT t.*, a.full_name AS analyst_name, tm.name AS team_name,
+        "SELECT t.*,
+                ts.name AS status, ts.is_closed AS status_is_closed, ts.colour AS status_colour,
+                tp.name AS priority, tp.colour AS priority_colour,
+                a.full_name AS analyst_name, tm.name AS team_name,
                 ca.full_name AS created_by_name,
                 tk.ticket_number, tk.subject AS ticket_subject,
                 ch.title AS change_title
          FROM tasks t
+         LEFT JOIN task_statuses   ts ON ts.id = t.status_id
+         LEFT JOIN task_priorities tp ON tp.id = t.priority_id
          LEFT JOIN analysts a ON t.assigned_analyst_id = a.id
          LEFT JOIN teams tm ON t.assigned_team_id = tm.id
          LEFT JOIN analysts ca ON t.created_by_id = ca.id
@@ -54,10 +59,15 @@ try {
 
     // Get subtasks with assignee names
     $stmt = $conn->prepare(
-        "SELECT t.id, t.title, t.status, t.priority, t.due_date,
+        "SELECT t.id, t.title,
+                ts.name AS status, ts.is_closed AS status_is_closed,
+                tp.name AS priority,
+                t.due_date,
                 t.assigned_analyst_id, t.board_position, t.completed_datetime,
                 a.full_name AS analyst_name
          FROM tasks t
+         LEFT JOIN task_statuses   ts ON ts.id = t.status_id
+         LEFT JOIN task_priorities tp ON tp.id = t.priority_id
          LEFT JOIN analysts a ON t.assigned_analyst_id = a.id
          WHERE t.parent_task_id = ?
          ORDER BY t.board_position ASC, t.created_datetime ASC"

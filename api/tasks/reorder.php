@@ -28,15 +28,24 @@ try {
     $conn = connectToDatabase();
     $conn->beginTransaction();
 
-    // Update the moved task's status
-    $completedSql = $newStatus === 'Done'
+    // Resolve new status name -> id and decide whether to stamp completed_datetime
+    $stsStmt = $conn->prepare("SELECT id, is_closed FROM task_statuses WHERE name = ? LIMIT 1");
+    $stsStmt->execute([$newStatus]);
+    $sts = $stsStmt->fetch(PDO::FETCH_ASSOC);
+    if (!$sts) {
+        $conn->rollBack();
+        echo json_encode(['success' => false, 'error' => "Unknown status: $newStatus"]);
+        exit;
+    }
+    $newStatusId = (int)$sts['id'];
+    $completedSql = $sts['is_closed']
         ? ", completed_datetime = COALESCE(completed_datetime, UTC_TIMESTAMP())"
         : ", completed_datetime = NULL";
 
     $stmt = $conn->prepare(
-        "UPDATE tasks SET status = ?, updated_datetime = UTC_TIMESTAMP(){$completedSql} WHERE id = ?"
+        "UPDATE tasks SET status_id = ?, updated_datetime = UTC_TIMESTAMP(){$completedSql} WHERE id = ?"
     );
-    $stmt->execute([$newStatus, $taskId]);
+    $stmt->execute([$newStatusId, $taskId]);
 
     // Update board positions for all tasks in the affected columns
     $posStmt = $conn->prepare("UPDATE tasks SET board_position = ? WHERE id = ?");

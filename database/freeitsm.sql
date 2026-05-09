@@ -1211,12 +1211,50 @@ CREATE TABLE IF NOT EXISTS `api_rate_limits` (
 -- Tasks
 -- ----------------------------------------------------------
 
+CREATE TABLE IF NOT EXISTS `task_statuses` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(50) NOT NULL,
+    `is_closed`         TINYINT(1) NOT NULL DEFAULT 0,
+    `colour`            VARCHAR(20) NULL,
+    `is_default`        TINYINT(1) NOT NULL DEFAULT 0,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_task_statuses_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `task_statuses` (`name`, `is_closed`, `colour`, `is_default`, `display_order`) VALUES
+    ('To Do',       0, '#6b7280', 1, 10),
+    ('In Progress', 0, '#9333ea', 0, 20),
+    ('Blocked',     0, '#f59e0b', 0, 30),
+    ('Done',        1, '#16a34a', 0, 40),
+    ('Cancelled',   1, '#bdbdbd', 0, 50);
+
+CREATE TABLE IF NOT EXISTS `task_priorities` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(50) NOT NULL,
+    `colour`            VARCHAR(20) NULL,
+    `is_default`        TINYINT(1) NOT NULL DEFAULT 0,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_task_priorities_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `task_priorities` (`name`, `colour`, `is_default`, `display_order`) VALUES
+    ('Low',    '#16a34a', 0, 10),
+    ('Medium', '#2563eb', 1, 20),
+    ('High',   '#f59e0b', 0, 30),
+    ('Urgent', '#dc2626', 0, 40);
+
 CREATE TABLE IF NOT EXISTS `tasks` (
     `id`                  INT NOT NULL AUTO_INCREMENT,
     `title`               VARCHAR(255) NOT NULL,
     `description`         LONGTEXT NULL,
-    `status`              VARCHAR(20) NOT NULL DEFAULT 'To Do',
-    `priority`            VARCHAR(20) NOT NULL DEFAULT 'Medium',
+    `status_id`           INT NULL,
+    `priority_id`         INT NULL,
     `due_date`            DATE NULL,
     `assigned_analyst_id` INT NULL,
     `assigned_team_id`    INT NULL,
@@ -1230,13 +1268,17 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     `updated_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `completed_datetime`  DATETIME NULL,
     PRIMARY KEY (`id`),
+    KEY `ix_tasks_status_id` (`status_id`),
+    KEY `ix_tasks_priority_id` (`priority_id`),
     CONSTRAINT `fk_tasks_analyst` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_team` FOREIGN KEY (`assigned_team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_parent` FOREIGN KEY (`parent_task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_tasks_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tasks_contract` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_tasks_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`)
+    CONSTRAINT `fk_tasks_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`),
+    CONSTRAINT `fk_tasks_status` FOREIGN KEY (`status_id`) REFERENCES `task_statuses` (`id`),
+    CONSTRAINT `fk_tasks_priority` FOREIGN KEY (`priority_id`) REFERENCES `task_priorities` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `task_comments` (

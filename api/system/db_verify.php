@@ -1021,12 +1021,33 @@ $schema = [
         'window_start'  => 'DATETIME NOT NULL',
     ],
 
+    'task_statuses' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'name'              => 'VARCHAR(50) NOT NULL',
+        'is_closed'         => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'colour'            => 'VARCHAR(20) NULL',
+        'is_default'        => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'display_order'     => 'INT NOT NULL DEFAULT 0',
+        'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'task_priorities' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'name'              => 'VARCHAR(50) NOT NULL',
+        'colour'            => 'VARCHAR(20) NULL',
+        'is_default'        => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'display_order'     => 'INT NOT NULL DEFAULT 0',
+        'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'tasks' => [
         'id'                  => 'INT NOT NULL AUTO_INCREMENT',
         'title'               => 'VARCHAR(255) NOT NULL',
         'description'         => 'LONGTEXT NULL',
-        'status'              => "VARCHAR(20) NOT NULL DEFAULT 'To Do'",
-        'priority'            => "VARCHAR(20) NOT NULL DEFAULT 'Medium'",
+        'status_id'           => 'INT NULL',
+        'priority_id'         => 'INT NULL',
         'due_date'            => 'DATE NULL',
         'assigned_analyst_id' => 'INT NULL',
         'assigned_team_id'    => 'INT NULL',
@@ -2021,6 +2042,89 @@ try {
               ['change_templates', 'change_type', 'change_type_id'],
               ['change_templates', 'priority',    'priority_id'],
               ['change_templates', 'impact',      'impact_id']] as [$tbl, $oldCol, $newCol]) {
+        if (!$tableExists($tbl) || !$colExists($tbl, $oldCol)) continue;
+        $orphan = (int) $conn->query("SELECT COUNT(*) FROM `$tbl` WHERE `$newCol` IS NULL")->fetchColumn();
+        if ($orphan === 0) {
+            try {
+                $conn->exec("ALTER TABLE `$tbl` DROP COLUMN `$oldCol`");
+                $results[] = ['table' => $tbl, 'status' => 'updated', 'details' => ["Dropped legacy $oldCol column"]];
+            } catch (Exception $e) {}
+        } else {
+            $results[] = ['table' => $tbl, 'status' => 'pending', 'details' => ["Cannot drop $oldCol yet — $orphan row(s) still missing $newCol"]];
+        }
+    }
+
+    // ----------------------------------------------------------------------
+    // Tasks: lookups for status / priority
+    // ----------------------------------------------------------------------
+
+    if ($tableExists('task_statuses')) {
+        $cnt = (int) $conn->query("SELECT COUNT(*) FROM task_statuses")->fetchColumn();
+        if ($cnt === 0) {
+            $conn->exec("INSERT INTO task_statuses (name, is_closed, colour, is_default, display_order) VALUES
+                ('To Do',       0, '#6b7280', 1, 10),
+                ('In Progress', 0, '#9333ea', 0, 20),
+                ('Blocked',     0, '#f59e0b', 0, 30),
+                ('Done',        1, '#16a34a', 0, 40),
+                ('Cancelled',   1, '#bdbdbd', 0, 50)");
+            $results[] = ['table' => 'task_statuses', 'status' => 'seeded', 'details' => ['Inserted 5 default task statuses']];
+        }
+    }
+
+    if ($tableExists('task_priorities')) {
+        $cnt = (int) $conn->query("SELECT COUNT(*) FROM task_priorities")->fetchColumn();
+        if ($cnt === 0) {
+            $conn->exec("INSERT INTO task_priorities (name, colour, is_default, display_order) VALUES
+                ('Low',    '#16a34a', 0, 10),
+                ('Medium', '#2563eb', 1, 20),
+                ('High',   '#f59e0b', 0, 30),
+                ('Urgent', '#dc2626', 0, 40)");
+            $results[] = ['table' => 'task_priorities', 'status' => 'seeded', 'details' => ['Inserted 4 default task priorities']];
+        }
+    }
+
+    foreach ([['tasks', 'status',   'status_id',   'task_statuses'],
+              ['tasks', 'priority', 'priority_id', 'task_priorities']] as [$tbl, $oldCol, $newCol, $lkTbl]) {
+        if (!$tableExists($tbl) || !$colExists($tbl, $oldCol) || !$colExists($tbl, $newCol) || !$tableExists($lkTbl)) continue;
+
+        $conn->exec("INSERT IGNORE INTO `$lkTbl` (name, display_order)
+                     SELECT DISTINCT t.`$oldCol`, 999
+                     FROM `$tbl` t
+                     LEFT JOIN `$lkTbl` l ON LOWER(l.name) = LOWER(t.`$oldCol`)
+                     WHERE t.`$oldCol` IS NOT NULL AND t.`$oldCol` <> '' AND l.id IS NULL");
+
+        $upd = $conn->exec("UPDATE `$tbl` t
+                            JOIN `$lkTbl` l ON LOWER(l.name) = LOWER(t.`$oldCol`)
+                            SET t.`$newCol` = l.id
+                            WHERE t.`$newCol` IS NULL AND t.`$oldCol` IS NOT NULL");
+        if ($upd > 0) {
+            $results[] = ['table' => $tbl, 'status' => 'migrated', 'details' => ["Backfilled $newCol for $upd row(s)"]];
+        }
+
+        $conn->exec("UPDATE `$tbl` SET `$newCol` = (SELECT id FROM `$lkTbl` WHERE is_default = 1 LIMIT 1) WHERE `$newCol` IS NULL");
+    }
+
+    // FKs and indexes for tasks
+    foreach ([
+        ['tasks', 'fk_tasks_status',   "ALTER TABLE tasks ADD CONSTRAINT fk_tasks_status FOREIGN KEY (status_id) REFERENCES task_statuses (id)"],
+        ['tasks', 'fk_tasks_priority', "ALTER TABLE tasks ADD CONSTRAINT fk_tasks_priority FOREIGN KEY (priority_id) REFERENCES task_priorities (id)"],
+    ] as [$tbl, $name, $sql]) {
+        if ($tableExists($tbl) && !$fkExists($tbl, $name)) {
+            try { $conn->exec($sql); } catch (Exception $e) {}
+        }
+    }
+    foreach ([
+        ['tasks', 'ix_tasks_status_id',   'status_id'],
+        ['tasks', 'ix_tasks_priority_id', 'priority_id'],
+    ] as [$tbl, $name, $col]) {
+        if ($tableExists($tbl) && !$idxExists($tbl, $name)) {
+            try { $conn->exec("ALTER TABLE `$tbl` ADD KEY `$name` (`$col`)"); } catch (Exception $e) {}
+        }
+    }
+
+    // Drop legacy task columns
+    foreach ([['tasks', 'status',   'status_id'],
+              ['tasks', 'priority', 'priority_id']] as [$tbl, $oldCol, $newCol]) {
         if (!$tableExists($tbl) || !$colExists($tbl, $oldCol)) continue;
         $orphan = (int) $conn->query("SELECT COUNT(*) FROM `$tbl` WHERE `$newCol` IS NULL")->fetchColumn();
         if ($orphan === 0) {

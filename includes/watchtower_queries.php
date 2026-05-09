@@ -224,29 +224,33 @@ function getWatchtowerData($conn) {
     // -- Tasks --
 
     $taskOverdue = (int)$conn->query(
-        "SELECT COUNT(*) FROM tasks
-         WHERE due_date < CURDATE()
-           AND status NOT IN ('Done', 'Cancelled')
-           AND parent_task_id IS NULL"
+        "SELECT COUNT(*) FROM tasks t
+         LEFT JOIN task_statuses ts ON ts.id = t.status_id
+         WHERE t.due_date < CURDATE()
+           AND (ts.is_closed = 0 OR ts.id IS NULL)
+           AND t.parent_task_id IS NULL"
     )->fetchColumn();
 
     $taskDueToday = (int)$conn->query(
-        "SELECT COUNT(*) FROM tasks
-         WHERE due_date = CURDATE()
-           AND status NOT IN ('Done', 'Cancelled')
-           AND parent_task_id IS NULL"
+        "SELECT COUNT(*) FROM tasks t
+         LEFT JOIN task_statuses ts ON ts.id = t.status_id
+         WHERE t.due_date = CURDATE()
+           AND (ts.is_closed = 0 OR ts.id IS NULL)
+           AND t.parent_task_id IS NULL"
     )->fetchColumn();
 
     $taskInProgress = (int)$conn->query(
-        "SELECT COUNT(*) FROM tasks
-         WHERE status = 'In Progress'
-           AND parent_task_id IS NULL"
+        "SELECT COUNT(*) FROM tasks t
+         JOIN task_statuses ts ON ts.id = t.status_id
+         WHERE ts.name = 'In Progress'
+           AND t.parent_task_id IS NULL"
     )->fetchColumn();
 
     $taskTodo = (int)$conn->query(
-        "SELECT COUNT(*) FROM tasks
-         WHERE status = 'To Do'
-           AND parent_task_id IS NULL"
+        "SELECT COUNT(*) FROM tasks t
+         JOIN task_statuses ts ON ts.id = t.status_id
+         WHERE ts.name = 'To Do'
+           AND t.parent_task_id IS NULL"
     )->fetchColumn();
 
     $tasksWt = [

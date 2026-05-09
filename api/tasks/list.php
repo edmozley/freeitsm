@@ -53,14 +53,17 @@ try {
     }
     // filter === 'all' has no extra conditions
 
-    // Exclude cancelled/done if requested
+    // Exclude cancelled/done if requested — driven by the is_closed flag now
     if (isset($_GET['active_only'])) {
-        $where[] = "t.status NOT IN ('Done', 'Cancelled')";
+        $where[] = "(ts.is_closed = 0 OR ts.id IS NULL)";
     }
 
     $whereSql = implode(' AND ', $where);
 
-    $sql = "SELECT t.id, t.title, t.status, t.priority, t.due_date,
+    $sql = "SELECT t.id, t.title,
+                   ts.name AS status, ts.is_closed AS status_is_closed, ts.colour AS status_colour,
+                   tp.name AS priority, tp.colour AS priority_colour,
+                   t.due_date,
                    t.assigned_analyst_id, t.assigned_team_id,
                    t.ticket_id, t.change_id, t.contract_id, t.board_position,
                    t.created_by_id, t.created_datetime, t.updated_datetime,
@@ -68,6 +71,8 @@ try {
                    a.full_name AS analyst_name,
                    tm.name AS team_name
             FROM tasks t
+            LEFT JOIN task_statuses   ts ON ts.id = t.status_id
+            LEFT JOIN task_priorities tp ON tp.id = t.priority_id
             LEFT JOIN analysts a ON t.assigned_analyst_id = a.id
             LEFT JOIN teams tm ON t.assigned_team_id = tm.id
             WHERE {$whereSql}
@@ -85,8 +90,9 @@ try {
         $stmt = $conn->prepare(
             "SELECT parent_task_id,
                     COUNT(*) AS total,
-                    SUM(CASE WHEN status = 'Done' THEN 1 ELSE 0 END) AS done
+                    SUM(CASE WHEN ts.is_closed = 1 THEN 1 ELSE 0 END) AS done
              FROM tasks
+             LEFT JOIN task_statuses ts ON ts.id = tasks.status_id
              WHERE parent_task_id IN ({$placeholders})
              GROUP BY parent_task_id"
         );
@@ -105,10 +111,11 @@ try {
     }
 
     // Status counts for sidebar
-    $countSql = "SELECT status, COUNT(*) AS cnt
-                 FROM tasks
-                 WHERE parent_task_id IS NULL
-                 GROUP BY status";
+    $countSql = "SELECT ts.name AS status, COUNT(*) AS cnt
+                 FROM tasks t
+                 LEFT JOIN task_statuses ts ON ts.id = t.status_id
+                 WHERE t.parent_task_id IS NULL
+                 GROUP BY ts.name";
     $statusCounts = [];
     $stmt = $conn->query($countSql);
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
