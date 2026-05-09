@@ -97,17 +97,20 @@ try {
     if ($tone  === '') $tone  = 'Friendly';
 
     // Resolve requester first name from the ticket.
+    // users.preferred_name wins if the user has set one, else fall back to
+    // users.display_name. Take the first whitespace-delimited token as the
+    // greeting name ("Sarah Johnson" → "Sarah").
     $reqStmt = $conn->prepare(
-        "SELECT u.full_name
+        "SELECT COALESCE(NULLIF(TRIM(u.preferred_name), ''), u.display_name) AS name
            FROM tickets t
-      LEFT JOIN users u ON u.user_id = t.user_id
+      LEFT JOIN users u ON u.id = t.user_id
           WHERE t.id = ?"
     );
     $reqStmt->execute([$ticketId]);
-    $fullName = trim((string)($reqStmt->fetchColumn() ?: ''));
+    $name = trim((string)($reqStmt->fetchColumn() ?: ''));
     $firstName = '';
-    if ($fullName !== '') {
-        $parts = preg_split('/\s+/', $fullName);
+    if ($name !== '') {
+        $parts = preg_split('/\s+/', $name);
         $firstName = $parts[0] ?? '';
     }
     $greetingName = $firstName !== '' ? $firstName : 'there';
