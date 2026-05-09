@@ -302,7 +302,7 @@ function renderFolders() {
 
     // All Tickets folder
     html += `
-        <div class="folder-item ${currentFilter.type === 'all' ? 'active' : ''}" onclick="selectFolder('all')">
+        <div class="folder-item ${currentFilter.type === 'all' ? 'active' : ''}" data-folder-key="all" onclick="selectFolder('all')">
             <div class="folder-name">
                 <span class="folder-icon">📬</span>
                 <span>All Tickets</span>
@@ -367,21 +367,59 @@ function renderFolders() {
     attachFolderDropHandlers();
 }
 
+// Update only the .active class on existing folder/subfolder rows — does NOT rebuild
+// the folder list. Used by selection paths so the .subfolder-group expand transition
+// (which requires the element to persist) actually fires.
+function updateActiveFolderClasses() {
+    const list = document.getElementById('folderList');
+    if (!list) return;
+    list.querySelectorAll('.folder-item, .subfolder-item').forEach(el => el.classList.remove('active'));
+
+    if (currentFilter.type === 'all') {
+        list.querySelector('[data-folder-key="all"]')?.classList.add('active');
+    } else if (currentFilter.type === 'unassigned') {
+        list.querySelector('[data-drop-type="unassigned"]')?.classList.add('active');
+    } else if (currentFilter.type === 'department') {
+        list.querySelector(`[data-drop-type="department"][data-dept-id="${currentFilter.id}"]`)
+            ?.classList.add('active');
+    } else if (currentFilter.type === 'dept_status') {
+        const sel = `.subfolder-item[data-dept-id="${currentFilter.dept_id}"][data-status="${CSS.escape(currentFilter.status)}"]`;
+        list.querySelector(sel)?.classList.add('active');
+    }
+}
+
 // Toggle folder expansion
 // opts.selectAfter — if false, don't change the active filter/view (used by drag hover)
 // opts.forceExpand — if true, only expand (no toggle), used by drag hover
 function toggleFolder(folderId, deptId, opts = {}) {
     const { selectAfter = true, forceExpand = false } = opts;
+    const wasExpanded = !!expandedFolders[folderId];
+    let willBeExpanded;
     if (forceExpand) {
-        if (expandedFolders[folderId]) return;
-        expandedFolders[folderId] = true;
+        if (wasExpanded) return;
+        willBeExpanded = true;
     } else {
-        expandedFolders[folderId] = !expandedFolders[folderId];
+        willBeExpanded = !wasExpanded;
     }
+    expandedFolders[folderId] = willBeExpanded;
+
+    // Targeted class flip on the existing nodes so the CSS grid-row transition fires.
+    // Rebuilding via renderFolders() would create fresh DOM nodes already in their
+    // final state with nothing to transition from.
+    const list = document.getElementById('folderList');
+    const folderRow = list?.querySelector(`.folder-item[data-drop-type="department"][data-dept-id="${deptId}"]`);
+    const subGroup = folderRow?.nextElementSibling;
+    folderRow?.classList.toggle('expanded', willBeExpanded);
+    if (subGroup && subGroup.classList.contains('subfolder-group')) {
+        subGroup.classList.toggle('expanded', willBeExpanded);
+    }
+
     if (selectAfter) {
-        selectFolder('department', deptId);
-    } else {
-        renderFolders();
+        currentFilter = { type: 'department', id: deptId };
+        const dept = folderCounts.departments?.find(d => d.id == deptId);
+        document.getElementById('emailListTitle').textContent = dept ? dept.name : 'Department';
+        updateActiveFolderClasses();
+        loadEmails();
     }
 }
 
@@ -399,7 +437,7 @@ function selectFolder(type, id = null) {
         document.getElementById('emailListTitle').textContent = dept ? dept.name : 'Department';
     }
 
-    renderFolders();
+    updateActiveFolderClasses();
     loadEmails();
 }
 
@@ -409,7 +447,7 @@ function selectDeptStatus(deptId, status) {
     const dept = folderCounts.departments.find(d => d.id == deptId);
     document.getElementById('emailListTitle').textContent = `${dept ? dept.name : 'Department'} - ${status}`;
 
-    renderFolders();
+    updateActiveFolderClasses();
     loadEmails();
 }
 
