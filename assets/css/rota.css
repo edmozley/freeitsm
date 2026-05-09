@@ -179,15 +179,7 @@
     letter-spacing: 0.3px;
 }
 
-.rota-badge.office {
-    background: #e8f0fe;
-    color: #1a73e8;
-}
-
-.rota-badge.wfh {
-    background: #e6f4ea;
-    color: #1e8e3e;
-}
+/* Location badges are coloured via inline styles from rota_locations.colour */
 
 .rota-badge.on-call {
     background: #fef3e0;

@@ -47,11 +47,26 @@ try {
     $shiftStmt->execute();
     $shifts = $shiftStmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Get active rota locations (used by the entry-edit modal radios)
+    $locSql = "SELECT id, name, colour, is_default, display_order
+               FROM rota_locations
+               WHERE is_active = 1
+               ORDER BY display_order, name";
+    $locStmt = $conn->prepare($locSql);
+    $locStmt->execute();
+    $locations = $locStmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($locations as &$loc) {
+        $loc['is_default'] = (bool)$loc['is_default'];
+    }
+    unset($loc);
+
     // Get rota entries for the week
-    $entrySql = "SELECT e.id, e.analyst_id, e.rota_date, e.shift_id, e.location, e.is_on_call,
-                        s.name as shift_name, s.start_time, s.end_time
+    $entrySql = "SELECT e.id, e.analyst_id, e.rota_date, e.shift_id, e.location_id, e.is_on_call,
+                        s.name as shift_name, s.start_time, s.end_time,
+                        l.name as location_name, l.colour as location_colour
                  FROM ticket_rota_entries e
                  INNER JOIN ticket_rota_shifts s ON s.id = e.shift_id
+                 LEFT  JOIN rota_locations l    ON l.id = e.location_id
                  WHERE e.rota_date BETWEEN ? AND ?
                  ORDER BY e.rota_date, e.analyst_id";
     $entryStmt = $conn->prepare($entrySql);
@@ -65,6 +80,7 @@ try {
         'include_weekends' => $includeWeekends,
         'analysts' => $analysts,
         'shifts' => $shifts,
+        'locations' => $locations,
         'entries' => $entries
     ]);
 

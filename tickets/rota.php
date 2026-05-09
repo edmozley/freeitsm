@@ -58,14 +58,7 @@ $current_page = 'rota';
 
                 <div class="form-group">
                     <label>Location</label>
-                    <div style="display: flex; gap: 15px; margin-top: 5px;">
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="radio" name="entryLocation" value="office" checked> Office
-                        </label>
-                        <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="radio" name="entryLocation" value="wfh"> WFH
-                        </label>
-                    </div>
+                    <div id="entryLocationOptions" style="display: flex; gap: 15px; margin-top: 5px; flex-wrap: wrap;"></div>
                 </div>
 
                 <div class="form-group">

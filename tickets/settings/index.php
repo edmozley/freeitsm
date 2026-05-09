@@ -199,6 +199,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             <button class="tab" data-tab="ticket-origins" onclick="switchTab('ticket-origins')">Ticket Origins</button>
             <button class="tab" data-tab="statuses" onclick="switchTab('statuses')">Statuses</button>
             <button class="tab" data-tab="priorities" onclick="switchTab('priorities')">Priorities</button>
+            <button class="tab" data-tab="rota-locations" onclick="switchTab('rota-locations')">Rota Locations</button>
             <button class="tab" data-tab="mailboxes" onclick="switchTab('mailboxes')">Mailboxes</button>
             <button class="tab" data-tab="email-templates" onclick="switchTab('email-templates')">Templates</button>
             <button class="tab" data-tab="rota" onclick="switchTab('rota')">Rota</button>
@@ -342,6 +343,30 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                     </tr>
                 </thead>
                 <tbody id="priorities-list">
+                    <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Rota Locations Tab -->
+        <div class="tab-content" id="rota-locations-tab">
+            <div class="section-header">
+                <h2>Rota Locations</h2>
+                <button class="add-btn" onclick="openAddModal('rota-location')">Add</button>
+            </div>
+            <p style="margin-bottom: 20px; color: #666;">Where each analyst is working on a given day — used by the staff rota and shown as a coloured badge on every entry. Exactly one location is the default for new rota entries.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Colour</th>
+                        <th>Default</th>
+                        <th>Order</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="rota-locations-list">
                     <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
                 </tbody>
             </table>
@@ -942,6 +967,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             loadTicketOrigins();
             loadTicketStatuses();
             loadTicketPriorities();
+            loadRotaLocations();
             loadMailboxes();
             loadEmailTemplates();
             loadRotaShifts();
@@ -1113,15 +1139,64 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
             }).join('');
         }
 
+        // Load rota locations
+        let rotaLocationsCache = [];
+        async function loadRotaLocations() {
+            try {
+                const response = await fetch(API_BASE + 'get_rota_locations.php');
+                const data = await response.json();
+                if (data.success) {
+                    rotaLocationsCache = data.locations;
+                    renderRotaLocations(data.locations);
+                } else {
+                    alert('Error loading rota locations: ' + data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        function renderRotaLocations(locations) {
+            const tbody = document.getElementById('rota-locations-list');
+            if (!locations || locations.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No rota locations found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = locations.map(l => {
+                const safeName = escapeHtml(l.name).replace(/'/g, "\\'");
+                const swatch = l.colour
+                    ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(l.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(l.colour)}</code>`
+                    : '<span style="color:#999;">—</span>';
+                const def = l.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:#999;">No</span>';
+                return `
+                <tr>
+                    <td><strong>${escapeHtml(l.name)}</strong></td>
+                    <td>${swatch}</td>
+                    <td>${def}</td>
+                    <td>${l.display_order}</td>
+                    <td><span class="status-badge status-${l.is_active ? 'active' : 'inactive'}">${l.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="action-btn" onclick="editItem('rota-location', ${l.id})" title="Edit">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteItem('rota-location', ${l.id}, '${safeName}')" title="Delete">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
         // Configure modal field visibility for the entity being edited
         function configureModalFields(type) {
-            const isStatus   = type === 'status';
-            const isPriority = type === 'priority';
-            const isLookup   = isStatus || isPriority;
-            document.getElementById('itemDescriptionGroup').style.display = isLookup ? 'none' : '';
-            document.getElementById('itemColourGroup').style.display      = isLookup ? '' : 'none';
+            const isStatus       = type === 'status';
+            const isPriority     = type === 'priority';
+            const isRotaLocation = type === 'rota-location';
+            const isColouredLookup = isStatus || isPriority || isRotaLocation;
+            document.getElementById('itemDescriptionGroup').style.display = isColouredLookup ? 'none' : '';
+            document.getElementById('itemColourGroup').style.display      = isColouredLookup ? '' : 'none';
             document.getElementById('itemClosedGroup').style.display      = isStatus ? '' : 'none';
-            document.getElementById('itemDefaultGroup').style.display     = isLookup ? '' : 'none';
+            document.getElementById('itemDefaultGroup').style.display     = isColouredLookup ? '' : 'none';
         }
 
         // Load teams
@@ -1314,7 +1389,8 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 'ticket-origin': 'Add Ticket Origin',
                 'team': 'Add Team',
                 'status': 'Add Status',
-                'priority': 'Add Priority'
+                'priority': 'Add Priority',
+                'rota-location': 'Add Rota Location'
             };
             document.getElementById('modalTitle').textContent = titles[type] || 'Add Item';
             document.getElementById('itemType').value = type;
@@ -1338,7 +1414,8 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 'ticket-origin': API_BASE + 'get_ticket_origins.php',
                 'team': API_BASE + 'get_teams.php',
                 'status': API_BASE + 'get_ticket_statuses.php',
-                'priority': API_BASE + 'get_ticket_priorities.php'
+                'priority': API_BASE + 'get_ticket_priorities.php',
+                'rota-location': API_BASE + 'get_rota_locations.php'
             };
             const titles = {
                 'department': 'Edit Department',
@@ -1346,7 +1423,8 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 'ticket-origin': 'Edit Ticket Origin',
                 'team': 'Edit Team',
                 'status': 'Edit Status',
-                'priority': 'Edit Priority'
+                'priority': 'Edit Priority',
+                'rota-location': 'Edit Rota Location'
             };
             const endpoint = endpoints[type];
 
@@ -1362,6 +1440,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                     else if (type === 'team') items = data.teams;
                     else if (type === 'status') items = data.statuses;
                     else if (type === 'priority') items = data.priorities;
+                    else if (type === 'rota-location') items = data.locations;
 
                     const item = items.find(i => i.id == id);
 
@@ -1397,7 +1476,8 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 'ticket-origin': API_BASE + 'delete_ticket_origin.php',
                 'team': API_BASE + 'delete_team.php',
                 'status': API_BASE + 'delete_ticket_status.php',
-                'priority': API_BASE + 'delete_ticket_priority.php'
+                'priority': API_BASE + 'delete_ticket_priority.php',
+                'rota-location': API_BASE + 'delete_rota_location.php'
             };
             const endpoint = endpoints[type];
 
@@ -1425,6 +1505,8 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                         loadTicketStatuses();
                     } else if (type === 'priority') {
                         loadTicketPriorities();
+                    } else if (type === 'rota-location') {
+                        loadRotaLocations();
                     }
                 } else {
                     alert('Error deleting item: ' + data.error);
@@ -1557,7 +1639,8 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                 'ticket-origin': API_BASE + 'save_ticket_origin.php',
                 'team': API_BASE + 'save_team.php',
                 'status': API_BASE + 'save_ticket_status.php',
-                'priority': API_BASE + 'save_ticket_priority.php'
+                'priority': API_BASE + 'save_ticket_priority.php',
+                'rota-location': API_BASE + 'save_rota_location.php'
             };
             const endpoint = endpoints[type];
 
@@ -1572,7 +1655,7 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                     display_order: parseInt(document.getElementById('itemOrder').value),
                     is_active: document.getElementById('itemActive').checked ? 1 : 0
                 };
-            } else if (type === 'priority') {
+            } else if (type === 'priority' || type === 'rota-location') {
                 formData = {
                     id: id || null,
                     name: document.getElementById('itemName').value,
@@ -1616,6 +1699,8 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
                         loadTicketStatuses();
                     } else if (type === 'priority') {
                         loadTicketPriorities();
+                    } else if (type === 'rota-location') {
+                        loadRotaLocations();
                     }
                 } else {
                     alert('Error saving: ' + data.error);

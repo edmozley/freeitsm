@@ -285,12 +285,22 @@ $schema = [
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    'rota_locations' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'name'              => 'VARCHAR(50) NOT NULL',
+        'colour'            => 'VARCHAR(20) NULL',
+        'is_default'        => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'display_order'     => 'INT NOT NULL DEFAULT 0',
+        'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'ticket_rota_entries' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'analyst_id'        => 'INT NOT NULL',
         'rota_date'         => 'DATE NOT NULL',
         'shift_id'          => 'INT NOT NULL',
-        'location'          => "VARCHAR(20) NOT NULL DEFAULT 'office'",
+        'location_id'       => 'INT NULL',
         'is_on_call'        => 'TINYINT(1) NOT NULL DEFAULT 0',
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
@@ -1767,6 +1777,81 @@ try {
         if ($orphanRequester > 0) $stillOrphan[] = "requester ($orphanRequester rows)";
         if (count($stillOrphan) > 0) {
             $results[] = ['table' => 'tickets', 'status' => 'pending', 'details' => ['Cannot drop legacy columns yet — orphans remain: '.implode(', ', $stillOrphan)]];
+        }
+    }
+
+    // ----------------------------------------------------------------------
+    // Rota locations: lookup table, backfill, drop legacy column
+    // ----------------------------------------------------------------------
+
+    // Seed default rota locations if table is empty
+    if ($tableExists('rota_locations')) {
+        $cnt = (int) $conn->query("SELECT COUNT(*) FROM rota_locations")->fetchColumn();
+        if ($cnt === 0) {
+            $conn->exec("INSERT INTO rota_locations (name, colour, is_default, display_order) VALUES
+                ('Office', '#1a73e8', 1, 10),
+                ('WFH',    '#1e8e3e', 0, 20)");
+            $results[] = ['table' => 'rota_locations', 'status' => 'seeded', 'details' => ['Inserted 2 default rota locations']];
+        }
+    }
+
+    // Backfill ticket_rota_entries.location_id from legacy location string
+    if ($tableExists('ticket_rota_entries') && $colExists('ticket_rota_entries', 'location') && $colExists('ticket_rota_entries', 'location_id')) {
+        // Map legacy slugs to canonical names. Anything else gets inserted as a new location row.
+        $conn->exec("INSERT IGNORE INTO rota_locations (name, display_order)
+                     SELECT DISTINCT
+                         CASE
+                             WHEN LOWER(e.location) = 'office' THEN 'Office'
+                             WHEN LOWER(e.location) = 'wfh'    THEN 'WFH'
+                             ELSE e.location
+                         END AS name,
+                         999
+                     FROM ticket_rota_entries e
+                     LEFT JOIN rota_locations l ON LOWER(l.name) = LOWER(
+                         CASE
+                             WHEN LOWER(e.location) = 'office' THEN 'Office'
+                             WHEN LOWER(e.location) = 'wfh'    THEN 'WFH'
+                             ELSE e.location
+                         END)
+                     WHERE e.location IS NOT NULL AND e.location <> '' AND l.id IS NULL");
+
+        $upd = $conn->exec("UPDATE ticket_rota_entries e
+                            JOIN rota_locations l ON LOWER(l.name) = LOWER(
+                                CASE
+                                    WHEN LOWER(e.location) = 'office' THEN 'Office'
+                                    WHEN LOWER(e.location) = 'wfh'    THEN 'WFH'
+                                    ELSE e.location
+                                END)
+                            SET e.location_id = l.id
+                            WHERE e.location_id IS NULL AND e.location IS NOT NULL");
+        if ($upd > 0) {
+            $results[] = ['table' => 'ticket_rota_entries', 'status' => 'migrated', 'details' => ["Backfilled location_id for $upd rota entry/entries"]];
+        }
+
+        // Default any still-null rows to the default location
+        $conn->exec("UPDATE ticket_rota_entries SET location_id = (SELECT id FROM rota_locations WHERE is_default = 1 LIMIT 1) WHERE location_id IS NULL");
+    }
+
+    // Add FK + index for location_id if missing
+    if ($tableExists('ticket_rota_entries') && $colExists('ticket_rota_entries', 'location_id')) {
+        if (!$idxExists('ticket_rota_entries', 'ix_rota_entries_location_id')) {
+            try { $conn->exec("ALTER TABLE ticket_rota_entries ADD KEY ix_rota_entries_location_id (location_id)"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('ticket_rota_entries', 'fk_rota_location') && $tableExists('rota_locations')) {
+            try { $conn->exec("ALTER TABLE ticket_rota_entries ADD CONSTRAINT fk_rota_location FOREIGN KEY (location_id) REFERENCES rota_locations (id)"); } catch (Exception $e) {}
+        }
+    }
+
+    // Drop legacy location column once everything has a location_id
+    if ($tableExists('ticket_rota_entries') && $colExists('ticket_rota_entries', 'location')) {
+        $orphan = (int) $conn->query("SELECT COUNT(*) FROM ticket_rota_entries WHERE location_id IS NULL")->fetchColumn();
+        if ($orphan === 0) {
+            try {
+                $conn->exec("ALTER TABLE ticket_rota_entries DROP COLUMN `location`");
+                $results[] = ['table' => 'ticket_rota_entries', 'status' => 'updated', 'details' => ['Dropped legacy location column']];
+            } catch (Exception $e) {}
+        } else {
+            $results[] = ['table' => 'ticket_rota_entries', 'status' => 'pending', 'details' => ["Cannot drop legacy location column yet — $orphan row(s) still missing location_id"]];
         }
     }
 

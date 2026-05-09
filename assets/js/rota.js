@@ -9,6 +9,7 @@ let currentWeekStart = null; // YYYY-MM-DD (Monday)
 let rotaAnalysts = [];
 let rotaShifts = [];
 let rotaEntries = [];
+let rotaLocations = [];
 let includeWeekends = false;
 
 // ==================== Initialisation ====================
@@ -60,6 +61,7 @@ async function loadRota() {
             rotaAnalysts = data.analysts || [];
             rotaShifts = data.shifts || [];
             rotaEntries = data.entries || [];
+            rotaLocations = data.locations || [];
             includeWeekends = data.include_weekends == 1;
 
             updateTitle(data.week_start, data.week_end);
@@ -148,12 +150,16 @@ function renderRotaGrid(weekStart) {
                 const todayClass = day.isToday ? ' today' : '';
 
                 if (entry) {
+                    const locStyle = entry.location_colour
+                        ? `style="background:${entry.location_colour}; color:#fff;"`
+                        : '';
+                    const locLabel = escapeHtml(entry.location_name || '');
                     html += `<div class="rota-cell${todayClass}" onclick="openRotaEntryModal(${analyst.id}, '${day.date}', ${entry.id})">
                         <div class="rota-entry">
                             <div class="shift-name">${escapeHtml(entry.shift_name)}</div>
                             <div class="shift-times">${fmtTime(entry.start_time)} – ${fmtTime(entry.end_time)}</div>
                             <div class="badges">
-                                <span class="rota-badge ${entry.location}">${entry.location === 'wfh' ? 'WFH' : 'Office'}</span>
+                                ${locLabel ? `<span class="rota-badge" ${locStyle}>${locLabel}</span>` : ''}
                                 ${entry.is_on_call == 1 ? '<span class="rota-badge on-call">On Call</span>' : ''}
                             </div>
                         </div>
@@ -205,8 +211,19 @@ async function openRotaEntryModal(analystId, date, entryId) {
     shiftSelect.innerHTML = '<option value="">Select shift...</option>' +
         rotaShifts.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${fmtTime(s.start_time)} – ${fmtTime(s.end_time)})</option>`).join('');
 
-    // Reset defaults
-    document.querySelector('input[name="entryLocation"][value="office"]').checked = true;
+    // Render dynamic location radios driven by rota_locations lookup
+    const locContainer = document.getElementById('entryLocationOptions');
+    if (locContainer) {
+        const defaultLoc = rotaLocations.find(l => l.is_default) || rotaLocations[0];
+        const defaultId = defaultLoc ? defaultLoc.id : '';
+        locContainer.innerHTML = rotaLocations.map(l => `
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                <input type="radio" name="entryLocation" value="${l.id}" ${l.id == defaultId ? 'checked' : ''}>
+                ${escapeHtml(l.name)}
+            </label>
+        `).join('');
+    }
+
     document.getElementById('entryOnCall').checked = false;
     document.getElementById('entryDeleteBtn').style.display = 'none';
     document.getElementById('rotaEntryModalTitle').textContent = 'Add Rota Entry';
@@ -217,8 +234,10 @@ async function openRotaEntryModal(analystId, date, entryId) {
         if (entry) {
             document.getElementById('entryId').value = entry.id;
             shiftSelect.value = entry.shift_id;
-            const locRadio = document.querySelector(`input[name="entryLocation"][value="${entry.location}"]`);
-            if (locRadio) locRadio.checked = true;
+            if (entry.location_id) {
+                const locRadio = document.querySelector(`input[name="entryLocation"][value="${entry.location_id}"]`);
+                if (locRadio) locRadio.checked = true;
+            }
             document.getElementById('entryOnCall').checked = entry.is_on_call == 1;
             document.getElementById('entryDeleteBtn').style.display = '';
             document.getElementById('rotaEntryModalTitle').textContent = 'Edit Rota Entry';
@@ -236,12 +255,13 @@ function closeRotaEntryModal() {
 document.getElementById('rotaEntryForm').addEventListener('submit', async function(e) {
     e.preventDefault();
 
+    const selectedLoc = document.querySelector('input[name="entryLocation"]:checked');
     const entryData = {
         id: document.getElementById('entryId').value || null,
         analyst_id: document.getElementById('entryAnalystId').value,
         rota_date: document.getElementById('entryDate').value,
         shift_id: document.getElementById('entryShift').value,
-        location: document.querySelector('input[name="entryLocation"]:checked').value,
+        location_id: selectedLoc ? parseInt(selectedLoc.value) : null,
         is_on_call: document.getElementById('entryOnCall').checked ? 1 : 0
     };
 

@@ -362,19 +362,37 @@ CREATE TABLE IF NOT EXISTS `ticket_rota_shifts` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `rota_locations` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(50) NOT NULL,
+    `colour`            VARCHAR(20) NULL,
+    `is_default`        TINYINT(1) NOT NULL DEFAULT 0,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_rota_locations_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `rota_locations` (`name`, `colour`, `is_default`, `display_order`) VALUES
+    ('Office', '#1a73e8', 1, 10),
+    ('WFH',    '#1e8e3e', 0, 20);
+
 CREATE TABLE IF NOT EXISTS `ticket_rota_entries` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `analyst_id`        INT NOT NULL,
     `rota_date`         DATE NOT NULL,
     `shift_id`          INT NOT NULL,
-    `location`          VARCHAR(20) NOT NULL DEFAULT 'office',
+    `location_id`       INT NULL,
     `is_on_call`        TINYINT(1) NOT NULL DEFAULT 0,
     `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_analyst_date` (`analyst_id`, `rota_date`),
+    KEY `ix_rota_entries_location_id` (`location_id`),
     CONSTRAINT `fk_rota_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`),
-    CONSTRAINT `fk_rota_shift` FOREIGN KEY (`shift_id`) REFERENCES `ticket_rota_shifts` (`id`)
+    CONSTRAINT `fk_rota_shift` FOREIGN KEY (`shift_id`) REFERENCES `ticket_rota_shifts` (`id`),
+    CONSTRAINT `fk_rota_location` FOREIGN KEY (`location_id`) REFERENCES `rota_locations` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
