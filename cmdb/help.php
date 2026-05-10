@@ -440,7 +440,7 @@ $path_prefix = '../';
                     </div>
                     <div class="concept-row">
                         <div class="concept-name">Object</div>
-                        <div class="concept-desc">An <em>instance</em> of a class. <em>BWBSQL05</em> is an object whose class is <em>Server</em>. You create objects from the browse page.</div>
+                        <div class="concept-desc">An <em>instance</em> of a class. <em>SQLSVR01</em> is an object whose class is <em>Server</em>. You create objects from the browse page.</div>
                     </div>
                     <div class="concept-row">
                         <div class="concept-name">Property</div>
@@ -577,7 +577,7 @@ $path_prefix = '../';
                     <p>Use the parent/child link when removing the parent makes the child meaningless. Classic example: a SQL chain.</p>
 
                     <div class="hierarchy-diagram">
-                        <span class="node">Server (BWBSQL05)</span><br>
+                        <span class="node">Server (SQLSVR01)</span><br>
                         <span class="arrow">&#9492;&#9472;&#9472;</span> <span class="node">SQL Instance (MSSQLSERVER)</span><br>
                         <span class="arrow">&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span> <span class="node">Database (FREEITSM)</span><br>
                         <span class="arrow">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&#9492;&#9472;&#9472;</span> <span class="node">Stored Procedure (sp_archive)</span><br>
@@ -654,7 +654,7 @@ $path_prefix = '../';
                     </div>
 
                     <div class="cmdb-help-tip">
-                        <strong>Don't double-record.</strong> If a database has <em>Host Server</em> as a property pointing at BWBSQL05, you don't also need a <em>"depends on BWBSQL05"</em> relationship &mdash; the property already implies the dependency. Save relationships for links that aren't already captured by properties or parent/child.
+                        <strong>Don't double-record.</strong> If a database has <em>Host Server</em> as a property pointing at SQLSVR01, you don't also need a <em>"depends on SQLSVR01"</em> relationship &mdash; the property already implies the dependency. Save relationships for links that aren't already captured by properties or parent/child.
                     </div>
                 </div>
 
