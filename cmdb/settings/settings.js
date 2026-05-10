@@ -481,24 +481,37 @@ function setAiStage(stage) {
         questions:           'aiStageQuestions',
         loading_suggestions: 'aiStageLoadingSuggestions',
         suggestions:         'aiStageSuggestions',
+        result:              'aiStageResult',
         error:               'aiStageError'
     };
     const el = document.getElementById(map[stage]);
     if (el) el.classList.add('active');
 
-    // Update primary button label/visibility
+    // Update primary/secondary button label/visibility
     const btn = document.getElementById('aiSuggestPrimaryBtn');
+    const cancelBtn = document.getElementById('aiSuggestSecondaryBtn');
     const actions = document.getElementById('aiSuggestActions');
     if (stage === 'questions') {
         btn.textContent = 'Generate suggestions';
         btn.disabled = false;
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.style.display = '';
         actions.style.display = '';
     } else if (stage === 'suggestions') {
         btn.textContent = 'Add Selected';
         btn.disabled = false;
+        cancelBtn.textContent = 'Cancel';
+        cancelBtn.style.display = '';
         actions.style.display = '';
     } else if (stage === 'loading_questions' || stage === 'loading_suggestions') {
         btn.disabled = true;
+        cancelBtn.style.display = '';
+        actions.style.display = '';
+    } else if (stage === 'result') {
+        // Result stage: only an OK button. Modal stays put until clicked.
+        btn.textContent = 'OK';
+        btn.disabled = false;
+        cancelBtn.style.display = 'none';
         actions.style.display = '';
     } else {
         actions.style.display = 'none';
@@ -573,6 +586,10 @@ async function aiPrimaryAction() {
         }
     } else if (aiSuggestStage === 'suggestions') {
         await applyAiSuggestions();
+    } else if (aiSuggestStage === 'result') {
+        // Result acknowledged — close modal and refresh
+        closeAiSuggestModal();
+        loadPropsForClass();
     }
 }
 
@@ -611,16 +628,16 @@ async function applyAiSuggestions() {
     document.getElementById('aiSuggestPrimaryBtn').disabled = true;
     document.getElementById('aiSuggestPrimaryBtn').textContent = 'Adding…';
 
-    let added = 0, failed = 0;
-    const failures = [];
+    const added = [];
+    const skippedObjectRefs = []; // {label, hint}
+    const errors = [];            // {label, error}
 
     // object_ref suggestions need the analyst to pick a target class — skip those
-    // for the bulk-add and tell them to add manually. Keeps this flow simple.
+    // for the bulk-add and surface them so the analyst knows to add manually.
     for (const idx of checked) {
         const s = aiSuggestSuggestions[idx];
         if (s.property_type === 'object_ref') {
-            failed++;
-            failures.push(`${s.label} (object reference — add manually so you can pick the target class)`);
+            skippedObjectRefs.push({ label: s.label, hint: s.target_class_hint || '' });
             continue;
         }
         try {
@@ -635,23 +652,61 @@ async function applyAiSuggestions() {
                 options: s.property_type === 'dropdown' ? (s.options || []) : []
             };
             const data = await postJson(API + 'save_class_property.php', payload);
-            if (data.success) added++;
-            else { failed++; failures.push(`${s.label} (${data.error || 'failed'})`); }
+            if (data.success) added.push(s.label);
+            else errors.push({ label: s.label, error: data.error || 'failed' });
         } catch (err) {
-            failed++;
-            failures.push(`${s.label} (${err.message})`);
+            errors.push({ label: s.label, error: err.message });
         }
     }
 
-    if (added > 0) showInlineToast(`Added ${added} ${added === 1 ? 'property' : 'properties'}`);
-    if (failed > 0) {
-        const detail = failures.slice(0, 3).join('\n');
-        const more = failures.length > 3 ? `\n…and ${failures.length - 3} more` : '';
-        showInlineToast(`${failed} not added:\n${detail}${more}`, true);
-    }
+    renderAiResult(added, skippedObjectRefs, errors);
+    setAiStage('result');
+}
 
-    closeAiSuggestModal();
-    loadPropsForClass();
+function renderAiResult(added, skippedObjectRefs, errors) {
+    const summary = document.getElementById('aiResultSummary');
+    const details = document.getElementById('aiResultDetails');
+
+    const hasIssues = skippedObjectRefs.length > 0 || errors.length > 0;
+    const tone = hasIssues
+        ? { bg: '#fef3c7', border: '#f59e0b', color: '#92400e', icon: '⚠' }
+        : { bg: '#dcfce7', border: '#22c55e', color: '#166534', icon: '✓' };
+
+    summary.style.background = tone.bg;
+    summary.style.border = '1px solid ' + tone.border;
+    summary.style.color = tone.color;
+    summary.innerHTML = `<strong>${tone.icon} Added ${added.length} ${added.length === 1 ? 'property' : 'properties'}.</strong>` +
+        (hasIssues ? ` ${skippedObjectRefs.length + errors.length} need${(skippedObjectRefs.length + errors.length) === 1 ? 's' : ''} your attention — see below.` : '');
+
+    let html = '';
+    if (added.length > 0) {
+        html += `<div style="margin-bottom: 16px;">
+            <div style="font-weight: 600; color: #166534; margin-bottom: 6px; font-size: 13px;">Added</div>
+            <ul style="margin: 0; padding-left: 20px; color: #1f2937; font-size: 13px;">
+                ${added.map(l => `<li>${escapeHtml(l)}</li>`).join('')}
+            </ul>
+        </div>`;
+    }
+    if (skippedObjectRefs.length > 0) {
+        html += `<div style="margin-bottom: 16px;">
+            <div style="font-weight: 600; color: #92400e; margin-bottom: 6px; font-size: 13px;">Skipped — object references (need a target class picked manually)</div>
+            <ul style="margin: 0; padding-left: 20px; color: #1f2937; font-size: 13px;">
+                ${skippedObjectRefs.map(s => `<li><strong>${escapeHtml(s.label)}</strong>${s.hint ? ` — should reference <em>${escapeHtml(s.hint)}</em>` : ''}</li>`).join('')}
+            </ul>
+            <div style="margin-top: 8px; color: #6b7280; font-size: 12px;">
+                Add these via <strong>Add Property</strong> after the matching target class exists, then pick "Object Reference" as the type.
+            </div>
+        </div>`;
+    }
+    if (errors.length > 0) {
+        html += `<div style="margin-bottom: 8px;">
+            <div style="font-weight: 600; color: #b91c1c; margin-bottom: 6px; font-size: 13px;">Failed</div>
+            <ul style="margin: 0; padding-left: 20px; color: #1f2937; font-size: 13px;">
+                ${errors.map(e => `<li><strong>${escapeHtml(e.label)}</strong> — ${escapeHtml(e.error)}</li>`).join('')}
+            </ul>
+        </div>`;
+    }
+    details.innerHTML = html;
 }
 
 // ---------- Init ----------

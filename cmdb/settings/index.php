@@ -564,6 +564,12 @@ $path_prefix = '../../';
                     <div id="aiSuggestionsList"></div>
                 </div>
 
+                <!-- Result stage (shown after bulk-add finishes — stays put until OK) -->
+                <div class="ai-stage" id="aiStageResult">
+                    <div id="aiResultSummary" style="margin-bottom: 16px; padding: 14px; border-radius: 6px;"></div>
+                    <div id="aiResultDetails"></div>
+                </div>
+
                 <!-- Error stage -->
                 <div class="ai-stage" id="aiStageError">
                     <div style="padding: 30px; text-align: center;">
@@ -573,12 +579,12 @@ $path_prefix = '../../';
                 </div>
             </div>
             <div class="modal-actions" id="aiSuggestActions">
-                <button type="button" class="btn btn-secondary" onclick="closeAiSuggestModal()">Cancel</button>
+                <button type="button" class="btn btn-secondary" id="aiSuggestSecondaryBtn" onclick="closeAiSuggestModal()">Cancel</button>
                 <button type="button" class="btn btn-primary" id="aiSuggestPrimaryBtn" onclick="aiPrimaryAction()">Continue</button>
             </div>
         </div>
     </div>
 
-    <script src="settings.js?v=2"></script>
+    <script src="settings.js?v=3"></script>
 </body>
 </html>
