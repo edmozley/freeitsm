@@ -13,6 +13,7 @@ const OBJECT_ID = window.OBJECT_ID;
 
 let obj = null;
 let relationshipTypes = [];
+let allClasses = []; // cached for the property-edit target-class dropdown
 let acTimer = null;
 let acHighlightedIdx = -1;
 
@@ -44,10 +45,19 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('objPage').innerHTML = '<div style="padding:40px;text-align:center;color:#b91c1c;">Missing object id</div>';
         return;
     }
-    Promise.all([loadObject(), loadRelationshipTypes()]).then(() => {
+    Promise.all([loadObject(), loadRelationshipTypes(), loadAllClasses()]).then(() => {
         if (obj) render();
     });
+    initPropDefModalDrag();
 });
+
+async function loadAllClasses() {
+    try {
+        const res = await fetch(API + 'get_classes.php');
+        const data = await res.json();
+        if (data.success) allClasses = (data.classes || []).filter(c => c.is_active);
+    } catch (e) { /* ignore — target-class picker will just be empty */ }
+}
 
 async function loadObject() {
     try {
@@ -161,6 +171,9 @@ function renderPropertiesTable() {
                         <td class="prop-label">
                             ${escapeHtml(p.label)}${p.is_required ? '<span class="req">*</span>' : ''}
                             <span class="prop-type-tag">${escapeHtml(p.property_type)}</span>
+                            <button class="prop-cog" title="Edit this property's definition (label, type, dropdown options, etc)" onclick="openPropDefModal(${p.property_id})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                            </button>
                         </td>
                         <td class="prop-value" id="propCell_${p.property_id}">
                             ${renderPropertyDisplay(p)}
@@ -534,6 +547,131 @@ async function deleteObject() {
         showInlineToast('Deleted' + extra);
         // Navigate back to browse
         setTimeout(() => { window.location.href = './'; }, 600);
+    } catch (err) {
+        showInlineToast('Error: ' + err.message, true);
+    }
+}
+
+// ---------- Property-definition edit (floating draggable modal) ----------
+
+let propDefDrag = { active: false, offsetX: 0, offsetY: 0 };
+
+function initPropDefModalDrag() {
+    const modal = document.getElementById('propDefModal');
+    const header = document.getElementById('propDefModalHeader');
+    if (!modal || !header) return;
+
+    header.addEventListener('mousedown', (e) => {
+        // Ignore drags that start on the close button
+        if (e.target.classList.contains('float-modal-close')) return;
+        propDefDrag.active = true;
+
+        // Switch from transform-centred to absolute positioning before the drag starts
+        const rect = modal.getBoundingClientRect();
+        modal.style.transform = 'none';
+        modal.style.left = rect.left + 'px';
+        modal.style.top  = rect.top  + 'px';
+        propDefDrag.offsetX = e.clientX - rect.left;
+        propDefDrag.offsetY = e.clientY - rect.top;
+
+        document.onmousemove = (ev) => {
+            if (!propDefDrag.active) return;
+            let nx = ev.clientX - propDefDrag.offsetX;
+            let ny = ev.clientY - propDefDrag.offsetY;
+            nx = Math.max(0, Math.min(nx, window.innerWidth  - modal.offsetWidth));
+            ny = Math.max(0, Math.min(ny, window.innerHeight - modal.offsetHeight));
+            modal.style.left = nx + 'px';
+            modal.style.top  = ny + 'px';
+        };
+        document.onmouseup = () => {
+            propDefDrag.active = false;
+            document.onmousemove = null;
+            document.onmouseup = null;
+        };
+    });
+}
+
+function openPropDefModal(propertyId) {
+    const p = obj.properties.find(x => x.property_id === propertyId);
+    if (!p) return;
+
+    document.getElementById('propDefModalTitle').textContent = `Edit property — ${p.label}`;
+    document.getElementById('pdId').value = p.property_id;
+    document.getElementById('pdLabel').value = p.label;
+    document.getElementById('pdKey').value = p.property_key;
+    document.getElementById('pdType').value = p.property_type;
+    document.getElementById('pdDisplayOrder').value = p.display_order;
+    document.getElementById('pdIsRequired').checked = p.is_required;
+
+    // Populate target-class dropdown from cached allClasses
+    const tcSel = document.getElementById('pdTargetClass');
+    tcSel.innerHTML = '<option value="">— Select —</option>' + allClasses.map(c =>
+        `<option value="${c.id}" ${p.target_class_id === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
+    ).join('');
+
+    // Populate dropdown options textarea
+    document.getElementById('pdOptions').value = (p.options || []).join('\n');
+
+    onPropDefTypeChange();
+
+    // Reset position to centred each time it's opened (otherwise it'd drift across reopens)
+    const modal = document.getElementById('propDefModal');
+    modal.style.left = '50%';
+    modal.style.top = '100px';
+    modal.style.transform = 'translateX(-50%)';
+    modal.classList.add('active');
+
+    setTimeout(() => document.getElementById('pdLabel').focus(), 0);
+}
+
+function closePropDefModal() {
+    document.getElementById('propDefModal').classList.remove('active');
+}
+
+function onPropDefTypeChange() {
+    const t = document.getElementById('pdType').value;
+    document.getElementById('pdTargetClassGroup').style.display = t === 'object_ref' ? 'block' : 'none';
+    document.getElementById('pdOptionsGroup').style.display = t === 'dropdown' ? 'block' : 'none';
+}
+
+async function savePropDef() {
+    const id = document.getElementById('pdId').value;
+    const type = document.getElementById('pdType').value;
+    const optionsText = document.getElementById('pdOptions').value;
+    const options = type === 'dropdown'
+        ? optionsText.split('\n').map(s => s.trim()).filter(s => s !== '')
+        : [];
+    const targetClassId = document.getElementById('pdTargetClass').value;
+
+    const payload = {
+        id: id || null,
+        class_id: obj.class_id,
+        label: document.getElementById('pdLabel').value,
+        property_key: document.getElementById('pdKey').value,
+        property_type: type,
+        target_class_id: type === 'object_ref' ? (targetClassId || null) : null,
+        is_required: document.getElementById('pdIsRequired').checked,
+        display_order: parseInt(document.getElementById('pdDisplayOrder').value, 10) || 0,
+        options
+    };
+
+    if (type === 'object_ref' && !payload.target_class_id) {
+        showInlineToast('Pick a target class for the reference', true);
+        return;
+    }
+    if (type === 'dropdown' && options.length === 0) {
+        showInlineToast('Add at least one dropdown option', true);
+        return;
+    }
+
+    try {
+        const data = await postJson(API + 'save_class_property.php', payload);
+        if (!data.success) throw new Error(data.error || 'Save failed');
+        closePropDefModal();
+        showInlineToast('Property updated');
+        // Reload to pick up new options / type changes
+        await loadObject();
+        render();
     } catch (err) {
         showInlineToast('Error: ' + err.message, true);
     }

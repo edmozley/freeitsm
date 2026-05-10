@@ -265,6 +265,70 @@ $current_page = 'browse';
 
         /* Inline parent picker */
         .parent-edit-wrap { display: inline-block; min-width: 200px; }
+
+        /* Edit-property-definition cog button next to each property type tag */
+        .prop-cog {
+            background: none;
+            border: none;
+            color: #d1d5db;
+            cursor: pointer;
+            padding: 2px 4px;
+            margin-left: 4px;
+            border-radius: 3px;
+            line-height: 1;
+            vertical-align: middle;
+        }
+        .prop-cog:hover { color: #be185d; background: #fdf2f8; }
+        .prop-cog svg { width: 13px; height: 13px; vertical-align: middle; }
+
+        /* Floating draggable property-edit modal — no backdrop so the object stays visible */
+        .float-modal {
+            position: fixed;
+            top: 100px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 540px;
+            max-width: 95vw;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.25);
+            z-index: 3000;
+            display: none;
+            flex-direction: column;
+        }
+        .float-modal.active { display: flex; }
+        .float-modal-header {
+            padding: 12px 16px;
+            background: linear-gradient(135deg, #be185d, #9d174d);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            user-select: none;
+        }
+        .float-modal-header span { font-weight: 600; font-size: 14px; }
+        .float-modal-close {
+            background: none; border: none; color: white;
+            font-size: 22px; cursor: pointer; line-height: 1;
+            padding: 0; opacity: 0.85;
+        }
+        .float-modal-close:hover { opacity: 1; }
+        .float-modal-body { padding: 18px 20px; overflow-y: auto; max-height: calc(100vh - 220px); }
+        .float-modal-actions {
+            padding: 12px 20px;
+            border-top: 1px solid #e5e7eb;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            background: #fafafa;
+            border-radius: 0 0 8px 8px;
+        }
+        .float-modal .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .float-modal .form-check { display: flex; align-items: center; gap: 8px; font-size: 14px; }
+        .float-modal .form-check input { width: auto; }
+        .key-hint { font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; color: #6b7280; }
     </style>
 </head>
 <body>
@@ -324,9 +388,70 @@ $current_page = 'browse';
         </div>
     </div>
 
+    <!-- Floating draggable Edit-Property-Definition modal — drag the pink header to move it -->
+    <div class="float-modal" id="propDefModal">
+        <div class="float-modal-header" id="propDefModalHeader">
+            <span id="propDefModalTitle">Edit property</span>
+            <button type="button" class="float-modal-close" onclick="closePropDefModal()">&times;</button>
+        </div>
+        <div class="float-modal-body">
+            <form id="propDefForm" onsubmit="event.preventDefault(); savePropDef();">
+                <input type="hidden" id="pdId">
+                <div class="form-group">
+                    <label for="pdLabel">Label *</label>
+                    <input type="text" id="pdLabel" required maxlength="150">
+                    <small>What an analyst sees on the object form. Edit freely.</small>
+                </div>
+                <div class="form-group">
+                    <label for="pdKey">Key</label>
+                    <input type="text" id="pdKey" maxlength="100">
+                    <small class="key-hint">Immutable identifier — change only if you have a strong reason.</small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="pdType">Type *</label>
+                        <select id="pdType" required onchange="onPropDefTypeChange()">
+                            <option value="text">Text</option>
+                            <option value="number">Number</option>
+                            <option value="date">Date</option>
+                            <option value="boolean">Yes/No</option>
+                            <option value="dropdown">Dropdown</option>
+                            <option value="object_ref">Object Reference</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="pdDisplayOrder">Display Order</label>
+                        <input type="number" id="pdDisplayOrder" value="0">
+                    </div>
+                </div>
+                <div class="form-group" id="pdTargetClassGroup" style="display: none;">
+                    <label for="pdTargetClass">Target Class *</label>
+                    <select id="pdTargetClass">
+                        <option value="">— Select —</option>
+                    </select>
+                    <small>The class of objects this property can point at.</small>
+                </div>
+                <div class="form-group" id="pdOptionsGroup" style="display: none;">
+                    <label for="pdOptions">Dropdown Options</label>
+                    <textarea id="pdOptions" rows="5" placeholder="One option per line" style="width: 100%; padding: 9px 12px; border: 1px solid #d1d5db; border-radius: 4px; font-size: 14px; font-family: inherit; resize: vertical;"></textarea>
+                    <small>One value per line. Existing object values that match the new list are preserved; values no longer in the list become invalid until cleared.</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-check">
+                        <input type="checkbox" id="pdIsRequired"> Required
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="float-modal-actions">
+            <button type="button" class="btn btn-secondary" onclick="closePropDefModal()">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="savePropDef()">Save</button>
+        </div>
+    </div>
+
     <script>
         window.OBJECT_ID = <?php echo isset($_GET['id']) ? (int)$_GET['id'] : 0; ?>;
     </script>
-    <script src="object.js?v=1"></script>
+    <script src="object.js?v=2"></script>
 </body>
 </html>
