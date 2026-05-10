@@ -2070,18 +2070,35 @@ CREATE TABLE IF NOT EXISTS `status_incident_services` (
 -- See docs/cmdb.md for the full design rationale.
 -- ----------------------------------------------------------
 
+-- Curated icon library. The icon_key references SVG path data held in PHP
+-- (cmdb/includes/icons.php once the picker UX lands); the DB only stores
+-- which icon a class has chosen, not the SVG itself. Keeping it as a lookup
+-- (rather than a free-text VARCHAR on cmdb_classes) means adding/renaming
+-- icons later doesn't require touching every class row.
+CREATE TABLE IF NOT EXISTS `cmdb_icons` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `icon_key`          VARCHAR(50) NOT NULL,
+    `label`             VARCHAR(100) NOT NULL,
+    `display_order`     INT NULL DEFAULT 0,
+    `is_active`         TINYINT(1) NULL DEFAULT 1,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_cmdb_icons_key` (`icon_key`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `cmdb_classes` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `class_key`         VARCHAR(100) NOT NULL,
     `name`              VARCHAR(150) NOT NULL,
     `description`       VARCHAR(500) NULL,
-    `icon`              VARCHAR(50) NULL,
+    `icon_id`           INT NULL,
     `display_order`     INT NULL DEFAULT 0,
     `is_active`         TINYINT(1) NULL DEFAULT 1,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_cmdb_classes_key` (`class_key`)
+    UNIQUE KEY `uq_cmdb_classes_key` (`class_key`),
+    KEY `ix_cmdb_classes_icon_id` (`icon_id`),
+    CONSTRAINT `fk_cmdb_classes_icon` FOREIGN KEY (`icon_id`) REFERENCES `cmdb_icons` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `cmdb_class_properties` (
@@ -2169,6 +2186,30 @@ CREATE TABLE IF NOT EXISTS `cmdb_object_relationships` (
     CONSTRAINT `fk_cmdb_or_to`   FOREIGN KEY (`to_object_id`)   REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_cmdb_or_type` FOREIGN KEY (`relationship_type_id`) REFERENCES `cmdb_relationship_types` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seed the curated icon library on first run. Adding more icons later means
+-- inserting a row here AND adding the SVG path to cmdb/includes/icons.php.
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`)
+SELECT * FROM (SELECT 'server'        AS icon_key, 'Server'         AS label,  10 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'server');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'database'      AS icon_key, 'Database'       AS label,  20 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'database');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'application'   AS icon_key, 'Application'    AS label,  30 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'application');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'service'       AS icon_key, 'Service'        AS label,  40 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'service');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'website'       AS icon_key, 'Website'        AS label,  50 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'website');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'api'           AS icon_key, 'API'            AS label,  60 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'api');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'vm'            AS icon_key, 'Virtual Machine' AS label, 70 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'vm');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'container'     AS icon_key, 'Container'      AS label,  80 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'container');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'cloud'         AS icon_key, 'Cloud Resource' AS label,  90 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'cloud');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'network'       AS icon_key, 'Network Device' AS label, 100 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'network');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'firewall'      AS icon_key, 'Firewall'       AS label, 110 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'firewall');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'router'        AS icon_key, 'Router'         AS label, 120 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'router');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'switch'        AS icon_key, 'Switch'         AS label, 130 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'switch');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'storage'       AS icon_key, 'Storage'        AS label, 140 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'storage');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'workstation'   AS icon_key, 'Workstation'    AS label, 150 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'workstation');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'printer'       AS icon_key, 'Printer'        AS label, 160 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'printer');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'person'        AS icon_key, 'Person'         AS label, 170 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'person');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'team'          AS icon_key, 'Team'           AS label, 180 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'team');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'document'      AS icon_key, 'Document'       AS label, 190 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'document');
+INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`) SELECT * FROM (SELECT 'box'           AS icon_key, 'Generic'        AS label, 200 AS display_order) AS t WHERE NOT EXISTS (SELECT 1 FROM `cmdb_icons` WHERE icon_key = 'box');
 
 -- Seed a small starter set of relationship verbs so analysts have something
 -- to work with on first run. Easily editable from CMDB → Settings.

@@ -29,7 +29,7 @@ try {
     $name = trim((string)($data['name'] ?? ''));
     $key = trim((string)($data['class_key'] ?? ''));
     $description = trim((string)($data['description'] ?? ''));
-    $icon = trim((string)($data['icon'] ?? ''));
+    $iconId = isset($data['icon_id']) && $data['icon_id'] !== '' ? (int)$data['icon_id'] : null;
     $displayOrder = isset($data['display_order']) ? (int)$data['display_order'] : 0;
     $isActive = !empty($data['is_active']) ? 1 : 0;
 
@@ -59,10 +59,10 @@ try {
         }
 
         $stmt = $conn->prepare(
-            "INSERT INTO cmdb_classes (class_key, name, description, icon, display_order, is_active, created_datetime, updated_datetime)
+            "INSERT INTO cmdb_classes (class_key, name, description, icon_id, display_order, is_active, created_datetime, updated_datetime)
              VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
         );
-        $stmt->execute([$key, $name, $description ?: null, $icon ?: null, $displayOrder, $isActive]);
+        $stmt->execute([$key, $name, $description ?: null, $iconId, $displayOrder, $isActive]);
         $newId = (int)$conn->lastInsertId();
         echo json_encode(['success' => true, 'id' => $newId, 'class_key' => $key]);
     } else {
@@ -75,10 +75,10 @@ try {
 
         $stmt = $conn->prepare(
             "UPDATE cmdb_classes
-                SET class_key = ?, name = ?, description = ?, icon = ?, display_order = ?, is_active = ?, updated_datetime = UTC_TIMESTAMP()
+                SET class_key = ?, name = ?, description = ?, icon_id = ?, display_order = ?, is_active = ?, updated_datetime = UTC_TIMESTAMP()
               WHERE id = ?"
         );
-        $stmt->execute([$key, $name, $description ?: null, $icon ?: null, $displayOrder, $isActive, $id]);
+        $stmt->execute([$key, $name, $description ?: null, $iconId, $displayOrder, $isActive, $id]);
         echo json_encode(['success' => true, 'id' => $id]);
     }
 } catch (Exception $e) {

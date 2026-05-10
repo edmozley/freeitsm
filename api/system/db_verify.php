@@ -1520,12 +1520,20 @@ $schema = [
     ],
 
     // CMDB ----------------------------------------------------------
+    'cmdb_icons' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'icon_key'          => 'VARCHAR(50) NOT NULL',
+        'label'             => 'VARCHAR(100) NOT NULL',
+        'display_order'     => 'INT NULL DEFAULT 0',
+        'is_active'         => 'TINYINT(1) NULL DEFAULT 1',
+    ],
+
     'cmdb_classes' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'class_key'         => 'VARCHAR(100) NOT NULL',
         'name'              => 'VARCHAR(150) NOT NULL',
         'description'       => 'VARCHAR(500) NULL',
-        'icon'              => 'VARCHAR(50) NULL',
+        'icon_id'           => 'INT NULL',
         'display_order'     => 'INT NULL DEFAULT 0',
         'is_active'         => 'TINYINT(1) NULL DEFAULT 1',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
@@ -2339,6 +2347,35 @@ try {
         }
     }
 
+    // Seed the curated CMDB icon library so the class form has a picker source
+    if ($tableExists('cmdb_icons')) {
+        $cnt = (int) $conn->query("SELECT COUNT(*) FROM cmdb_icons")->fetchColumn();
+        if ($cnt === 0) {
+            $conn->exec("INSERT INTO cmdb_icons (icon_key, label, display_order) VALUES
+                ('server',      'Server',           10),
+                ('database',    'Database',         20),
+                ('application', 'Application',      30),
+                ('service',     'Service',          40),
+                ('website',     'Website',          50),
+                ('api',         'API',              60),
+                ('vm',          'Virtual Machine',  70),
+                ('container',   'Container',        80),
+                ('cloud',       'Cloud Resource',   90),
+                ('network',     'Network Device',  100),
+                ('firewall',    'Firewall',        110),
+                ('router',      'Router',          120),
+                ('switch',      'Switch',          130),
+                ('storage',     'Storage',         140),
+                ('workstation', 'Workstation',     150),
+                ('printer',     'Printer',         160),
+                ('person',      'Person',          170),
+                ('team',        'Team',            180),
+                ('document',    'Document',        190),
+                ('box',         'Generic',         200)");
+            $results[] = ['table' => 'cmdb_icons', 'status' => 'seeded', 'details' => ['Inserted 20 default CMDB icons']];
+        }
+    }
+
     // Seed default CMDB relationship types so the module has something usable on first run
     if ($tableExists('cmdb_relationship_types')) {
         $cnt = (int) $conn->query("SELECT COUNT(*) FROM cmdb_relationship_types")->fetchColumn();
@@ -2363,6 +2400,7 @@ try {
         ['rfp_invited_suppliers', 'uq_rfp_invited_suppliers', '(`rfp_id`, `supplier_id`)'],
         ['rfp_scores', 'uq_rfp_scores', '(`rfp_id`, `supplier_id`, `analyst_id`, `consolidated_id`)'],
         ['user_preferences', 'uq_user_pref', '(`analyst_id`, `preference_key`)'],
+        ['cmdb_icons', 'uq_cmdb_icons_key', '(`icon_key`)'],
         ['cmdb_classes', 'uq_cmdb_classes_key', '(`class_key`)'],
         ['cmdb_class_properties', 'uq_cmdb_class_property_key', '(`class_id`, `property_key`)'],
         ['cmdb_object_properties', 'uq_cmdb_op_obj_prop', '(`object_id`, `property_id`)'],
