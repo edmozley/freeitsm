@@ -95,14 +95,24 @@ try {
         }
     }
 
+    // Required-property validation:
+    //   - On CREATE: every required property must be present and non-empty in the payload
+    //   - On UPDATE: only properties the caller is explicitly touching are validated.
+    //     If they include a required property and set it empty, reject. If they don't
+    //     mention a required property at all (the common inline-edit case), leave it
+    //     alone — its DB value is unchanged. Otherwise editing one field on an object
+    //     would unnecessarily fail because *some other* required field is missing.
     foreach ($defs as $pid => $d) {
-        $isReq = (int)$d['is_required'] === 1;
-        if ($isReq) {
-            $v = $providedValues[$pid] ?? null;
+        if ((int)$d['is_required'] !== 1) continue;
+        if (array_key_exists($pid, $providedValues)) {
+            $v = $providedValues[$pid];
             $isEmpty = ($v === null || $v === '' || (is_array($v) && empty($v)));
             if ($isEmpty) {
                 throw new Exception('Required property missing: ' . $d['label']);
             }
+        } elseif ($id === null) {
+            // Create with no value supplied for this required property
+            throw new Exception('Required property missing: ' . $d['label']);
         }
     }
 
