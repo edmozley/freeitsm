@@ -2192,6 +2192,23 @@ CREATE TABLE IF NOT EXISTS `cmdb_object_relationships` (
     CONSTRAINT `fk_cmdb_or_type` FOREIGN KEY (`relationship_type_id`) REFERENCES `cmdb_relationship_types` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Join table linking tickets to CMDB objects (M:N).
+-- Drives the "Affected CMDB Objects" section on the ticket reading pane and
+-- the "Activity" panel on the CMDB object detail page.
+CREATE TABLE IF NOT EXISTS `ticket_cmdb_objects` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `ticket_id`           INT NOT NULL,
+    `cmdb_object_id`      INT NOT NULL,
+    `created_datetime`    DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `created_by_analyst_id` INT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_ticket_cmdb_obj` (`ticket_id`, `cmdb_object_id`),
+    KEY `ix_tco_cmdb_object_id` (`cmdb_object_id`),
+    CONSTRAINT `fk_tco_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_tco_cmdb_object` FOREIGN KEY (`cmdb_object_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_tco_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Seed the curated icon library on first run. Adding more icons later means
 -- inserting a row here AND adding the SVG path to cmdb/includes/icons.php.
 INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`)

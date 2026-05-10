@@ -232,6 +232,89 @@ $current_page = 'browse';
         .impact-bucket .meta { color: #6b7280; font-size: 11px; }
         .impact-bucket .empty { color: #9ca3af; font-style: italic; font-size: 13px; }
 
+        /* Activity panel — tickets that reference this object */
+        .activity-bucket-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #6b7280;
+            font-weight: 600;
+            letter-spacing: 0.4px;
+            margin-bottom: 8px;
+        }
+        .activity-bucket-head .count-badge {
+            background: white;
+            color: #be185d;
+            padding: 1px 8px;
+            border-radius: 999px;
+            font-size: 11px;
+            border: 1px solid #fbcfe8;
+        }
+        .ticket-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            background: #fafafa;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            text-decoration: none;
+            color: inherit;
+            transition: background 0.12s;
+        }
+        .ticket-card:last-child { margin-bottom: 0; }
+        .ticket-card:hover { background: #fce7f3; border-color: #fbcfe8; }
+        .ticket-card.closed { opacity: 0.7; }
+        .ticket-card-body { flex: 1; min-width: 0; }
+        .ticket-card-line1 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+        .ticket-card-number {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 11px;
+            color: #9ca3af;
+            font-weight: 500;
+        }
+        .ticket-card-subject {
+            color: #111827;
+            font-weight: 500;
+            font-size: 14px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            min-width: 0;
+        }
+        .ticket-card-meta {
+            display: flex;
+            gap: 10px;
+            color: #6b7280;
+            font-size: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .ticket-status-pill {
+            display: inline-block;
+            padding: 1px 8px;
+            font-size: 11px;
+            border-radius: 999px;
+            border: 1px solid;
+            font-weight: 500;
+        }
+        .activity-empty {
+            padding: 20px 12px;
+            color: #9ca3af;
+            font-style: italic;
+            font-size: 13px;
+            text-align: center;
+        }
+
         /* Inline mini-graph — parent / this / children + related */
         .mini-graph {
             background: white;
@@ -642,6 +725,6 @@ $current_page = 'browse';
         window.OBJECT_ID = <?php echo isset($_GET['id']) ? (int)$_GET['id'] : 0; ?>;
     </script>
     <script src="options-editor.js?v=1"></script>
-    <script src="object.js?v=4"></script>
+    <script src="object.js?v=5"></script>
 </body>
 </html>

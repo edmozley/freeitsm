@@ -1599,6 +1599,14 @@ $schema = [
         'relationship_type_id'  => 'INT NOT NULL',
         'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
+
+    'ticket_cmdb_objects' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'ticket_id'             => 'INT NOT NULL',
+        'cmdb_object_id'        => 'INT NOT NULL',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'created_by_analyst_id' => 'INT NULL',
+    ],
 ];
 
 // Primary key definitions: table => pk_column (defaults to 'id')
@@ -2409,6 +2417,7 @@ try {
         ['cmdb_object_properties', 'uq_cmdb_op_obj_prop', '(`object_id`, `property_id`)'],
         ['cmdb_relationship_types', 'uq_cmdb_rel_type_verb', '(`verb`)'],
         ['cmdb_object_relationships', 'uq_cmdb_or_triple', '(`from_object_id`, `to_object_id`, `relationship_type_id`)'],
+        ['ticket_cmdb_objects', 'uq_ticket_cmdb_obj', '(`ticket_id`, `cmdb_object_id`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {

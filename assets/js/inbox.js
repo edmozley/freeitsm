@@ -1047,14 +1047,16 @@ function displayEmail(email) {
             <div id="threadContainer">
                 <div class="email-body-content">${email.body_content}</div>
             </div>
+            <div id="cmdbObjectsContainer"></div>
             <div id="notesContainer"></div>
         </div>
     `;
 
-    // Load full correspondence thread, notes and attachments after rendering
+    // Load full correspondence thread, notes, attachments and linked CMDB objects after rendering
     loadCorrespondenceThread(email.ticket_id);
     loadNotes(email.ticket_id);
     loadTicketAttachments(email.ticket_id);
+    loadCmdbObjects(email.ticket_id);
 }
 
 // Load and display all correspondence for a ticket
@@ -1498,6 +1500,159 @@ function updatePropertiesSummary() {
     }
     if (summaryOwner && currentEmail) {
         summaryOwner.textContent = getDisplayName('owner', currentEmail.owner_id) || 'Unassigned';
+    }
+}
+
+// ===== Linked CMDB objects on a ticket =====
+// Renders an "Affected CMDB" section in the reading pane below the email
+// thread. Click + Link to add (autocomplete searches every CMDB object);
+// X on a card removes the link.
+
+let cmdbObjectsForTicket = [];
+let cmdbAcTimer = null;
+let cmdbAcHighlightedIdx = -1;
+
+async function loadCmdbObjects(ticketId) {
+    const container = document.getElementById('cmdbObjectsContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    try {
+        const res = await fetch('../api/tickets/get_ticket_cmdb_objects.php?ticket_id=' + ticketId);
+        const data = await res.json();
+        if (!data.success) return;
+        cmdbObjectsForTicket = data.links || [];
+        renderCmdbObjects(ticketId);
+    } catch (e) { /* silent — section will just stay empty */ }
+}
+
+function renderCmdbObjects(ticketId) {
+    const container = document.getElementById('cmdbObjectsContainer');
+    if (!container) return;
+    const cards = cmdbObjectsForTicket.map(link => `
+        <a class="cmdb-link-card" href="../cmdb/object.php?id=${link.object_id}" title="Open in CMDB">
+            <div class="cmdb-link-card-body">
+                <div class="cmdb-link-card-name">${escapeHtml(link.name)}</div>
+                <div class="cmdb-link-card-meta">
+                    <span class="cmdb-class-badge">${escapeHtml(link.class_name)}</span>
+                    ${link.parent_name ? `<span class="cmdb-parent">in <strong>${escapeHtml(link.parent_name)}</strong> (${escapeHtml(link.parent_class_name || '')})</span>` : ''}
+                </div>
+            </div>
+            <button class="cmdb-link-x" title="Unlink" onclick="removeCmdbObject(event, ${link.link_id}, ${ticketId})">×</button>
+        </a>
+    `).join('');
+
+    container.innerHTML = `
+        <div class="cmdb-section">
+            <div class="cmdb-section-head">
+                <h3>Affected CMDB Objects</h3>
+                <button class="btn-link" onclick="openLinkCmdbPicker(${ticketId})">+ Link object</button>
+            </div>
+            ${cmdbObjectsForTicket.length === 0
+                ? '<div class="cmdb-empty">No CMDB objects linked yet.</div>'
+                : `<div class="cmdb-link-list">${cards}</div>`}
+            <div class="cmdb-picker" id="cmdbPicker_${ticketId}" style="display:none;">
+                <input type="text" id="cmdbPickerInput_${ticketId}" placeholder="Type to search any CMDB object…" autocomplete="off">
+                <div class="cmdb-picker-results" id="cmdbPickerResults_${ticketId}"></div>
+            </div>
+        </div>
+    `;
+}
+
+function openLinkCmdbPicker(ticketId) {
+    const picker = document.getElementById('cmdbPicker_' + ticketId);
+    const input  = document.getElementById('cmdbPickerInput_' + ticketId);
+    const results = document.getElementById('cmdbPickerResults_' + ticketId);
+    if (!picker || !input) return;
+    picker.style.display = 'block';
+    input.value = '';
+    results.classList.remove('active');
+    input.focus();
+
+    let current = [];
+    cmdbAcHighlightedIdx = -1;
+
+    const renderResults = () => {
+        if (current.length === 0) {
+            results.innerHTML = '<div class="cmdb-picker-empty">No matches.</div>';
+            results.classList.add('active');
+            return;
+        }
+        results.innerHTML = current.map((r, i) => `
+            <div class="cmdb-picker-result ${i === cmdbAcHighlightedIdx ? 'highlighted' : ''}" data-idx="${i}">
+                <span>${escapeHtml(r.name)}</span>
+                <span class="cmdb-picker-class">${escapeHtml(r.class_name)}</span>
+            </div>`).join('');
+        results.classList.add('active');
+        results.querySelectorAll('.cmdb-picker-result').forEach(el => {
+            el.addEventListener('mousedown', e => {
+                e.preventDefault();
+                pick(current[parseInt(el.dataset.idx, 10)]);
+            });
+        });
+    };
+
+    const pick = async (r) => {
+        try {
+            const res = await fetch('../api/tickets/save_ticket_cmdb_object.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticket_id: ticketId, cmdb_object_id: r.id })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'Link failed');
+            if (data.already_linked) {
+                showToast(r.name + ' is already linked', true);
+            } else {
+                showToast('Linked ' + r.name);
+            }
+            picker.style.display = 'none';
+            await loadCmdbObjects(ticketId);
+        } catch (err) {
+            showToast('Error: ' + err.message, true);
+        }
+    };
+
+    input.oninput = () => {
+        const q = input.value.trim();
+        if (cmdbAcTimer) clearTimeout(cmdbAcTimer);
+        if (q === '') { results.classList.remove('active'); return; }
+        cmdbAcTimer = setTimeout(async () => {
+            try {
+                const url = '../api/cmdb/search_objects.php?q=' + encodeURIComponent(q);
+                const res = await fetch(url);
+                const data = await res.json();
+                current = data.success ? (data.results || []) : [];
+                cmdbAcHighlightedIdx = -1;
+                renderResults();
+            } catch (e) { /* silent */ }
+        }, 200);
+    };
+
+    input.onkeydown = e => {
+        if (!results.classList.contains('active')) return;
+        if (e.key === 'ArrowDown') { e.preventDefault(); cmdbAcHighlightedIdx = Math.min(current.length - 1, cmdbAcHighlightedIdx + 1); renderResults(); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); cmdbAcHighlightedIdx = Math.max(0, cmdbAcHighlightedIdx - 1); renderResults(); }
+        else if (e.key === 'Enter' && cmdbAcHighlightedIdx >= 0) { e.preventDefault(); pick(current[cmdbAcHighlightedIdx]); }
+        else if (e.key === 'Escape') { picker.style.display = 'none'; }
+    };
+}
+
+async function removeCmdbObject(ev, linkId, ticketId) {
+    ev.preventDefault();
+    ev.stopPropagation();
+    if (!confirm('Unlink this CMDB object from the ticket?')) return;
+    try {
+        const res = await fetch('../api/tickets/delete_ticket_cmdb_object.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ link_id: linkId })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'Unlink failed');
+        showToast('Unlinked');
+        await loadCmdbObjects(ticketId);
+    } catch (err) {
+        showToast('Error: ' + err.message, true);
     }
 }
 

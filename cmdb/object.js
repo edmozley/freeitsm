@@ -13,6 +13,7 @@ const OBJECT_ID = window.OBJECT_ID;
 
 let obj = null;
 let impact = null; // {descendants, referenced_by_property, referenced_by_relationship}
+let activity = null; // {open, closed, total_closed} — tickets that reference this object
 let relationshipTypes = [];
 let allClasses = []; // cached for the property-edit target-class dropdown
 let acTimer = null;
@@ -47,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('objPage').innerHTML = '<div style="padding:40px;text-align:center;color:#b91c1c;">Missing object id</div>';
         return;
     }
-    Promise.all([loadObject(), loadImpact(), loadRelationshipTypes(), loadAllClasses()]).then(() => {
+    Promise.all([loadObject(), loadImpact(), loadActivity(), loadRelationshipTypes(), loadAllClasses()]).then(() => {
         if (obj) render();
     });
     initPropDefModalDrag();
@@ -59,6 +60,14 @@ async function loadImpact() {
         const data = await res.json();
         if (data.success) impact = data.impact;
     } catch (e) { /* impact panel will just show "computing…" */ }
+}
+
+async function loadActivity() {
+    try {
+        const res = await fetch(API + 'get_object_tickets.php?id=' + OBJECT_ID);
+        const data = await res.json();
+        if (data.success) activity = data;
+    } catch (e) { /* activity panel will just show "computing…" */ }
 }
 
 async function loadAllClasses() {
@@ -122,6 +131,8 @@ function render() {
         ${renderAiSummaryCard()}
 
         ${renderImpactPanel()}
+
+        ${renderActivityPanel()}
 
         <div class="obj-section">
             <h3>Map</h3>
@@ -245,6 +256,67 @@ function renderImpactPanel() {
             </div>
         </div>
     `;
+}
+
+function renderActivityPanel() {
+    if (!activity) return '';
+    const open = activity.open || [];
+    const closed = activity.closed || [];
+    const totalClosed = activity.total_closed || 0;
+
+    if (open.length === 0 && closed.length === 0) {
+        return `<div class="obj-section">
+            <h3>Activity</h3>
+            <div class="activity-empty">No tickets reference this object yet. Linking happens from the ticket reading pane → Affected CMDB Objects → + Link object.</div>
+        </div>`;
+    }
+
+    const renderTicket = (t, isClosed = false) => {
+        const status = t.status || 'Unknown';
+        const colour = t.status_colour || '#6b7280';
+        const styleAttr = `style="background:${colour}22; color:${colour}; border-color:${colour}55;"`;
+        const ageText = formatDate(isClosed ? t.closed_datetime : t.updated_datetime);
+        return `<a class="ticket-card ${isClosed ? 'closed' : ''}" href="../tickets/?ticket_id=${t.id}">
+            <div class="ticket-card-body">
+                <div class="ticket-card-line1">
+                    <span class="ticket-card-number">${escapeHtml(t.ticket_number || '')}</span>
+                    <span class="ticket-card-subject">${escapeHtml(t.subject || '(no subject)')}</span>
+                </div>
+                <div class="ticket-card-meta">
+                    <span class="ticket-status-pill" ${styleAttr}>${escapeHtml(status)}</span>
+                    ${t.priority ? `<span>${escapeHtml(t.priority)}</span>` : ''}
+                    ${t.assigned_to ? `<span>assigned to <strong>${escapeHtml(t.assigned_to)}</strong></span>` : '<span style="color:#d1d5db;">unassigned</span>'}
+                    ${t.department_name ? `<span>${escapeHtml(t.department_name)}</span>` : ''}
+                    <span style="color:#9ca3af;">${isClosed ? 'closed' : 'updated'} ${ageText}</span>
+                </div>
+            </div>
+        </a>`;
+    };
+
+    let html = '';
+    if (open.length > 0) {
+        html += `<div style="margin-bottom: ${closed.length > 0 ? '20px' : '0'};">
+            <div class="activity-bucket-head">
+                <span>Open tickets</span>
+                <span class="count-badge">${open.length}</span>
+            </div>
+            <div>${open.map(t => renderTicket(t, false)).join('')}</div>
+        </div>`;
+    }
+    if (closed.length > 0) {
+        html += `<div>
+            <div class="activity-bucket-head">
+                <span>Recent closed tickets${totalClosed > closed.length ? ` (showing ${closed.length} of ${totalClosed})` : ''}</span>
+                <span class="count-badge">${totalClosed}</span>
+            </div>
+            <div>${closed.map(t => renderTicket(t, true)).join('')}</div>
+        </div>`;
+    }
+
+    return `<div class="obj-section">
+        <h3>Activity</h3>
+        ${html}
+    </div>`;
 }
 
 function renderMiniGraph() {
@@ -561,7 +633,7 @@ async function savePropertyValue(prop, newRawValue) {
         });
         if (!data.success) throw new Error(data.error || 'Save failed');
         // Reload to pick up the rendered value (esp. object_ref hydration)
-        await Promise.all([loadObject(), loadImpact()]);
+        await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
     } catch (err) {
         showInlineToast('Error saving "' + prop.label + '": ' + err.message, true);
@@ -592,13 +664,13 @@ async function savePartial(patch) {
         };
         const data = await postJson(API + 'save_object.php', payload);
         if (!data.success) throw new Error(data.error || 'Save failed');
-        await Promise.all([loadObject(), loadImpact()]);
+        await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
         showInlineToast('Saved');
     } catch (err) {
         showInlineToast('Error: ' + err.message, true);
         // Reload from DB to discard the optimistic edit
-        await Promise.all([loadObject(), loadImpact()]);
+        await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
     }
 }
@@ -702,7 +774,7 @@ async function saveRelationship() {
         if (!data.success) throw new Error(data.error || 'Save failed');
         closeRelModal();
         showInlineToast('Relationship added');
-        await Promise.all([loadObject(), loadImpact()]);
+        await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
     } catch (err) {
         showInlineToast('Error: ' + err.message, true);
@@ -715,7 +787,7 @@ async function deleteRelationship(id) {
         const data = await postJson(API + 'delete_object_relationship.php', { id });
         if (!data.success) throw new Error(data.error || 'Delete failed');
         showInlineToast('Removed');
-        await Promise.all([loadObject(), loadImpact()]);
+        await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
     } catch (err) {
         showInlineToast('Error: ' + err.message, true);
@@ -863,7 +935,7 @@ async function savePropDef() {
         closePropDefModal();
         showInlineToast('Property updated');
         // Reload to pick up new options / type changes
-        await Promise.all([loadObject(), loadImpact()]);
+        await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
     } catch (err) {
         showInlineToast('Error: ' + err.message, true);

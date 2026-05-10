@@ -157,6 +157,44 @@ try {
         foreach ($propRefs as $r) $msg .= "- " . $r['name'] . " (" . $r['class_name'] . ") — references this via its '" . $r['property_label'] . "' property\n";
     }
 
+    // Tickets that reference this object — give the prose some operational
+    // context (e.g. "currently has 2 open tickets including a P1 backup
+    // failure"). Keep the volume down so the model doesn't fixate on them.
+    $openTktStmt = $conn->prepare(
+        "SELECT t.ticket_number, t.subject, ts.name AS status, tp.name AS priority, t.created_datetime
+           FROM ticket_cmdb_objects tco
+           JOIN tickets t ON t.id = tco.ticket_id
+      LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
+      LEFT JOIN ticket_priorities tp ON tp.id = t.priority_id
+          WHERE tco.cmdb_object_id = ? AND COALESCE(ts.is_closed, 0) = 0
+       ORDER BY t.updated_datetime DESC
+          LIMIT 5"
+    );
+    $openTktStmt->execute([$id]);
+    $openTickets = $openTktStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $closedTotalStmt = $conn->prepare(
+        "SELECT COUNT(*) FROM ticket_cmdb_objects tco
+           JOIN tickets t ON t.id = tco.ticket_id
+      LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
+          WHERE tco.cmdb_object_id = ? AND COALESCE(ts.is_closed, 0) = 1"
+    );
+    $closedTotalStmt->execute([$id]);
+    $closedTotal = (int)$closedTotalStmt->fetchColumn();
+
+    if (!empty($openTickets) || $closedTotal > 0) {
+        $msg .= "Tickets referencing this object:\n";
+        if (!empty($openTickets)) {
+            $msg .= "- " . count($openTickets) . " open ticket(s):\n";
+            foreach ($openTickets as $t) {
+                $msg .= "  - " . $t['ticket_number'] . " " . ($t['priority'] ? "[" . $t['priority'] . "] " : "") . $t['subject'] . " (" . $t['status'] . ")\n";
+            }
+        }
+        if ($closedTotal > 0) {
+            $msg .= "- " . $closedTotal . " closed ticket(s) historically\n";
+        }
+    }
+
     $systemPrompt = <<<PROMPT
 You are summarising one CMDB object for an IT analyst's quick reference. Read everything provided about the object and write a short prose synthesis — 2 to 3 sentences only.
 
