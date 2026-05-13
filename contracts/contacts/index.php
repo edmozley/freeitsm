@@ -16,22 +16,130 @@ $path_prefix = '../../';
     <title>Service Desk - Contacts</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        body { overflow: auto; height: auto; }
+        /* Sidebar layout - matches contracts dashboard */
+        .contracts-layout {
+            display: flex;
+            height: calc(100vh - 48px);
+            background: #f5f5f5;
+        }
 
-        .tab-content .action-btn {
+        .contracts-sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+        }
+
+        .contracts-main {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .sidebar-section { margin-bottom: 24px; }
+        .sidebar-section h3 {
+            font-size: 14px; font-weight: 600; color: #333;
+            margin: 0 0 12px 0;
+        }
+        .sidebar-section h4 {
+            font-size: 13px; font-weight: 600; color: #555;
+            margin: 14px 0 6px 0;
+        }
+        .sidebar-section h4:first-of-type { margin-top: 0; }
+
+        .sidebar-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #555;
+            cursor: default;
+            margin-bottom: 2px;
+        }
+        .sidebar-stat .stat-value {
+            font-weight: 700;
+            font-size: 14px;
+            color: #333;
+        }
+        .sidebar-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #333;
+            cursor: default;
+            margin-bottom: 4px;
+            background: #fafafa;
+        }
+        .sidebar-total .stat-value {
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .sidebar-add-btn {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            background: #f59e0b;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-align: center;
+            text-decoration: none;
+            box-sizing: border-box;
+        }
+        .sidebar-add-btn:hover { background: #d97706; }
+
+        /* Main content - matches contracts dashboard */
+        .section-card {
+            background: #fff; border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
+        }
+        .section-card .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 18px 24px; border-bottom: 1px solid #eee;
+        }
+        .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: #333; }
+
+        .section-card table { width: 100%; border-collapse: collapse; }
+        .section-card table th {
+            text-align: left; padding: 12px 24px; font-size: 12px; font-weight: 600;
+            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid #eee; background: #fafafa;
+        }
+        .section-card table td {
+            padding: 14px 24px; font-size: 14px; color: #333; border-bottom: 1px solid #f0f0f0;
+        }
+        .section-card table tr:last-child td { border-bottom: none; }
+        .section-card table tr:hover { background: #fafafa; }
+
+        .empty-state { text-align: center; padding: 40px; color: #999; }
+
+        .action-btn {
             background: none; border: 1px solid #ddd; color: #666; cursor: pointer;
             padding: 6px; margin-right: 4px; border-radius: 4px;
             display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
-        .tab-content .action-btn:hover { background: #f0f0f0; border-color: #f59e0b; color: #f59e0b; }
-        .tab-content .action-btn.delete { color: #d13438; }
-        .tab-content .action-btn.delete:hover { background: #fdf3f3; border-color: #d13438; color: #a00; }
-        .tab-content .action-btn svg { width: 16px; height: 16px; }
+        .action-btn:hover { background: #f0f0f0; border-color: #f59e0b; color: #f59e0b; }
+        .action-btn.delete { color: #d13438; }
+        .action-btn.delete:hover { background: #fdf3f3; border-color: #d13438; color: #a00; }
+        .action-btn svg { width: 16px; height: 16px; }
 
         .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
         .status-badge.active { background: #d4edda; color: #155724; }
         .status-badge.inactive { background: #f8d7da; color: #721c24; }
 
+        /* Modal */
         .modal-content { padding: 30px; max-width: 500px; }
         .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #333; padding: 0; border-bottom: none; }
         .modal .form-group { margin-bottom: 15px; }
@@ -49,28 +157,46 @@ $path_prefix = '../../';
 <body>
     <?php include '../includes/header.php'; ?>
 
-    <div class="container">
-        <div class="tab-content active">
-            <div class="section-header">
-                <h2>Contacts</h2>
-                <button class="add-btn" onclick="openModal()">Add</button>
+    <div class="contracts-layout">
+        <!-- Left Sidebar -->
+        <div class="contracts-sidebar">
+            <div class="sidebar-section">
+                <h3>Overview</h3>
+                <div class="sidebar-total">
+                    <span>All Contacts</span>
+                    <span class="stat-value" id="sideTotal">-</span>
+                </div>
+                <div id="overviewBreakdown"></div>
             </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Job Title</th>
-                        <th>Email</th>
-                        <th>Mobile</th>
-                        <th>Supplier</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="contactsList">
-                    <tr><td colspan="7" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
-                </tbody>
-            </table>
+
+            <div class="sidebar-section">
+                <a href="#" class="sidebar-add-btn" onclick="openModal(); return false;">+ Add Contact</a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="contracts-main">
+            <div class="section-card">
+                <div class="section-header">
+                    <h2>Contacts</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Job Title</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Supplier</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactsList">
+                        <tr><td colspan="7" class="empty-state">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -159,14 +285,52 @@ $path_prefix = '../../';
                 if (data.success) {
                     contacts = data.contacts;
                     renderContacts();
+                    renderOverview();
                 }
             } catch (error) { console.error('Error:', error); }
+        }
+
+        function renderOverview() {
+            document.getElementById('sideTotal').textContent = contacts.length;
+
+            // Group by supplier, then split Active / Inactive
+            const groups = {};
+            contacts.forEach(c => {
+                const supplierName = c.supplier_name || 'No supplier';
+                const statusName = c.is_active ? 'Active' : 'Inactive';
+                if (!groups[supplierName]) groups[supplierName] = {};
+                groups[supplierName][statusName] = (groups[supplierName][statusName] || 0) + 1;
+            });
+
+            const supplierOrder = Object.keys(groups).sort((a, b) => {
+                if (a === 'No supplier') return 1;
+                if (b === 'No supplier') return -1;
+                return a.localeCompare(b);
+            });
+
+            const container = document.getElementById('overviewBreakdown');
+            if (supplierOrder.length === 0) {
+                container.innerHTML = '<div style="font-size:13px;color:#999;padding:8px 12px;">No contacts yet</div>';
+                return;
+            }
+
+            container.innerHTML = supplierOrder.map(supplierName => {
+                const statuses = groups[supplierName];
+                const statusOrder = ['Active', 'Inactive'].filter(s => statuses[s]);
+                const rows = statusOrder.map(statusName =>
+                    `<div class="sidebar-stat">
+                        <span>${escapeHtml(statusName)}</span>
+                        <span class="stat-value">${statuses[statusName]}</span>
+                    </div>`
+                ).join('');
+                return `<h4>${escapeHtml(supplierName)}</h4>${rows}`;
+            }).join('');
         }
 
         function renderContacts() {
             const tbody = document.getElementById('contactsList');
             if (contacts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">No contacts yet. Click Add to create one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No contacts yet. Click "+ Add Contact" to create one.</td></tr>';
                 return;
             }
             tbody.innerHTML = contacts.map(c => `
