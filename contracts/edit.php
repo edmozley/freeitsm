@@ -14,7 +14,7 @@ $contract_id = $_GET['id'] ?? null;
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - <?php echo $contract_id ? 'Edit' : 'Add'; ?> Contract</title>
+    <title>Service Desk - <?php echo $contract_id ? 'Edit' : 'Add'; ?> contract</title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script src="../assets/js/toast.js"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
@@ -225,13 +225,13 @@ $contract_id = $_GET['id'] ?? null;
         <div class="contracts-main">
         <div class="form-card">
             <div class="form-card-header">
-                <h2 id="pageTitle"><?php echo $contract_id ? 'Edit Contract' : 'Add Contract'; ?></h2>
+                <h2 id="pageTitle"><?php echo $contract_id ? 'Edit contract' : 'Add contract'; ?></h2>
             </div>
             <div class="form-card-body">
                 <form id="contractForm" autocomplete="off">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="contractNumber">Contract Number *</label>
+                            <label for="contractNumber">Contract number *</label>
                             <input type="text" id="contractNumber" required placeholder="e.g. CON-001">
                         </div>
                         <div class="form-group">
@@ -256,13 +256,13 @@ $contract_id = $_GET['id'] ?? null;
                         <div class="form-group">
                             <label for="supplierId">Supplier</label>
                             <select id="supplierId">
-                                <option value="">-- Select Supplier --</option>
+                                <option value="">-- Select supplier --</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="ownerId">Contract Owner</label>
+                            <label for="ownerId">Contract owner</label>
                             <select id="ownerId">
-                                <option value="">-- Select Owner --</option>
+                                <option value="">-- Select owner --</option>
                             </select>
                         </div>
                     </div>
@@ -270,21 +270,21 @@ $contract_id = $_GET['id'] ?? null;
                     <div class="form-section">Dates</div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="contractStart">Start Date</label>
+                            <label for="contractStart">Start date</label>
                             <input type="date" id="contractStart">
                         </div>
                         <div class="form-group">
-                            <label for="contractEnd">End Date</label>
+                            <label for="contractEnd">End date</label>
                             <input type="date" id="contractEnd">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="noticePeriod">Notice Period (days)</label>
+                            <label for="noticePeriod">Notice period (days)</label>
                             <input type="number" id="noticePeriod" min="0" placeholder="e.g. 90">
                         </div>
                         <div class="form-group">
-                            <label for="noticeDate">Notice Date</label>
+                            <label for="noticeDate">Notice date</label>
                             <input type="date" id="noticeDate">
                         </div>
                     </div>
@@ -292,7 +292,7 @@ $contract_id = $_GET['id'] ?? null;
                     <div class="form-section">Financial</div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="contractValue">Contract Value</label>
+                            <label for="contractValue">Contract value</label>
                             <input type="number" id="contractValue" step="0.01" min="0" placeholder="e.g. 10000.00">
                         </div>
                         <div class="form-group">
@@ -304,24 +304,24 @@ $contract_id = $_GET['id'] ?? null;
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="paymentScheduleId">Payment Schedule</label>
+                            <label for="paymentScheduleId">Payment schedule</label>
                             <select id="paymentScheduleId">
                                 <option value="">-- None --</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="costCentre">Cost Centre</label>
+                            <label for="costCentre">Cost centre</label>
                             <input type="text" id="costCentre">
                         </div>
                     </div>
 
                     <div class="form-section">Documents</div>
                     <div class="form-group">
-                        <label for="dmsLink">DMS Link (Contract)</label>
+                        <label for="dmsLink">DMS link (contract)</label>
                         <input type="url" id="dmsLink" placeholder="https://...">
                     </div>
 
-                    <div class="form-section">Terms &amp; Data Protection</div>
+                    <div class="form-section">Terms &amp; data protection</div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="termsStatus">Terms</label>
@@ -352,16 +352,16 @@ $contract_id = $_GET['id'] ?? null;
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="dpiaCompletedDate">DPIA Completed Date</label>
+                            <label for="dpiaCompletedDate">DPIA completed date</label>
                             <input type="date" id="dpiaCompletedDate">
                         </div>
                         <div class="form-group">
-                            <label for="dpiaDmsLink">DMS Link (DPIA)</label>
+                            <label for="dpiaDmsLink">DMS link (DPIA)</label>
                             <input type="url" id="dpiaDmsLink" placeholder="https://...">
                         </div>
                     </div>
 
-                    <div class="form-section" style="margin-top: 20px;">Contract Terms Detail</div>
+                    <div class="form-section" style="margin-top: 20px;">Contract terms detail</div>
                     <div id="contractTermsSection" style="display: none;">
                         <div class="terms-tabs" id="termsTabs"></div>
                         <div id="termsPanels"></div>
@@ -454,7 +454,7 @@ $contract_id = $_GET['id'] ?? null;
                 const data = await response.json();
                 if (data.success) {
                     const select = document.getElementById('supplierId');
-                    select.innerHTML = '<option value="">-- Select Supplier --</option>' +
+                    select.innerHTML = '<option value="">-- Select supplier --</option>' +
                         data.suppliers.filter(s => s.is_active).map(s =>
                             `<option value="${s.id}">${escapeHtml(s.legal_name)}</option>`
                         ).join('');
@@ -468,7 +468,7 @@ $contract_id = $_GET['id'] ?? null;
                 const data = await response.json();
                 if (data.success) {
                     const select = document.getElementById('ownerId');
-                    select.innerHTML = '<option value="">-- Select Owner --</option>' +
+                    select.innerHTML = '<option value="">-- Select owner --</option>' +
                         data.analysts.filter(a => a.is_active).map(a =>
                             `<option value="${a.id}">${escapeHtml(a.full_name)}</option>`
                         ).join('');
