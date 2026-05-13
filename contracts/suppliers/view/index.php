@@ -1,28 +1,27 @@
 <?php
 /**
- * Contracts Module - Suppliers
+ * Contracts Module - View Supplier
  */
 session_start();
-require_once '../../config.php';
+require_once '../../../config.php';
 
 $current_page = 'suppliers';
-$path_prefix = '../../';
+$path_prefix = '../../../';
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Suppliers</title>
-    <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <title>Service Desk - View Supplier</title>
+    <link rel="stylesheet" href="../../../assets/css/inbox.css">
     <style>
-        /* Sidebar layout - matches contracts dashboard */
+        /* Sidebar layout - matches suppliers list */
         .contracts-layout {
             display: flex;
             height: calc(100vh - 48px);
             background: #f5f5f5;
         }
-
         .contracts-sidebar {
             width: 260px;
             background: white;
@@ -31,7 +30,6 @@ $path_prefix = '../../';
             overflow-y: auto;
             flex-shrink: 0;
         }
-
         .contracts-main {
             flex: 1;
             overflow-y: auto;
@@ -50,57 +48,33 @@ $path_prefix = '../../';
         .sidebar-section h4:first-of-type { margin-top: 0; }
 
         .sidebar-stat {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            color: #555;
-            cursor: default;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 8px 12px; border-radius: 6px;
+            font-size: 13px; color: #555; cursor: default;
             margin-bottom: 2px;
         }
-        .sidebar-stat .stat-value {
-            font-weight: 700;
-            font-size: 14px;
-            color: #333;
-        }
+        .sidebar-stat .stat-value { font-weight: 700; font-size: 14px; color: #333; }
         .sidebar-total {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            color: #333;
-            cursor: default;
-            margin-bottom: 4px;
-            background: #fafafa;
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 10px 12px; border-radius: 6px;
+            font-size: 14px; color: #333; cursor: default;
+            margin-bottom: 4px; background: #fafafa;
         }
-        .sidebar-total .stat-value {
-            font-weight: 700;
-            font-size: 16px;
-        }
+        .sidebar-total .stat-value { font-weight: 700; font-size: 16px; }
 
         .sidebar-add-btn {
-            display: block;
-            width: 100%;
+            display: block; width: 100%;
             padding: 10px 16px;
-            background: #f59e0b;
-            color: white;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: background 0.2s;
-            text-align: center;
-            text-decoration: none;
+            background: #f59e0b; color: white;
+            border: none; border-radius: 6px;
+            font-size: 14px; font-weight: 500;
+            cursor: pointer; transition: background 0.2s;
+            text-align: center; text-decoration: none;
             box-sizing: border-box;
         }
         .sidebar-add-btn:hover { background: #d97706; }
 
-        /* Main content - matches contracts dashboard */
+        /* Main card */
         .section-card {
             background: #fff; border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
@@ -110,38 +84,64 @@ $path_prefix = '../../';
             padding: 18px 24px; border-bottom: 1px solid #eee;
         }
         .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: #333; }
+        .section-card .section-header .header-actions { display: flex; align-items: center; gap: 10px; }
 
-        .section-card table { width: 100%; border-collapse: collapse; }
-        .section-card table th {
-            text-align: left; padding: 12px 24px; font-size: 12px; font-weight: 600;
-            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
-            border-bottom: 1px solid #eee; background: #fafafa;
+        .back-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            color: #888; text-decoration: none; font-size: 13px;
         }
-        .section-card table td {
-            padding: 14px 24px; font-size: 14px; color: #333; border-bottom: 1px solid #f0f0f0;
-        }
-        .section-card table tr:last-child td { border-bottom: none; }
-        .section-card table tr:hover { background: #fafafa; }
-        .section-card table td .supplier-link { color: #333; text-decoration: none; }
-        .section-card table td .supplier-link:hover { color: #b45309; text-decoration: underline; }
-
-        .empty-state { text-align: center; padding: 40px; color: #999; }
+        .back-link:hover { color: #f59e0b; }
 
         .action-btn {
             background: none; border: 1px solid #ddd; color: #666; cursor: pointer;
-            padding: 6px; margin-right: 4px; border-radius: 4px;
+            padding: 6px; border-radius: 4px;
             display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
         .action-btn:hover { background: #f0f0f0; border-color: #f59e0b; color: #f59e0b; }
-        .action-btn.delete { color: #d13438; }
-        .action-btn.delete:hover { background: #fdf3f3; border-color: #d13438; color: #a00; }
         .action-btn svg { width: 16px; height: 16px; }
 
         .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
         .status-badge.active { background: #d4edda; color: #155724; }
         .status-badge.inactive { background: #f8d7da; color: #721c24; }
 
-        /* Modal styles */
+        /* View field grid - mirrors edit modal */
+        .view-body { padding: 24px; }
+
+        .view-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px 24px;
+        }
+        .view-grid .full-width { grid-column: span 2; }
+
+        .view-field label {
+            display: block;
+            font-size: 12px; font-weight: 600;
+            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 6px;
+        }
+        .view-value {
+            font-size: 14px; color: #333;
+            min-height: 1.2em;
+            word-wrap: break-word;
+        }
+        .view-value.empty { color: #bbb; }
+        .view-value.multiline { white-space: pre-wrap; }
+        .view-value a { color: #b45309; text-decoration: none; }
+        .view-value a:hover { color: #d97706; text-decoration: underline; }
+
+        .view-section {
+            grid-column: span 2;
+            font-size: 13px; font-weight: 600;
+            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 16px 0 4px 0;
+            margin-top: 8px;
+            border-top: 1px solid #eee;
+        }
+
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+
+        /* Edit modal styles */
         .modal-content {
             padding: 30px;
             max-width: 750px;
@@ -159,11 +159,8 @@ $path_prefix = '../../';
 
         .form-section {
             grid-column: span 2;
-            font-size: 13px;
-            font-weight: 600;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 13px; font-weight: 600;
+            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
             padding: 12px 0 6px 0;
             margin-top: 5px;
             border-top: 1px solid #eee;
@@ -191,7 +188,7 @@ $path_prefix = '../../';
     </style>
 </head>
 <body>
-    <?php include '../includes/header.php'; ?>
+    <?php include '../../includes/header.php'; ?>
 
     <div class="contracts-layout">
         <!-- Left Sidebar -->
@@ -206,38 +203,36 @@ $path_prefix = '../../';
             </div>
 
             <div class="sidebar-section">
-                <a href="#" class="sidebar-add-btn" onclick="openModal(); return false;">+ Add Supplier</a>
+                <a href="../" class="sidebar-add-btn" style="background:#fff;color:#333;border:1px solid #ddd;">← Back to list</a>
             </div>
         </div>
 
         <!-- Main Content -->
         <div class="contracts-main">
-            <div class="section-card">
+            <div class="section-card" id="viewCard">
                 <div class="section-header">
-                    <h2>Suppliers</h2>
+                    <h2 id="supplierTitle">Loading...</h2>
+                    <div class="header-actions">
+                        <a href="../" class="back-link" title="Back to suppliers">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                            Back
+                        </a>
+                        <button class="action-btn" id="editBtn" onclick="openModal(currentSupplier)" title="Edit" style="display:none;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                    </div>
                 </div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Legal Name</th>
-                            <th>Trading Name</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>City</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="suppliersList">
-                        <tr><td colspan="6" class="empty-state">Loading...</td></tr>
-                    </tbody>
-                </table>
+                <div class="view-body" id="viewBody">
+                    <div class="empty-state">Loading...</div>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Edit Modal (same as suppliers list) -->
     <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Add Supplier</div>
+            <div class="modal-header" id="modalTitle">Edit Supplier</div>
             <form id="editForm">
                 <input type="hidden" id="itemId">
                 <div class="form-grid">
@@ -327,12 +322,19 @@ $path_prefix = '../../';
     </div>
 
     <script>
-        const API_BASE = '../../api/contracts/';
+        const API_BASE = '../../../api/contracts/';
+        const supplierId = parseInt(new URLSearchParams(window.location.search).get('id') || '0');
         let suppliers = [];
+        let currentSupplier = null;
         let supplierTypes = [];
         let supplierStatuses = [];
 
         document.addEventListener('DOMContentLoaded', function() {
+            if (!supplierId) {
+                document.getElementById('supplierTitle').textContent = 'Supplier not specified';
+                document.getElementById('viewBody').innerHTML = '<div class="empty-state">No supplier id in URL. <a href="../">Back to suppliers</a>.</div>';
+                return;
+            }
             loadSupplierTypes();
             loadSupplierStatuses();
             loadSuppliers();
@@ -350,7 +352,7 @@ $path_prefix = '../../';
                             `<option value="${t.id}">${escapeHtml(t.name)}</option>`
                         ).join('');
                 }
-            } catch (error) { console.error('Error loading supplier types:', error); }
+            } catch (e) { console.error(e); }
         }
 
         async function loadSupplierStatuses() {
@@ -365,7 +367,7 @@ $path_prefix = '../../';
                             `<option value="${s.id}">${escapeHtml(s.name)}</option>`
                         ).join('');
                 }
-            } catch (error) { console.error('Error loading supplier statuses:', error); }
+            } catch (e) { console.error(e); }
         }
 
         async function loadSuppliers() {
@@ -374,21 +376,22 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     suppliers = data.suppliers;
-                    renderSuppliers();
                     renderOverview();
+                    currentSupplier = suppliers.find(s => s.id == supplierId) || null;
+                    renderView();
                 } else {
-                    document.getElementById('suppliersList').innerHTML =
-                        '<tr><td colspan="6" class="empty-state" style="color:#d13438;">Error: ' + escapeHtml(data.error) + '</td></tr>';
+                    document.getElementById('viewBody').innerHTML =
+                        '<div class="empty-state" style="color:#d13438;">Error: ' + escapeHtml(data.error) + '</div>';
                 }
-            } catch (error) {
-                console.error('Error:', error);
+            } catch (e) {
+                document.getElementById('viewBody').innerHTML =
+                    '<div class="empty-state" style="color:#d13438;">Failed to load supplier</div>';
             }
         }
 
         function renderOverview() {
             document.getElementById('sideTotal').textContent = suppliers.length;
 
-            // Group by supplier type, then by status
             const groups = {};
             suppliers.forEach(s => {
                 const typeName = s.supplier_type_name || 'Uncategorised';
@@ -426,80 +429,144 @@ $path_prefix = '../../';
             }).join('');
         }
 
-        function renderSuppliers() {
-            const tbody = document.getElementById('suppliersList');
-            if (suppliers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="empty-state">No suppliers yet. Click "+ Add Supplier" to create one.</td></tr>';
+        function renderView() {
+            if (!currentSupplier) {
+                document.getElementById('supplierTitle').textContent = 'Supplier not found';
+                document.getElementById('viewBody').innerHTML =
+                    '<div class="empty-state">No supplier with id ' + supplierId + '. <a href="../">Back to suppliers</a>.</div>';
+                document.getElementById('editBtn').style.display = 'none';
                 return;
             }
-            tbody.innerHTML = suppliers.map(s => `
-                <tr>
-                    <td><a href="view/?id=${s.id}" class="supplier-link"><strong>${escapeHtml(s.legal_name)}</strong></a></td>
-                    <td>${escapeHtml(s.trading_name || '-')}</td>
-                    <td>${escapeHtml(s.supplier_type_name || '-')}</td>
-                    <td>${escapeHtml(s.supplier_status_name || '-')}</td>
-                    <td>${escapeHtml(s.city || '-')}</td>
-                    <td>
-                        <a href="view/?id=${s.id}" class="action-btn" title="View">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                        </a>
-                        <button class="action-btn" onclick="editSupplier(${s.id})" title="Edit">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button class="action-btn delete" onclick="deleteSupplier(${s.id}, '${escapeHtml(s.legal_name).replace(/'/g, "\\'")}')" title="Delete">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+
+            const s = currentSupplier;
+            document.getElementById('supplierTitle').textContent = s.legal_name;
+            document.getElementById('editBtn').style.display = '';
+
+            const statusBadge = s.is_active
+                ? '<span class="status-badge active">Active</span>'
+                : '<span class="status-badge inactive">Inactive</span>';
+
+            document.getElementById('viewBody').innerHTML = `
+                <div class="view-grid">
+                    <div class="view-field full-width">
+                        <label>Legal Name</label>
+                        ${val(s.legal_name)}
+                    </div>
+                    <div class="view-field full-width">
+                        <label>Trading Name</label>
+                        ${val(s.trading_name)}
+                    </div>
+                    <div class="view-field">
+                        <label>Reg Number</label>
+                        ${val(s.reg_number)}
+                    </div>
+                    <div class="view-field">
+                        <label>VAT/Tax Number</label>
+                        ${val(s.vat_number)}
+                    </div>
+                    <div class="view-field">
+                        <label>Supplier Type</label>
+                        ${val(s.supplier_type_name)}
+                    </div>
+                    <div class="view-field">
+                        <label>Status</label>
+                        ${val(s.supplier_status_name)}
+                    </div>
+
+                    <div class="view-section">Address</div>
+                    <div class="view-field full-width">
+                        <label>Address Line 1</label>
+                        ${val(s.address_line_1)}
+                    </div>
+                    <div class="view-field full-width">
+                        <label>Address Line 2</label>
+                        ${val(s.address_line_2)}
+                    </div>
+                    <div class="view-field">
+                        <label>City</label>
+                        ${val(s.city)}
+                    </div>
+                    <div class="view-field">
+                        <label>County</label>
+                        ${val(s.county)}
+                    </div>
+                    <div class="view-field">
+                        <label>Postcode</label>
+                        ${val(s.postcode)}
+                    </div>
+                    <div class="view-field">
+                        <label>Country</label>
+                        ${val(s.country)}
+                    </div>
+
+                    <div class="view-section">Questionnaire</div>
+                    <div class="view-field">
+                        <label>Date Issued</label>
+                        ${val(formatDate(s.questionnaire_date_issued))}
+                    </div>
+                    <div class="view-field">
+                        <label>Date Received</label>
+                        ${val(formatDate(s.questionnaire_date_received))}
+                    </div>
+
+                    <div class="view-section">Other</div>
+                    <div class="view-field full-width">
+                        <label>Comments</label>
+                        ${s.comments ? `<div class="view-value multiline">${escapeHtml(s.comments)}</div>` : `<div class="view-value empty">—</div>`}
+                    </div>
+                    <div class="view-field full-width">
+                        <label>Active</label>
+                        <div class="view-value">${statusBadge}</div>
+                    </div>
+                </div>
+            `;
         }
 
-        function openModal(supplier = null) {
-            document.getElementById('modalTitle').textContent = supplier ? 'Edit Supplier' : 'Add Supplier';
-            document.getElementById('itemId').value = supplier ? supplier.id : '';
-            document.getElementById('legalName').value = supplier ? supplier.legal_name : '';
-            document.getElementById('tradingName').value = supplier ? (supplier.trading_name || '') : '';
-            document.getElementById('regNumber').value = supplier ? (supplier.reg_number || '') : '';
-            document.getElementById('vatNumber').value = supplier ? (supplier.vat_number || '') : '';
-            document.getElementById('supplierTypeId').value = supplier ? (supplier.supplier_type_id || '') : '';
-            document.getElementById('supplierStatusId').value = supplier ? (supplier.supplier_status_id || '') : '';
-            document.getElementById('addressLine1').value = supplier ? (supplier.address_line_1 || '') : '';
-            document.getElementById('addressLine2').value = supplier ? (supplier.address_line_2 || '') : '';
-            document.getElementById('city').value = supplier ? (supplier.city || '') : '';
-            document.getElementById('county').value = supplier ? (supplier.county || '') : '';
-            document.getElementById('postcode').value = supplier ? (supplier.postcode || '') : '';
-            document.getElementById('country').value = supplier ? (supplier.country || '') : '';
-            document.getElementById('questionnaireDateIssued').value = supplier ? (supplier.questionnaire_date_issued || '') : '';
-            document.getElementById('questionnaireDateReceived').value = supplier ? (supplier.questionnaire_date_received || '') : '';
-            document.getElementById('comments').value = supplier ? (supplier.comments || '') : '';
-            document.getElementById('itemActive').checked = supplier ? supplier.is_active : true;
+        function val(text) {
+            if (text === null || text === undefined || text === '') {
+                return '<div class="view-value empty">—</div>';
+            }
+            return `<div class="view-value">${escapeHtml(text)}</div>`;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            if (isNaN(d.getTime())) return '';
+            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+        }
+
+        // Edit modal
+        function openModal(supplier) {
+            if (!supplier) return;
+            document.getElementById('modalTitle').textContent = 'Edit Supplier';
+            document.getElementById('itemId').value = supplier.id;
+            document.getElementById('legalName').value = supplier.legal_name || '';
+            document.getElementById('tradingName').value = supplier.trading_name || '';
+            document.getElementById('regNumber').value = supplier.reg_number || '';
+            document.getElementById('vatNumber').value = supplier.vat_number || '';
+            document.getElementById('supplierTypeId').value = supplier.supplier_type_id || '';
+            document.getElementById('supplierStatusId').value = supplier.supplier_status_id || '';
+            document.getElementById('addressLine1').value = supplier.address_line_1 || '';
+            document.getElementById('addressLine2').value = supplier.address_line_2 || '';
+            document.getElementById('city').value = supplier.city || '';
+            document.getElementById('county').value = supplier.county || '';
+            document.getElementById('postcode').value = supplier.postcode || '';
+            document.getElementById('country').value = supplier.country || '';
+            document.getElementById('questionnaireDateIssued').value = supplier.questionnaire_date_issued || '';
+            document.getElementById('questionnaireDateReceived').value = supplier.questionnaire_date_received || '';
+            document.getElementById('comments').value = supplier.comments || '';
+            document.getElementById('itemActive').checked = !!supplier.is_active;
             document.getElementById('editModal').classList.add('active');
         }
 
         function closeModal() { document.getElementById('editModal').classList.remove('active'); }
 
-        function editSupplier(id) {
-            const s = suppliers.find(x => x.id == id);
-            if (s) openModal(s);
-        }
-
-        async function deleteSupplier(id, name) {
-            if (!confirm('Delete "' + name + '"? Contracts and contacts linked to this supplier will have the supplier cleared.')) return;
-            try {
-                const response = await fetch(API_BASE + 'delete_supplier.php', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id })
-                });
-                const data = await response.json();
-                if (data.success) loadSuppliers();
-                else alert('Error: ' + data.error);
-            } catch (error) { alert('Failed to delete supplier'); }
-        }
-
         document.getElementById('editForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const id = document.getElementById('itemId').value;
             const payload = {
+                id: parseInt(id),
                 legal_name: document.getElementById('legalName').value.trim(),
                 trading_name: document.getElementById('tradingName').value.trim(),
                 reg_number: document.getElementById('regNumber').value.trim(),
@@ -517,16 +584,19 @@ $path_prefix = '../../';
                 comments: document.getElementById('comments').value.trim(),
                 is_active: document.getElementById('itemActive').checked ? 1 : 0
             };
-            if (id) payload.id = parseInt(id);
             try {
                 const response = await fetch(API_BASE + 'save_supplier.php', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
-                if (data.success) { closeModal(); loadSuppliers(); }
-                else alert('Error: ' + data.error);
-            } catch (error) { alert('Failed to save supplier'); }
+                if (data.success) {
+                    closeModal();
+                    loadSuppliers();
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (e) { alert('Failed to save supplier'); }
         });
 
         let modalMouseDownTarget = null;
@@ -536,9 +606,9 @@ $path_prefix = '../../';
         });
 
         function escapeHtml(text) {
-            if (!text) return '';
+            if (text === null || text === undefined) return '';
             const div = document.createElement('div');
-            div.textContent = text;
+            div.textContent = String(text);
             return div.innerHTML;
         }
     </script>
