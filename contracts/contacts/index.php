@@ -341,7 +341,7 @@ $path_prefix = '../../';
                     <td>${escapeHtml(c.job_title || '-')}</td>
                     <td>${c.email ? `<a href="mailto:${escapeHtml(c.email)}">${escapeHtml(c.email)}</a>` : '-'}</td>
                     <td>${escapeHtml(c.mobile || '-')}</td>
-                    <td>${escapeHtml(c.supplier_name || '-')}</td>
+                    <td>${c.supplier_id ? `<a href="../suppliers/view/?id=${c.supplier_id}">${escapeHtml(c.supplier_name)}</a>` : '-'}</td>
                     <td><span class="status-badge ${c.is_active ? 'active' : 'inactive'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>
                         <button class="action-btn" onclick="editContact(${c.id})" title="Edit">
