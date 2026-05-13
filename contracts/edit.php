@@ -36,7 +36,7 @@ $contract_id = $_GET['id'] ?? null;
         .contracts-main {
             flex: 1;
             overflow-y: auto;
-            padding: 30px;
+            padding: 30px 30px 0 30px;
         }
 
         .sidebar-section { margin-bottom: 24px; }
@@ -130,7 +130,7 @@ $contract_id = $_GET['id'] ?? null;
             border-top: 1px solid #ddd;
             box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
             padding: 14px 30px;
-            margin: 16px -30px -30px -30px;
+            margin: 16px -30px 0 -30px;
             display: flex;
             align-items: center;
             gap: 12px;
