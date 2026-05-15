@@ -165,6 +165,79 @@
     margin: 0 6px;
 }
 
+/* --- Save status indicator + autosave toggle -------------- */
+.pm-status {
+    font-size: 12px;
+    color: #888;
+    margin-right: 8px;
+    min-width: 110px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+}
+.pm-status:empty { min-width: 0; }
+.pm-status-unsaved { color: #b26a00; }
+.pm-status-saving  { color: #0078d4; }
+.pm-status-saved   { color: #2e7d32; }
+.pm-status-failed  { color: #c62828; }
+.pm-status-off     { color: #999; font-style: italic; }
+.pm-status-failed a { color: #c62828; text-decoration: underline; }
+.pm-status-tick    { color: #2e7d32; font-weight: 700; }
+.pm-status-warn    { font-weight: 700; }
+
+.pm-status-spinner {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border: 2px solid rgba(0,120,212,0.25);
+    border-top-color: #0078d4;
+    border-radius: 50%;
+    animation: pm-status-spin 0.7s linear infinite;
+}
+@keyframes pm-status-spin { to { transform: rotate(360deg); } }
+
+.pm-autosave-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #444;
+    padding: 4px 8px;
+    border-radius: 4px;
+    user-select: none;
+}
+.pm-autosave-toggle:hover { background: #f0f0f0; }
+.pm-autosave-toggle input { display: none; }
+.pm-autosave-switch {
+    width: 26px;
+    height: 14px;
+    background: #ccc;
+    border-radius: 7px;
+    position: relative;
+    transition: background 0.2s;
+    flex-shrink: 0;
+}
+.pm-autosave-switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 10px;
+    height: 10px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+.pm-autosave-toggle input:checked + .pm-autosave-switch {
+    background: #0078d4;
+}
+.pm-autosave-toggle input:checked + .pm-autosave-switch::after {
+    transform: translateX(12px);
+}
+
 /* --- Canvas (dot grid) ------------------------------------- */
 .pm-canvas {
     flex: 1;

@@ -24,6 +24,14 @@ const PM = (() => {
     let nextTempId = -1;
     let dirty = false;
 
+    // ---- autosave state ----
+    let autosaveOn = false;
+    let autosaveTimer = null;
+    let saveInFlight = false;
+    const AUTOSAVE_DEBOUNCE_MS = 2000;
+    const MIN_SAVING_VISIBLE_MS = 400;  // keep "Saving…" on screen long enough to be noticed
+    const AUTOSAVE_PREF_KEY = 'process_mapper_autosave';
+
     // ---- drag state ----
     let dragging = null;        // { stepId, offsetX, offsetY, startPositions }
     let connectDrag = null;     // { fromStepId, side, startX, startY }
@@ -47,6 +55,92 @@ const PM = (() => {
         bindCanvasEvents();
         bindToolbar();
         loadProcesses();
+        loadAutosavePreference();
+    }
+
+    // =========================================================
+    //  Autosave: dirty tracking, debounced save, status line
+    // =========================================================
+
+    // Single entry-point for "something changed" — replaces the dozen scattered
+    // `dirty = true;` writes so we can hook status updates and the debounce
+    // timer in one place.
+    function markDirty() {
+        dirty = true;
+        if (!currentProcessId) return;
+        setStatus('unsaved');
+        if (autosaveOn) scheduleAutosave();
+    }
+
+    function scheduleAutosave() {
+        clearTimeout(autosaveTimer);
+        autosaveTimer = setTimeout(() => {
+            if (autosaveOn && dirty && currentProcessId && !saveInFlight) {
+                save(true);
+            }
+        }, AUTOSAVE_DEBOUNCE_MS);
+    }
+
+    // Status states: 'idle' | 'unsaved' | 'saving' | 'saved' | 'failed' | 'off'
+    function setStatus(state) {
+        const el = document.getElementById('pmStatus');
+        if (!el) return;
+        const states = {
+            idle:    { html: '', cls: '' },
+            unsaved: { html: autosaveOn ? 'Unsaved' : 'Unsaved changes', cls: 'pm-status-unsaved' },
+            saving:  { html: '<span class="pm-status-spinner"></span> Saving…', cls: 'pm-status-saving' },
+            saved:   { html: '<span class="pm-status-tick">✓</span> Saved', cls: 'pm-status-saved' },
+            failed:  { html: '<span class="pm-status-warn">⚠</span> Save failed — <a href="#" id="pmRetrySave">retry</a>', cls: 'pm-status-failed' },
+            off:     { html: 'Autosave off', cls: 'pm-status-off' },
+        };
+        const s = states[state] || states.idle;
+        el.className = 'pm-status ' + s.cls;
+        el.innerHTML = s.html;
+        if (state === 'failed') {
+            const retry = document.getElementById('pmRetrySave');
+            if (retry) retry.onclick = (e) => { e.preventDefault(); save(autosaveOn); };
+        }
+    }
+
+    async function loadAutosavePreference() {
+        try {
+            const r = await fetch('../api/system/get_user_preference.php?key=' + encodeURIComponent(AUTOSAVE_PREF_KEY), { credentials: 'same-origin' });
+            const d = await r.json();
+            const on = d.success && d.value === '1';
+            applyAutosaveState(on, false);
+        } catch (e) {
+            applyAutosaveState(false, false);
+        }
+    }
+
+    function applyAutosaveState(on, persist) {
+        autosaveOn = !!on;
+        const cb = document.getElementById('pmAutosaveToggle');
+        if (cb) cb.checked = autosaveOn;
+        // Initial status reflects the toggle plus current dirtiness.
+        if (!currentProcessId) {
+            setStatus('idle');
+        } else if (dirty) {
+            setStatus('unsaved');
+            if (autosaveOn) scheduleAutosave();
+        } else {
+            setStatus(autosaveOn ? 'saved' : 'off');
+        }
+        if (persist) {
+            fetch('../api/system/set_user_preference.php', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ key: AUTOSAVE_PREF_KEY, value: autosaveOn ? '1' : '0' })
+            }).catch(() => {});
+        }
+    }
+
+    function toggleAutosave(on) {
+        clearTimeout(autosaveTimer);
+        applyAutosaveState(on, true);
+        // If we just turned autosave ON and there are pending edits, fire one.
+        if (autosaveOn && dirty && currentProcessId) scheduleAutosave();
     }
 
     function addArrowheadDef() {
@@ -169,6 +263,7 @@ const PM = (() => {
                 renderAll();
                 renderProcessList();
                 closeDetail();
+                setStatus(autosaveOn ? 'saved' : 'off');
             }
         } catch (e) { toast('Failed to load process', 'error'); }
     }
@@ -393,7 +488,7 @@ const PM = (() => {
             // Update first text node
             el.firstChild.textContent = step.label || '(unnamed)';
             input.remove();
-            dirty = true;
+            markDirty();
             renderConnectors();
             if (selectedStepIds.has(step.id || step.tempId)) {
                 document.getElementById('detailLabel').value = step.label;
@@ -508,7 +603,7 @@ const PM = (() => {
 
     function onDocMouseUp(e) {
         if (dragging) {
-            if (dragging.moved) dirty = true;
+            if (dragging.moved) markDirty();
             dragging = null;
             return;
         }
@@ -597,7 +692,7 @@ const PM = (() => {
             });
             renderConnectors();
             updateDetailPosition();
-            dirty = true;
+            markDirty();
             return;
         }
 
@@ -683,7 +778,7 @@ const PM = (() => {
         selectedStepIds.add(tempId);
         updateSelectionVisuals();
         showDetailForStep(step);
-        dirty = true;
+        markDirty();
     }
 
     function addConnector(fromId, toId) {
@@ -697,7 +792,7 @@ const PM = (() => {
         const tempId = nextTempId--;
         connectors.push({ tempId, fromId: +fromId, toId: +toId, label: '' });
         renderConnectors();
-        dirty = true;
+        markDirty();
     }
 
     function deleteSelected() {
@@ -705,7 +800,7 @@ const PM = (() => {
             connectors = connectors.filter(c => (c.id || c.tempId) != selectedConnectorId);
             selectedConnectorId = null;
             renderConnectors();
-            dirty = true;
+            markDirty();
             return;
         }
 
@@ -722,7 +817,7 @@ const PM = (() => {
         updateSelectionVisuals();
         renderConnectors();
         closeDetail();
-        dirty = true;
+        markDirty();
     }
 
     // =========================================================
@@ -804,7 +899,7 @@ const PM = (() => {
             step.el.classList.add('selected');
         }
         renderConnectors();
-        dirty = true;
+        markDirty();
     }
 
     function updateDetailPosition() {
@@ -821,7 +916,7 @@ const PM = (() => {
         if (c) {
             c.label = value;
             renderConnectors();
-            dirty = true;
+            markDirty();
         }
     }
 
@@ -834,7 +929,7 @@ const PM = (() => {
             const step = getStep(+sid);
             if (step) showDetailForStep(step);
         }
-        dirty = true;
+        markDirty();
     }
 
     function editConnectorLabel(c, mx, my) {
@@ -851,7 +946,7 @@ const PM = (() => {
             c.label = input.value;
             input.remove();
             renderConnectors();
-            dirty = true;
+            markDirty();
         };
 
         input.addEventListener('blur', finish);
@@ -882,8 +977,17 @@ const PM = (() => {
     // =========================================================
     //  Save
     // =========================================================
-    async function save() {
-        if (!currentProcessId) { toast('No process open', 'error'); return; }
+    // `isAutosave` controls toast suppression and re-scheduling on retry.
+    async function save(isAutosave = false) {
+        if (!currentProcessId) {
+            if (!isAutosave) toast('No process open', 'error');
+            return;
+        }
+        if (saveInFlight) return;
+        saveInFlight = true;
+        clearTimeout(autosaveTimer);
+        setStatus('saving');
+        const startedAt = Date.now();
 
         const title = processes.find(p => p.id == currentProcessId)?.title || 'Untitled';
         const payload = {
@@ -908,6 +1012,9 @@ const PM = (() => {
             }))
         };
 
+        let ok = false;
+        let errMsg = '';
+        let newId = null;
         try {
             const r = await fetch(API_BASE + 'save.php', {
                 method: 'POST',
@@ -916,14 +1023,38 @@ const PM = (() => {
             });
             const d = await r.json();
             if (d.success) {
-                dirty = false;
-                toast('Saved', 'success');
-                // Reload to get real IDs
-                await openProcess(d.id);
+                ok = true;
+                newId = d.id;
             } else {
-                toast(d.error || 'Failed to save', 'error');
+                errMsg = d.error || 'Failed to save';
             }
-        } catch (e) { toast('Failed to save', 'error'); }
+        } catch (e) {
+            errMsg = 'Network error';
+        }
+
+        // Keep "Saving…" visible for at least MIN_SAVING_VISIBLE_MS so users
+        // can actually see that something happened on fast saves.
+        const elapsed = Date.now() - startedAt;
+        if (elapsed < MIN_SAVING_VISIBLE_MS) {
+            await new Promise(r => setTimeout(r, MIN_SAVING_VISIBLE_MS - elapsed));
+        }
+
+        if (ok) {
+            dirty = false;
+            saveInFlight = false;
+            // Reload to get real IDs (temp negative IDs from newly-added steps
+            // need replacing with the server's auto-increment values).
+            await openProcess(newId);
+            // openProcess resets dirty + status, so set the "Saved" status AFTER it.
+            setStatus('saved');
+            if (!isAutosave) toast('Saved', 'success');
+            // If edits arrived during the save, schedule another autosave.
+            if (autosaveOn && dirty) scheduleAutosave();
+        } else {
+            saveInFlight = false;
+            setStatus('failed');
+            if (!isAutosave) toast(errMsg, 'error');
+        }
     }
 
     // =========================================================
@@ -966,6 +1097,7 @@ const PM = (() => {
         createProcess, deleteProcess, openProcess,
         filterProcesses, save, deleteSelected,
         closeDetail, updateStepFromDetail,
-        updateConnectorLabel, removeConnector
+        updateConnectorLabel, removeConnector,
+        toggleAutosave
     };
 })();

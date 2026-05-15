@@ -699,6 +699,7 @@ Visual flowchart builder for documenting processes and workflows.
 - **Arrow key nudge**: Move selected steps by one grid unit with cursor keys
 - **Slide-in detail panel**: Click a step to edit label, type, colour, description, and view/edit its connectors
 - **Save/load**: Full persistence with sidebar listing all saved processes
+- **Autosave**: Optional toolbar toggle that debounces a save ~2s after the last edit. Live Word-style status indicator beside the toggle cycles through `✓ Saved` / `Unsaved` / `Saving…` / `⚠ Save failed — retry`. Toggle state persists per-analyst via `user_preferences` (key: `process_mapper_autosave`). The manual Save button still works regardless of toggle state.
 
 ### Tasks (`tasks/`)
 Kanban-style task management with board and list views for tracking internal work.

@@ -66,6 +66,12 @@ $path_prefix = '../';
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                     <div class="pm-tool-sep"></div>
+                    <span class="pm-status" id="pmStatus" aria-live="polite"></span>
+                    <label class="pm-autosave-toggle" title="Auto-save every couple of seconds after you stop editing">
+                        <input type="checkbox" id="pmAutosaveToggle" onchange="PM.toggleAutosave(this.checked)">
+                        <span class="pm-autosave-switch"></span>
+                        <span class="pm-autosave-label">Autosave</span>
+                    </label>
                     <button class="pm-tool-btn" onclick="PM.save()" title="Save (Ctrl+S)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                         <span>Save</span>
