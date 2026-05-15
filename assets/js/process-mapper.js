@@ -1266,6 +1266,10 @@ const PM = (() => {
         if (e.button !== 0) return;
         e.stopPropagation();
         e.preventDefault();
+        // Tag every visually-inside-a-lane step with its lane_id so the reorder
+        // pass moves them too. Catches steps that were created before lanes
+        // existed or that have stale/missing lane_id values.
+        autoAssignAllStepLanes();
         selectLane(lane);
         laneDragging = {
             id: laneRef(lane),
@@ -1281,6 +1285,7 @@ const PM = (() => {
         if (e.button !== 0) return;
         e.stopPropagation();
         e.preventDefault();
+        autoAssignAllStepLanes();
         selectLane(lane);
         laneDragging = {
             id: laneRef(lane),
@@ -1313,17 +1318,19 @@ const PM = (() => {
             return;
         }
 
-        // Reorder: figure out which slot the cursor is currently above and snap.
+        // Reorder: count how many non-dragged lanes have their visual midline
+        // ABOVE the cursor — that's how many lanes should sit above the dragged
+        // lane in the final order. Important: we accumulate `acc` for every lane
+        // including the dragged one, because the dragged lane is still occupying
+        // its visual slot until we commit the swap.
         const ord = lanesOrdered();
-        // Cursor Y within canvas coords (account for canvas scroll)
         const rect = canvas.getBoundingClientRect();
         const cursorY = e.clientY - rect.top + canvas.scrollTop;
         let targetOrder = 0;
         let acc = 0;
         for (const l of ord) {
-            if (laneRef(l) == laneDragging.id) continue;
             const mid = acc + l.height / 2;
-            if (cursorY > mid) targetOrder++;
+            if (laneRef(l) != laneDragging.id && cursorY > mid) targetOrder++;
             acc += l.height;
         }
         if (targetOrder !== lane.display_order) {
@@ -1354,6 +1361,21 @@ const PM = (() => {
             if (!s) return;
             // Use the step's vertical centre for the hit test so a step
             // straddling a divider settles into whichever lane holds its middle.
+            const lane = laneAtY(s.y + (s.height / 2));
+            const newLaneId = lane ? laneRef(lane) : null;
+            if (s.lane_id != newLaneId) s.lane_id = newLaneId;
+        });
+    }
+
+    // Scan every step on the canvas and assign lane_id based on where it visually
+    // sits. Run at the start of any lane drag so steps that *look* like they belong
+    // to a lane (but never got tagged — e.g. steps that pre-existed the lanes, or
+    // were dragged in before lanes existed) come along for the ride during reorder
+    // and resize. Cheap and idempotent.
+    function autoAssignAllStepLanes() {
+        if (!lanes.length) return;
+        recomputeLaneBandTops();
+        steps.forEach(s => {
             const lane = laneAtY(s.y + (s.height / 2));
             const newLaneId = lane ? laneRef(lane) : null;
             if (s.lane_id != newLaneId) s.lane_id = newLaneId;
