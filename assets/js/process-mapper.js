@@ -99,13 +99,15 @@ const PM = (() => {
     function setStatus(state) {
         const el = document.getElementById('pmStatus');
         if (!el) return;
+        // i18n keys live in lang/{locale}/process-mapper.php under the 'autosave.*' namespace.
+        // common.unsaved_changes is shared with other modules so it lives in common.
         const states = {
             idle:    { html: '', cls: '' },
-            unsaved: { html: autosaveOn ? 'Unsaved' : 'Unsaved changes', cls: 'pm-status-unsaved' },
-            saving:  { html: '<span class="pm-status-spinner"></span> Saving…', cls: 'pm-status-saving' },
-            saved:   { html: '<span class="pm-status-tick">✓</span> Saved', cls: 'pm-status-saved' },
-            failed:  { html: '<span class="pm-status-warn">⚠</span> Save failed — <a href="#" id="pmRetrySave">retry</a>', cls: 'pm-status-failed' },
-            off:     { html: 'Autosave off', cls: 'pm-status-off' },
+            unsaved: { html: autosaveOn ? t('process-mapper.autosave.unsaved') : t('common.unsaved_changes'), cls: 'pm-status-unsaved' },
+            saving:  { html: '<span class="pm-status-spinner"></span> ' + t('process-mapper.autosave.saving'), cls: 'pm-status-saving' },
+            saved:   { html: '<span class="pm-status-tick">✓</span> ' + t('process-mapper.autosave.saved'), cls: 'pm-status-saved' },
+            failed:  { html: '<span class="pm-status-warn">⚠</span> ' + t('process-mapper.autosave.failed') + ' <a href="#" id="pmRetrySave">' + t('process-mapper.autosave.retry') + '</a>', cls: 'pm-status-failed' },
+            off:     { html: t('process-mapper.autosave.off'), cls: 'pm-status-off' },
         };
         const s = states[state] || states.idle;
         el.className = 'pm-status ' + s.cls;
@@ -818,7 +820,7 @@ const PM = (() => {
     //  Add / remove steps and connectors
     // =========================================================
     function addStep(type) {
-        if (!currentProcessId) { toast('Open or create a process first', 'error'); return; }
+        if (!currentProcessId) { toast(t('process-mapper.toast.no_process_open'), 'error'); return; }
 
         const tempId = nextTempId--;
         const cx = canvas.scrollLeft + canvas.clientWidth / 2 - 80;
@@ -871,7 +873,7 @@ const PM = (() => {
     // =========================================================
 
     function addGroup() {
-        if (!currentProcessId) { toast('Open or create a process first', 'error'); return; }
+        if (!currentProcessId) { toast(t('process-mapper.toast.no_process_open'), 'error'); return; }
         const tempId = nextTempId--;
         const w = 240, h = 160;
         const x = snap(canvas.scrollLeft + canvas.clientWidth / 2 - w / 2);
@@ -1211,7 +1213,7 @@ const PM = (() => {
     }
 
     function addLane() {
-        if (!currentProcessId) { toast('Open or create a process first', 'error'); return; }
+        if (!currentProcessId) { toast(t('process-mapper.toast.no_process_open'), 'error'); return; }
         const tempId = nextTempId--;
         // Suggest a max(display_order)+1 so the new lane is placed at the bottom.
         const maxOrder = lanes.reduce((m, l) => Math.max(m, l.display_order || 0), -1);
@@ -1786,7 +1788,7 @@ const PM = (() => {
     // `isAutosave` controls toast suppression and re-scheduling on retry.
     async function save(isAutosave = false) {
         if (!currentProcessId) {
-            if (!isAutosave) toast('No process open', 'error');
+            if (!isAutosave) toast(t('process-mapper.toast.no_process_open'), 'error');
             return;
         }
         if (saveInFlight) return;
@@ -1933,7 +1935,7 @@ const PM = (() => {
 
             // openProcess resets dirty + status, so set the "Saved" status AFTER it.
             setStatus('saved');
-            if (!isAutosave) toast('Saved', 'success');
+            if (!isAutosave) toast(t('process-mapper.toast.saved'), 'success');
             // If edits arrived during the save, schedule another autosave.
             if (autosaveOn && dirty) scheduleAutosave();
         } else {
@@ -2068,7 +2070,7 @@ const PM = (() => {
     function closeExportModal() {
         document.getElementById('exportModal').style.display = 'none';
         const btn = document.getElementById('exportCopyBtn');
-        btn.textContent = 'Copy';
+        btn.textContent = t('common.copy');
         btn.classList.remove('pm-modal-btn-copied');
     }
 
@@ -2077,10 +2079,10 @@ const PM = (() => {
         const btn = document.getElementById('exportCopyBtn');
         try {
             await navigator.clipboard.writeText(text);
-            btn.textContent = 'Copied ✓';
+            btn.textContent = t('process-mapper.export_modal.copied');
             btn.classList.add('pm-modal-btn-copied');
             setTimeout(() => {
-                btn.textContent = 'Copy';
+                btn.textContent = t('common.copy');
                 btn.classList.remove('pm-modal-btn-copied');
             }, 2000);
         } catch (e) {

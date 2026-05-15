@@ -4,18 +4,26 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/functions.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'process-mapper';
 $path_prefix = '../';
+
+// Namespaces the JS layer needs translated for this page
+$translationNamespaces = ['common', 'process-mapper'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Process Mapper</title>
+    <title><?php echo htmlspecialchars(t('process-mapper.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/process-mapper.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -39,55 +47,55 @@ $path_prefix = '../';
             <!-- Toolbar -->
             <div class="pm-toolbar" id="pmToolbar">
                 <div class="pm-toolbar-left">
-                    <button class="pm-tool-btn" data-type="process" title="Process step">
+                    <button class="pm-tool-btn" data-type="process" title="<?php echo htmlspecialchars(t('process-mapper.toolbar.process')); ?>">
                         <svg width="18" height="18" viewBox="0 0 18 18"><rect x="1" y="3" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-                        <span>Process</span>
+                        <span><?php echo htmlspecialchars(t('process-mapper.toolbar.process')); ?></span>
                     </button>
-                    <button class="pm-tool-btn" data-type="decision" title="Decision">
+                    <button class="pm-tool-btn" data-type="decision" title="<?php echo htmlspecialchars(t('process-mapper.toolbar.decision')); ?>">
                         <svg width="18" height="18" viewBox="0 0 18 18"><polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-                        <span>Decision</span>
+                        <span><?php echo htmlspecialchars(t('process-mapper.toolbar.decision')); ?></span>
                     </button>
-                    <button class="pm-tool-btn" data-type="start" title="Start / End">
+                    <button class="pm-tool-btn" data-type="start" title="<?php echo htmlspecialchars(t('process-mapper.toolbar.terminal')); ?>">
                         <svg width="18" height="18" viewBox="0 0 18 18"><ellipse cx="9" cy="9" rx="8" ry="5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-                        <span>Terminal</span>
+                        <span><?php echo htmlspecialchars(t('process-mapper.toolbar.terminal')); ?></span>
                     </button>
-                    <button class="pm-tool-btn" data-type="document" title="Document">
+                    <button class="pm-tool-btn" data-type="document" title="<?php echo htmlspecialchars(t('process-mapper.toolbar.document')); ?>">
                         <svg width="18" height="18" viewBox="0 0 18 18"><path d="M2 2h14v12c-2.3 1.3-4.7 1.3-7 0s-4.7-1.3-7 0V2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-                        <span>Document</span>
+                        <span><?php echo htmlspecialchars(t('process-mapper.toolbar.document')); ?></span>
                     </button>
                     <div class="pm-tool-sep"></div>
-                    <button class="pm-tool-btn" id="connectBtn" title="Draw connector (or drag from edge handle)">
+                    <button class="pm-tool-btn" id="connectBtn" title="<?php echo htmlspecialchars(t('process-mapper.toolbar.connect')); ?>">
                         <svg width="18" height="18" viewBox="0 0 18 18"><line x1="3" y1="15" x2="15" y2="3" stroke="currentColor" stroke-width="1.5"/><polyline points="10,3 15,3 15,8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-                        <span>Connect</span>
+                        <span><?php echo htmlspecialchars(t('process-mapper.toolbar.connect')); ?></span>
                     </button>
-                    <button class="pm-tool-btn" onclick="PM.addGroup()" title="Add a labelled coloured rectangle behind steps to visually group them">
+                    <button class="pm-tool-btn" onclick="PM.addGroup()" title="<?php echo htmlspecialchars(t('process-mapper.toolbar.group')); ?>">
                         <svg width="18" height="18" viewBox="0 0 18 18"><rect x="1" y="1" width="16" height="16" rx="2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="3 2"/></svg>
-                        <span>Group</span>
+                        <span><?php echo htmlspecialchars(t('process-mapper.toolbar.group')); ?></span>
                     </button>
-                    <button class="pm-tool-btn" onclick="PM.addLane()" title="Add a horizontal swimlane (steps you drop into the band gain its lane assignment)">
+                    <button class="pm-tool-btn" onclick="PM.addLane()" title="<?php echo htmlspecialchars(t('process-mapper.toolbar.lane')); ?>">
                         <svg width="18" height="18" viewBox="0 0 18 18"><rect x="1" y="3" width="16" height="4" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="1" y="11" width="16" height="4" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
-                        <span>Lane</span>
+                        <span><?php echo htmlspecialchars(t('process-mapper.toolbar.lane')); ?></span>
                     </button>
                     <div class="pm-tool-sep"></div>
-                    <button class="pm-tool-btn" onclick="PM.openExportModal()" title="Export this flow as Mermaid markup (paste into GitHub, Notion, Confluence, Obsidian, etc.)">
+                    <button class="pm-tool-btn" onclick="PM.openExportModal()" title="<?php echo htmlspecialchars(t('process-mapper.toolbar.export')); ?>">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                        <span>Export</span>
+                        <span><?php echo htmlspecialchars(t('process-mapper.toolbar.export')); ?></span>
                     </button>
                 </div>
                 <div class="pm-toolbar-right">
-                    <button class="pm-tool-btn" onclick="PM.deleteSelected()" title="Delete selected (Del)">
+                    <button class="pm-tool-btn" onclick="PM.deleteSelected()" title="<?php echo htmlspecialchars(t('common.delete')); ?> (Del)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                     </button>
                     <div class="pm-tool-sep"></div>
                     <span class="pm-status" id="pmStatus" aria-live="polite"></span>
-                    <label class="pm-autosave-toggle" title="Auto-save every couple of seconds after you stop editing">
+                    <label class="pm-autosave-toggle" title="<?php echo htmlspecialchars(t('process-mapper.autosave.tooltip')); ?>">
                         <input type="checkbox" id="pmAutosaveToggle" onchange="PM.toggleAutosave(this.checked)">
                         <span class="pm-autosave-switch"></span>
-                        <span class="pm-autosave-label">Autosave</span>
+                        <span class="pm-autosave-label"><?php echo htmlspecialchars(t('process-mapper.autosave.label')); ?></span>
                     </label>
-                    <button class="pm-tool-btn" onclick="PM.save()" title="Save (Ctrl+S)">
+                    <button class="pm-tool-btn" onclick="PM.save()" title="<?php echo htmlspecialchars(t('process-mapper.toolbar.save')); ?> (Ctrl+S)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        <span>Save</span>
+                        <span><?php echo htmlspecialchars(t('process-mapper.toolbar.save')); ?></span>
                     </button>
                 </div>
             </div>
@@ -220,15 +228,15 @@ $path_prefix = '../';
     <div class="pm-modal-overlay" id="exportModal" style="display: none;" onclick="if (event.target === this) PM.closeExportModal()">
         <div class="pm-modal">
             <div class="pm-modal-header">
-                <h3>Export — Mermaid flowchart</h3>
-                <button class="pm-modal-close" onclick="PM.closeExportModal()" title="Close">&times;</button>
+                <h3><?php echo htmlspecialchars(t('process-mapper.export_modal.title')); ?></h3>
+                <button class="pm-modal-close" onclick="PM.closeExportModal()" title="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
             </div>
             <div class="pm-modal-body">
-                <p class="pm-modal-hint">Paste this markup into any Markdown editor that supports Mermaid (GitHub, GitLab, Notion, Confluence, Obsidian…). Lanes become <code>subgraph</code> blocks; auto-layout takes over from your hand-placed positions.</p>
+                <p class="pm-modal-hint"><?php echo t('process-mapper.export_modal.hint'); /* contains HTML so deliberately not escaped */ ?></p>
                 <textarea readonly id="exportText" class="pm-modal-textarea" spellcheck="false"></textarea>
                 <div class="pm-modal-actions">
-                    <button class="pm-modal-btn pm-modal-btn-primary" id="exportCopyBtn" onclick="PM.copyExport()">Copy</button>
-                    <button class="pm-modal-btn" onclick="PM.closeExportModal()">Close</button>
+                    <button class="pm-modal-btn pm-modal-btn-primary" id="exportCopyBtn" onclick="PM.copyExport()"><?php echo htmlspecialchars(t('common.copy')); ?></button>
+                    <button class="pm-modal-btn" onclick="PM.closeExportModal()"><?php echo htmlspecialchars(t('common.close')); ?></button>
                 </div>
             </div>
         </div>

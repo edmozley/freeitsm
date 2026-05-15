@@ -1,15 +1,20 @@
 <?php
 /**
- * System - Preferences (per-browser settings)
+ * System - Preferences (per-browser + per-analyst settings)
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/functions.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'preferences';
 $path_prefix = '../../';
+$locales = I18n::getSupportedLocales();
+$currentLocale = I18n::getLocale();
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars($currentLocale); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -119,6 +124,26 @@ $path_prefix = '../../';
         .anim-option:not(:last-child) { border-right: 1px solid #ddd; }
         .anim-option:hover { background: #e8e8e8; }
         .anim-option.active { background: #546e7a; color: #fff; }
+
+        .pref-language-select {
+            font-size: 14px;
+            padding: 8px 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            background: #fff;
+            min-width: 240px;
+            cursor: pointer;
+        }
+        .pref-language-select:focus { outline: none; border-color: #546e7a; }
+
+        .pref-saving-hint {
+            margin-left: 10px;
+            font-size: 12px;
+            color: #888;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .pref-saving-hint.show { opacity: 1; }
     </style>
 </head>
 <body>
@@ -128,6 +153,19 @@ $path_prefix = '../../';
         <div class="prefs-card">
             <h2>Preferences</h2>
             <p class="subtitle">Personal settings saved to this browser.</p>
+
+            <div class="pref-section">
+                <h3>Interface Language</h3>
+                <p>The language used across the FreeITSM UI. Translations fall back to English for any strings not yet covered in your chosen language. Saved against your analyst account &mdash; reloads the page on change.</p>
+                <select id="languageSelect" class="pref-language-select">
+                    <?php foreach ($locales as $code => $native): ?>
+                        <option value="<?php echo htmlspecialchars($code); ?>" <?php echo $code === $currentLocale ? 'selected' : ''; ?>>
+                            <?php echo htmlspecialchars($native); ?> (<?php echo htmlspecialchars($code); ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+                <span class="pref-saving-hint" id="langSavingHint">Saving&hellip;</span>
+            </div>
 
             <div class="pref-section">
                 <h3>Notification Position</h3>
@@ -181,6 +219,37 @@ $path_prefix = '../../';
 
             grid.appendChild(cell);
         });
+
+        // Language dropdown — persists to user_preferences (key: interface_language).
+        // On save we clear the session-cached locale via a no-op call against the same
+        // session, then reload so PHP re-renders in the new language.
+        const langSelect = document.getElementById('languageSelect');
+        const langHint   = document.getElementById('langSavingHint');
+        if (langSelect) {
+            langSelect.addEventListener('change', async function() {
+                const newLocale = langSelect.value;
+                langHint.classList.add('show');
+                try {
+                    const r = await fetch('../../api/system/set_user_preference.php', {
+                        method: 'POST',
+                        credentials: 'same-origin',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ key: 'interface_language', value: newLocale })
+                    });
+                    const d = await r.json();
+                    if (d.success) {
+                        // Reload so PHP picks up the new language for the whole UI.
+                        window.location.reload();
+                    } else {
+                        langHint.classList.remove('show');
+                        showToast(d.error || 'Failed to save language', 'error');
+                    }
+                } catch (e) {
+                    langHint.classList.remove('show');
+                    showToast('Failed to save language', 'error');
+                }
+            });
+        }
 
         // Animation toggle
         const currentAnim = localStorage.getItem('toast_animation') || 'slide';

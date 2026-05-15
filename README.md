@@ -459,6 +459,33 @@ Currently encrypted in `target_mailboxes`:
 ### Functions (`includes/functions.php`)
 Contains `connectToDatabase()` which returns a PDO MySQL connection using the credentials from `db_config.php`. Also contains `getAnalystAllowedModules()` which loads module access permissions for an analyst.
 
+### i18n (`includes/i18n.php`, `assets/js/i18n.js`, `lang/`)
+Native multi-language support with a `t('namespace.path.to.key')` call pattern in both PHP and JavaScript. Phase 1 ships the infrastructure plus a pilot conversion of the Process Mapper module.
+
+**Folder structure**: `lang/<locale>/<namespace>.php` returns a nested PHP array of translations. The first dot-separated segment of a `t()` key maps to the filename; everything after walks the nested array.
+
+```
+lang/
+  en/common.php             → t('common.save')           → "Save"
+  en/process-mapper.php     → t('process-mapper.toolbar.process') → "Process"
+  fr/common.php             → t('common.save')           → "Enregistrer"
+  fr/process-mapper.php     → t('process-mapper.toolbar.process') → "Étape"
+```
+
+**Supported locales** (phase 1): `en`, `fr`, `de`, `es`, `pt-BR`, `nl`, `it`, `pl`. Adding a language is a code change &mdash; add to `I18n::SUPPORTED_LOCALES` and create the `lang/<code>/` folder. Locale codes follow BCP 47 (matches HTML `lang` attribute), with the hyphen form used for region-subtagged locales (`pt-BR`).
+
+**Fallback is per key, not per file**. If `lang/de/tickets.php` has 80% of keys translated, you get those 80% in German and the missing 20% in English. Files that simply don't exist for a locale are treated as empty. Last-resort behaviour: return the key itself so unfilled strings are visible during development.
+
+**Interpolation**: `t('common.welcome', ['name' => 'Ed'])` substitutes `{name}` in the translation. Unknown placeholders are left as-is.
+
+**JS bridge**: pages declare which namespaces they need (`$translationNamespaces = ['common', 'process-mapper']`), and the PHP page emits `window.translations = {...}` with English fallback already merged in per key. JS calls `t('common.save')` using the same key form as PHP.
+
+**Locale resolution** (in priority order): logged-in analyst's `interface_language` user preference → browser `Accept-Language` header (best supported match, primary subtag fallback) → `'en'`. Selectable in `System &rarr; Preferences` &mdash; on change, persists to `user_preferences` and reloads the page so PHP re-renders.
+
+**Security**: namespace identifiers are regex-validated to prevent path traversal via the `t()` argument; locale codes are validated against the supported list before being used as a directory name; JSON encoding of the JS bridge uses `JSON_HEX_*` flags to prevent script-tag injection from translation values.
+
+**Adding translations to a module**: include `includes/i18n.php`, call `I18n::initFromSession()`, set `$translationNamespaces` for the JS bridge, set `<html lang>` to `I18n::getLocale()`, and replace literal strings in PHP with `<?php echo htmlspecialchars(t('namespace.key')); ?>` and in JS with `t('namespace.key')`.
+
 ### Module Header Pattern
 Each module has its own `includes/header.php` that:
 1. Checks session authentication (redirects to login if not logged in)
