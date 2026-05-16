@@ -367,13 +367,22 @@ $path_prefix = '../';
             color: #1f2937;
             text-align: center;
             line-height: 1.2;
-            max-width: 110px;
+            /* Wider than the icon so multi-word names like "Production Database"
+               sit on one line. overflow-wrap (not word-break: break-word) means
+               whole words stay intact — "FREEITSM" stays whole rather than
+               splitting mid-character to "FREEIT / SM". Single tokens that
+               genuinely don't fit fall back to breaking; the 2-line clamp +
+               ellipsis catches anything still too long. Hover tooltip shows
+               the full name regardless. */
+            max-width: 140px;
             overflow: hidden;
             text-overflow: ellipsis;
             display: -webkit-box;
+            line-clamp: 2;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
-            word-break: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
         }
         /* Planned-node styling — dashed border + amber tint, matching the CMDB browse/detail treatment */
         .nm-node.is-planned {
