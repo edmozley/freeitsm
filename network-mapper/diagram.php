@@ -488,6 +488,233 @@ $path_prefix = '../';
         .nm-node.selected .nm-edge-handle { opacity: 1; }
         .nm-edge-handle:hover { transform: translate(-50%, -50%) scale(1.3); background: #0891b2; }
 
+        /* ---- Node detail panel (slides in beside canvas when a node is selected) ---- */
+        .nm-detail-panel {
+            width: 0;
+            background: white;
+            border-left: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            overflow: hidden;
+            transition: width 0.18s ease;
+        }
+        .nm-detail-panel.open { width: 320px; }
+        .nm-detail-header {
+            padding: 14px 16px;
+            border-bottom: 1px solid #e5e7eb;
+            background: #fafbfc;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .nm-detail-title-area {
+            display: flex;
+            gap: 10px;
+            min-width: 0;
+            flex: 1;
+            align-items: center;
+        }
+        .nm-detail-icon {
+            color: #0e7490;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .nm-detail-title-text { min-width: 0; }
+        .nm-detail-title-text h3 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #111827;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .nm-detail-subtitle {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+        .nm-detail-close {
+            background: transparent;
+            border: 0;
+            color: #9ca3af;
+            font-size: 22px;
+            line-height: 1;
+            cursor: pointer;
+            padding: 0 4px;
+        }
+        .nm-detail-close:hover { color: #111827; }
+        .nm-detail-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 14px 16px;
+        }
+        .nm-detail-section { margin-bottom: 14px; }
+        .nm-detail-field {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+        }
+        .nm-detail-field:last-child { border-bottom: 0; }
+        .nm-detail-label { color: #6b7280; flex-shrink: 0; }
+        .nm-detail-value { color: #111827; text-align: right; word-break: break-word; }
+        .nm-detail-value a { color: #0e7490; text-decoration: none; }
+        .nm-detail-value a:hover { text-decoration: underline; }
+        .nm-detail-planned-pill {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+            padding: 1px 6px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+            vertical-align: middle;
+        }
+        .nm-detail-actions {
+            margin: 14px 0 10px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .nm-detail-actions .nm-btn { width: 100%; padding: 9px 14px; }
+        .nm-detail-hint {
+            font-size: 12px;
+            color: #6b7280;
+            line-height: 1.5;
+            margin: 8px 0 0 0;
+        }
+
+        /* ---- Related-objects modal ---- */
+        .nm-modal.nm-modal-wide { width: 560px; }
+        .nm-rm-intro {
+            font-size: 13px;
+            color: #6b7280;
+            margin: 0 0 14px 0;
+            line-height: 1.5;
+        }
+        .nm-rm-results {
+            border: 1px solid #e5e7eb;
+            border-radius: 4px;
+            background: #fafbfc;
+            max-height: 420px;
+            overflow-y: auto;
+        }
+        .nm-rm-loading,
+        .nm-rm-empty {
+            padding: 28px 16px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+        .nm-rm-group {
+            background: white;
+        }
+        .nm-rm-group + .nm-rm-group { border-top: 1px solid #e5e7eb; }
+        .nm-rm-group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 14px;
+            background: #f9fafb;
+            font-size: 11px;
+            font-weight: 600;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .nm-rm-group-count { color: #9ca3af; font-weight: 500; }
+        .nm-rm-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 14px;
+            border-bottom: 1px solid #f3f4f6;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .nm-rm-row:last-child { border-bottom: 0; }
+        .nm-rm-row:hover { background: #ecfeff; }
+        .nm-rm-row.disabled { opacity: 0.55; cursor: not-allowed; background: #fafbfc; }
+        .nm-rm-row.disabled:hover { background: #fafbfc; }
+        .nm-rm-checkbox {
+            margin: 0;
+            width: 16px;
+            height: 16px;
+            accent-color: #06b6d4;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .nm-rm-icon {
+            color: #0e7490;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            width: 22px;
+        }
+        .nm-rm-main {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+        .nm-rm-name {
+            font-weight: 500;
+            color: #1f2937;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-width: 0;
+        }
+        .nm-rm-name-text {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .nm-rm-class {
+            font-size: 11px;
+            color: #6b7280;
+        }
+        .nm-rm-link-text {
+            font-size: 11px;
+            color: #0e7490;
+            font-style: italic;
+        }
+        .nm-rm-onboard {
+            font-size: 10px;
+            color: #6b7280;
+            background: #e5e7eb;
+            padding: 1px 6px;
+            border-radius: 999px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+        }
+        .nm-rm-planned-pill {
+            display: inline-block;
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+            padding: 1px 6px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
         /* ---- Object picker modal ---- */
         .nm-picker-search-wrap { margin-bottom: 12px; }
         .nm-picker-search {
@@ -669,6 +896,34 @@ $path_prefix = '../';
                     <p>Drag a class from the palette onto the canvas to start placing nodes. You'll be asked which CMDB object to bind it to.</p>
                 </div>
             </div>
+            <!-- Detail panel (slides in when a node is selected). Sits beside
+                 the canvas inside the same wrap so it shrinks the canvas
+                 rather than overlaying it — a chunk-D-only addition. -->
+            <aside class="nm-detail-panel" id="nodeDetailPanel" aria-hidden="true">
+                <div class="nm-detail-header">
+                    <div class="nm-detail-title-area">
+                        <div class="nm-detail-icon" id="ndIcon"></div>
+                        <div class="nm-detail-title-text">
+                            <h3 id="ndName">Node</h3>
+                            <div class="nm-detail-subtitle" id="ndClass">&mdash;</div>
+                        </div>
+                    </div>
+                    <button class="nm-detail-close" onclick="NM.closeDetail()" title="Close (Esc)">&times;</button>
+                </div>
+                <div class="nm-detail-body">
+                    <div class="nm-detail-section">
+                        <div class="nm-detail-field"><span class="nm-detail-label">Class</span><span class="nm-detail-value" id="ndClassValue">&mdash;</span></div>
+                        <div class="nm-detail-field" id="ndPlannedRow" style="display:none;"><span class="nm-detail-label">Status</span><span class="nm-detail-value"><span class="nm-detail-planned-pill">PLANNED</span> Future state</span></div>
+                        <div class="nm-detail-field"><span class="nm-detail-label">CMDB</span><span class="nm-detail-value"><a id="ndCmdbLink" href="#" target="_blank">Open in CMDB &rarr;</a></span></div>
+                    </div>
+                    <div class="nm-detail-actions">
+                        <button class="nm-btn" id="ndAddRelatedBtn" onclick="NM.openRelatedModal()">Add related objects</button>
+                    </div>
+                    <p class="nm-detail-hint">
+                        Pulls in CMDB neighbours of this object &mdash; what it depends on, what depends on it, and any objects that reference it via a property. Tick which to add; selected objects get placed in a ring around this node and a connector is drawn for each so the line traces back to a real relationship.
+                    </p>
+                </div>
+            </aside>
         </div>
     </div>
 
@@ -686,6 +941,27 @@ $path_prefix = '../';
             </div>
             <div class="nm-modal-actions">
                 <button class="nm-btn secondary" onclick="NM.closeObjectPicker()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add-related-objects modal (opened from the node detail panel) -->
+    <div class="nm-modal-overlay" id="relatedObjectsModal">
+        <div class="nm-modal nm-modal-wide">
+            <div class="nm-modal-header">
+                Add objects related to <span id="rmSourceName">&hellip;</span>
+            </div>
+            <div class="nm-modal-body">
+                <p class="nm-rm-intro">
+                    Tick any to add them to the diagram. Each tick places the object as a new node (auto-laid-out around the source) and draws a connector that mirrors the relationship.
+                </p>
+                <div class="nm-rm-results" id="rmResults">
+                    <div class="nm-rm-loading">Loading related objects&hellip;</div>
+                </div>
+            </div>
+            <div class="nm-modal-actions">
+                <button class="nm-btn secondary" onclick="NM.closeRelatedModal()">Cancel</button>
+                <button class="nm-btn" id="rmAddBtn" onclick="NM.commitRelatedSelections()" disabled>Add</button>
             </div>
         </div>
     </div>
@@ -733,6 +1009,7 @@ $path_prefix = '../';
             if (e.key === 'Escape') {
                 NM.closeNewVersionModal();
                 NM.closeObjectPicker();
+                NM.closeRelatedModal();
             }
         });
 
@@ -742,6 +1019,9 @@ $path_prefix = '../';
         });
         document.getElementById('objectPickerModal').addEventListener('click', function (e) {
             if (e.target === e.currentTarget) NM.closeObjectPicker();
+        });
+        document.getElementById('relatedObjectsModal').addEventListener('click', function (e) {
+            if (e.target === e.currentTarget) NM.closeRelatedModal();
         });
 
         // Warn on unload if there are unsaved changes — guard against the user

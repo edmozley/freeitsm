@@ -72,11 +72,18 @@
     let pickerHighlight = 0;
     let pickerSearchTimer = null;
 
+    // ---- related-objects modal state ----
+    let relatedSourceNode = null; // node we opened the modal for
+    let relatedRows = [];         // [{ row index → fetched row object }]
+    let relatedSelected = new Set(); // indices of ticked rows
+
     // ---- DOM refs (filled in init) ----
     let elTitle, elVersionPill, elMetaRow, elMetaAuthor, elMetaCreated, elMetaUpdated;
     let elStatus, elSaveBtn, elSaveVersionBtn, elAutosaveToggle, elAutosaveWrap;
     let elPaletteBody, elCanvas, elReadonlyBanner, elCanvasEmpty;
     let elPickerModal, elPickerClassLabel, elPickerSearch, elPickerResults;
+    let elDetailPanel, elNdIcon, elNdName, elNdClass, elNdClassValue, elNdPlannedRow, elNdCmdbLink, elNdAddRelatedBtn;
+    let elRelatedModal, elRmSourceName, elRmResults, elRmAddBtn;
 
     // =========================================================
     //  Initialisation
@@ -103,6 +110,18 @@
         elPickerClassLabel = document.getElementById('pickerClassLabel');
         elPickerSearch    = document.getElementById('pickerSearch');
         elPickerResults   = document.getElementById('pickerResults');
+        elDetailPanel     = document.getElementById('nodeDetailPanel');
+        elNdIcon          = document.getElementById('ndIcon');
+        elNdName          = document.getElementById('ndName');
+        elNdClass         = document.getElementById('ndClass');
+        elNdClassValue    = document.getElementById('ndClassValue');
+        elNdPlannedRow    = document.getElementById('ndPlannedRow');
+        elNdCmdbLink      = document.getElementById('ndCmdbLink');
+        elNdAddRelatedBtn = document.getElementById('ndAddRelatedBtn');
+        elRelatedModal    = document.getElementById('relatedObjectsModal');
+        elRmSourceName    = document.getElementById('rmSourceName');
+        elRmResults       = document.getElementById('rmResults');
+        elRmAddBtn        = document.getElementById('rmAddBtn');
 
         ensureSvgLayer();
         bindCanvasEvents();
@@ -550,6 +569,12 @@
         Array.from(elCanvas.querySelectorAll('.nm-node')).forEach(el => {
             el.classList.toggle('selected', el.dataset.key === key);
         });
+        // Drive the detail panel off the selection: open it when a node is
+        // selected, close when selection clears. Keeps node/panel state in sync
+        // without callers having to remember to call openDetail() themselves.
+        const n = key ? findNodeByKey(key) : null;
+        if (n) openDetailForNode(n);
+        else closeDetail();
     }
 
     function onNodeMouseDown(e) {
@@ -624,8 +649,10 @@
                 && c.to_node_id   !== myId && c.to_node_id   !== myTemp;
         });
         nodes = nodes.filter(other => other !== n);
-        selectedNodeKey = null;
-        selectedConnectorKey = null;
+        // Route deselection through selectNode/selectConnector so side effects
+        // (detail panel close, connector re-render) fire correctly.
+        selectNode(null);
+        selectConnector(null);
         renderNodes();
         markDirty();
     }
@@ -909,6 +936,261 @@
         }) || null;
     }
 
+    // =========================================================
+    //  Node detail panel — opens beside the canvas when a node is selected
+    // =========================================================
+    function openDetailForNode(n) {
+        if (!elDetailPanel) return;
+        elDetailPanel.classList.add('open');
+        elDetailPanel.setAttribute('aria-hidden', 'false');
+
+        const iconKey = n.icon_override || n.class_icon || 'box';
+        elNdIcon.innerHTML = window.nmRenderIcon ? window.nmRenderIcon(iconKey, 28) : '';
+        elNdName.textContent = n.name;
+        elNdName.title = n.name;
+        elNdClass.textContent = n.class_name || '';
+        elNdClassValue.textContent = n.class_name || '—';
+        elNdPlannedRow.style.display = n.is_planned ? '' : 'none';
+        // CMDB deep-link — opens the object detail page in a new tab
+        elNdCmdbLink.href = '../cmdb/object.php?id=' + n.cmdb_object_id;
+
+        // "Add related objects" is a mutation; gate on the editable version
+        elNdAddRelatedBtn.disabled = !diagram || !diagram.is_current;
+        elNdAddRelatedBtn.title = elNdAddRelatedBtn.disabled
+            ? 'Historical versions are read-only'
+            : 'Pull in CMDB neighbours of this object';
+    }
+
+    function closeDetail() {
+        if (!elDetailPanel) return;
+        elDetailPanel.classList.remove('open');
+        elDetailPanel.setAttribute('aria-hidden', 'true');
+    }
+
+    // =========================================================
+    //  Add-related-objects modal
+    // =========================================================
+    function openRelatedModal() {
+        if (!diagram || !diagram.is_current) return;
+        if (selectedNodeKey == null) return;
+        const src = findNodeByKey(selectedNodeKey);
+        if (!src) return;
+        // Persisted nodes only — a brand-new (unsaved) node has no real CMDB
+        // edge to walk yet on the server, and from_node_id on the resulting
+        // connectors would need a real id eventually anyway. Asking the user
+        // to save first is the simplest contract.
+        if (!src.id) {
+            if (window.showToast) showToast('Save the diagram first so this node has a stable id', 'info');
+            return;
+        }
+        relatedSourceNode = src;
+        relatedRows = [];
+        relatedSelected.clear();
+        elRmSourceName.textContent = src.name;
+        elRmResults.innerHTML = '<div class="nm-rm-loading">Loading related objects&hellip;</div>';
+        elRmAddBtn.disabled = true;
+        elRmAddBtn.textContent = 'Add';
+        elRelatedModal.classList.add('active');
+        fetchRelatedRows(src.cmdb_object_id);
+    }
+
+    function closeRelatedModal() {
+        elRelatedModal.classList.remove('active');
+        relatedSourceNode = null;
+        relatedRows = [];
+        relatedSelected.clear();
+    }
+
+    async function fetchRelatedRows(cmdbObjectId) {
+        try {
+            const resp = await fetch(API + 'get_related_objects.php?object_id=' + cmdbObjectId, { credentials: 'same-origin' });
+            const data = await resp.json();
+            if (!data.success) throw new Error(data.error || 'Failed to load');
+            relatedRows = data.related || [];
+            renderRelatedRows();
+        } catch (e) {
+            elRmResults.innerHTML = '<div class="nm-rm-empty">Failed to load: ' + escapeHtml(e.message) + '</div>';
+        }
+    }
+
+    function renderRelatedRows() {
+        if (!relatedRows.length) {
+            elRmResults.innerHTML = '<div class="nm-rm-empty">' +
+                'No related objects in CMDB yet. Add relationships or object-ref properties on the source object in CMDB, then come back.' +
+                '</div>';
+            return;
+        }
+        // Group by kind so the modal reads naturally: "what this depends on",
+        // "what depends on this", "what references this via a property"
+        const groups = [
+            { kind: 'outgoing', label: 'This object &rarr; others', rows: [] },
+            { kind: 'incoming', label: 'Others &rarr; this object', rows: [] },
+            { kind: 'property', label: 'Referenced by properties', rows: [] }
+        ];
+        const onCanvas = new Set(nodes.map(n => n.cmdb_object_id));
+        relatedRows.forEach((r, idx) => {
+            const g = groups.find(x => x.kind === r.kind);
+            if (g) g.rows.push({ row: r, idx: idx, onCanvas: onCanvas.has(r.object_id) });
+        });
+
+        let html = '';
+        groups.forEach(g => {
+            if (!g.rows.length) return;
+            html += '<div class="nm-rm-group">';
+            html += '<div class="nm-rm-group-header"><span>' + g.label + '</span><span class="nm-rm-group-count">' + g.rows.length + '</span></div>';
+            g.rows.forEach(({ row, idx, onCanvas }) => {
+                const icon = window.nmRenderIcon ? window.nmRenderIcon(row.class_icon || 'box', 18) : '';
+                const planned = row.is_planned ? '<span class="nm-rm-planned-pill">PLANNED</span>' : '';
+                const onBoard = onCanvas ? '<span class="nm-rm-onboard">on canvas</span>' : '';
+                const disabled = onCanvas ? ' disabled' : '';
+                const checked = (!onCanvas && relatedSelected.has(idx)) ? ' checked' : '';
+                html +=
+                    '<label class="nm-rm-row' + disabled + '" data-idx="' + idx + '">' +
+                        '<input type="checkbox" class="nm-rm-checkbox"' + checked + (onCanvas ? ' disabled' : '') + '>' +
+                        '<span class="nm-rm-icon">' + icon + '</span>' +
+                        '<span class="nm-rm-main">' +
+                            '<span class="nm-rm-name">' +
+                                '<span class="nm-rm-name-text">' + escapeHtml(row.name) + '</span>' +
+                                planned + onBoard +
+                            '</span>' +
+                            '<span class="nm-rm-class">' +
+                                escapeHtml(row.class_name) +
+                                ' &middot; <span class="nm-rm-link-text">' + escapeHtml(row.label || '') + '</span>' +
+                            '</span>' +
+                        '</span>' +
+                    '</label>';
+            });
+            html += '</div>';
+        });
+        elRmResults.innerHTML = html;
+        elRmResults.querySelectorAll('.nm-rm-row').forEach(row => {
+            const cb = row.querySelector('input[type=checkbox]');
+            if (!cb || cb.disabled) return;
+            // Click anywhere on the row toggles the checkbox; checkbox click
+            // already handled natively so don't double-fire on input changes.
+            cb.addEventListener('change', () => {
+                const idx = parseInt(row.dataset.idx, 10);
+                if (cb.checked) relatedSelected.add(idx);
+                else relatedSelected.delete(idx);
+                updateRelatedAddBtn();
+            });
+        });
+        updateRelatedAddBtn();
+    }
+
+    function updateRelatedAddBtn() {
+        const n = relatedSelected.size;
+        elRmAddBtn.disabled = n === 0;
+        elRmAddBtn.textContent = n === 0 ? 'Add' : 'Add ' + n + ' object' + (n === 1 ? '' : 's');
+    }
+
+    function commitRelatedSelections() {
+        if (!relatedSourceNode) return;
+        if (!relatedSelected.size) return;
+        const src = relatedSourceNode;
+        const picks = [...relatedSelected].map(i => relatedRows[i]).filter(Boolean);
+        if (!picks.length) return;
+
+        // Figure out which picks correspond to objects not yet on the canvas;
+        // those need a placed node. Deduplicate by object_id (an object might
+        // be ticked twice via two different relationship paths — place it
+        // once, draw a connector per path).
+        const existingByCmdb = new Map();
+        nodes.forEach(n => existingByCmdb.set(n.cmdb_object_id, n));
+        const newPlacements = [];
+        const seenNew = new Set();
+        picks.forEach(p => {
+            if (existingByCmdb.has(p.object_id) || seenNew.has(p.object_id)) return;
+            seenNew.add(p.object_id);
+            newPlacements.push(p);
+        });
+
+        // Lay new nodes out in a ring around the source. Radius scales with
+        // the count so a big pull-in doesn't crowd. Angles start at 12 o'clock
+        // and walk clockwise; existing nodes get nudged onto the grid if they
+        // collide with another node.
+        const srcCx = src.x + NODE_PADDING + (NODE_SIZES[src.size] || NODE_SIZES.medium) / 2;
+        const srcCy = src.y + NODE_PADDING + (NODE_SIZES[src.size] || NODE_SIZES.medium) / 2;
+        const iconPx = NODE_SIZES.medium;
+        const baseRadius = 180;
+        const radius = Math.max(baseRadius, baseRadius + (newPlacements.length - 6) * 12);
+        const n = newPlacements.length;
+
+        newPlacements.forEach((p, i) => {
+            const angle = (-Math.PI / 2) + (i / Math.max(1, n)) * Math.PI * 2;
+            const cx = srcCx + Math.cos(angle) * radius;
+            const cy = srcCy + Math.sin(angle) * radius;
+            const x = Math.max(0, snap(cx - iconPx / 2 - NODE_PADDING));
+            const y = Math.max(0, snap(cy - iconPx / 2 - NODE_PADDING));
+            const cls = classById[p.class_id];
+            const node = {
+                id: null,
+                tempId: nextTempId--,
+                cmdb_object_id: p.object_id,
+                name: p.name,
+                class_id: p.class_id,
+                class_name: p.class_name,
+                class_icon: p.class_icon || (cls ? cls.icon_key : 'box'),
+                is_planned: !!p.is_planned,
+                x: x,
+                y: y,
+                size: 'medium',
+                icon_override: null
+            };
+            nodes.push(node);
+            existingByCmdb.set(p.object_id, node);
+        });
+
+        // Now create a connector per picked path. Direction respects the
+        // relationship kind: outgoing goes src→other, incoming goes other→src,
+        // property-ref goes other→src too (since other.property = src).
+        let connectorsAdded = 0;
+        picks.forEach(p => {
+            const target = existingByCmdb.get(p.object_id);
+            if (!target) return;
+            const srcRef    = nodeRef(src);
+            const targetRef = nodeRef(target);
+            if (srcRef === targetRef) return;
+
+            let fromRef, toRef;
+            if (p.kind === 'outgoing') {
+                fromRef = srcRef;    toRef = targetRef;
+            } else {
+                // incoming / property — other points at src
+                fromRef = targetRef; toRef = srcRef;
+            }
+            // Skip if an identical directed connector already exists
+            if (connectors.some(c => c.from_node_id === fromRef && c.to_node_id === toRef)) return;
+
+            connectors.push({
+                id: null,
+                _tempKey: nextTempId--,
+                from_node_id: fromRef,
+                to_node_id: toRef,
+                // Real CMDB relationships get a provenance link; property-ref
+                // paths have no row in cmdb_object_relationships, so the
+                // connector is labelled with the property name instead.
+                cmdb_relationship_id: p.relationship_id || null,
+                label: p.label || null,
+                line_style: 'solid'
+            });
+            connectorsAdded++;
+        });
+
+        closeRelatedModal();
+        renderNodes();
+        if (window.showToast) {
+            const placedMsg = newPlacements.length
+                ? newPlacements.length + ' object' + (newPlacements.length === 1 ? '' : 's') + ' added'
+                : 'No new objects placed';
+            const connMsg = connectorsAdded
+                ? connectorsAdded + ' connector' + (connectorsAdded === 1 ? '' : 's')
+                : '';
+            showToast(connMsg ? placedMsg + ' · ' + connMsg : placedMsg, 'success');
+        }
+        markDirty();
+    }
+
     function cssEscape(s) {
         // Minimal escape for data-key selector use (keys are 'r123' or 't-1' so
         // safe in practice, but be defensive in case the format ever changes)
@@ -1062,11 +1344,15 @@
                 // connectors; after reload everything has a real id so any
                 // existing selection key is stale by definition. Drop it.
                 selectedConnectorKey = null;
+                // Force selectNode() below to actually run rather than
+                // short-circuit on an unchanged key — the node *object* under
+                // that key has been swapped out by the reload and the detail
+                // panel needs to refresh with the new instance.
+                selectedNodeKey = null;
                 renderNodes();
                 if (selectedCmdbId) {
                     const reselect = nodes.find(n => n.cmdb_object_id === selectedCmdbId);
-                    selectedNodeKey = reselect ? nodeKey(reselect) : null;
-                    if (selectedNodeKey) selectNode(selectedNodeKey);
+                    if (reselect) selectNode(nodeKey(reselect));
                 }
             }
 
@@ -1180,6 +1466,12 @@
         // picker
         closeObjectPicker,
         onPickerSearchInput,
-        onPickerKeyDown
+        onPickerKeyDown,
+        // detail panel
+        closeDetail,
+        // related-objects modal
+        openRelatedModal,
+        closeRelatedModal,
+        commitRelatedSelections
     };
 })();
