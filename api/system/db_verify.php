@@ -1633,6 +1633,38 @@ $schema = [
         'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'created_by_analyst_id' => 'INT NULL',
     ],
+
+    // Network Mapper — visual diagrams over the CMDB graph (see freeitsm.sql header).
+    'network_diagrams' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'parent_diagram_id'     => 'INT NULL',
+        'title'                 => 'VARCHAR(255) NOT NULL',
+        'description'           => 'TEXT NULL',
+        'version_label'         => 'VARCHAR(50) NULL',
+        'created_by_analyst_id' => 'INT NULL',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'network_diagram_nodes' => [
+        'id'             => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'     => 'INT NOT NULL',
+        'cmdb_object_id' => 'INT NOT NULL',
+        'x'              => 'INT NOT NULL DEFAULT 0',
+        'y'              => 'INT NOT NULL DEFAULT 0',
+        'size'           => "VARCHAR(20) NOT NULL DEFAULT 'medium'",
+        'icon_override'  => 'VARCHAR(100) NULL',
+    ],
+
+    'network_diagram_connectors' => [
+        'id'                   => 'INT NOT NULL AUTO_INCREMENT',
+        'diagram_id'           => 'INT NOT NULL',
+        'from_node_id'         => 'INT NOT NULL',
+        'to_node_id'           => 'INT NOT NULL',
+        'cmdb_relationship_id' => 'INT NULL',
+        'label'                => 'VARCHAR(255) NULL',
+        'line_style'           => "VARCHAR(20) NULL DEFAULT 'solid'",
+    ],
 ];
 
 // Primary key definitions: table => pk_column (defaults to 'id')

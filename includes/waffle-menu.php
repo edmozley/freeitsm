@@ -113,6 +113,11 @@ $modules = [
         'path' => 'cmdb/',
         'icon' => '<path d="M2 22V8l10-6 10 6v14"></path><path d="M2 12h20"></path><path d="M2 17h20"></path><line x1="12" y1="2" x2="12" y2="22"></line>'
     ],
+    'network-mapper' => [
+        'name' => 'Network',
+        'path' => 'network-mapper/',
+        'icon' => '<circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="12" cy="18" r="2.5"></circle><line x1="7.5" y1="7.5" x2="11" y2="16"></line><line x1="16.5" y1="7.5" x2="13" y2="16"></line><line x1="8.5" y1="6" x2="15.5" y2="6"></line>'
+    ],
     'system' => [
         'name' => 'System',
         'path' => 'system/',

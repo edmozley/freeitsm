@@ -79,6 +79,7 @@ A comprehensive web-based IT Service Management (ITSM) platform with 17 integrat
   - [Self-Service Portal](#self-service-portal-self-service)
   - [LMS](#lms-lms)
   - [Process Mapper](#process-mapper-process-mapper)
+  - [Network Mapper](#network-mapper-network-mapper)
   - [Tasks](#tasks-tasks)
 - [Browser Extension](#browser-extension)
 - [API Reference](#api-reference)
@@ -367,6 +368,11 @@ sdtickets/
 │   ├── index.php                     # Visual flowchart editor
 │   └── includes/
 │
+├── network-mapper/                   # Network Mapper Module
+│   ├── index.php                     # Diagrams landing page
+│   ├── diagram.php                   # Per-diagram editor shell
+│   └── includes/
+│
 ├── setup/                            # Setup verification (delete after going live)
 │   └── index.php                     # Diagnostic checks page
 │
@@ -386,6 +392,7 @@ sdtickets/
 │   ├── auth/                         # 2 endpoints (password reset request/confirm)
 │   ├── lms/                          # 9 endpoints (courses, groups, assignments, progress, SCORM data)
 │   ├── process-mapper/               # 4 endpoints (list, get, save, delete)
+│   ├── network-mapper/               # 7 endpoints (list/get/create/save/delete diagrams + versions)
 │   ├── external/                     # External API (software inventory)
 │   └── watchtower/                   # Watchtower API (session + extension endpoints)
 │
@@ -731,6 +738,17 @@ Visual flowchart builder for documenting processes and workflows.
 - **Gradient fills** on both steps and groups. Detail panel's Colour input grows a `Gradient` checkbox plus a second-colour picker; when on, the shape renders as `linear-gradient(135deg, color, color2)` for a subtle diagonal fade. Stored as a separate `color2` column (nullable — null = solid as before). The default second colour seeded into the picker when you tick the box is a 40-unit darker shade of the primary colour so the gradient looks sensible out of the gate, but you can change it to anything.
 - **Swimlanes**: Horizontal bands stacked top-to-bottom across the canvas, with a left-edge label header showing the lane name (vertically). Steps gain a nullable `lane_id` that auto-assigns based on where the step ends up after each drag. Drag a lane's header up/down to reorder — all steps in every affected lane reflow to stay anchored to their lane's band. Drag the bottom edge of a lane to resize it — lanes below shift, and steps in them follow. Per-lane gradient fills supported via the same `color2` mechanic as steps and groups. Delete a lane: it disappears, the lanes below shift up to close the gap, and steps that belonged to it have their `lane_id` cleared but keep their position so nothing is lost. Persisted in the `process_lanes` table (id, process_id, label, color, color2, display_order, height); lane id flows through `save.php` as a temp-to-real mapping so newly-created lanes in the same save are referenced correctly by step `lane_id`.
 - **Export to Mermaid**: Toolbar `Export` button opens a modal with the current process rendered as [Mermaid](https://mermaid.js.org/) flowchart markup, ready to paste into any Markdown editor that supports it (GitHub READMEs, GitHub/GitLab wikis, Notion, Confluence, Obsidian, Mermaid Live Editor, etc.). Lanes become `subgraph` blocks with `flowchart LR` direction so they stack vertically like horizontal swimlanes. Step shapes map to Mermaid's classic syntax: Process → `["label"]` rectangle, Decision → `{"label"}` rhombus, Terminal → `(["label"])` stadium, Document → `[/"label"/]` parallelogram. Connectors become `-->` arrows (with `-->|"label"|` if they have labels) and Mermaid resolves IDs across subgraph boundaries so cross-lane connectors just work. Hand-placed positions, colours, gradients, and groups don't survive — Mermaid auto-layouts. Copy button uses the Clipboard API with a Ctrl-A/Ctrl-C fallback. Lossy on visuals, faithful on structure.
+
+### Network Mapper (`network-mapper/`)
+Visual layer over the CMDB for drawing network and architecture diagrams. Diagrams are not standalone artwork — every node is a binding to a real CMDB object, so the diagram stays in sync with what the rest of the platform knows.
+
+> **Status (chunk A)**: foundation only — schema, backend APIs, module skeleton, landing page, stub editor. Drag-to-canvas / bind-to-CMDB / autosave land in the next chunks.
+
+- **Versioning from day one**: each diagram is a row in a `network_diagrams` chain linked by `parent_diagram_id`. The leaf (no children) is the editable "current" version; older nodes are read-only history. Saving as a new version clones the leaf forward and stamps the old leaf as historical. No branching in v1 — a parent can have at most one child, so a chain is strictly linear.
+- **Landing page** (`network-mapper/`): grid of cards, one per chain, each showing title, version pill (with chain length when > 1 version), description preview, node + connector counts, author, and updated timestamp. Filter-by-title search. **+ New diagram** modal collects title, description, and an initial version label (default `v1`).
+- **Editor shell** (`network-mapper/diagram.php?id=X`): title bar with a version pill that turns amber + reads "(read-only)" for historical versions, a metadata row (author / created / updated), a left-side CMDB class palette, and the canvas surface. Save is disabled until canvas content exists in a later chunk.
+- **Schema** (3 tables, all prefixed `network_`): `network_diagrams` (chain root via self-FK `parent_diagram_id` with `ON DELETE SET NULL` so deleting a version doesn't cascade through history), `network_diagram_nodes` (FK to `cmdb_objects` for binding, plus position `x/y`, `size` enum `small/medium/large`, and optional `icon_override` for per-node visual swap), `network_diagram_connectors` (from/to node ids with optional `cmdb_relationship_id` if the line corresponds to a real CMDB relationship, plus free-text `label` and `line_style`). FKs cascade nodes + connectors on diagram delete; node delete cascades its incident connectors.
+- **APIs** (`api/network-mapper/`): `list_diagrams.php` (leaf versions only — filters with `WHERE id NOT IN (SELECT parent_diagram_id…)`), `list_versions.php` (root-to-leaf chain ordered oldest first), `get_diagram.php` (single version hydrated with CMDB object name/class/icon/`is_planned` per node), `create_diagram.php`, `create_version.php` (clones forward, refuses to fork an already-forked parent), `save_diagram.php` (transactional with temp→real node id mapping for connector refs; refuses to save non-leaf versions; only updates metadata fields the caller explicitly sends), `delete_diagram.php` (single version delete — older versions in the chain preserved via the `SET NULL` parent_diagram_id behaviour).
 
 ### Tasks (`tasks/`)
 Kanban-style task management with board and list views for tracking internal work.

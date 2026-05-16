@@ -2242,6 +2242,62 @@ CREATE TABLE IF NOT EXISTS `ticket_cmdb_objects` (
     CONSTRAINT `fk_tco_analyst` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ============================================================================
+-- Network Mapper — visual diagrams over the CMDB graph.
+-- A diagram is a curated view of a subset of CMDB objects plus the connections
+-- between them. Diagrams support versioning: parent_diagram_id chains forward
+-- through versions, with the "current" (editable) version being whichever row
+-- in the chain has no children. Old versions are read-only historical records.
+-- ============================================================================
+
+CREATE TABLE IF NOT EXISTS `network_diagrams` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `parent_diagram_id`     INT NULL,
+    `title`                 VARCHAR(255) NOT NULL,
+    `description`           TEXT NULL,
+    `version_label`         VARCHAR(50) NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_net_diag_parent` (`parent_diagram_id`),
+    KEY `ix_net_diag_author` (`created_by_analyst_id`),
+    CONSTRAINT `fk_net_diag_parent` FOREIGN KEY (`parent_diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_net_diag_author` FOREIGN KEY (`created_by_analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `network_diagram_nodes` (
+    `id`             INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`     INT NOT NULL,
+    `cmdb_object_id` INT NOT NULL,
+    `x`              INT NOT NULL DEFAULT 0,
+    `y`              INT NOT NULL DEFAULT 0,
+    `size`           VARCHAR(20) NOT NULL DEFAULT 'medium',
+    `icon_override`  VARCHAR(100) NULL,
+    PRIMARY KEY (`id`),
+    KEY `ix_net_node_diag` (`diagram_id`),
+    KEY `ix_net_node_cmdb` (`cmdb_object_id`),
+    CONSTRAINT `fk_net_node_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_node_cmdb` FOREIGN KEY (`cmdb_object_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `network_diagram_connectors` (
+    `id`                       INT NOT NULL AUTO_INCREMENT,
+    `diagram_id`               INT NOT NULL,
+    `from_node_id`             INT NOT NULL,
+    `to_node_id`               INT NOT NULL,
+    `cmdb_relationship_id`     INT NULL,
+    `label`                    VARCHAR(255) NULL,
+    `line_style`               VARCHAR(20) NULL DEFAULT 'solid',
+    PRIMARY KEY (`id`),
+    KEY `ix_net_conn_diag` (`diagram_id`),
+    KEY `ix_net_conn_from` (`from_node_id`),
+    KEY `ix_net_conn_to` (`to_node_id`),
+    CONSTRAINT `fk_net_conn_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_conn_from` FOREIGN KEY (`from_node_id`) REFERENCES `network_diagram_nodes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_conn_to`   FOREIGN KEY (`to_node_id`)   REFERENCES `network_diagram_nodes` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Seed the curated icon library on first run. Adding more icons later means
 -- inserting a row here AND adding the SVG path to cmdb/includes/icons.php.
 INSERT INTO `cmdb_icons` (`icon_key`, `label`, `display_order`)
