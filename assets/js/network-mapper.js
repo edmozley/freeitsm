@@ -2017,8 +2017,10 @@
         if (modal) modal.classList.remove('active');
     }
 
-    // Save commits whatever's in the inputs as per-diagram overrides. Empty
-    // input = '' (explicit blank); to inherit the org default again use Reset.
+    // Save commits the modal inputs as per-diagram overrides. An empty input
+    // means "inherit the org-wide default" (stored as null) — the modal's
+    // placeholder already previews that default, so a blank field naturally
+    // reads as "use that". Non-empty input is an explicit override.
     function commitBrandingOverrides() {
         if (!diagram || !diagram.is_current) { closeBrandingModal(); return; }
         let changed = false;
@@ -2026,10 +2028,7 @@
             const inputId = pair[0]; const key = pair[1];
             const input = document.getElementById(inputId);
             if (!input) return;
-            const v = input.value;
-            // Treat null/undefined and '' as different (one means inherit,
-            // the other means explicit blank), so any change between them
-            // counts as dirty.
+            const v = input.value === '' ? null : input.value;
             if ((diagram[key] == null ? null : diagram[key]) !== v) {
                 changed = true;
             }
