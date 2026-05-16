@@ -1384,6 +1384,7 @@ $path_prefix = '../';
                     <button class="nm-btn secondary nm-zoom-fit" id="zoomFitBtn" onclick="NM.zoomFit()" title="Fit page (or all nodes) to the visible canvas">Fit</button>
                 </div>
                 <button class="nm-btn secondary" id="brandingBtn" onclick="NM.openBrandingModal()" title="Override the org-wide header/footer for this diagram (set a page size first)">Branding</button>
+                <button class="nm-btn secondary" id="centreBtn" onclick="NM.centre()" title="Move all nodes so the diagram is centred on the selected paper size (requires a page size to be set)">Centre</button>
                 <div class="nm-export-group" role="group" aria-label="Export">
                     <button class="nm-btn secondary nm-export-btn" id="exportPngBtn" onclick="NM.exportPng()" title="Export the diagram as a PNG image (clipped to the page outline if set)">PNG</button>
                     <button class="nm-btn secondary nm-export-btn" id="exportPdfBtn" onclick="NM.exportPdf()" title="Export the diagram as a PDF (uses the chosen paper size + orientation)">PDF</button>

@@ -130,6 +130,7 @@
     let elVersionsBtn, elVersionsDropdown;
     let elPageBtn, elPageDropdown, elPageBtnLabel;
     let elIconPickerModal, elIpNodeName, elIpSearch, elIpGrid;
+    let elCentreBtn;
 
     // =========================================================
     //  Initialisation
@@ -186,6 +187,7 @@
         elPageBtn         = document.getElementById('pageBtn');
         elPageDropdown    = document.getElementById('pageDropdown');
         elPageBtnLabel    = document.getElementById('pageBtnLabel');
+        elCentreBtn       = document.getElementById('centreBtn');
 
         // Close toolbar dropdowns on outside click. Each dropdown checks for
         // its anchor button + its panel; click outside both → dismiss. Same
@@ -418,6 +420,14 @@
         // only forks from the leaf), so disable it here too.
         elSaveVersionBtn.disabled = true;
         elSaveVersionBtn.title = 'Only the current version can be forked into a new version';
+        // Centre is a destructive op (modifies node positions) so block it
+        // on historical versions. Other read-only-gated UI either silently
+        // bails or is hidden; this button is visible so disabling reads
+        // more honestly than letting the user click into a no-op.
+        if (elCentreBtn) {
+            elCentreBtn.disabled = true;
+            elCentreBtn.title = 'Historical versions are read-only';
+        }
     }
 
     // =========================================================
@@ -2376,6 +2386,67 @@
     }
 
     // =========================================================
+    //  Auto-centre the diagram on the selected paper size
+    //  Translates all node coordinates so the diagram's bounding box sits
+    //  centred inside the page rectangle. Persistent (mutates n.x/n.y) so
+    //  the centring survives save/reload, not a transient visual transform.
+    //  Connectors auto-follow since renderConnectors() reads live node
+    //  positions. Bails with a toast if the diagram is bigger than the
+    //  selected page in either dimension.
+    // =========================================================
+    function centreOnPage() {
+        if (!diagram || !diagram.is_current) return;
+        if (!nodes.length) {
+            if (window.showToast) showToast('Nothing to centre — place some nodes first', 'info');
+            return;
+        }
+        if (!diagram.paper_size) {
+            if (window.showToast) showToast('Set a page size first (Page dropdown)', 'info');
+            return;
+        }
+        const dims = pageDimensionsPx(diagram.paper_size, diagram.paper_orientation);
+        if (!dims) return;
+
+        // Bounding box including the label that hangs ~40px below the icon
+        // (mirrors the approximation in computeExportRect so centring and
+        // exporting agree on what "the diagram" extends to).
+        const sz = NODE_SIZES.medium;
+        let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
+        nodes.forEach(n => {
+            if (n.x < minX) minX = n.x;
+            if (n.y < minY) minY = n.y;
+            if (n.x + sz > maxX) maxX = n.x + sz;
+            if (n.y + sz + 40 > maxY) maxY = n.y + sz + 40;
+        });
+        const bboxW = maxX - minX;
+        const bboxH = maxY - minY;
+
+        if (bboxW > dims.w || bboxH > dims.h) {
+            if (window.showToast) showToast('Diagram is too large to centre on this page size — try a larger paper or use Fit + zoom', 'info');
+            return;
+        }
+
+        // Compute the shift that lands the bbox centre on the page centre.
+        // Snap the delta itself (not each node individually) so the existing
+        // 20px grid alignment is preserved across the whole diagram.
+        const deltaX = snap((dims.w - bboxW) / 2 - minX);
+        const deltaY = snap((dims.h - bboxH) / 2 - minY);
+
+        if (deltaX === 0 && deltaY === 0) {
+            if (window.showToast) showToast('Diagram is already centred', 'info');
+            return;
+        }
+
+        nodes.forEach(n => {
+            n.x = Math.max(0, n.x + deltaX);
+            n.y = Math.max(0, n.y + deltaY);
+        });
+        renderNodes();   // re-renders nodes + calls renderConnectors() inside
+        markDirty();
+        if (window.showToast) showToast('Diagram centred on page', 'success');
+    }
+
+    // =========================================================
     //  PNG / PDF export
     //  Snapshot the canvas via html2canvas, optionally wrap into a paper-
     //  sized PDF via jsPDF. Driven entirely from the live DOM: temporarily
@@ -2588,6 +2659,8 @@
         exitPresent,
         // export
         exportPng,
-        exportPdf
+        exportPdf,
+        // auto-centre
+        centre: centreOnPage
     };
 })();
