@@ -48,14 +48,17 @@ try {
     $d['is_current'] = $d['child_count'] === 0;
 
     // Nodes — each is bound to a CMDB object, so we hydrate name + class + icon.
-    // The class's icon_key is the default visual; node.icon_override (if set) wins.
+    // icon_key lives on cmdb_icons (cmdb_classes only holds the FK), so a LEFT
+    // JOIN turns it back into a flat string. node.icon_override (if set) wins
+    // over the class default at render time.
     $nstmt = $conn->prepare(
         "SELECT n.id, n.cmdb_object_id, n.x, n.y, n.size, n.icon_override,
                 o.name, o.is_planned,
-                c.id AS class_id, c.name AS class_name, c.icon_key AS class_icon
+                c.id AS class_id, c.name AS class_name, i.icon_key AS class_icon
            FROM network_diagram_nodes n
            JOIN cmdb_objects o ON o.id = n.cmdb_object_id
            JOIN cmdb_classes c ON c.id = o.class_id
+      LEFT JOIN cmdb_icons   i ON i.id = c.icon_id
           WHERE n.diagram_id = ?
        ORDER BY n.id"
     );
