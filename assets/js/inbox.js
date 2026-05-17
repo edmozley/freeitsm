@@ -1098,6 +1098,7 @@ function displayEmail(email) {
                 <div class="email-body-content">${safeEmailHtml(email.body_content)}</div>
             </div>
             <div id="cmdbObjectsContainer"></div>
+            <div id="slaContainer"></div>
             <div id="timeEntriesContainer"></div>
             <div id="notesContainer"></div>
         </div>
@@ -1109,6 +1110,7 @@ function displayEmail(email) {
     loadTicketAttachments(email.ticket_id);
     loadCmdbObjects(email.ticket_id);
     loadTimeEntries(email.ticket_id);
+    loadSlaState(email.ticket_id);
 
     // A ticket is now displayed — apply popout class if the saved pref says so.
     syncPopoutToTicketState(true);
@@ -3185,4 +3187,84 @@ async function saveContextTimeEntry() {
     } catch (err) {
         showToast('Error: ' + err.message, true);
     }
+}
+
+/* --- SLA panel in the reading pane ---------------------------------------
+ * Fetches /api/tickets/get_ticket_sla.php and renders a small status panel
+ * showing response + resolution targets, elapsed / remaining / percent, and
+ * a green/amber/red colour-coded badge per target. Hides itself silently if
+ * SLA is disabled for the ticket (no priority, no target set, ticket pre-dates
+ * cutoff, SLA disabled globally) — so the section just doesn't appear and
+ * doesn't bother the analyst with "SLA disabled for this ticket" noise.
+ */
+async function loadSlaState(ticketId) {
+    const container = document.getElementById('slaContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    try {
+        const res = await fetch(API_BASE + 'get_ticket_sla.php?ticket_id=' + ticketId);
+        const data = await res.json();
+        if (!data.success || !data.sla || !data.sla.enabled) return; // silent hide
+        renderSlaPanel(data.sla);
+    } catch (e) {
+        console.error('SLA load failed:', e);
+    }
+}
+
+function renderSlaPanel(sla) {
+    const container = document.getElementById('slaContainer');
+    if (!container) return;
+    if (!sla.response && !sla.resolution) return;
+
+    const fmt = (mins) => {
+        if (mins === null || mins === undefined) return '—';
+        const n = Math.abs(mins);
+        const sign = mins < 0 ? '-' : '';
+        if (n < 60) return sign + n + 'm';
+        const h = Math.floor(n / 60), r = n % 60;
+        return sign + (r ? `${h}h ${r}m` : `${h}h`);
+    };
+
+    const renderRow = (label, target) => {
+        if (!target) return '';
+        const achieved = target.achieved_at !== null;
+        // Colour: green if achieved (clock stopped) or < 80%; amber 80-100%; red > 100%
+        let cls = 'sla-ok';
+        let badge = 'On track';
+        if (achieved) {
+            cls = target.breached ? 'sla-breached' : 'sla-achieved';
+            badge = target.breached ? 'Breached on response' : 'Achieved';
+        } else if (target.breached) {
+            cls = 'sla-breached';
+            badge = 'Breached';
+        } else if (target.percent >= 80) {
+            cls = 'sla-warning';
+            badge = 'Approaching breach';
+        }
+        const remainingLabel = achieved
+            ? `Achieved in ${fmt(target.achieved_minutes)}`
+            : (target.breached
+                ? `Over by ${fmt(Math.abs(target.remaining_minutes))}`
+                : `${fmt(target.remaining_minutes)} remaining`);
+        return `
+            <div class="sla-row ${cls}">
+                <div class="sla-row-head">
+                    <span class="sla-row-label">${escapeHtml(label)}</span>
+                    <span class="sla-row-badge">${escapeHtml(badge)}</span>
+                </div>
+                <div class="sla-bar"><div class="sla-bar-fill" style="width: ${Math.min(100, target.percent)}%;"></div></div>
+                <div class="sla-row-meta">
+                    Target ${fmt(target.target_minutes)} &middot; Elapsed ${fmt(target.elapsed_minutes)} &middot; ${remainingLabel}
+                </div>
+            </div>
+        `;
+    };
+
+    container.innerHTML = `
+        <div class="sla-section">
+            <div class="sla-section-header">SLA</div>
+            ${renderRow('Response', sla.response)}
+            ${renderRow('Resolution', sla.resolution)}
+        </div>
+    `;
 }

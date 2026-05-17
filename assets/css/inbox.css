@@ -980,6 +980,91 @@ body.ticket-popout .ticket-toolbar {
     white-space: pre-wrap;
 }
 
+/* --- SLA panel in the reading pane ---
+ * Shows response + resolution targets with colour-coded status.
+ * Green = on track / achieved within target.
+ * Amber = within warning threshold (>= 80% elapsed).
+ * Red   = breached. */
+.sla-section {
+    background: white;
+    padding: 18px 20px;
+    margin-top: 20px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.sla-section-header {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sla-row {
+    padding: 10px 14px;
+    border-left: 3px solid #999;
+    background: #fafafa;
+    border-radius: 4px;
+    margin-bottom: 8px;
+}
+
+.sla-row.sla-ok        { border-left-color: #16a34a; }
+.sla-row.sla-achieved  { border-left-color: #16a34a; background: #f0fdf4; }
+.sla-row.sla-warning   { border-left-color: #f59e0b; background: #fffbeb; }
+.sla-row.sla-breached  { border-left-color: #dc2626; background: #fef2f2; }
+
+.sla-row-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.sla-row-label {
+    font-weight: 600;
+    color: #333;
+    font-size: 13px;
+}
+
+.sla-row-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.06);
+    color: #555;
+}
+
+.sla-row.sla-ok       .sla-row-badge { background: #dcfce7; color: #166534; }
+.sla-row.sla-achieved .sla-row-badge { background: #dcfce7; color: #166534; }
+.sla-row.sla-warning  .sla-row-badge { background: #fef3c7; color: #92400e; }
+.sla-row.sla-breached .sla-row-badge { background: #fee2e2; color: #991b1b; }
+
+.sla-bar {
+    height: 5px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+
+.sla-bar-fill {
+    height: 100%;
+    background: #16a34a;
+    transition: width 0.3s;
+}
+
+.sla-row.sla-warning  .sla-bar-fill { background: #f59e0b; }
+.sla-row.sla-breached .sla-bar-fill { background: #dc2626; }
+
+.sla-row-meta {
+    font-size: 12px;
+    color: #666;
+    line-height: 1.4;
+}
+
 /* --- Right-click context menu for email rows --- */
 .ticket-context-menu {
     position: fixed;
