@@ -2074,6 +2074,10 @@ try {
             'sla_cron_min_interval_seconds'   => '30',
             // How many days to keep rows in sla_cron_runs before pruning
             'sla_cron_log_retention_days'     => '30',
+            // Watchtower: flag tickets stuck in a paused-SLA status longer than this
+            // (wall-clock hours since last status change). Guardrail against analysts
+            // parking tickets in On Hold to escape the SLA clock.
+            'watchtower_paused_too_long_hours' => '24',
         ];
         $stmt = $conn->prepare("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES (?, ?)");
         foreach ($defaults as $k => $v) { $stmt->execute([$k, $v]); }

@@ -68,12 +68,43 @@ function getWatchtowerData($conn) {
          WHERE t.assigned_analyst_id IS NULL AND ts.is_closed = 0"
     )->fetchColumn();
 
+    // Paused too long: tickets currently in a status flagged pauses_sla
+    // (e.g. On Hold, Awaiting Response) where the last status change was
+    // longer ago than the configured threshold. Surfaces tickets being
+    // parked in a paused status to escape the SLA clock. Falls back to
+    // tickets.created_datetime if no status-change audit row exists
+    // (ticket has never moved off its default status).
+    $pausedThresholdStmt = $conn->prepare(
+        "SELECT setting_value FROM system_settings WHERE setting_key = 'watchtower_paused_too_long_hours' LIMIT 1"
+    );
+    $pausedThresholdStmt->execute();
+    $pausedThresholdHours = (int)($pausedThresholdStmt->fetchColumn() ?: 24);
+    if ($pausedThresholdHours < 1) $pausedThresholdHours = 24;
+
+    $tkPausedStmt = $conn->prepare(
+        "SELECT COUNT(*)
+           FROM tickets t
+           JOIN ticket_statuses ts ON ts.id = t.status_id
+          WHERE ts.is_closed = 0
+            AND ts.pauses_sla = 1
+            AND COALESCE(
+                (SELECT MAX(a.created_datetime)
+                   FROM ticket_audit a
+                  WHERE a.ticket_id = t.id AND a.field_name = 'status'),
+                t.created_datetime
+            ) < DATE_SUB(NOW(), INTERVAL ? HOUR)"
+    );
+    $tkPausedStmt->execute([$pausedThresholdHours]);
+    $tkPausedTooLong = (int)$tkPausedStmt->fetchColumn();
+
     $tickets = [
-        'open'        => $tkStatuses['Open'] ?? 0,
-        'in_progress' => $tkStatuses['In Progress'] ?? 0,
-        'on_hold'     => $tkStatuses['On Hold'] ?? 0,
-        'urgent_high' => $tkUrgent,
-        'unassigned'  => $tkUnassigned
+        'open'                    => $tkStatuses['Open'] ?? 0,
+        'in_progress'             => $tkStatuses['In Progress'] ?? 0,
+        'on_hold'                 => $tkStatuses['On Hold'] ?? 0,
+        'urgent_high'             => $tkUrgent,
+        'unassigned'              => $tkUnassigned,
+        'paused_too_long'         => $tkPausedTooLong,
+        'paused_threshold_hours'  => $pausedThresholdHours,
     ];
 
     // -- Changes --

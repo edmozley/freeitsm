@@ -502,8 +502,10 @@ $path_prefix = '../';
     function renderTickets(d) {
         const tk = d.tickets;
         const totalOpen = tk.open + tk.in_progress + tk.on_hold;
+        const pausedTooLong = tk.paused_too_long || 0;
+        const pausedThreshold = tk.paused_threshold_hours || 24;
 
-        if (tk.urgent_high > 0 || tk.unassigned > 0) {
+        if (tk.urgent_high > 0 || tk.unassigned > 0 || pausedTooLong > 0) {
             setDot('wtTkDot', tk.urgent_high > 0 ? 'red' : 'amber');
         } else {
             setDot('wtTkDot', 'green');
@@ -523,7 +525,11 @@ $path_prefix = '../';
         if (tk.unassigned > 0) {
             html += attentionItem('amber', '<span class="wt-attention-bold">' + tk.unassigned + '</span> unassigned tickets');
         }
-        if (tk.urgent_high === 0 && tk.unassigned === 0) {
+        if (pausedTooLong > 0) {
+            const noun = pausedTooLong === 1 ? 'ticket' : 'tickets';
+            html += attentionItem('amber', '<span class="wt-attention-bold">' + pausedTooLong + '</span> ' + noun + ' paused over ' + pausedThreshold + 'h (SLA clock stopped)');
+        }
+        if (tk.urgent_high === 0 && tk.unassigned === 0 && pausedTooLong === 0) {
             html += attentionItem('green', 'No urgent items');
         }
         html += '</div>';
