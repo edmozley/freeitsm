@@ -614,49 +614,49 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Modal for Add/Edit -->
     <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Add Item</div>
+            <div class="modal-header" id="modalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.add.fallback')); ?></div>
             <form id="editForm">
                 <input type="hidden" id="itemId">
                 <input type="hidden" id="itemType">
 
                 <div class="form-group">
-                    <label for="itemName">Name</label>
+                    <label for="itemName"><?php echo htmlspecialchars(t('tickets.settings.columns.name')); ?></label>
                     <input type="text" id="itemName" required>
                 </div>
 
                 <div class="form-group" id="itemDescriptionGroup">
-                    <label for="itemDescription">Description</label>
+                    <label for="itemDescription"><?php echo htmlspecialchars(t('tickets.settings.columns.description')); ?></label>
                     <textarea id="itemDescription"></textarea>
                 </div>
 
                 <div class="form-group" id="itemColourGroup" style="display: none;">
-                    <label for="itemColour">Colour</label>
+                    <label for="itemColour"><?php echo htmlspecialchars(t('tickets.settings.columns.colour')); ?></label>
                     <input type="color" id="itemColour" value="#2563eb" style="width: 60px; height: 32px; padding: 2px;">
-                    <small style="color: #666; margin-left: 8px;">Used for badges in lists, dashboards and reports.</small>
+                    <small style="color: #666; margin-left: 8px;"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.colour_help')); ?></small>
                 </div>
 
                 <div class="form-group" id="itemClosedGroup" style="display: none;">
                     <label>
-                        <input type="checkbox" id="itemClosed"> Counts as closed
+                        <input type="checkbox" id="itemClosed"> <?php echo htmlspecialchars(t('tickets.settings.modals.lookup.closed_label')); ?>
                     </label>
-                    <small style="display: block; color: #666; margin-top: 4px;">Tickets in this status are treated as resolved/terminal — excluded from open-queue counts and trigger the closed-datetime stamp.</small>
+                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.closed_help')); ?></small>
                 </div>
 
                 <div class="form-group" id="itemDefaultGroup" style="display: none;">
                     <label>
-                        <input type="checkbox" id="itemDefault"> Default for new tickets
+                        <input type="checkbox" id="itemDefault"> <?php echo htmlspecialchars(t('tickets.settings.modals.lookup.default_label')); ?>
                     </label>
-                    <small style="display: block; color: #666; margin-top: 4px;">Only one row can be the default — setting this clears the flag on the others.</small>
+                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.default_help')); ?></small>
                 </div>
 
                 <div class="form-group">
-                    <label for="itemOrder">Display Order</label>
+                    <label for="itemOrder"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.display_order_label')); ?></label>
                     <input type="number" id="itemOrder" value="0">
                 </div>
 
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="itemActive" checked> Active
+                        <input type="checkbox" id="itemActive" checked> <?php echo htmlspecialchars(t('tickets.settings.modals.lookup.active_label')); ?>
                     </label>
                 </div>
 
@@ -671,96 +671,96 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Mailbox Modal -->
     <div class="modal" id="mailboxModal">
         <div class="modal-content" style="max-width: 700px;">
-            <div class="modal-header" id="mailboxModalTitle">Add Mailbox</div>
+            <div class="modal-header" id="mailboxModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.add_title')); ?></div>
             <form id="mailboxForm" autocomplete="off" style="overflow-y: auto; flex: 1; padding: 20px 24px;">
                 <input type="hidden" id="mailboxId">
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group" style="grid-column: span 2;">
-                        <label for="mailboxProvider">Provider *</label>
+                        <label for="mailboxProvider"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.provider')); ?> *</label>
                         <select id="mailboxProvider" onchange="toggleProviderFields()">
-                            <option value="microsoft">Microsoft 365 (Exchange / Graph API)</option>
-                            <option value="google">Google Workspace (Gmail API)</option>
+                            <option value="microsoft"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.provider_microsoft')); ?></option>
+                            <option value="google"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.provider_google')); ?></option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="mailboxName">Display Name *</label>
-                        <input type="text" id="mailboxName" required placeholder="e.g., Service Desk">
+                        <label for="mailboxName"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.display_name')); ?> *</label>
+                        <input type="text" id="mailboxName" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.display_name_placeholder')); ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="mailboxEmail">Target Mailbox *</label>
-                        <input type="email" id="mailboxEmail" required placeholder="e.g., servicedesk@company.com">
+                        <label for="mailboxEmail"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.target_mailbox')); ?> *</label>
+                        <input type="email" id="mailboxEmail" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.target_mailbox_placeholder')); ?>">
                     </div>
 
                     <div class="form-group provider-microsoft">
-                        <label for="mailboxTenantId">Azure Tenant ID *</label>
+                        <label for="mailboxTenantId"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.azure_tenant_id')); ?> *</label>
                         <input type="text" id="mailboxTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                     </div>
 
                     <div class="form-group" id="clientIdGroup">
-                        <label for="mailboxClientId" id="clientIdLabel">Client ID *</label>
+                        <label for="mailboxClientId" id="clientIdLabel"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_id')); ?> *</label>
                         <input type="text" id="mailboxClientId" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
-                        <label for="mailboxClientSecret" id="clientSecretLabel">Client Secret *</label>
-                        <input type="password" id="mailboxClientSecret" placeholder="Leave blank to keep existing (when editing)">
-                        <small style="color: #666;">Required for new mailboxes. Leave blank when editing to keep existing secret.</small>
+                        <label for="mailboxClientSecret" id="clientSecretLabel"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret')); ?> *</label>
+                        <input type="password" id="mailboxClientSecret" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret_placeholder')); ?>">
+                        <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret_help')); ?></small>
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
-                        <label for="mailboxRedirectUri">OAuth Redirect URI *</label>
+                        <label for="mailboxRedirectUri"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.oauth_redirect_uri')); ?> *</label>
                         <input type="url" id="mailboxRedirectUri" required placeholder="https://yoursite.com/oauth_callback.php">
                     </div>
 
                     <div class="form-group provider-microsoft" style="grid-column: span 2;">
-                        <label for="mailboxScopes">OAuth Scopes</label>
+                        <label for="mailboxScopes"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.oauth_scopes')); ?></label>
                         <input type="text" id="mailboxScopes" value="openid email offline_access Mail.Read Mail.ReadWrite Mail.Send">
                     </div>
 
                     <div class="form-group">
-                        <label for="mailboxImapServer">IMAP Server</label>
+                        <label for="mailboxImapServer"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_server')); ?></label>
                         <input type="text" id="mailboxImapServer" value="outlook.office365.com">
                     </div>
 
                     <div class="form-group">
-                        <label for="mailboxImapPort">IMAP Port</label>
+                        <label for="mailboxImapPort"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_port')); ?></label>
                         <input type="number" id="mailboxImapPort" value="993">
                     </div>
 
                     <div class="form-group">
-                        <label for="mailboxFolder">Email Folder</label>
+                        <label for="mailboxFolder"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.email_folder')); ?></label>
                         <input type="text" id="mailboxFolder" value="INBOX">
                     </div>
 
                     <div class="form-group">
-                        <label for="mailboxMaxEmails">Max Emails per Check</label>
+                        <label for="mailboxMaxEmails"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.max_emails_per_check')); ?></label>
                         <input type="number" id="mailboxMaxEmails" value="10" min="1" max="50">
                     </div>
 
                     <div class="form-group">
-                        <label for="mailboxRejectedAction">Rejected Emails</label>
+                        <label for="mailboxRejectedAction"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.rejected_emails')); ?></label>
                         <select id="mailboxRejectedAction">
-                            <option value="delete">Delete permanently</option>
-                            <option value="move_to_deleted">Move to Deleted Items</option>
-                            <option value="mark_read">Mark as read</option>
+                            <option value="delete"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.rejected_delete')); ?></option>
+                            <option value="move_to_deleted"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.rejected_move_to_deleted')); ?></option>
+                            <option value="mark_read"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.rejected_mark_read')); ?></option>
                         </select>
                     </div>
 
                     <div class="form-group">
-                        <label for="mailboxImportedAction">Imported Emails</label>
+                        <label for="mailboxImportedAction"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imported_emails')); ?></label>
                         <select id="mailboxImportedAction" onchange="toggleImportedFolder()">
-                            <option value="delete">Delete permanently</option>
-                            <option value="move_to_folder">Move to folder</option>
+                            <option value="delete"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imported_delete')); ?></option>
+                            <option value="move_to_folder"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imported_move_to_folder')); ?></option>
                         </select>
                     </div>
 
                     <div class="form-group" id="importedFolderGroup" style="display: none; grid-column: span 2;">
-                        <label for="mailboxImportedFolder">Move to Folder</label>
+                        <label for="mailboxImportedFolder"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.move_to_folder_label')); ?></label>
                         <div style="display: flex; gap: 8px; align-items: start;">
-                            <input type="text" id="mailboxImportedFolder" placeholder="e.g., Processed" style="flex: 1;">
+                            <input type="text" id="mailboxImportedFolder" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.move_to_folder_placeholder')); ?>" style="flex: 1;">
                             <button type="button" class="btn btn-secondary" id="verifyFolderBtn" onclick="verifyFolder()" style="padding: 8px 12px; white-space: nowrap;"><?php echo htmlspecialchars(t('tickets.settings.buttons.verify')); ?></button>
                         </div>
                         <small id="verifyFolderResult" style="display: none; margin-top: 5px;"></small>
@@ -768,7 +768,7 @@ $translationNamespaces = ['common', 'tickets'];
 
                     <div class="form-group" style="grid-column: span 2;">
                         <label style="display: flex; align-items: center; gap: 10px;">
-                            Active
+                            <?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.active')); ?>
                             <label class="toggle-switch" style="margin: 0;">
                                 <input type="checkbox" id="mailboxActive" checked>
                                 <span class="toggle-slider"></span>
@@ -778,15 +778,15 @@ $translationNamespaces = ['common', 'tickets'];
                 </div>
 
                 <div style="grid-column: span 2; margin-top: 10px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
-                    <label style="font-weight: 600; margin-bottom: 8px; display: block;">Email Whitelist</label>
-                    <small style="color: #666; display: block; margin-bottom: 10px;">If empty, all senders are allowed. Add domains or email addresses to restrict which emails are imported.</small>
+                    <label style="font-weight: 600; margin-bottom: 8px; display: block;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_label')); ?></label>
+                    <small style="color: #666; display: block; margin-bottom: 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_help')); ?></small>
 
                     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
                         <select id="whitelistType" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
-                            <option value="domain">Domain</option>
-                            <option value="email">Email</option>
+                            <option value="domain"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_domain')); ?></option>
+                            <option value="email"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_email')); ?></option>
                         </select>
-                        <input type="text" id="whitelistValue" placeholder="e.g. company.com or user@example.com" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addWhitelistEntry();}">
+                        <input type="text" id="whitelistValue" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_value_placeholder')); ?>" style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addWhitelistEntry();}">
                         <button type="button" class="btn btn-primary" onclick="addWhitelistEntry()" style="padding: 8px 12px;"><?php echo htmlspecialchars(t('common.add')); ?></button>
                     </div>
 
@@ -804,10 +804,10 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Activity Log Modal -->
     <div class="modal" id="activityModal">
         <div class="modal-content" style="max-width: 850px;">
-            <div class="modal-header" id="activityModalTitle">Mailbox Activity</div>
+            <div class="modal-header" id="activityModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.activity.title')); ?></div>
 
             <div style="display: flex; gap: 10px; margin-bottom: 15px;">
-                <input type="text" id="activitySearch" placeholder="Search by sender, name, or subject..." style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" oninput="debounceActivitySearch()">
+                <input type="text" id="activitySearch" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.activity.search_placeholder')); ?>" style="flex: 1; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;" oninput="debounceActivitySearch()">
             </div>
 
             <div style="max-height: 450px; overflow-y: auto;">
@@ -831,7 +831,7 @@ $translationNamespaces = ['common', 'tickets'];
 
             <div id="processingLogPanel" style="display: none; margin-top: 15px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <strong style="font-size: 14px;">Processing Log</strong>
+                    <strong style="font-size: 14px;"><?php echo htmlspecialchars(t('tickets.settings.modals.activity.processing_log')); ?></strong>
                     <button type="button" class="btn btn-secondary" style="padding: 3px 10px; font-size: 12px;" onclick="closeProcessingLog()"><?php echo htmlspecialchars(t('common.close')); ?></button>
                 </div>
                 <pre id="processingLogContent" style="background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; padding: 12px; font-size: 12px; max-height: 250px; overflow-y: auto; white-space: pre-wrap; word-break: break-word; margin: 0;"></pre>
@@ -846,34 +846,34 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Analyst Modal -->
     <div class="modal" id="analystModal">
         <div class="modal-content">
-            <div class="modal-header" id="analystModalTitle">Add Analyst</div>
+            <div class="modal-header" id="analystModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.add_title')); ?></div>
             <form id="analystForm">
                 <input type="hidden" id="analystId">
 
                 <div class="form-group">
-                    <label for="analystUsername">Username *</label>
-                    <input type="text" id="analystUsername" required placeholder="e.g., jsmith">
+                    <label for="analystUsername"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.username')); ?> *</label>
+                    <input type="text" id="analystUsername" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.username_placeholder')); ?>">
                 </div>
 
                 <div class="form-group">
-                    <label for="analystFullName">Full Name *</label>
-                    <input type="text" id="analystFullName" required placeholder="e.g., John Smith">
+                    <label for="analystFullName"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.full_name')); ?> *</label>
+                    <input type="text" id="analystFullName" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.full_name_placeholder')); ?>">
                 </div>
 
                 <div class="form-group">
-                    <label for="analystEmail">Email</label>
-                    <input type="email" id="analystEmail" placeholder="e.g., jsmith@company.com">
+                    <label for="analystEmail"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.email')); ?></label>
+                    <input type="email" id="analystEmail" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.email_placeholder')); ?>">
                 </div>
 
                 <div class="form-group" id="analystPasswordGroup">
-                    <label for="analystPassword">Password *</label>
-                    <input type="password" id="analystPassword" placeholder="Enter password">
-                    <small style="color: #666;">Required for new analysts.</small>
+                    <label for="analystPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password')); ?> *</label>
+                    <input type="password" id="analystPassword" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password_placeholder')); ?>">
+                    <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password_help')); ?></small>
                 </div>
 
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="analystActive" checked> Active
+                        <input type="checkbox" id="analystActive" checked> <?php echo htmlspecialchars(t('tickets.settings.modals.analyst.active')); ?>
                     </label>
                 </div>
 
@@ -888,20 +888,20 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Password Reset Modal -->
     <div class="modal" id="passwordResetModal">
         <div class="modal-content">
-            <div class="modal-header">Reset Password</div>
+            <div class="modal-header"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.title')); ?></div>
             <form id="passwordResetForm">
                 <input type="hidden" id="resetAnalystId">
 
-                <p style="margin-bottom: 20px;">Resetting password for: <strong id="resetAnalystName"></strong></p>
+                <p style="margin-bottom: 20px;"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.resetting_for')); ?> <strong id="resetAnalystName"></strong></p>
 
                 <div class="form-group">
-                    <label for="newPassword">New Password *</label>
-                    <input type="password" id="newPassword" required minlength="6" placeholder="Enter new password">
+                    <label for="newPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.new_password')); ?> *</label>
+                    <input type="password" id="newPassword" required minlength="6" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.new_password_placeholder')); ?>">
                 </div>
 
                 <div class="form-group">
-                    <label for="confirmPassword">Confirm Password *</label>
-                    <input type="password" id="confirmPassword" required minlength="6" placeholder="Confirm new password">
+                    <label for="confirmPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.confirm_password')); ?> *</label>
+                    <input type="password" id="confirmPassword" required minlength="6" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.confirm_password_placeholder')); ?>">
                 </div>
 
                 <div class="modal-actions">
@@ -915,15 +915,15 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Team Assignment Modal -->
     <div class="modal" id="teamAssignmentModal">
         <div class="modal-content">
-            <div class="modal-header" id="teamAssignmentTitle">Assign Teams</div>
+            <div class="modal-header" id="teamAssignmentTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.title')); ?></div>
             <form id="teamAssignmentForm">
                 <input type="hidden" id="assignmentEntityType">
                 <input type="hidden" id="assignmentEntityId">
 
-                <p style="margin-bottom: 15px; color: #666;" id="teamAssignmentDesc">Select the teams to assign:</p>
+                <p style="margin-bottom: 15px; color: #666;" id="teamAssignmentDesc"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.description')); ?></p>
 
                 <div id="teamAssignmentList" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
-                    <div style="padding: 15px; text-align: center; color: #999;">Loading teams...</div>
+                    <div style="padding: 15px; text-align: center; color: #999;"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.loading')); ?></div>
                 </div>
 
                 <div class="modal-actions" style="margin-top: 20px;">
@@ -937,50 +937,48 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Template Modal -->
     <div class="modal" id="templateModal">
         <div class="modal-content" style="max-width: 700px;">
-            <div class="modal-header" id="templateModalTitle">Add Email Template</div>
+            <div class="modal-header" id="templateModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.template.add_title')); ?></div>
             <form id="templateForm">
                 <input type="hidden" id="templateId">
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label for="templateName">Name *</label>
-                        <input type="text" id="templateName" required placeholder="e.g., New Ticket Auto-Reply" autocomplete="off">
+                        <label for="templateName"><?php echo htmlspecialchars(t('tickets.settings.modals.template.name')); ?> *</label>
+                        <input type="text" id="templateName" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.template.name_placeholder')); ?>" autocomplete="off">
                     </div>
 
                     <div class="form-group">
-                        <label for="templateEvent">Event Trigger *</label>
+                        <label for="templateEvent"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_trigger')); ?> *</label>
                         <select id="templateEvent" required>
-                            <option value="">Select event...</option>
-                            <option value="new_ticket_email">New ticket from email</option>
-                            <option value="ticket_assigned">Ticket assigned</option>
-                            <option value="ticket_closed">Ticket closed</option>
+                            <option value=""><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_select')); ?></option>
+                            <option value="new_ticket_email"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_new_ticket')); ?></option>
+                            <option value="ticket_assigned"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_assigned')); ?></option>
+                            <option value="ticket_closed"><?php echo htmlspecialchars(t('tickets.settings.modals.template.event_closed')); ?></option>
                         </select>
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
-                        <label for="templateSubject">Subject *</label>
-                        <input type="text" id="templateSubject" required placeholder="e.g., Your request has been received" autocomplete="off">
-                        <small style="color: #666;">[SDREF:...] is added automatically for reply threading.</small>
+                        <label for="templateSubject"><?php echo htmlspecialchars(t('tickets.settings.modals.template.subject')); ?> *</label>
+                        <input type="text" id="templateSubject" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.template.subject_placeholder')); ?>" autocomplete="off">
+                        <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.modals.template.subject_help')); ?></small>
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
-                        <label for="templateBody">Body *</label>
-                        <textarea id="templateBody" rows="10" required placeholder="Dear [requester_name],&#10;&#10;Thank you for contacting us..."></textarea>
+                        <label for="templateBody"><?php echo htmlspecialchars(t('tickets.settings.modals.template.body')); ?> *</label>
+                        <textarea id="templateBody" rows="10" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.template.body_placeholder')); ?>"></textarea>
                         <small style="color: #666;">
-                            Merge codes: [ticket_reference], [ticket_subject], [ticket_status], [ticket_priority],
-                            [requester_name], [requester_email], [analyst_name], [analyst_email],
-                            [department_name], [created_date], [closed_date]
+                            <?php echo htmlspecialchars(t('tickets.settings.modals.template.body_help')); ?>
                         </small>
                     </div>
 
                     <div class="form-group">
-                        <label for="templateOrder">Display Order</label>
+                        <label for="templateOrder"><?php echo htmlspecialchars(t('tickets.settings.modals.template.display_order')); ?></label>
                         <input type="number" id="templateOrder" value="0" autocomplete="off">
                     </div>
 
                     <div class="form-group" style="display: flex; align-items: center;">
                         <label style="display: flex; align-items: center; gap: 10px; margin: 0;">
-                            Active
+                            <?php echo htmlspecialchars(t('tickets.settings.modals.template.active')); ?>
                             <label class="toggle-switch" style="margin: 0;">
                                 <input type="checkbox" id="templateActive" checked>
                                 <span class="toggle-slider"></span>
@@ -1000,35 +998,35 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Rota Shift Modal -->
     <div class="modal" id="rotaShiftModal">
         <div class="modal-content">
-            <div class="modal-header" id="rotaShiftModalTitle">Add Shift</div>
+            <div class="modal-header" id="rotaShiftModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.rota_shift.add_title')); ?></div>
             <form id="rotaShiftForm">
                 <input type="hidden" id="rotaShiftId">
 
                 <div class="form-group">
-                    <label for="rotaShiftName">Name *</label>
-                    <input type="text" id="rotaShiftName" required placeholder="e.g., Early, Standard, Late">
+                    <label for="rotaShiftName"><?php echo htmlspecialchars(t('tickets.settings.modals.rota_shift.name')); ?> *</label>
+                    <input type="text" id="rotaShiftName" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.rota_shift.name_placeholder')); ?>">
                 </div>
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label for="rotaShiftStart">Start Time *</label>
+                        <label for="rotaShiftStart"><?php echo htmlspecialchars(t('tickets.settings.modals.rota_shift.start_time')); ?> *</label>
                         <input type="time" id="rotaShiftStart" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="rotaShiftEnd">End Time *</label>
+                        <label for="rotaShiftEnd"><?php echo htmlspecialchars(t('tickets.settings.modals.rota_shift.end_time')); ?> *</label>
                         <input type="time" id="rotaShiftEnd" required>
                     </div>
                 </div>
 
                 <div class="form-group">
-                    <label for="rotaShiftOrder">Display Order</label>
+                    <label for="rotaShiftOrder"><?php echo htmlspecialchars(t('tickets.settings.modals.rota_shift.display_order')); ?></label>
                     <input type="number" id="rotaShiftOrder" value="0">
                 </div>
 
                 <div class="form-group">
                     <label>
-                        <input type="checkbox" id="rotaShiftActive" checked> Active
+                        <input type="checkbox" id="rotaShiftActive" checked> <?php echo htmlspecialchars(t('tickets.settings.modals.rota_shift.active')); ?>
                     </label>
                 </div>
 
@@ -1478,15 +1476,15 @@ $translationNamespaces = ['common', 'tickets'];
         // Open add modal
         function openAddModal(type) {
             const titles = {
-                'department': 'Add Department',
-                'ticket-type': 'Add Ticket Type',
-                'ticket-origin': 'Add Ticket Origin',
-                'team': 'Add Team',
-                'status': 'Add Status',
-                'priority': 'Add Priority',
-                'rota-location': 'Add Rota Location'
+                'department':    t('tickets.settings.modals.lookup.add.department'),
+                'ticket-type':   t('tickets.settings.modals.lookup.add.ticket_type'),
+                'ticket-origin': t('tickets.settings.modals.lookup.add.ticket_origin'),
+                'team':          t('tickets.settings.modals.lookup.add.team'),
+                'status':        t('tickets.settings.modals.lookup.add.status'),
+                'priority':      t('tickets.settings.modals.lookup.add.priority'),
+                'rota-location': t('tickets.settings.modals.lookup.add.rota_location')
             };
-            document.getElementById('modalTitle').textContent = titles[type] || 'Add Item';
+            document.getElementById('modalTitle').textContent = titles[type] || t('tickets.settings.modals.lookup.add.fallback');
             document.getElementById('itemType').value = type;
             document.getElementById('itemId').value = '';
             document.getElementById('itemName').value = '';
@@ -1512,13 +1510,13 @@ $translationNamespaces = ['common', 'tickets'];
                 'rota-location': API_BASE + 'get_rota_locations.php'
             };
             const titles = {
-                'department': 'Edit Department',
-                'ticket-type': 'Edit Ticket Type',
-                'ticket-origin': 'Edit Ticket Origin',
-                'team': 'Edit Team',
-                'status': 'Edit Status',
-                'priority': 'Edit Priority',
-                'rota-location': 'Edit Rota Location'
+                'department':    t('tickets.settings.modals.lookup.edit.department'),
+                'ticket-type':   t('tickets.settings.modals.lookup.edit.ticket_type'),
+                'ticket-origin': t('tickets.settings.modals.lookup.edit.ticket_origin'),
+                'team':          t('tickets.settings.modals.lookup.edit.team'),
+                'status':        t('tickets.settings.modals.lookup.edit.status'),
+                'priority':      t('tickets.settings.modals.lookup.edit.priority'),
+                'rota-location': t('tickets.settings.modals.lookup.edit.rota_location')
             };
             const endpoint = endpoints[type];
 
@@ -1539,7 +1537,7 @@ $translationNamespaces = ['common', 'tickets'];
                     const item = items.find(i => i.id == id);
 
                     if (item) {
-                        document.getElementById('modalTitle').textContent = titles[type] || 'Edit Item';
+                        document.getElementById('modalTitle').textContent = titles[type] || t('tickets.settings.modals.lookup.edit.fallback');
                         document.getElementById('itemType').value = type;
                         document.getElementById('itemId').value = item.id;
                         document.getElementById('itemName').value = item.name;
@@ -1839,7 +1837,7 @@ $translationNamespaces = ['common', 'tickets'];
             const tbody = document.getElementById('mailboxes-list');
 
             if (mailboxes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No mailboxes configured. Click "Add Mailbox" to get started.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align: center;">${escapeHtml(t('tickets.settings.modals.mailbox.empty_state'))}</td></tr>`;
                 return;
             }
 
@@ -1899,7 +1897,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         async function openMailboxModal(mailbox = null) {
-            document.getElementById('mailboxModalTitle').textContent = mailbox ? 'Edit Mailbox' : 'Add Mailbox';
+            document.getElementById('mailboxModalTitle').textContent = mailbox ? t('tickets.settings.modals.mailbox.edit_title') : t('tickets.settings.modals.mailbox.add_title');
             document.getElementById('mailboxId').value = mailbox ? mailbox.id : '';
             document.getElementById('mailboxProvider').value = mailbox ? (mailbox.provider || 'microsoft') : 'microsoft';
             document.getElementById('mailboxName').value = mailbox ? mailbox.name : '';
@@ -2528,7 +2526,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         function openAnalystModal(analyst = null) {
-            document.getElementById('analystModalTitle').textContent = analyst ? 'Edit Analyst' : 'Add Analyst';
+            document.getElementById('analystModalTitle').textContent = analyst ? t('tickets.settings.modals.analyst.edit_title') : t('tickets.settings.modals.analyst.add_title');
             document.getElementById('analystId').value = analyst ? analyst.id : '';
             document.getElementById('analystUsername').value = analyst ? analyst.username : '';
             document.getElementById('analystFullName').value = analyst ? analyst.full_name : '';
@@ -2933,7 +2931,7 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('templateBody').value = template ? template.body_template : '';
             document.getElementById('templateOrder').value = template ? template.display_order : 0;
             document.getElementById('templateActive').checked = template ? template.is_active == 1 : true;
-            document.getElementById('templateModalTitle').textContent = template ? 'Edit Email Template' : 'Add Email Template';
+            document.getElementById('templateModalTitle').textContent = template ? t('tickets.settings.modals.template.edit_title') : t('tickets.settings.modals.template.add_title');
             document.getElementById('templateModal').classList.add('active');
         }
 
@@ -3048,10 +3046,10 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('rotaShiftEnd').value = '';
             document.getElementById('rotaShiftOrder').value = '0';
             document.getElementById('rotaShiftActive').checked = true;
-            document.getElementById('rotaShiftModalTitle').textContent = 'Add Shift';
+            document.getElementById('rotaShiftModalTitle').textContent = t('tickets.settings.modals.rota_shift.add_title');
 
             if (id) {
-                document.getElementById('rotaShiftModalTitle').textContent = 'Edit Shift';
+                document.getElementById('rotaShiftModalTitle').textContent = t('tickets.settings.modals.rota_shift.edit_title');
                 try {
                     const response = await fetch(API_BASE + 'get_rota_shifts.php');
                     const data = await response.json();

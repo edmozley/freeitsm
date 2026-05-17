@@ -245,6 +245,157 @@ return [
             'test_connection' => 'Test connection',
             'verify'          => 'Verify',
         ],
+        // Add/Edit modal contents across the settings tabs. Each modal has its
+        // own sub-namespace below. Convention for technical labels: product
+        // names + protocols + standards (Azure, OAuth, IMAP, Microsoft, Google,
+        // SMTP) stay in Latin script in every locale; generic surrounding
+        // words (ID, Port, Scopes, Secret, URI, Server) translate to the
+        // locale's natural equivalent.
+        'modals' => [
+            // Shared lookup modal — department / team / type / origin / status / priority / rota-location
+            'lookup' => [
+                'add' => [
+                    'department'    => 'Add Department',
+                    'team'          => 'Add Team',
+                    'ticket_type'   => 'Add Ticket Type',
+                    'ticket_origin' => 'Add Ticket Origin',
+                    'status'        => 'Add Status',
+                    'priority'      => 'Add Priority',
+                    'rota_location' => 'Add Rota Location',
+                    'fallback'      => 'Add Item',
+                ],
+                'edit' => [
+                    'department'    => 'Edit Department',
+                    'team'          => 'Edit Team',
+                    'ticket_type'   => 'Edit Ticket Type',
+                    'ticket_origin' => 'Edit Ticket Origin',
+                    'status'        => 'Edit Status',
+                    'priority'      => 'Edit Priority',
+                    'rota_location' => 'Edit Rota Location',
+                    'fallback'      => 'Edit Item',
+                ],
+                'colour_help'         => 'Used for badges in lists, dashboards and reports.',
+                'closed_label'        => 'Counts as closed',
+                'closed_help'         => 'Tickets in this status are treated as resolved/terminal — excluded from open-queue counts and trigger the closed-datetime stamp.',
+                'default_label'       => 'Default for new tickets',
+                'default_help'        => 'Only one row can be the default — setting this clears the flag on the others.',
+                'display_order_label' => 'Display Order',
+                'active_label'        => 'Active',
+            ],
+
+            // Mailbox modal — the big one with Microsoft/Google/OAuth/IMAP fields
+            'mailbox' => [
+                'add_title'                   => 'Add Mailbox',
+                'edit_title'                  => 'Edit Mailbox',
+                'empty_state'                 => 'No mailboxes configured. Click "Add Mailbox" to get started.',
+                'provider'                    => 'Provider',
+                'provider_microsoft'          => 'Microsoft 365 (Exchange / Graph API)',
+                'provider_google'             => 'Google Workspace (Gmail API)',
+                'display_name'                => 'Display Name',
+                'display_name_placeholder'    => 'e.g., Service Desk',
+                'target_mailbox'              => 'Target Mailbox',
+                'target_mailbox_placeholder'  => 'e.g., servicedesk@company.com',
+                'azure_tenant_id'             => 'Azure Tenant ID',
+                'client_id'                   => 'Client ID',
+                'client_secret'               => 'Client Secret',
+                'client_secret_placeholder'   => 'Leave blank to keep existing (when editing)',
+                'client_secret_help'          => 'Required for new mailboxes. Leave blank when editing to keep existing secret.',
+                'oauth_redirect_uri'          => 'OAuth Redirect URI',
+                'oauth_scopes'                => 'OAuth Scopes',
+                'imap_server'                 => 'IMAP Server',
+                'imap_port'                   => 'IMAP Port',
+                'email_folder'                => 'Email Folder',
+                'max_emails_per_check'        => 'Max Emails per Check',
+                'rejected_emails'             => 'Rejected Emails',
+                'rejected_delete'             => 'Delete permanently',
+                'rejected_move_to_deleted'    => 'Move to Deleted Items',
+                'rejected_mark_read'          => 'Mark as read',
+                'imported_emails'             => 'Imported Emails',
+                'imported_delete'             => 'Delete permanently',
+                'imported_move_to_folder'     => 'Move to folder',
+                'move_to_folder_label'        => 'Move to Folder',
+                'move_to_folder_placeholder'  => 'e.g., Processed',
+                'active'                      => 'Active',
+                'whitelist_label'             => 'Email Whitelist',
+                'whitelist_help'              => 'If empty, all senders are allowed. Add domains or email addresses to restrict which emails are imported.',
+                'whitelist_domain'            => 'Domain',
+                'whitelist_email'             => 'Email',
+                'whitelist_value_placeholder' => 'e.g. company.com or user@example.com',
+            ],
+
+            // Activity log modal
+            'activity' => [
+                'title'              => 'Mailbox Activity',
+                'search_placeholder' => 'Search by sender, name, or subject...',
+                'processing_log'     => 'Processing Log',
+            ],
+
+            // Analyst modal
+            'analyst' => [
+                'add_title'             => 'Add Analyst',
+                'edit_title'            => 'Edit Analyst',
+                'username'              => 'Username',
+                'username_placeholder'  => 'e.g., jsmith',
+                'full_name'             => 'Full Name',
+                'full_name_placeholder' => 'e.g., John Smith',
+                'email'                 => 'Email',
+                'email_placeholder'     => 'e.g., jsmith@company.com',
+                'password'              => 'Password',
+                'password_placeholder'  => 'Enter password',
+                'password_help'         => 'Required for new analysts.',
+                'active'                => 'Active',
+            ],
+
+            // Password reset modal
+            'password_reset' => [
+                'title'                        => 'Reset Password',
+                'resetting_for'                => 'Resetting password for:',
+                'new_password'                 => 'New Password',
+                'new_password_placeholder'     => 'Enter new password',
+                'confirm_password'             => 'Confirm Password',
+                'confirm_password_placeholder' => 'Confirm new password',
+            ],
+
+            // Team assignment modal
+            'team_assignment' => [
+                'title'       => 'Assign Teams',
+                'description' => 'Select the teams to assign:',
+                'loading'     => 'Loading teams...',
+            ],
+
+            // Email template modal
+            'template' => [
+                'add_title'           => 'Add Email Template',
+                'edit_title'          => 'Edit Email Template',
+                'name'                => 'Name',
+                'name_placeholder'    => 'e.g., New Ticket Auto-Reply',
+                'event_trigger'       => 'Event Trigger',
+                'event_select'        => 'Select event...',
+                'event_new_ticket'    => 'New ticket from email',
+                'event_assigned'      => 'Ticket assigned',
+                'event_closed'        => 'Ticket closed',
+                'subject'             => 'Subject',
+                'subject_placeholder' => 'e.g., Your request has been received',
+                'subject_help'        => '[SDREF:...] is added automatically for reply threading.',
+                'body'                => 'Body',
+                'body_placeholder'    => "Dear [requester_name],\n\nThank you for contacting us...",
+                'body_help'           => 'Merge codes: [ticket_reference], [ticket_subject], [ticket_status], [ticket_priority], [requester_name], [requester_email], [analyst_name], [analyst_email], [department_name], [created_date], [closed_date]',
+                'display_order'       => 'Display Order',
+                'active'              => 'Active',
+            ],
+
+            // Rota shift modal
+            'rota_shift' => [
+                'add_title'        => 'Add Shift',
+                'edit_title'       => 'Edit Shift',
+                'name'             => 'Name',
+                'name_placeholder' => 'e.g., Early, Standard, Late',
+                'start_time'       => 'Start Time',
+                'end_time'         => 'End Time',
+                'display_order'    => 'Display Order',
+                'active'           => 'Active',
+            ],
+        ],
     ],
 
     // tickets/rota.php — weekly staff rota grid
