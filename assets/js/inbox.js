@@ -987,7 +987,13 @@ function displayEmail(email) {
             </div>
         </div>
         <div class="email-header">
-            <div class="email-subject-line">Ticket ${escapeHtml(email.ticket_number || '')} - ${escapeHtml(email.subject)}</div>
+            <div class="email-subject-line">
+                <span class="email-subject-text">Ticket ${escapeHtml(email.ticket_number || '')} - ${escapeHtml(email.subject)}</span>
+                <button class="icon-btn ticket-popout-toggle" onclick="toggleTicketPopout()" title="Toggle full-screen view" aria-label="Toggle full-screen view">
+                    <svg class="popout-icon-expand" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                    <svg class="popout-icon-contract" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+                </button>
+            </div>
             <div class="email-meta">
                 <div class="email-meta-row">
                     <div class="email-meta-label">From:</div>
@@ -2769,3 +2775,22 @@ document.addEventListener('keydown', function(e) {
         }
     }
 });
+
+/* --- Pop-out (full-screen) ticket view ---
+ * Toggles a body class that hides the folder list + email list and floats the
+ * ticket properties container as a right-hand panel. Pure CSS — no DOM
+ * restructuring. Preference persists in localStorage so the analyst's choice
+ * sticks across reloads / ticket selections.
+ */
+function toggleTicketPopout() {
+    const on = document.body.classList.toggle('ticket-popout');
+    try { localStorage.setItem('tickets_popout', on ? '1' : '0'); } catch (e) {}
+}
+
+(function restoreTicketPopout() {
+    try {
+        if (localStorage.getItem('tickets_popout') === '1') {
+            document.body.classList.add('ticket-popout');
+        }
+    } catch (e) {}
+})();

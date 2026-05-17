@@ -447,6 +447,47 @@ body {
     font-weight: 600;
     color: #333;
     margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.email-subject-line .email-subject-text {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Subject-line popout toggle: the contract variant is hidden by default and
+ * swapped in when body.ticket-popout is set, so the icon shows the action the
+ * next click will take. */
+.ticket-popout-toggle .popout-icon-contract { display: none; }
+body.ticket-popout .ticket-popout-toggle .popout-icon-expand   { display: none; }
+body.ticket-popout .ticket-popout-toggle .popout-icon-contract { display: inline-block; }
+
+/* Pop-out (full-screen) ticket view: hide the folder + email-list panes, let
+ * the reading pane fill the width, and float the ticket properties container
+ * as a right-hand panel via absolute positioning. Pure CSS — DOM unchanged. */
+body.ticket-popout .folder-container,
+body.ticket-popout .email-list-container {
+    display: none;
+}
+
+body.ticket-popout .reading-pane {
+    position: relative;
+    padding-right: 340px;
+}
+
+body.ticket-popout .ticket-properties-container {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 340px;
+    height: 100%;
+    overflow-y: auto;
+    border-left: 1px solid #e0e0e0;
+    margin: 0;
+    z-index: 5;
+    background: white;
 }
 
 .email-meta {
