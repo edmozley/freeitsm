@@ -12,28 +12,39 @@ let composeMode = 'new';
 let folderGrouping = 'department'; // 'department' or 'analyst' — persisted via user_preferences
 
 /**
- * Defensive HTML balancer for email bodies.
+ * Defensive HTML cleaner for email bodies.
  *
- * Emails frequently arrive with unclosed tags — a `<div>` with no `</div>`,
- * an open `<font>` running to end-of-message, half a `<table>`. When that HTML
- * is interpolated raw via a template literal and then assigned to innerHTML,
- * the browser's HTML parser balances the tags *to the end of the parent
- * element* — which means an unclosed div from an email body would swallow
- * every sibling that follows it in the same DOM tree (e.g. our CMDB,
- * time-entries, and notes panels would silently end up nested inside the
- * email body, breaking the layout).
+ * Three jobs:
  *
- * DOMParser solves this cleanly: it parses the fragment as a full HTML
- * document, the parser balances any open tags as it builds that document's
- * body, and serialising body.innerHTML back gives us well-formed HTML that
- * can't bleed into sibling elements. Scripts in the parsed document do not
- * execute (DOMParser's documented behaviour for 'text/html').
+ * 1. Balance unclosed tags. Emails frequently arrive with an open `<div>`,
+ *    half a `<table>`, an unclosed `<font>`. When that HTML hits innerHTML
+ *    raw, the parser balances tags at the parent element's boundary —
+ *    runaway tags from an email would swallow every sibling that follows
+ *    (CMDB, time-entries, notes panels nested *inside* the email body).
+ *
+ * 2. Strip `<style>`, `<script>`, `<link>`, `<base>`, `<meta>`. Even with
+ *    balanced markup, a `<style>` block inside the email can apply
+ *    page-wide selectors (`div { ... }`, `* { position: absolute; ... }`)
+ *    that bleed into our chrome and make our containers look broken. The
+ *    grey-box overlap reported in MFG-151-13903 was a case of an Outlook
+ *    "Did you find this email helpful?" footer block whose stylesheet was
+ *    repositioning content. Scripts don't execute via innerHTML in any
+ *    browser, but stripping them removes them from the source of truth too.
+ *
+ * 3. DOMParser does the parsing in a separate document context so the
+ *    stripped tags never touch the live DOM. We then serialise the cleaned
+ *    body back via innerHTML.
  */
 function safeEmailHtml(html) {
     if (!html) return '';
     try {
         const doc = new DOMParser().parseFromString(html, 'text/html');
-        return doc.body ? doc.body.innerHTML : '';
+        if (!doc.body) return '';
+        // Remove any tags that can leak style / positioning into the parent
+        // document or fire side effects on insertion.
+        const dangerous = doc.querySelectorAll('style, script, link, base, meta');
+        dangerous.forEach(el => el.remove());
+        return doc.body.innerHTML;
     } catch (e) {
         return '';
     }

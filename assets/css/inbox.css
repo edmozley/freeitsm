@@ -556,6 +556,12 @@ body.ticket-popout .ticket-toolbar {
     border-radius: 4px;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     line-height: 1.6;
+    /* Containment for arbitrary email HTML: prevents absolutely-positioned
+     * descendants from escaping (this box becomes their containing block)
+     * and clips painting so nothing from the email visually overlaps the
+     * CMDB / time-entries / notes panels below. */
+    contain: layout paint;
+    overflow: hidden;
 }
 
 /* Correspondence thread */
@@ -588,6 +594,9 @@ body.ticket-popout .ticket-toolbar {
     line-height: 1.6;
     color: #333;
     margin: 8px 0;
+    /* Same containment as .email-body-content — see comment there. */
+    contain: layout paint;
+    overflow: hidden;
 }
 
 /* Kill indentation/boxing from inline HTML styles in email bodies */
