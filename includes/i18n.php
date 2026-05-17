@@ -34,6 +34,7 @@ class I18n {
         'it'    => 'Italiano',
         'pl'    => 'Polski',
         'ru'    => 'Русский',
+        'id'    => 'Bahasa Indonesia',
         'hi'    => 'हिन्दी',
         'bn'    => 'বাংলা',
         'ta'    => 'தமிழ்',
