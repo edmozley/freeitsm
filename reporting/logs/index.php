@@ -449,7 +449,7 @@ $path_prefix = '../../';
                                     </span>
                                 </td>
                                 <td class="log-details"><code>${escapeHtml(log.details?.ip_address || '-')}</code></td>
-                                <td class="log-details">${escapeHtml(truncate(log.details?.user_agent || '-', 50))}</td>
+                                <td class="log-details" style="word-break: break-word;">${escapeHtml(log.details?.user_agent || '-')}</td>
                             </tr>
                         `).join('')}
                     </tbody>
@@ -539,11 +539,6 @@ $path_prefix = '../../';
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
-        }
-
-        function truncate(text, maxLength) {
-            if (!text || text.length <= maxLength) return text;
-            return text.substring(0, maxLength) + '...';
         }
 
         function showLogJson(index) {
