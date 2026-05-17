@@ -3250,18 +3250,18 @@ $translationNamespaces = ['common', 'tickets'];
                 return;
             }
 
-            tbody.innerHTML = templates.map(t => `
+            tbody.innerHTML = templates.map(tpl => `
                 <tr>
-                    <td>${escapeHtml(t.name)}</td>
-                    <td>${EVENT_LABELS[t.event_trigger] || t.event_trigger}</td>
-                    <td>${escapeHtml(t.subject_template)}</td>
-                    <td>${t.display_order}</td>
-                    <td><span class="status-badge ${t.is_active == 1 ? 'active' : 'inactive'}">${t.is_active == 1 ? 'Active' : 'Inactive'}</span></td>
+                    <td>${escapeHtml(tpl.name)}</td>
+                    <td>${EVENT_LABELS[tpl.event_trigger] || tpl.event_trigger}</td>
+                    <td>${escapeHtml(tpl.subject_template)}</td>
+                    <td>${tpl.display_order}</td>
+                    <td><span class="status-badge ${tpl.is_active == 1 ? 'active' : 'inactive'}">${tpl.is_active == 1 ? 'Active' : 'Inactive'}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editTemplate(${t.id})" title="${t('common.edit')}">
+                        <button class="action-btn" onclick="editTemplate(${tpl.id})" title="${t('common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteTemplate(${t.id}, '${escapeHtml(t.name)}')" title="${t('common.delete')}">
+                        <button class="action-btn delete" onclick="deleteTemplate(${tpl.id}, '${escapeHtml(tpl.name)}')" title="${t('common.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
                         </button>
                     </td>
