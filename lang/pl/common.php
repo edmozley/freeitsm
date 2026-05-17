@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'Uwierzytelnianie wieloskładnikowe',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'Poprzedni',
+        'next'     => 'Następny',
+        'today'    => 'Dziś',
+
+        'months' => [
+            'january'   => 'styczeń',
+            'february'  => 'luty',
+            'march'     => 'marzec',
+            'april'     => 'kwiecień',
+            'may'       => 'maj',
+            'june'      => 'czerwiec',
+            'july'      => 'lipiec',
+            'august'    => 'sierpień',
+            'september' => 'wrzesień',
+            'october'   => 'październik',
+            'november'  => 'listopad',
+            'december'  => 'grudzień',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'poniedziałek',
+            'tuesday'   => 'wtorek',
+            'wednesday' => 'środa',
+            'thursday'  => 'czwartek',
+            'friday'    => 'piątek',
+            'saturday'  => 'sobota',
+            'sunday'    => 'niedziela',
+        ],
+    ],
 ];

@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'ਬਹੁ-ਕਾਰਕ ਪ੍ਰਮਾਣਿਕਤਾ',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'ਪਿਛਲਾ',
+        'next'     => 'ਅਗਲਾ',
+        'today'    => 'ਅੱਜ',
+
+        'months' => [
+            'january'   => 'ਜਨਵਰੀ',
+            'february'  => 'ਫਰਵਰੀ',
+            'march'     => 'ਮਾਰਚ',
+            'april'     => 'ਅਪ੍ਰੈਲ',
+            'may'       => 'ਮਈ',
+            'june'      => 'ਜੂਨ',
+            'july'      => 'ਜੁਲਾਈ',
+            'august'    => 'ਅਗਸਤ',
+            'september' => 'ਸਤੰਬਰ',
+            'october'   => 'ਅਕਤੂਬਰ',
+            'november'  => 'ਨਵੰਬਰ',
+            'december'  => 'ਦਸੰਬਰ',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'ਸੋਮਵਾਰ',
+            'tuesday'   => 'ਮੰਗਲਵਾਰ',
+            'wednesday' => 'ਬੁੱਧਵਾਰ',
+            'thursday'  => 'ਵੀਰਵਾਰ',
+            'friday'    => 'ਸ਼ੁੱਕਰਵਾਰ',
+            'saturday'  => 'ਸ਼ਨੀਵਾਰ',
+            'sunday'    => 'ਐਤਵਾਰ',
+        ],
+    ],
 ];

@@ -90,4 +90,23 @@ return [
         'welcome'     => 'ఈ టికెట్ గురించి ప్రశ్న అడగండి మరియు AI నాలెడ్జ్ బేస్‌లో సంబంధిత కథనాలను శోధిస్తుంది.',
         'placeholder' => 'ప్రశ్న అడగండి…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'సేవా కేంద్రం - క్యాలెండర్',
+        'modal_title'   => 'టికెట్ వివరాలు',
+        'open_in_inbox' => 'ఇన్‌బాక్స్‌లో తెరువు',
+        'x_more'        => 'మరో {count}...',
+        'unassigned'    => 'కేటాయించబడలేదు',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} న {time} కి',
+        'modal' => [
+            'scheduled'  => 'షెడ్యూల్ చేయబడింది:',
+            'status'     => 'స్థితి:',
+            'priority'   => 'ప్రాధాన్యత:',
+            'requester'  => 'అభ్యర్థి:',
+            'department' => 'విభాగం:',
+            'owner'      => 'యజమాని:',
+        ],
+    ],
 ];

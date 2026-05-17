@@ -90,4 +90,23 @@ return [
         'welcome'     => 'এই টিকিট সম্পর্কে একটি প্রশ্ন করুন এবং AI জ্ঞান ভাণ্ডারে প্রাসঙ্গিক নিবন্ধ খুঁজে দেবে।',
         'placeholder' => 'একটি প্রশ্ন করুন…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'সার্ভিস ডেস্ক - ক্যালেন্ডার',
+        'modal_title'   => 'টিকিটের বিস্তারিত',
+        'open_in_inbox' => 'ইনবক্সে খুলুন',
+        'x_more'        => 'আরও {count}...',
+        'unassigned'    => 'অবরাদ্দ',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} তারিখে {time}',
+        'modal' => [
+            'scheduled'  => 'নির্ধারিত:',
+            'status'     => 'স্ট্যাটাস:',
+            'priority'   => 'অগ্রাধিকার:',
+            'requester'  => 'অনুরোধকারী:',
+            'department' => 'বিভাগ:',
+            'owner'      => 'মালিক:',
+        ],
+    ],
 ];

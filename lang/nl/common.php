@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'Multi-factor authenticatie',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'Vorige',
+        'next'     => 'Volgende',
+        'today'    => 'Vandaag',
+
+        'months' => [
+            'january'   => 'januari',
+            'february'  => 'februari',
+            'march'     => 'maart',
+            'april'     => 'april',
+            'may'       => 'mei',
+            'june'      => 'juni',
+            'july'      => 'juli',
+            'august'    => 'augustus',
+            'september' => 'september',
+            'october'   => 'oktober',
+            'november'  => 'november',
+            'december'  => 'december',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'maandag',
+            'tuesday'   => 'dinsdag',
+            'wednesday' => 'woensdag',
+            'thursday'  => 'donderdag',
+            'friday'    => 'vrijdag',
+            'saturday'  => 'zaterdag',
+            'sunday'    => 'zondag',
+        ],
+    ],
 ];

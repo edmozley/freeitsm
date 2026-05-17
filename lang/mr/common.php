@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'बहु-घटक प्रमाणीकरण',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'मागील',
+        'next'     => 'पुढील',
+        'today'    => 'आज',
+
+        'months' => [
+            'january'   => 'जानेवारी',
+            'february'  => 'फेब्रुवारी',
+            'march'     => 'मार्च',
+            'april'     => 'एप्रिल',
+            'may'       => 'मे',
+            'june'      => 'जून',
+            'july'      => 'जुलै',
+            'august'    => 'ऑगस्ट',
+            'september' => 'सप्टेंबर',
+            'october'   => 'ऑक्टोबर',
+            'november'  => 'नोव्हेंबर',
+            'december'  => 'डिसेंबर',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'सोमवार',
+            'tuesday'   => 'मंगळवार',
+            'wednesday' => 'बुधवार',
+            'thursday'  => 'गुरुवार',
+            'friday'    => 'शुक्रवार',
+            'saturday'  => 'शनिवार',
+            'sunday'    => 'रविवार',
+        ],
+    ],
 ];

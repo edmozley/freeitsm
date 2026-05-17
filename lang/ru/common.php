@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'Многофакторная аутентификация',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'Назад',
+        'next'     => 'Вперёд',
+        'today'    => 'Сегодня',
+
+        'months' => [
+            'january'   => 'январь',
+            'february'  => 'февраль',
+            'march'     => 'март',
+            'april'     => 'апрель',
+            'may'       => 'май',
+            'june'      => 'июнь',
+            'july'      => 'июль',
+            'august'    => 'август',
+            'september' => 'сентябрь',
+            'october'   => 'октябрь',
+            'november'  => 'ноябрь',
+            'december'  => 'декабрь',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'понедельник',
+            'tuesday'   => 'вторник',
+            'wednesday' => 'среда',
+            'thursday'  => 'четверг',
+            'friday'    => 'пятница',
+            'saturday'  => 'суббота',
+            'sunday'    => 'воскресенье',
+        ],
+    ],
 ];

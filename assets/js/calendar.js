@@ -5,6 +5,17 @@
 // API base path - can be overridden by page before loading this script
 const API_BASE = window.API_BASE || 'api/';
 
+// Locale for Intl date/time formatting — sourced from <html lang> so it matches
+// the user's selected interface language. Falls back to en-GB if the bridge
+// hasn't run or the page didn't set <html lang>.
+const PAGE_LOCALE = (document.documentElement.lang || 'en-GB');
+
+// Translation lookup with a graceful fallback when the i18n.js bridge isn't loaded
+// (e.g. an older page including calendar.js without exporting window.translations).
+function tr(key, params) {
+    return (typeof window.t === 'function') ? window.t(key, params) : key;
+}
+
 let currentDate = new Date();
 let scheduledTickets = [];
 
@@ -18,10 +29,11 @@ async function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
 
-    // Update title
-    const monthNames = ['January', 'February', 'March', 'April', 'May', 'June',
-                        'July', 'August', 'September', 'October', 'November', 'December'];
-    document.getElementById('calendarTitle').textContent = `${monthNames[month]} ${year}`;
+    // Update title — month names resolve via the JS i18n bridge
+    const monthKeys = ['january', 'february', 'march', 'april', 'may', 'june',
+                       'july', 'august', 'september', 'october', 'november', 'december'];
+    const monthName = tr('common.calendar.months.' + monthKeys[month]);
+    document.getElementById('calendarTitle').textContent = `${monthName} ${year}`;
 
     // Load scheduled tickets for this month
     await loadScheduledTickets(year, month + 1);
@@ -98,7 +110,8 @@ function renderDay(day, dateStr, isOtherMonth, isToday, isWeekend) {
     });
 
     if (dayTickets.length > maxDisplay) {
-        ticketsHtml += `<div class="more-tickets" onclick="showDayTickets('${dateStr}')">${dayTickets.length - maxDisplay} more...</div>`;
+        const moreCount = dayTickets.length - maxDisplay;
+        ticketsHtml += `<div class="more-tickets" onclick="showDayTickets('${dateStr}')">${escapeHtml(tr('tickets.calendar.x_more', { count: moreCount }))}</div>`;
     }
 
     return `
@@ -131,7 +144,7 @@ async function loadScheduledTickets(year, month) {
                 return {
                     ...t,
                     date: t.work_start_datetime.split('T')[0],
-                    time: dt.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                    time: dt.toLocaleTimeString(PAGE_LOCALE, { hour: '2-digit', minute: '2-digit' })
                 };
             });
         } else {
@@ -168,28 +181,28 @@ function showTicketDetail(ticketId) {
         <div class="ticket-detail-subject">${escapeHtml(ticket.subject)}</div>
         <div class="ticket-detail">
             <div class="ticket-detail-row">
-                <div class="ticket-detail-label">Scheduled:</div>
+                <div class="ticket-detail-label">${escapeHtml(tr('tickets.calendar.modal.scheduled'))}</div>
                 <div class="ticket-detail-value">${formatDateTime(ticket.work_start_datetime)}</div>
             </div>
             <div class="ticket-detail-row">
-                <div class="ticket-detail-label">Status:</div>
+                <div class="ticket-detail-label">${escapeHtml(tr('tickets.calendar.modal.status'))}</div>
                 <div class="ticket-detail-value">${ticket.status}</div>
             </div>
             <div class="ticket-detail-row">
-                <div class="ticket-detail-label">Priority:</div>
+                <div class="ticket-detail-label">${escapeHtml(tr('tickets.calendar.modal.priority'))}</div>
                 <div class="ticket-detail-value">${ticket.priority}</div>
             </div>
             <div class="ticket-detail-row">
-                <div class="ticket-detail-label">Requester:</div>
-                <div class="ticket-detail-value">${escapeHtml(ticket.requester_name || ticket.requester_email || 'N/A')}</div>
+                <div class="ticket-detail-label">${escapeHtml(tr('tickets.calendar.modal.requester'))}</div>
+                <div class="ticket-detail-value">${escapeHtml(ticket.requester_name || ticket.requester_email || tr('tickets.calendar.na'))}</div>
             </div>
             <div class="ticket-detail-row">
-                <div class="ticket-detail-label">Department:</div>
-                <div class="ticket-detail-value">${escapeHtml(ticket.department_name || 'Unassigned')}</div>
+                <div class="ticket-detail-label">${escapeHtml(tr('tickets.calendar.modal.department'))}</div>
+                <div class="ticket-detail-value">${escapeHtml(ticket.department_name || tr('tickets.calendar.unassigned'))}</div>
             </div>
             <div class="ticket-detail-row">
-                <div class="ticket-detail-label">Owner:</div>
-                <div class="ticket-detail-value">${escapeHtml(ticket.owner_name || 'Unassigned')}</div>
+                <div class="ticket-detail-label">${escapeHtml(tr('tickets.calendar.modal.owner'))}</div>
+                <div class="ticket-detail-value">${escapeHtml(ticket.owner_name || tr('tickets.calendar.unassigned'))}</div>
             </div>
         </div>
     `;
@@ -229,10 +242,12 @@ function escapeHtml(text) {
 function formatDateTime(dateStr) {
     if (!dateStr) return '';
     const date = new Date(dateStr);
-    return date.toLocaleDateString('en-GB', {
+    const datePart = date.toLocaleDateString(PAGE_LOCALE, {
         weekday: 'short',
         day: 'numeric',
         month: 'short',
         year: 'numeric'
-    }) + ' at ' + date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    });
+    const timePart = date.toLocaleTimeString(PAGE_LOCALE, { hour: '2-digit', minute: '2-digit' });
+    return tr('tickets.calendar.date_at_time', { date: datePart, time: timePart });
 }

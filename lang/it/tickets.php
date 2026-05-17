@@ -90,4 +90,23 @@ return [
         'welcome'     => 'Poni una domanda su questo ticket e l\'IA cercherà articoli pertinenti nella base di conoscenza.',
         'placeholder' => 'Poni una domanda…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'Service Desk - Calendario',
+        'modal_title'   => 'Dettagli ticket',
+        'open_in_inbox' => 'Apri in Posta in arrivo',
+        'x_more'        => '{count} altri...',
+        'unassigned'    => 'Non assegnato',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} alle {time}',
+        'modal' => [
+            'scheduled'  => 'Pianificato:',
+            'status'     => 'Stato:',
+            'priority'   => 'Priorità:',
+            'requester'  => 'Richiedente:',
+            'department' => 'Dipartimento:',
+            'owner'      => 'Responsabile:',
+        ],
+    ],
 ];

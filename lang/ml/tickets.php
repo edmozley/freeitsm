@@ -90,4 +90,23 @@ return [
         'welcome'     => 'ഈ ടിക്കറ്റിനെക്കുറിച്ച് ഒരു ചോദ്യം ചോദിക്കുക, AI വിജ്ഞാന അടിസ്ഥാനത്തിൽ പ്രസക്തമായ ലേഖനങ്ങൾ തിരയും.',
         'placeholder' => 'ഒരു ചോദ്യം ചോദിക്കുക…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'സേവന കേന്ദ്രം - കലണ്ടർ',
+        'modal_title'   => 'ടിക്കറ്റ് വിശദാംശങ്ങൾ',
+        'open_in_inbox' => 'ഇൻബോക്സിൽ തുറക്കുക',
+        'x_more'        => 'കൂടുതൽ {count}...',
+        'unassigned'    => 'അസൈൻ ചെയ്തിട്ടില്ല',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date}, {time}',
+        'modal' => [
+            'scheduled'  => 'ഷെഡ്യൂൾ ചെയ്തത്:',
+            'status'     => 'സ്ഥിതി:',
+            'priority'   => 'മുൻഗണന:',
+            'requester'  => 'അഭ്യർത്ഥകൻ:',
+            'department' => 'വകുപ്പ്:',
+            'owner'      => 'ഉടമ:',
+        ],
+    ],
 ];

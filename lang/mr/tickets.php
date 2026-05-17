@@ -90,4 +90,23 @@ return [
         'welcome'     => 'या तिकिटाबद्दल प्रश्न विचारा आणि AI ज्ञान आधारात संबंधित लेख शोधेल.',
         'placeholder' => 'प्रश्न विचारा…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'सेवा डेस्क - कॅलेंडर',
+        'modal_title'   => 'तिकिटाचा तपशील',
+        'open_in_inbox' => 'इनबॉक्समध्ये उघडा',
+        'x_more'        => 'आणखी {count}...',
+        'unassigned'    => 'न नेमलेले',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} रोजी {time} वाजता',
+        'modal' => [
+            'scheduled'  => 'नियोजित:',
+            'status'     => 'स्थिती:',
+            'priority'   => 'प्राधान्य:',
+            'requester'  => 'विनंतीकर्ता:',
+            'department' => 'विभाग:',
+            'owner'      => 'मालक:',
+        ],
+    ],
 ];

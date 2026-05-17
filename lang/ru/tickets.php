@@ -90,4 +90,23 @@ return [
         'welcome'     => 'Задайте вопрос об этой заявке, и ИИ найдёт релевантные статьи в базе знаний.',
         'placeholder' => 'Задайте вопрос…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'Служба поддержки - Календарь',
+        'modal_title'   => 'Детали заявки',
+        'open_in_inbox' => 'Открыть во входящих',
+        'x_more'        => 'ещё {count}...',
+        'unassigned'    => 'Не назначено',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} в {time}',
+        'modal' => [
+            'scheduled'  => 'Запланировано:',
+            'status'     => 'Статус:',
+            'priority'   => 'Приоритет:',
+            'requester'  => 'Заявитель:',
+            'department' => 'Отдел:',
+            'owner'      => 'Ответственный:',
+        ],
+    ],
 ];

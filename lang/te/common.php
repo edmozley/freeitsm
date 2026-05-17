@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'బహుళ-కారక ప్రామాణీకరణ',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'మునుపటి',
+        'next'     => 'తదుపరి',
+        'today'    => 'ఈ రోజు',
+
+        'months' => [
+            'january'   => 'జనవరి',
+            'february'  => 'ఫిబ్రవరి',
+            'march'     => 'మార్చి',
+            'april'     => 'ఏప్రిల్',
+            'may'       => 'మే',
+            'june'      => 'జూన్',
+            'july'      => 'జూలై',
+            'august'    => 'ఆగస్టు',
+            'september' => 'సెప్టెంబర్',
+            'october'   => 'అక్టోబర్',
+            'november'  => 'నవంబర్',
+            'december'  => 'డిసెంబర్',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'సోమవారం',
+            'tuesday'   => 'మంగళవారం',
+            'wednesday' => 'బుధవారం',
+            'thursday'  => 'గురువారం',
+            'friday'    => 'శుక్రవారం',
+            'saturday'  => 'శనివారం',
+            'sunday'    => 'ఆదివారం',
+        ],
+    ],
 ];

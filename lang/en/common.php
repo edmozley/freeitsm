@@ -110,4 +110,37 @@ return [
     'mfa_modal' => [
         'title' => 'Multi-Factor Authentication',
     ],
+
+    // Calendar primitives — months, weekdays, navigation. Shared across any module
+    // that renders a calendar (tickets/calendar.php today; top-level calendar/ next).
+    'calendar' => [
+        'previous' => 'Previous',
+        'next'     => 'Next',
+        'today'    => 'Today',
+
+        'months' => [
+            'january'   => 'January',
+            'february'  => 'February',
+            'march'     => 'March',
+            'april'     => 'April',
+            'may'       => 'May',
+            'june'      => 'June',
+            'july'      => 'July',
+            'august'    => 'August',
+            'september' => 'September',
+            'october'   => 'October',
+            'november'  => 'November',
+            'december'  => 'December',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'Monday',
+            'tuesday'   => 'Tuesday',
+            'wednesday' => 'Wednesday',
+            'thursday'  => 'Thursday',
+            'friday'    => 'Friday',
+            'saturday'  => 'Saturday',
+            'sunday'    => 'Sunday',
+        ],
+    ],
 ];

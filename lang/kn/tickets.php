@@ -90,4 +90,23 @@ return [
         'welcome'     => 'ಈ ಟಿಕೆಟ್ ಬಗ್ಗೆ ಪ್ರಶ್ನೆ ಕೇಳಿ ಮತ್ತು AI ಜ್ಞಾನ ನೆಲೆಯಲ್ಲಿ ಸಂಬಂಧಿತ ಲೇಖನಗಳನ್ನು ಹುಡುಕುತ್ತದೆ.',
         'placeholder' => 'ಪ್ರಶ್ನೆ ಕೇಳಿ…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'ಸೇವಾ ಕೇಂದ್ರ - ಕ್ಯಾಲೆಂಡರ್',
+        'modal_title'   => 'ಟಿಕೆಟ್ ವಿವರಗಳು',
+        'open_in_inbox' => 'ಇನ್‌ಬಾಕ್ಸ್‌ನಲ್ಲಿ ತೆರೆಯಿರಿ',
+        'x_more'        => 'ಇನ್ನೂ {count}...',
+        'unassigned'    => 'ನಿಯೋಜಿಸದ',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} ರಂದು {time} ಕ್ಕೆ',
+        'modal' => [
+            'scheduled'  => 'ನಿಗದಿಪಡಿಸಲಾಗಿದೆ:',
+            'status'     => 'ಸ್ಥಿತಿ:',
+            'priority'   => 'ಆದ್ಯತೆ:',
+            'requester'  => 'ವಿನಂತಿದಾರ:',
+            'department' => 'ವಿಭಾಗ:',
+            'owner'      => 'ಮಾಲೀಕ:',
+        ],
+    ],
 ];

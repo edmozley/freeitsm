@@ -90,4 +90,23 @@ return [
         'welcome'     => 'இந்த டிக்கெட் பற்றி ஒரு கேள்வியை கேளுங்கள், AI அறிவுத் தளத்தில் தொடர்புடைய கட்டுரைகளைத் தேடும்.',
         'placeholder' => 'ஒரு கேள்வியைக் கேள்…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'சேவை மையம் - நாட்காட்டி',
+        'modal_title'   => 'டிக்கெட் விவரங்கள்',
+        'open_in_inbox' => 'உள்வரும் பெட்டியில் திற',
+        'x_more'        => 'மேலும் {count}...',
+        'unassigned'    => 'ஒதுக்கப்படவில்லை',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} அன்று {time} மணிக்கு',
+        'modal' => [
+            'scheduled'  => 'திட்டமிடப்பட்டது:',
+            'status'     => 'நிலை:',
+            'priority'   => 'முன்னுரிமை:',
+            'requester'  => 'கோரியவர்:',
+            'department' => 'துறை:',
+            'owner'      => 'உரிமையாளர்:',
+        ],
+    ],
 ];

@@ -116,4 +116,23 @@ return [
         'welcome'     => 'Ask a question about this ticket and the AI will search the knowledge base for relevant articles.',
         'placeholder' => 'Ask a question...',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'Service Desk - Calendar',
+        'modal_title'   => 'Ticket Details',
+        'open_in_inbox' => 'Open in Inbox',
+        'x_more'        => '{count} more...',
+        'unassigned'    => 'Unassigned',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} at {time}',
+        'modal' => [
+            'scheduled'  => 'Scheduled:',
+            'status'     => 'Status:',
+            'priority'   => 'Priority:',
+            'requester'  => 'Requester:',
+            'department' => 'Department:',
+            'owner'      => 'Owner:',
+        ],
+    ],
 ];

@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'ಬಹು-ಅಂಶ ದೃಢೀಕರಣ',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'ಹಿಂದಿನ',
+        'next'     => 'ಮುಂದಿನ',
+        'today'    => 'ಇಂದು',
+
+        'months' => [
+            'january'   => 'ಜನವರಿ',
+            'february'  => 'ಫೆಬ್ರವರಿ',
+            'march'     => 'ಮಾರ್ಚ್',
+            'april'     => 'ಏಪ್ರಿಲ್',
+            'may'       => 'ಮೇ',
+            'june'      => 'ಜೂನ್',
+            'july'      => 'ಜುಲೈ',
+            'august'    => 'ಆಗಸ್ಟ್',
+            'september' => 'ಸೆಪ್ಟೆಂಬರ್',
+            'october'   => 'ಅಕ್ಟೋಬರ್',
+            'november'  => 'ನವೆಂಬರ್',
+            'december'  => 'ಡಿಸೆಂಬರ್',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'ಸೋಮವಾರ',
+            'tuesday'   => 'ಮಂಗಳವಾರ',
+            'wednesday' => 'ಬುಧವಾರ',
+            'thursday'  => 'ಗುರುವಾರ',
+            'friday'    => 'ಶುಕ್ರವಾರ',
+            'saturday'  => 'ಶನಿವಾರ',
+            'sunday'    => 'ಭಾನುವಾರ',
+        ],
+    ],
 ];

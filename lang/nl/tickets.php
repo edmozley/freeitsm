@@ -90,4 +90,23 @@ return [
         'welcome'     => 'Stel een vraag over dit ticket en de AI zoekt relevante artikelen in de kennisbank.',
         'placeholder' => 'Een vraag stellen…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'Servicedesk - Kalender',
+        'modal_title'   => 'Ticketdetails',
+        'open_in_inbox' => 'Openen in Postvak IN',
+        'x_more'        => '{count} meer...',
+        'unassigned'    => 'Niet toegewezen',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} om {time}',
+        'modal' => [
+            'scheduled'  => 'Gepland:',
+            'status'     => 'Status:',
+            'priority'   => 'Prioriteit:',
+            'requester'  => 'Aanvrager:',
+            'department' => 'Afdeling:',
+            'owner'      => 'Eigenaar:',
+        ],
+    ],
 ];

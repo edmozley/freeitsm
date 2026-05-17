@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'বহু-উপাদান প্রমাণীকরণ',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'পূর্ববর্তী',
+        'next'     => 'পরবর্তী',
+        'today'    => 'আজ',
+
+        'months' => [
+            'january'   => 'জানুয়ারি',
+            'february'  => 'ফেব্রুয়ারি',
+            'march'     => 'মার্চ',
+            'april'     => 'এপ্রিল',
+            'may'       => 'মে',
+            'june'      => 'জুন',
+            'july'      => 'জুলাই',
+            'august'    => 'আগস্ট',
+            'september' => 'সেপ্টেম্বর',
+            'october'   => 'অক্টোবর',
+            'november'  => 'নভেম্বর',
+            'december'  => 'ডিসেম্বর',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'সোমবার',
+            'tuesday'   => 'মঙ্গলবার',
+            'wednesday' => 'বুধবার',
+            'thursday'  => 'বৃহস্পতিবার',
+            'friday'    => 'শুক্রবার',
+            'saturday'  => 'শনিবার',
+            'sunday'    => 'রবিবার',
+        ],
+    ],
 ];

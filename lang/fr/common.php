@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'Authentification multifacteur',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'Précédent',
+        'next'     => 'Suivant',
+        'today'    => 'Aujourd\'hui',
+
+        'months' => [
+            'january'   => 'janvier',
+            'february'  => 'février',
+            'march'     => 'mars',
+            'april'     => 'avril',
+            'may'       => 'mai',
+            'june'      => 'juin',
+            'july'      => 'juillet',
+            'august'    => 'août',
+            'september' => 'septembre',
+            'october'   => 'octobre',
+            'november'  => 'novembre',
+            'december'  => 'décembre',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'lundi',
+            'tuesday'   => 'mardi',
+            'wednesday' => 'mercredi',
+            'thursday'  => 'jeudi',
+            'friday'    => 'vendredi',
+            'saturday'  => 'samedi',
+            'sunday'    => 'dimanche',
+        ],
+    ],
 ];

@@ -90,4 +90,23 @@ return [
         'welcome'     => 'Stellen Sie eine Frage zu diesem Ticket und die KI sucht in der Wissensdatenbank nach relevanten Artikeln.',
         'placeholder' => 'Eine Frage stellen…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'Service Desk - Kalender',
+        'modal_title'   => 'Ticketdetails',
+        'open_in_inbox' => 'Im Posteingang öffnen',
+        'x_more'        => '{count} weitere...',
+        'unassigned'    => 'Nicht zugewiesen',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} um {time}',
+        'modal' => [
+            'scheduled'  => 'Geplant:',
+            'status'     => 'Status:',
+            'priority'   => 'Priorität:',
+            'requester'  => 'Anfragender:',
+            'department' => 'Abteilung:',
+            'owner'      => 'Bearbeiter:',
+        ],
+    ],
 ];

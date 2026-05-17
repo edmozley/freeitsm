@@ -90,4 +90,23 @@ return [
         'welcome'     => 'Zadaj pytanie dotyczące tego zgłoszenia, a AI wyszuka odpowiednie artykuły w bazie wiedzy.',
         'placeholder' => 'Zadaj pytanie…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'Centrum obsługi - Kalendarz',
+        'modal_title'   => 'Szczegóły zgłoszenia',
+        'open_in_inbox' => 'Otwórz w skrzynce odbiorczej',
+        'x_more'        => 'więcej: {count}...',
+        'unassigned'    => 'Nieprzypisane',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} o {time}',
+        'modal' => [
+            'scheduled'  => 'Zaplanowane:',
+            'status'     => 'Status:',
+            'priority'   => 'Priorytet:',
+            'requester'  => 'Zgłaszający:',
+            'department' => 'Dział:',
+            'owner'      => 'Właściciel:',
+        ],
+    ],
 ];

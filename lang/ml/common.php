@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'മൾട്ടി-ഫാക്ടർ പ്രാമാണീകരണം',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'മുമ്പത്തെ',
+        'next'     => 'അടുത്തത്',
+        'today'    => 'ഇന്ന്',
+
+        'months' => [
+            'january'   => 'ജനുവരി',
+            'february'  => 'ഫെബ്രുവരി',
+            'march'     => 'മാർച്ച്',
+            'april'     => 'ഏപ്രിൽ',
+            'may'       => 'മേയ്',
+            'june'      => 'ജൂൺ',
+            'july'      => 'ജൂലൈ',
+            'august'    => 'ഓഗസ്റ്റ്',
+            'september' => 'സെപ്റ്റംബർ',
+            'october'   => 'ഒക്ടോബർ',
+            'november'  => 'നവംബർ',
+            'december'  => 'ഡിസംബർ',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'തിങ്കൾ',
+            'tuesday'   => 'ചൊവ്വ',
+            'wednesday' => 'ബുധൻ',
+            'thursday'  => 'വ്യാഴം',
+            'friday'    => 'വെള്ളി',
+            'saturday'  => 'ശനി',
+            'sunday'    => 'ഞായർ',
+        ],
+    ],
 ];

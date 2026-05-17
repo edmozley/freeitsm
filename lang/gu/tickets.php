@@ -90,4 +90,23 @@ return [
         'welcome'     => 'આ ટિકિટ વિશે પ્રશ્ન પૂછો અને AI જ્ઞાન આધારમાં સંબંધિત લેખો શોધશે.',
         'placeholder' => 'એક પ્રશ્ન પૂછો…',
     ],
+
+    // tickets/calendar.php — scheduled-tickets calendar view
+    'calendar' => [
+        'page_title'    => 'સેવા ડેસ્ક - કેલેન્ડર',
+        'modal_title'   => 'ટિકિટની વિગતો',
+        'open_in_inbox' => 'ઇનબોક્સમાં ખોલો',
+        'x_more'        => 'વધુ {count}...',
+        'unassigned'    => 'અસોંપાયેલું',
+        'na'            => 'N/A',
+        'date_at_time'  => '{date} ના રોજ {time} વાગ્યે',
+        'modal' => [
+            'scheduled'  => 'શેડ્યૂલ:',
+            'status'     => 'સ્થિતિ:',
+            'priority'   => 'પ્રાથમિકતા:',
+            'requester'  => 'વિનંતી કરનાર:',
+            'department' => 'વિભાગ:',
+            'owner'      => 'માલિક:',
+        ],
+    ],
 ];

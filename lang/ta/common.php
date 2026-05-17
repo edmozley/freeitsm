@@ -102,4 +102,36 @@ return [
     'mfa_modal' => [
         'title' => 'பல-காரணி அங்கீகாரம்',
     ],
+
+    // Calendar primitives — months, weekdays, navigation.
+    'calendar' => [
+        'previous' => 'முந்தைய',
+        'next'     => 'அடுத்து',
+        'today'    => 'இன்று',
+
+        'months' => [
+            'january'   => 'ஜனவரி',
+            'february'  => 'பிப்ரவரி',
+            'march'     => 'மார்ச்',
+            'april'     => 'ஏப்ரல்',
+            'may'       => 'மே',
+            'june'      => 'ஜூன்',
+            'july'      => 'ஜூலை',
+            'august'    => 'ஆகஸ்ட்',
+            'september' => 'செப்டம்பர்',
+            'october'   => 'அக்டோபர்',
+            'november'  => 'நவம்பர்',
+            'december'  => 'டிசம்பர்',
+        ],
+
+        'weekdays' => [
+            'monday'    => 'திங்கள்',
+            'tuesday'   => 'செவ்வாய்',
+            'wednesday' => 'புதன்',
+            'thursday'  => 'வியாழன்',
+            'friday'    => 'வெள்ளி',
+            'saturday'  => 'சனி',
+            'sunday'    => 'ஞாயிறு',
+        ],
+    ],
 ];
