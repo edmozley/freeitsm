@@ -538,6 +538,10 @@ $path_prefix = '../';
                         <div><strong>Closed</strong> &mdash; resolved tickets. Search here when you need to reference a past solution or reopen an issue.</div>
                         <div><strong>Department folders</strong> &mdash; tickets grouped by department (e.g. IT, HR, Finance). Departments are configured in Settings and appear as sub-folders automatically.</div>
                     </div>
+
+                    <p style="margin-top: 20px;"><strong>Switching between Department and Analyst grouping</strong></p>
+                    <p>A small two-button toggle at the top of the folder panel switches between two views of the same data. <strong>Department</strong> grouping (default) lists tickets under each department with status sub-folders inside; <strong>Analyst</strong> grouping flips it so each top-level folder represents an analyst's personal queue with status sub-folders inside. The <strong>Unassigned</strong> folder is context-aware in each view &mdash; in Department view it lists tickets with no department set; in Analyst view it lists tickets with no assignee &mdash; so you can always see what needs picking up. Your choice is saved per-analyst so each team member keeps the view they prefer across sessions.</p>
+
                     <p>Above the ticket list, you have three action buttons: <strong>New</strong> to create a ticket, <strong>Search</strong> to find tickets by keyword, reference, or requester, and <strong>Refresh</strong> to reload the current folder.</p>
                     <p class="tk-help-tip">Click any ticket in the list to load it in the reading pane. From there you can update fields, add comments, reply by email, or attach files &mdash; all without navigating away from the inbox.</p>
                 </div>
@@ -622,6 +626,54 @@ $path_prefix = '../';
                         <div class="tk-help-flow-arrow">&rarr;</div>
                         <div class="tk-help-flow-step closed">Closed</div>
                     </div>
+
+                    <p style="margin-top: 24px;"><strong>Triage by drag and drop</strong></p>
+                    <p>You don't have to open a ticket to triage it. Drag any row from the ticket list onto a folder to update fields in one motion:</p>
+                    <div class="tk-help-fields">
+                        <div><strong>Department view</strong> &mdash; drop on a department folder to reassign, drop on a status sub-folder under a department to update both at once, drop on <strong>Unassigned</strong> to clear the department.</div>
+                        <div><strong>Analyst view</strong> &mdash; drop on an analyst's folder to assign that analyst as the owner (sets both <code>assigned_analyst_id</code> and <code>owner_id</code> so the Owner field in the reading pane stays in sync), drop on a status sub-folder to update both, drop on <strong>Unassigned</strong> to clear the assignee.</div>
+                        <div><strong>Spring-loaded folders</strong> &mdash; hover a collapsed folder during a drag and it auto-expands (Outlook-style) so any nested status is reachable without dropping first.</div>
+                    </div>
+
+                    <p style="margin-top: 20px;"><strong>Full-screen view</strong></p>
+                    <p>When you need to focus on a single ticket &mdash; a long conversation, a complex change, drafting a detailed reply &mdash; switch to full-screen view. The folder list and the ticket list disappear, the conversation fills the available width, and the properties (Department, Type, Status, Origin, First Time Fix, IT Training, Owner) move to a vertical sidebar on the right.</p>
+                    <div class="tk-help-fields">
+                        <div><strong>Maximize icon</strong> &mdash; small icon at the right end of the ticket subject line. Click to enter full-screen; click again to return to the 3-pane layout.</div>
+                        <div><strong>Double-click a row</strong> &mdash; double-click any ticket in the list to open it directly in full-screen, Outlook-style "really open this one" gesture.</div>
+                        <div><strong>Sticks across selections</strong> &mdash; once you're in full-screen, switching to the next ticket keeps you there. A fresh page reload (F5) with no ticket selected returns to the default 3-column layout, so you can't end up trapped with the folder list hidden.</div>
+                    </div>
+
+                    <p style="margin-top: 20px;"><strong>Right-click for quick actions</strong></p>
+                    <p>Right-click any ticket in the list to open a small context menu. The menu shows the ticket reference at the top so you know what you're acting on, and offers two actions that operate on the right-clicked ticket <em>without</em> changing what's currently open in the reading pane &mdash; useful when you're reading ticket A and need to log time / link CMDB objects against ticket B without losing your place.</p>
+                    <div class="tk-help-fields">
+                        <div><strong>Link CMDB object&hellip;</strong> &mdash; opens a search-as-you-type picker. Click a result to link it, then keep picking &mdash; the input clears and refocuses for the next one, and a "Recently linked" log inside the modal shows your running list of green-tick confirmations.</div>
+                        <div><strong>Record time&hellip;</strong> &mdash; opens a modal with minutes + a datetime picker (defaults to "now" so you can also backdate) + an optional notes box.</div>
+                    </div>
+                    <p class="tk-help-tip">If the ticket you're acting on via the context menu happens to be the same one open in the reading pane, the relevant section there (CMDB objects or time entries) auto-refreshes when the modal closes, so the UI stays in sync.</p>
+
+                    <p style="margin-top: 20px;"><strong>Recording time</strong></p>
+                    <p>Time spent on a ticket is logged into a dedicated <strong>Time Entries</strong> section in the reading pane, sitting between the linked CMDB objects panel and the Notes panel. The header shows the running total (e.g. "Total 2h 30m"), and each entry below shows the time spent, the analyst, the date, and any notes you added.</p>
+                    <div class="tk-help-steps">
+                        <div class="tk-help-step-item">
+                            <div class="tk-help-step-num">1</div>
+                            <div>
+                                <strong>Inline form</strong> &mdash; type the minutes spent into the numeric input, an optional short description into the notes input, and click <strong>Add</strong>. The new entry appears immediately at the top of the list with your name and the current timestamp.
+                            </div>
+                        </div>
+                        <div class="tk-help-step-item">
+                            <div class="tk-help-step-num">2</div>
+                            <div>
+                                <strong>Backdate via right-click</strong> &mdash; if you need to log time you forgot to record earlier, right-click the ticket in the list and pick <strong>Record time&hellip;</strong>. The modal includes a datetime picker so you can stamp the entry with the actual time the work was done.
+                            </div>
+                        </div>
+                        <div class="tk-help-step-item">
+                            <div class="tk-help-step-num">3</div>
+                            <div>
+                                <strong>Delete your own entries</strong> &mdash; a small &times; button appears next to entries you logged. Click it (and confirm) to soft-delete &mdash; the row stays in the database with <code>is_active = 0</code> for audit, but disappears from the list. You can't delete other analysts' entries.
+                            </div>
+                        </div>
+                    </div>
+                    <p class="tk-help-tip">Times are stored as plain minutes (45 min, 90 min, etc.) and rendered as <code>45m</code> or <code>1h 30m</code> in the UI &mdash; granular enough for short fixes, no decimal-hours rounding pain.</p>
 
                     <p class="tk-help-tip">Every field change is recorded in the ticket's activity trail. You can always see who changed what and when, which is essential for audit compliance and handover between analysts.</p>
                 </div>
@@ -852,6 +904,18 @@ $path_prefix = '../';
                         <div class="tk-help-tip-card">
                             <div class="tk-help-tip-icon">&#128197;</div>
                             <div><strong>Plan with the rota</strong><br>Fill out the rota at least two weeks in advance. When combined with the calendar view, it helps you identify gaps in coverage before they become a problem for response times.</div>
+                        </div>
+                        <div class="tk-help-tip-card">
+                            <div class="tk-help-tip-icon">&#129032;</div>
+                            <div><strong>Drag to triage</strong><br>Drag tickets from the list onto folders to update them without opening. Department + status sub-folders update both at once. Spring-loaded expansion makes nested statuses reachable mid-drag.</div>
+                        </div>
+                        <div class="tk-help-tip-card">
+                            <div class="tk-help-tip-icon">&#128471;</div>
+                            <div><strong>Double-click for full screen</strong><br>Single-click previews a ticket in the reading pane; double-click opens it in full-screen mode for focus work. Click the maximize icon next to the subject to toggle back.</div>
+                        </div>
+                        <div class="tk-help-tip-card">
+                            <div class="tk-help-tip-icon">&#128499;</div>
+                            <div><strong>Right-click for quick actions</strong><br>Right-click any ticket to link a CMDB object or record time without switching away from the ticket you're currently reading. Perfect for logging time you forgot earlier.</div>
                         </div>
                     </div>
                 </div>
