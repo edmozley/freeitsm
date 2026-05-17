@@ -24,7 +24,7 @@ $path_prefix = '../../';
     <script src="../../assets/js/toast.js"></script>
     <style>
         body { overflow: auto; height: auto; background: #f5f5f5; }
-        .container { max-width: 1200px; margin: 24px auto; padding: 0 20px; }
+        .container { max-width: none; margin: 24px 0; padding: 0 20px; }
         .tabs {
             display: flex;
             gap: 4px;
