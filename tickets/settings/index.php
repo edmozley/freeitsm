@@ -3969,11 +3969,11 @@ $translationNamespaces = ['common', 'tickets'];
                 document.getElementById('slaNotifEmails').value = '';
                 document.getElementById('slaNotifActive').checked = true;
             }
-            document.getElementById('slaNotifModal').style.display = 'block';
+            document.getElementById('slaNotifModal').classList.add('active');
         }
 
         function closeSlaNotifModal() {
-            document.getElementById('slaNotifModal').style.display = 'none';
+            document.getElementById('slaNotifModal').classList.remove('active');
         }
 
         async function saveSlaNotifRule() {
