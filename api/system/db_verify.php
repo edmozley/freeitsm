@@ -184,6 +184,18 @@ $schema = [
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    'ticket_time_entries' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'ticket_id'           => 'INT NOT NULL',
+        'analyst_id'          => 'INT NOT NULL',
+        'notes'               => 'LONGTEXT NULL',
+        'time_spent_minutes'  => 'INT NOT NULL',
+        'entry_datetime'      => 'DATETIME NOT NULL',
+        'is_active'           => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'    => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'    => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+    ],
+
     'target_mailboxes' => [
         'id'                      => 'INT NOT NULL AUTO_INCREMENT',
         'name'                    => 'VARCHAR(100) NOT NULL',

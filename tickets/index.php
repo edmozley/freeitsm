@@ -21,7 +21,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.title')); ?> - <?php echo htmlspecialchars(t('tickets.nav.inbox')); ?></title>
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=14">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=15">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
@@ -250,7 +250,10 @@ $translationNamespaces = ['common', 'tickets'];
     </div>
 
     <div class="toast" id="toast"></div>
-    <script>window.API_BASE = '../api/tickets/';</script>
+    <script>
+        window.API_BASE = '../api/tickets/';
+        window.CURRENT_ANALYST_ID = <?php echo (int)($_SESSION['analyst_id'] ?? 0); ?>;
+    </script>
     <script src="../assets/js/inbox.js?v=17"></script>
     <script>
     // Auto-check mailboxes every 60 seconds

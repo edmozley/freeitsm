@@ -1058,6 +1058,7 @@ function displayEmail(email) {
                 <div class="email-body-content">${email.body_content}</div>
             </div>
             <div id="cmdbObjectsContainer"></div>
+            <div id="timeEntriesContainer"></div>
             <div id="notesContainer"></div>
         </div>
     `;
@@ -1067,6 +1068,7 @@ function displayEmail(email) {
     loadNotes(email.ticket_id);
     loadTicketAttachments(email.ticket_id);
     loadCmdbObjects(email.ticket_id);
+    loadTimeEntries(email.ticket_id);
 
     // A ticket is now displayed — apply popout class if the saved pref says so.
     syncPopoutToTicketState(true);
@@ -2802,6 +2804,134 @@ function toggleTicketPopout() {
 function selectEmailFullScreen(emailId) {
     try { localStorage.setItem('tickets_popout', '1'); } catch (e) {}
     selectEmail(emailId);
+}
+
+/* --- Time entries ----------------------------------------------------------
+ * Per-ticket time logging. List + inline add form, soft-delete on own rows.
+ * API lives at api/tickets/{get,save,delete}_time_entry.php.
+ */
+let currentTimeEntries = [];
+
+async function loadTimeEntries(ticketId) {
+    try {
+        const response = await fetch(`${API_BASE}get_time_entries.php?ticket_id=${ticketId}`);
+        const data = await response.json();
+        currentTimeEntries = data.success ? data.entries : [];
+        renderTimeEntries(data.success ? data.total_minutes : 0);
+    } catch (e) {
+        console.error('Time entries load failed:', e);
+        currentTimeEntries = [];
+        renderTimeEntries(0);
+    }
+}
+
+// Convert minutes int to a short display string: 45 → "45m", 90 → "1h 30m".
+function formatMinutes(mins) {
+    mins = Math.max(0, parseInt(mins, 10) || 0);
+    if (mins < 60) return mins + 'm';
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+    return m ? `${h}h ${m}m` : `${h}h`;
+}
+
+function renderTimeEntries(totalMinutes) {
+    const container = document.getElementById('timeEntriesContainer');
+    if (!container) return;
+
+    const myAnalystId = window.CURRENT_ANALYST_ID || 0;
+    const totalLabel = totalMinutes > 0 ? ' &middot; Total ' + formatMinutes(totalMinutes) : '';
+
+    let rowsHtml = '';
+    if (currentTimeEntries.length === 0) {
+        rowsHtml = '<div class="time-entry-empty">No time logged yet.</div>';
+    } else {
+        rowsHtml = currentTimeEntries.map(e => {
+            const canDelete = parseInt(e.analyst_id, 10) === parseInt(myAnalystId, 10);
+            const deleteBtn = canDelete
+                ? `<button class="time-entry-delete" onclick="deleteTimeEntry(${e.id})" title="Delete entry" aria-label="Delete entry">&times;</button>`
+                : '';
+            const notesHtml = e.notes
+                ? `<div class="time-entry-notes">${escapeHtml(e.notes)}</div>`
+                : '';
+            return `
+                <div class="time-entry-item">
+                    <div class="time-entry-row">
+                        <span class="time-entry-spent">${escapeHtml(formatMinutes(e.time_spent_minutes))}</span>
+                        <span class="time-entry-analyst">${escapeHtml(e.analyst_name)}</span>
+                        <span class="time-entry-date">${formatDateTime(e.entry_datetime)}</span>
+                        ${deleteBtn}
+                    </div>
+                    ${notesHtml}
+                </div>
+            `;
+        }).join('');
+    }
+
+    container.innerHTML = `
+        <div class="time-entries-section">
+            <div class="time-entries-header">Time Entries${totalLabel}</div>
+            <form class="time-entry-form" onsubmit="event.preventDefault(); saveTimeEntry();">
+                <input type="number" id="timeEntryMinutes" class="time-entry-input-minutes"
+                       min="1" step="1" placeholder="Minutes" required>
+                <input type="text" id="timeEntryNotes" class="time-entry-input-notes"
+                       placeholder="What did you do? (optional)">
+                <button type="submit" class="time-entry-add-btn">Add</button>
+            </form>
+            <div class="time-entry-list">${rowsHtml}</div>
+        </div>
+    `;
+}
+
+async function saveTimeEntry() {
+    if (!currentEmail) return;
+    const minutes = parseInt(document.getElementById('timeEntryMinutes').value, 10);
+    const notes   = document.getElementById('timeEntryNotes').value.trim();
+
+    if (!minutes || minutes <= 0) {
+        alert('Enter the number of minutes spent.');
+        return;
+    }
+
+    try {
+        const response = await fetch(API_BASE + 'save_time_entry.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ticket_id: currentEmail.ticket_id,
+                time_spent_minutes: minutes,
+                notes: notes
+            })
+        });
+        const data = await response.json();
+        if (data.success) {
+            loadTimeEntries(currentEmail.ticket_id);
+        } else {
+            alert('Failed to save time entry: ' + (data.error || 'unknown error'));
+        }
+    } catch (e) {
+        console.error('Save time entry failed:', e);
+        alert('Failed to save time entry');
+    }
+}
+
+async function deleteTimeEntry(id) {
+    if (!confirm('Delete this time entry?')) return;
+    try {
+        const response = await fetch(API_BASE + 'delete_time_entry.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+        });
+        const data = await response.json();
+        if (data.success) {
+            if (currentEmail) loadTimeEntries(currentEmail.ticket_id);
+        } else {
+            alert('Failed to delete time entry: ' + (data.error || 'unknown error'));
+        }
+    } catch (e) {
+        console.error('Delete time entry failed:', e);
+        alert('Failed to delete time entry');
+    }
 }
 
 // Sync body.ticket-popout to the actual reading-pane state. Called by the

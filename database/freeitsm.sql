@@ -246,6 +246,23 @@ CREATE TABLE IF NOT EXISTS `ticket_notes` (
     CONSTRAINT `fk_notes_analysts` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `ticket_time_entries` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `ticket_id`           INT NOT NULL,
+    `analyst_id`          INT NOT NULL,
+    `notes`               LONGTEXT NULL,
+    `time_spent_minutes`  INT NOT NULL,
+    `entry_datetime`      DATETIME NOT NULL,
+    `is_active`           TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`    DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`    DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_time_entries_ticket_id` (`ticket_id`),
+    KEY `ix_time_entries_analyst_date` (`analyst_id`, `entry_datetime`),
+    CONSTRAINT `fk_time_entries_tickets` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`),
+    CONSTRAINT `fk_time_entries_analysts` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ----------------------------------------------------------
 -- Email / Mailbox
 -- ----------------------------------------------------------
