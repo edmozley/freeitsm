@@ -326,6 +326,7 @@ $translationNamespaces = ['common', 'tickets'];
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.name')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.colour')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.closed')); ?></th>
+                        <th>Pause SLA</th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.default')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.order')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.status')); ?></th>
@@ -333,7 +334,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="statuses-list">
-                    <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="8" style="text-align: center;">Loading...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -1490,7 +1491,7 @@ $translationNamespaces = ['common', 'tickets'];
         function renderTicketStatuses(statuses) {
             const tbody = document.getElementById('statuses-list');
             if (!statuses || statuses.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No statuses found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No statuses found</td></tr>';
                 return;
             }
             tbody.innerHTML = statuses.map(s => {
@@ -1500,14 +1501,15 @@ $translationNamespaces = ['common', 'tickets'];
                     : '<span style="color:#999;">—</span>';
                 const closed  = s.is_closed  ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:#999;">No</span>';
                 const def     = s.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:#999;">No</span>';
-                const pauseBadge = s.pauses_sla
-                    ? '<span style="display:inline-block;margin-left:6px;padding:2px 6px;background:#fef3c7;color:#92400e;border:1px solid #fcd34d;border-radius:10px;font-size:10px;font-weight:600;letter-spacing:0.3px;" title="SLA clock pauses while a ticket is in this status">⏸ Pauses SLA</span>'
-                    : '';
+                const pauseCell = s.pauses_sla
+                    ? '<span class="status-badge status-active" title="SLA clock pauses while a ticket is in this status">&#9208; Yes</span>'
+                    : '<span style="color:#999;">No</span>';
                 return `
                 <tr>
-                    <td><strong>${escapeHtml(s.name)}</strong>${pauseBadge}</td>
+                    <td><strong>${escapeHtml(s.name)}</strong></td>
                     <td>${swatch}</td>
                     <td>${closed}</td>
+                    <td>${pauseCell}</td>
                     <td>${def}</td>
                     <td>${s.display_order}</td>
                     <td><span class="status-badge status-${s.is_active ? 'active' : 'inactive'}">${s.is_active ? 'Active' : 'Inactive'}</span></td>
