@@ -488,6 +488,40 @@ body.ticket-popout .ticket-properties-container {
     background: white;
 }
 
+/* In popout mode the properties panel is always open, so the chevron and the
+ * dept/status/owner summary pills (which are redundant when the full panel is
+ * visible) are hidden, the header becomes non-interactive (no pointer cursor,
+ * no hover, no click-to-toggle), and the panel itself drops out of its
+ * collapsible absolute-positioned state so it just flows below the header. */
+body.ticket-popout .ticket-properties-chevron,
+body.ticket-popout .ticket-properties-summary { display: none; }
+
+body.ticket-popout .ticket-properties-header {
+    cursor: default;
+    pointer-events: none;
+}
+body.ticket-popout .ticket-properties-header:hover {
+    background: linear-gradient(to bottom, #f8f8f8, #f0f0f0);
+}
+
+body.ticket-popout .ticket-properties-panel {
+    position: static;
+    max-height: none;
+    opacity: 1;
+    background: white;
+    border-bottom: none;
+    box-shadow: none;
+    overflow: visible;
+}
+
+/* Stack the property fields as a single vertical column instead of the inline
+ * auto-fill grid used when properties are above the conversation. */
+body.ticket-popout .ticket-toolbar {
+    grid-template-columns: 1fr;
+    padding: 16px 20px;
+    gap: 14px;
+}
+
 /* Always-visible escape-hatch button that floats above the popped-out reading
  * pane. Hidden by default; only shown when body.ticket-popout is on. Critical
  * because the in-subject-line toggle doesn't exist when no ticket is selected,
