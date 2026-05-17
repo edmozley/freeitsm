@@ -381,6 +381,22 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
             </a>
             <?php endif; ?>
 
+            <?php if ($allowed_modules === null || in_array('network-mapper', $allowed_modules)): ?>
+            <a href="network-mapper/" class="module-card network-mapper" title="Design and document network diagrams">
+                <div class="module-icon network-mapper">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="6" cy="6" r="2.5"></circle>
+                        <circle cx="18" cy="6" r="2.5"></circle>
+                        <circle cx="12" cy="18" r="2.5"></circle>
+                        <line x1="7.5" y1="7.5" x2="11" y2="16"></line>
+                        <line x1="16.5" y1="7.5" x2="13" y2="16"></line>
+                        <line x1="8.5" y1="6" x2="15.5" y2="6"></line>
+                    </svg>
+                </div>
+                <div class="module-name">Network</div>
+            </a>
+            <?php endif; ?>
+
             <?php if ($allowed_modules === null || in_array('system', $allowed_modules)): ?>
             <a href="system/" class="module-card system" title="System administration and configuration">
                 <div class="module-icon system">
