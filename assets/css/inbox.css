@@ -522,31 +522,6 @@ body.ticket-popout .ticket-toolbar {
     gap: 14px;
 }
 
-/* Always-visible escape-hatch button that floats above the popped-out reading
- * pane. Hidden by default; only shown when body.ticket-popout is on. Critical
- * because the in-subject-line toggle doesn't exist when no ticket is selected,
- * so without this you'd be trapped in popout mode with the folder + email list
- * panes hidden and nothing to click. */
-.ticket-popout-exit {
-    display: none;
-    position: fixed;
-    top: 64px;
-    right: 360px;
-    z-index: 10;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: #0078d4;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 13px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
-}
-.ticket-popout-exit:hover { background: #106ebe; }
-body.ticket-popout .ticket-popout-exit { display: inline-flex; }
-
 .email-meta {
     display: flex;
     flex-direction: column;

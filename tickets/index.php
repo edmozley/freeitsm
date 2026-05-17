@@ -21,19 +21,13 @@ $translationNamespaces = ['common', 'tickets'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.title')); ?> - <?php echo htmlspecialchars(t('tickets.nav.inbox')); ?></title>
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=13">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=14">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
-
-    <!-- Always-visible escape hatch from popout mode. Hidden by CSS unless body.ticket-popout is set. -->
-    <button type="button" class="ticket-popout-exit" onclick="toggleTicketPopout()" title="Exit full-screen view" aria-label="Exit full-screen view">
-        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
-        <span>Exit full-screen</span>
-    </button>
 
     <div class="main-container">
         <!-- Folder Navigation -->
