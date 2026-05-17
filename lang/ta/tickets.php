@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'நேரப் பதிவை நீக்க முடியவில்லை: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'சேவை மையம் - பணி அட்டவணை',
+        'analyst_col'     => 'பகுப்பாய்வாளர்',
+        'no_analysts'     => 'செயல்பாட்டில் உள்ள பகுப்பாய்வாளர்கள் இல்லை.',
+        'add_entry'       => 'பதிவு சேர்',
+        'on_call_badge'   => 'அழைப்புப் பணியில்',
+        'modal' => [
+            'add_title'         => 'பணி அட்டவணை பதிவைச் சேர்',
+            'edit_title'        => 'பணி அட்டவணை பதிவைத் திருத்து',
+            'shift_label'       => 'பணி நேரம் *',
+            'shift_placeholder' => 'பணி நேரத்தைத் தேர்ந்தெடுக்கவும்…',
+            'location_label'    => 'இடம்',
+            'on_call_checkbox'  => 'அழைப்புப் பணியில்',
+        ],
+        'toasts' => [
+            'saved'         => 'பதிவு சேமிக்கப்பட்டது',
+            'deleted'       => 'பதிவு நீக்கப்பட்டது',
+            'save_failed'   => 'பதிவைச் சேமிக்க முடியவில்லை',
+            'delete_failed' => 'பதிவை நீக்க முடியவில்லை',
+            'error'         => 'பிழை: {error}',
+        ],
+        'delete_confirm'  => 'இந்த பணி அட்டவணை பதிவை நீக்கவா?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'சேவை மையம் - பயனர்கள்',

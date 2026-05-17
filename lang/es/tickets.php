@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'No se pudo eliminar el registro de tiempo: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'Mesa de servicio - Turnos',
+        'analyst_col'     => 'Analista',
+        'no_analysts'     => 'No se encontraron analistas activos.',
+        'add_entry'       => 'Añadir entrada',
+        'on_call_badge'   => 'De guardia',
+        'modal' => [
+            'add_title'         => 'Añadir entrada de turno',
+            'edit_title'        => 'Editar entrada de turno',
+            'shift_label'       => 'Turno *',
+            'shift_placeholder' => 'Seleccionar turno…',
+            'location_label'    => 'Ubicación',
+            'on_call_checkbox'  => 'De guardia',
+        ],
+        'toasts' => [
+            'saved'         => 'Entrada guardada',
+            'deleted'       => 'Entrada eliminada',
+            'save_failed'   => 'No se pudo guardar la entrada',
+            'delete_failed' => 'No se pudo eliminar la entrada',
+            'error'         => 'Error: {error}',
+        ],
+        'delete_confirm'  => '¿Eliminar esta entrada de turno?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'Mesa de servicio - Usuarios',

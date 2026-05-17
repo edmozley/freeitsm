@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'Falha ao excluir o registro de tempo: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'Central de Serviços - Escala',
+        'analyst_col'     => 'Analista',
+        'no_analysts'     => 'Nenhum analista ativo encontrado.',
+        'add_entry'       => 'Adicionar entrada',
+        'on_call_badge'   => 'Plantão',
+        'modal' => [
+            'add_title'         => 'Adicionar entrada de escala',
+            'edit_title'        => 'Editar entrada de escala',
+            'shift_label'       => 'Turno *',
+            'shift_placeholder' => 'Selecionar turno…',
+            'location_label'    => 'Local',
+            'on_call_checkbox'  => 'De plantão',
+        ],
+        'toasts' => [
+            'saved'         => 'Entrada salva',
+            'deleted'       => 'Entrada excluída',
+            'save_failed'   => 'Falha ao salvar a entrada',
+            'delete_failed' => 'Falha ao excluir a entrada',
+            'error'         => 'Erro: {error}',
+        ],
+        'delete_confirm'  => 'Excluir esta entrada da escala?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'Central de Serviços - Usuários',

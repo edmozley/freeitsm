@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'સમય નોંધણી કાઢી નાખવામાં નિષ્ફળ: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'સેવા ડેસ્ક - રોટા',
+        'analyst_col'     => 'વિશ્લેષક',
+        'no_analysts'     => 'કોઈ સક્રિય વિશ્લેષક મળ્યો નથી.',
+        'add_entry'       => 'નોંધણી ઉમેરો',
+        'on_call_badge'   => 'ઓન કોલ',
+        'modal' => [
+            'add_title'         => 'રોટા નોંધણી ઉમેરો',
+            'edit_title'        => 'રોટા નોંધણી સંપાદિત કરો',
+            'shift_label'       => 'શિફ્ટ *',
+            'shift_placeholder' => 'શિફ્ટ પસંદ કરો…',
+            'location_label'    => 'સ્થાન',
+            'on_call_checkbox'  => 'ઓન કોલ',
+        ],
+        'toasts' => [
+            'saved'         => 'નોંધણી સાચવી',
+            'deleted'       => 'નોંધણી કાઢી નાખી',
+            'save_failed'   => 'નોંધણી સાચવવામાં નિષ્ફળ',
+            'delete_failed' => 'નોંધણી કાઢી નાખવામાં નિષ્ફળ',
+            'error'         => 'ભૂલ: {error}',
+        ],
+        'delete_confirm'  => 'આ રોટા નોંધણી કાઢી નાખવી?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'સેવા ડેસ્ક - વપરાશકર્તાઓ',

@@ -158,6 +158,31 @@ return [
         'delete_failed'        => 'Failed to delete time entry: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'Service Desk - Rota',
+        'analyst_col'     => 'Analyst',
+        'no_analysts'     => 'No active analysts found.',
+        'add_entry'       => 'Add entry',
+        'on_call_badge'   => 'On Call',
+        'modal' => [
+            'add_title'         => 'Add Rota Entry',
+            'edit_title'        => 'Edit Rota Entry',
+            'shift_label'       => 'Shift *',
+            'shift_placeholder' => 'Select shift...',
+            'location_label'    => 'Location',
+            'on_call_checkbox'  => 'On call',
+        ],
+        'toasts' => [
+            'saved'         => 'Entry saved',
+            'deleted'       => 'Entry deleted',
+            'save_failed'   => 'Failed to save entry',
+            'delete_failed' => 'Failed to delete entry',
+            'error'         => 'Error: {error}',
+        ],
+        'delete_confirm'  => 'Delete this rota entry?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'Service Desk - Users',

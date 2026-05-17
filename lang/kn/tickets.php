@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'ಸಮಯ ನಮೂದನ್ನು ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'ಸೇವಾ ಕೇಂದ್ರ - ರೋಟಾ',
+        'analyst_col'     => 'ವಿಶ್ಲೇಷಕ',
+        'no_analysts'     => 'ಸಕ್ರಿಯ ವಿಶ್ಲೇಷಕರು ಯಾರೂ ಕಂಡುಬಂದಿಲ್ಲ.',
+        'add_entry'       => 'ನಮೂದು ಸೇರಿಸಿ',
+        'on_call_badge'   => 'ಆನ್ ಕಾಲ್',
+        'modal' => [
+            'add_title'         => 'ರೋಟಾ ನಮೂದು ಸೇರಿಸಿ',
+            'edit_title'        => 'ರೋಟಾ ನಮೂದನ್ನು ಸಂಪಾದಿಸಿ',
+            'shift_label'       => 'ಶಿಫ್ಟ್ *',
+            'shift_placeholder' => 'ಶಿಫ್ಟ್ ಆಯ್ಕೆಮಾಡಿ…',
+            'location_label'    => 'ಸ್ಥಳ',
+            'on_call_checkbox'  => 'ಆನ್ ಕಾಲ್',
+        ],
+        'toasts' => [
+            'saved'         => 'ನಮೂದು ಉಳಿಸಲಾಗಿದೆ',
+            'deleted'       => 'ನಮೂದು ಅಳಿಸಲಾಗಿದೆ',
+            'save_failed'   => 'ನಮೂದನ್ನು ಉಳಿಸಲು ವಿಫಲವಾಗಿದೆ',
+            'delete_failed' => 'ನಮೂದನ್ನು ಅಳಿಸಲು ವಿಫಲವಾಗಿದೆ',
+            'error'         => 'ದೋಷ: {error}',
+        ],
+        'delete_confirm'  => 'ಈ ರೋಟಾ ನಮೂದನ್ನು ಅಳಿಸಬೇಕೇ?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'ಸೇವಾ ಕೇಂದ್ರ - ಬಳಕೆದಾರರು',

@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'সময়ের এন্ট্রি মুছতে ব্যর্থ: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'সার্ভিস ডেস্ক - রোটা',
+        'analyst_col'     => 'বিশ্লেষক',
+        'no_analysts'     => 'কোনো সক্রিয় বিশ্লেষক পাওয়া যায়নি।',
+        'add_entry'       => 'এন্ট্রি যোগ করুন',
+        'on_call_badge'   => 'অন কল',
+        'modal' => [
+            'add_title'         => 'রোটা এন্ট্রি যোগ করুন',
+            'edit_title'        => 'রোটা এন্ট্রি সম্পাদনা',
+            'shift_label'       => 'শিফট *',
+            'shift_placeholder' => 'শিফট নির্বাচন করুন…',
+            'location_label'    => 'অবস্থান',
+            'on_call_checkbox'  => 'অন কল',
+        ],
+        'toasts' => [
+            'saved'         => 'এন্ট্রি সংরক্ষিত হয়েছে',
+            'deleted'       => 'এন্ট্রি মুছে ফেলা হয়েছে',
+            'save_failed'   => 'এন্ট্রি সংরক্ষণ করতে ব্যর্থ',
+            'delete_failed' => 'এন্ট্রি মুছতে ব্যর্থ',
+            'error'         => 'ত্রুটি: {error}',
+        ],
+        'delete_confirm'  => 'এই রোটা এন্ট্রি মুছে ফেলবেন?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'সার্ভিস ডেস্ক - ব্যবহারকারী',

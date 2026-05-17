@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'Nie udało się usunąć wpisu czasu: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'Centrum obsługi - Harmonogram',
+        'analyst_col'     => 'Analityk',
+        'no_analysts'     => 'Nie znaleziono aktywnych analityków.',
+        'add_entry'       => 'Dodaj wpis',
+        'on_call_badge'   => 'Dyżur',
+        'modal' => [
+            'add_title'         => 'Dodaj wpis do grafiku',
+            'edit_title'        => 'Edytuj wpis grafiku',
+            'shift_label'       => 'Zmiana *',
+            'shift_placeholder' => 'Wybierz zmianę…',
+            'location_label'    => 'Lokalizacja',
+            'on_call_checkbox'  => 'Na dyżurze',
+        ],
+        'toasts' => [
+            'saved'         => 'Wpis zapisany',
+            'deleted'       => 'Wpis usunięty',
+            'save_failed'   => 'Nie udało się zapisać wpisu',
+            'delete_failed' => 'Nie udało się usunąć wpisu',
+            'error'         => 'Błąd: {error}',
+        ],
+        'delete_confirm'  => 'Usunąć ten wpis grafiku?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'Centrum obsługi - Użytkownicy',

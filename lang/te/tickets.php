@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'సమయ ఎంట్రీని తొలగించడంలో విఫలమైంది: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'సేవా కేంద్రం - రోటా',
+        'analyst_col'     => 'విశ్లేషకుడు',
+        'no_analysts'     => 'క్రియాశీల విశ్లేషకులు ఎవరూ లేరు.',
+        'add_entry'       => 'ఎంట్రీ జోడించండి',
+        'on_call_badge'   => 'ఆన్ కాల్',
+        'modal' => [
+            'add_title'         => 'రోటా ఎంట్రీ జోడించండి',
+            'edit_title'        => 'రోటా ఎంట్రీని సవరించండి',
+            'shift_label'       => 'షిఫ్ట్ *',
+            'shift_placeholder' => 'షిఫ్ట్‌ను ఎంచుకోండి…',
+            'location_label'    => 'ప్రదేశం',
+            'on_call_checkbox'  => 'ఆన్ కాల్',
+        ],
+        'toasts' => [
+            'saved'         => 'ఎంట్రీ సేవ్ చేయబడింది',
+            'deleted'       => 'ఎంట్రీ తొలగించబడింది',
+            'save_failed'   => 'ఎంట్రీని సేవ్ చేయడంలో విఫలమైంది',
+            'delete_failed' => 'ఎంట్రీని తొలగించడంలో విఫలమైంది',
+            'error'         => 'లోపం: {error}',
+        ],
+        'delete_confirm'  => 'ఈ రోటా ఎంట్రీని తొలగించాలా?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'సేవా కేంద్రం - వినియోగదారులు',

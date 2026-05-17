@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'Impossibile eliminare la registrazione tempo: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'Service Desk - Turni',
+        'analyst_col'     => 'Analista',
+        'no_analysts'     => 'Nessun analista attivo trovato.',
+        'add_entry'       => 'Aggiungi voce',
+        'on_call_badge'   => 'Reperibile',
+        'modal' => [
+            'add_title'         => 'Aggiungi voce turno',
+            'edit_title'        => 'Modifica voce turno',
+            'shift_label'       => 'Turno *',
+            'shift_placeholder' => 'Seleziona turno…',
+            'location_label'    => 'Sede',
+            'on_call_checkbox'  => 'Reperibile',
+        ],
+        'toasts' => [
+            'saved'         => 'Voce salvata',
+            'deleted'       => 'Voce eliminata',
+            'save_failed'   => 'Impossibile salvare la voce',
+            'delete_failed' => 'Impossibile eliminare la voce',
+            'error'         => 'Errore: {error}',
+        ],
+        'delete_confirm'  => 'Eliminare questa voce del turno?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'Service Desk - Utenti',

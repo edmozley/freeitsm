@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'Tijdregistratie verwijderen mislukt: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'Servicedesk - Rooster',
+        'analyst_col'     => 'Analist',
+        'no_analysts'     => 'Geen actieve analisten gevonden.',
+        'add_entry'       => 'Vermelding toevoegen',
+        'on_call_badge'   => 'Bereikbaarheidsdienst',
+        'modal' => [
+            'add_title'         => 'Roostervermelding toevoegen',
+            'edit_title'        => 'Roostervermelding bewerken',
+            'shift_label'       => 'Dienst *',
+            'shift_placeholder' => 'Dienst selecteren…',
+            'location_label'    => 'Locatie',
+            'on_call_checkbox'  => 'Bereikbaarheidsdienst',
+        ],
+        'toasts' => [
+            'saved'         => 'Vermelding opgeslagen',
+            'deleted'       => 'Vermelding verwijderd',
+            'save_failed'   => 'Opslaan van vermelding mislukt',
+            'delete_failed' => 'Verwijderen van vermelding mislukt',
+            'error'         => 'Fout: {error}',
+        ],
+        'delete_confirm'  => 'Deze roostervermelding verwijderen?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'Servicedesk - Gebruikers',

@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'Zeiteintrag konnte nicht gelöscht werden: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'Service Desk - Dienstplan',
+        'analyst_col'     => 'Analyst',
+        'no_analysts'     => 'Keine aktiven Analysten gefunden.',
+        'add_entry'       => 'Eintrag hinzufügen',
+        'on_call_badge'   => 'Bereitschaft',
+        'modal' => [
+            'add_title'         => 'Dienstplan-Eintrag hinzufügen',
+            'edit_title'        => 'Dienstplan-Eintrag bearbeiten',
+            'shift_label'       => 'Schicht *',
+            'shift_placeholder' => 'Schicht auswählen…',
+            'location_label'    => 'Standort',
+            'on_call_checkbox'  => 'In Bereitschaft',
+        ],
+        'toasts' => [
+            'saved'         => 'Eintrag gespeichert',
+            'deleted'       => 'Eintrag gelöscht',
+            'save_failed'   => 'Eintrag konnte nicht gespeichert werden',
+            'delete_failed' => 'Eintrag konnte nicht gelöscht werden',
+            'error'         => 'Fehler: {error}',
+        ],
+        'delete_confirm'  => 'Diesen Dienstplan-Eintrag löschen?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'Service Desk - Benutzer',

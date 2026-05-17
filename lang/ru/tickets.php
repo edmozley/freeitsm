@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'Не удалось удалить запись времени: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'Служба поддержки - График',
+        'analyst_col'     => 'Аналитик',
+        'no_analysts'     => 'Активные аналитики не найдены.',
+        'add_entry'       => 'Добавить запись',
+        'on_call_badge'   => 'На дежурстве',
+        'modal' => [
+            'add_title'         => 'Добавить запись в график',
+            'edit_title'        => 'Изменить запись графика',
+            'shift_label'       => 'Смена *',
+            'shift_placeholder' => 'Выберите смену…',
+            'location_label'    => 'Местоположение',
+            'on_call_checkbox'  => 'На дежурстве',
+        ],
+        'toasts' => [
+            'saved'         => 'Запись сохранена',
+            'deleted'       => 'Запись удалена',
+            'save_failed'   => 'Не удалось сохранить запись',
+            'delete_failed' => 'Не удалось удалить запись',
+            'error'         => 'Ошибка: {error}',
+        ],
+        'delete_confirm'  => 'Удалить эту запись графика?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'Служба поддержки - Пользователи',

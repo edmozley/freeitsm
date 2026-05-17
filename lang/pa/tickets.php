@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'ਸਮਾਂ ਐਂਟਰੀ ਮਿਟਾਉਣ ਵਿੱਚ ਅਸਫਲ: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'ਸੇਵਾ ਡੈਸਕ - ਰੋਟਾ',
+        'analyst_col'     => 'ਵਿਸ਼ਲੇਸ਼ਕ',
+        'no_analysts'     => 'ਕੋਈ ਸਰਗਰਮ ਵਿਸ਼ਲੇਸ਼ਕ ਨਹੀਂ ਮਿਲਿਆ।',
+        'add_entry'       => 'ਐਂਟਰੀ ਜੋੜੋ',
+        'on_call_badge'   => 'ਆਨ ਕਾਲ',
+        'modal' => [
+            'add_title'         => 'ਰੋਟਾ ਐਂਟਰੀ ਜੋੜੋ',
+            'edit_title'        => 'ਰੋਟਾ ਐਂਟਰੀ ਸੋਧੋ',
+            'shift_label'       => 'ਸ਼ਿਫਟ *',
+            'shift_placeholder' => 'ਸ਼ਿਫਟ ਚੁਣੋ…',
+            'location_label'    => 'ਸਥਾਨ',
+            'on_call_checkbox'  => 'ਆਨ ਕਾਲ',
+        ],
+        'toasts' => [
+            'saved'         => 'ਐਂਟਰੀ ਸੰਭਾਲੀ ਗਈ',
+            'deleted'       => 'ਐਂਟਰੀ ਮਿਟਾਈ ਗਈ',
+            'save_failed'   => 'ਐਂਟਰੀ ਸੰਭਾਲਣ ਵਿੱਚ ਅਸਫਲ',
+            'delete_failed' => 'ਐਂਟਰੀ ਮਿਟਾਉਣ ਵਿੱਚ ਅਸਫਲ',
+            'error'         => 'ਗਲਤੀ: {error}',
+        ],
+        'delete_confirm'  => 'ਇਹ ਰੋਟਾ ਐਂਟਰੀ ਮਿਟਾਉਣੀ ਹੈ?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'ਸੇਵਾ ਡੈਸਕ - ਵਰਤੋਂਕਾਰ',

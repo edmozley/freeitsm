@@ -5,6 +5,14 @@
 const ROTA_API = '../api/tickets/';
 const SETTINGS_API = '../api/settings/';
 
+// Locale sourced from <html lang> so all Intl.DateTimeFormat calls render
+// dates / weekdays / months in the user's chosen interface language.
+const PAGE_LOCALE = document.documentElement.lang || 'en-GB';
+const WEEKDAY_SHORT_FMT = new Intl.DateTimeFormat(PAGE_LOCALE, { weekday: 'short' });
+const MONTH_SHORT_FMT   = new Intl.DateTimeFormat(PAGE_LOCALE, { month: 'short' });
+const DAY_NUM_FMT       = new Intl.DateTimeFormat(PAGE_LOCALE, { day: 'numeric' });
+const MODAL_DATE_FMT    = new Intl.DateTimeFormat(PAGE_LOCALE, { weekday: 'long', day: 'numeric', month: 'short' });
+
 let currentWeekStart = null; // YYYY-MM-DD (Monday)
 let rotaAnalysts = [];
 let rotaShifts = [];
@@ -77,18 +85,22 @@ async function loadRota() {
 function updateTitle(weekStart, weekEnd) {
     const start = new Date(weekStart + 'T00:00:00');
     const end = new Date(weekEnd + 'T00:00:00');
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
     let endDate = includeWeekends ? end : new Date(start);
     if (!includeWeekends) {
         endDate.setDate(endDate.getDate() + 4); // Friday
     }
 
+    // Format month / day labels through Intl so they come out in the right
+    // language and short form for the locale automatically.
+    const startMonth = MONTH_SHORT_FMT.format(start);
+    const endMonth   = MONTH_SHORT_FMT.format(endDate);
+
     let label;
     if (start.getMonth() === endDate.getMonth()) {
-        label = `${start.getDate()} – ${endDate.getDate()} ${months[start.getMonth()]} ${start.getFullYear()}`;
+        label = `${start.getDate()} – ${endDate.getDate()} ${startMonth} ${start.getFullYear()}`;
     } else {
-        label = `${start.getDate()} ${months[start.getMonth()]} – ${endDate.getDate()} ${months[endDate.getMonth()]} ${start.getFullYear()}`;
+        label = `${start.getDate()} ${startMonth} – ${endDate.getDate()} ${endMonth} ${start.getFullYear()}`;
     }
 
     document.getElementById('rotaTitle').textContent = label;
@@ -101,10 +113,10 @@ function renderRotaGrid(weekStart) {
     const numDays = includeWeekends ? 7 : 5;
     grid.className = 'rota-grid days-' + numDays;
 
-    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const today = formatDate(new Date());
 
-    // Build day dates for the week
+    // Build day dates for the week. Weekday short names come from Intl so
+    // they render natively for every locale (Mon / lun. / Mo / ਸੋਮ / etc.).
     const days = [];
     const startDate = new Date(weekStart + 'T00:00:00');
     for (let i = 0; i < numDays; i++) {
@@ -112,8 +124,8 @@ function renderRotaGrid(weekStart) {
         d.setDate(d.getDate() + i);
         days.push({
             date: formatDate(d),
-            name: dayNames[i],
-            dayNum: d.getDate(),
+            name: WEEKDAY_SHORT_FMT.format(d),
+            dayNum: DAY_NUM_FMT.format(d),
             isToday: formatDate(d) === today
         });
     }
@@ -125,20 +137,24 @@ function renderRotaGrid(weekStart) {
         entryMap[e.analyst_id][e.rota_date] = e;
     });
 
+    const analystHeader  = escapeHtml(t('tickets.rota.analyst_col'));
+    const onCallBadge    = escapeHtml(t('tickets.rota.on_call_badge'));
+    const addEntryTitle  = escapeHtml(t('tickets.rota.add_entry'));
+
     let html = '';
 
     // Header row - corner cell + day headers
-    html += '<div class="rota-col-header" style="text-align: left; padding-left: 12px;">Analyst</div>';
+    html += `<div class="rota-col-header" style="text-align: left; padding-left: 12px;">${analystHeader}</div>`;
     days.forEach(day => {
         html += `<div class="rota-col-header${day.isToday ? ' today' : ''}">
-            <span class="day-name">${day.name}</span>
-            <span class="day-date">${day.dayNum}</span>
+            <span class="day-name">${escapeHtml(day.name)}</span>
+            <span class="day-date">${escapeHtml(day.dayNum)}</span>
         </div>`;
     });
 
     // Analyst rows
     if (rotaAnalysts.length === 0) {
-        html += `<div class="rota-empty" style="grid-column: 1 / -1;"><p>No active analysts found.</p></div>`;
+        html += `<div class="rota-empty" style="grid-column: 1 / -1;"><p>${escapeHtml(t('tickets.rota.no_analysts'))}</p></div>`;
     } else {
         rotaAnalysts.forEach(analyst => {
             // Analyst name cell
@@ -160,13 +176,13 @@ function renderRotaGrid(weekStart) {
                             <div class="shift-times">${fmtTime(entry.start_time)} – ${fmtTime(entry.end_time)}</div>
                             <div class="badges">
                                 ${locLabel ? `<span class="rota-badge" ${locStyle}>${locLabel}</span>` : ''}
-                                ${entry.is_on_call == 1 ? '<span class="rota-badge on-call">On Call</span>' : ''}
+                                ${entry.is_on_call == 1 ? `<span class="rota-badge on-call">${onCallBadge}</span>` : ''}
                             </div>
                         </div>
                     </div>`;
                 } else {
                     html += `<div class="rota-cell${todayClass}" onclick="openRotaEntryModal(${analyst.id}, '${day.date}')">
-                        <button class="rota-cell-add" title="Add entry">+</button>
+                        <button class="rota-cell-add" title="${addEntryTitle}">+</button>
                     </div>`;
                 }
             });
@@ -193,13 +209,12 @@ function escapeHtml(str) {
 async function openRotaEntryModal(analystId, date, entryId) {
     // Find analyst name
     const analyst = rotaAnalysts.find(a => a.id == analystId);
-    const analystName = analyst ? analyst.full_name : 'Unknown';
+    const analystName = analyst ? analyst.full_name : t('tickets.users.unknown_name');
 
-    // Format date for display
+    // Format date for display via Intl so weekday + month render natively
+    // for the locale (e.g. fr "lundi 17 mai", de "Montag, 17. Mai").
     const d = new Date(date + 'T00:00:00');
-    const dayNames = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
-    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    const dateLabel = `${dayNames[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+    const dateLabel = MODAL_DATE_FMT.format(d);
 
     document.getElementById('entryContext').textContent = `${analystName} — ${dateLabel}`;
     document.getElementById('entryAnalystId').value = analystId;
@@ -208,7 +223,8 @@ async function openRotaEntryModal(analystId, date, entryId) {
 
     // Populate shift dropdown
     const shiftSelect = document.getElementById('entryShift');
-    shiftSelect.innerHTML = '<option value="">Select shift...</option>' +
+    const shiftPlaceholder = escapeHtml(t('tickets.rota.modal.shift_placeholder'));
+    shiftSelect.innerHTML = `<option value="">${shiftPlaceholder}</option>` +
         rotaShifts.map(s => `<option value="${s.id}">${escapeHtml(s.name)} (${fmtTime(s.start_time)} – ${fmtTime(s.end_time)})</option>`).join('');
 
     // Render dynamic location radios driven by rota_locations lookup
@@ -226,7 +242,7 @@ async function openRotaEntryModal(analystId, date, entryId) {
 
     document.getElementById('entryOnCall').checked = false;
     document.getElementById('entryDeleteBtn').style.display = 'none';
-    document.getElementById('rotaEntryModalTitle').textContent = 'Add Rota Entry';
+    document.getElementById('rotaEntryModalTitle').textContent = t('tickets.rota.modal.add_title');
 
     // If editing existing entry, populate values
     if (entryId) {
@@ -240,7 +256,7 @@ async function openRotaEntryModal(analystId, date, entryId) {
             }
             document.getElementById('entryOnCall').checked = entry.is_on_call == 1;
             document.getElementById('entryDeleteBtn').style.display = '';
-            document.getElementById('rotaEntryModalTitle').textContent = 'Edit Rota Entry';
+            document.getElementById('rotaEntryModalTitle').textContent = t('tickets.rota.modal.edit_title');
         }
     }
 
@@ -273,14 +289,14 @@ document.getElementById('rotaEntryForm').addEventListener('submit', async functi
         });
         const data = await response.json();
         if (data.success) {
-            showToast('Entry saved', 'success');
+            showToast(t('tickets.rota.toasts.saved'), 'success');
             closeRotaEntryModal();
             loadRota();
         } else {
-            showToast('Error: ' + data.error, 'error');
+            showToast(t('tickets.rota.toasts.error', { error: data.error }), 'error');
         }
     } catch (error) {
-        showToast('Failed to save entry', 'error');
+        showToast(t('tickets.rota.toasts.save_failed'), 'error');
     }
 });
 
@@ -288,7 +304,7 @@ document.getElementById('rotaEntryForm').addEventListener('submit', async functi
 async function deleteRotaEntry() {
     const id = document.getElementById('entryId').value;
     if (!id) return;
-    if (!confirm('Delete this rota entry?')) return;
+    if (!confirm(t('tickets.rota.delete_confirm'))) return;
 
     try {
         const response = await fetch(ROTA_API + 'delete_rota_entry.php', {
@@ -298,13 +314,13 @@ async function deleteRotaEntry() {
         });
         const data = await response.json();
         if (data.success) {
-            showToast('Entry deleted', 'success');
+            showToast(t('tickets.rota.toasts.deleted'), 'success');
             closeRotaEntryModal();
             loadRota();
         } else {
-            showToast('Error: ' + data.error, 'error');
+            showToast(t('tickets.rota.toasts.error', { error: data.error }), 'error');
         }
     } catch (error) {
-        showToast('Failed to delete entry', 'error');
+        showToast(t('tickets.rota.toasts.delete_failed'), 'error');
     }
 }

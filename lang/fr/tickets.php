@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'Échec de la suppression de la saisie de temps : {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'Centre de services - Planning',
+        'analyst_col'     => 'Analyste',
+        'no_analysts'     => 'Aucun analyste actif trouvé.',
+        'add_entry'       => 'Ajouter une entrée',
+        'on_call_badge'   => 'Astreinte',
+        'modal' => [
+            'add_title'         => 'Ajouter une entrée au planning',
+            'edit_title'        => 'Modifier l\'entrée du planning',
+            'shift_label'       => 'Vacation *',
+            'shift_placeholder' => 'Sélectionner une vacation…',
+            'location_label'    => 'Lieu',
+            'on_call_checkbox'  => 'D\'astreinte',
+        ],
+        'toasts' => [
+            'saved'         => 'Entrée enregistrée',
+            'deleted'       => 'Entrée supprimée',
+            'save_failed'   => 'Échec de l\'enregistrement de l\'entrée',
+            'delete_failed' => 'Échec de la suppression de l\'entrée',
+            'error'         => 'Erreur : {error}',
+        ],
+        'delete_confirm'  => 'Supprimer cette entrée du planning ?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'Centre de services - Utilisateurs',

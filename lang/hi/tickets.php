@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'समय प्रविष्टि हटाने में विफल: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'सेवा डेस्क - रोटा',
+        'analyst_col'     => 'विश्लेषक',
+        'no_analysts'     => 'कोई सक्रिय विश्लेषक नहीं मिला।',
+        'add_entry'       => 'प्रविष्टि जोड़ें',
+        'on_call_badge'   => 'ऑन कॉल',
+        'modal' => [
+            'add_title'         => 'रोटा प्रविष्टि जोड़ें',
+            'edit_title'        => 'रोटा प्रविष्टि संपादित करें',
+            'shift_label'       => 'शिफ्ट *',
+            'shift_placeholder' => 'शिफ्ट चुनें…',
+            'location_label'    => 'स्थान',
+            'on_call_checkbox'  => 'ऑन कॉल',
+        ],
+        'toasts' => [
+            'saved'         => 'प्रविष्टि सहेजी गई',
+            'deleted'       => 'प्रविष्टि हटाई गई',
+            'save_failed'   => 'प्रविष्टि सहेजने में विफल',
+            'delete_failed' => 'प्रविष्टि हटाने में विफल',
+            'error'         => 'त्रुटि: {error}',
+        ],
+        'delete_confirm'  => 'यह रोटा प्रविष्टि हटाएँ?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'सेवा डेस्क - उपयोगकर्ता',

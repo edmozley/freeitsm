@@ -132,6 +132,31 @@ return [
         'delete_failed'        => 'സമയ എൻട്രി ഇല്ലാതാക്കാൻ പരാജയപ്പെട്ടു: {error}',
     ],
 
+    // tickets/rota.php — weekly staff rota grid
+    'rota' => [
+        'page_title'      => 'സേവന കേന്ദ്രം - റോട്ട',
+        'analyst_col'     => 'വിശകലനവിദഗ്ദ്ധൻ',
+        'no_analysts'     => 'സജീവ വിശകലനവിദഗ്ദ്ധർ കണ്ടെത്തിയില്ല.',
+        'add_entry'       => 'എൻട്രി ചേർക്കുക',
+        'on_call_badge'   => 'ഓൺ കോൾ',
+        'modal' => [
+            'add_title'         => 'റോട്ട എൻട്രി ചേർക്കുക',
+            'edit_title'        => 'റോട്ട എൻട്രി എഡിറ്റ് ചെയ്യുക',
+            'shift_label'       => 'ഷിഫ്റ്റ് *',
+            'shift_placeholder' => 'ഷിഫ്റ്റ് തിരഞ്ഞെടുക്കുക…',
+            'location_label'    => 'സ്ഥലം',
+            'on_call_checkbox'  => 'ഓൺ കോൾ',
+        ],
+        'toasts' => [
+            'saved'         => 'എൻട്രി സംരക്ഷിച്ചു',
+            'deleted'       => 'എൻട്രി ഇല്ലാതാക്കി',
+            'save_failed'   => 'എൻട്രി സംരക്ഷിക്കാൻ പരാജയപ്പെട്ടു',
+            'delete_failed' => 'എൻട്രി ഇല്ലാതാക്കാൻ പരാജയപ്പെട്ടു',
+            'error'         => 'പിശക്: {error}',
+        ],
+        'delete_confirm'  => 'ഈ റോട്ട എൻട്രി ഇല്ലാതാക്കണോ?',
+    ],
+
     // tickets/users.php — end-user directory with per-user ticket list
     'users' => [
         'page_title'            => 'സേവന കേന്ദ്രം - ഉപയോക്താക്കൾ',
