@@ -90,8 +90,59 @@ const PM = (() => {
         bindCanvasEvents();
         bindToolbar();
         bindContextMenu();
-        loadProcesses();
+        // Load the sidebar list, then honour ?id=N in the URL by opening
+        // that process — gives bookmarkable / shareable deep-links into a
+        // specific diagram. Browser back/forward navigation is wired below.
+        loadProcesses().then(openInitialFromUrl);
         loadAutosavePreference();
+        window.addEventListener('popstate', onPopState);
+    }
+
+    // =========================================================
+    //  URL sync — deep-linking + back/forward navigation
+    // =========================================================
+    //
+    // Selecting a process from the sidebar updates the URL to ?id=N so the
+    // address bar reflects the current diagram (bookmark- / share-friendly).
+    // Browser back / forward navigates between previously-opened processes.
+
+    // Write the URL to match the currently-open process. Uses pushState when
+    // the URL actually changes (so each user-driven open is a separate
+    // history entry); same-URL calls are a no-op (so popstate handlers don't
+    // accidentally double-push).
+    function syncUrl(id) {
+        const url = new URL(window.location.href);
+        if (id == null) url.searchParams.delete('id');
+        else            url.searchParams.set('id', String(id));
+        const next = url.toString();
+        if (next !== window.location.href) {
+            history.pushState({ pmId: id }, '', next);
+        }
+    }
+
+    function openInitialFromUrl() {
+        const id = parseInt(new URLSearchParams(window.location.search).get('id'), 10);
+        if (id && processes.some(p => p.id == id)) {
+            // Don't push another history entry — the URL is already what
+            // we want; just load the diagram into the canvas.
+            openProcess(id, false, /* fromHistory */ true);
+        }
+    }
+
+    // Back/forward fires popstate with a URL the user navigated to. Reload
+    // whichever process that URL points at — and clear the canvas if the
+    // URL no longer carries an ?id.
+    function onPopState() {
+        const id = parseInt(new URLSearchParams(window.location.search).get('id'), 10);
+        if (id && id != currentProcessId && processes.some(p => p.id == id)) {
+            openProcess(id, false, true);
+        } else if (!id && currentProcessId != null) {
+            currentProcessId = null;
+            clearCanvas();
+            canvasEmpty.style.display = '';
+            renderProcessList();
+            closeDetail();
+        }
     }
 
     // =========================================================
@@ -268,6 +319,7 @@ const PM = (() => {
                     currentProcessId = null;
                     clearCanvas();
                     canvasEmpty.style.display = '';
+                    syncUrl(null);   // drop ?id from the address bar
                 }
                 await loadProcesses();
                 toast('Deleted');
@@ -281,13 +333,16 @@ const PM = (() => {
     // `preserveDetail` — pass true when calling from save() so the detail panel
     // stays open across the reload that picks up fresh real IDs. Caller is
     // responsible for re-resolving the previous selection against the new data.
-    async function openProcess(id, preserveDetail = false) {
+    // `fromHistory`   — pass true when called from popstate / initial-from-URL
+    // so we don't push the same URL onto the history stack again.
+    async function openProcess(id, preserveDetail = false, fromHistory = false) {
         if (dirty && !preserveDetail && !confirm('Unsaved changes will be lost. Continue?')) return;
         try {
             const r = await fetch(API_BASE + 'get.php?id=' + id);
             const d = await r.json();
             if (d.success) {
                 currentProcessId = id;
+                if (!fromHistory) syncUrl(id);
                 steps = (d.data.steps || []).map(s => ({
                     id: s.id,
                     type: s.type,
