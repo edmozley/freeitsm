@@ -29,6 +29,10 @@ return [
         'save'      => 'जतन करा',
     ],
 
+    'context' => [
+        'create_new' => 'नवीन तयार करा…',
+    ],
+
     'autosave' => [
         'label'   => 'स्वयं-जतन',
         'saved'   => 'जतन केले',

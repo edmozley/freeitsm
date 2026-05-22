@@ -44,6 +44,7 @@ const PM = (() => {
     let connectDrag = null;     // { fromStepId, side, startX, startY }
     let rubberBand = null;      // { startX, startY, el }
     let connectMode = false;
+    let ctxTargetStep = null;   // step the right-click "Create new" menu acts on
 
     // ---- DOM refs ----
     let canvas, svg, detailPanel, processList, canvasEmpty;
@@ -61,6 +62,7 @@ const PM = (() => {
         addArrowheadDef();
         bindCanvasEvents();
         bindToolbar();
+        bindContextMenu();
         loadProcesses();
         loadAutosavePreference();
     }
@@ -358,6 +360,7 @@ const PM = (() => {
         // Click / drag
         el.addEventListener('mousedown', e => onStepMouseDown(e, step));
         el.addEventListener('dblclick', e => onStepDblClick(e, step));
+        el.addEventListener('contextmenu', e => onStepContextMenu(e, step));
 
         return el;
     }
@@ -476,6 +479,7 @@ const PM = (() => {
     // =========================================================
     function onStepMouseDown(e, step) {
         if (e.target.classList.contains('pm-edge-handle')) return;
+        if (e.button !== 0) return;   // right-click is handled by the context menu
         e.stopPropagation();
         e.preventDefault();
         canvas.focus({ preventScroll: true });
@@ -793,6 +797,7 @@ const PM = (() => {
     //  Connector dragging from edge handles
     // =========================================================
     function startConnectDrag(e, step, side) {
+        if (e.button !== 0) return;   // only a left-drag draws a connector
         e.stopPropagation();
         e.preventDefault();
 
@@ -825,14 +830,7 @@ const PM = (() => {
         const tempId = nextTempId--;
         const cx = canvas.scrollLeft + canvas.clientWidth / 2 - 80;
         const cy = canvas.scrollTop + canvas.clientHeight / 2 - 40;
-        const w = type === 'decision' ? 140 : 160;
-        const h = type === 'decision' ? 140 : (type === 'start' ? 50 : 80);
-        const colors = {
-            process: '#0078d4',
-            decision: '#f59e0b',
-            start: '#10b981',
-            document: '#8764b8'
-        };
+        const dims = stepDims(type);
 
         const step = {
             tempId,
@@ -841,9 +839,9 @@ const PM = (() => {
             description: '',
             x: snap(cx),
             y: snap(cy),
-            width: w,
-            height: h,
-            color: colors[type] || '#0078d4',
+            width: dims.w,
+            height: dims.h,
+            color: dims.color,
             color2: null,
             lane_id: null,
             group_id: null,
@@ -866,6 +864,167 @@ const PM = (() => {
         updateSelectionVisuals();
         showDetailForStep(step);
         markDirty();
+    }
+
+    // =========================================================
+    //  Right-click context menu — "Create new" connected step
+    // =========================================================
+
+    // Box dimensions + default colour for each step type. Single source of
+    // truth shared by addStep() and createConnectedStep().
+    function stepDims(type) {
+        const colors = { process: '#0078d4', decision: '#f59e0b', start: '#10b981', document: '#8764b8' };
+        return {
+            w: type === 'decision' ? 140 : 160,
+            h: type === 'decision' ? 140 : (type === 'start' ? 50 : 80),
+            color: colors[type] || '#0078d4'
+        };
+    }
+
+    function rectsOverlap(ax, ay, aw, ah, bx, by, bw, bh) {
+        return ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
+    }
+
+    function onStepContextMenu(e, step) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Make the right-clicked step the sole selection so it's clear what the
+        // new step will branch off.
+        selectedStepIds.clear();
+        selectedConnectorId = null;
+        selectedGroupId = null;
+        selectedLaneId = null;
+        selectedStepIds.add(step.id || step.tempId);
+        updateSelectionVisuals();
+        ctxTargetStep = step;
+        showContextMenu(e.clientX, e.clientY);
+    }
+
+    function showContextMenu(x, y) {
+        const menu = document.getElementById('pmContextMenu');
+        if (!menu) return;
+        menu.style.display = 'block';
+        menu.classList.remove('pm-ctx-flip');
+        // Clamp the menu inside the viewport.
+        const mw = menu.offsetWidth;
+        const mh = menu.offsetHeight;
+        const px = Math.max(4, Math.min(x, window.innerWidth - mw - 4));
+        const py = Math.max(4, Math.min(y, window.innerHeight - mh - 4));
+        menu.style.left = px + 'px';
+        menu.style.top = py + 'px';
+        // If the submenu would spill off the right edge, flip it to open leftward.
+        const SUBMENU_W = 180;
+        if (px + mw + SUBMENU_W > window.innerWidth) menu.classList.add('pm-ctx-flip');
+    }
+
+    function hideContextMenu() {
+        const menu = document.getElementById('pmContextMenu');
+        if (menu) menu.style.display = 'none';
+        ctxTargetStep = null;
+    }
+
+    function bindContextMenu() {
+        const menu = document.getElementById('pmContextMenu');
+        if (!menu) return;
+        menu.querySelectorAll('[data-create-type]').forEach(item => {
+            item.addEventListener('click', e => {
+                e.stopPropagation();
+                const type = item.dataset.createType;
+                const src = ctxTargetStep;
+                hideContextMenu();
+                if (src) createConnectedStep(src, type);
+            });
+        });
+        // Dismiss on outside click, Escape, canvas scroll, or window blur.
+        document.addEventListener('mousedown', e => {
+            if (menu.style.display === 'block' && !menu.contains(e.target)) hideContextMenu();
+        });
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Escape') hideContextMenu();
+        });
+        canvas.addEventListener('scroll', hideContextMenu);
+        window.addEventListener('blur', hideContextMenu);
+    }
+
+    // Create a new step of `type` placed neatly to the right of `source`,
+    // pre-connected source -> new, with the detail panel open and focused on
+    // the label box so the user can name it straight away.
+    function createConnectedStep(source, type) {
+        if (!currentProcessId) return;
+        const dims = stepDims(type);
+        const GAP = 60;
+        const nx = snap(source.x + source.width + GAP);
+        let ny = Math.max(0, snap(source.y + source.height / 2 - dims.h / 2));
+        // Nudge downward past anything it would overlap so it never lands on
+        // top of an existing step.
+        let guard = 0;
+        while (guard++ < 200 && steps.some(s =>
+            rectsOverlap(nx, ny, dims.w, dims.h, s.x - 16, s.y - 16, s.width + 32, s.height + 32))) {
+            ny = snap(ny + GRID);
+        }
+
+        const tempId = nextTempId--;
+        const step = {
+            tempId,
+            type,
+            label: type === 'start' ? 'Start' : '',
+            description: '',
+            x: nx,
+            y: ny,
+            width: dims.w,
+            height: dims.h,
+            color: dims.color,
+            color2: null,
+            lane_id: null,
+            group_id: null,
+            el: null
+        };
+        // Inherit lane / group from wherever it landed.
+        const lane = laneAtY(step.y + step.height / 2);
+        if (lane) step.lane_id = laneRef(lane);
+        const grp = groupAtPoint(step.x + step.width / 2, step.y + step.height / 2);
+        if (grp) step.group_id = groupRef(grp);
+
+        steps.push(step);
+        step.el = createStepEl(step);
+        canvas.appendChild(step.el);
+        canvasEmpty.style.display = 'none';
+
+        // Wire it up to the step it was spawned from.
+        addConnector(source.id || source.tempId, tempId);
+
+        // Select it, open the panel, and focus the label so it can be named.
+        selectedStepIds.clear();
+        selectedConnectorId = null;
+        selectedGroupId = null;
+        selectedLaneId = null;
+        selectedStepIds.add(tempId);
+        updateSelectionVisuals();
+        showDetailForStep(step);
+        scrollStepIntoView(step);
+        markDirty();
+
+        const labelInput = document.getElementById('detailLabel');
+        if (labelInput) { labelInput.focus(); labelInput.select(); }
+    }
+
+    // Scroll the canvas so `step` sits comfortably within the viewport.
+    function scrollStepIntoView(step) {
+        const pad = 40;
+        const viewL = canvas.scrollLeft;
+        const viewT = canvas.scrollTop;
+        const viewR = viewL + canvas.clientWidth;
+        const viewB = viewT + canvas.clientHeight;
+        if (step.x + step.width + pad > viewR) {
+            canvas.scrollLeft = step.x + step.width + pad - canvas.clientWidth;
+        } else if (step.x - pad < viewL) {
+            canvas.scrollLeft = Math.max(0, step.x - pad);
+        }
+        if (step.y + step.height + pad > viewB) {
+            canvas.scrollTop = step.y + step.height + pad - canvas.clientHeight;
+        } else if (step.y - pad < viewT) {
+            canvas.scrollTop = Math.max(0, step.y - pad);
+        }
     }
 
     // =========================================================

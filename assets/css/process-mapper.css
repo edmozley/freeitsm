@@ -812,6 +812,71 @@
 .toast.success { background: #2e7d32; }
 .toast.error   { background: #c33; }
 
+/* --- Right-click context menu ------------------------------- */
+.pm-context-menu {
+    position: fixed;
+    z-index: 3000;
+    background: #fff;
+    border: 1px solid #d4d4d4;
+    border-radius: 7px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    padding: 4px;
+    min-width: 168px;
+    font-size: 13px;
+    color: #333;
+    user-select: none;
+}
+
+.pm-ctx-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 8px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.pm-ctx-item:hover {
+    background: #e8f4fd;
+}
+
+.pm-ctx-item svg {
+    color: #555;
+    flex-shrink: 0;
+}
+
+.pm-ctx-text { flex: 1; }
+
+.pm-ctx-arrow {
+    margin-left: 6px;
+    color: #999;
+}
+
+.pm-ctx-submenu {
+    display: none;
+    position: absolute;
+    left: 100%;
+    top: -5px;            /* align the first submenu item with the parent row */
+    background: #fff;
+    border: 1px solid #d4d4d4;
+    border-radius: 7px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    padding: 4px;
+    min-width: 158px;
+}
+
+.pm-ctx-parent:hover > .pm-ctx-submenu {
+    display: block;
+}
+
+/* Flip the submenu leftward when there isn't room on the right. */
+.pm-context-menu.pm-ctx-flip .pm-ctx-submenu {
+    left: auto;
+    right: 100%;
+}
+
 /* --- Rename input overlay ---------------------------------- */
 .pm-rename-input {
     position: absolute;

@@ -29,6 +29,10 @@ return [
         'save'      => 'Salva',
     ],
 
+    'context' => [
+        'create_new' => 'Crea nuovo…',
+    ],
+
     'autosave' => [
         'label'   => 'Salvataggio automatico',
         'saved'   => 'Salvato',

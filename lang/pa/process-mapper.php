@@ -29,6 +29,10 @@ return [
         'save'      => 'ਸੰਭਾਲੋ',
     ],
 
+    'context' => [
+        'create_new' => 'ਨਵਾਂ ਬਣਾਓ…',
+    ],
+
     'autosave' => [
         'label'   => 'ਆਟੋ-ਸੇਵ',
         'saved'   => 'ਸੰਭਾਲਿਆ ਗਿਆ',

@@ -33,6 +33,10 @@ return [
         'save'      => 'Save',
     ],
 
+    'context' => [
+        'create_new' => 'Create new…',
+    ],
+
     'autosave' => [
         'label'   => 'Autosave',
         'saved'   => 'Saved',

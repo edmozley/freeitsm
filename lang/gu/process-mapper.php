@@ -29,6 +29,10 @@ return [
         'save'      => 'સાચવો',
     ],
 
+    'context' => [
+        'create_new' => 'નવું બનાવો…',
+    ],
+
     'autosave' => [
         'label'   => 'ઑટો-સેવ',
         'saved'   => 'સાચવ્યું',

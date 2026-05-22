@@ -30,6 +30,10 @@ return [
         'save'      => 'Simpan',
     ],
 
+    'context' => [
+        'create_new' => 'Buat baru…',
+    ],
+
     'autosave' => [
         'label'   => 'Simpan Otomatis',
         'saved'   => 'Tersimpan',

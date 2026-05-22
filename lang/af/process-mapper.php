@@ -29,6 +29,10 @@ return [
         'save'      => 'Stoor',
     ],
 
+    'context' => [
+        'create_new' => 'Skep nuwe…',
+    ],
+
     'autosave' => [
         'label'   => 'Outostoor',
         'saved'   => 'Gestoor',

@@ -634,7 +634,7 @@ $path_prefix = '../';
                         <span class="pm-help-section-num">4</span>
                         <h3>Drawing connectors</h3>
                     </div>
-                    <p>Connectors are the arrows between steps. Process Mapper offers two ways to draw them &mdash; pick whichever feels more natural in the moment.</p>
+                    <p>Connectors are the arrows between steps. Process Mapper offers a few ways to draw them &mdash; pick whichever feels more natural in the moment.</p>
 
                     <div class="pm-help-steps">
                         <div class="pm-help-step-item">
@@ -659,6 +659,12 @@ $path_prefix = '../';
                             <div class="pm-help-step-num">4</div>
                             <div>
                                 <strong>Connect to anywhere</strong> &mdash; you do not need to pick a specific edge on the target step. Drop the connector anywhere on the destination and Process Mapper picks the closest edge automatically, redrawing if you later move either step.
+                            </div>
+                        </div>
+                        <div class="pm-help-step-item">
+                            <div class="pm-help-step-num">5</div>
+                            <div>
+                                <strong>Right-click to branch off a step</strong> &mdash; right-click any step and choose <em>Create new</em>, then pick a shape (Process, Decision, Terminal or Document). A new step of that type is dropped just to the right, already connected from the step you clicked, with the detail panel open and the cursor in the label box &mdash; name it and carry on. The quickest way to build a flow out left-to-right.
                             </div>
                         </div>
                     </div>

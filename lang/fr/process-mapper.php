@@ -29,6 +29,10 @@ return [
         'save'      => 'Enregistrer',
     ],
 
+    'context' => [
+        'create_new' => 'Créer…',
+    ],
+
     'autosave' => [
         'label'   => 'Auto-enregistrement',
         'saved'   => 'Enregistré',

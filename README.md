@@ -737,6 +737,7 @@ Visual flowchart builder for documenting processes and workflows.
 - **Dot-grid canvas** with 20px snap-to-grid on all movements
 - **Shape types**: Process (rounded rect), Decision (diamond), Terminal/Start-End (pill), Document (wavy bottom)
 - **Connectors**: Drag from edge handles to draw arrows between steps. Optional text labels on connectors (double-click to edit).
+- **Right-click to branch off a step**: Right-clicking any step opens a context menu with a *Create new* submenu (Process / Decision / Terminal / Document). Picking a shape drops a new step of that type just to the right of the clicked step, already connected from it, with the detail panel open and the cursor in the label box — the fastest way to build a flow out left-to-right. The new step inherits whichever swimlane / group it lands in, the placement nudges downward to avoid overlapping an existing step, and the submenu flips leftward when there isn't room on the right. Right-clicking a step no longer starts a drag.
 - **Multi-select**: Ctrl+click to toggle, rubber-band drag to select a region, Ctrl+A to select all
 - **Arrow key nudge**: Move selected steps by one grid unit with cursor keys
 - **Slide-in detail panel**: Click a step to edit label, type, colour, description, and view/edit its connectors

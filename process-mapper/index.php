@@ -21,7 +21,7 @@ $translationNamespaces = ['common', 'process-mapper'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('process-mapper.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/process-mapper.css">
+    <link rel="stylesheet" href="../assets/css/process-mapper.css?v=1">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
 </head>
@@ -221,6 +221,32 @@ $translationNamespaces = ['common', 'process-mapper'];
         </div>
     </div>
 
+    <!-- Right-click context menu (on steps) -->
+    <div class="pm-context-menu" id="pmContextMenu" style="display: none;">
+        <div class="pm-ctx-item pm-ctx-parent">
+            <span class="pm-ctx-text"><?php echo htmlspecialchars(t('process-mapper.context.create_new')); ?></span>
+            <svg class="pm-ctx-arrow" width="12" height="12" viewBox="0 0 12 12"><path d="M4 2.5L8 6l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="pm-ctx-submenu">
+                <div class="pm-ctx-item" data-create-type="process">
+                    <svg width="16" height="16" viewBox="0 0 18 18"><rect x="1" y="3" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    <span><?php echo htmlspecialchars(t('process-mapper.toolbar.process')); ?></span>
+                </div>
+                <div class="pm-ctx-item" data-create-type="decision">
+                    <svg width="16" height="16" viewBox="0 0 18 18"><polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    <span><?php echo htmlspecialchars(t('process-mapper.toolbar.decision')); ?></span>
+                </div>
+                <div class="pm-ctx-item" data-create-type="start">
+                    <svg width="16" height="16" viewBox="0 0 18 18"><ellipse cx="9" cy="9" rx="8" ry="5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    <span><?php echo htmlspecialchars(t('process-mapper.toolbar.terminal')); ?></span>
+                </div>
+                <div class="pm-ctx-item" data-create-type="document">
+                    <svg width="16" height="16" viewBox="0 0 18 18"><path d="M2 2h14v12c-2.3 1.3-4.7 1.3-7 0s-4.7-1.3-7 0V2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+                    <span><?php echo htmlspecialchars(t('process-mapper.toolbar.document')); ?></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
@@ -243,6 +269,6 @@ $translationNamespaces = ['common', 'process-mapper'];
     </div>
 
     <script>window.API_BASE = '../api/process-mapper/';</script>
-    <script src="../assets/js/process-mapper.js"></script>
+    <script src="../assets/js/process-mapper.js?v=1"></script>
 </body>
 </html>

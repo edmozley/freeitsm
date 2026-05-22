@@ -29,6 +29,10 @@ return [
         'save'      => 'Opslaan',
     ],
 
+    'context' => [
+        'create_new' => 'Nieuw maken…',
+    ],
+
     'autosave' => [
         'label'   => 'Automatisch opslaan',
         'saved'   => 'Opgeslagen',

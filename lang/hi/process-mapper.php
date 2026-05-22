@@ -29,6 +29,10 @@ return [
         'save'      => 'सहेजें',
     ],
 
+    'context' => [
+        'create_new' => 'नया बनाएँ…',
+    ],
+
     'autosave' => [
         'label'   => 'स्वतः सहेजें',
         'saved'   => 'सहेजा गया',
