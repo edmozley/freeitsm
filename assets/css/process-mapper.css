@@ -786,9 +786,14 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
+    /* Cap the toast at a sensible reading width so long messages
+       (e.g. the connect-mode prompt) wrap instead of stretching
+       across the canvas. */
+    max-width: 360px;
     padding: 12px 20px;
     border-radius: 6px;
     font-size: 14px;
+    line-height: 1.4;
     color: #fff;
     background: #333;
     box-shadow: 0 4px 12px rgba(0,0,0,0.2);
@@ -797,6 +802,8 @@
     transition: opacity 0.3s, transform 0.3s;
     z-index: 1000;
     pointer-events: none;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .toast.show {
@@ -806,6 +813,7 @@
 
 .toast.success { background: #2e7d32; }
 .toast.error   { background: #c33; }
+.toast.info    { background: #1976d2; }
 
 /* --- Right-click context menu ------------------------------- */
 .pm-context-menu {
@@ -870,6 +878,27 @@
 .pm-context-menu.pm-ctx-flip .pm-ctx-submenu {
     left: auto;
     right: 100%;
+}
+
+/* Thin separator between menu groups. */
+.pm-ctx-separator {
+    height: 1px;
+    background: #e0e0e0;
+    margin: 4px 6px;
+    pointer-events: none;
+}
+
+/* Hidden by default — JS toggles to reveal once formatting is copied. */
+.pm-ctx-item.pm-ctx-hidden { display: none; }
+
+/* Click-to-connect mode: tell the user the canvas wants a click target
+   by switching the cursor to a crosshair. The class is set on the
+   canvas while the mode is active. */
+.pm-canvas.pm-connect-mode,
+.pm-canvas.pm-connect-mode .pm-step,
+.pm-canvas.pm-connect-mode .pm-group,
+.pm-canvas.pm-connect-mode .pm-lane {
+    cursor: crosshair !important;
 }
 
 /* --- Rename input overlay ---------------------------------- */

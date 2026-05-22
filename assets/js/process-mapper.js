@@ -61,6 +61,18 @@ const PM = (() => {
     let connectMode = false;
     let ctxTargetStep = null;   // step the right-click "Create new" menu acts on
 
+    // ---- click-to-connect mode (from the right-click "Connect to…" item) ----
+    // While `clickConnectFromId` is set, the next mousedown on a step pairs
+    // them up as a connector and exits the mode. Esc or a click on empty
+    // canvas cancels. Mutually exclusive with the edge-handle drag flow.
+    let clickConnectFromId = null;
+
+    // ---- formatting clipboard (copy formatting / apply formatting) ----
+    // `copiedFormat` is null until the user runs "Copy formatting" on a step.
+    // After that, the right-click menu reveals "Apply formatting" which
+    // applies the stashed colour + gradient to the right-clicked step.
+    let copiedFormat = null;    // { color, color2 } | null
+
     // ---- DOM refs ----
     let canvas, svg, detailPanel, processList, canvasEmpty;
 
@@ -503,6 +515,14 @@ const PM = (() => {
         e.preventDefault();
         canvas.focus({ preventScroll: true });
 
+        // If click-to-connect is armed, the next mousedown on a step closes
+        // the pairing and short-circuits the normal click → select → drag
+        // flow so we don't accidentally start moving the target step.
+        if (clickConnectFromId != null) {
+            completeClickConnect(step);
+            return;
+        }
+
         const id = step.id || step.tempId;
 
         // Ctrl+click toggles selection
@@ -593,9 +613,27 @@ const PM = (() => {
     }
 
     function onCanvasMouseDown(e) {
-        if (e.target !== canvas && !e.target.classList.contains('pm-canvas-empty')) return;
+        if (e.button !== 0) return;
+        // Rubber-band starts on:
+        //  - the bare canvas (dot grid)
+        //  - the empty-state placeholder
+        //  - a lane band (its body — but NOT its header/divider/handles)
+        // Anything else (a step, a group body, the lane header / divider, the
+        // resize handle …) has its own mousedown semantics and should not
+        // trigger selection-by-rectangle here.
+        const targ = e.target;
+        const onCanvas = targ === canvas || targ.classList.contains('pm-canvas-empty');
+        const onLaneBand = targ.classList.contains('pm-lane');
+        if (!onCanvas && !onLaneBand) return;
         if (!currentProcessId) return;
         canvas.focus({ preventScroll: true });
+
+        // If click-to-connect is armed, treat a click on empty canvas / lane
+        // background as "cancel" — the user has decided not to follow through.
+        if (clickConnectFromId != null) {
+            cancelClickConnect();
+            return;
+        }
 
         // Start rubber-band selection
         const rect = canvas.getBoundingClientRect();
@@ -913,6 +951,9 @@ const PM = (() => {
     function onStepContextMenu(e, step) {
         e.preventDefault();
         e.stopPropagation();
+        // If click-to-connect is armed, a right-click should cancel it rather
+        // than open another menu on top — be predictable about exit conditions.
+        if (clickConnectFromId != null) cancelClickConnect();
         // Make the right-clicked step the sole selection so it's clear what the
         // new step will branch off.
         selectedStepIds.clear();
@@ -928,6 +969,9 @@ const PM = (() => {
     function showContextMenu(x, y) {
         const menu = document.getElementById('pmContextMenu');
         if (!menu) return;
+        // Reveal "Apply formatting" only when something has actually been copied.
+        const apply = document.getElementById('pmCtxApplyFormat');
+        if (apply) apply.classList.toggle('pm-ctx-hidden', !copiedFormat);
         menu.style.display = 'block';
         menu.classList.remove('pm-ctx-flip');
         // Clamp the menu inside the viewport.
@@ -951,6 +995,8 @@ const PM = (() => {
     function bindContextMenu() {
         const menu = document.getElementById('pmContextMenu');
         if (!menu) return;
+
+        // "Create new …" — spawn a connected step of the chosen type.
         menu.querySelectorAll('[data-create-type]').forEach(item => {
             item.addEventListener('click', e => {
                 e.stopPropagation();
@@ -960,15 +1006,143 @@ const PM = (() => {
                 if (src) createConnectedStep(src, type);
             });
         });
+
+        // "Change to …" — swap the right-clicked step's type to the chosen
+        // primitive. data-shape comes from the type registry so the visual
+        // updates immediately; connectors reroute because the step's box
+        // may resize when its shape changes.
+        menu.querySelectorAll('[data-change-type]').forEach(item => {
+            item.addEventListener('click', e => {
+                e.stopPropagation();
+                const newType = item.dataset.changeType;
+                const target = ctxTargetStep;
+                hideContextMenu();
+                if (target) changeStepType(target, newType);
+            });
+        });
+
+        // Flat actions: Connect to, Copy formatting, Apply formatting.
+        menu.querySelectorAll('[data-action]').forEach(item => {
+            item.addEventListener('click', e => {
+                e.stopPropagation();
+                const action = item.dataset.action;
+                const target = ctxTargetStep;
+                hideContextMenu();
+                if (!target) return;
+                if (action === 'connect-to')   startClickConnect(target);
+                if (action === 'copy-format')  copyFormat(target);
+                if (action === 'apply-format') applyFormat(target);
+            });
+        });
+
         // Dismiss on outside click, Escape, canvas scroll, or window blur.
         document.addEventListener('mousedown', e => {
             if (menu.style.display === 'block' && !menu.contains(e.target)) hideContextMenu();
         });
         document.addEventListener('keydown', e => {
-            if (e.key === 'Escape') hideContextMenu();
+            if (e.key === 'Escape') {
+                hideContextMenu();
+                if (clickConnectFromId != null) cancelClickConnect();
+            }
         });
         canvas.addEventListener('scroll', hideContextMenu);
         window.addEventListener('blur', hideContextMenu);
+    }
+
+    // =========================================================
+    //  Change type / Copy formatting / Click-to-connect
+    // =========================================================
+
+    // Swap a step's type to a new slug. Resizes to the new type's default
+    // dimensions so a circle doesn't stay rectangle-shaped, but keeps the
+    // step's hand-picked colour (the type's colour seeds new steps only).
+    function changeStepType(step, newSlug) {
+        if (!step || !newSlug) return;
+        if (step.type === newSlug) return;
+        const dims = stepDims(newSlug);
+        step.type = newSlug;
+        step.width = dims.w;
+        step.height = dims.h;
+        // Re-render the element so data-shape and box dimensions update.
+        if (step.el) step.el.remove();
+        step.el = createStepEl(step);
+        canvas.appendChild(step.el);
+        if (selectedStepIds.has(step.id || step.tempId)) step.el.classList.add('selected');
+        renderConnectors();
+        // Keep the detail panel in sync if it's showing this step.
+        if (detailPanel.dataset.stepId == (step.id || step.tempId)) {
+            const sel = document.getElementById('detailType');
+            if (sel) sel.value = step.type;
+        }
+        markDirty();
+        toast(t('process-mapper.toast.type_changed'), 'success');
+    }
+
+    // Copy/Apply formatting: stash colour + gradient from one step, paste
+    // them into another via the right-click menu. Position, label, type and
+    // size are deliberately not copied — only the "paint job".
+    function copyFormat(step) {
+        if (!step) return;
+        copiedFormat = { color: step.color || '#0078d4', color2: step.color2 || null };
+        toast(t('process-mapper.toast.format_copied'), 'success');
+    }
+
+    function applyFormat(step) {
+        if (!step || !copiedFormat) return;
+        step.color  = copiedFormat.color;
+        step.color2 = copiedFormat.color2;
+        if (step.el) step.el.style.background = fillStyle(step.color, step.color2);
+        // Reflect into the detail panel if it's open for this step.
+        if (detailPanel.dataset.stepId == (step.id || step.tempId)) {
+            const c = document.getElementById('detailColor');
+            if (c) c.value = step.color;
+            const cb = document.getElementById('detailGradient');
+            const c2 = document.getElementById('detailColor2');
+            if (cb && c2) {
+                cb.checked = !!step.color2;
+                c2.style.display = step.color2 ? '' : 'none';
+                if (step.color2) c2.value = step.color2;
+            }
+        }
+        markDirty();
+        toast(t('process-mapper.toast.format_applied'), 'success');
+    }
+
+    // Click-to-connect: arm a one-shot waiting state. The next mousedown
+    // on a step pairs them up; mousedown on empty canvas or Escape cancels.
+    // While armed we add a class to the canvas for cursor + visual cue, and
+    // surface a persistent toast prompt so the user knows what's expected.
+    function startClickConnect(fromStep) {
+        if (!fromStep) return;
+        // If there's already a step-drag or rubber-band in progress, bail.
+        if (dragging || rubberBand || connectDrag || groupDragging || laneDragging) return;
+        clickConnectFromId = fromStep.id || fromStep.tempId;
+        canvas.classList.add('pm-connect-mode');
+        toast(t('process-mapper.toast.connect_prompt'), 'info');
+    }
+
+    function cancelClickConnect() {
+        if (clickConnectFromId == null) return;
+        clickConnectFromId = null;
+        canvas.classList.remove('pm-connect-mode');
+        toast(t('process-mapper.toast.connect_cancelled'), 'info');
+    }
+
+    // Called from onStepMouseDown when click-to-connect is armed: completes
+    // (or rejects) the pairing and exits the mode.
+    function completeClickConnect(targetStep) {
+        if (clickConnectFromId == null) return false;
+        const fromId = clickConnectFromId;
+        const toId = targetStep.id || targetStep.tempId;
+        clickConnectFromId = null;
+        canvas.classList.remove('pm-connect-mode');
+        if (fromId === toId) {
+            toast(t('process-mapper.toast.connect_self'), 'error');
+            return true;
+        }
+        addConnector(fromId, toId);
+        toast(t('process-mapper.toast.connect_done'), 'success');
+        return true;
     }
 
     // Create a new step of `type` placed neatly to the right of `source`,
@@ -1192,6 +1366,9 @@ const PM = (() => {
 
     function onGroupMouseDown(e, group) {
         if (e.button !== 0) return;
+        // Click-to-connect cares only about steps as targets — clicking
+        // anything else (a group body, here) cancels the mode.
+        if (clickConnectFromId != null) { cancelClickConnect(); e.stopPropagation(); e.preventDefault(); return; }
         // Resize handle? Start resize. Otherwise move.
         const isResize = e.target.classList.contains('pm-group-resize');
         e.stopPropagation();
@@ -1572,6 +1749,7 @@ const PM = (() => {
     // out which slot the cursor landed in and call reorderLaneTo().
     function onLaneHeaderMouseDown(e, lane) {
         if (e.button !== 0) return;
+        if (clickConnectFromId != null) { cancelClickConnect(); e.stopPropagation(); e.preventDefault(); return; }
         e.stopPropagation();
         e.preventDefault();
         // Tag every visually-inside-a-lane step with its lane_id so the reorder
@@ -1591,6 +1769,7 @@ const PM = (() => {
 
     function onLaneDividerMouseDown(e, lane) {
         if (e.button !== 0) return;
+        if (clickConnectFromId != null) { cancelClickConnect(); e.stopPropagation(); e.preventDefault(); return; }
         e.stopPropagation();
         e.preventDefault();
         autoAssignAllStepLanes();

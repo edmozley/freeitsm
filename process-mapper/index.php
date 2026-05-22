@@ -48,7 +48,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('process-mapper.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/process-mapper.css?v=4">
+    <link rel="stylesheet" href="../assets/css/process-mapper.css?v=5">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
 </head>
@@ -239,6 +239,7 @@ try {
 
     <!-- Right-click context menu (on steps) -->
     <div class="pm-context-menu" id="pmContextMenu" style="display: none;">
+        <!-- Create new -> submenu of type primitives -->
         <div class="pm-ctx-item pm-ctx-parent">
             <span class="pm-ctx-text"><?php echo htmlspecialchars(t('process-mapper.context.create_new')); ?></span>
             <svg class="pm-ctx-arrow" width="12" height="12" viewBox="0 0 12 12"><path d="M4 2.5L8 6l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -250,6 +251,35 @@ try {
                 </div>
                 <?php endforeach; ?>
             </div>
+        </div>
+        <!-- Change to -> submenu re-uses the same type primitives -->
+        <div class="pm-ctx-item pm-ctx-parent">
+            <span class="pm-ctx-text"><?php echo htmlspecialchars(t('process-mapper.context.change_to')); ?></span>
+            <svg class="pm-ctx-arrow" width="12" height="12" viewBox="0 0 12 12"><path d="M4 2.5L8 6l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="pm-ctx-submenu">
+                <?php foreach ($pm_types_active as $pm_t): ?>
+                <div class="pm-ctx-item" data-change-type="<?php echo htmlspecialchars($pm_t['slug']); ?>">
+                    <span class="pm-shape-preview pm-ctx-shape" data-shape="<?php echo htmlspecialchars($pm_t['shape']); ?>" style="background: <?php echo htmlspecialchars($pm_t['color']); ?>;"></span>
+                    <span><?php echo htmlspecialchars($pm_t['name']); ?></span>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <!-- Connect to (click-to-connect mode) -->
+        <div class="pm-ctx-item" data-action="connect-to">
+            <svg width="16" height="16" viewBox="0 0 18 18"><line x1="3" y1="15" x2="15" y2="3" stroke="currentColor" stroke-width="1.5"/><polyline points="10,3 15,3 15,8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.connect_to')); ?></span>
+        </div>
+        <div class="pm-ctx-separator"></div>
+        <!-- Copy formatting -->
+        <div class="pm-ctx-item" data-action="copy-format">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.copy_format')); ?></span>
+        </div>
+        <!-- Apply formatting (hidden until something is copied) -->
+        <div class="pm-ctx-item pm-ctx-hidden" id="pmCtxApplyFormat" data-action="apply-format">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l3 3"/><path d="M3 21l3-9 12-12 6 6-12 12-9 3z"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.apply_format')); ?></span>
         </div>
     </div>
 
@@ -301,6 +331,6 @@ try {
         window.STEP_TYPES_BY_SLUG = {};
         for (const t of window.STEP_TYPES) window.STEP_TYPES_BY_SLUG[t.slug] = t;
     </script>
-    <script src="../assets/js/process-mapper.js?v=2"></script>
+    <script src="../assets/js/process-mapper.js?v=3"></script>
 </body>
 </html>

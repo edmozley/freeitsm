@@ -35,7 +35,11 @@ return [
     ],
 
     'context' => [
-        'create_new' => 'Create new…',
+        'create_new'   => 'Create new…',
+        'change_to'    => 'Change to…',
+        'connect_to'   => 'Connect to…',
+        'copy_format'  => 'Copy formatting',
+        'apply_format' => 'Apply formatting',
     ],
 
     'shapes' => [
@@ -128,8 +132,15 @@ return [
     ],
 
     'toast' => [
-        'no_process_open' => 'Open or create a process first',
-        'saved'           => 'Saved',
-        'save_failed'     => 'Failed to save',
+        'no_process_open'       => 'Open or create a process first',
+        'saved'                 => 'Saved',
+        'save_failed'           => 'Failed to save',
+        'connect_prompt'        => 'Click a step to connect to — or press Esc to cancel.',
+        'connect_self'          => "You can't connect a step to itself.",
+        'connect_done'          => 'Connected.',
+        'connect_cancelled'     => 'Connect cancelled.',
+        'format_copied'         => 'Formatting copied — right-click another step to apply.',
+        'format_applied'        => 'Formatting applied.',
+        'type_changed'          => 'Type changed.',
     ],
 ];
