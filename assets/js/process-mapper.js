@@ -1054,8 +1054,10 @@ const PM = (() => {
     // =========================================================
 
     // Swap a step's type to a new slug. Resizes to the new type's default
-    // dimensions so a circle doesn't stay rectangle-shaped, but keeps the
-    // step's hand-picked colour (the type's colour seeds new steps only).
+    // dimensions so a circle doesn't stay rectangle-shaped, and repaints
+    // with the new type's default colour (gradient cleared) so a step
+    // identifies visually with its new type. Use the colour picker in the
+    // detail panel afterwards if you want a custom colour back.
     function changeStepType(step, newSlug) {
         if (!step || !newSlug) return;
         if (step.type === newSlug) return;
@@ -1063,16 +1065,25 @@ const PM = (() => {
         step.type = newSlug;
         step.width = dims.w;
         step.height = dims.h;
-        // Re-render the element so data-shape and box dimensions update.
+        step.color = dims.color;
+        step.color2 = null;
+        // Re-render the element so data-shape, box dimensions and fill update.
         if (step.el) step.el.remove();
         step.el = createStepEl(step);
         canvas.appendChild(step.el);
         if (selectedStepIds.has(step.id || step.tempId)) step.el.classList.add('selected');
         renderConnectors();
-        // Keep the detail panel in sync if it's showing this step.
+        // Keep the detail panel in sync if it's showing this step (type,
+        // colour, gradient toggle + second-colour picker all reflect the new state).
         if (detailPanel.dataset.stepId == (step.id || step.tempId)) {
             const sel = document.getElementById('detailType');
             if (sel) sel.value = step.type;
+            const c = document.getElementById('detailColor');
+            if (c) c.value = step.color;
+            const cb = document.getElementById('detailGradient');
+            const c2 = document.getElementById('detailColor2');
+            if (cb) cb.checked = false;
+            if (c2) c2.style.display = 'none';
         }
         markDirty();
         toast(t('process-mapper.toast.type_changed'), 'success');

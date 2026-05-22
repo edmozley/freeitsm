@@ -331,6 +331,6 @@ try {
         window.STEP_TYPES_BY_SLUG = {};
         for (const t of window.STEP_TYPES) window.STEP_TYPES_BY_SLUG[t.slug] = t;
     </script>
-    <script src="../assets/js/process-mapper.js?v=3"></script>
+    <script src="../assets/js/process-mapper.js?v=4"></script>
 </body>
 </html>
