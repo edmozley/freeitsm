@@ -14,6 +14,9 @@ const HEADER_H = 48;
 const DAY_WIDTHS = [14, 22, 34, 52];
 const STATUS_ORDER = ['To Do', 'In Progress', 'Blocked', 'Done', 'Cancelled'];
 
+// Locale for date formatting — matches the page's i18n locale
+const UI_LOCALE = document.documentElement.lang || 'en';
+
 // ── State ──────────────────────────────────────────────────────────
 let currentFilter = 'my';
 let currentFilterTeamId = null;
@@ -47,12 +50,12 @@ async function loadDropdowns() {
         ]);
         if (aRes.success) {
             document.getElementById('analystFilter').innerHTML =
-                '<option value="">All analysts</option>' +
+                '<option value="">' + esc(window.t('tasks.filter.all_analysts')) + '</option>' +
                 aRes.analysts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
         }
         if (tRes.success) {
             document.getElementById('teamFilter').innerHTML =
-                '<option value="">All teams</option>' +
+                '<option value="">' + esc(window.t('tasks.filter.all_teams')) + '</option>' +
                 tRes.teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
         }
     } catch (e) { console.error('Failed to load dropdowns:', e); }
@@ -129,7 +132,7 @@ function render() {
     });
 
     if (items.length === 0) {
-        host.innerHTML = '<div class="cal-loading">No tasks with a start or due date.</div>';
+        host.innerHTML = `<div class="cal-loading">${esc(window.t('tasks.timeline.empty'))}</div>`;
         document.getElementById('tlRange').textContent = '';
         return;
     }
@@ -161,7 +164,7 @@ function render() {
             if (m !== -1) {
                 const cd = addDays(rangeStartStr, mStart);
                 monthCells += `<div class="tl-month" style="width:${(i - mStart) * dayW}px">` +
-                    cd.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' }) + '</div>';
+                    cd.toLocaleDateString(UI_LOCALE, { month: 'long', year: 'numeric' }) + '</div>';
             }
             m = mm; mStart = i;
         }
@@ -219,11 +222,11 @@ function render() {
     // ── Today marker ──
     const todayLeft = LABEL_W + dayDiff(rangeStartStr, todayStr) * dayW;
     const todayMarker = `<div class="tl-today" style="left:${todayLeft}px;width:${dayW}px">
-        <span class="tl-today-flag">Today</span></div>`;
+        <span class="tl-today-flag">${esc(window.t('tasks.timeline.today'))}</span></div>`;
 
     host.innerHTML = `<div class="tl-inner" style="width:${innerW}px">
         <div class="tl-head" style="height:${HEADER_H}px">
-            <div class="tl-head-label" style="width:${LABEL_W}px">Task</div>
+            <div class="tl-head-label" style="width:${LABEL_W}px">${esc(window.t('tasks.timeline.col_task'))}</div>
             <div class="tl-head-cols" style="width:${trackW}px">
                 <div class="tl-months">${monthCells}</div>
                 <div class="tl-days">${dayCells}</div>
@@ -238,11 +241,12 @@ function render() {
 
 function buildGroups(items) {
     const map = new Map();
+    const unassigned = window.t('tasks.timeline.unassigned');
     items.forEach(it => {
         let key;
-        if (groupBy === 'analyst') key = it.task.analyst_name || 'Unassigned';
-        else if (groupBy === 'status') key = it.task.status || 'No status';
-        else key = 'All tasks';
+        if (groupBy === 'analyst') key = it.task.analyst_name || unassigned;
+        else if (groupBy === 'status') key = it.task.status || window.t('tasks.timeline.no_status');
+        else key = window.t('tasks.timeline.all_tasks');
         if (!map.has(key)) map.set(key, []);
         map.get(key).push(it);
     });
@@ -256,8 +260,8 @@ function buildGroups(items) {
             return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib) || a.name.localeCompare(b.name);
         }
         // assignee — push Unassigned to the bottom, otherwise alphabetical
-        if (a.name === 'Unassigned') return 1;
-        if (b.name === 'Unassigned') return -1;
+        if (a.name === unassigned) return 1;
+        if (b.name === unassigned) return -1;
         return a.name.localeCompare(b.name);
     });
     return groups;
@@ -293,7 +297,7 @@ function dayDiff(a, b) {
 }
 
 function fmt(ds) {
-    return new Date(ds + 'T00:00:00').toLocaleDateString('en-GB',
+    return new Date(ds + 'T00:00:00').toLocaleDateString(UI_LOCALE,
         { day: 'numeric', month: 'short' });
 }
 

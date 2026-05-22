@@ -4,18 +4,23 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'calendar';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'tasks'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Tasks Calendar</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('tasks.title') . ' ' . t('tasks.nav.calendar')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <link rel="stylesheet" href="../../assets/css/tasks.css?v=10">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
     <?php include '../includes/header.php'; ?>
@@ -24,33 +29,33 @@ $path_prefix = '../../';
         <!-- Sidebar -->
         <div class="tasks-sidebar">
             <div class="sidebar-section">
-                <div class="sidebar-label">Filter</div>
+                <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.filter')); ?></div>
                 <button class="filter-btn active" data-filter="my" onclick="setFilter('my')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    My Tasks
+                    <?php echo htmlspecialchars(t('tasks.filter.my')); ?>
                 </button>
                 <button class="filter-btn" data-filter="all" onclick="setFilter('all')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                    All Tasks
+                    <?php echo htmlspecialchars(t('tasks.filter.all')); ?>
                 </button>
             </div>
 
             <div class="sidebar-section">
-                <div class="sidebar-label">Team</div>
+                <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.team')); ?></div>
                 <select id="teamFilter" class="sidebar-select" onchange="setTeamFilter(this.value)">
-                    <option value="">All teams</option>
+                    <option value=""><?php echo htmlspecialchars(t('tasks.filter.all_teams')); ?></option>
                 </select>
             </div>
 
             <div class="sidebar-section">
-                <div class="sidebar-label">Analyst</div>
+                <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.analyst')); ?></div>
                 <select id="analystFilter" class="sidebar-select" onchange="setAnalystFilter(this.value)">
-                    <option value="">All analysts</option>
+                    <option value=""><?php echo htmlspecialchars(t('tasks.filter.all_analysts')); ?></option>
                 </select>
             </div>
 
             <div class="sidebar-section">
-                <div class="sidebar-label">Legend</div>
+                <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.legend')); ?></div>
                 <div class="cal-legend" id="calLegend"></div>
             </div>
         </div>
@@ -60,23 +65,28 @@ $path_prefix = '../../';
             <div class="cal-layout">
                 <div class="cal-toolbar">
                     <div class="cal-nav">
-                        <button class="cal-nav-btn" onclick="calPrev()" title="Previous month">&lsaquo;</button>
-                        <button class="cal-nav-btn cal-today-btn" onclick="calToday()">Today</button>
-                        <button class="cal-nav-btn" onclick="calNext()" title="Next month">&rsaquo;</button>
+                        <button class="cal-nav-btn" onclick="calPrev()" title="<?php echo htmlspecialchars(t('tasks.calendar.prev')); ?>">&lsaquo;</button>
+                        <button class="cal-nav-btn cal-today-btn" onclick="calToday()"><?php echo htmlspecialchars(t('tasks.calendar.today')); ?></button>
+                        <button class="cal-nav-btn" onclick="calNext()" title="<?php echo htmlspecialchars(t('tasks.calendar.next')); ?>">&rsaquo;</button>
                         <h2 id="calTitle">&nbsp;</h2>
                     </div>
                     <div class="cal-mode-hint">
                         <span id="calModeHint"></span>
-                        <a href="../settings/#calendar">Change</a>
+                        <a href="../settings/#calendar"><?php echo htmlspecialchars(t('tasks.calendar.change')); ?></a>
                     </div>
                 </div>
                 <div class="cal-wrap">
                     <div class="cal-weekdays">
-                        <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div>
-                        <div>Fri</div><div>Sat</div><div>Sun</div>
+                        <div><?php echo htmlspecialchars(t('tasks.calendar.mon')); ?></div>
+                        <div><?php echo htmlspecialchars(t('tasks.calendar.tue')); ?></div>
+                        <div><?php echo htmlspecialchars(t('tasks.calendar.wed')); ?></div>
+                        <div><?php echo htmlspecialchars(t('tasks.calendar.thu')); ?></div>
+                        <div><?php echo htmlspecialchars(t('tasks.calendar.fri')); ?></div>
+                        <div><?php echo htmlspecialchars(t('tasks.calendar.sat')); ?></div>
+                        <div><?php echo htmlspecialchars(t('tasks.calendar.sun')); ?></div>
                     </div>
                     <div class="cal-grid" id="calGrid">
-                        <div class="cal-loading">Loading…</div>
+                        <div class="cal-loading"><?php echo htmlspecialchars(t('tasks.calendar.loading')); ?></div>
                     </div>
                 </div>
             </div>
@@ -86,6 +96,6 @@ $path_prefix = '../../';
     <div class="toast" id="toast"></div>
 
     <script>window.API_BASE = '../../api/tasks/';</script>
-    <script src="../../assets/js/tasks-calendar.js?v=3"></script>
+    <script src="../../assets/js/tasks-calendar.js?v=4"></script>
 </body>
 </html>

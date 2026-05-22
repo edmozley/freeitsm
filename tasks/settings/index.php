@@ -1,9 +1,11 @@
 <?php
 /**
- * Tasks Settings - Manage status / priority lookup tables
+ * Tasks Settings - Manage status / priority / tag lookups and module options
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../../login.php');
@@ -13,15 +15,18 @@ if (!isset($_SESSION['analyst_id'])) {
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = 'settings';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'tasks'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Tasks Settings</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('tasks.title') . ' ' . t('tasks.nav.settings')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <link rel="stylesheet" href="../../assets/css/tasks.css?v=10">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <style>
         body { overflow: auto; height: auto; display: block; }
 
@@ -94,65 +99,80 @@ $path_prefix = '../../';
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="statuses" onclick="switchTab('statuses')">Statuses</button>
-            <button class="tab" data-tab="priorities" onclick="switchTab('priorities')">Priorities</button>
-            <button class="tab" data-tab="calendar" onclick="switchTab('calendar')">Calendar</button>
-            <button class="tab" data-tab="card" onclick="switchTab('card')">Card</button>
-            <button class="tab" data-tab="tags" onclick="switchTab('tags')">Tags</button>
+            <button class="tab active" data-tab="statuses" onclick="switchTab('statuses')"><?php echo htmlspecialchars(t('tasks.settings.tab_statuses')); ?></button>
+            <button class="tab" data-tab="priorities" onclick="switchTab('priorities')"><?php echo htmlspecialchars(t('tasks.settings.tab_priorities')); ?></button>
+            <button class="tab" data-tab="calendar" onclick="switchTab('calendar')"><?php echo htmlspecialchars(t('tasks.settings.tab_calendar')); ?></button>
+            <button class="tab" data-tab="card" onclick="switchTab('card')"><?php echo htmlspecialchars(t('tasks.settings.tab_card')); ?></button>
+            <button class="tab" data-tab="tags" onclick="switchTab('tags')"><?php echo htmlspecialchars(t('tasks.settings.tab_tags')); ?></button>
         </div>
 
         <!-- Statuses Tab -->
         <div class="tab-content active" id="statuses-tab">
             <div class="section-header">
-                <h2>Statuses</h2>
-                <button class="add-btn" onclick="openLookupModal('status')">Add</button>
+                <h2><?php echo htmlspecialchars(t('tasks.settings.statuses_heading')); ?></h2>
+                <button class="add-btn" onclick="openLookupModal('status')"><?php echo htmlspecialchars(t('tasks.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Workflow states a task can be in — used as kanban columns and to filter the list view. Statuses flagged as <em>Closed</em> count as done — they auto-stamp <code>completed_datetime</code> and are excluded from open-task counters. Exactly one status is the default for new tasks.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.statuses_intro')); ?></p>
             <table class="lookup-table">
-                <thead><tr><th>Name</th><th>Colour</th><th>Closed</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="statuses-list"><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
+                <thead><tr>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_name')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_colour')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_closed')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_default')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_order')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_status')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_actions')); ?></th>
+                </tr></thead>
+                <tbody id="statuses-list"><tr><td colspan="7" style="text-align:center;"><?php echo htmlspecialchars(t('tasks.settings.loading')); ?></td></tr></tbody>
             </table>
         </div>
 
         <!-- Priorities Tab -->
         <div class="tab-content" id="priorities-tab">
             <div class="section-header">
-                <h2>Priorities</h2>
-                <button class="add-btn" onclick="openLookupModal('priority')">Add</button>
+                <h2><?php echo htmlspecialchars(t('tasks.settings.priorities_heading')); ?></h2>
+                <button class="add-btn" onclick="openLookupModal('priority')"><?php echo htmlspecialchars(t('tasks.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Priority bands shown on each task card. Exactly one priority is the default for new tasks.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.priorities_intro')); ?></p>
             <table class="lookup-table">
-                <thead><tr><th>Name</th><th>Colour</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="priorities-list"><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+                <thead><tr>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_name')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_colour')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_default')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_order')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_status')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_actions')); ?></th>
+                </tr></thead>
+                <tbody id="priorities-list"><tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('tasks.settings.loading')); ?></td></tr></tbody>
             </table>
         </div>
 
         <!-- Calendar Tab -->
         <div class="tab-content" id="calendar-tab">
             <div class="section-header">
-                <h2>Calendar</h2>
+                <h2><?php echo htmlspecialchars(t('tasks.settings.calendar_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Controls how a multi-day task &mdash; one whose start date is earlier than its due date &mdash; is drawn on the <a href="../calendar/" style="color:#9333ea;">Tasks calendar</a>. A task with only a due date always appears as a single chip on that date, whichever mode is chosen.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.calendar_intro')); ?></p>
             <div class="span-mode-options">
                 <label class="span-mode-card">
                     <input type="radio" name="spanMode" value="deadline" onchange="saveSpanMode(this.value)">
                     <div class="span-mode-body">
-                        <div class="span-mode-name">Deadline chip</div>
-                        <div class="span-mode-desc">The task shows once, on its due date only. Tidiest option &mdash; keeps the calendar focused on what needs finishing. The full span is still visible on the Timeline.</div>
+                        <div class="span-mode-name"><?php echo htmlspecialchars(t('tasks.settings.span_deadline_name')); ?></div>
+                        <div class="span-mode-desc"><?php echo htmlspecialchars(t('tasks.settings.span_deadline_desc')); ?></div>
                     </div>
                 </label>
                 <label class="span-mode-card">
                     <input type="radio" name="spanMode" value="span" onchange="saveSpanMode(this.value)">
                     <div class="span-mode-body">
-                        <div class="span-mode-name">Spanning bar</div>
-                        <div class="span-mode-desc">The task is drawn as one continuous bar from its start date to its due date, wrapping across week rows. Best for seeing duration at a glance.</div>
+                        <div class="span-mode-name"><?php echo htmlspecialchars(t('tasks.settings.span_span_name')); ?></div>
+                        <div class="span-mode-desc"><?php echo htmlspecialchars(t('tasks.settings.span_span_desc')); ?></div>
                     </div>
                 </label>
                 <label class="span-mode-card">
                     <input type="radio" name="spanMode" value="repeat" onchange="saveSpanMode(this.value)">
                     <div class="span-mode-body">
-                        <div class="span-mode-name">Every day</div>
-                        <div class="span-mode-desc">A chip appears in every day cell the task covers. Thorough, but long tasks can crowd the grid.</div>
+                        <div class="span-mode-name"><?php echo htmlspecialchars(t('tasks.settings.span_repeat_name')); ?></div>
+                        <div class="span-mode-desc"><?php echo htmlspecialchars(t('tasks.settings.span_repeat_desc')); ?></div>
                     </div>
                 </label>
             </div>
@@ -161,64 +181,64 @@ $path_prefix = '../../';
         <!-- Card Tab -->
         <div class="tab-content" id="card-tab">
             <div class="section-header">
-                <h2>Card</h2>
+                <h2><?php echo htmlspecialchars(t('tasks.settings.card_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Choose what extra detail appears on each task card on the board, so you can scan tasks without opening them. The task title always shows. Changes take effect next time the board loads.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.card_intro')); ?></p>
             <div class="card-field-options">
                 <label class="card-field-row">
                     <input type="checkbox" data-field="priority" onchange="saveCardFields()">
                     <div>
-                        <div class="card-field-name">Priority</div>
-                        <div class="card-field-desc">Coloured dot showing the task's priority.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.card_priority_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.card_priority_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-field="assignee" onchange="saveCardFields()">
                     <div>
-                        <div class="card-field-name">Assignee</div>
-                        <div class="card-field-desc">Initials badge for the analyst the task is assigned to.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.card_assignee_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.card_assignee_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-field="team" onchange="saveCardFields()">
                     <div>
-                        <div class="card-field-name">Team</div>
-                        <div class="card-field-desc">Name of the assigned team.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.card_team_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.card_team_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-field="start_date" onchange="saveCardFields()">
                     <div>
-                        <div class="card-field-name">Start date</div>
-                        <div class="card-field-desc">When work on the task is due to begin.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.card_start_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.card_start_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-field="due_date" onchange="saveCardFields()">
                     <div>
-                        <div class="card-field-name">Due date</div>
-                        <div class="card-field-desc">Deadline, highlighted when overdue or due today.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.card_due_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.card_due_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-field="description" onchange="saveCardFields()">
                     <div>
-                        <div class="card-field-name">Description</div>
-                        <div class="card-field-desc">First 250 characters of the description, as plain text.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.card_desc_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.card_desc_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-field="subtasks" onchange="saveCardFields()">
                     <div>
-                        <div class="card-field-name">Subtask progress</div>
-                        <div class="card-field-desc">Completion bar and count for tasks that have subtasks.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.card_subtasks_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.card_subtasks_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-field="links" onchange="saveCardFields()">
                     <div>
-                        <div class="card-field-name">Linked items</div>
-                        <div class="card-field-desc">Indicator when the task is linked to a ticket or change.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.card_links_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.card_links_desc')); ?></div>
                     </div>
                 </label>
             </div>
@@ -227,50 +247,55 @@ $path_prefix = '../../';
         <!-- Tags Tab -->
         <div class="tab-content" id="tags-tab">
             <div class="section-header">
-                <h2>Tags</h2>
-                <button class="add-btn" onclick="openLookupModal('tag')">Add</button>
+                <h2><?php echo htmlspecialchars(t('tasks.settings.tags_heading')); ?></h2>
+                <button class="add-btn" onclick="openLookupModal('tag')"><?php echo htmlspecialchars(t('tasks.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Labels for cross-cutting themes &mdash; e.g. Security, ISO, Environment. A task can carry any number of tags. Use the display options below to choose where they appear.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.tags_intro')); ?></p>
             <table class="lookup-table">
-                <thead><tr><th>Name</th><th>Colour</th><th>Order</th><th>Actions</th></tr></thead>
-                <tbody id="tags-list"><tr><td colspan="4" style="text-align:center;">Loading...</td></tr></tbody>
+                <thead><tr>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_name')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_colour')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_order')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tasks.settings.col_actions')); ?></th>
+                </tr></thead>
+                <tbody id="tags-list"><tr><td colspan="4" style="text-align:center;"><?php echo htmlspecialchars(t('tasks.settings.loading')); ?></td></tr></tbody>
             </table>
 
-            <h3 style="margin: 28px 0 4px; font-size: 15px; color: #333;">Display options</h3>
+            <h3 style="margin: 28px 0 4px; font-size: 15px; color: #333;"><?php echo htmlspecialchars(t('tasks.settings.tags_display_heading')); ?></h3>
             <div class="card-field-options">
                 <label class="card-field-row">
                     <input type="checkbox" data-tagsetting="allow_create" onchange="saveTagSettings()">
                     <div>
-                        <div class="card-field-name">Allow new tags from a task</div>
-                        <div class="card-field-desc">Let analysts create a new tag while editing a task. Off &mdash; tags can only be added here in Settings.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.tag_allow_create_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.tag_allow_create_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-tagsetting="surface_card" onchange="saveTagSettings()">
                     <div>
-                        <div class="card-field-name">Card chips</div>
-                        <div class="card-field-desc">Show coloured tag chips on board and list cards.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.tag_surface_card_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.tag_surface_card_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-tagsetting="surface_filter" onchange="saveTagSettings()">
                     <div>
-                        <div class="card-field-name">Sidebar filter</div>
-                        <div class="card-field-desc">Show a tag filter in the board/list sidebar.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.tag_surface_filter_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.tag_surface_filter_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-tagsetting="surface_search" onchange="saveTagSettings()">
                     <div>
-                        <div class="card-field-name">Search matching</div>
-                        <div class="card-field-desc">Include tag names when searching tasks.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.tag_surface_search_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.tag_surface_search_desc')); ?></div>
                     </div>
                 </label>
                 <label class="card-field-row">
                     <input type="checkbox" data-tagsetting="surface_calendar" onchange="saveTagSettings()">
                     <div>
-                        <div class="card-field-name">Calendar &amp; timeline</div>
-                        <div class="card-field-desc">Show tag chips on the calendar and timeline views too.</div>
+                        <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.tag_surface_calendar_name')); ?></div>
+                        <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.tag_surface_calendar_desc')); ?></div>
                     </div>
                 </label>
             </div>
@@ -280,44 +305,44 @@ $path_prefix = '../../';
     <!-- Lookup edit modal -->
     <div class="lk-modal" id="lookupModal">
         <div class="lk-modal-content">
-            <div class="lk-modal-header" id="lookupModalTitle">Add Item</div>
+            <div class="lk-modal-header" id="lookupModalTitle"></div>
             <form id="lookupForm">
                 <input type="hidden" id="lookupItemKind">
                 <input type="hidden" id="lookupItemId">
 
                 <div class="lk-form-group">
-                    <label for="lookupItemName">Name</label>
+                    <label for="lookupItemName"><?php echo htmlspecialchars(t('tasks.settings.modal_name')); ?></label>
                     <input type="text" id="lookupItemName" required>
                 </div>
 
                 <div class="lk-form-group">
-                    <label for="lookupItemColour">Colour</label>
+                    <label for="lookupItemColour"><?php echo htmlspecialchars(t('tasks.settings.modal_colour')); ?></label>
                     <input type="color" id="lookupItemColour" value="#9333ea" style="width: 60px; height: 32px; padding: 2px;">
-                    <span class="help">Used for badges on task cards and the kanban board.</span>
+                    <span class="help"><?php echo htmlspecialchars(t('tasks.settings.modal_colour_help')); ?></span>
                 </div>
 
                 <div class="lk-form-group" id="lookupItemClosedGroup" style="display: none;">
-                    <label><input type="checkbox" id="lookupItemClosed"> Counts as closed</label>
-                    <span class="help">Tasks in this status auto-stamp <code>completed_datetime</code> and are excluded from open-task watchtower counters.</span>
+                    <label><input type="checkbox" id="lookupItemClosed"> <?php echo htmlspecialchars(t('tasks.settings.modal_closed')); ?></label>
+                    <span class="help"><?php echo htmlspecialchars(t('tasks.settings.modal_closed_help')); ?></span>
                 </div>
 
                 <div class="lk-form-group" id="lookupItemDefaultGroup">
-                    <label><input type="checkbox" id="lookupItemDefault"> Default for new tasks</label>
-                    <span class="help">Only one row can be the default — setting this clears the flag on the others.</span>
+                    <label><input type="checkbox" id="lookupItemDefault"> <?php echo htmlspecialchars(t('tasks.settings.modal_default')); ?></label>
+                    <span class="help"><?php echo htmlspecialchars(t('tasks.settings.modal_default_help')); ?></span>
                 </div>
 
                 <div class="lk-form-group">
-                    <label for="lookupItemOrder">Display Order</label>
+                    <label for="lookupItemOrder"><?php echo htmlspecialchars(t('tasks.settings.modal_order')); ?></label>
                     <input type="number" id="lookupItemOrder" value="0">
                 </div>
 
                 <div class="lk-form-group" id="lookupItemActiveGroup">
-                    <label><input type="checkbox" id="lookupItemActive" checked> Active</label>
+                    <label><input type="checkbox" id="lookupItemActive" checked> <?php echo htmlspecialchars(t('tasks.settings.modal_active')); ?></label>
                 </div>
 
                 <div class="lk-modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeLookupModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeLookupModal()"><?php echo htmlspecialchars(t('tasks.settings.modal_cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('tasks.settings.modal_save')); ?></button>
                 </div>
             </form>
         </div>
@@ -337,12 +362,15 @@ $path_prefix = '../../';
         }
 
         const LOOKUP_KINDS = {
-            'status':   { get: 'get_task_statuses.php',   save: 'save_task_status.php',   del: 'delete_task_status.php',   listKey: 'statuses',   tableId: 'statuses-list',   colspan: 7, hasClosed: true,  hasDefault: true,  hasActive: true,  label: 'Status'   },
-            'priority': { get: 'get_task_priorities.php', save: 'save_task_priority.php', del: 'delete_task_priority.php', listKey: 'priorities', tableId: 'priorities-list', colspan: 6, hasClosed: false, hasDefault: true,  hasActive: true,  label: 'Priority' },
-            'tag':      { get: 'get_task_tags.php',       save: 'save_task_tag.php',      del: 'delete_task_tag.php',      listKey: 'tags',       tableId: 'tags-list',      colspan: 4, hasClosed: false, hasDefault: false, hasActive: false, label: 'Tag'      }
+            'status':   { get: 'get_task_statuses.php',   save: 'save_task_status.php',   del: 'delete_task_status.php',   listKey: 'statuses',   tableId: 'statuses-list',   colspan: 7, hasClosed: true,  hasDefault: true,  hasActive: true  },
+            'priority': { get: 'get_task_priorities.php', save: 'save_task_priority.php', del: 'delete_task_priority.php', listKey: 'priorities', tableId: 'priorities-list', colspan: 6, hasClosed: false, hasDefault: true,  hasActive: true  },
+            'tag':      { get: 'get_task_tags.php',       save: 'save_task_tag.php',      del: 'delete_task_tag.php',      listKey: 'tags',       tableId: 'tags-list',      colspan: 4, hasClosed: false, hasDefault: false, hasActive: false }
         };
 
         const lookupCache = { status: [], priority: [], tag: [] };
+
+        // Localised display name for a lookup kind
+        function kindLabel(kind) { return t('tasks.settings.kind_' + kind); }
 
         document.addEventListener('DOMContentLoaded', () => {
             for (const kind of Object.keys(LOOKUP_KINDS)) loadLookup(kind);
@@ -380,9 +408,9 @@ $path_prefix = '../../';
                     body: JSON.stringify({ settings: { tag_settings: ts } })
                 });
                 const data = await res.json();
-                if (data.success) showToast('Saved');
-                else showToast(data.error || 'Failed to save', true);
-            } catch (e) { showToast('Failed to save', true); }
+                if (data.success) showToast(t('tasks.toast.saved'));
+                else showToast(data.error || t('tasks.toast.save_failed'), true);
+            } catch (e) { showToast(t('tasks.toast.save_failed'), true); }
         }
 
         // ── Calendar span mode ──
@@ -404,9 +432,9 @@ $path_prefix = '../../';
                     body: JSON.stringify({ settings: { calendar_span_mode: value } })
                 });
                 const data = await res.json();
-                if (data.success) showToast('Saved');
-                else showToast(data.error || 'Failed to save', true);
-            } catch (e) { showToast('Failed to save', true); }
+                if (data.success) showToast(t('tasks.toast.saved'));
+                else showToast(data.error || t('tasks.toast.save_failed'), true);
+            } catch (e) { showToast(t('tasks.toast.save_failed'), true); }
         }
 
         function markSelectedCard() {
@@ -442,9 +470,9 @@ $path_prefix = '../../';
                     body: JSON.stringify({ settings: { card_fields: cf } })
                 });
                 const data = await res.json();
-                if (data.success) showToast('Saved');
-                else showToast(data.error || 'Failed to save', true);
-            } catch (e) { showToast('Failed to save', true); }
+                if (data.success) showToast(t('tasks.toast.saved'));
+                else showToast(data.error || t('tasks.toast.save_failed'), true);
+            } catch (e) { showToast(t('tasks.toast.save_failed'), true); }
         }
 
         async function loadLookup(kind) {
@@ -464,22 +492,24 @@ $path_prefix = '../../';
             const rows = lookupCache[kind];
             const tbody = document.getElementById(cfg.tableId);
             if (!rows || rows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" style="text-align:center;">No items found</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" style="text-align:center;">${t('tasks.settings.no_items')}</td></tr>`;
                 return;
             }
+            const yes = `<span class="badge-yes">${t('tasks.settings.yes')}</span>`;
+            const no  = `<span class="badge-no">${t('tasks.settings.no')}</span>`;
             tbody.innerHTML = rows.map(r => {
                 const safeName = escapeHtml(r.name).replace(/'/g, "\\'");
                 const swatch = r.colour
                     ? `<span class="swatch" style="background:${escapeHtml(r.colour)};"></span><code style="font-size:12px;">${escapeHtml(r.colour)}</code>`
                     : '<span class="badge-no">—</span>';
                 const closedCol = cfg.hasClosed
-                    ? `<td>${r.is_closed ? '<span class="badge-yes">Yes</span>' : '<span class="badge-no">No</span>'}</td>`
+                    ? `<td>${r.is_closed ? yes : no}</td>`
                     : '';
                 const defaultCol = cfg.hasDefault
-                    ? `<td>${r.is_default ? '<span class="badge-yes">Yes</span>' : '<span class="badge-no">No</span>'}</td>`
+                    ? `<td>${r.is_default ? yes : no}</td>`
                     : '';
                 const activeCol = cfg.hasActive
-                    ? `<td><span class="${r.is_active ? 'badge-active' : 'badge-inactive'}">${r.is_active ? 'Active' : 'Inactive'}</span></td>`
+                    ? `<td><span class="${r.is_active ? 'badge-active' : 'badge-inactive'}">${r.is_active ? t('tasks.settings.active') : t('tasks.settings.inactive')}</span></td>`
                     : '';
                 return `
                 <tr>
@@ -490,10 +520,10 @@ $path_prefix = '../../';
                     <td>${r.display_order}</td>
                     ${activeCol}
                     <td class="actions-cell">
-                        <button class="action-btn" onclick="editLookup('${kind}', ${r.id})" title="Edit">
+                        <button class="action-btn" onclick="editLookup('${kind}', ${r.id})" title="${t('tasks.settings.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteLookup('${kind}', ${r.id}, '${safeName}')" title="Delete">
+                        <button class="action-btn delete" onclick="deleteLookup('${kind}', ${r.id}, '${safeName}')" title="${t('tasks.settings.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>
@@ -510,7 +540,7 @@ $path_prefix = '../../';
 
         function openLookupModal(kind) {
             const cfg = LOOKUP_KINDS[kind];
-            document.getElementById('lookupModalTitle').textContent = `Add ${cfg.label}`;
+            document.getElementById('lookupModalTitle').textContent = t('tasks.settings.modal_add', { kind: kindLabel(kind) });
             document.getElementById('lookupItemKind').value = kind;
             document.getElementById('lookupItemId').value = '';
             document.getElementById('lookupItemName').value = '';
@@ -529,7 +559,7 @@ $path_prefix = '../../';
             const cfg = LOOKUP_KINDS[kind];
             const item = (lookupCache[kind] || []).find(r => r.id == id);
             if (!item) return;
-            document.getElementById('lookupModalTitle').textContent = `Edit ${cfg.label}`;
+            document.getElementById('lookupModalTitle').textContent = t('tasks.settings.modal_edit', { kind: kindLabel(kind) });
             document.getElementById('lookupItemKind').value = kind;
             document.getElementById('lookupItemId').value = item.id;
             document.getElementById('lookupItemName').value = item.name;
@@ -549,7 +579,7 @@ $path_prefix = '../../';
         }
 
         async function deleteLookup(kind, id, name) {
-            if (!confirm(`Delete "${name}"?`)) return;
+            if (!confirm(t('tasks.settings.delete_confirm', { name: name }))) return;
             const cfg = LOOKUP_KINDS[kind];
             try {
                 const res = await fetch(API_BASE + cfg.del, {
@@ -557,9 +587,9 @@ $path_prefix = '../../';
                     body: JSON.stringify({id: id})
                 });
                 const data = await res.json();
-                if (data.success) { showToast('Deleted'); loadLookup(kind); }
-                else { showToast(data.error || 'Failed to delete', true); }
-            } catch (e) { showToast('Failed to delete', true); }
+                if (data.success) { showToast(t('tasks.toast.deleted')); loadLookup(kind); }
+                else { showToast(data.error || t('tasks.toast.delete_failed'), true); }
+            } catch (e) { showToast(t('tasks.toast.delete_failed'), true); }
         }
 
         document.getElementById('lookupForm').addEventListener('submit', async function(e) {
@@ -584,12 +614,12 @@ $path_prefix = '../../';
                 const data = await res.json();
                 if (data.success) {
                     closeLookupModal();
-                    showToast('Saved');
+                    showToast(t('tasks.toast.saved'));
                     loadLookup(kind);
                 } else {
-                    showToast(data.error || 'Failed to save', true);
+                    showToast(data.error || t('tasks.toast.save_failed'), true);
                 }
-            } catch (e) { showToast('Failed to save', true); }
+            } catch (e) { showToast(t('tasks.toast.save_failed'), true); }
         });
 
         function showToast(message, isError) {

@@ -22,11 +22,8 @@ let statuses = [];
 let spanMode = 'deadline';
 let surfaceTags = false;
 
-const MODE_LABEL = {
-    deadline: 'shown on the due date only',
-    span: 'drawn as a bar across the whole range',
-    repeat: 'shown in every day of the range'
-};
+// Locale for date formatting — matches the page's i18n locale
+const UI_LOCALE = document.documentElement.lang || 'en';
 
 // ── Init ───────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
@@ -61,12 +58,12 @@ async function loadDropdowns() {
         ]);
         if (aRes.success) {
             document.getElementById('analystFilter').innerHTML =
-                '<option value="">All analysts</option>' +
+                '<option value="">' + esc(window.t('tasks.filter.all_analysts')) + '</option>' +
                 aRes.analysts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
         }
         if (tRes.success) {
             document.getElementById('teamFilter').innerHTML =
-                '<option value="">All teams</option>' +
+                '<option value="">' + esc(window.t('tasks.filter.all_teams')) + '</option>' +
                 tRes.teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
         }
     } catch (e) { console.error('Failed to load dropdowns:', e); }
@@ -134,9 +131,9 @@ function renderCalendar() {
     const month = viewDate.getMonth();
 
     document.getElementById('calTitle').textContent =
-        viewDate.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' });
+        viewDate.toLocaleDateString(UI_LOCALE, { month: 'long', year: 'numeric' });
     document.getElementById('calModeHint').textContent =
-        'Multi-day tasks ' + MODE_LABEL[spanMode] + '.';
+        window.t('tasks.calendar.mode_hint', { mode: window.t('tasks.calendar.mode_' + spanMode) });
 
     // Grid runs from the Monday on/before the 1st to the Sunday on/after the last
     const first = new Date(year, month, 1);
@@ -290,7 +287,7 @@ function dayDiff(a, b) {
 }
 
 function fmt(ds) {
-    return new Date(ds + 'T00:00:00').toLocaleDateString('en-GB',
+    return new Date(ds + 'T00:00:00').toLocaleDateString(UI_LOCALE,
         { day: 'numeric', month: 'short' });
 }
 

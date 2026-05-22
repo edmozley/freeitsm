@@ -39,6 +39,9 @@ const TAG_PALETTE = ['#dc2626', '#ea580c', '#d97706', '#16a34a',
 
 const ANALYST_ID = document.body.dataset.analystId;
 
+// Locale for date formatting — matches the page's i18n locale
+const UI_LOCALE = document.documentElement.lang || 'en';
+
 // ── Init ───────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', async () => {
@@ -83,13 +86,13 @@ async function loadDropdowns() {
         if (aRes.success) {
             analysts = aRes.analysts;
             const sel = document.getElementById('analystFilter');
-            sel.innerHTML = '<option value="">All analysts</option>' +
+            sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_analysts')) + '</option>' +
                 analysts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
         }
         if (tRes.success) {
             teams = tRes.teams;
             const sel = document.getElementById('teamFilter');
-            sel.innerHTML = '<option value="">All teams</option>' +
+            sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_teams')) + '</option>' +
                 teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
         }
     } catch (e) { console.error('Failed to load dropdowns:', e); }
@@ -200,7 +203,7 @@ function applyTagSettings() {
     const sel = document.getElementById('tagFilter');
     if (sel) {
         const keep = sel.value;
-        sel.innerHTML = '<option value="">All tags</option>' +
+        sel.innerHTML = '<option value="">' + esc(window.t('tasks.filter.all_tags')) + '</option>' +
             tagList.map(tg => `<option value="${tg.id}">${esc(tg.name)}</option>`).join('');
         sel.value = keep;
     }
@@ -241,10 +244,10 @@ function buildBoardColumns() {
                 <span class="column-status-dot" style="background:${escAttr(s.colour || '#6b7280')}"></span>
                 <span class="column-title">${esc(s.name)}</span>
                 <span class="column-count">0</span>
-                <button class="column-add-btn" title="Add task">+</button>
+                <button class="column-add-btn" title="${escAttr(window.t('tasks.board.add_task'))}">+</button>
             </div>
             <div class="quick-add-container" style="display:none;">
-                <input type="text" class="quick-add-input" placeholder="Task title...">
+                <input type="text" class="quick-add-input" placeholder="${escAttr(window.t('tasks.board.quick_add_placeholder'))}">
             </div>
             <div class="board-cards"></div>`;
         col.querySelector('.column-add-btn').addEventListener('click', () => showQuickAdd(col));
@@ -314,8 +317,9 @@ function persistColumnOrder() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ order })
     }).then(r => r.json()).then(d => {
-        showToast(d.success ? 'Column order saved' : ('Error: ' + (d.error || 'Could not save')));
-    }).catch(() => showToast('Could not save column order'));
+        showToast(d.success ? window.t('tasks.toast.order_saved')
+            : window.t('tasks.toast.error_prefix', { message: d.error || window.t('tasks.toast.order_failed') }));
+    }).catch(() => showToast(window.t('tasks.toast.order_failed')));
 }
 
 function renderBoard() {
@@ -328,7 +332,7 @@ function renderBoard() {
         if (countEl) countEl.textContent = filtered.length;
 
         if (filtered.length === 0) {
-            cardsEl.innerHTML = '<div class="board-empty">No tasks</div>';
+            cardsEl.innerHTML = '<div class="board-empty">' + esc(window.t('tasks.board.no_tasks')) + '</div>';
             return;
         }
 
@@ -352,10 +356,10 @@ function renderCard(t) {
         meta.push(`<span class="assignee-badge" title="${esc(t.analyst_name)}">${esc(initials)}</span>`);
     }
     if (cf.team && t.team_name) {
-        meta.push(`<span class="team-badge" title="Team">${esc(t.team_name)}</span>`);
+        meta.push(`<span class="team-badge" title="${escAttr(window.t('tasks.detail.team'))}">${esc(t.team_name)}</span>`);
     }
     if (cf.start_date && t.start_date) {
-        meta.push(`<span class="due-badge start-date-badge" title="Start date">${formatShortDate(t.start_date)}</span>`);
+        meta.push(`<span class="due-badge start-date-badge" title="${escAttr(window.t('tasks.detail.start_date'))}">${formatShortDate(t.start_date)}</span>`);
     }
     if (cf.due_date) {
         const dueBadge = formatDueBadge(t.due_date);
@@ -394,7 +398,7 @@ function renderCard(t) {
 function formatShortDate(dateStr) {
     if (!dateStr) return '';
     return new Date(dateStr + 'T00:00:00')
-        .toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+        .toLocaleDateString(UI_LOCALE, { day: 'numeric', month: 'short' });
 }
 
 // Plain-text excerpt of a (HTML) description, capped at 250 characters.
@@ -414,10 +418,10 @@ function formatDueBadge(dateStr) {
     const diff = Math.floor((due - today) / 86400000);
     let cls = '';
     let text = '';
-    if (diff < 0) { cls = 'overdue'; text = 'Overdue'; }
-    else if (diff === 0) { cls = 'today'; text = 'Today'; }
-    else if (diff <= 7) { text = due.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
-    else { text = due.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }); }
+    if (diff < 0) { cls = 'overdue'; text = window.t('tasks.board.overdue'); }
+    else if (diff === 0) { cls = 'today'; text = window.t('tasks.board.due_today'); }
+    else if (diff <= 7) { text = due.toLocaleDateString(UI_LOCALE, { day: 'numeric', month: 'short' }); }
+    else { text = due.toLocaleDateString(UI_LOCALE, { day: 'numeric', month: 'short' }); }
     return `<span class="due-badge ${cls}">${text}</span>`;
 }
 
@@ -461,12 +465,12 @@ async function handleQuickAdd(event, status, col) {
             input.value = '';
             col.querySelector('.quick-add-container').style.display = 'none';
             loadTasks();
-            showToast('Task created');
+            showToast(window.t('tasks.toast.task_created'));
         } else {
-            showToast('Error: ' + (data.error || 'Failed to create task'));
+            showToast(window.t('tasks.toast.error_prefix', { message: data.error || window.t('tasks.toast.create_failed') }));
         }
     } catch (e) {
-        showToast('Failed to create task');
+        showToast(window.t('tasks.toast.create_failed'));
     }
     input.disabled = false;
 }
@@ -707,7 +711,7 @@ function renderList() {
 
     const tbody = document.getElementById('listTableBody');
     if (sorted.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;padding:30px;">No tasks found</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;padding:30px;">' + esc(window.t('tasks.list.no_tasks')) + '</td></tr>';
         return;
     }
 
@@ -799,13 +803,13 @@ function renderDetailPanel(task) {
 
         <div class="detail-row">
             <div class="detail-field">
-                <label>Status</label>
+                <label>${esc(window.t('tasks.detail.status'))}</label>
                 <select class="detail-select" onchange="saveField('status', this.value)">
                     ${lookupOptions(statusList, task.status)}
                 </select>
             </div>
             <div class="detail-field">
-                <label>Priority</label>
+                <label>${esc(window.t('tasks.detail.priority'))}</label>
                 <select class="detail-select" onchange="saveField('priority', this.value)">
                     ${lookupOptions(priorityList, task.priority)}
                 </select>
@@ -814,16 +818,16 @@ function renderDetailPanel(task) {
 
         <div class="detail-row">
             <div class="detail-field">
-                <label>Assignee</label>
+                <label>${esc(window.t('tasks.detail.assignee'))}</label>
                 <select class="detail-select" onchange="saveField('assigned_analyst_id', this.value || null)">
-                    <option value="">Unassigned</option>
+                    <option value="">${esc(window.t('tasks.detail.unassigned'))}</option>
                     ${analystOptions}
                 </select>
             </div>
             <div class="detail-field">
-                <label>Team</label>
+                <label>${esc(window.t('tasks.detail.team'))}</label>
                 <select class="detail-select" onchange="saveField('assigned_team_id', this.value || null)">
-                    <option value="">No team</option>
+                    <option value="">${esc(window.t('tasks.detail.no_team'))}</option>
                     ${teamOptions}
                 </select>
             </div>
@@ -831,40 +835,40 @@ function renderDetailPanel(task) {
 
         <div class="detail-row">
             <div class="detail-field">
-                <label>Start Date</label>
+                <label>${esc(window.t('tasks.detail.start_date'))}</label>
                 <input type="date" class="detail-input" value="${task.start_date || ''}" onchange="saveField('start_date', this.value || null)">
             </div>
             <div class="detail-field">
-                <label>Due Date</label>
+                <label>${esc(window.t('tasks.detail.due_date'))}</label>
                 <input type="date" class="detail-input" value="${task.due_date || ''}" onchange="saveField('due_date', this.value || null)">
             </div>
         </div>
 
         <div class="detail-field">
-            <label>Tags</label>
+            <label>${esc(window.t('tasks.detail.tags'))}</label>
             <div id="detailTagSection"></div>
         </div>
 
         <div class="detail-field detail-description">
-            <label>Description</label>
+            <label>${esc(window.t('tasks.detail.description'))}</label>
             <div id="descriptionEditor">${task.description || ''}</div>
         </div>
 
         <!-- Links -->
         <div class="link-section">
-            <h4>Links</h4>
+            <h4>${esc(window.t('tasks.detail.links'))}</h4>
             <div id="linkList">
-                ${task.ticket_id ? `<div class="link-item"><span class="link-type">Ticket</span> #${esc(task.ticket_number)} — ${esc(task.ticket_subject || '')}<button class="link-remove" onclick="removeLink('ticket_id')">&times;</button></div>` : ''}
-                ${task.change_id ? `<div class="link-item"><span class="link-type">Change</span> ${esc(task.change_title || 'Change #' + task.change_id)}<button class="link-remove" onclick="removeLink('change_id')">&times;</button></div>` : ''}
+                ${task.ticket_id ? `<div class="link-item"><span class="link-type">${esc(window.t('tasks.detail.link_ticket'))}</span> #${esc(task.ticket_number)} — ${esc(task.ticket_subject || '')}<button class="link-remove" onclick="removeLink('ticket_id')">&times;</button></div>` : ''}
+                ${task.change_id ? `<div class="link-item"><span class="link-type">${esc(window.t('tasks.detail.link_change'))}</span> ${esc(task.change_title || 'Change #' + task.change_id)}<button class="link-remove" onclick="removeLink('change_id')">&times;</button></div>` : ''}
             </div>
             ${!task.ticket_id ? `
             <div class="link-search-container">
-                <input class="link-search-input" placeholder="Search tickets to link..." oninput="searchLink(this.value, 'ticket')">
+                <input class="link-search-input" placeholder="${escAttr(window.t('tasks.detail.search_tickets'))}" oninput="searchLink(this.value, 'ticket')">
                 <div class="link-search-results" id="ticketSearchResults"></div>
             </div>` : ''}
             ${!task.change_id ? `
             <div class="link-search-container">
-                <input class="link-search-input" placeholder="Search changes to link..." oninput="searchLink(this.value, 'change')">
+                <input class="link-search-input" placeholder="${escAttr(window.t('tasks.detail.search_changes'))}" oninput="searchLink(this.value, 'change')">
                 <div class="link-search-results" id="changeSearchResults"></div>
             </div>` : ''}
         </div>
@@ -881,7 +885,7 @@ function renderDetailPanel(task) {
         <!-- Subtasks -->
         ${!task.parent_task_id ? `
         <div class="subtask-section">
-            <h4>Subtasks</h4>
+            <h4>${esc(window.t('tasks.detail.subtasks'))}</h4>
             <div class="subtask-list" id="subtaskList">
                 ${(task.subtasks || []).map(s => {
                     const dueBadge = s.due_date ? formatDueBadge(s.due_date) : '';
@@ -900,13 +904,13 @@ function renderDetailPanel(task) {
                 }).join('')}
             </div>
             <div class="subtask-add">
-                <input type="text" placeholder="Add subtask..." id="newSubtaskInput" onkeydown="if(event.key==='Enter')addSubtask()">
+                <input type="text" placeholder="${escAttr(window.t('tasks.detail.add_subtask'))}" id="newSubtaskInput" onkeydown="if(event.key==='Enter')addSubtask()">
             </div>
         </div>` : ''}
 
         <!-- Comments -->
         <div class="comments-section">
-            <h4>Comments</h4>
+            <h4>${esc(window.t('tasks.detail.comments'))}</h4>
             <div class="comment-list" id="commentList">
                 ${(task.comments || []).map(c => `
                     <div class="comment-item">
@@ -919,16 +923,16 @@ function renderDetailPanel(task) {
                 `).join('')}
             </div>
             <div class="comment-add">
-                <textarea id="newCommentInput" placeholder="Add a comment..." rows="2"></textarea>
-                <button onclick="addComment()">Post</button>
+                <textarea id="newCommentInput" placeholder="${escAttr(window.t('tasks.detail.add_comment'))}" rows="2"></textarea>
+                <button onclick="addComment()">${esc(window.t('tasks.detail.post'))}</button>
             </div>
         </div>
 
         <!-- Timestamps -->
         <div class="detail-timestamps">
-            <span>Created: ${formatDateTime(task.created_datetime)} by ${esc(task.created_by_name || '')}</span>
-            <span>Updated: ${formatDateTime(task.updated_datetime)}</span>
-            ${task.completed_datetime ? `<span>Completed: ${formatDateTime(task.completed_datetime)}</span>` : ''}
+            <span>${esc(window.t('tasks.detail.created_by', { datetime: formatDateTime(task.created_datetime), name: task.created_by_name || '' }))}</span>
+            <span>${esc(window.t('tasks.detail.updated', { datetime: formatDateTime(task.updated_datetime) }))}</span>
+            ${task.completed_datetime ? `<span>${esc(window.t('tasks.detail.completed', { datetime: formatDateTime(task.completed_datetime) }))}</span>` : ''}
         </div>
     `;
 
@@ -988,9 +992,9 @@ function renderTagSection() {
     if (!el) return;
     const chips = detailTags.map(tg => tagChipHtml(tg, true)).join('');
     el.innerHTML = `
-        <div class="tag-edit-chips">${chips || '<span class="tag-edit-empty">No tags</span>'}</div>
+        <div class="tag-edit-chips">${chips || `<span class="tag-edit-empty">${esc(window.t('tasks.tagpicker.none'))}</span>`}</div>
         <div class="tag-picker">
-            <input type="text" id="tagPickerInput" class="tag-picker-input" placeholder="Add tag…"
+            <input type="text" id="tagPickerInput" class="tag-picker-input" placeholder="${escAttr(window.t('tasks.tagpicker.add'))}"
                    autocomplete="off" oninput="filterTagPicker()" onfocus="filterTagPicker()"
                    onkeydown="tagPickerKey(event)" onblur="setTimeout(closeTagPicker, 150)">
             <div class="tag-picker-results" id="tagPickerResults"></div>
@@ -1019,9 +1023,9 @@ function filterTagPicker() {
     const exact = tagList.some(tg => tg.name.toLowerCase() === q);
     if (tagSettings.allow_create && q && !exact) {
         html += `<div class="tag-pick-opt tag-pick-create" onmousedown="event.preventDefault()"
-                   onclick="createAndAddTag()">+ Create &ldquo;${esc(input.value.trim())}&rdquo;</div>`;
+                   onclick="createAndAddTag()">+ ${esc(window.t('tasks.tagpicker.create', { name: input.value.trim() }))}</div>`;
     }
-    results.innerHTML = html || '<div class="tag-pick-empty">No matching tags</div>';
+    results.innerHTML = html || `<div class="tag-pick-empty">${esc(window.t('tasks.tagpicker.no_match'))}</div>`;
     results.classList.add('open');
 }
 
@@ -1071,9 +1075,9 @@ async function createAndAddTag() {
             const fresh = document.getElementById('tagPickerInput');
             if (fresh) fresh.focus();
         } else {
-            showToast(data.error || 'Could not create tag');
+            showToast(data.error || window.t('tasks.toast.tag_create_failed'));
         }
-    } catch (e) { showToast('Could not create tag'); }
+    } catch (e) { showToast(window.t('tasks.toast.tag_create_failed')); }
 }
 
 function saveDetailTags() {
@@ -1184,7 +1188,7 @@ async function removeLink(field) {
 
 async function deleteCurrentTask() {
     if (!selectedTaskId) return;
-    if (!confirm('Delete this task and all its subtasks?')) return;
+    if (!confirm(window.t('tasks.detail.delete_confirm'))) return;
 
     try {
         const data = await fetch(API_BASE + 'delete.php', {
@@ -1195,7 +1199,7 @@ async function deleteCurrentTask() {
 
         if (data.success) {
             closeDetailPanel();
-            showToast('Task deleted');
+            showToast(window.t('tasks.toast.task_deleted'));
         }
     } catch (e) { console.error(e); }
 }
@@ -1283,20 +1287,20 @@ function buildContextSubmenus(t) {
     const swatch = c => `<span class="ctx-swatch" style="background:${escAttr(c || '#888')}"></span>`;
 
     document.getElementById('ctxAnalyst').innerHTML =
-        opt('assigned_analyst_id', '', 'Unassigned', !t.assigned_analyst_id) +
+        opt('assigned_analyst_id', '', window.t('tasks.detail.unassigned'), !t.assigned_analyst_id) +
         analysts.map(a => opt('assigned_analyst_id', a.id, a.name, t.assigned_analyst_id == a.id)).join('');
 
     document.getElementById('ctxTeam').innerHTML =
-        opt('assigned_team_id', '', 'No team', !t.assigned_team_id) +
+        opt('assigned_team_id', '', window.t('tasks.detail.no_team'), !t.assigned_team_id) +
         teams.map(tm => opt('assigned_team_id', tm.id, tm.name, t.assigned_team_id == tm.id)).join('');
 
     document.getElementById('ctxStatus').innerHTML =
         statusList.map(s => opt('status', s.name, s.name, t.status === s.name, swatch(s.colour))).join('')
-        || '<div class="ctx-sub-empty">No statuses</div>';
+        || `<div class="ctx-sub-empty">${esc(window.t('tasks.context.no_statuses'))}</div>`;
 
     document.getElementById('ctxPriority').innerHTML =
         priorityList.map(p => opt('priority', p.name, p.name, t.priority === p.name, swatch(p.colour))).join('')
-        || '<div class="ctx-sub-empty">No priorities</div>';
+        || `<div class="ctx-sub-empty">${esc(window.t('tasks.context.no_priorities'))}</div>`;
 }
 
 async function ctxSetField(field, value) {
@@ -1309,9 +1313,9 @@ async function ctxSetField(field, value) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ id, [field]: value })
         }).then(r => r.json());
-        if (data.success) { showToast('Task updated'); loadTasks(); }
-        else showToast('Error: ' + (data.error || 'Update failed'));
-    } catch (e) { showToast('Failed to update task'); }
+        if (data.success) { showToast(window.t('tasks.toast.task_updated')); loadTasks(); }
+        else showToast(window.t('tasks.toast.error_prefix', { message: data.error || window.t('tasks.toast.update_failed') }));
+    } catch (e) { showToast(window.t('tasks.toast.update_failed')); }
 }
 
 function ctxCreateSubtask() {
@@ -1344,8 +1348,8 @@ function formatDateTime(dt) {
     if (!dt) return '';
     const d = new Date(dt.replace(' ', 'T'));
     if (isNaN(d)) return dt;
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-        + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString(UI_LOCALE, { day: '2-digit', month: 'short', year: 'numeric' })
+        + ' ' + d.toLocaleTimeString(UI_LOCALE, { hour: '2-digit', minute: '2-digit' });
 }
 
 function showToast(msg) {
