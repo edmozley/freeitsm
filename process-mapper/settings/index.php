@@ -36,12 +36,37 @@ $shapes = include '../includes/shapes.php';
     <link rel="stylesheet" href="../../assets/css/process-mapper.css?v=4">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
+    <script src="../../assets/js/toast.js"></script>
     <style>
-        /* Settings pages scroll the page rather than the body. */
-        body { overflow: auto; height: auto; background: #f5f5f5; }
+        /* Identical to tickets/settings/index.php — settings pages scroll the
+           page rather than the body, and fill the full width (no 1200px cap). */
+        body {
+            overflow: auto;
+            height: auto;
+        }
 
-        /* Match tickets/settings: the shared .container caps at 1200px, which
-           is the right feel for a single-table settings page. */
+        /* Override the shared .container 1200px cap so settings fills the
+         * full width, matching tickets-settings and the other modules (#268-#270). */
+        .container { max-width: none; }
+
+        /* Settings page uses the shared .table-action-btn for row buttons.
+           No tickets-only `.tab-content .action-btn` override needed here —
+           we use the unscoped `.table-action-btn` class from inbox.css which
+           gives the same look. */
+
+        /* Modal content override for settings modals — matches tickets. */
+        .modal-content {
+            padding: 30px;
+            max-width: 500px;
+        }
+        .modal-header {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+            padding: 0;
+            border-bottom: none;
+        }
 
         /* Shape picker grid — module-specific, no shared equivalent. */
         .pms-shape-grid {
@@ -109,15 +134,15 @@ $shapes = include '../includes/shapes.php';
             </div>
             <p style="margin-bottom: 20px; color: #666;"><?php echo htmlspecialchars(t('process-mapper.settings.intro')); ?></p>
 
-            <table class="settings-table">
+            <table>
                 <thead>
                     <tr>
-                        <th style="width: 110px;"><?php echo htmlspecialchars(t('process-mapper.settings.col_order')); ?></th>
-                        <th style="width: 90px;"><?php echo htmlspecialchars(t('process-mapper.settings.col_shape')); ?></th>
+                        <th><?php echo htmlspecialchars(t('process-mapper.settings.col_shape')); ?></th>
                         <th><?php echo htmlspecialchars(t('process-mapper.settings.col_name')); ?></th>
                         <th><?php echo htmlspecialchars(t('process-mapper.settings.col_colour')); ?></th>
+                        <th><?php echo htmlspecialchars(t('process-mapper.settings.col_order')); ?></th>
                         <th><?php echo htmlspecialchars(t('process-mapper.settings.col_active')); ?></th>
-                        <th style="width: 110px;"><?php echo htmlspecialchars(t('process-mapper.settings.col_actions')); ?></th>
+                        <th><?php echo htmlspecialchars(t('process-mapper.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="pmsRows">
@@ -127,38 +152,36 @@ $shapes = include '../includes/shapes.php';
         </div>
     </div>
 
-    <!-- Add / Edit modal — mirrors the tickets edit modal structure -->
+    <!-- Add / Edit modal — same structure as tickets/settings editModal -->
     <div class="modal" id="pmsModal">
-        <div class="modal-content" style="max-width: 520px;">
+        <div class="modal-content">
             <div class="modal-header" id="pmsModalTitle"></div>
             <form id="pmsForm" autocomplete="off" onsubmit="event.preventDefault(); PMS.save();">
-                <div style="padding: 24px;">
-                    <div class="form-group">
-                        <label for="pmsName"><?php echo htmlspecialchars(t('process-mapper.settings.field_name')); ?></label>
-                        <input type="text" id="pmsName" maxlength="100" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('process-mapper.settings.name_placeholder')); ?>" required>
+                <div class="form-group">
+                    <label for="pmsName"><?php echo htmlspecialchars(t('process-mapper.settings.field_name')); ?></label>
+                    <input type="text" id="pmsName" maxlength="100" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('process-mapper.settings.name_placeholder')); ?>" required>
+                </div>
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('process-mapper.settings.field_shape')); ?></label>
+                    <div class="pms-shape-grid" id="pmsShapeGrid">
+                        <?php foreach ($shapes as $key => $dim): ?>
+                        <button type="button" class="pms-shape-opt" data-shape-key="<?php echo htmlspecialchars($key); ?>" onclick="PMS.pickShape('<?php echo htmlspecialchars($key); ?>')">
+                            <span class="pm-shape-preview" data-shape="<?php echo htmlspecialchars($key); ?>"></span>
+                            <span class="pms-shape-name"><?php echo htmlspecialchars(t('process-mapper.shapes.' . $key)); ?></span>
+                        </button>
+                        <?php endforeach; ?>
                     </div>
-                    <div class="form-group">
-                        <label><?php echo htmlspecialchars(t('process-mapper.settings.field_shape')); ?></label>
-                        <div class="pms-shape-grid" id="pmsShapeGrid">
-                            <?php foreach ($shapes as $key => $dim): ?>
-                            <button type="button" class="pms-shape-opt" data-shape-key="<?php echo htmlspecialchars($key); ?>" onclick="PMS.pickShape('<?php echo htmlspecialchars($key); ?>')">
-                                <span class="pm-shape-preview" data-shape="<?php echo htmlspecialchars($key); ?>"></span>
-                                <span class="pms-shape-name"><?php echo htmlspecialchars(t('process-mapper.shapes.' . $key)); ?></span>
-                            </button>
-                            <?php endforeach; ?>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="pmsColor"><?php echo htmlspecialchars(t('process-mapper.settings.field_colour')); ?></label>
-                        <input type="color" id="pmsColor" value="#0078d4" autocomplete="off" style="width: 60px; height: 32px; padding: 2px;">
-                    </div>
-                    <div class="form-group">
-                        <label><input type="checkbox" id="pmsActive" checked autocomplete="off"> <?php echo htmlspecialchars(t('process-mapper.settings.field_active')); ?></label>
-                    </div>
-                    <div class="modal-actions">
-                        <button type="button" class="btn btn-secondary" onclick="PMS.closeModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                        <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
-                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="pmsColor"><?php echo htmlspecialchars(t('process-mapper.settings.field_colour')); ?></label>
+                    <input type="color" id="pmsColor" value="#0078d4" autocomplete="off" style="width: 60px; height: 32px; padding: 2px;">
+                </div>
+                <div class="form-group">
+                    <label><input type="checkbox" id="pmsActive" checked autocomplete="off"> <?php echo htmlspecialchars(t('process-mapper.settings.field_active')); ?></label>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="PMS.closeModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -176,8 +199,6 @@ $shapes = include '../includes/shapes.php';
         </defs>
     </svg>
 
-    <div class="toast" id="toast"></div>
-
     <script>
     const PMS = (() => {
         const API = '../../api/process-mapper/';
@@ -192,12 +213,9 @@ $shapes = include '../includes/shapes.php';
             return d.innerHTML;
         }
 
-        function toast(msg, type = 'success') {
-            const el = document.getElementById('toast');
-            el.textContent = msg;
-            el.className = 'toast show ' + type;
-            setTimeout(() => { el.className = 'toast'; }, 2500);
-        }
+        // Use the shared toast notification system (assets/js/toast.js) so
+        // notifications look and behave the same as every other settings page.
+        const toast = (msg, type = 'success') => window.showToast(msg, type);
 
         async function loadTypes() {
             try {
@@ -229,19 +247,17 @@ $shapes = include '../includes/shapes.php';
                 const upDisabled   = i === 0 ? 'disabled' : '';
                 const downDisabled = i === types.length - 1 ? 'disabled' : '';
                 const deleteDisabled = row.is_builtin ? 'disabled' : '';
+                const swatch = `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${esc(row.color)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${esc(row.color)}</code>`;
                 return `<tr>
+                    <td><span class="pm-shape-preview" data-shape="${esc(row.shape)}" style="background:${esc(row.color)}"></span></td>
+                    <td><strong>${esc(row.name)}</strong>${builtin}</td>
+                    <td>${swatch}</td>
                     <td>
                         <span class="pms-order-cell">
                             <button class="table-action-btn" ${upDisabled} onclick="PMS.move(${row.id},-1)" title="Up">${ICON_UP}</button>
                             <button class="table-action-btn" ${downDisabled} onclick="PMS.move(${row.id},1)" title="Down">${ICON_DOWN}</button>
                             <span class="pms-order-num">${row.display_order}</span>
                         </span>
-                    </td>
-                    <td><span class="pm-shape-preview" data-shape="${esc(row.shape)}" style="background:${esc(row.color)}"></span></td>
-                    <td><strong>${esc(row.name)}</strong>${builtin}</td>
-                    <td>
-                        <span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${esc(row.color)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span>
-                        <code style="font-size:12px;">${esc(row.color)}</code>
                     </td>
                     <td>${activeCell}</td>
                     <td>
