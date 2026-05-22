@@ -48,7 +48,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('process-mapper.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/process-mapper.css?v=5">
+    <link rel="stylesheet" href="../assets/css/process-mapper.css?v=6">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
 </head>
@@ -286,7 +286,7 @@ try {
     <!-- Toast -->
     <div class="toast" id="toast"></div>
 
-    <!-- Export → Mermaid modal -->
+    <!-- Export modal — three formats: PNG image, PDF document, Mermaid markup -->
     <div class="pm-modal-overlay" id="exportModal" style="display: none;" onclick="if (event.target === this) PM.closeExportModal()">
         <div class="pm-modal">
             <div class="pm-modal-header">
@@ -294,11 +294,39 @@ try {
                 <button class="pm-modal-close" onclick="PM.closeExportModal()" title="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
             </div>
             <div class="pm-modal-body">
-                <p class="pm-modal-hint"><?php echo t('process-mapper.export_modal.hint'); /* contains HTML so deliberately not escaped */ ?></p>
-                <textarea readonly id="exportText" class="pm-modal-textarea" spellcheck="false"></textarea>
-                <div class="pm-modal-actions">
-                    <button class="pm-modal-btn pm-modal-btn-primary" id="exportCopyBtn" onclick="PM.copyExport()"><?php echo htmlspecialchars(t('common.copy')); ?></button>
-                    <button class="pm-modal-btn" onclick="PM.closeExportModal()"><?php echo htmlspecialchars(t('common.close')); ?></button>
+                <!-- Format chooser — click one to either download (PNG/PDF) or reveal the Mermaid markup -->
+                <div class="pm-export-options">
+                    <button type="button" class="pm-export-opt" onclick="PM.exportToPng()">
+                        <span class="pm-export-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="M21 15l-5-5L5 21"/></svg>
+                        </span>
+                        <span class="pm-export-name"><?php echo htmlspecialchars(t('process-mapper.export_modal.png_label')); ?></span>
+                        <span class="pm-export-sub"><?php echo htmlspecialchars(t('process-mapper.export_modal.png_sub')); ?></span>
+                    </button>
+                    <button type="button" class="pm-export-opt" onclick="PM.exportToPdf()">
+                        <span class="pm-export-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 13h6M9 17h4"/></svg>
+                        </span>
+                        <span class="pm-export-name"><?php echo htmlspecialchars(t('process-mapper.export_modal.pdf_label')); ?></span>
+                        <span class="pm-export-sub"><?php echo htmlspecialchars(t('process-mapper.export_modal.pdf_sub')); ?></span>
+                    </button>
+                    <button type="button" class="pm-export-opt" onclick="PM.showMermaid()">
+                        <span class="pm-export-icon">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                        </span>
+                        <span class="pm-export-name"><?php echo htmlspecialchars(t('process-mapper.export_modal.mermaid_label')); ?></span>
+                        <span class="pm-export-sub"><?php echo htmlspecialchars(t('process-mapper.export_modal.mermaid_sub')); ?></span>
+                    </button>
+                </div>
+
+                <!-- Mermaid markup (revealed when the Mermaid option is picked) -->
+                <div id="pmExportMermaid" style="display: none;">
+                    <p class="pm-modal-hint"><?php echo t('process-mapper.export_modal.hint'); /* contains HTML so deliberately not escaped */ ?></p>
+                    <textarea readonly id="exportText" class="pm-modal-textarea" spellcheck="false"></textarea>
+                    <div class="pm-modal-actions">
+                        <button class="pm-modal-btn pm-modal-btn-primary" id="exportCopyBtn" onclick="PM.copyExport()"><?php echo htmlspecialchars(t('common.copy')); ?></button>
+                        <button class="pm-modal-btn" onclick="PM.closeExportModal()"><?php echo htmlspecialchars(t('common.close')); ?></button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -331,6 +359,10 @@ try {
         window.STEP_TYPES_BY_SLUG = {};
         for (const t of window.STEP_TYPES) window.STEP_TYPES_BY_SLUG[t.slug] = t;
     </script>
-    <script src="../assets/js/process-mapper.js?v=5"></script>
+    <!-- Vendored locally so PNG/PDF export works offline and doesn't depend on a
+         CDN at print time. Same versions used by Network Mapper (#257). -->
+    <script src="../assets/js/vendor/html2canvas.min.js"></script>
+    <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
+    <script src="../assets/js/process-mapper.js?v=6"></script>
 </body>
 </html>

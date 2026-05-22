@@ -2495,24 +2495,37 @@ const PM = (() => {
         return lines.join('\n');
     }
 
+    // Open the export modal in its default state: the three-tile format
+    // chooser is visible; the Mermaid markup is collapsed until the user
+    // picks "Mermaid".
     function openExportModal() {
         if (!currentProcessId) { toast('Open a process first', 'error'); return; }
-        const markup = exportToMermaid();
-        document.getElementById('exportText').value = markup;
+        document.getElementById('pmExportMermaid').style.display = 'none';
+        document.querySelector('#exportModal .pm-export-options').style.display = '';
         document.getElementById('exportModal').style.display = 'flex';
-        // Pre-select the text so the user can Ctrl-A → Ctrl-C if they prefer.
-        setTimeout(() => {
-            const ta = document.getElementById('exportText');
-            ta.focus();
-            ta.select();
-        }, 0);
     }
 
     function closeExportModal() {
         document.getElementById('exportModal').style.display = 'none';
         const btn = document.getElementById('exportCopyBtn');
-        btn.textContent = t('common.copy');
-        btn.classList.remove('pm-modal-btn-copied');
+        if (btn) {
+            btn.textContent = t('common.copy');
+            btn.classList.remove('pm-modal-btn-copied');
+        }
+    }
+
+    // Reveal the Mermaid markup view inside the modal — generates and
+    // pre-selects the text so the user can Ctrl-C straight away.
+    function showMermaid() {
+        const markup = exportToMermaid();
+        document.getElementById('exportText').value = markup;
+        document.querySelector('#exportModal .pm-export-options').style.display = 'none';
+        document.getElementById('pmExportMermaid').style.display = '';
+        setTimeout(() => {
+            const ta = document.getElementById('exportText');
+            ta.focus();
+            ta.select();
+        }, 0);
     }
 
     async function copyExport() {
@@ -2531,6 +2544,160 @@ const PM = (() => {
             document.getElementById('exportText').select();
             toast('Copy failed — text selected, use Ctrl+C', 'error');
         }
+    }
+
+    // =========================================================
+    //  Export — PNG / PDF (raster via html2canvas)
+    // =========================================================
+    // Captures the canvas at 2× resolution, packages as either a PNG file
+    // or a paper-sized PDF. Same vendor libraries Network Mapper uses
+    // (#257) — html2canvas for the raster, jsPDF for the document wrap.
+
+    // Slugify the current process title for the download filename.
+    function exportFilename(ext) {
+        const proc = processes.find(p => p.id == currentProcessId);
+        const title = (proc && proc.title) ? proc.title : 'process';
+        const slug = String(title)
+            .replace(/[^a-z0-9._-]+/gi, '-')
+            .replace(/^-+|-+$/g, '')
+            .toLowerCase();
+        return (slug || 'process') + '.' + ext;
+    }
+
+    // Bounding box of everything worth capturing — steps, groups, and the
+    // visible footprint of lanes if any are defined. Padded by 40px so the
+    // export doesn't feel cramped at the edges.
+    function computeExportRect() {
+        const PAD = 40;
+        if (!steps.length && !groups.length && !lanes.length) return null;
+
+        let minX = Infinity, minY = Infinity, maxX = 0, maxY = 0;
+        steps.forEach(s => {
+            if (s.x < minX) minX = s.x;
+            if (s.y < minY) minY = s.y;
+            if (s.x + s.width  > maxX) maxX = s.x + s.width;
+            if (s.y + s.height > maxY) maxY = s.y + s.height;
+        });
+        groups.forEach(g => {
+            if (g.x < minX) minX = g.x;
+            if (g.y < minY) minY = g.y;
+            if (g.x + g.width  > maxX) maxX = g.x + g.width;
+            if (g.y + g.height > maxY) maxY = g.y + g.height;
+        });
+
+        // If lanes are present, start at x=0 / y=0 so the lane headers and
+        // top of the first lane aren't cropped. Lanes stack top-to-bottom
+        // from y=0 to y=sum(heights); cap maxY at that total so trailing
+        // empty lane area still appears.
+        if (lanes.length) {
+            minX = 0;
+            minY = 0;
+            const totalLaneH = lanes.reduce((s, l) => s + (l.height || 0), 0);
+            if (totalLaneH > maxY) maxY = totalLaneH;
+        }
+
+        if (!isFinite(minX)) return null;
+        const x = Math.max(0, minX - PAD);
+        const y = Math.max(0, minY - PAD);
+        return { x, y, width: (maxX + PAD) - x, height: (maxY + PAD) - y };
+    }
+
+    // Snapshot the canvas via html2canvas. Stashes scroll state + selection
+    // chrome and restores them afterwards, even if the capture throws.
+    async function captureCanvas() {
+        if (typeof html2canvas !== 'function') {
+            toast(t('process-mapper.toast.export_lib_missing'), 'error');
+            return null;
+        }
+        const rect = computeExportRect();
+        if (!rect) {
+            toast(t('process-mapper.toast.export_empty'), 'error');
+            return null;
+        }
+
+        const stashed = {
+            scrollLeft: canvas.scrollLeft,
+            scrollTop:  canvas.scrollTop,
+        };
+
+        // Hide chrome that doesn't belong in the print (edge handles,
+        // selection rings, rubber-band, empty-state placeholder, dot-grid).
+        canvas.classList.add('is-exporting');
+        // Scroll to origin so html2canvas's x/y maps to canvas-content space
+        // without any scroll-offset surprises across browsers.
+        canvas.scrollLeft = 0;
+        canvas.scrollTop = 0;
+
+        try {
+            const out = await html2canvas(canvas, {
+                x: rect.x,
+                y: rect.y,
+                width:  rect.width,
+                height: rect.height,
+                scale: 2,                   // 2× for crisp print/PDF output
+                backgroundColor: '#ffffff', // explicit white — overrides the dot-grid
+                logging: false,
+                useCORS: true,
+            });
+            return { canvas: out, rect };
+        } catch (err) {
+            toast(t('process-mapper.toast.export_failed') + ' ' + (err && err.message ? err.message : ''), 'error');
+            return null;
+        } finally {
+            canvas.classList.remove('is-exporting');
+            canvas.scrollLeft = stashed.scrollLeft;
+            canvas.scrollTop  = stashed.scrollTop;
+        }
+    }
+
+    async function exportToPng() {
+        if (!currentProcessId) { toast('Open a process first', 'error'); return; }
+        closeExportModal();
+        const result = await captureCanvas();
+        if (!result) return;
+        const link = document.createElement('a');
+        link.download = exportFilename('png');
+        link.href = result.canvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        toast(t('process-mapper.toast.png_exported'), 'success');
+    }
+
+    async function exportToPdf() {
+        if (!currentProcessId) { toast('Open a process first', 'error'); return; }
+        // jsPDF UMD exposes its constructor under window.jspdf.jsPDF
+        const jsPDF = (window.jspdf && window.jspdf.jsPDF) || null;
+        if (!jsPDF) {
+            toast(t('process-mapper.toast.export_lib_missing'), 'error');
+            return;
+        }
+        closeExportModal();
+        const result = await captureCanvas();
+        if (!result) return;
+
+        // Pick the PDF page orientation by aspect ratio of the captured rect
+        // so the diagram fills the page in its natural reading direction.
+        const orientation = (result.rect.width > result.rect.height) ? 'l' : 'p';
+        const doc = new jsPDF({ orientation, unit: 'pt', format: 'a4' });
+        const pageW = doc.internal.pageSize.getWidth();
+        const pageH = doc.internal.pageSize.getHeight();
+
+        // Fit-to-page with proportional scaling so big diagrams don't get
+        // stretched. 24pt margin on each side keeps the content off the edge.
+        const MARGIN = 24;
+        const availW = pageW - MARGIN * 2;
+        const availH = pageH - MARGIN * 2;
+        const imgW = result.canvas.width;
+        const imgH = result.canvas.height;
+        const scale = Math.min(availW / imgW, availH / imgH);
+        const drawW = imgW * scale;
+        const drawH = imgH * scale;
+        const drawX = (pageW - drawW) / 2;
+        const drawY = (pageH - drawH) / 2;
+        doc.addImage(result.canvas.toDataURL('image/png'), 'PNG', drawX, drawY, drawW, drawH);
+        doc.save(exportFilename('pdf'));
+        toast(t('process-mapper.toast.pdf_exported'), 'success');
     }
 
     function esc(str) {
@@ -2553,6 +2720,7 @@ const PM = (() => {
         toggleAutosave,
         addGroup, updateGroupFromDetail,
         addLane, updateLaneFromDetail,
-        openExportModal, closeExportModal, copyExport
+        openExportModal, closeExportModal, copyExport,
+        showMermaid, exportToPng, exportToPdf
     };
 })();

@@ -124,11 +124,17 @@ return [
     ],
 
     'export_modal' => [
-        'title'  => 'Export — Mermaid flowchart',
-        'hint'   => 'Paste this markup into any Markdown editor that supports Mermaid (GitHub, GitLab, Notion, Confluence, Obsidian…). Lanes become <code>subgraph</code> blocks; auto-layout takes over from your hand-placed positions.',
-        'copy'   => 'Copy',
-        'copied' => 'Copied ✓',
-        'close'  => 'Close',
+        'title'         => 'Export',
+        'hint'          => 'Paste this markup into any Markdown editor that supports Mermaid (GitHub, GitLab, Notion, Confluence, Obsidian…). Lanes become <code>subgraph</code> blocks; auto-layout takes over from your hand-placed positions.',
+        'copy'          => 'Copy',
+        'copied'        => 'Copied ✓',
+        'close'         => 'Close',
+        'png_label'     => 'PNG image',
+        'png_sub'       => 'Crisp 2× raster — drop into slides or share as a screenshot',
+        'pdf_label'     => 'PDF document',
+        'pdf_sub'       => 'Print-ready A4, suitable for attaching to a ticket or change',
+        'mermaid_label' => 'Mermaid',
+        'mermaid_sub'   => 'Markdown-friendly markup for GitHub, Notion, Confluence…',
     ],
 
     'toast' => [
@@ -142,5 +148,10 @@ return [
         'format_copied'         => 'Formatting copied — right-click another step to apply.',
         'format_applied'        => 'Formatting applied.',
         'type_changed'          => 'Type changed.',
+        'export_empty'          => 'Nothing to export — add at least one step first.',
+        'export_lib_missing'    => 'Export library failed to load — refresh the page and try again.',
+        'export_failed'         => 'Export failed.',
+        'png_exported'          => 'PNG exported.',
+        'pdf_exported'          => 'PDF exported.',
     ],
 ];

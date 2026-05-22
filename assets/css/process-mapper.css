@@ -387,6 +387,68 @@
     border-color: #0078d4;
 }
 .pm-modal-btn-primary:hover { background: #106ebe; }
+/* Format chooser tiles inside the export modal — three side-by-side
+   cards, click one to download (PNG / PDF) or reveal the Mermaid markup. */
+.pm-export-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+.pm-export-opt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 6px;
+    padding: 18px 12px 14px;
+    background: #fafafa;
+    border: 2px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+.pm-export-opt:hover {
+    border-color: #c7d2fe;
+    background: #f5f7fb;
+}
+.pm-export-icon {
+    color: #0078d4;
+    line-height: 0;
+}
+.pm-export-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #333;
+}
+.pm-export-sub {
+    font-size: 11.5px;
+    color: #777;
+    line-height: 1.35;
+}
+
+/* Export-mode chrome hiding — applied to the canvas during html2canvas
+   capture so the screenshot doesn't include edit-time furniture: edge
+   handles, the selection ring, rubber-band, temp connector, empty-state
+   placeholder, the inline rename input. */
+.pm-canvas.is-exporting .pm-edge-handle,
+.pm-canvas.is-exporting .pm-selection-box,
+.pm-canvas.is-exporting .pm-temp-connector,
+.pm-canvas.is-exporting .pm-canvas-empty,
+.pm-canvas.is-exporting .pm-rename-input {
+    display: none !important;
+}
+.pm-canvas.is-exporting .pm-step.selected,
+.pm-canvas.is-exporting .pm-group.selected,
+.pm-canvas.is-exporting .pm-lane.selected {
+    box-shadow: none !important;
+}
+/* Print canvas to a flat white background so the dot-grid doesn't bleed
+   into the export. */
+.pm-canvas.is-exporting {
+    background: #fff !important;
+    background-image: none !important;
+}
+
 .pm-modal-btn-copied {
     background: #2e7d32 !important;
     color: white !important;
