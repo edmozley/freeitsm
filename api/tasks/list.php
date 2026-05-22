@@ -63,7 +63,7 @@ try {
     $sql = "SELECT t.id, t.title,
                    ts.name AS status, ts.is_closed AS status_is_closed, ts.colour AS status_colour,
                    tp.name AS priority, tp.colour AS priority_colour,
-                   t.due_date,
+                   t.start_date, t.due_date,
                    t.assigned_analyst_id, t.assigned_team_id,
                    t.ticket_id, t.change_id, t.contract_id, t.board_position,
                    t.created_by_id, t.created_datetime, t.updated_datetime,

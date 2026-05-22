@@ -70,6 +70,15 @@ $path_prefix = '../../';
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 18px; border-radius: 4px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1100; }
         .toast.show { opacity: 1; }
         .toast.toast-error { background: #c62828; }
+
+        /* Calendar span-mode options */
+        .span-mode-options { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
+        .span-mode-card { display: flex; gap: 12px; padding: 14px 16px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+        .span-mode-card:hover { border-color: #9333ea; }
+        .span-mode-card.selected { border-color: #9333ea; background: #faf5ff; }
+        .span-mode-card input { margin-top: 2px; accent-color: #9333ea; width: 16px; height: 16px; cursor: pointer; }
+        .span-mode-name { font-weight: 600; font-size: 14px; color: #333; margin-bottom: 3px; }
+        .span-mode-desc { font-size: 13px; color: #777; line-height: 1.45; }
     </style>
 </head>
 <body>
@@ -79,6 +88,7 @@ $path_prefix = '../../';
         <div class="tabs">
             <button class="tab active" data-tab="statuses" onclick="switchTab('statuses')">Statuses</button>
             <button class="tab" data-tab="priorities" onclick="switchTab('priorities')">Priorities</button>
+            <button class="tab" data-tab="calendar" onclick="switchTab('calendar')">Calendar</button>
         </div>
 
         <!-- Statuses Tab -->
@@ -105,6 +115,37 @@ $path_prefix = '../../';
                 <thead><tr><th>Name</th><th>Colour</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="priorities-list"><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
             </table>
+        </div>
+
+        <!-- Calendar Tab -->
+        <div class="tab-content" id="calendar-tab">
+            <div class="section-header">
+                <h2>Calendar</h2>
+            </div>
+            <p style="color: #666; margin-bottom: 16px;">Controls how a multi-day task &mdash; one whose start date is earlier than its due date &mdash; is drawn on the <a href="../calendar/" style="color:#9333ea;">Tasks calendar</a>. A task with only a due date always appears as a single chip on that date, whichever mode is chosen.</p>
+            <div class="span-mode-options">
+                <label class="span-mode-card">
+                    <input type="radio" name="spanMode" value="deadline" onchange="saveSpanMode(this.value)">
+                    <div class="span-mode-body">
+                        <div class="span-mode-name">Deadline chip</div>
+                        <div class="span-mode-desc">The task shows once, on its due date only. Tidiest option &mdash; keeps the calendar focused on what needs finishing. The full span is still visible on the Timeline.</div>
+                    </div>
+                </label>
+                <label class="span-mode-card">
+                    <input type="radio" name="spanMode" value="span" onchange="saveSpanMode(this.value)">
+                    <div class="span-mode-body">
+                        <div class="span-mode-name">Spanning bar</div>
+                        <div class="span-mode-desc">The task is drawn as one continuous bar from its start date to its due date, wrapping across week rows. Best for seeing duration at a glance.</div>
+                    </div>
+                </label>
+                <label class="span-mode-card">
+                    <input type="radio" name="spanMode" value="repeat" onchange="saveSpanMode(this.value)">
+                    <div class="span-mode-body">
+                        <div class="span-mode-name">Every day</div>
+                        <div class="span-mode-desc">A chip appears in every day cell the task covers. Thorough, but long tasks can crowd the grid.</div>
+                    </div>
+                </label>
+            </div>
         </div>
     </div>
 
@@ -176,7 +217,39 @@ $path_prefix = '../../';
 
         document.addEventListener('DOMContentLoaded', () => {
             for (const kind of Object.keys(LOOKUP_KINDS)) loadLookup(kind);
+            loadSpanMode();
+            if (location.hash === '#calendar') switchTab('calendar');
         });
+
+        // ── Calendar span mode ──
+        async function loadSpanMode() {
+            try {
+                const data = await fetch(API_BASE + 'get_settings.php').then(r => r.json());
+                const mode = (data.success && data.settings.calendar_span_mode) || 'deadline';
+                const radio = document.querySelector(`input[name="spanMode"][value="${mode}"]`);
+                if (radio) radio.checked = true;
+            } catch (e) { console.error(e); }
+            markSelectedCard();
+        }
+
+        async function saveSpanMode(value) {
+            markSelectedCard();
+            try {
+                const res = await fetch(API_BASE + 'save_settings.php', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ settings: { calendar_span_mode: value } })
+                });
+                const data = await res.json();
+                if (data.success) showToast('Saved');
+                else showToast(data.error || 'Failed to save', true);
+            } catch (e) { showToast('Failed to save', true); }
+        }
+
+        function markSelectedCard() {
+            document.querySelectorAll('.span-mode-card').forEach(card => {
+                card.classList.toggle('selected', card.querySelector('input').checked);
+            });
+        }
 
         async function loadLookup(kind) {
             const cfg = LOOKUP_KINDS[kind];

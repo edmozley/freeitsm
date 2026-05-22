@@ -1159,6 +1159,7 @@ $schema = [
         'description'         => 'LONGTEXT NULL',
         'status_id'           => 'INT NULL',
         'priority_id'         => 'INT NULL',
+        'start_date'          => 'DATE NULL',
         'due_date'            => 'DATE NULL',
         'assigned_analyst_id' => 'INT NULL',
         'assigned_team_id'    => 'INT NULL',
@@ -2078,6 +2079,8 @@ try {
             // (wall-clock hours since last status change). Guardrail against analysts
             // parking tickets in On Hold to escape the SLA clock.
             'watchtower_paused_too_long_hours' => '24',
+            // Tasks calendar: how multi-day tasks render — deadline | span | repeat
+            'tasks_calendar_span_mode'        => 'deadline',
         ];
         $stmt = $conn->prepare("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES (?, ?)");
         foreach ($defaults as $k => $v) { $stmt->execute([$k, $v]); }

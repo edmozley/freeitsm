@@ -22,7 +22,11 @@ const ANALYST_ID = document.body.dataset.analystId;
 // ── Init ───────────────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadDropdowns();
+    // Open a task straight away if linked from the calendar/timeline (?task=N)
+    loadDropdowns().then(() => {
+        const taskParam = new URLSearchParams(location.search).get('task');
+        if (taskParam) openDetailPanel(parseInt(taskParam, 10));
+    });
     loadTasks();
     document.addEventListener('keydown', e => {
         if (e.key === 'Escape') closeDetailPanel();
@@ -571,9 +575,15 @@ function renderDetailPanel(task) {
             </div>
         </div>
 
-        <div class="detail-field">
-            <label>Due Date</label>
-            <input type="date" class="detail-input" value="${task.due_date || ''}" onchange="saveField('due_date', this.value || null)">
+        <div class="detail-row">
+            <div class="detail-field">
+                <label>Start Date</label>
+                <input type="date" class="detail-input" value="${task.start_date || ''}" onchange="saveField('start_date', this.value || null)">
+            </div>
+            <div class="detail-field">
+                <label>Due Date</label>
+                <input type="date" class="detail-input" value="${task.due_date || ''}" onchange="saveField('due_date', this.value || null)">
+            </div>
         </div>
 
         <div class="detail-field detail-description">

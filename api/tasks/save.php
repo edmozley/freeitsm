@@ -49,7 +49,7 @@ try {
         $id = (int)$input['id'];
 
         // Build SET clause dynamically. status/priority arrive as names; map them to *_id.
-        $allowed = ['title', 'description', 'due_date',
+        $allowed = ['title', 'description', 'start_date', 'due_date',
                      'assigned_analyst_id', 'assigned_team_id', 'parent_task_id',
                      'ticket_id', 'change_id', 'contract_id', 'board_position'];
         $sets = ['updated_datetime = UTC_TIMESTAMP()'];
@@ -109,10 +109,10 @@ try {
         $posStmt->execute([$statusId]);
         $boardPos = (int)$posStmt->fetchColumn();
 
-        $sql = "INSERT INTO tasks (title, description, status_id, priority_id, due_date,
+        $sql = "INSERT INTO tasks (title, description, status_id, priority_id, start_date, due_date,
                     assigned_analyst_id, assigned_team_id, parent_task_id,
                     ticket_id, change_id, contract_id, board_position, created_by_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
         $stmt = $conn->prepare($sql);
         $stmt->execute([
@@ -120,6 +120,7 @@ try {
             $input['description'] ?? null,
             $statusId,
             $priorityId,
+            !empty($input['start_date']) ? $input['start_date'] : null,
             !empty($input['due_date']) ? $input['due_date'] : null,
             !empty($input['assigned_analyst_id']) ? $input['assigned_analyst_id'] : null,
             !empty($input['assigned_team_id']) ? $input['assigned_team_id'] : null,

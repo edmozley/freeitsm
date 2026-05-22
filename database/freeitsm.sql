@@ -1397,6 +1397,7 @@ CREATE TABLE IF NOT EXISTS `tasks` (
     `description`         LONGTEXT NULL,
     `status_id`           INT NULL,
     `priority_id`         INT NULL,
+    `start_date`          DATE NULL,
     `due_date`            DATE NULL,
     `assigned_analyst_id` INT NULL,
     `assigned_team_id`    INT NULL,
@@ -2110,6 +2111,9 @@ CREATE TABLE IF NOT EXISTS `system_settings` (
     `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`setting_key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `system_settings` (`setting_key`, `setting_value`) VALUES
+    ('tasks_calendar_span_mode', 'deadline');
 
 CREATE TABLE IF NOT EXISTS `trusted_devices` (
     `id`                 INT NOT NULL AUTO_INCREMENT,

@@ -767,15 +767,18 @@ Visual layer over the CMDB for drawing network and architecture diagrams. Diagra
 - **APIs** (`api/network-mapper/`): `list_diagrams.php` (leaf versions only — filters with `WHERE id NOT IN (SELECT parent_diagram_id…)`), `list_versions.php` (root-to-leaf chain ordered oldest first), `get_diagram.php` (single version hydrated with CMDB object name/class/icon/`is_planned` per node), `create_diagram.php`, `create_version.php` (clones forward, refuses to fork an already-forked parent), `save_diagram.php` (transactional with temp→real node id mapping for connector refs; refuses to save non-leaf versions; only updates metadata fields the caller explicitly sends), `delete_diagram.php` (single version delete — older versions in the chain preserved via the `SET NULL` parent_diagram_id behaviour), `get_related_objects.php` (walks `cmdb_object_relationships` outgoing + incoming and `cmdb_object_properties.value_object_id` to return all CMDB neighbours of a given object for the Add-related-objects flow — one row per (object, path) so an object reachable via two paths surfaces as two tickable rows).
 
 ### Tasks (`tasks/`)
-Kanban-style task management with board and list views for tracking internal work.
+Kanban-style task management with board, list, calendar, and timeline views for tracking internal work.
 
 - **Board view**: Three-column Kanban board (To Do, In Progress, Done) with drag-and-drop card movement
 - **List view**: Sortable table with all task fields
+- **Calendar view** (`tasks/calendar/`): Month grid of tasks coloured by status. How a multi-day task (one with a start date earlier than its due date) is drawn is configurable in Settings → Calendar — **Deadline chip** (a single chip on the due date), **Spanning bar** (one continuous bar across the range, wrapping at week rows), or **Every day** (a chip in every day cell of the range)
+- **Timeline view** (`tasks/timeline/`): Gantt-style horizontal bars from each task's start date to its due date, grouped by assignee, status, or flat, with a today marker and day-width zoom
+- **Start & due dates**: Tasks have an optional `start_date` plus the existing `due_date`; together they define the span shown on the calendar and timeline
 - **Quick create**: Inline task creation from each board column
-- **Detail panel**: Slide-in panel with inline editing, auto-save, and TinyMCE rich text description
+- **Detail panel**: Slide-in panel with inline editing, auto-save, and TinyMCE rich text description. Calendar/timeline tasks deep-link to the board with the panel open (`?task=N`)
 - **Subtasks**: Two-level hierarchy with checkbox toggling and progress display on parent cards
 - **Linking**: Link tasks to tickets or changes via searchable dropdowns
-- **Team assignment**: Assign tasks to analysts and teams, filter board by team/analyst/personal
+- **Team assignment**: Assign tasks to analysts and teams, filter every view by team/analyst/personal
 - **Comments**: Threaded comments on each task
 - **Watchtower integration**: Overdue and due-today counts shown on attention dashboard
 
