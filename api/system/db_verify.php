@@ -994,6 +994,7 @@ $schema = [
         'type'              => "VARCHAR(50) NOT NULL DEFAULT 'process'",
         'label'             => "VARCHAR(255) NOT NULL DEFAULT ''",
         'description'       => 'TEXT NULL',
+        'url'               => 'VARCHAR(500) NULL',
         'x'                 => 'INT NOT NULL DEFAULT 0',
         'y'                 => 'INT NOT NULL DEFAULT 0',
         'width'             => 'INT NOT NULL DEFAULT 160',
@@ -1002,6 +1003,18 @@ $schema = [
         'color2'            => 'VARCHAR(20) NULL',
         'lane_id'           => 'INT NULL',
         'group_id'          => 'INT NULL',
+    ],
+
+    'process_annotations' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'process_id'        => 'INT NOT NULL',
+        'text'              => 'TEXT NULL',
+        'x'                 => 'INT NOT NULL DEFAULT 0',
+        'y'                 => 'INT NOT NULL DEFAULT 0',
+        'width'             => 'INT NOT NULL DEFAULT 180',
+        'height'            => 'INT NOT NULL DEFAULT 100',
+        'color'             => "VARCHAR(20) NULL DEFAULT '#fff59d'",
+        'color2'            => 'VARCHAR(20) NULL',
     ],
 
     'process_connectors' => [

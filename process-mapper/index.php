@@ -48,7 +48,7 @@ try {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('process-mapper.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/process-mapper.css?v=6">
+    <link rel="stylesheet" href="../assets/css/process-mapper.css?v=7">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
 </head>
@@ -163,6 +163,10 @@ try {
                     <textarea class="form-input" id="detailDescription" rows="5" oninput="PM.updateStepFromDetail()" placeholder="<?php echo htmlspecialchars(t('process-mapper.detail.step_description_placeholder')); ?>"></textarea>
                 </div>
                 <div class="form-group">
+                    <label class="form-label"><?php echo htmlspecialchars(t('process-mapper.detail.url')); ?></label>
+                    <input type="url" class="form-input" id="detailUrl" oninput="PM.updateStepFromDetail()" placeholder="https://…">
+                </div>
+                <div class="form-group">
                     <label class="form-label"><?php echo htmlspecialchars(t('process-mapper.detail.position')); ?></label>
                     <div style="display: flex; gap: 8px;">
                         <input type="number" class="form-input" id="detailX" style="width: 50%;" onchange="PM.updateStepFromDetail()">
@@ -234,11 +238,55 @@ try {
                     </div>
                 </div>
             </div>
+            <!-- Annotation (sticky note) detail body -->
+            <div class="pm-detail-body" id="detailBodyAnnotation" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label"><?php echo htmlspecialchars(t('process-mapper.annotation.text_label')); ?></label>
+                    <textarea class="form-input" id="detailAnnText" rows="6" oninput="PM.updateAnnotationFromDetail()" placeholder="<?php echo htmlspecialchars(t('process-mapper.annotation.text_placeholder')); ?>"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><?php echo htmlspecialchars(t('process-mapper.annotation.colour')); ?></label>
+                    <input type="color" class="form-input" id="detailAnnColor" value="#fff59d" onchange="PM.updateAnnotationFromDetail()" style="height: 36px; padding: 2px;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><?php echo htmlspecialchars(t('process-mapper.annotation.position')); ?></label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" class="form-input" id="detailAnnX" style="width: 50%;" onchange="PM.updateAnnotationFromDetail()">
+                        <input type="number" class="form-input" id="detailAnnY" style="width: 50%;" onchange="PM.updateAnnotationFromDetail()">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label"><?php echo htmlspecialchars(t('process-mapper.annotation.size')); ?></label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="number" class="form-input" id="detailAnnW" style="width: 50%;" onchange="PM.updateAnnotationFromDetail()" min="80">
+                        <input type="number" class="form-input" id="detailAnnH" style="width: 50%;" onchange="PM.updateAnnotationFromDetail()" min="60">
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Right-click context menu (on steps) -->
     <div class="pm-context-menu" id="pmContextMenu" style="display: none;">
+
+        <!-- Edit label (alias for double-click inline rename) -->
+        <div class="pm-ctx-item" data-action="edit-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.edit_label')); ?></span>
+        </div>
+        <!-- Add note (drops a sticky-note annotation near the step) -->
+        <div class="pm-ctx-item" data-action="add-note">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.add_note')); ?></span>
+        </div>
+        <!-- Link to URL -->
+        <div class="pm-ctx-item" data-action="link-url">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.link_url')); ?></span>
+        </div>
+
+        <div class="pm-ctx-separator"></div>
+
         <!-- Create new -> submenu of type primitives -->
         <div class="pm-ctx-item pm-ctx-parent">
             <span class="pm-ctx-text"><?php echo htmlspecialchars(t('process-mapper.context.create_new')); ?></span>
@@ -270,7 +318,39 @@ try {
             <svg width="16" height="16" viewBox="0 0 18 18"><line x1="3" y1="15" x2="15" y2="3" stroke="currentColor" stroke-width="1.5"/><polyline points="10,3 15,3 15,8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
             <span><?php echo htmlspecialchars(t('process-mapper.context.connect_to')); ?></span>
         </div>
+        <!-- Reverse connection (always a submenu; populated dynamically by JS) -->
+        <div class="pm-ctx-item pm-ctx-parent" id="pmCtxReverseConn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            <span class="pm-ctx-text"><?php echo htmlspecialchars(t('process-mapper.context.reverse_connection_pick')); ?></span>
+            <svg class="pm-ctx-arrow" width="12" height="12" viewBox="0 0 12 12"><path d="M4 2.5L8 6l-4 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="pm-ctx-submenu" id="pmCtxReverseSubmenu"></div>
+        </div>
+        <!-- Delete all connections -->
+        <div class="pm-ctx-item" id="pmCtxDeleteAllConn" data-action="delete-all-conn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="19" x2="19" y2="5"/><line x1="5" y1="5" x2="19" y2="19"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.delete_all_connections')); ?></span>
+        </div>
+
         <div class="pm-ctx-separator"></div>
+
+        <!-- Cut / Copy / Paste -->
+        <div class="pm-ctx-item" data-action="cut">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><line x1="20" y1="4" x2="8.12" y2="15.88"/><line x1="14.47" y1="14.48" x2="20" y2="20"/><line x1="8.12" y1="8.12" x2="12" y2="12"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.cut')); ?></span>
+        </div>
+        <div class="pm-ctx-item" data-action="copy">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.copy')); ?></span>
+        </div>
+        <div class="pm-ctx-item pm-ctx-hidden" id="pmCtxPaste" data-action="paste">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.paste')); ?></span>
+        </div>
+        <!-- Duplicate -->
+        <div class="pm-ctx-item" data-action="duplicate">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.duplicate')); ?></span>
+        </div>
         <!-- Copy formatting -->
         <div class="pm-ctx-item" data-action="copy-format">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6a1 1 0 0 1 1 1v2H8V3a1 1 0 0 1 1-1z"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>
@@ -280,6 +360,14 @@ try {
         <div class="pm-ctx-item pm-ctx-hidden" id="pmCtxApplyFormat" data-action="apply-format">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l3 3"/><path d="M3 21l3-9 12-12 6 6-12 12-9 3z"/></svg>
             <span><?php echo htmlspecialchars(t('process-mapper.context.apply_format')); ?></span>
+        </div>
+
+        <div class="pm-ctx-separator"></div>
+
+        <!-- Delete (with confirm) -->
+        <div class="pm-ctx-item pm-ctx-danger" data-action="delete">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            <span><?php echo htmlspecialchars(t('process-mapper.context.delete')); ?></span>
         </div>
     </div>
 
@@ -363,6 +451,6 @@ try {
          CDN at print time. Same versions used by Network Mapper (#257). -->
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
     <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
-    <script src="../assets/js/process-mapper.js?v=7"></script>
+    <script src="../assets/js/process-mapper.js?v=8"></script>
 </body>
 </html>

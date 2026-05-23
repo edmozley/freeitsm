@@ -54,10 +54,20 @@ try {
         $lanes = $laneStmt->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) {}
 
-    $process['steps'] = $steps;
-    $process['connectors'] = $connectors;
-    $process['groups'] = $groups;
-    $process['lanes'] = $lanes;
+    // process_annotations shipped in #334 — same defensive fallback so older
+    // installs that haven't run db_verify don't error out.
+    $annotations = [];
+    try {
+        $annStmt = $conn->prepare("SELECT * FROM process_annotations WHERE process_id = ?");
+        $annStmt->execute([$id]);
+        $annotations = $annStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {}
+
+    $process['steps']       = $steps;
+    $process['connectors']  = $connectors;
+    $process['groups']      = $groups;
+    $process['lanes']       = $lanes;
+    $process['annotations'] = $annotations;
 
     echo json_encode(['success' => true, 'data' => $process]);
 } catch (Exception $e) {

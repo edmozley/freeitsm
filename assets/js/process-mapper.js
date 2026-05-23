@@ -73,6 +73,22 @@ const PM = (() => {
     // applies the stashed colour + gradient to the right-clicked step.
     let copiedFormat = null;    // { color, color2 } | null
 
+    // ---- step clipboard (Cut / Copy / Paste) ----
+    // `mode === 'cut'` visually marks the source via .pm-step.is-cut and the
+    // source is removed only on paste (and the clipboard cleared); `'copy'`
+    // can be pasted repeatedly. Esc unfades a cut step and clears the clipboard.
+    let stepClipboard = null;   // { mode: 'cut'|'copy', data, sourceId|null }
+
+    // ---- annotations (sticky notes) ----
+    let annotations = [];        // { id, tempId, text, color, color2, x, y, width, height, el }
+    let selectedAnnotationId = null;
+    let annotationDragging = null;  // { id, mode: 'move'|'resize', startMouseX/Y, startX/Y/W/H }
+
+    // Screen-space coords of the last right-click on a step, captured by
+    // onStepContextMenu. Used by Paste to drop the new step near the cursor
+    // rather than near the step itself.
+    let ctxRightClickPos = { x: 0, y: 0 };
+
     // ---- DOM refs ----
     let canvas, svg, detailPanel, processList, canvasEmpty;
 
@@ -348,6 +364,7 @@ const PM = (() => {
                     type: s.type,
                     label: s.label,
                     description: s.description || '',
+                    url: s.url || '',
                     x: +s.x,
                     y: +s.y,
                     width: +s.width,
@@ -373,6 +390,17 @@ const PM = (() => {
                     y: +g.y,
                     width: +g.width,
                     height: +g.height,
+                    el: null
+                }));
+                annotations = (d.data.annotations || []).map(a => ({
+                    id: +a.id,
+                    text: a.text || '',
+                    x: +a.x,
+                    y: +a.y,
+                    width:  +a.width,
+                    height: +a.height,
+                    color:  a.color  || '#fff59d',
+                    color2: a.color2 || null,
                     el: null
                 }));
                 lanes = (d.data.lanes || []).map(l => ({
@@ -404,6 +432,7 @@ const PM = (() => {
         canvas.querySelectorAll('.pm-step').forEach(el => el.remove());
         canvas.querySelectorAll('.pm-group').forEach(el => el.remove());
         canvas.querySelectorAll('.pm-lane').forEach(el => el.remove());
+        canvas.querySelectorAll('.pm-annotation').forEach(el => el.remove());
         // Lanes first (they sit furthest back via CSS z-index = -1)
         renderLanes();
         // Groups next so they sit behind steps + connectors
@@ -414,6 +443,12 @@ const PM = (() => {
         steps.forEach(s => {
             s.el = createStepEl(s);
             canvas.appendChild(s.el);
+        });
+        // Annotations sit ABOVE steps (z-index 4 via CSS) so notes never get
+        // hidden underneath the step they're attached to.
+        annotations.forEach(a => {
+            a.el = createAnnotationEl(a);
+            canvas.appendChild(a.el);
         });
         renderConnectors();
     }
@@ -442,6 +477,23 @@ const PM = (() => {
             h.addEventListener('mousedown', e => startConnectDrag(e, step, side));
             el.appendChild(h);
         });
+
+        // URL badge — visible only when step.url is set. Click opens in a new tab.
+        if (step.url) {
+            const badge = document.createElement('a');
+            badge.className = 'pm-step-url-badge';
+            badge.href = step.url;
+            badge.target = '_blank';
+            badge.rel = 'noopener noreferrer';
+            badge.title = step.url;
+            badge.innerHTML = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>';
+            // Stop mousedown/click from bubbling to onStepMouseDown so the
+            // badge feels like a discrete "open link" button rather than a
+            // way to accidentally start a step drag.
+            badge.addEventListener('mousedown', e => e.stopPropagation());
+            badge.addEventListener('click',     e => e.stopPropagation());
+            el.appendChild(badge);
+        }
 
         // Click / drag
         el.addEventListener('mousedown', e => onStepMouseDown(e, step));
@@ -707,6 +759,11 @@ const PM = (() => {
     }
 
     function onDocMouseMove(e) {
+        // Dragging an annotation (move or resize)
+        if (annotationDragging) {
+            onAnnotationDocMouseMove(e);
+            return;
+        }
         // Dragging a lane (reorder via header / resize via divider)
         if (laneDragging) {
             onLaneDocMouseMove(e);
@@ -780,6 +837,10 @@ const PM = (() => {
     }
 
     function onDocMouseUp(e) {
+        if (annotationDragging) {
+            onAnnotationDocMouseUp();
+            return;
+        }
         if (laneDragging) {
             onLaneDocMouseUp();
             return;
@@ -854,6 +915,7 @@ const PM = (() => {
                 selectedConnectorId = null;
                 selectedGroupId = null;
                 selectedLaneId = null;
+                selectedAnnotationId = null;
                 updateSelectionVisuals();
                 closeDetail();
             }
@@ -1015,18 +1077,38 @@ const PM = (() => {
         selectedConnectorId = null;
         selectedGroupId = null;
         selectedLaneId = null;
+        selectedAnnotationId = null;
         selectedStepIds.add(step.id || step.tempId);
         updateSelectionVisuals();
         ctxTargetStep = step;
+        // Stash screen coords so Paste can drop the new step near the cursor.
+        ctxRightClickPos = { x: e.clientX, y: e.clientY };
         showContextMenu(e.clientX, e.clientY);
     }
 
     function showContextMenu(x, y) {
         const menu = document.getElementById('pmContextMenu');
         if (!menu) return;
-        // Reveal "Apply formatting" only when something has actually been copied.
+        // Reveal "Apply formatting" / "Paste" only when their state allows.
         const apply = document.getElementById('pmCtxApplyFormat');
         if (apply) apply.classList.toggle('pm-ctx-hidden', !copiedFormat);
+        const paste = document.getElementById('pmCtxPaste');
+        if (paste) paste.classList.toggle('pm-ctx-hidden', !stepClipboard);
+        // Enable/disable the connector-related items based on whether the
+        // right-clicked step actually has connectors. Reverse-conn also
+        // rebuilds its submenu from current connectors so each row shows the
+        // direction + the other end's name.
+        const step = ctxTargetStep;
+        const sid  = step ? (step.id || step.tempId) : null;
+        const incidentConns = sid != null
+            ? connectors.filter(c => c.fromId == sid || c.toId == sid)
+            : [];
+        const rc = document.getElementById('pmCtxReverseConn');
+        if (rc) rc.classList.toggle('pm-ctx-disabled', incidentConns.length === 0);
+        const dac = document.getElementById('pmCtxDeleteAllConn');
+        if (dac) dac.classList.toggle('pm-ctx-disabled', incidentConns.length === 0);
+        rebuildReverseSubmenu(step, incidentConns);
+
         menu.style.display = 'block';
         menu.classList.remove('pm-ctx-flip');
         // Clamp the menu inside the viewport.
@@ -1037,8 +1119,46 @@ const PM = (() => {
         menu.style.left = px + 'px';
         menu.style.top = py + 'px';
         // If the submenu would spill off the right edge, flip it to open leftward.
-        const SUBMENU_W = 180;
+        const SUBMENU_W = 200;
         if (px + mw + SUBMENU_W > window.innerWidth) menu.classList.add('pm-ctx-flip');
+    }
+
+    // Rebuild the Reverse-connection submenu so each row lists one of the
+    // current step's connectors, with an arrow + the other end's label.
+    // Picking one flips just that connector's direction.
+    function rebuildReverseSubmenu(step, conns) {
+        const sub = document.getElementById('pmCtxReverseSubmenu');
+        if (!sub) return;
+        sub.innerHTML = '';
+        if (!step || !conns.length) return;
+        const sid = step.id || step.tempId;
+        conns.forEach(c => {
+            const fromMe = (c.fromId == sid);
+            const otherId = fromMe ? c.toId : c.fromId;
+            const other = getStep(otherId);
+            const otherName = (other && other.label) ? other.label : '(unnamed)';
+            const item = document.createElement('div');
+            item.className = 'pm-ctx-item';
+            item.dataset.reverseConnId = String(c.id != null ? c.id : c.tempId);
+            const arrow = fromMe ? '→' : '←';
+            item.innerHTML =
+                '<span style="color:#888;width:14px;text-align:center;">' + arrow + '</span>' +
+                '<span style="overflow:hidden;text-overflow:ellipsis;max-width:160px;">' +
+                escapeForAttr(otherName) +
+                '</span>';
+            item.addEventListener('click', e => {
+                e.stopPropagation();
+                hideContextMenu();
+                reverseConnector(c);
+            });
+            sub.appendChild(item);
+        });
+    }
+
+    function escapeForAttr(s) {
+        const d = document.createElement('div');
+        d.textContent = s == null ? '' : String(s);
+        return d.innerHTML;
     }
 
     function hideContextMenu() {
@@ -1076,17 +1196,30 @@ const PM = (() => {
             });
         });
 
-        // Flat actions: Connect to, Copy formatting, Apply formatting.
+        // Flat actions on the main menu (everything that isn't a submenu parent).
         menu.querySelectorAll('[data-action]').forEach(item => {
             item.addEventListener('click', e => {
+                if (item.classList.contains('pm-ctx-disabled')) return;
                 e.stopPropagation();
                 const action = item.dataset.action;
                 const target = ctxTargetStep;
+                const rcPos  = ctxRightClickPos;   // capture before hideContextMenu clears nothing — kept for safety
                 hideContextMenu();
                 if (!target) return;
-                if (action === 'connect-to')   startClickConnect(target);
-                if (action === 'copy-format')  copyFormat(target);
-                if (action === 'apply-format') applyFormat(target);
+                switch (action) {
+                    case 'edit-label':       ctxEditLabel(target); break;
+                    case 'add-note':         addAnnotation(target); break;
+                    case 'link-url':         promptForUrl(target); break;
+                    case 'connect-to':       startClickConnect(target); break;
+                    case 'delete-all-conn':  deleteAllConnections(target); break;
+                    case 'cut':              cutStep(target); break;
+                    case 'copy':             copyStepForPaste(target); break;
+                    case 'paste':            pasteStep(rcPos); break;
+                    case 'duplicate':        duplicateStep(target); break;
+                    case 'copy-format':      copyFormat(target); break;
+                    case 'apply-format':     applyFormat(target); break;
+                    case 'delete':           ctxDeleteStep(target); break;
+                }
             });
         });
 
@@ -1098,6 +1231,12 @@ const PM = (() => {
             if (e.key === 'Escape') {
                 hideContextMenu();
                 if (clickConnectFromId != null) cancelClickConnect();
+                // Cut behaves like a held marker — Esc lets the user back out
+                // without having to paste-somewhere-and-then-undo.
+                if (stepClipboard && stepClipboard.mode === 'cut') {
+                    clearStepClipboardVisual();
+                    stepClipboard = null;
+                }
             }
         });
         canvas.addEventListener('scroll', hideContextMenu);
@@ -1209,6 +1348,374 @@ const PM = (() => {
         addConnector(fromId, toId);
         toast(t('process-mapper.toast.connect_done'), 'success');
         return true;
+    }
+
+    // =========================================================
+    //  Right-click menu — the new actions
+    // =========================================================
+
+    // Edit label: alias for double-click inline rename. Reuses the same flow
+    // so there's only one rename code path to maintain.
+    function ctxEditLabel(step) {
+        // Synthesise a fake event — onStepDblClick only reads stopPropagation.
+        onStepDblClick({ stopPropagation: () => {} }, step);
+    }
+
+    // Open a prompt() to set/edit/clear the step's URL. Empty input clears it.
+    // Light validation: must start with http:// or https:// (or be empty).
+    function promptForUrl(step) {
+        const current = step.url || '';
+        const input = window.prompt(t('process-mapper.context.url_prompt_set'), current);
+        if (input === null) return;          // cancelled
+        const trimmed = input.trim();
+        if (trimmed === '') {
+            step.url = '';
+            if (step.el) step.el.remove();
+            step.el = createStepEl(step);
+            canvas.appendChild(step.el);
+            if (selectedStepIds.has(step.id || step.tempId)) step.el.classList.add('selected');
+            // Reflect in the detail panel if it's open for this step
+            if (detailPanel.dataset.stepId == (step.id || step.tempId)) {
+                document.getElementById('detailUrl').value = '';
+            }
+            markDirty();
+            toast(t('process-mapper.toast.url_cleared'), 'success');
+            return;
+        }
+        if (!/^https?:\/\//i.test(trimmed)) {
+            toast(t('process-mapper.toast.url_invalid'), 'error');
+            return;
+        }
+        step.url = trimmed;
+        if (step.el) step.el.remove();
+        step.el = createStepEl(step);
+        canvas.appendChild(step.el);
+        if (selectedStepIds.has(step.id || step.tempId)) step.el.classList.add('selected');
+        if (detailPanel.dataset.stepId == (step.id || step.tempId)) {
+            document.getElementById('detailUrl').value = trimmed;
+        }
+        markDirty();
+        toast(t('process-mapper.toast.url_set'), 'success');
+    }
+
+    // Reverse the direction of a single connector.
+    function reverseConnector(c) {
+        const tmp = c.fromId;
+        c.fromId = c.toId;
+        c.toId = tmp;
+        renderConnectors();
+        markDirty();
+        toast(t('process-mapper.toast.connection_reversed'), 'success');
+    }
+
+    // Remove every connector incident to `step`.
+    function deleteAllConnections(step) {
+        const sid = step.id || step.tempId;
+        const incident = connectors.filter(c => c.fromId == sid || c.toId == sid);
+        if (!incident.length) {
+            toast(t('process-mapper.toast.no_connections'), 'info');
+            return;
+        }
+        if (!confirm(t('process-mapper.context.delete_all_conn_confirm'))) return;
+        connectors = connectors.filter(c => c.fromId != sid && c.toId != sid);
+        // Selected connector may have been one of these — clear if so.
+        selectedConnectorId = null;
+        renderConnectors();
+        markDirty();
+        toast(t('process-mapper.toast.connections_deleted'), 'success');
+    }
+
+    // Capture the cloneable shape of a step — everything that ought to be
+    // duplicated by Copy / Cut / Duplicate. Position is NOT copied here; the
+    // caller picks where the new step goes.
+    function cloneStepData(step) {
+        return {
+            type:        step.type,
+            label:       step.label,
+            description: step.description || '',
+            url:         step.url || '',
+            width:       step.width,
+            height:      step.height,
+            color:       step.color,
+            color2:      step.color2 || null,
+            lane_id:     null,    // re-derived from drop position
+            group_id:    null     // re-derived from drop position
+        };
+    }
+
+    // Drop a new step at (atX, atY) from a clipboard payload, nudged off-grid
+    // until it doesn't overlap any existing step. Returns the new step.
+    function placeClonedStep(data, atX, atY) {
+        const tempId = nextTempId--;
+        let nx = snap(atX);
+        let ny = snap(atY);
+        // Nudge downward in grid steps to dodge any direct overlap.
+        let guard = 0;
+        while (guard++ < 200 && steps.some(s =>
+            rectsOverlap(nx, ny, data.width, data.height, s.x - 8, s.y - 8, s.width + 16, s.height + 16))) {
+            ny = snap(ny + GRID);
+        }
+        const step = {
+            tempId,
+            type:        data.type,
+            label:       data.label,
+            description: data.description,
+            url:         data.url,
+            x: Math.max(0, nx),
+            y: Math.max(0, ny),
+            width:       data.width,
+            height:      data.height,
+            color:       data.color,
+            color2:      data.color2 || null,
+            lane_id:     null,
+            group_id:    null,
+            el: null
+        };
+        const lane = laneAtY(step.y + step.height / 2);
+        if (lane) step.lane_id = laneRef(lane);
+        const grp = groupAtPoint(step.x + step.width / 2, step.y + step.height / 2);
+        if (grp) step.group_id = groupRef(grp);
+        steps.push(step);
+        step.el = createStepEl(step);
+        canvas.appendChild(step.el);
+        canvasEmpty.style.display = 'none';
+        selectedStepIds.clear();
+        selectedStepIds.add(tempId);
+        updateSelectionVisuals();
+        showDetailForStep(step);
+        markDirty();
+        return step;
+    }
+
+    // Duplicate: place a copy 40px down-right of the original.
+    function duplicateStep(step) {
+        const data = cloneStepData(step);
+        placeClonedStep(data, step.x + 40, step.y + 40);
+        toast(t('process-mapper.toast.step_duplicated'), 'success');
+    }
+
+    // Clipboard helpers — clear the previous cut's visual cue before stashing
+    // a fresh entry, otherwise a cut-then-copy-elsewhere would leave the
+    // original cut step looking faded forever.
+    function clearStepClipboardVisual() {
+        if (!stepClipboard) return;
+        if (stepClipboard.mode === 'cut' && stepClipboard.sourceId != null) {
+            const s = getStep(stepClipboard.sourceId);
+            if (s && s.el) s.el.classList.remove('is-cut');
+        }
+    }
+
+    function cutStep(step) {
+        clearStepClipboardVisual();
+        stepClipboard = { mode: 'cut', data: cloneStepData(step), sourceId: step.id || step.tempId };
+        if (step.el) step.el.classList.add('is-cut');
+        toast(t('process-mapper.toast.step_cut'), 'info');
+    }
+
+    function copyStepForPaste(step) {
+        clearStepClipboardVisual();
+        stepClipboard = { mode: 'copy', data: cloneStepData(step), sourceId: null };
+        toast(t('process-mapper.toast.step_copied'), 'info');
+    }
+
+    // Drop a copy of the clipboard at the screen-coords stashed when the
+    // user right-clicked. If the clipboard was a Cut, also delete the source
+    // and clear the clipboard so the cut+paste pair behaves like a move.
+    function pasteStep(screenPos) {
+        if (!stepClipboard) return;
+        const rect = canvas.getBoundingClientRect();
+        const x = (screenPos && screenPos.x ? screenPos.x : rect.left + 100) - rect.left + canvas.scrollLeft;
+        const y = (screenPos && screenPos.y ? screenPos.y : rect.top  + 100) - rect.top  + canvas.scrollTop;
+        placeClonedStep(stepClipboard.data, x, y);
+        if (stepClipboard.mode === 'cut' && stepClipboard.sourceId != null) {
+            const sid = stepClipboard.sourceId;
+            const src = getStep(sid);
+            if (src) {
+                if (src.el) src.el.remove();
+                connectors = connectors.filter(c => c.fromId != sid && c.toId != sid);
+                steps = steps.filter(s => s !== src);
+            }
+            stepClipboard = null;
+            renderConnectors();
+        }
+        toast(t('process-mapper.toast.step_pasted'), 'success');
+    }
+
+    // Delete with confirm — the right-click "Delete…" item.
+    function ctxDeleteStep(step) {
+        if (!confirm(t('process-mapper.context.delete_confirm'))) return;
+        const sid = step.id || step.tempId;
+        selectedStepIds.clear();
+        selectedStepIds.add(sid);
+        deleteSelected();
+    }
+
+    // =========================================================
+    //  Annotations (sticky notes)
+    // =========================================================
+
+    function getAnnotation(id) {
+        return annotations.find(a => (a.id != null && a.id == id) || a.tempId == id);
+    }
+
+    function annotationRef(a) {
+        return a.id != null ? a.id : a.tempId;
+    }
+
+    // Drop a new sticky note near `nearStep` (or the canvas centre if no step).
+    function addAnnotation(nearStep) {
+        if (!currentProcessId) { toast(t('process-mapper.toast.no_process_open'), 'error'); return; }
+        const tempId = nextTempId--;
+        const w = 180, h = 100;
+        let x, y;
+        if (nearStep) {
+            // Place a bit above + to the right of the step so it's visible.
+            x = snap(nearStep.x + nearStep.width + 24);
+            y = snap(nearStep.y - 20);
+        } else {
+            x = snap(canvas.scrollLeft + canvas.clientWidth / 2 - w / 2);
+            y = snap(canvas.scrollTop  + canvas.clientHeight / 2 - h / 2);
+        }
+        const a = {
+            tempId,
+            text: '',
+            x, y, width: w, height: h,
+            color: '#fff59d',
+            color2: null,
+            el: null
+        };
+        annotations.push(a);
+        a.el = createAnnotationEl(a);
+        canvas.appendChild(a.el);
+        canvasEmpty.style.display = 'none';
+        selectAnnotation(a);
+        markDirty();
+        toast(t('process-mapper.toast.note_added'), 'success');
+        // Drop focus into the text area so the user can type immediately.
+        const ta = document.getElementById('detailAnnText');
+        if (ta) { ta.focus(); ta.select(); }
+    }
+
+    function createAnnotationEl(a) {
+        const el = document.createElement('div');
+        el.className = 'pm-annotation';
+        el.dataset.annId = annotationRef(a);
+        applyAnnotationStyle(el, a);
+
+        const body = document.createElement('div');
+        body.className = 'pm-annotation-body';
+        body.textContent = a.text || '';
+        el.appendChild(body);
+
+        // Resize handle (bottom-right corner)
+        const handle = document.createElement('div');
+        handle.className = 'pm-annotation-resize';
+        el.appendChild(handle);
+
+        el.addEventListener('mousedown', e => onAnnotationMouseDown(e, a));
+        el.addEventListener('dblclick', e => {
+            e.stopPropagation();
+            selectAnnotation(a);
+            const ta = document.getElementById('detailAnnText');
+            if (ta) { ta.focus(); ta.select(); }
+        });
+        return el;
+    }
+
+    function applyAnnotationStyle(el, a) {
+        el.style.left   = a.x + 'px';
+        el.style.top    = a.y + 'px';
+        el.style.width  = a.width + 'px';
+        el.style.height = a.height + 'px';
+        el.style.background = fillStyle(a.color, a.color2);
+        const body = el.querySelector('.pm-annotation-body');
+        if (body) body.textContent = a.text || '';
+    }
+
+    function onAnnotationMouseDown(e, a) {
+        if (e.button !== 0) return;
+        if (clickConnectFromId != null) { cancelClickConnect(); e.stopPropagation(); e.preventDefault(); return; }
+        const isResize = e.target.classList.contains('pm-annotation-resize');
+        e.stopPropagation();
+        e.preventDefault();
+        selectAnnotation(a);
+        annotationDragging = isResize
+            ? { id: annotationRef(a), mode: 'resize', startMouseX: e.clientX, startMouseY: e.clientY, startW: a.width, startH: a.height, moved: false }
+            : { id: annotationRef(a), mode: 'move',   startMouseX: e.clientX, startMouseY: e.clientY, startX: a.x, startY: a.y, moved: false };
+    }
+
+    function onAnnotationDocMouseMove(e) {
+        if (!annotationDragging) return;
+        const a = getAnnotation(annotationDragging.id);
+        if (!a) return;
+        const dx = e.clientX - annotationDragging.startMouseX;
+        const dy = e.clientY - annotationDragging.startMouseY;
+        if (Math.abs(dx) + Math.abs(dy) > 2) annotationDragging.moved = true;
+        if (annotationDragging.mode === 'move') {
+            a.x = Math.max(0, snap(annotationDragging.startX + dx));
+            a.y = Math.max(0, snap(annotationDragging.startY + dy));
+        } else {
+            a.width  = Math.max(80, snap(annotationDragging.startW + dx));
+            a.height = Math.max(60, snap(annotationDragging.startH + dy));
+        }
+        applyAnnotationStyle(a.el, a);
+        if (selectedAnnotationId == annotationDragging.id) {
+            document.getElementById('detailAnnX').value = a.x;
+            document.getElementById('detailAnnY').value = a.y;
+            document.getElementById('detailAnnW').value = a.width;
+            document.getElementById('detailAnnH').value = a.height;
+        }
+    }
+
+    function onAnnotationDocMouseUp() {
+        if (!annotationDragging) return;
+        if (annotationDragging.moved) markDirty();
+        annotationDragging = null;
+    }
+
+    function selectAnnotation(a) {
+        selectedStepIds.clear();
+        selectedConnectorId = null;
+        selectedGroupId = null;
+        selectedLaneId = null;
+        selectedAnnotationId = annotationRef(a);
+        canvas.focus({ preventScroll: true });
+        updateSelectionVisuals();
+        showDetailForAnnotation(a);
+    }
+
+    function showDetailForAnnotation(a) {
+        detailPanel.classList.add('open');
+        document.getElementById('detailBodyStep').style.display = 'none';
+        document.getElementById('detailBodyGroup').style.display = 'none';
+        document.getElementById('detailBodyLane').style.display = 'none';
+        document.getElementById('detailBodyAnnotation').style.display = '';
+        document.getElementById('detailTitle').textContent = t('process-mapper.annotation.detail_title');
+        document.getElementById('detailAnnText').value = a.text || '';
+        document.getElementById('detailAnnColor').value = a.color || '#fff59d';
+        document.getElementById('detailAnnX').value = a.x;
+        document.getElementById('detailAnnY').value = a.y;
+        document.getElementById('detailAnnW').value = a.width;
+        document.getElementById('detailAnnH').value = a.height;
+        detailPanel.dataset.annId = annotationRef(a);
+        detailPanel.dataset.stepId = '';
+        detailPanel.dataset.groupId = '';
+        detailPanel.dataset.laneId = '';
+    }
+
+    function updateAnnotationFromDetail() {
+        const id = detailPanel.dataset.annId;
+        if (!id) return;
+        const a = getAnnotation(id);
+        if (!a) return;
+        a.text   = document.getElementById('detailAnnText').value;
+        a.color  = document.getElementById('detailAnnColor').value;
+        a.x      = parseInt(document.getElementById('detailAnnX').value, 10) || 0;
+        a.y      = parseInt(document.getElementById('detailAnnY').value, 10) || 0;
+        a.width  = Math.max(80, parseInt(document.getElementById('detailAnnW').value, 10) || 180);
+        a.height = Math.max(60, parseInt(document.getElementById('detailAnnH').value, 10) || 100);
+        if (a.el) applyAnnotationStyle(a.el, a);
+        markDirty();
     }
 
     // Create a new step of `type` placed neatly to the right of `source`,
@@ -1993,6 +2500,15 @@ const PM = (() => {
     }
 
     function deleteSelected() {
+        if (selectedAnnotationId != null) {
+            const a = getAnnotation(selectedAnnotationId);
+            if (a && a.el) a.el.remove();
+            annotations = annotations.filter(an => annotationRef(an) != selectedAnnotationId);
+            selectedAnnotationId = null;
+            closeDetail();
+            markDirty();
+            return;
+        }
         if (selectedLaneId) {
             deleteSelectedLane();
             return;
@@ -2048,6 +2564,9 @@ const PM = (() => {
         canvas.querySelectorAll('.pm-lane').forEach(el => {
             el.classList.toggle('selected', el.dataset.laneId == selectedLaneId);
         });
+        canvas.querySelectorAll('.pm-annotation').forEach(el => {
+            el.classList.toggle('selected', el.dataset.annId == selectedAnnotationId);
+        });
         renderConnectors();
     }
 
@@ -2068,6 +2587,7 @@ const PM = (() => {
         document.getElementById('detailType').value = step.type;
         document.getElementById('detailColor').value = step.color;
         document.getElementById('detailDescription').value = step.description || '';
+        document.getElementById('detailUrl').value = step.url || '';
         document.getElementById('detailX').value = step.x;
         document.getElementById('detailY').value = step.y;
         const useGrad = !!step.color2;
@@ -2104,9 +2624,12 @@ const PM = (() => {
         detailPanel.dataset.stepId = '';
         detailPanel.dataset.groupId = '';
         detailPanel.dataset.laneId = '';
+        detailPanel.dataset.annId = '';
         document.getElementById('detailBodyStep').style.display = '';
         document.getElementById('detailBodyGroup').style.display = 'none';
         document.getElementById('detailBodyLane').style.display = 'none';
+        const annBody = document.getElementById('detailBodyAnnotation');
+        if (annBody) annBody.style.display = 'none';
         document.getElementById('detailTitle').textContent = t('process-mapper.detail.step_title');
     }
 
@@ -2120,6 +2643,7 @@ const PM = (() => {
         step.type = document.getElementById('detailType').value;
         step.color = document.getElementById('detailColor').value;
         step.description = document.getElementById('detailDescription').value;
+        step.url = (document.getElementById('detailUrl').value || '').trim();
         step.x = snap(+document.getElementById('detailX').value || 0);
         step.y = snap(+document.getElementById('detailY').value || 0);
 
@@ -2241,6 +2765,9 @@ const PM = (() => {
         } else if (selectedLaneId) {
             const l = getLane(selectedLaneId);
             if (l) prevSelection = { type: 'lane', display_order: l.display_order };
+        } else if (selectedAnnotationId != null) {
+            const a = getAnnotation(selectedAnnotationId);
+            if (a) prevSelection = { type: 'annotation', x: a.x, y: a.y, width: a.width, height: a.height };
         }
 
         const title = processes.find(p => p.id == currentProcessId)?.title || 'Untitled';
@@ -2253,6 +2780,7 @@ const PM = (() => {
                 type: s.type,
                 label: s.label,
                 description: s.description,
+                url: s.url || null,
                 x: s.x,
                 y: s.y,
                 width: s.width,
@@ -2287,6 +2815,17 @@ const PM = (() => {
                 color2: l.color2 || null,
                 display_order: l.display_order,
                 height: l.height
+            })),
+            annotations: annotations.map(a => ({
+                id: a.id || null,
+                tempId: a.tempId || null,
+                text:   a.text || '',
+                x:      a.x,
+                y:      a.y,
+                width:  a.width,
+                height: a.height,
+                color:  a.color,
+                color2: a.color2 || null
             }))
         };
 
@@ -2359,6 +2898,18 @@ const PM = (() => {
                     } else {
                         closeDetail();
                     }
+                } else if (prevSelection.type === 'annotation') {
+                    const a = annotations.find(an =>
+                        an.x == prevSelection.x && an.y == prevSelection.y &&
+                        an.width == prevSelection.width && an.height == prevSelection.height
+                    );
+                    if (a) {
+                        selectedAnnotationId = annotationRef(a);
+                        showDetailForAnnotation(a);
+                        updateSelectionVisuals();
+                    } else {
+                        closeDetail();
+                    }
                 }
             }
 
@@ -2385,15 +2936,20 @@ const PM = (() => {
         canvas.querySelectorAll('.pm-step').forEach(el => el.remove());
         canvas.querySelectorAll('.pm-group').forEach(el => el.remove());
         canvas.querySelectorAll('.pm-lane').forEach(el => el.remove());
+        canvas.querySelectorAll('.pm-annotation').forEach(el => el.remove());
         svg.querySelectorAll('.pm-connector-group').forEach(g => g.remove());
         steps = [];
         connectors = [];
         groups = [];
         lanes = [];
+        annotations = [];
         selectedStepIds.clear();
         selectedConnectorId = null;
         selectedGroupId = null;
         selectedLaneId = null;
+        selectedAnnotationId = null;
+        // Drop the clipboard's visual cue if the cut step is on its way out.
+        if (stepClipboard && stepClipboard.mode === 'cut') stepClipboard = null;
         dirty = false;
     }
 
@@ -2753,6 +3309,7 @@ const PM = (() => {
         toggleAutosave,
         addGroup, updateGroupFromDetail,
         addLane, updateLaneFromDetail,
+        updateAnnotationFromDetail,
         openExportModal, closeExportModal, copyExport,
         showMermaid, exportToPng, exportToPdf
     };

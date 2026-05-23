@@ -434,13 +434,17 @@
 .pm-canvas.is-exporting .pm-selection-box,
 .pm-canvas.is-exporting .pm-temp-connector,
 .pm-canvas.is-exporting .pm-canvas-empty,
-.pm-canvas.is-exporting .pm-rename-input {
+.pm-canvas.is-exporting .pm-rename-input,
+.pm-canvas.is-exporting .pm-step-url-badge,
+.pm-canvas.is-exporting .pm-annotation-resize,
+.pm-canvas.is-exporting .pm-group-resize {
     display: none !important;
 }
 .pm-canvas.is-exporting .pm-step.selected,
 .pm-canvas.is-exporting .pm-group.selected,
-.pm-canvas.is-exporting .pm-lane.selected {
-    box-shadow: none !important;
+.pm-canvas.is-exporting .pm-lane.selected,
+.pm-canvas.is-exporting .pm-annotation.selected {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18) !important;
 }
 /* Print canvas to a flat white background so the dot-grid doesn't bleed
    into the export. */
@@ -596,6 +600,47 @@
     background: linear-gradient(135deg, transparent 0 50%, #0078d4 50% 70%, transparent 70%);
 }
 
+/* --- Annotations (sticky notes) ----------------------------- */
+.pm-annotation {
+    position: absolute;
+    background: #fff59d;     /* default sticky yellow — actual fill is set inline by JS */
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18), 0 1px 0 rgba(0, 0, 0, 0.08);
+    color: #333;
+    cursor: grab;
+    user-select: none;
+    z-index: 4;              /* above steps + connectors */
+    overflow: hidden;
+    transition: box-shadow 0.15s;
+}
+.pm-annotation:active { cursor: grabbing; }
+.pm-annotation.selected {
+    box-shadow: 0 0 0 2px #0078d4, 0 4px 12px rgba(0, 0, 0, 0.18);
+}
+.pm-annotation-body {
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    height: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+.pm-annotation-resize {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 12px;
+    height: 12px;
+    cursor: nwse-resize;
+    background: linear-gradient(135deg, transparent 0 50%, rgba(0,0,0,0.25) 50% 70%, transparent 70%);
+}
+.pm-annotation.selected .pm-annotation-resize {
+    background: linear-gradient(135deg, transparent 0 50%, #0078d4 50% 70%, transparent 70%);
+}
+
 /* --- SVG connector layer ----------------------------------- */
 .pm-connectors-svg {
     position: absolute;
@@ -669,6 +714,36 @@
 .pm-step.selected {
     box-shadow: 0 0 0 3px #0078d4, 0 2px 8px rgba(0,0,0,0.15);
     z-index: 3;
+}
+
+/* Cut step — visually marked so the user can see what's on the clipboard.
+   Paste removes the step entirely; Escape un-cuts it. */
+.pm-step.is-cut {
+    opacity: 0.4;
+}
+
+/* URL badge — small chain-link icon in the top-right of a step that has a
+   URL set. Click opens in a new tab; mousedown/click is stopped from
+   bubbling so it doesn't kick off a step drag. */
+.pm-step-url-badge {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.25);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    z-index: 5;
+    transition: background 0.15s;
+    cursor: pointer;
+}
+.pm-step-url-badge:hover {
+    background: rgba(0, 0, 0, 0.5);
 }
 
 /* Canvas-step label padding per shape. Geometry (border-radius / clip-path)
@@ -950,8 +1025,25 @@
     pointer-events: none;
 }
 
-/* Hidden by default — JS toggles to reveal once formatting is copied. */
+/* Hidden by default — JS toggles to reveal once formatting is copied or the
+   step clipboard has content. */
 .pm-ctx-item.pm-ctx-hidden { display: none; }
+
+/* Disabled menu item — greyed and unclickable. Used for "Reverse connection"
+   and "Delete all connections" on a step with no connectors. */
+.pm-ctx-item.pm-ctx-disabled {
+    color: #b0b0b0;
+    cursor: default;
+    opacity: 0.65;
+}
+.pm-ctx-item.pm-ctx-disabled:hover { background: none; }
+.pm-ctx-item.pm-ctx-disabled .pm-ctx-arrow { color: #d0d0d0; }
+.pm-ctx-item.pm-ctx-disabled:hover > .pm-ctx-submenu { display: none; }
+
+/* Destructive action — red text so Delete jumps out from the rest of the menu. */
+.pm-ctx-item.pm-ctx-danger { color: #c62828; }
+.pm-ctx-item.pm-ctx-danger:hover { background: #fdf3f3; }
+.pm-ctx-item.pm-ctx-danger svg  { color: #c62828; }
 
 /* Click-to-connect mode: tell the user the canvas wants a click target
    by switching the cursor to a crosshair. The class is set on the

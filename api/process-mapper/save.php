@@ -22,6 +22,7 @@ $steps  = $input['steps'] ?? [];
 $conns  = $input['connectors'] ?? [];
 $groups = $input['groups'] ?? [];
 $lanes  = $input['lanes']  ?? [];
+$annotations = $input['annotations'] ?? [];
 
 if (empty($title)) {
     echo json_encode(['success' => false, 'error' => 'Title is required']);
@@ -49,6 +50,9 @@ try {
     $conn->prepare("DELETE FROM process_steps WHERE process_id = ?")->execute([$id]);
     $conn->prepare("DELETE FROM process_groups WHERE process_id = ?")->execute([$id]);
     $conn->prepare("DELETE FROM process_lanes WHERE process_id = ?")->execute([$id]);
+    // process_annotations shipped in #334 — defensive try/catch so older installs
+    // that haven't run db_verify don't take a hard fail when saving.
+    try { $conn->prepare("DELETE FROM process_annotations WHERE process_id = ?")->execute([$id]); } catch (Exception $e) {}
 
     // Insert lanes first so we can map old IDs/tempIds -> new real IDs for step.lane_id.
     $laneIdMap = [];
@@ -91,12 +95,14 @@ try {
     // Map old step IDs/tempIds to new real IDs. Steps reference lanes via lane_id
     // and groups via group_id; both refs are translated through the maps above.
     $idMap = [];
-    $stepInsert = $conn->prepare("INSERT INTO process_steps (process_id, type, label, description, x, y, width, height, color, color2, lane_id, group_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stepInsert = $conn->prepare("INSERT INTO process_steps (process_id, type, label, description, url, x, y, width, height, color, color2, lane_id, group_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     foreach ($steps as $i => $s) {
         $oldId = $s['id'] ?? ($s['tempId'] ?? $i);
         $color2 = $s['color2'] ?? null;
         if ($color2 === '') $color2 = null;
+        $url = $s['url'] ?? null;
+        if ($url === '') $url = null;
         $laneRef = $s['lane_id'] ?? null;
         $laneId = ($laneRef !== null && isset($laneIdMap[$laneRef])) ? $laneIdMap[$laneRef] : null;
         $groupRef = $s['group_id'] ?? null;
@@ -106,6 +112,7 @@ try {
             $s['type'] ?? 'process',
             $s['label'] ?? '',
             $s['description'] ?? '',
+            $url,
             (int)($s['x'] ?? 0),
             (int)($s['y'] ?? 0),
             (int)($s['width'] ?? 160),
@@ -129,6 +136,26 @@ try {
             $connInsert->execute([$id, $fromNew, $toNew, $c['label'] ?? '']);
         }
     }
+
+    // Insert annotations (sticky notes). Defensive try/catch so older installs
+    // that haven't run db_verify still save the rest of the diagram.
+    try {
+        $annInsert = $conn->prepare("INSERT INTO process_annotations (process_id, text, x, y, width, height, color, color2) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        foreach ($annotations as $a) {
+            $aColor2 = $a['color2'] ?? null;
+            if ($aColor2 === '') $aColor2 = null;
+            $annInsert->execute([
+                $id,
+                $a['text'] ?? '',
+                (int)($a['x'] ?? 0),
+                (int)($a['y'] ?? 0),
+                (int)($a['width']  ?? 180),
+                (int)($a['height'] ?? 100),
+                $a['color'] ?? '#fff59d',
+                $aColor2,
+            ]);
+        }
+    } catch (Exception $e) {}
 
     $conn->commit();
     echo json_encode(['success' => true, 'id' => $id]);
