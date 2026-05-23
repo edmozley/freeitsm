@@ -746,6 +746,23 @@
     background: rgba(0, 0, 0, 0.5);
 }
 
+/* URL badge positioning per shape. The default top:4px / right:4px lands the
+   badge at the bbox's top-right corner, which works for rectangular shapes.
+   For shapes whose visible area doesn't reach that corner the badge must be
+   pulled inward:
+     - diamond / hexagon / trapezoid / cloud use clip-path, which clips
+       descendants too — badge at the bbox corner is invisible
+     - circle / pill use border-radius — the badge isn't clipped, but it
+       hangs in transparent space outside the coloured fill, looking detached
+   Per-shape overrides put the badge in a spot that's reliably inside the
+   coloured region across the full range of default sizes. */
+.pm-step[data-shape="diamond"]   .pm-step-url-badge { top: 26%; right: 30%; }
+.pm-step[data-shape="hexagon"]   .pm-step-url-badge { top: 6px; right: 28%; }
+.pm-step[data-shape="trapezoid"] .pm-step-url-badge { top: 6px; right: 28%; }
+.pm-step[data-shape="cloud"]     .pm-step-url-badge { top: 18%; right: 22%; }
+.pm-step[data-shape="circle"]    .pm-step-url-badge { top: 14%; right: 18%; }
+.pm-step[data-shape="pill"]      .pm-step-url-badge { top: 6px;  right: 32px; }
+
 /* Canvas-step label padding per shape. Geometry (border-radius / clip-path)
    comes from the shared [data-shape="..."] block further down; here we tune
    *just the inner padding* so the step's label sits clear of clipped corners,
