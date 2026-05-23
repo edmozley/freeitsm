@@ -33,7 +33,7 @@ $shapes = include '../includes/shapes.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('process-mapper.title') . ' — ' . t('process-mapper.nav.settings')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
-    <link rel="stylesheet" href="../../assets/css/process-mapper.css?v=9">
+    <link rel="stylesheet" href="../../assets/css/process-mapper.css?v=10">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
     <script src="../../assets/js/toast.js"></script>

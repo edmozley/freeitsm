@@ -46,6 +46,21 @@
 .pm-layout.sidebar-hover .pm-sidebar:hover {
     width: 260px;
 }
+/* When collapsed, fade out the sidebar's children (the "+ New" button, the
+   search box, the process list) so their left edges don't peek through the
+   16px hot-zone — without this you can see the start of each control and
+   it looks unfinished. On hover the children fade back in, slightly
+   delayed so they don't appear over a half-expanded strip. */
+.pm-layout.sidebar-hover .pm-sidebar > * {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease 0s;
+}
+.pm-layout.sidebar-hover .pm-sidebar:hover > * {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.08s;
+}
 /* A subtle vertical strip on the collapsed sidebar so users know it's
    hoverable. Fades out when the sidebar expands. */
 .pm-layout.sidebar-hover .pm-sidebar::before {
