@@ -1058,6 +1058,38 @@ $schema = [
         'is_builtin'     => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 
+    // Workflows module — automation engine with cross-module triggers.
+    // conditions and actions are JSON-in-TEXT so the rule shape can evolve
+    // without a schema migration each time the engine grows new operators
+    // or action kinds.
+    'workflows' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'name'              => 'VARCHAR(255) NOT NULL',
+        'description'       => 'TEXT NULL',
+        'trigger_event'     => 'VARCHAR(100) NOT NULL',
+        'conditions'        => 'TEXT NULL',
+        'actions'           => 'TEXT NOT NULL',
+        'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_by'        => 'INT NULL',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+        'last_run_datetime' => 'DATETIME NULL',
+        'last_run_status'   => 'VARCHAR(20) NULL',
+        'run_count'         => 'INT NOT NULL DEFAULT 0',
+    ],
+
+    'workflow_executions' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'workflow_id'       => 'INT NOT NULL',
+        'trigger_event'     => 'VARCHAR(100) NOT NULL',
+        'trigger_payload'   => 'TEXT NULL',
+        'status'            => 'VARCHAR(20) NOT NULL',
+        'started_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'finished_datetime' => 'DATETIME NULL',
+        'step_log'          => 'TEXT NULL',
+        'error_message'     => 'TEXT NULL',
+    ],
+
     'knowledge_articles' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'title'                 => 'VARCHAR(255) NOT NULL',

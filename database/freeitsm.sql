@@ -2150,6 +2150,48 @@ INSERT IGNORE INTO `process_step_types` (`name`, `slug`, `shape`, `color`, `disp
     ('Document', 'document', 'document', '#8764b8', 40, 1, 1);
 
 -- ----------------------------------------------------------
+-- Workflows
+-- ----------------------------------------------------------
+
+-- Trigger / condition / action engine, cross-module. Conditions and actions
+-- are stored as JSON in TEXT columns rather than normalised tables so the
+-- engine can evolve the shape of a rule (extra operators, new action kinds)
+-- without a schema migration each time.
+CREATE TABLE IF NOT EXISTS `workflows` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(255) NOT NULL,
+    `description`       TEXT NULL,
+    `trigger_event`     VARCHAR(100) NOT NULL,
+    `conditions`        TEXT NULL,                    -- JSON array of {field, op, value}
+    `actions`           TEXT NOT NULL,                -- JSON array of {type, args}
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_by`        INT NULL,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `last_run_datetime` DATETIME NULL,
+    `last_run_status`   VARCHAR(20) NULL,             -- 'success' | 'failed' | 'skipped'
+    `run_count`         INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (`id`),
+    KEY `idx_workflows_trigger` (`trigger_event`),
+    KEY `idx_workflows_active` (`is_active`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `workflow_executions` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `workflow_id`       INT NOT NULL,
+    `trigger_event`     VARCHAR(100) NOT NULL,
+    `trigger_payload`   TEXT NULL,                    -- JSON snapshot of the event payload
+    `status`            VARCHAR(20) NOT NULL,         -- 'running' | 'success' | 'failed' | 'skipped'
+    `started_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `finished_datetime` DATETIME NULL,
+    `step_log`          TEXT NULL,                    -- JSON array of per-step results
+    `error_message`     TEXT NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_we_workflow` (`workflow_id`),
+    KEY `idx_we_started` (`started_datetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
 -- System
 -- ----------------------------------------------------------
 

@@ -1,0 +1,60 @@
+/* =============================================================
+   Workflows Module Styles
+   -------------------------------------------------------------
+   Theme colour: amber #f59e0b (associative with automation tools
+   like Zapier / n8n / Make).
+   ============================================================= */
+
+/* Header — equal-width centred nav buttons, same pattern as
+   reporting-header / process-mapper-header. */
+.workflow-header .header-nav {
+    flex: 1;
+    justify-content: center;
+    margin-left: 0;
+}
+.workflow-header .header-nav .nav-btn {
+    min-width: 140px;
+    justify-content: center;
+}
+
+/* Module tint — currently applied subtly. As more workflow-specific
+   visuals land (canvas builder, status pills, etc.) the amber tint
+   becomes more prominent. */
+
+/* --- Editor rows ------------------------------------------- */
+/* A single condition or action row inside the editor form. Each row is
+   a horizontal flex line of selects + inputs + a remove button. */
+.wf-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 6px;
+}
+.wf-row select,
+.wf-row input[type="text"] {
+    padding: 8px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+    background: white;
+}
+.wf-row select { flex: 0 0 auto; min-width: 140px; }
+.wf-row input[type="text"] { flex: 1; }
+.wf-row .table-action-btn { flex: 0 0 auto; font-size: 18px; line-height: 1; }
+.wf-row select:focus,
+.wf-row input[type="text"]:focus {
+    outline: none;
+    border-color: #f59e0b;
+}
+
+/* --- Right-side runs panel in the editor ------------------- */
+.wf-runs {
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    padding: 14px 16px;
+    align-self: start;
+    /* Sticky so the runs panel stays in view as the form grows. */
+    position: sticky;
+    top: 16px;
+}

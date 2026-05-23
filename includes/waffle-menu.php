@@ -130,6 +130,11 @@ $modules = [
         'path' => 'network-mapper/',
         'icon' => '<circle cx="6" cy="6" r="2.5"></circle><circle cx="18" cy="6" r="2.5"></circle><circle cx="12" cy="18" r="2.5"></circle><line x1="7.5" y1="7.5" x2="11" y2="16"></line><line x1="16.5" y1="7.5" x2="13" y2="16"></line><line x1="8.5" y1="6" x2="15.5" y2="6"></line>'
     ],
+    'workflow' => [
+        'name' => t('common.modules.workflow.name'),
+        'path' => 'workflow/',
+        'icon' => '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline><circle cx="6" cy="12" r="2"></circle><circle cx="18" cy="12" r="2"></circle>'
+    ],
     'system' => [
         'name' => t('common.modules.system.name'),
         'path' => 'system/',

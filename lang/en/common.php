@@ -82,6 +82,7 @@ return [
         'tasks'          => ['name' => 'Tasks',       'description' => 'Kanban board and list view for tracking tasks'],
         'cmdb'           => ['name' => 'CMDB',        'description' => 'Configuration Management Database'],
         'network-mapper' => ['name' => 'Network',     'description' => 'Design and document network diagrams'],
+        'workflow'       => ['name' => 'Workflows',   'description' => 'Cross-module automation — triggers, conditions, actions'],
         'system'         => ['name' => 'System',      'description' => 'System administration and configuration'],
     ],
 
