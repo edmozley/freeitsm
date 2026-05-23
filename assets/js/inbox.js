@@ -3162,12 +3162,13 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
 
     document.getElementById('ticketContextMenuHeader').textContent = ctxTargetTicketRef;
 
-    // Populate the Set-status + Set-priority submenus from their lookups.
-    // Rebuilt each time so newly-added entries appear without a page refresh,
-    // and so the current value gets a tick when right-clicking the ticket
-    // that's already open in the reading pane.
+    // Populate the Set-status / Set-priority / Assign-to submenus from
+    // their lookups. Rebuilt each time so newly-added entries appear
+    // without a page refresh, and so the current value gets a tick when
+    // right-clicking the ticket that's already open in the reading pane.
     populateContextStatusSubmenu();
     populateContextPrioritySubmenu();
+    populateContextAssigneeSubmenu();
 
     // Position at cursor — flip if it would overflow the viewport
     menu.classList.add('active');
@@ -3283,6 +3284,87 @@ async function setPriorityFromContext(priorityId) {
     } catch (error) {
         console.error('Error setting priority from context:', error);
         alert('Failed to set priority');
+    }
+}
+
+// Build the Assign-to submenu HTML from the loaded analysts list. Picking
+// an analyst sets both assigned_analyst_id and owner_id (mirrors the
+// drag-to-analyst-folder behaviour in assign_ticket.php). The first row
+// is an "Unassigned" option that clears both fields.
+function populateContextAssigneeSubmenu() {
+    const sub = document.getElementById('ctxAssigneeSubmenu');
+    if (!sub) return;
+    if (!analysts.length) {
+        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">No analysts loaded</div>';
+        return;
+    }
+    // Use owner_id as the "currently assigned" indicator since drag-to-folder
+    // keeps owner_id and assigned_analyst_id in sync; the in-panel Owner
+    // dropdown is also the canonical assignment view.
+    const currentOwnerId = (currentEmail && currentEmail.ticket_id == ctxTargetTicketId)
+        ? (currentEmail.owner_id ?? null)
+        : undefined;
+    const clearRow = `<div class="ticket-context-submenu-item" data-analyst-id="" onclick="setAssigneeFromContext('')">
+        <span class="ctx-status-swatch" style="background: transparent; border-style: dashed;"></span>
+        <span class="ctx-status-name" style="color:#888; font-style: italic;">(unassigned)</span>
+        ${(currentOwnerId === null) ? '<span class="ctx-status-check">&#10003;</span>' : ''}
+    </div>`;
+    sub.innerHTML = clearRow + analysts.map(a => {
+        const isCurrent = (currentOwnerId != null && a.id == currentOwnerId);
+        // Use the first letter of the name as a colourless initial chip — keeps
+        // the row visually aligned with status / priority swatches without
+        // inventing a colour per analyst.
+        const initial = (a.full_name || '').charAt(0).toUpperCase() || '?';
+        const initialChip = `<span class="ctx-status-swatch" style="background:#e5e7eb; color:#374151; font-size:9px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; border:none;">${escapeHtml(initial)}</span>`;
+        return `<div class="ticket-context-submenu-item" data-analyst-id="${a.id}" onclick="setAssigneeFromContext(${a.id})">
+            ${initialChip}<span class="ctx-status-name">${escapeHtml(a.full_name)}</span>${isCurrent ? '<span class="ctx-status-check">&#10003;</span>' : ''}
+        </div>`;
+    }).join('');
+}
+
+// Set a ticket's assignee from the right-click menu. Empty string = unassign.
+// Sends assigned_analyst_id to assign_ticket.php, which sets both
+// assigned_analyst_id and owner_id (same behaviour as drag-to-folder).
+async function setAssigneeFromContext(analystId) {
+    closeTicketContextMenu();
+    if (!ctxTargetTicketId) return;
+    const targetId = ctxTargetTicketId;
+    const newRow   = analystId !== '' ? analysts.find(a => a.id == analystId) : null;
+    const newLabel = newRow ? newRow.full_name : '';
+    try {
+        const response = await fetch(API_BASE + 'assign_ticket.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ticket_id: targetId,
+                assigned_analyst_id: analystId === '' ? null : analystId
+            })
+        });
+        const data = await response.json();
+        if (!data.success) {
+            alert('Error assigning ticket: ' + (data.error || 'unknown'));
+            return;
+        }
+        try {
+            const oldRow   = (currentEmail && currentEmail.ticket_id == targetId)
+                ? analysts.find(a => a.id == currentEmail.owner_id)
+                : null;
+            const oldLabel = oldRow ? oldRow.full_name : '';
+            await logAudit(targetId, 'Owner', oldLabel, newLabel);
+        } catch (e) { /* audit best-effort */ }
+        // Keep the open ticket's toolbar in sync when it's the same one.
+        if (currentEmail && currentEmail.ticket_id == targetId) {
+            currentEmail.owner_id = analystId === '' ? null : Number(analystId);
+            currentEmail.assigned_analyst_id = analystId === '' ? null : Number(analystId);
+            const sel = document.getElementById('ownerSelect');
+            if (sel) sel.value = analystId === '' ? '' : String(analystId);
+            updatePropertiesSummary();
+        }
+        loadFolderCounts();
+        loadEmails();
+    } catch (error) {
+        console.error('Error assigning ticket from context:', error);
+        alert('Failed to assign ticket');
     }
 }
 
