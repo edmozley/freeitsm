@@ -42,7 +42,7 @@ foreach (array_keys($triggers) as $t) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($id ? t('workflow.editor.edit_title') : t('workflow.editor.new_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/workflow.css?v=2">
+    <link rel="stylesheet" href="../assets/css/workflow.css?v=3">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/toast.js"></script>
@@ -66,6 +66,11 @@ foreach (array_keys($triggers) as $t) {
                 <button class="wf-tool-btn" onclick="WFE.addAction()">
                     <svg width="16" height="16" viewBox="0 0 18 18"><rect x="1" y="3" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>
                     <span><?php echo htmlspecialchars(t('workflow.editor.add_action')); ?></span>
+                </button>
+                <div class="wf-tool-sep"></div>
+                <button class="wf-tool-btn wf-tool-ai" onclick="WFE.openAiModal()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.7 4.6L18 8l-4.3 1.4L12 14l-1.7-4.6L6 8l4.3-1.4z"/><path d="M5 16l0.9 2.3L8 19l-2.1 0.7L5 22l-0.9-2.3L2 19l2.1-0.7z"/><path d="M19 14l0.9 2.3L22 17l-2.1 0.7L19 20l-0.9-2.3L16 17l2.1-0.7z"/></svg>
+                    <span><?php echo htmlspecialchars(t('workflow.ai.btn')); ?></span>
                 </button>
             </div>
             <div class="wf-toolbar-right">
@@ -179,6 +184,59 @@ foreach (array_keys($triggers) as $t) {
         </div>
     </div>
 
+    <!-- AI co-author modal — opened from the toolbar button -->
+    <div class="modal" id="wfAiModal">
+        <div class="modal-content wf-ai-modal">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span class="wf-ai-spark" aria-hidden="true">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="#f59e0b" stroke="none"><path d="M12 2l1.7 4.6L18 8l-4.3 1.4L12 14l-1.7-4.6L6 8l4.3-1.4z"/></svg>
+                    </span>
+                    <span><?php echo htmlspecialchars(t('workflow.ai.modal_title')); ?></span>
+                </div>
+            </div>
+            <div style="padding: 22px 26px; overflow-y: auto;">
+                <p style="margin: 0 0 16px; color: #555; line-height: 1.55;"><?php echo htmlspecialchars(t('workflow.ai.intro')); ?></p>
+
+                <div class="form-group">
+                    <label for="wfAiPrompt"><?php echo htmlspecialchars(t('workflow.ai.prompt_label')); ?></label>
+                    <textarea id="wfAiPrompt" rows="4" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('workflow.ai.prompt_placeholder')); ?>" style="width:100%; padding:10px 12px; border:1px solid #ddd; border-radius:5px; font-family: inherit; font-size: 14px; resize: vertical; box-sizing: border-box;"></textarea>
+                    <small id="wfAiIterateHint" style="display: none; color: #6b7280; margin-top: 6px;"><?php echo htmlspecialchars(t('workflow.ai.iterate_hint')); ?></small>
+                </div>
+
+                <p style="font-size: 12px; color: #92400e; background: #fef3c7; padding: 8px 12px; border-radius: 4px; margin: 0 0 16px;">
+                    <?php echo htmlspecialchars(t('workflow.ai.only_log_message')); ?>
+                </p>
+
+                <!-- Result region — populated after a successful Generate. -->
+                <div id="wfAiResult" style="display: none;">
+                    <hr style="margin: 14px 0; border: none; border-top: 1px solid #e0e0e0;">
+
+                    <div class="form-group">
+                        <label><?php echo htmlspecialchars(t('workflow.ai.explanation_label')); ?></label>
+                        <div id="wfAiExplanation" style="padding: 12px 14px; background: #f8fafc; border-left: 3px solid #f59e0b; border-radius: 4px; font-size: 13px; line-height: 1.5; color: #374151;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label><?php echo htmlspecialchars(t('workflow.ai.preview_label')); ?></label>
+                        <div id="wfAiPreview" style="font-size: 13px; color: #374151;"></div>
+                    </div>
+
+                    <div id="wfAiWarnings" style="display: none;" class="form-group">
+                        <label><?php echo htmlspecialchars(t('workflow.ai.warnings_label')); ?></label>
+                        <ul id="wfAiWarningsList" style="font-size: 12px; color: #92400e; background: #fef9c3; padding: 8px 12px 8px 28px; border-radius: 4px; margin: 0;"></ul>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions" style="padding: 14px 26px; border-top: 1px solid #eee;">
+                <button type="button" class="btn btn-secondary" onclick="WFE.closeAiModal()"><?php echo htmlspecialchars(t('workflow.ai.close')); ?></button>
+                <button type="button" class="btn btn-secondary" id="wfAiDiscardBtn" style="display: none;" onclick="WFE.aiDiscard()"><?php echo htmlspecialchars(t('workflow.ai.discard')); ?></button>
+                <button type="button" class="btn btn-primary wf-ai-primary" id="wfAiGenerateBtn" onclick="WFE.aiGenerate()"><?php echo htmlspecialchars(t('workflow.ai.generate')); ?></button>
+                <button type="button" class="btn btn-primary wf-ai-primary" id="wfAiApplyBtn" style="display: none;" onclick="WFE.aiApply()"><?php echo htmlspecialchars(t('workflow.ai.apply')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Catalogues from the engine, exported for the editor.
         window.WF_TRIGGERS       = <?php echo json_encode($triggers); ?>;
@@ -188,6 +246,6 @@ foreach (array_keys($triggers) as $t) {
         window.WF_ID             = <?php echo (int)$id; ?>;
         window.WF_API            = '../api/workflow/';
     </script>
-    <script src="../assets/js/workflow-editor.js?v=1"></script>
+    <script src="../assets/js/workflow-editor.js?v=2"></script>
 </body>
 </html>

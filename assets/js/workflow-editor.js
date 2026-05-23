@@ -690,6 +690,194 @@ const WFE = (() => {
         return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
     }
 
+    // =========================================================
+    //  AI co-author (Stage 3)
+    //  -----------------------------------------------------------------
+    //  The toolbar's AI button opens a modal. The user describes the
+    //  workflow they want; we send the prompt + current state to
+    //  api/workflow/ai_compose.php which returns a structured proposal.
+    //  Apply replaces the canvas with the proposed nodes (preserving
+    //  workflow id + active flag so a save round-trip still works).
+    // =========================================================
+    let aiProposal = null;   // last successful proposal from the API
+
+    function openAiModal() {
+        const modal = document.getElementById('wfAiModal');
+        if (!modal) return;
+        // Reset state on each open so a previous proposal doesn't linger.
+        aiProposal = null;
+        document.getElementById('wfAiResult').style.display = 'none';
+        document.getElementById('wfAiGenerateBtn').style.display = '';
+        document.getElementById('wfAiApplyBtn').style.display = 'none';
+        document.getElementById('wfAiDiscardBtn').style.display = 'none';
+        document.getElementById('wfAiPrompt').value = '';
+        // Iterate hint surfaces only when there's already content on the canvas.
+        const hasContent = nodes.some(n => n.kind === 'condition' || n.kind === 'action');
+        document.getElementById('wfAiIterateHint').style.display = hasContent ? '' : 'none';
+        modal.classList.add('active');
+        setTimeout(() => document.getElementById('wfAiPrompt').focus(), 80);
+    }
+    function closeAiModal() {
+        const modal = document.getElementById('wfAiModal');
+        if (modal) modal.classList.remove('active');
+    }
+
+    async function aiGenerate() {
+        const prompt = document.getElementById('wfAiPrompt').value.trim();
+        if (!prompt) return;
+        const btn = document.getElementById('wfAiGenerateBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="wf-status-dot" style="margin-right:6px;"></span>' + window.t('workflow.ai.thinking');
+
+        // Snapshot the current workflow state so the AI can iterate on it.
+        const existing = collectWorkflowForApi(/* dropPositions */ true);
+
+        try {
+            const r = await fetch(window.WF_API + 'ai_compose.php', {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt, existing }),
+            });
+            const d = await r.json();
+            if (!d.success) {
+                window.showToast(window.t('workflow.toast.ai_failed').replace('%s', d.error || ''), 'error');
+                return;
+            }
+            aiProposal = d;
+            renderAiResult(d);
+        } catch (e) {
+            window.showToast(window.t('workflow.toast.ai_failed').replace('%s', e.message || ''), 'error');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = window.t('workflow.ai.generate');
+        }
+    }
+
+    // Build a payload that mirrors what save.php expects, with optional
+    // `dropPositions` to omit the x/y the canvas tracks — the AI doesn't
+    // need to see those.
+    function collectWorkflowForApi(dropPositions) {
+        const conditions = nodes.filter(n => n.kind === 'condition')
+            .slice().sort((a, b) => a.y - b.y)
+            .map(n => {
+                const o = { field: n.field, op: n.op, value: n.value };
+                if (!dropPositions) { o.x = n.x; o.y = n.y; }
+                return o;
+            });
+        const actions = nodes.filter(n => n.kind === 'action')
+            .slice().sort((a, b) => a.y - b.y)
+            .map(n => {
+                const o = { type: n.type, args: n.args || {} };
+                if (!dropPositions) { o.x = n.x; o.y = n.y; }
+                return o;
+            });
+        return {
+            name: workflow.name,
+            description: workflow.description,
+            trigger_event: triggerEvent,
+            conditions, actions,
+        };
+    }
+
+    function renderAiResult(d) {
+        const escHtml = s => {
+            const el = document.createElement('div');
+            el.textContent = s == null ? '' : String(s);
+            return el.innerHTML;
+        };
+        document.getElementById('wfAiResult').style.display = '';
+        document.getElementById('wfAiGenerateBtn').style.display = 'none';
+        document.getElementById('wfAiApplyBtn').style.display = '';
+        document.getElementById('wfAiDiscardBtn').style.display = '';
+
+        document.getElementById('wfAiExplanation').textContent = d.explanation || '(no explanation given)';
+
+        // Build a compact preview of the proposed workflow.
+        const w = d.workflow || {};
+        const trigLabel = window.WF_TRIGGERS[w.trigger_event] || w.trigger_event || '?';
+        const parts = [];
+        parts.push('<div style="padding: 6px 10px; background: #fef3c7; border-radius: 4px; margin-bottom: 6px;"><strong>Trigger:</strong> ' + escHtml(trigLabel) + '</div>');
+        (w.conditions || []).forEach((c, i) => {
+            const op = window.WF_OPS[c.op] || c.op;
+            parts.push('<div style="padding: 6px 10px; background: #ffedd5; border-radius: 4px; margin-bottom: 6px;"><strong>If</strong> ' + escHtml(c.field) + ' <em style="color:#888;">' + escHtml(op) + '</em> ' + escHtml(c.value) + '</div>');
+        });
+        (w.actions || []).forEach((a, i) => {
+            const def = window.WF_ACTION_DEFS[a.type];
+            const label = def ? def.label : a.type;
+            const args = JSON.stringify(a.args || {});
+            parts.push('<div style="padding: 6px 10px; background: #dbeafe; border-radius: 4px; margin-bottom: 6px;"><strong>' + escHtml(label) + '</strong>: <code style="font-size: 11.5px;">' + escHtml(args) + '</code></div>');
+        });
+        if (w.name) {
+            parts.unshift('<div style="margin-bottom: 8px;"><strong>' + escHtml(w.name) + '</strong>' + (w.description ? ' <span style="color:#777;">— ' + escHtml(w.description) + '</span>' : '') + '</div>');
+        }
+        document.getElementById('wfAiPreview').innerHTML = parts.join('');
+
+        // Warnings — only shown when the server validated-down the proposal.
+        const wb = document.getElementById('wfAiWarnings');
+        const wl = document.getElementById('wfAiWarningsList');
+        if (d.warnings && d.warnings.length) {
+            wb.style.display = '';
+            wl.innerHTML = d.warnings.map(w => '<li>' + escHtml(w) + '</li>').join('');
+        } else {
+            wb.style.display = 'none';
+        }
+    }
+
+    function aiDiscard() {
+        aiProposal = null;
+        // Reset back to the prompt view so the user can try again.
+        document.getElementById('wfAiResult').style.display = 'none';
+        document.getElementById('wfAiGenerateBtn').style.display = '';
+        document.getElementById('wfAiApplyBtn').style.display = 'none';
+        document.getElementById('wfAiDiscardBtn').style.display = 'none';
+        document.getElementById('wfAiPrompt').focus();
+    }
+
+    function aiApply() {
+        if (!aiProposal) return;
+        const w = aiProposal.workflow;
+        if (!w) return;
+
+        // Carry over the workflow's id + active flag — the AI owns the rule
+        // shape, not the identity / state.
+        const keepId       = workflow.id;
+        const keepActive   = workflow.isActive;
+        workflow.name        = w.name || workflow.name;
+        workflow.description = w.description || workflow.description;
+        workflow.id          = keepId;
+        workflow.isActive    = keepActive;
+        triggerEvent         = w.trigger_event;
+
+        // Replace nodes with the proposal — same auto-layout as a fresh load
+        // (trigger pinned, conditions then actions stacked vertically).
+        nodes = [];
+        addTriggerNode();
+        let nextY = TRIGGER_POS.y + SIZE.trigger.h + ROW_GAP;
+        (w.conditions || []).forEach(c => {
+            addConditionNode(COL_X, nextY, c.field || '', c.op || 'equals', c.value ?? '');
+            nextY += SIZE.condition.h + ROW_GAP;
+        });
+        const lowestCondY = nodes
+            .filter(n => n.kind === 'condition')
+            .reduce((m, n) => Math.max(m, n.y + SIZE.condition.h), TRIGGER_POS.y + SIZE.trigger.h);
+        nextY = lowestCondY + ROW_GAP;
+        (w.actions || []).forEach(a => {
+            addActionNode(COL_X, nextY, a.type || 'log_message', a.args || {});
+            nextY += SIZE.action.h + ROW_GAP;
+        });
+
+        // Reflect into the workflow detail panel.
+        document.getElementById('wfName').value = workflow.name;
+        document.getElementById('wfDescription').value = workflow.description;
+
+        renderAll();
+        selectWorkflow();
+        markDirty();
+        closeAiModal();
+        window.showToast(window.t('workflow.toast.ai_applied'), 'success');
+    }
+
     document.addEventListener('DOMContentLoaded', init);
 
     // Public API used by the editor.php inline handlers and toolbar.
@@ -700,6 +888,8 @@ const WFE = (() => {
         updateConditionFromDetail,
         updateActionTypeFromDetail,
         updateActionArgsFromDetail,
+        // AI co-author
+        openAiModal, closeAiModal, aiGenerate, aiApply, aiDiscard,
     };
 })();
 

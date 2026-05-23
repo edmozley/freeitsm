@@ -311,3 +311,52 @@
     background: #fdf3f3;
     border-color: #c62828;
 }
+
+/* =============================================================
+   AI co-author modal + toolbar button
+   ============================================================= */
+
+/* Toolbar AI button — amber-tinted so it stands out as the "magic" action. */
+.wf-tool-btn.wf-tool-ai {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #b45309;
+}
+.wf-tool-btn.wf-tool-ai:hover {
+    background: #ffedd5;
+    border-color: #fdba74;
+    color: #92400e;
+}
+.wf-tool-btn.wf-tool-ai svg { color: #f59e0b; }
+
+/* Modal content override — wider than the default tickets-settings modal
+   because the AI result panel is content-heavy (explanation + preview +
+   warnings). Also caps the height so long proposals scroll within the modal. */
+.wf-ai-modal {
+    max-width: 680px;
+    width: 90%;
+    max-height: 86vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Amber primary buttons for the AI flow so they stand out from the
+   blue .btn-primary used elsewhere. */
+.btn.wf-ai-primary {
+    background: #f59e0b;
+    border-color: #f59e0b;
+    color: #fff;
+}
+.btn.wf-ai-primary:hover {
+    background: #d97706;
+    border-color: #d97706;
+}
+
+/* Sparkle icon next to the modal title gets a gentle bob so it reads as
+   "interactive / live". */
+.wf-ai-spark { display: inline-flex; }
+.wf-ai-spark svg { animation: wf-spark 2.4s ease-in-out infinite; }
+@keyframes wf-spark {
+    0%, 100% { transform: rotate(-4deg) scale(1); }
+    50%      { transform: rotate(4deg)  scale(1.08); }
+}

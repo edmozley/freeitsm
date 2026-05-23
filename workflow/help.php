@@ -23,7 +23,7 @@ $path_prefix = '../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('workflow.help.page_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/workflow.css?v=2">
+    <link rel="stylesheet" href="../assets/css/workflow.css?v=3">
     <style>
         body { overflow: auto; height: auto; }
         .container { max-width: 880px; }
@@ -52,14 +52,18 @@ $path_prefix = '../';
             </ul>
 
             <h3>What's in this release</h3>
-            <p>This is the engine foundation. The available action in v1 is <code>log_message</code>, which writes to the workflow's execution log — useful as a placeholder while you scaffold a rule, and as a way to verify the engine is firing as expected via the <strong>Test fire</strong> button in the editor.</p>
-            <p>Trigger wiring from host modules (Tickets, Forms, Tasks, Changes&hellip;) is being added in subsequent commits. The trigger dropdown lists every catalogued event, but only a subset will actually fire today — synthetic <strong>Test fire</strong> lets you verify the engine without waiting on a host module.</p>
+            <ul>
+                <li><strong>Visual canvas editor</strong> — drag trigger / condition / action nodes on a snap-to-grid canvas; arrows are auto-routed in execution order. Position IS the order — drag a condition above another to reorder.</li>
+                <li><strong>AI co-author</strong> — click the <em>AI co-author</em> button on the toolbar, describe what you want in plain English, and Claude scaffolds the workflow on the canvas. You can iterate ("make it only match Finance" / "add an action to log the ticket id too") and the AI edits what's already there. Requires an Anthropic API key configured under <strong>CMDB &rarr; Settings &rarr; AI Integration</strong> (the workflow co-author reuses that key for now).</li>
+                <li><strong>Test fire</strong> — synthetic-payload run that exercises the engine end-to-end so you can verify a rule before host modules are wired up.</li>
+            </ul>
+            <p>The single available action handler is <code>log_message</code>, which writes a message to the workflow's execution log — useful as a placeholder while you scaffold rules, and what the AI co-author leans on as a stand-in for unimplemented actions like "send email". Trigger wiring from host modules (Tickets, Forms, Tasks, Changes&hellip;) is being added in subsequent commits — the trigger dropdown lists every catalogued event, but only a subset will actually fire today.</p>
 
             <h3>Coming next</h3>
             <ul>
-                <li><strong>Visual canvas builder</strong> — drag triggers, conditions and actions on a snap-to-grid canvas, draw arrows between them. Reuses the Process Mapper / Network Mapper design language.</li>
-                <li><strong>AI co-author</strong> — describe the workflow you want in plain English, watch the canvas scaffold itself; iterate via chat.</li>
                 <li><strong>Real action handlers</strong> — set ticket status / priority, send email, create task, add user to AAD group (via the existing OAuth scaffolding from the mailbox integration), Teams message&hellip;</li>
+                <li><strong>Wire real triggers</strong> — every host module's save flow gets a one-line `dispatch()` call so the catalogued events actually fire.</li>
+                <li><strong>Streaming AI co-author</strong> — claude.ai-style live output as the canvas builds, instead of the current one-shot proposal.</li>
                 <li><strong>Dry-run mode</strong> — run a workflow against a real event but log the actions instead of executing them, so you can see what <em>would</em> have happened.</li>
                 <li><strong>Watchtower integration</strong> — failed runs surface as attention cards.</li>
                 <li><strong>Starter recipes</strong> — clonable templates for the common patterns: new-starter onboarding, P1 incident response, SLA breach escalation, license-renewal reminder.</li>

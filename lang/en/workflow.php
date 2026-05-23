@@ -87,6 +87,26 @@ return [
         'fire_failed'   => 'Test fire failed: %s',
         'name_required' => 'Name is required.',
         'actions_required' => 'At least one action is required.',
+        'ai_applied'    => 'AI proposal applied to the canvas. Tweak then save.',
+        'ai_failed'     => 'AI co-author failed: %s',
+    ],
+
+    'ai' => [
+        'btn'              => 'AI co-author',
+        'modal_title'      => 'AI co-author',
+        'intro'            => 'Describe the workflow you want and the AI will scaffold it on the canvas. You can keep going — say "now add a condition for…" and it iterates on what\'s there.',
+        'prompt_label'     => 'What should this workflow do?',
+        'prompt_placeholder' => 'e.g. When a P1 ticket from Finance is created, log a message saying "P1 finance ticket — alert team"',
+        'generate'         => 'Generate',
+        'thinking'         => 'Thinking…',
+        'apply'            => 'Apply to canvas',
+        'discard'          => 'Discard',
+        'close'            => 'Close',
+        'iterate_hint'     => 'Tip: when you have a workflow on the canvas, the AI iterates on it. Try "make it only match Finance, not all departments" or "add an action to log the ticket id too".',
+        'explanation_label' => 'What I built',
+        'preview_label'    => 'Proposed workflow',
+        'warnings_label'   => 'Notes',
+        'only_log_message' => 'Only the log_message action is implemented today; the AI will lean on it as a placeholder for unimplemented actions (e.g. "send email" → log_message documenting the intent).',
     ],
 
     'help' => [
