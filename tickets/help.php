@@ -452,20 +452,32 @@ $path_prefix = '../';
                 <span class="tk-help-nav-num">4</span>
                 Comments &amp; attachments
             </a>
-            <a href="#dashboard" class="tk-help-nav-link" data-section="dashboard">
+            <a href="#ai-tools" class="tk-help-nav-link" data-section="ai-tools">
                 <span class="tk-help-nav-num">5</span>
+                AI tools
+            </a>
+            <a href="#csat" class="tk-help-nav-link" data-section="csat">
+                <span class="tk-help-nav-num">6</span>
+                CSAT surveys
+            </a>
+            <a href="#user-management" class="tk-help-nav-link" data-section="user-management">
+                <span class="tk-help-nav-num">7</span>
+                User management
+            </a>
+            <a href="#dashboard" class="tk-help-nav-link" data-section="dashboard">
+                <span class="tk-help-nav-num">8</span>
                 Dashboard
             </a>
             <a href="#calendar-rota" class="tk-help-nav-link highlight" data-section="calendar-rota">
-                <span class="tk-help-nav-num highlight">6</span>
+                <span class="tk-help-nav-num highlight">9</span>
                 Calendar &amp; rota
             </a>
             <a href="#settings" class="tk-help-nav-link" data-section="settings">
-                <span class="tk-help-nav-num">7</span>
+                <span class="tk-help-nav-num">10</span>
                 Settings
             </a>
             <a href="#tips" class="tk-help-nav-link" data-section="tips">
-                <span class="tk-help-nav-num">8</span>
+                <span class="tk-help-nav-num">11</span>
                 Quick tips
             </a>
         </div>
@@ -644,12 +656,15 @@ $path_prefix = '../';
                     </div>
 
                     <p style="margin-top: 20px;"><strong>Right-click for quick actions</strong></p>
-                    <p>Right-click any ticket in the list to open a small context menu. The menu shows the ticket reference at the top so you know what you're acting on, and offers two actions that operate on the right-clicked ticket <em>without</em> changing what's currently open in the reading pane &mdash; useful when you're reading ticket A and need to log time / link CMDB objects against ticket B without losing your place.</p>
+                    <p>Right-click any ticket in the list to open a context menu. The menu shows the ticket reference at the top so you know what you're acting on, and every action operates on the right-clicked ticket <em>without</em> changing what's currently open in the reading pane &mdash; useful when you're reading ticket A and need to triage ticket B without losing your place.</p>
                     <div class="tk-help-fields">
+                        <div><strong>Set status &rarr;</strong> &mdash; flyout submenu listing every active status with its colour swatch. A tick appears next to the current value if you're right-clicking the ticket you've got open. Picks immediately update the ticket, write an audit-trail entry, refresh the folder counts, and sync the reading pane's Status dropdown if applicable.</div>
+                        <div><strong>Set priority &rarr;</strong> &mdash; same flyout pattern, sourced from the active priorities lookup with each one's colour as a swatch. The first row is a <em>(no priority)</em> option for clearing the assignment (priority is nullable).</div>
+                        <div><strong>Assign to &rarr;</strong> &mdash; submenu listing every loaded analyst with a grey initial chip, plus an <em>(unassigned)</em> row at the top to clear. Picks set both <code>assigned_analyst_id</code> AND <code>owner_id</code> so the reading pane's Owner field stays in sync.</div>
                         <div><strong>Link CMDB object&hellip;</strong> &mdash; opens a search-as-you-type picker. Click a result to link it, then keep picking &mdash; the input clears and refocuses for the next one, and a "Recently linked" log inside the modal shows your running list of green-tick confirmations.</div>
                         <div><strong>Record time&hellip;</strong> &mdash; opens a modal with minutes + a datetime picker (defaults to "now" so you can also backdate) + an optional notes box.</div>
                     </div>
-                    <p class="tk-help-tip">If the ticket you're acting on via the context menu happens to be the same one open in the reading pane, the relevant section there (CMDB objects or time entries) auto-refreshes when the modal closes, so the UI stays in sync.</p>
+                    <p class="tk-help-tip">If the ticket you're acting on via the context menu happens to be the same one open in the reading pane, the relevant section there (Status / Priority dropdowns, CMDB objects, time entries) auto-refreshes when the modal closes so the UI stays in sync.</p>
 
                     <p style="margin-top: 20px;"><strong>Recording time</strong></p>
                     <p>Time spent on a ticket is logged into a dedicated <strong>Time Entries</strong> section in the reading pane, sitting between the linked CMDB objects panel and the Notes panel. The header shows the running total (e.g. "Total 2h 30m"), and each entry below shows the time spent, the analyst, the date, and any notes you added.</p>
@@ -719,10 +734,123 @@ $path_prefix = '../';
                     <p class="tk-help-tip">When replying by email, you can add Cc recipients and attach files in the same action. The entire email conversation is threaded into the ticket's activity trail, keeping all communication in one place.</p>
                 </div>
 
-                <!-- Section 5: Dashboard -->
-                <div class="tk-help-section" id="dashboard">
+                <!-- Section 5: AI tools -->
+                <div class="tk-help-section" id="ai-tools">
                     <div class="tk-help-section-header">
                         <span class="tk-help-section-num">5</span>
+                        <div>
+                            <h3>AI tools</h3>
+                            <p>Two Claude-powered features sit inside the ticket workflow: <strong>Reply Cleanup</strong> rewrites a rough draft into a properly formatted email, and <strong>Ask AI</strong> searches the knowledge base in natural language using ticket context.</p>
+                        </div>
+                    </div>
+
+                    <p><strong>Reply Cleanup &mdash; ✨ button in the reply editor</strong></p>
+                    <p>Type a quick rough draft into a reply (or just bullet points like *"need to restart the print service, take screenshot for them"*) and click the <strong>✨ Cleanup</strong> button. Claude rewrites it as a properly formatted email &mdash; adds a <em>Dear [name],</em> greeting from the requester, fixes grammar, applies the configured tone, and signs off with <em>Kind regards,</em>. The prompt is locked down so it will NOT invent technical details, fabricate apologies, or pad the content beyond what you wrote.</p>
+                    <div class="tk-help-fields">
+                        <div><strong>Streams live</strong> &mdash; the rewrite appears in the editor as Claude generates it (no waiting in front of a spinner).</div>
+                        <div><strong>Undo link for 30s</strong> &mdash; in case Claude butchers the rewrite, a small <em>Undo</em> link appears below the editor for 30 seconds after the rewrite completes, restoring the original draft.</div>
+                        <div><strong>Per-tone</strong> &mdash; three tone presets configurable under <strong>Settings &rarr; Reply Cleanup</strong>: <em>Friendly</em> (default), <em>Formal</em>, <em>Brief</em>. Pick whichever matches your team's house style.</div>
+                        <div><strong>Own API key</strong> &mdash; separate Anthropic key from the RFP / Knowledge / Workflow AI features so its usage shows as its own line on the Anthropic billing dashboard. Configured under <strong>Settings &rarr; Reply Cleanup</strong>.</div>
+                    </div>
+                    <p class="tk-help-tip">Cleanup is best used for the routine "I tried this, please try X" style replies. For long, nuanced messages you'll want to write them yourself &mdash; the AI is great at structure but doesn't know your specific environment.</p>
+
+                    <p style="margin-top: 20px;"><strong>Ask AI &mdash; 🤖 button in the ticket toolbar</strong></p>
+                    <p>Click the <strong>Ask AI</strong> button (🤖) in the ticket toolbar to open a slide-in chat panel that knows about the open ticket's subject, body, and reading-pane context. Ask it questions like *"have we seen this before?"* or *"what's the usual fix for this error?"* and it searches the <a href="../knowledge/" style="color:#0078d4;">Knowledge</a> base semantically (via Claude + OpenAI embeddings) and replies with relevant articles, with direct links to open them.</p>
+                    <div class="tk-help-fields">
+                        <div><strong>Context-aware</strong> &mdash; the panel knows what ticket you're looking at, so you can ask generic questions and it figures out the relevant context.</div>
+                        <div><strong>Linked articles</strong> &mdash; suggestions are clickable and open the matching knowledge article in a new tab.</div>
+                        <div><strong>Shared with Knowledge module</strong> &mdash; the AI uses the same key + model as Knowledge AI search, so configuring it once gives you both. See the Knowledge module help for setup details.</div>
+                    </div>
+                </div>
+
+                <!-- Section 6: CSAT surveys -->
+                <div class="tk-help-section" id="csat">
+                    <div class="tk-help-section-header">
+                        <span class="tk-help-section-num">6</span>
+                        <div>
+                            <h3>Customer satisfaction surveys (CSAT)</h3>
+                            <p>Email a 1&ndash;5 satisfaction survey to the requester when a ticket is resolved, capture the response on a no-login landing page, and track per-analyst trends on a dedicated analytics page.</p>
+                        </div>
+                    </div>
+
+                    <p><strong>Two trigger modes &mdash; pick one</strong></p>
+                    <div class="tk-help-fields">
+                        <div><strong>Auto on close</strong> &mdash; survey is queued automatically when a ticket transitions into any closed status. The analyst doesn't need to do anything &mdash; resolution drives the survey.</div>
+                        <div><strong>Manual only</strong> &mdash; analyst clicks the ⭐ <strong>Request feedback</strong> button in the ticket toolbar when they want to ask. Useful when you'd rather decide ticket-by-ticket whether to invite feedback.</div>
+                        <div><strong>Off</strong> &mdash; feature disabled; no survey emails are sent.</div>
+                    </div>
+                    <p>Choose under <strong>Tickets &rarr; Settings &rarr; CSAT</strong>. The manual button still works in <em>auto</em> mode &mdash; analysts can re-request feedback on a ticket that's already been surveyed if needed.</p>
+
+                    <p style="margin-top: 20px;"><strong>The email template</strong></p>
+                    <p>The survey email content comes from the existing <strong>Email templates</strong> tab &mdash; create a template with event <strong>CSAT survey</strong> (the new event alongside <em>Ticket assigned</em> / <em>Ticket closed</em>) and embed the <code>[csat_link]</code> merge code wherever you want the rating URL to appear. Standard merge codes (<code>[requester_name]</code>, <code>[ticket_reference]</code>, <code>[analyst_name]</code>) are available as normal.</p>
+                    <p class="tk-help-tip">If no active CSAT template exists, the <em>Request feedback</em> button refuses with a clear error and the auto-trigger silently skips &mdash; you can never produce dead survey links.</p>
+
+                    <p style="margin-top: 20px;"><strong>The survey page</strong></p>
+                    <p>The requester clicks the link in the email and lands on a no-login page with a 1&ndash;5 picker plus an optional comment box. Two visual styles configurable under <strong>Settings &rarr; CSAT</strong>:</p>
+                    <div class="tk-help-fields">
+                        <div><strong>Stars</strong> &mdash; classic fill-on-hover trailing behaviour. Hovering star #3 fills #1+#2+#3 in gold. Click to lock.</div>
+                        <div><strong>Emojis</strong> &mdash; 5 faces 😡 🙁 😐 🙂 😀 start greyscale at 40% opacity; the hovered or selected one returns to full colour at 1.25&times; scale. Click to lock.</div>
+                    </div>
+                    <p>Both modes store the same 1&ndash;5 number so dashboards and averages work identically regardless of which style is in use. The survey URL is one-shot &mdash; once the user submits, the same link refuses re-submission.</p>
+
+                    <p style="margin-top: 20px;"><strong>The analytics page</strong></p>
+                    <p>Click the ⭐ <strong>CSAT</strong> nav button (between Rota and Settings) to open the analytics dashboard at <code>tickets/csat/</code>. Window selectable: 7 / 30 / 90 / 365 days.</p>
+                    <div class="tk-help-data-grid">
+                        <div class="tk-help-data-card">
+                            <strong>KPI tiles</strong>
+                            <span>Average rating (out of 5), response count, response rate (responded ÷ sent)</span>
+                        </div>
+                        <div class="tk-help-data-card">
+                            <strong>Score distribution</strong>
+                            <span>Bar chart of 1–5 ratings showing exact counts and percentages</span>
+                        </div>
+                        <div class="tk-help-data-card">
+                            <strong>Per-analyst leaderboard</strong>
+                            <span>Average rating + response count per analyst, ordered by avg desc. Use for development conversations</span>
+                        </div>
+                        <div class="tk-help-data-card">
+                            <strong>Recent responses</strong>
+                            <span>The 25 most-recent ratings with their free-text comments, linked back to the source ticket</span>
+                        </div>
+                    </div>
+                    <p class="tk-help-tip">Per-analyst attribution survives ticket reassignment because the analyst id is captured onto the survey row at send time, not looked up live. If a ticket gets passed around before being closed, the analyst who actually closed it owns the rating.</p>
+
+                    <p style="margin-top: 20px;"><strong>One survey per ticket</strong></p>
+                    <p>If <em>One survey per ticket</em> is on (default), a reopened-then-closed ticket only gets another survey when an analyst manually triggers it &mdash; stops survey-spamming a flaky ticket that keeps cycling. Turn it off if you want every close to fire a fresh survey.</p>
+                </div>
+
+                <!-- Section 7: User management -->
+                <div class="tk-help-section" id="user-management">
+                    <div class="tk-help-section-header">
+                        <span class="tk-help-section-num">7</span>
+                        <div>
+                            <h3>User management</h3>
+                            <p>The <strong>Users</strong> nav button opens <code>tickets/users.php</code> &mdash; a directory of every end user (the people who raise tickets, not analysts) alongside each one's ticket history.</p>
+                        </div>
+                    </div>
+
+                    <p>Users land in the system four reactive ways &mdash; portal self-registration, an inbound email from a new sender, the mailbox poller, or the workflow engine creating one from a triggered ticket. That covers most cases, but the Users page also lets you <strong>pre-create</strong> a user (e.g. a new starter who's about to need access) and <strong>edit</strong> or <strong>delete</strong> existing rows.</p>
+
+                    <p style="margin-top: 16px;"><strong>Add user</strong></p>
+                    <p>The <strong>Add</strong> button in the users-list header opens a modal:</p>
+                    <div class="tk-help-fields">
+                        <div><strong>Email</strong> (required) &mdash; must be unique, and must not collide with an analyst account.</div>
+                        <div><strong>Display name / preferred name</strong> &mdash; optional. Preferred name is what the user sees themselves greeted with in emails (e.g. <em>"Ed"</em> instead of <em>"Ed Mozley"</em>).</div>
+                        <div><strong>Password</strong> &mdash; optional. Leaving it blank creates a <em>passwordless</em> account &mdash; exactly the same state inbound-ticket users start in. The user can later claim the account via the self-service portal's register flow by setting their own password.</div>
+                    </div>
+
+                    <p style="margin-top: 16px;"><strong>Edit user</strong></p>
+                    <p>Select a user from the list, then click <strong>Edit</strong> in the detail header. Same modal, pre-filled. Saving without a password leaves the existing hash untouched; supplying one resets it.</p>
+
+                    <p style="margin-top: 16px;"><strong>Delete user</strong></p>
+                    <p>The <strong>Delete</strong> button is <strong>FK-safe</strong>: it refuses if the user is the requester on any tickets or has any rows in <code>users_assets</code>, returning a clear <em>"Cannot delete: this user is the requester on N ticket(s). Reassign or close those tickets first."</em> message. Audit history can never silently break.</p>
+                    <p class="tk-help-tip">All modal fields have browser autofill disabled (including <code>autocomplete="new-password"</code> on the password field) so the analyst's own saved credentials aren't suggested into a form whose entire purpose is creating <em>someone else's</em> record.</p>
+                </div>
+
+                <!-- Section 8: Dashboard -->
+                <div class="tk-help-section" id="dashboard">
+                    <div class="tk-help-section-header">
+                        <span class="tk-help-section-num">8</span>
                         <div>
                             <h3>Dashboard</h3>
                             <p>The ticket dashboard provides at-a-glance analytics with customisable Chart.js widgets. Each analyst has their own dashboard layout, so you can focus on the metrics that matter to your role &mdash; whether that is personal workload, team throughput, or SLA compliance.</p>
@@ -758,10 +886,10 @@ $path_prefix = '../';
                     <p class="tk-help-tip">Use date range filters on individual widgets to compare current performance against previous periods. For example, a "This Month vs Last Month" view helps you spot trends in ticket volume early.</p>
                 </div>
 
-                <!-- Section 6: Calendar & Rota (highlighted) -->
+                <!-- Section 9: Calendar & Rota (highlighted) -->
                 <div class="tk-help-section tk-help-section-highlight" id="calendar-rota">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num highlight">6</span>
+                        <span class="tk-help-section-num highlight">9</span>
                         <h3>Calendar &amp; rota</h3>
                     </div>
                     <p class="tk-help-intro">Two scheduling tools help your team stay organised: a ticket calendar that visualises workload over time, and a staff rota for managing shifts and on-call availability.</p>
@@ -800,10 +928,10 @@ $path_prefix = '../';
                     <p class="tk-help-tip">Combine the calendar and rota together for effective capacity planning. If the calendar shows a spike in tickets every Monday morning, ensure the rota has extra coverage scheduled for that slot.</p>
                 </div>
 
-                <!-- Section 7: Settings -->
+                <!-- Section 10: Settings -->
                 <div class="tk-help-section" id="settings">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">7</span>
+                        <span class="tk-help-section-num">10</span>
                         <div>
                             <h3>Settings</h3>
                             <p>The Settings page is where you configure the building blocks of your ticketing system. All lookup values, SLA targets, email integration, and custom fields are managed here.</p>
@@ -857,7 +985,15 @@ $path_prefix = '../';
                         </div>
                         <div class="tk-help-data-card">
                             <strong>Email templates</strong>
-                            <span>Configure the notification templates sent to end users when tickets are created, updated, or resolved</span>
+                            <span>Configure the notification templates sent to end users when tickets are created, updated, resolved, or for the CSAT survey. Embed merge codes like [requester_name] and [csat_link]</span>
+                        </div>
+                        <div class="tk-help-data-card">
+                            <strong>Reply Cleanup AI</strong>
+                            <span>Anthropic key + model + tone for the ✨ Cleanup button on the reply editor. Separate key from other AI features for granular billing</span>
+                        </div>
+                        <div class="tk-help-data-card">
+                            <strong>CSAT</strong>
+                            <span>Send mode (off / auto / manual), delay, one-per-ticket guard, scale (stars or emojis). See section 6 for the full flow</span>
                         </div>
                     </div>
 
@@ -887,10 +1023,10 @@ $path_prefix = '../';
                     <p class="tk-help-tip">Use email templates to maintain a professional, consistent tone in all end-user communications. Templates support dynamic placeholders for ticket reference, requester name, analyst name, and status.</p>
                 </div>
 
-                <!-- Section 8: Quick Tips -->
+                <!-- Section 11: Quick Tips -->
                 <div class="tk-help-section" id="tips">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">8</span>
+                        <span class="tk-help-section-num">11</span>
                         <h3>Quick tips</h3>
                     </div>
                     <div class="tk-help-tips-grid">
@@ -928,7 +1064,19 @@ $path_prefix = '../';
                         </div>
                         <div class="tk-help-tip-card">
                             <div class="tk-help-tip-icon">&#128499;</div>
-                            <div><strong>Right-click for quick actions</strong><br>Right-click any ticket to link a CMDB object or record time without switching away from the ticket you're currently reading. Perfect for logging time you forgot earlier.</div>
+                            <div><strong>Right-click for quick actions</strong><br>Right-click any ticket for one-click status, priority, or assignee changes plus link-CMDB and record-time, all without switching away from the ticket you're currently reading.</div>
+                        </div>
+                        <div class="tk-help-tip-card">
+                            <div class="tk-help-tip-icon">&#10024;</div>
+                            <div><strong>Let AI clean up your reply</strong><br>Type a rough draft (or just bullet points) and click <strong>✨ Cleanup</strong> &mdash; Claude rewrites it as a proper email with greeting, grammar fixes, and sign-off. Undo link appears for 30 seconds.</div>
+                        </div>
+                        <div class="tk-help-tip-card">
+                            <div class="tk-help-tip-icon">&#11088;</div>
+                            <div><strong>Ask for feedback</strong><br>Switch on CSAT under <strong>Settings &rarr; CSAT</strong> to auto-survey requesters when their tickets close. Per-analyst trends live at <code>tickets/csat/</code> &mdash; gold for development conversations.</div>
+                        </div>
+                        <div class="tk-help-tip-card">
+                            <div class="tk-help-tip-icon">&#128100;</div>
+                            <div><strong>Pre-create end users</strong><br>The <strong>Users</strong> nav button lets you add a user before they need to log a ticket &mdash; leave the password blank and they can claim the account themselves via the self-service portal.</div>
                         </div>
                     </div>
                 </div>

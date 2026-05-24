@@ -327,6 +327,7 @@ require_once 'includes/auth.php';
         <nav class="portal-nav">
             <a href="index.php">Dashboard</a>
             <a href="new-ticket.php" class="active">New Ticket</a>
+            <a href="help.php">Help</a>
         </nav>
         <?php include 'includes/user-menu.php'; ?>
     </div>
