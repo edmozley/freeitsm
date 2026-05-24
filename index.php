@@ -381,6 +381,20 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
             </a>
             <?php endif; ?>
 
+            <?php if ($allowed_modules === null || in_array('cmdb', $allowed_modules)): ?>
+            <a href="cmdb/" class="module-card cmdb" title="<?php echo htmlspecialchars(t('common.modules.cmdb.description')); ?>">
+                <div class="module-icon cmdb">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 22V8l10-6 10 6v14"></path>
+                        <path d="M2 12h20"></path>
+                        <path d="M2 17h20"></path>
+                        <line x1="12" y1="2" x2="12" y2="22"></line>
+                    </svg>
+                </div>
+                <div class="module-name"><?php echo htmlspecialchars(t('common.modules.cmdb.name')); ?></div>
+            </a>
+            <?php endif; ?>
+
             <?php if ($allowed_modules === null || in_array('network-mapper', $allowed_modules)): ?>
             <a href="network-mapper/" class="module-card network-mapper" title="<?php echo htmlspecialchars(t('common.modules.network-mapper.description')); ?>">
                 <div class="module-icon network-mapper">
@@ -394,6 +408,19 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
                     </svg>
                 </div>
                 <div class="module-name"><?php echo htmlspecialchars(t('common.modules.network-mapper.name')); ?></div>
+            </a>
+            <?php endif; ?>
+
+            <?php if ($allowed_modules === null || in_array('workflow', $allowed_modules)): ?>
+            <a href="workflow/" class="module-card workflow" title="<?php echo htmlspecialchars(t('common.modules.workflow.description')); ?>">
+                <div class="module-icon workflow">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                        <circle cx="6" cy="12" r="2"></circle>
+                        <circle cx="18" cy="12" r="2"></circle>
+                    </svg>
+                </div>
+                <div class="module-name"><?php echo htmlspecialchars(t('common.modules.workflow.name')); ?></div>
             </a>
             <?php endif; ?>
 
