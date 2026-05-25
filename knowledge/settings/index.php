@@ -28,7 +28,8 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
             height: calc(100vh - 48px);
             overflow-y: auto;
             max-width: none;
-            padding: 30px;
+            margin: 0;
+            padding: 16px 30px 24px;
         }
 
         .form-group {
