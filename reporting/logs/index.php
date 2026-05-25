@@ -18,22 +18,22 @@ $path_prefix = '../../';
     <style>
         .logs-outer {
             flex: 1;
-            overflow-y: auto;
+            overflow: hidden;       /* the inner .logs-content scrolls now, not this */
             background: #f5f7fa;
         }
 
-        /* Full-width logs view. The parent .main-container is a flex
-           row from inbox.css; without flex: 1 here the .logs-container
-           sat at its content width (left-aligned, narrow) rather than
-           expanding to fill the viewport. min-width: 0 lets the inner
-           table shrink below its intrinsic width on narrow viewports
-           without forcing the flex parent to overflow. */
+        /* Full-width logs view, laid out as a flex column so the
+           pagination footer pins to the bottom and only the table
+           scrolls. */
         .logs-container {
             flex: 1;
             min-width: 0;
             max-width: none;
             margin: 0;
-            padding: 16px 30px 24px;
+            padding: 16px 30px 0;   /* bottom padding moves into the pagination row */
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
         .logs-header {
@@ -41,6 +41,7 @@ $path_prefix = '../../';
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
+            flex-shrink: 0;
         }
 
         .logs-header h2 {
@@ -54,6 +55,7 @@ $path_prefix = '../../';
             gap: 10px;
             margin-bottom: 20px;
             border-bottom: 2px solid #ddd;
+            flex-shrink: 0;
         }
 
         .log-tab {
@@ -81,7 +83,9 @@ $path_prefix = '../../';
             background: white;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            overflow: hidden;
+            overflow-y: auto;
+            flex: 1;
+            min-height: 0;
         }
 
         .logs-table {
@@ -183,22 +187,29 @@ $path_prefix = '../../';
             100% { transform: rotate(360deg); }
         }
 
+        /* Sticky footer pagination. Sits as the last flex child of
+           .logs-container so the scrollbar inside .logs-content stops
+           at the top of this strip. */
         .pagination {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 10px;
-            padding: 20px;
+            padding: 12px 0 16px;
             border-top: 1px solid #eee;
+            background: #f5f7fa;
+            flex-shrink: 0;
         }
 
         .pagination button {
+            min-width: 100px;      /* match Previous + Next widths */
             padding: 8px 16px;
             border: 1px solid #ddd;
             background: white;
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
+            text-align: center;
         }
 
         .pagination button:hover:not(:disabled) {
@@ -359,6 +370,11 @@ $path_prefix = '../../';
                     </div>
                 </div>
             </div>
+
+            <!-- Sticky-footer pagination. Populated separately from the
+                 table via #paginationContainer so it stays pinned while
+                 the table scrolls behind it. -->
+            <div id="paginationContainer"></div>
         </div>
     </div>
 
@@ -384,9 +400,17 @@ $path_prefix = '../../';
             loadLogs();
         }
 
+        // Wipe the sticky-footer pagination — used by loading / error /
+        // empty states so stale Prev/Next buttons don't linger.
+        function clearPagination() {
+            const pager = document.getElementById('paginationContainer');
+            if (pager) pager.innerHTML = '';
+        }
+
         async function loadLogs() {
             const container = document.getElementById('logsTableContainer');
             container.innerHTML = '<div class="loading"><div class="spinner"></div><div>Loading logs...</div></div>';
+            clearPagination();
 
             try {
                 const response = await fetch(`${API_BASE}get_system_logs.php?type=${currentLogType}&limit=${limit}&offset=${currentOffset}`);
@@ -409,6 +433,7 @@ $path_prefix = '../../';
 
             if (logs.length === 0) {
                 container.innerHTML = '<div class="empty-state">No logs found</div>';
+                clearPagination();
                 return;
             }
 
@@ -420,18 +445,23 @@ $path_prefix = '../../';
                 tableHtml = renderEmailImportLogs(logs);
             }
 
+            container.innerHTML = tableHtml;
+
+            // Render pagination into its own sibling so it sits as the
+            // sticky footer at the bottom of .logs-container instead of
+            // scrolling away with the table.
             const totalPages = Math.ceil(totalLogs / limit);
             const currentPage = Math.floor(currentOffset / limit) + 1;
-
-            tableHtml += `
-                <div class="pagination">
-                    <button onclick="prevPage()" ${currentOffset === 0 ? 'disabled' : ''}>Previous</button>
-                    <span>Page ${currentPage} of ${totalPages} (${totalLogs} total)</span>
-                    <button onclick="nextPage()" ${currentOffset + limit >= totalLogs ? 'disabled' : ''}>Next</button>
-                </div>
-            `;
-
-            container.innerHTML = tableHtml;
+            const pager = document.getElementById('paginationContainer');
+            if (pager) {
+                pager.innerHTML = `
+                    <div class="pagination">
+                        <button onclick="prevPage()" ${currentOffset === 0 ? 'disabled' : ''}>Previous</button>
+                        <span>Page ${currentPage} of ${totalPages} (${totalLogs} total)</span>
+                        <button onclick="nextPage()" ${currentOffset + limit >= totalLogs ? 'disabled' : ''}>Next</button>
+                    </div>
+                `;
+            }
         }
 
         function renderLoginLogs(logs) {
