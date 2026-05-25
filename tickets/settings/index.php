@@ -40,11 +40,52 @@ $translationNamespaces = ['common', 'tickets'];
         /* Page-specific overrides for settings page */
 
         /* Override the shared .container 1200px cap so settings fills the
-         * full width, matching other modules' settings pages (#268-#270). */
+         * full width, matching other modules' settings pages (#268-#270).
+         * padding-bottom keeps the last row of buttons clear of the scroll
+         * viewport's bottom edge (otherwise the buttons sit flush against it
+         * and get visually clipped). */
         .container {
             height: calc(100vh - 48px);
             overflow-y: auto;
             max-width: none;
+            padding-bottom: 24px;
+        }
+
+        /* Intro-paragraph spacing on tabs that lead with a description block.
+         * The * { margin: 0 } reset in inbox.css strips default <p> spacing,
+         * so without this consecutive paragraphs collide visually. */
+        .tab-content > p {
+            margin-bottom: 14px;
+        }
+
+        /* Reply cleanup tab: two-column layout — form on the left, the
+         * system-prompt panel on the right to put the empty space to use. */
+        .reply-cleanup-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 600px) minmax(0, 1fr);
+            gap: 28px;
+            align-items: start;
+            margin-top: 24px;
+        }
+        @media (max-width: 1100px) {
+            .reply-cleanup-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .reply-cleanup-layout > form {
+            margin-top: 0 !important;
+            max-width: none !important;
+        }
+        .reply-cleanup-prompt-panel details {
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            background: #fafafa;
+        }
+        .reply-cleanup-prompt-panel summary {
+            padding: 12px 16px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #333;
         }
 
         /* Settings page uses .action-btn for table buttons */
@@ -829,67 +870,69 @@ $translationNamespaces = ['common', 'tickets'];
                 Anthropic billing dashboard.
             </p>
 
-            <form id="replyCleanupForm" style="max-width: 600px; margin-top: 24px;">
-                <div class="form-group">
-                    <label for="rcApiKey">Anthropic API key</label>
-                    <input type="password" id="rcApiKey" autocomplete="off" placeholder="sk-ant-...">
-                    <small style="color: #666;">Encrypted at rest. Leave the masked value untouched to keep the existing key.</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="rcModel">Model</label>
-                    <select id="rcModel" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                        <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (recommended — fast and cheap)</option>
-                        <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
-                        <option value="claude-opus-4-7">Claude Opus 4.7</option>
-                    </select>
-                    <small style="color: #666;">Haiku is plenty for grammar fixes and greetings.</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="rcTone">Tone</label>
-                    <select id="rcTone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                        <option value="Friendly">Friendly (default)</option>
-                        <option value="Formal">Formal</option>
-                        <option value="Brief">Brief</option>
-                    </select>
-                    <small style="color: #666;">Applied to every cleanup unless changed here.</small>
-                </div>
-
-                <div class="form-group">
-                    <label for="rcCustomInstructions">Custom instructions <span style="color: #999; font-weight: normal;">(optional)</span></label>
-                    <textarea id="rcCustomInstructions" rows="6" maxlength="4000"
-                              style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; resize: vertical;"
-                              placeholder="e.g. Always sign off with 'Many thanks,'&#10;Refer to the company as 'BillCorp'&#10;Use British English spellings throughout"></textarea>
-                    <small style="color: #666;">
-                        Appended to the system prompt below. Use this for organisation-specific tweaks
-                        (sign-off variations, company name, language preferences). The hard safety rules
-                        and output format above will still take precedence.
-                    </small>
-                </div>
-
-                <details style="margin-top: 24px; border: 1px solid #e5e5e5; border-radius: 4px; background: #fafafa;">
-                    <summary style="padding: 12px 16px; cursor: pointer; font-weight: 600; color: #333;">
-                        View system prompt (read-only)
-                    </summary>
-                    <div style="padding: 0 16px 16px 16px; color: #555;">
-                        <p style="margin: 0 0 12px 0; font-size: 13px;">
-                            This is the full system prompt sent to Claude on every cleanup. The greeting
-                            name varies per ticket; the tone reflects your selection above. Your custom
-                            instructions (if any) are appended at the end at runtime — they are not shown
-                            here, edit them in the textarea above.
-                        </p>
-                        <pre id="rcPromptPreview" style="white-space: pre-wrap; word-wrap: break-word; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; background: white; padding: 14px; border: 1px solid #e0e0e0; border-radius: 4px; max-height: 500px; overflow-y: auto; color: #333; margin: 0;"></pre>
+            <div class="reply-cleanup-layout">
+                <form id="replyCleanupForm">
+                    <div class="form-group">
+                        <label for="rcApiKey">Anthropic API key</label>
+                        <input type="password" id="rcApiKey" autocomplete="off" placeholder="sk-ant-...">
+                        <small style="color: #666;">Encrypted at rest. Leave the masked value untouched to keep the existing key.</small>
                     </div>
-                </details>
 
-                <div class="modal-actions" style="justify-content: flex-start; margin-top: 30px; gap: 12px;">
-                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
-                    <button type="button" id="rcTestBtn" class="btn" style="background: #6c757d; color: white;"><?php echo htmlspecialchars(t('tickets.settings.buttons.test_connection')); ?></button>
-                </div>
+                    <div class="form-group">
+                        <label for="rcModel">Model</label>
+                        <select id="rcModel" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (recommended — fast and cheap)</option>
+                            <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+                            <option value="claude-opus-4-7">Claude Opus 4.7</option>
+                        </select>
+                        <small style="color: #666;">Haiku is plenty for grammar fixes and greetings.</small>
+                    </div>
 
-                <div id="rcTestResult" style="margin-top: 16px; padding: 10px 14px; border-radius: 4px; display: none; font-size: 13px;"></div>
-            </form>
+                    <div class="form-group">
+                        <label for="rcTone">Tone</label>
+                        <select id="rcTone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                            <option value="Friendly">Friendly (default)</option>
+                            <option value="Formal">Formal</option>
+                            <option value="Brief">Brief</option>
+                        </select>
+                        <small style="color: #666;">Applied to every cleanup unless changed here.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="rcCustomInstructions">Custom instructions <span style="color: #999; font-weight: normal;">(optional)</span></label>
+                        <textarea id="rcCustomInstructions" rows="6" maxlength="4000"
+                                  style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; resize: vertical;"
+                                  placeholder="e.g. Always sign off with 'Many thanks,'&#10;Refer to the company as 'BillCorp'&#10;Use British English spellings throughout"></textarea>
+                        <small style="color: #666;">
+                            Appended to the system prompt shown to the right. Use this for organisation-specific tweaks
+                            (sign-off variations, company name, language preferences). The hard safety rules
+                            and output format will still take precedence.
+                        </small>
+                    </div>
+
+                    <div class="modal-actions" style="justify-content: flex-start; margin-top: 30px; gap: 12px;">
+                        <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                        <button type="button" id="rcTestBtn" class="btn" style="background: #6c757d; color: white;"><?php echo htmlspecialchars(t('tickets.settings.buttons.test_connection')); ?></button>
+                    </div>
+
+                    <div id="rcTestResult" style="margin-top: 16px; padding: 10px 14px; border-radius: 4px; display: none; font-size: 13px;"></div>
+                </form>
+
+                <aside class="reply-cleanup-prompt-panel">
+                    <details open>
+                        <summary>View system prompt (read-only)</summary>
+                        <div style="padding: 0 16px 16px 16px; color: #555;">
+                            <p style="margin: 0 0 12px 0; font-size: 13px;">
+                                This is the full system prompt sent to Claude on every cleanup. The greeting
+                                name varies per ticket; the tone reflects your selection on the left. Your custom
+                                instructions (if any) are appended at the end at runtime — they are not shown
+                                here, edit them in the textarea to the left.
+                            </p>
+                            <pre id="rcPromptPreview" style="white-space: pre-wrap; word-wrap: break-word; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; background: white; padding: 14px; border: 1px solid #e0e0e0; border-radius: 4px; max-height: calc(100vh - 280px); overflow-y: auto; color: #333; margin: 0;"></pre>
+                        </div>
+                    </details>
+                </aside>
+            </div>
         </div>
 
         <!-- CSAT Tab -->
