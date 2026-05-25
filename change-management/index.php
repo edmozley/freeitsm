@@ -30,37 +30,12 @@ $path_prefix = '../';
             <div class="sidebar-section">
                 <h3>Status</h3>
                 <div class="status-filter-list" id="statusFilterList">
+                    <!-- The "All" row stays in HTML (special — doesn't map to a row in change_statuses).
+                         Real statuses are appended by JS from get_change_statuses.php so adding /
+                         renaming / deactivating one in Settings reflects here automatically. -->
                     <div class="status-filter active" data-status="all" onclick="filterByStatus('all')">
                         <span>All</span>
                         <span class="filter-count" id="countAll">0</span>
-                    </div>
-                    <div class="status-filter" data-status="Draft" onclick="filterByStatus('Draft')">
-                        <span>Draft</span>
-                        <span class="filter-count" id="countDraft">0</span>
-                    </div>
-                    <div class="status-filter" data-status="Pending Approval" onclick="filterByStatus('Pending Approval')">
-                        <span>Pending Approval</span>
-                        <span class="filter-count" id="countPendingApproval">0</span>
-                    </div>
-                    <div class="status-filter" data-status="Approved" onclick="filterByStatus('Approved')">
-                        <span>Approved</span>
-                        <span class="filter-count" id="countApproved">0</span>
-                    </div>
-                    <div class="status-filter" data-status="In Progress" onclick="filterByStatus('In Progress')">
-                        <span>In Progress</span>
-                        <span class="filter-count" id="countInProgress">0</span>
-                    </div>
-                    <div class="status-filter" data-status="Completed" onclick="filterByStatus('Completed')">
-                        <span>Completed</span>
-                        <span class="filter-count" id="countCompleted">0</span>
-                    </div>
-                    <div class="status-filter" data-status="Failed" onclick="filterByStatus('Failed')">
-                        <span>Failed</span>
-                        <span class="filter-count" id="countFailed">0</span>
-                    </div>
-                    <div class="status-filter" data-status="Cancelled" onclick="filterByStatus('Cancelled')">
-                        <span>Cancelled</span>
-                        <span class="filter-count" id="countCancelled">0</span>
                     </div>
                 </div>
             </div>
@@ -117,15 +92,8 @@ $path_prefix = '../';
                         </div>
                         <div class="form-group" data-field="status">
                             <label class="form-label">Status</label>
-                            <select class="form-input" id="changeStatus">
-                                <option value="Draft">Draft</option>
-                                <option value="Pending Approval">Pending Approval</option>
-                                <option value="Approved">Approved</option>
-                                <option value="In Progress">In Progress</option>
-                                <option value="Completed">Completed</option>
-                                <option value="Failed">Failed</option>
-                                <option value="Cancelled">Cancelled</option>
-                            </select>
+                            <!-- Options populated from change_statuses (active rows only) on page load. -->
+                            <select class="form-input" id="changeStatus"></select>
                         </div>
                     </div>
 
@@ -413,6 +381,6 @@ $path_prefix = '../';
     <!-- html2pdf for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>window.API_BASE = '../api/change-management/';</script>
-    <script src="../assets/js/change-management.js?v=2"></script>
+    <script src="../assets/js/change-management.js?v=3"></script>
 </body>
 </html>

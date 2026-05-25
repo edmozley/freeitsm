@@ -173,6 +173,6 @@ $path_prefix = '../';
     </div>
 
     <script>window.API_BASE = '../api/change-management/';</script>
-    <script src="../assets/js/change-calendar.js?v=1"></script>
+    <script src="../assets/js/change-calendar.js?v=2"></script>
 </body>
 </html>

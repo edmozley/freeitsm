@@ -11,6 +11,9 @@ let currentFilter = 'all';
 let searchQuery = '';
 let fieldVisibility = {};
 let cabEditorMembers = []; // [{analyst_id, name, is_required}]
+// Statuses loaded from change_statuses table (active rows). Drives the sidebar
+// filter list, the editor's Status dropdown, and the updateCounts() loop.
+let changeStatuses = [];
 
 // TinyMCE editor instances
 const editorIds = ['editorDescription', 'editorReason', 'editorRisk', 'editorTestplan', 'editorRollback', 'editorPir'];
@@ -21,6 +24,7 @@ let editorsReady = false;
 document.addEventListener('DOMContentLoaded', function() {
     loadFieldVisibility();
     loadAnalysts();
+    loadStatuses();
     loadChanges();
     setupFileUpload();
 
@@ -133,6 +137,64 @@ function applyFieldVisibility() {
 
 // ============ Data Loading ============
 
+// Pull active statuses from the change_statuses table and use them to drive
+// both the sidebar filter list and the editor's Status dropdown. So when
+// statuses get added / renamed / deactivated under Change Management →
+// Settings → Statuses, both UIs reflect the change on next page load.
+async function loadStatuses() {
+    try {
+        const response = await fetch(API_BASE + 'get_change_statuses.php');
+        const data = await response.json();
+        if (data.success) {
+            changeStatuses = (data.statuses || []).filter(s => s.is_active);
+            // Sort by display_order then name so the order matches Settings.
+            changeStatuses.sort((a, b) => {
+                const o = (a.display_order || 0) - (b.display_order || 0);
+                return o !== 0 ? o : String(a.name).localeCompare(String(b.name));
+            });
+            renderStatusFilters();
+            populateStatusDropdown();
+            // Counts may have arrived before statuses — re-apply them now
+            // so newly-rendered filter rows pick up their current counts.
+            if (latestCounts) updateCounts(latestCounts);
+        }
+    } catch (e) {
+        console.error('Error loading change statuses:', e);
+    }
+}
+
+function renderStatusFilters() {
+    const container = document.getElementById('statusFilterList');
+    if (!container) return;
+    // Remove all .status-filter rows except the always-present "All" one.
+    container.querySelectorAll('.status-filter:not([data-status="all"])').forEach(el => el.remove());
+
+    changeStatuses.forEach(s => {
+        const safeName = String(s.name).replace(/'/g, "\\'");
+        const swatch = s.colour
+            ? `<span class="status-swatch" style="background:${escapeHtml(s.colour)};display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:middle;"></span>`
+            : '';
+        const row = document.createElement('div');
+        row.className = 'status-filter';
+        row.dataset.status = s.name;
+        row.setAttribute('onclick', `filterByStatus('${safeName}')`);
+        row.innerHTML = `<span>${swatch}${escapeHtml(s.name)}</span><span class="filter-count" data-status-count="${escapeHtml(s.name)}">0</span>`;
+        container.appendChild(row);
+    });
+}
+
+function populateStatusDropdown() {
+    const sel = document.getElementById('changeStatus');
+    if (!sel) return;
+    // Preserve current selection if it still exists (e.g. when the dropdown
+    // gets rebuilt while editing an existing change).
+    const currentValue = sel.value;
+    sel.innerHTML = changeStatuses.map(s =>
+        `<option value="${escapeHtml(s.name)}">${escapeHtml(s.name)}</option>`
+    ).join('');
+    if (currentValue) sel.value = currentValue;
+}
+
 async function loadAnalysts() {
     try {
         const response = await fetch(API_BASE + 'list.php?analysts=1');
@@ -186,16 +248,21 @@ async function loadChanges() {
     }
 }
 
+// Last counts payload from list.php — cached so loadStatuses() can re-apply
+// them if the status list lands after the first counts response.
+let latestCounts = null;
 function updateCounts(counts) {
     if (!counts) return;
-    document.getElementById('countAll').textContent = counts.total || 0;
-    document.getElementById('countDraft').textContent = counts.Draft || 0;
-    document.getElementById('countPendingApproval').textContent = counts['Pending Approval'] || 0;
-    document.getElementById('countApproved').textContent = counts.Approved || 0;
-    document.getElementById('countInProgress').textContent = counts['In Progress'] || 0;
-    document.getElementById('countCompleted').textContent = counts.Completed || 0;
-    document.getElementById('countFailed').textContent = counts.Failed || 0;
-    document.getElementById('countCancelled').textContent = counts.Cancelled || 0;
+    latestCounts = counts;
+    const allEl = document.getElementById('countAll');
+    if (allEl) allEl.textContent = counts.total || 0;
+    // Each filter row owns a [data-status-count="StatusName"] count span;
+    // iterate them and look the value up by the same status-name key the
+    // backend uses for its counts object.
+    document.querySelectorAll('[data-status-count]').forEach(span => {
+        const name = span.getAttribute('data-status-count');
+        span.textContent = counts[name] || 0;
+    });
 }
 
 // ============ Rendering ============
@@ -816,7 +883,11 @@ function openCreateChange() {
     document.getElementById('editorTitle').textContent = 'New change';
     document.getElementById('changeTitle').value = '';
     document.getElementById('changeType').value = 'Normal';
-    document.getElementById('changeStatus').value = 'Draft';
+    // Prefer the status flagged as default in change_statuses; fall back to
+    // the first active status, then to 'Draft' as a last resort.
+    const defaultStatus = changeStatuses.find(s => s.is_default);
+    const fallbackStatus = defaultStatus ? defaultStatus.name : (changeStatuses[0] ? changeStatuses[0].name : 'Draft');
+    document.getElementById('changeStatus').value = fallbackStatus;
     document.getElementById('changePriority').value = 'Medium';
     document.getElementById('changeImpact').value = 'Medium';
     document.getElementById('changeCategory').value = '';

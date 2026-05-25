@@ -11,15 +11,12 @@ let events = [];
 let selectedStatuses = new Set();
 
 // Status definitions with colors
-const STATUSES = [
-    { name: 'Draft',            color: '#9e9e9e' },
-    { name: 'Pending Approval', color: '#e65100' },
-    { name: 'Approved',         color: '#2e7d32' },
-    { name: 'In Progress',      color: '#1565c0' },
-    { name: 'Completed',        color: '#1b5e20' },
-    { name: 'Failed',           color: '#c62828' },
-    { name: 'Cancelled',        color: '#bdbdbd' }
-];
+// Populated at runtime from change_statuses (active rows only) so adding /
+// renaming / deactivating a status in Settings → Statuses reflects here.
+// Falls back to an empty list if the fetch fails (sidebar will be empty and
+// the calendar grid will render with no filters applied, rather than the
+// page breaking).
+let STATUSES = [];
 
 // Day and month names
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -32,10 +29,31 @@ document.addEventListener('DOMContentLoaded', function() {
     renderCalendar();
 });
 
-// Load status filters (hardcoded, not from API)
-function loadStatuses() {
+// Load status filters from the change_statuses table (active rows only).
+// Sorts by display_order so the order matches Settings.
+async function loadStatuses() {
+    try {
+        const response = await fetch(API_BASE + 'get_change_statuses.php');
+        const data = await response.json();
+        if (data.success) {
+            STATUSES = (data.statuses || [])
+                .filter(s => s.is_active)
+                .sort((a, b) => {
+                    const o = (a.display_order || 0) - (b.display_order || 0);
+                    return o !== 0 ? o : String(a.name).localeCompare(String(b.name));
+                })
+                .map(s => ({ name: s.name, color: s.colour || '#9e9e9e' }));
+        }
+    } catch (e) {
+        console.error('Error loading change statuses:', e);
+    }
+    // All known statuses start checked (all visible).
     selectedStatuses = new Set(STATUSES.map(s => s.name));
     renderStatusFilters();
+    // The calendar grid was already rendered before the fetch resolved (the
+    // DOMContentLoaded handler doesn't await us); re-render now that we know
+    // the colour for each status pill on the grid.
+    renderCalendar();
 }
 
 // Render status filter checkboxes
