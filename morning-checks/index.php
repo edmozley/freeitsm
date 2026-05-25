@@ -266,7 +266,6 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
     <!-- Notes Modal -->
     <div id="notesModal" class="modal">
         <div class="modal-content">
-            <span class="close" onclick="closeNotesModal()">&times;</span>
             <h2>Add notes</h2>
             <p>Please provide details about this <span id="modalStatus"></span> status.</p>
             <form id="notesForm">
