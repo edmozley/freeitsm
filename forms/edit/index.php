@@ -32,9 +32,9 @@ $path_prefix = '../../';
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
     <style>
         /* The dedicated edit page doesn't use the sidebar/list layout
-           of forms/index.php — it's a single full-width main panel.
-           Borrows the .forms-main padding rules so everything inside
-           lines up with what the inline editor in index.php showed. */
+           of forms/index.php — it's a single full-width main panel
+           laid out as a flex column so the sticky footer pins at the
+           bottom and only .forms-main scrolls. */
         .forms-edit-page {
             display: flex;
             flex-direction: column;
@@ -46,52 +46,97 @@ $path_prefix = '../../';
             overflow-y: auto;
         }
 
-        /* Top "back to forms" strip — small, unobtrusive, sits above
-           the editor toolbar so the navigation back is always visible. */
-        .forms-edit-backbar {
-            padding: 8px 30px;
-            background: #fafafa;
+        /* Sticky footer for the form-completion actions (Cancel + Save).
+           Pinned via flex-shrink: 0 so the scrollbar inside .forms-main
+           stops at this strip's top edge. */
+        .editor-footer {
+            flex-shrink: 0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 12px 30px 16px;
+            border-top: 1px solid #e0e0e0;
+            background: #f5f7fa;
+        }
+
+        /* Properties drawer — right-side slide-out. Holds the version
+           metadata (#434). Hidden off-screen by default, slides in
+           when toggled via the Properties button in the top toolbar.
+           Backdrop dims the rest of the screen and closes on click. */
+        .properties-backdrop {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.25);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.18s;
+            z-index: 2400;
+        }
+        .properties-backdrop.open { opacity: 1; pointer-events: auto; }
+        .properties-drawer {
+            position: fixed;
+            top: 48px;   /* under the global header */
+            right: 0; bottom: 0;
+            width: 360px;
+            max-width: 90vw;
+            background: white;
+            box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+            transform: translateX(100%);
+            transition: transform 0.22s ease;
+            z-index: 2450;
+            display: flex;
+            flex-direction: column;
+        }
+        .properties-drawer.open { transform: translateX(0); }
+        .properties-drawer-header {
+            padding: 14px 18px;
             border-bottom: 1px solid #eee;
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 8px;
-            font-size: 13px;
+            flex-shrink: 0;
         }
-        .forms-edit-backbar a {
-            color: #00897b;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
+        .properties-drawer-header h3 {
+            margin: 0; font-size: 15px; color: #333;
         }
-        .forms-edit-backbar a:hover { text-decoration: underline; }
+        .properties-close {
+            background: none; border: none;
+            font-size: 22px; line-height: 1;
+            color: #999; cursor: pointer; padding: 0 4px;
+        }
+        .properties-close:hover { color: #333; }
+        .properties-drawer-body {
+            padding: 18px;
+            overflow-y: auto;
+            flex: 1;
+        }
+        .properties-empty {
+            font-size: 13px; color: #888; line-height: 1.6;
+        }
+        .properties-empty p { margin: 0; }
 
-        /* Versioning metadata panel (#434). Hidden for new forms,
-           populated by renderFormMeta() once a saved form loads. */
+        /* Versioning metadata panel (#434). Lives in the drawer now;
+           visible whenever the drawer is open and the form has been
+           saved at least once. */
         .form-meta {
-            margin-top: 16px;
-            padding: 10px 14px;
-            background: #f5f7fa;
-            border: 1px solid #e5e9f0;
-            border-radius: 6px;
-            font-size: 12px;
+            padding: 4px 0;
+            font-size: 13px;
             color: #555;
             line-height: 1.7;
             display: grid;
             grid-template-columns: max-content 1fr;
-            column-gap: 12px;
-            row-gap: 2px;
+            column-gap: 14px;
+            row-gap: 4px;
+            margin: 0;
         }
         .form-meta dt { color: #888; font-weight: 500; margin: 0; }
         .form-meta dd { margin: 0; color: #333; }
         .form-meta .form-meta-version {
             display: inline-block;
-            padding: 1px 8px;
+            padding: 2px 10px;
             border-radius: 10px;
             background: #00897b;
             color: white;
             font-weight: 600;
-            font-size: 11px;
+            font-size: 12px;
         }
 
         /* AI Assist — copied from forms/index.php so this page is
@@ -196,18 +241,12 @@ $path_prefix = '../../';
     <?php include '../includes/header.php'; ?>
 
     <div class="forms-container forms-edit-page">
-        <!-- Always-visible back navigation. The Cancel button on the
-             editor toolbar also navigates back to /forms/, but having
-             this strip at the top means the way out is obvious even
-             when the editor is scrolled. -->
-        <div class="forms-edit-backbar">
-            <a href="<?php echo BASE_URL; ?>forms/">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                All forms
-            </a>
-        </div>
-
         <div class="forms-main">
+            <!-- Top toolbar holds INSPECTION tools — AI Assist (build
+                 for me) + Properties (show me the metadata). Save and
+                 Cancel are the form-completion actions and live in the
+                 sticky footer below where the eye naturally lands after
+                 finishing the form. -->
             <div class="editor-toolbar">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <h2 id="editorTitle">New form</h2>
@@ -217,19 +256,20 @@ $path_prefix = '../../';
                     </div>
                 </div>
                 <div class="editor-toolbar-actions">
-                    <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
                     <button class="btn btn-ai-assist" onclick="openAiModal()" title="Describe your form and let AI build it">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.9 5.8L20 10l-5.8 1.9L12 18l-1.9-5.8L4 10l6.1-2.2z"></path><path d="M19 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"></path><path d="M5 16l.6 1.8L7.5 18l-1.9.6L5 20l-.6-1.4L2.5 18l2-.2z"></path></svg>
                         AI Assist
                     </button>
-                    <button class="btn btn-primary save-btn" id="saveBtn" onclick="saveForm()">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                        Save
+                    <button class="btn btn-secondary" id="propertiesBtn" onclick="togglePropertiesDrawer()" title="Show form properties + version history">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        Properties
                     </button>
                 </div>
             </div>
 
-            <!-- Title & description -->
+            <!-- Title & description. Versioning metadata moved to the
+                 Properties drawer (slides in from the right via the
+                 toolbar button) so the main editor stays uncluttered. -->
             <div class="form-settings-card">
                 <div class="field-group">
                     <label>Form title</label>
@@ -239,23 +279,6 @@ $path_prefix = '../../';
                     <label>Description</label>
                     <textarea id="formDesc" rows="2" placeholder="Optional description..."></textarea>
                 </div>
-
-                <!-- Versioning metadata (#434). Hidden for new forms,
-                     populated by renderFormMeta() when an existing form
-                     loads. Reloads after save so the bumped version
-                     reflects immediately. -->
-                <dl class="form-meta" id="formMeta" style="display:none;">
-                    <dt>Version</dt>
-                    <dd><span class="form-meta-version" id="formMetaVersion">v1</span></dd>
-                    <dt>Author</dt>
-                    <dd id="formMetaAuthor">&mdash;</dd>
-                    <dt>Created</dt>
-                    <dd id="formMetaCreated">&mdash;</dd>
-                    <dt>Last modified</dt>
-                    <dd id="formMetaModified">&mdash;</dd>
-                    <dt>Modified by</dt>
-                    <dd id="formMetaModifiedBy">&mdash;</dd>
-                </dl>
             </div>
 
             <!-- Tabs: Fields | Preview -->
@@ -293,7 +316,49 @@ $path_prefix = '../../';
                 </div>
             </div>
         </div>
+
+        <!-- Sticky footer with the form-completion actions. .forms-edit-page
+             is a flex column so this pins at the bottom; the scrollbar in
+             .forms-main stops at the footer's top edge. -->
+        <div class="editor-footer">
+            <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+            <button class="btn btn-primary save-btn" id="saveBtn" onclick="saveForm()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                Save
+            </button>
+        </div>
     </div>
+
+    <!-- Properties drawer (right-side slide-out). Hidden by default;
+         toggled via the Properties button in the top toolbar. ESC and
+         backdrop click close it. -->
+    <div class="properties-backdrop" id="propertiesBackdrop" onclick="closePropertiesDrawer()"></div>
+    <aside class="properties-drawer" id="propertiesDrawer" aria-hidden="true">
+        <div class="properties-drawer-header">
+            <h3>Properties</h3>
+            <button class="properties-close" onclick="closePropertiesDrawer()" title="Close" aria-label="Close">&times;</button>
+        </div>
+        <div class="properties-drawer-body">
+            <!-- Populated by renderFormMeta() on load + after every save.
+                 Shows a placeholder message until the form has been saved
+                 at least once (and therefore has a version + author). -->
+            <div id="propertiesEmpty" class="properties-empty">
+                <p>This form hasn't been saved yet &mdash; properties will appear here once you create it.</p>
+            </div>
+            <dl class="form-meta" id="formMeta" style="display:none;">
+                <dt>Version</dt>
+                <dd><span class="form-meta-version" id="formMetaVersion">v1</span></dd>
+                <dt>Author</dt>
+                <dd id="formMetaAuthor">&mdash;</dd>
+                <dt>Created</dt>
+                <dd id="formMetaCreated">&mdash;</dd>
+                <dt>Last modified</dt>
+                <dd id="formMetaModified">&mdash;</dd>
+                <dt>Modified by</dt>
+                <dd id="formMetaModifiedBy">&mdash;</dd>
+            </dl>
+        </div>
+    </aside>
 
     <!-- Toast notification -->
     <div class="toast" id="toast"></div>
@@ -401,24 +466,63 @@ $path_prefix = '../../';
             }
         }
 
-        // Versioning metadata panel — populated after a successful load
-        // (or after a save reload). Hidden for brand-new forms.
+        // Populate the Properties drawer's version metadata section.
+        // Called after a successful load + after a save (so the new
+        // version_number / modified_by show up immediately). Toggles
+        // the "not yet saved" placeholder so the drawer never shows
+        // dashes for a brand-new unsaved form.
         function renderFormMeta(form) {
-            const meta = document.getElementById('formMeta');
-            if (!meta || !form || !form.id) return;
+            const meta  = document.getElementById('formMeta');
+            const empty = document.getElementById('propertiesEmpty');
+            if (!form || !form.id) {
+                if (meta)  meta.style.display = 'none';
+                if (empty) empty.style.display = '';
+                return;
+            }
             const fmt = (s) => {
                 if (!s) return '—';
                 const d = new Date(s.replace(' ', 'T') + 'Z');
                 if (isNaN(d.getTime())) return s;
                 return d.toLocaleString();
             };
-            document.getElementById('formMetaVersion').textContent     = 'v' + (form.version_number || 1);
-            document.getElementById('formMetaAuthor').textContent      = form.created_by_name || '—';
-            document.getElementById('formMetaCreated').textContent     = fmt(form.created_date);
-            document.getElementById('formMetaModified').textContent    = fmt(form.modified_date);
-            document.getElementById('formMetaModifiedBy').textContent  = form.modified_by_name || '—';
-            meta.style.display = '';
+            document.getElementById('formMetaVersion').textContent    = 'v' + (form.version_number || 1);
+            document.getElementById('formMetaAuthor').textContent     = form.created_by_name || '—';
+            document.getElementById('formMetaCreated').textContent    = fmt(form.created_date);
+            document.getElementById('formMetaModified').textContent   = fmt(form.modified_date);
+            document.getElementById('formMetaModifiedBy').textContent = form.modified_by_name || '—';
+            if (meta)  meta.style.display = '';
+            if (empty) empty.style.display = 'none';
         }
+
+        // Properties drawer — slide-in from the right with the form's
+        // version metadata. Toggled by the Properties button in the
+        // top toolbar. Closed by the X, the backdrop, or ESC.
+        function togglePropertiesDrawer() {
+            const drawer   = document.getElementById('propertiesDrawer');
+            const backdrop = document.getElementById('propertiesBackdrop');
+            const open = drawer.classList.contains('open');
+            if (open) closePropertiesDrawer();
+            else openPropertiesDrawer();
+        }
+        function openPropertiesDrawer() {
+            document.getElementById('propertiesDrawer').classList.add('open');
+            document.getElementById('propertiesBackdrop').classList.add('open');
+            document.getElementById('propertiesDrawer').setAttribute('aria-hidden', 'false');
+        }
+        function closePropertiesDrawer() {
+            document.getElementById('propertiesDrawer').classList.remove('open');
+            document.getElementById('propertiesBackdrop').classList.remove('open');
+            document.getElementById('propertiesDrawer').setAttribute('aria-hidden', 'true');
+        }
+        // ESC closes the drawer (but only if it's open and no other
+        // modal owns the keypress — the AI modal handles its own).
+        document.addEventListener('keydown', function(e) {
+            if (e.key !== 'Escape') return;
+            if (document.getElementById('aiModal').classList.contains('active')) return;
+            if (document.getElementById('propertiesDrawer').classList.contains('open')) {
+                closePropertiesDrawer();
+            }
+        });
 
         // ===== Cancel / back =====
         function cancelEdit() {
