@@ -9,8 +9,19 @@ let analysts = [];
 let currentChange = null;
 let currentFilter = 'all';
 let searchQuery = '';
-let fieldVisibility = {};
+// Configurable form layout fetched from get_field_layout.php. Drives the
+// editor's section order, headings, field placement, and visibility.
+// See refreshFormLayout() for the rendering pass.
+let formLayout = { sections: [], fields: [], unplaced: [] };
+let fieldByKey = {};   // field_key → layout row
+let sectionById = {};  // section.id → section row
 let cabEditorMembers = []; // [{analyst_id, name, is_required}]
+
+// Rich-text fields share a single anchored widget (cmRichTextWidget). v1
+// limitation: their per-field section_id is honored for *visibility* and
+// for picking the widget's host section, but the six tabs are NOT split
+// across sections — they always render together inside the widget.
+const RICH_TEXT_FIELDS = ['description', 'reason', 'risk', 'testplan', 'rollback', 'pir'];
 // Statuses loaded from change_statuses table (active rows). Drives the sidebar
 // filter list, the editor's Status dropdown, and the updateCounts() loop.
 let changeStatuses = [];
@@ -22,7 +33,7 @@ let editorsReady = false;
 // ============ Initialization ============
 
 document.addEventListener('DOMContentLoaded', function() {
-    loadFieldVisibility();
+    const layoutReady = loadFormLayout();
     loadAnalysts();
     const statusesReady = loadStatuses();
     loadChanges();
@@ -39,9 +50,9 @@ document.addEventListener('DOMContentLoaded', function() {
         viewChange(parseInt(openId, 10));
     } else if (window.openCreateOnLoad) {
         // openCreateChange() needs the Status dropdown populated by
-        // loadStatuses() before it can set the default value, so wait
-        // for that fetch to land before opening the editor.
-        statusesReady.then(() => openCreateChange());
+        // loadStatuses() AND the form layout fetched so refreshFormLayout()
+        // can place + hide sections correctly on first paint.
+        Promise.all([statusesReady, layoutReady]).then(() => openCreateChange());
     }
 
     // Enter key triggers search in search modal
@@ -58,18 +69,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
-// ============ Field Visibility ============
+// ============ Form Layout ============
 
-// Section-to-fields mapping for hiding empty sections
-const SECTION_FIELDS = {
-    general:     ['title', 'change_type', 'status', 'priority', 'impact', 'category'],
-    people:      ['requester', 'assigned_to', 'approver'],
-    schedule:    ['work_start', 'work_end', 'outage_start', 'outage_end'],
-    details:     ['description', 'reason', 'risk', 'testplan', 'rollback', 'pir'],
-    attachments: ['attachments']
-};
-
-// Detail view field-to-data mapping
+// Detail view field-to-data mapping (used by renderChangeDetail to know
+// which c.<prop> to surface when a given field key is visible).
 const DETAIL_FIELD_MAP = {
     impact: 'impact', category: 'category',
     requester: 'requester_name', assigned_to: 'assigned_to_name', approver: 'approver_name',
@@ -77,71 +80,178 @@ const DETAIL_FIELD_MAP = {
     outage_start: 'outage_start_datetime', outage_end: 'outage_end_datetime'
 };
 
-async function loadFieldVisibility() {
+async function loadFormLayout() {
     try {
-        const res = await fetch(API_BASE + 'get_settings.php');
+        const res = await fetch(API_BASE + 'get_field_layout.php');
         const data = await res.json();
-        if (data.success && data.settings && data.settings.field_visibility) {
-            fieldVisibility = data.settings.field_visibility;
+        if (data.success) {
+            formLayout = {
+                sections: data.sections || [],
+                fields:   data.fields   || [],
+                unplaced: data.unplaced || []
+            };
+            fieldByKey = {};
+            for (const f of formLayout.fields) fieldByKey[f.key] = f;
+            sectionById = {};
+            for (const s of formLayout.sections) sectionById[s.id] = s;
         }
     } catch (e) {
-        console.error('Error loading field visibility:', e);
+        console.error('Error loading form layout:', e);
     }
 }
 
-function isFieldVisible(fieldId) {
-    return fieldVisibility[fieldId] !== false;
+function isFieldVisible(fieldKey) {
+    const f = fieldByKey[fieldKey];
+    // Unknown fields default to visible. Keeps newly-added catalogue keys
+    // working before an admin has placed them in the layout.
+    return !f || f.is_visible !== false;
 }
 
-function applyFieldVisibility() {
-    const editor = document.getElementById('changeEditorView');
-    if (!editor) return;
+/**
+ * Rebuilds the editor form to match the current formLayout:
+ *   - reorders .cm-form-section blocks by section.display_order
+ *   - renames each section heading from section.name
+ *   - moves .cm-field-wrap blocks between sections based on field.section_id
+ *   - shows/hides each wrap based on field.is_visible
+ *   - parks the rich-text widget under whichever section contains the
+ *     first visible rich-text field (v1 limitation: the six rich-text
+ *     tabs are NOT split across sections)
+ *   - hides sections that end up with no visible content
+ *
+ * Called whenever the editor view becomes visible (showView('editor')),
+ * which covers both create and edit flows.
+ */
+function refreshFormLayout() {
+    const editorForm = document.querySelector('#changeEditorView .editor-form');
+    if (!editorForm) return;
 
-    // Show/hide individual fields
-    editor.querySelectorAll('[data-field]').forEach(el => {
-        const fieldId = el.dataset.field;
-        // Skip rich-text tab buttons (handled separately)
-        if (el.tagName === 'BUTTON') return;
-        el.style.display = isFieldVisible(fieldId) ? '' : 'none';
+    const sortedSections = [...formLayout.sections].sort(
+        (a, b) => (a.display_order - b.display_order) || (a.id - b.id)
+    );
+    const sortedFields = [...formLayout.fields].sort(
+        (a, b) => (a.display_order - b.display_order) || a.key.localeCompare(b.key)
+    );
+
+    // section.id → DOM wrapper. Create wrappers for sections that exist in
+    // the DB but weren't in the seed HTML (admin-added sections).
+    const wrappersById = {};
+    editorForm.querySelectorAll('.cm-form-section').forEach(w => {
+        const id = parseInt(w.dataset.sectionId, 10);
+        if (!isNaN(id)) wrappersById[id] = w;
+    });
+    sortedSections.forEach(s => {
+        if (!wrappersById[s.id]) {
+            const w = document.createElement('div');
+            w.className = 'cm-form-section';
+            w.dataset.sectionId = s.id;
+            const h = document.createElement('h3');
+            h.className = 'form-section-title';
+            w.appendChild(h);
+            editorForm.appendChild(w);
+            wrappersById[s.id] = w;
+        }
     });
 
-    // Show/hide rich-text tab buttons
-    const tabBar = document.getElementById('richTextTabs');
-    if (tabBar) {
-        let firstVisibleTab = null;
-        tabBar.querySelectorAll('.rich-text-tab[data-field]').forEach(btn => {
-            const vis = isFieldVisible(btn.dataset.field);
+    // Re-attach wrappers in DB order, refresh heading text. We keep
+    // editor-actions (cancel/save row) at the bottom by inserting before it.
+    const editorActions = editorForm.querySelector('.editor-actions');
+    sortedSections.forEach(s => {
+        const w = wrappersById[s.id];
+        const heading = w.querySelector('.form-section-title');
+        if (heading) heading.textContent = s.name;
+        w.style.display = '';
+        if (editorActions) editorForm.insertBefore(w, editorActions);
+        else editorForm.appendChild(w);
+    });
+    // Wrappers whose section no longer exists in DB are hidden (data
+    // stays in DOM but won't render — settings UI should have moved
+    // fields out before delete, so these are empty shells).
+    Object.entries(wrappersById).forEach(([id, w]) => {
+        if (!sectionById[id]) w.style.display = 'none';
+    });
+
+    // Pick the rich-text widget's host section: first section (by display
+    // order) that contains a visible rich-text field.
+    let anchorSectionId = null;
+    for (const s of sortedSections) {
+        const hit = sortedFields.find(f =>
+            RICH_TEXT_FIELDS.includes(f.key) && f.section_id === s.id && f.is_visible
+        );
+        if (hit) { anchorSectionId = s.id; break; }
+    }
+
+    // field_key → DOM wrap
+    const wrapsByKey = {};
+    editorForm.querySelectorAll('.cm-field-wrap').forEach(w => {
+        wrapsByKey[w.dataset.fieldKey] = w;
+    });
+
+    // Place non-rich-text wraps inside their target section in display order.
+    sortedSections.forEach(s => {
+        const sectionEl = wrappersById[s.id];
+        if (!sectionEl) return;
+        sortedFields
+            .filter(f => f.section_id === s.id && !RICH_TEXT_FIELDS.includes(f.key))
+            .forEach(f => {
+                const wrap = wrapsByKey[f.key];
+                if (!wrap) return;
+                sectionEl.appendChild(wrap);
+                wrap.style.display = f.is_visible ? '' : 'none';
+            });
+    });
+
+    // Rich-text widget + PIR structured wrap both follow the anchor section.
+    const richTextWidget = document.getElementById('cmRichTextWidget');
+    const pirWrap = wrapsByKey['pir'];
+    if (anchorSectionId && wrappersById[anchorSectionId]) {
+        const host = wrappersById[anchorSectionId];
+        if (richTextWidget) {
+            host.appendChild(richTextWidget);
+            richTextWidget.style.display = '';
+        }
+        if (pirWrap) {
+            host.appendChild(pirWrap);
+            pirWrap.style.display = isFieldVisible('pir') ? '' : 'none';
+        }
+    } else {
+        if (richTextWidget) richTextWidget.style.display = 'none';
+        if (pirWrap) pirWrap.style.display = 'none';
+    }
+
+    // Per-tab visibility on the rich-text widget. If the active tab is
+    // hidden, switch to the first visible one so the user isn't stuck on
+    // an empty panel.
+    if (richTextWidget) {
+        let firstVisible = null;
+        richTextWidget.querySelectorAll('.rich-text-tab').forEach(btn => {
+            const vis = isFieldVisible(btn.dataset.fieldKey);
             btn.style.display = vis ? '' : 'none';
-            if (vis && !firstVisibleTab) firstVisibleTab = btn.dataset.field;
+            if (vis && !firstVisible) firstVisible = btn.dataset.fieldKey;
         });
-        // Activate first visible tab if current active is hidden
-        const activeTab = tabBar.querySelector('.rich-text-tab.active');
-        if (activeTab && activeTab.style.display === 'none' && firstVisibleTab) {
-            switchTab(firstVisibleTab);
+        richTextWidget.querySelectorAll('.rich-text-panel').forEach(panel => {
+            if (!isFieldVisible(panel.dataset.fieldKey)) panel.style.display = 'none';
+        });
+        const activeTab = richTextWidget.querySelector('.rich-text-tab.active');
+        if (activeTab && activeTab.style.display === 'none' && firstVisible) {
+            switchTab(firstVisible);
         }
     }
 
-    // Show/hide form-rows: hide if ALL child .form-group elements are hidden
-    editor.querySelectorAll('.form-row[data-section]').forEach(row => {
-        const groups = row.querySelectorAll('.form-group[data-field]');
-        const allHidden = Array.from(groups).every(g => g.style.display === 'none');
-        row.style.display = allHidden ? 'none' : '';
+    // Hide sections that ended up with no visible content. A section
+    // counts as visible if it has at least one visible .cm-field-wrap OR
+    // it hosts the rich-text widget (and the widget itself is visible).
+    sortedSections.forEach(s => {
+        const wrapper = wrappersById[s.id];
+        if (!wrapper) return;
+        const visibleWraps = Array.from(wrapper.querySelectorAll('.cm-field-wrap'))
+            .filter(w => w.style.display !== 'none');
+        const hostsRichText = richTextWidget
+            && richTextWidget.parentElement === wrapper
+            && richTextWidget.style.display !== 'none';
+        if (visibleWraps.length === 0 && !hostsRichText) {
+            wrapper.style.display = 'none';
+        }
     });
-
-    // Show/hide section headings: hide if ALL fields in section are hidden
-    editor.querySelectorAll('.form-section-title[data-section]').forEach(heading => {
-        const section = heading.dataset.section;
-        const fields = SECTION_FIELDS[section] || [];
-        const allHidden = fields.every(f => !isFieldVisible(f));
-        heading.style.display = allHidden ? 'none' : '';
-    });
-
-    // Hide details tab bar if all detail fields hidden
-    if (tabBar) {
-        const detailFields = SECTION_FIELDS.details || [];
-        const allHidden = detailFields.every(f => !isFieldVisible(f));
-        tabBar.style.display = allHidden ? 'none' : '';
-    }
 }
 
 // ============ Data Loading ============
@@ -1539,7 +1649,7 @@ function showView(view) {
     document.getElementById('changeDetailView').style.display = view === 'detail' ? '' : 'none';
     document.getElementById('changeEditorView').style.display = view === 'editor' ? '' : 'none';
     if (view === 'editor') {
-        applyFieldVisibility();
+        refreshFormLayout();
     }
 }
 

@@ -73,235 +73,300 @@ $path_prefix = '../';
                 </div>
                 <div class="editor-form">
                     <input type="hidden" id="editChangeId" value="">
+                    <!--
+                        The form is grouped into sections via .cm-form-section wrappers.
+                        Each wrapper carries data-section-id matching change_field_sections.id
+                        and a data-section-key for the seed-section that lived here. JS
+                        rebuilds the form at render-time:
+                          - looks up the matching DB section by id, renames the heading
+                          - reorders the sections to match change_field_sections.display_order
+                          - hides any section whose visible-fields count is zero
+                          - migrates individual fields between sections if a field was
+                            re-homed in Form fields settings
+                        Individual field blocks carry data-field-key so they're addressable.
+                        See the v1 limitation note at the top of refreshFormLayout() in JS.
+                    -->
 
-                    <h3 class="form-section-title" data-section="general" style="margin-top:0; padding-top:0; border-top:none;">General Information</h3>
+                    <div class="cm-form-section" data-section-id="1" data-section-key="general">
+                        <h3 class="form-section-title" style="margin-top:0; padding-top:0; border-top:none;">General information</h3>
 
-                    <div class="form-group" data-field="title">
-                        <label class="form-label">Title *</label>
-                        <input type="text" class="form-input" id="changeTitle" placeholder="Enter change title...">
+                        <div class="cm-field-wrap" data-field-key="title">
+                            <div class="form-group">
+                                <label class="form-label">Title *</label>
+                                <input type="text" class="form-input" id="changeTitle" placeholder="Enter change title...">
+                            </div>
+                        </div>
+
+                        <div class="cm-field-wrap" data-field-key="change_type">
+                            <div class="form-group">
+                                <label class="form-label">Change type</label>
+                                <select class="form-input" id="changeType">
+                                    <option value="Standard">Standard</option>
+                                    <option value="Normal" selected>Normal</option>
+                                    <option value="Emergency">Emergency</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="cm-field-wrap" data-field-key="status">
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <!-- Options populated from change_statuses (active rows only) on page load. -->
+                                <select class="form-input" id="changeStatus"></select>
+                            </div>
+                        </div>
+
+                        <div class="cm-field-wrap" data-field-key="priority">
+                            <div class="form-group">
+                                <label class="form-label">Priority</label>
+                                <select class="form-input" id="changePriority">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="High">High</option>
+                                    <option value="Critical">Critical</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="cm-field-wrap" data-field-key="impact">
+                            <div class="form-group">
+                                <label class="form-label">Impact</label>
+                                <select class="form-input" id="changeImpact">
+                                    <option value="Low">Low</option>
+                                    <option value="Medium" selected>Medium</option>
+                                    <option value="High">High</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="cm-field-wrap" data-field-key="category">
+                            <div class="form-group">
+                                <label class="form-label">Category</label>
+                                <input type="text" class="form-input" id="changeCategory" placeholder="e.g. Network, Server, Software...">
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-row" data-section="general">
-                        <div class="form-group" data-field="change_type">
-                            <label class="form-label">Change Type</label>
-                            <select class="form-input" id="changeType">
-                                <option value="Standard">Standard</option>
-                                <option value="Normal" selected>Normal</option>
-                                <option value="Emergency">Emergency</option>
-                            </select>
-                        </div>
-                        <div class="form-group" data-field="status">
-                            <label class="form-label">Status</label>
-                            <!-- Options populated from change_statuses (active rows only) on page load. -->
-                            <select class="form-input" id="changeStatus"></select>
-                        </div>
-                    </div>
+                    <div class="cm-form-section" data-section-id="2" data-section-key="people">
+                        <h3 class="form-section-title">People</h3>
 
-                    <div class="form-row" data-section="general">
-                        <div class="form-group" data-field="priority">
-                            <label class="form-label">Priority</label>
-                            <select class="form-input" id="changePriority">
-                                <option value="Low">Low</option>
-                                <option value="Medium" selected>Medium</option>
-                                <option value="High">High</option>
-                                <option value="Critical">Critical</option>
-                            </select>
+                        <div class="cm-field-wrap" data-field-key="requester">
+                            <div class="form-group">
+                                <label class="form-label">Requester</label>
+                                <select class="form-input" id="changeRequester">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group" data-field="impact">
-                            <label class="form-label">Impact</label>
-                            <select class="form-input" id="changeImpact">
-                                <option value="Low">Low</option>
-                                <option value="Medium" selected>Medium</option>
-                                <option value="High">High</option>
-                            </select>
+
+                        <div class="cm-field-wrap" data-field-key="assigned_to">
+                            <div class="form-group">
+                                <label class="form-label">Assigned to</label>
+                                <select class="form-input" id="changeAssignedTo">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
 
-                    <div class="form-group" data-field="category">
-                        <label class="form-label">Category</label>
-                        <input type="text" class="form-input" id="changeCategory" placeholder="e.g. Network, Server, Software...">
-                    </div>
-
-                    <h3 class="form-section-title" data-section="people">People</h3>
-
-                    <div class="form-row" data-section="people">
-                        <div class="form-group" data-field="requester">
-                            <label class="form-label">Requester</label>
-                            <select class="form-input" id="changeRequester">
-                                <option value="">-- Select --</option>
-                            </select>
+                        <div class="cm-field-wrap" data-field-key="approver">
+                            <div class="form-group">
+                                <label class="form-label">Approver</label>
+                                <select class="form-input" id="changeApprover">
+                                    <option value="">-- Select --</option>
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group" data-field="assigned_to">
-                            <label class="form-label">Assigned To</label>
-                            <select class="form-input" id="changeAssignedTo">
-                                <option value="">-- Select --</option>
-                            </select>
-                        </div>
-                    </div>
 
-                    <div class="form-group" data-field="approver">
-                        <label class="form-label">Approver</label>
-                        <select class="form-input" id="changeApprover">
-                            <option value="">-- Select --</option>
-                        </select>
-                    </div>
-
-                    <!-- CAB Review -->
-                    <div class="form-group" data-field="cab" data-section="people">
-                        <label class="form-label" style="display: flex; align-items: center; gap: 10px;">
-                            <input type="checkbox" id="cabRequired" onchange="toggleCabConfig()"> Require CAB review
-                        </label>
-                    </div>
-                    <div id="cabConfigSection" style="display: none;" data-section="people">
-                        <div class="form-group">
-                            <label class="form-label">Approval Type</label>
-                            <select class="form-input" id="cabApprovalType">
-                                <option value="all">All must approve</option>
-                                <option value="majority">Majority</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">CAB Members</label>
-                            <div class="cab-member-picker">
-                                <div style="display: flex; gap: 8px;">
-                                    <select class="form-input" id="cabMemberSelect" style="flex: 1;">
-                                        <option value="">-- Select analyst --</option>
+                        <!-- CAB review. Visibility tied to data-field-key="cab"; the
+                             collapsible config sub-section travels with the parent. -->
+                        <div class="cm-field-wrap" data-field-key="cab">
+                            <div class="form-group">
+                                <label class="form-label" style="display: flex; align-items: center; gap: 10px;">
+                                    <input type="checkbox" id="cabRequired" onchange="toggleCabConfig()"> Require CAB review
+                                </label>
+                            </div>
+                            <div id="cabConfigSection" style="display: none;">
+                                <div class="form-group">
+                                    <label class="form-label">Approval type</label>
+                                    <select class="form-input" id="cabApprovalType">
+                                        <option value="all">All must approve</option>
+                                        <option value="majority">Majority</option>
                                     </select>
-                                    <button type="button" class="btn btn-secondary" onclick="addCabMember()">Add</button>
                                 </div>
-                                <div class="cab-members-list" id="cabMembersList"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <h3 class="form-section-title" data-section="schedule">Schedule</h3>
-
-                    <div class="form-row" data-section="schedule">
-                        <div class="form-group" data-field="work_start">
-                            <label class="form-label">Work Start</label>
-                            <input type="datetime-local" class="form-input" id="changeWorkStart">
-                        </div>
-                        <div class="form-group" data-field="work_end">
-                            <label class="form-label">Work End</label>
-                            <input type="datetime-local" class="form-input" id="changeWorkEnd">
-                        </div>
-                    </div>
-
-                    <div class="form-row" data-section="schedule">
-                        <div class="form-group" data-field="outage_start">
-                            <label class="form-label">Outage Start (optional)</label>
-                            <input type="datetime-local" class="form-input" id="changeOutageStart">
-                        </div>
-                        <div class="form-group" data-field="outage_end">
-                            <label class="form-label">Outage End (optional)</label>
-                            <input type="datetime-local" class="form-input" id="changeOutageEnd">
-                        </div>
-                    </div>
-
-                    <h3 class="form-section-title" data-section="details">Details</h3>
-
-                    <!-- Risk Scoring -->
-                    <div class="form-row risk-scoring-row" data-section="details" data-field="risk">
-                        <div class="form-group">
-                            <label class="form-label">Risk Likelihood</label>
-                            <select class="form-input" id="riskLikelihood" onchange="updateRiskScore()">
-                                <option value="">Not assessed</option>
-                                <option value="1">1 - Very Low</option>
-                                <option value="2">2 - Low</option>
-                                <option value="3">3 - Medium</option>
-                                <option value="4">4 - High</option>
-                                <option value="5">5 - Very High</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Risk Impact</label>
-                            <select class="form-input" id="riskImpactScore" onchange="updateRiskScore()">
-                                <option value="">Not assessed</option>
-                                <option value="1">1 - Very Low</option>
-                                <option value="2">2 - Low</option>
-                                <option value="3">3 - Medium</option>
-                                <option value="4">4 - High</option>
-                                <option value="5">5 - Very High</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label class="form-label">Risk Score</label>
-                            <div class="risk-score-display" id="riskScoreDisplay">-</div>
-                        </div>
-                    </div>
-
-                    <div class="rich-text-tabs" id="richTextTabs" data-section="details">
-                        <button class="rich-text-tab active" data-field="description" onclick="switchTab('description')">Description</button>
-                        <button class="rich-text-tab" data-field="reason" onclick="switchTab('reason')">Reason for Change</button>
-                        <button class="rich-text-tab" data-field="risk" onclick="switchTab('risk')">Risk Evaluation</button>
-                        <button class="rich-text-tab" data-field="testplan" onclick="switchTab('testplan')">Test Plan</button>
-                        <button class="rich-text-tab" data-field="rollback" onclick="switchTab('rollback')">Rollback Plan</button>
-                        <button class="rich-text-tab" data-field="pir" onclick="switchTab('pir')">Post-Implementation Review</button>
-                    </div>
-
-                    <div class="rich-text-panel active" id="panel-description" data-field="description">
-                        <textarea id="editorDescription"></textarea>
-                    </div>
-                    <div class="rich-text-panel" id="panel-reason" data-field="reason">
-                        <textarea id="editorReason"></textarea>
-                    </div>
-                    <div class="rich-text-panel" id="panel-risk" data-field="risk">
-                        <textarea id="editorRisk"></textarea>
-                    </div>
-                    <div class="rich-text-panel" id="panel-testplan" data-field="testplan">
-                        <textarea id="editorTestplan"></textarea>
-                    </div>
-                    <div class="rich-text-panel" id="panel-rollback" data-field="rollback">
-                        <textarea id="editorRollback"></textarea>
-                    </div>
-                    <div class="rich-text-panel" id="panel-pir" data-field="pir">
-                        <textarea id="editorPir"></textarea>
-                    </div>
-
-                    <!-- PIR Structured Fields (visible when status = Completed/Failed) -->
-                    <div class="pir-structured" id="pirStructuredFields" data-section="details" data-field="pir" style="display: none;">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label class="form-label">Was Successful?</label>
-                                <div style="display: flex; gap: 15px; margin-top: 5px;">
-                                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                        <input type="radio" name="pirWasSuccessful" value="1"> Yes
-                                    </label>
-                                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                        <input type="radio" name="pirWasSuccessful" value="0"> No
-                                    </label>
+                                <div class="form-group">
+                                    <label class="form-label">CAB members</label>
+                                    <div class="cab-member-picker">
+                                        <div style="display: flex; gap: 8px;">
+                                            <select class="form-input" id="cabMemberSelect" style="flex: 1;">
+                                                <option value="">-- Select analyst --</option>
+                                            </select>
+                                            <button type="button" class="btn btn-secondary" onclick="addCabMember()">Add</button>
+                                        </div>
+                                        <div class="cab-members-list" id="cabMembersList"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="form-row">
+                    </div>
+
+                    <div class="cm-form-section" data-section-id="3" data-section-key="schedule">
+                        <h3 class="form-section-title">Schedule</h3>
+
+                        <div class="cm-field-wrap" data-field-key="work_start">
                             <div class="form-group">
-                                <label class="form-label">Actual Start</label>
-                                <input type="datetime-local" class="form-input" id="pirActualStart">
-                            </div>
-                            <div class="form-group">
-                                <label class="form-label">Actual End</label>
-                                <input type="datetime-local" class="form-input" id="pirActualEnd">
+                                <label class="form-label">Work start</label>
+                                <input type="datetime-local" class="form-input" id="changeWorkStart">
                             </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Lessons Learned</label>
-                            <textarea class="form-input" id="pirLessonsLearned" rows="3" placeholder="What went well? What could be improved?"></textarea>
+
+                        <div class="cm-field-wrap" data-field-key="work_end">
+                            <div class="form-group">
+                                <label class="form-label">Work end</label>
+                                <input type="datetime-local" class="form-input" id="changeWorkEnd">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Follow-up Actions</label>
-                            <textarea class="form-input" id="pirFollowUp" rows="3" placeholder="Any actions arising from this change?"></textarea>
+
+                        <div class="cm-field-wrap" data-field-key="outage_start">
+                            <div class="form-group">
+                                <label class="form-label">Outage start (optional)</label>
+                                <input type="datetime-local" class="form-input" id="changeOutageStart">
+                            </div>
+                        </div>
+
+                        <div class="cm-field-wrap" data-field-key="outage_end">
+                            <div class="form-group">
+                                <label class="form-label">Outage end (optional)</label>
+                                <input type="datetime-local" class="form-input" id="changeOutageEnd">
+                            </div>
                         </div>
                     </div>
 
-                    <h3 class="form-section-title" data-section="attachments">Attachments</h3>
+                    <div class="cm-form-section" data-section-id="4" data-section-key="details">
+                        <h3 class="form-section-title">Details</h3>
 
-                    <div data-field="attachments">
-                        <div class="attachment-list" id="editorAttachmentList"></div>
+                        <div class="cm-field-wrap" data-field-key="risk">
+                            <div class="form-row risk-scoring-row">
+                                <div class="form-group">
+                                    <label class="form-label">Risk likelihood</label>
+                                    <select class="form-input" id="riskLikelihood" onchange="updateRiskScore()">
+                                        <option value="">Not assessed</option>
+                                        <option value="1">1 - Very low</option>
+                                        <option value="2">2 - Low</option>
+                                        <option value="3">3 - Medium</option>
+                                        <option value="4">4 - High</option>
+                                        <option value="5">5 - Very high</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Risk impact</label>
+                                    <select class="form-input" id="riskImpactScore" onchange="updateRiskScore()">
+                                        <option value="">Not assessed</option>
+                                        <option value="1">1 - Very low</option>
+                                        <option value="2">2 - Low</option>
+                                        <option value="3">3 - Medium</option>
+                                        <option value="4">4 - High</option>
+                                        <option value="5">5 - Very high</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Risk score</label>
+                                    <div class="risk-score-display" id="riskScoreDisplay">-</div>
+                                </div>
+                            </div>
+                        </div>
 
-                        <div class="file-upload-area" id="fileUploadArea">
-                            <div class="upload-icon">&#128206;</div>
-                            <p>Drag and drop files here, or click to browse</p>
-                            <input type="file" id="fileInput" multiple style="display:none;">
+                        <!--
+                            Rich-text tabbed widget. v1 limitation: this widget
+                            stays anchored to the Details section and is NOT
+                            moved by Form fields settings. The six individual
+                            tabs (description, reason, risk, testplan, rollback,
+                            pir) ARE hidden/shown based on each field's
+                            is_visible flag — if all six are hidden the whole
+                            widget hides. Their section_id is currently ignored
+                            for placement (always rendered here).
+                        -->
+                        <div class="cm-rich-text-widget" id="cmRichTextWidget">
+                            <div class="rich-text-tabs" id="richTextTabs">
+                                <button class="rich-text-tab active" data-field-key="description" onclick="switchTab('description')">Description</button>
+                                <button class="rich-text-tab" data-field-key="reason" onclick="switchTab('reason')">Reason for change</button>
+                                <button class="rich-text-tab" data-field-key="risk" onclick="switchTab('risk')">Risk evaluation</button>
+                                <button class="rich-text-tab" data-field-key="testplan" onclick="switchTab('testplan')">Test plan</button>
+                                <button class="rich-text-tab" data-field-key="rollback" onclick="switchTab('rollback')">Rollback plan</button>
+                                <button class="rich-text-tab" data-field-key="pir" onclick="switchTab('pir')">Post-implementation review</button>
+                            </div>
+
+                            <div class="rich-text-panel active" id="panel-description" data-field-key="description">
+                                <textarea id="editorDescription"></textarea>
+                            </div>
+                            <div class="rich-text-panel" id="panel-reason" data-field-key="reason">
+                                <textarea id="editorReason"></textarea>
+                            </div>
+                            <div class="rich-text-panel" id="panel-risk" data-field-key="risk">
+                                <textarea id="editorRisk"></textarea>
+                            </div>
+                            <div class="rich-text-panel" id="panel-testplan" data-field-key="testplan">
+                                <textarea id="editorTestplan"></textarea>
+                            </div>
+                            <div class="rich-text-panel" id="panel-rollback" data-field-key="rollback">
+                                <textarea id="editorRollback"></textarea>
+                            </div>
+                            <div class="rich-text-panel" id="panel-pir" data-field-key="pir">
+                                <textarea id="editorPir"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- PIR structured fields appear under the pir field-wrap
+                             but only render when status = Completed/Failed. The
+                             outer wrap follows the pir field's visibility; the
+                             inner .pir-structured follows the status state. -->
+                        <div class="cm-field-wrap" data-field-key="pir">
+                            <div class="pir-structured" id="pirStructuredFields" style="display: none;">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Was successful?</label>
+                                        <div style="display: flex; gap: 15px; margin-top: 5px;">
+                                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                                <input type="radio" name="pirWasSuccessful" value="1"> Yes
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                                <input type="radio" name="pirWasSuccessful" value="0"> No
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Actual start</label>
+                                        <input type="datetime-local" class="form-input" id="pirActualStart">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Actual end</label>
+                                        <input type="datetime-local" class="form-input" id="pirActualEnd">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Lessons learned</label>
+                                    <textarea class="form-input" id="pirLessonsLearned" rows="3" placeholder="What went well? What could be improved?"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Follow-up actions</label>
+                                    <textarea class="form-input" id="pirFollowUp" rows="3" placeholder="Any actions arising from this change?"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cm-form-section" data-section-id="5" data-section-key="attachments">
+                        <h3 class="form-section-title">Attachments</h3>
+
+                        <div class="cm-field-wrap" data-field-key="attachments">
+                            <div class="attachment-list" id="editorAttachmentList"></div>
+
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <div class="upload-icon">&#128206;</div>
+                                <p>Drag and drop files here, or click to browse</p>
+                                <input type="file" id="fileInput" multiple style="display:none;">
+                            </div>
                         </div>
                     </div>
 
@@ -388,6 +453,6 @@ $path_prefix = '../';
         window.openCreateOnLoad = true;
         <?php endif; ?>
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=6"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=7"></script>
 </body>
 </html>

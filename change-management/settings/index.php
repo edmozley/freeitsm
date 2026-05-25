@@ -40,36 +40,159 @@ $path_prefix = '../../';
             color: #333;
         }
 
-        .field-group-heading {
-            font-size: 13px;
+        /* Form fields tab: section cards + draggable field rows. */
+        .field-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .field-toolbar .field-save-status {
+            font-size: 12px;
+            color: #16a34a;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .field-toolbar .field-save-status.visible {
+            opacity: 1;
+        }
+        .section-card {
+            background: #fff;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+        }
+        .section-card.drop-target-section {
+            border-color: #00897b;
+            box-shadow: 0 0 0 2px rgba(0, 137, 123, 0.15);
+        }
+        .section-card.dragging {
+            opacity: 0.4;
+        }
+        .section-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f0f0f0;
+            background: #fafafa;
+            border-radius: 6px 6px 0 0;
+        }
+        .section-card-header .drag-handle {
+            cursor: grab;
+            color: #999;
+            font-size: 14px;
+            user-select: none;
+            padding: 4px;
+        }
+        .section-card-header .drag-handle:active { cursor: grabbing; }
+        .section-name-input {
+            flex: 1;
+            font-size: 15px;
             font-weight: 600;
             color: #00897b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 14px 0 8px;
-            border-bottom: 1px solid #e0e0e0;
-            margin-bottom: 0;
+            border: 1px solid transparent;
+            background: transparent;
+            padding: 6px 10px;
+            border-radius: 4px;
         }
-
-        .field-group-heading:first-child {
-            padding-top: 0;
+        .section-name-input:hover {
+            border-color: #e0e0e0;
+            background: #fff;
         }
-
+        .section-name-input:focus {
+            outline: none;
+            border-color: #00897b;
+            background: #fff;
+            box-shadow: 0 0 0 2px rgba(0, 137, 123, 0.1);
+        }
+        .section-delete-btn {
+            background: none;
+            border: 1px solid transparent;
+            color: #999;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 16px;
+            line-height: 1;
+        }
+        .section-delete-btn:hover {
+            color: #c62828;
+            border-color: #fce4e4;
+            background: #fff5f5;
+        }
+        .section-fields {
+            padding: 4px 14px 8px;
+            min-height: 36px;
+        }
+        .section-fields:empty::after {
+            content: 'Drop fields here';
+            display: block;
+            padding: 16px;
+            text-align: center;
+            color: #aaa;
+            font-style: italic;
+            font-size: 13px;
+        }
         .field-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #f0f0f0;
+            gap: 10px;
+            padding: 8px 6px;
+            border-bottom: 1px solid #f3f3f3;
         }
-
         .field-row:last-child {
             border-bottom: none;
         }
-
+        .field-row.dragging {
+            opacity: 0.4;
+        }
+        .field-row.drop-target-field {
+            border-top: 2px solid #00897b;
+        }
+        .field-row .drag-handle {
+            cursor: grab;
+            color: #bbb;
+            font-size: 13px;
+            user-select: none;
+            padding: 2px 4px;
+        }
+        .field-row .drag-handle:active { cursor: grabbing; }
         .field-row-label {
+            flex: 1;
             font-size: 14px;
             color: #333;
+        }
+        .unplaced-fields {
+            margin-top: 20px;
+            border: 1px dashed #e0a800;
+            background: #fffbe6;
+            border-radius: 6px;
+            padding: 10px 14px;
+        }
+        .unplaced-fields h4 {
+            margin: 0 0 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #856404;
+        }
+        .unplaced-fields p.hint {
+            margin: 0 0 8px;
+            font-size: 12px;
+            color: #856404;
+        }
+        .add-section-btn {
+            background: #00897b;
+            color: white;
+            border: none;
+            padding: 8px 14px;
+            border-radius: 4px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+        .add-section-btn:hover {
+            background: #00695c;
         }
 
         /* Toggle switch */
@@ -194,13 +317,14 @@ $path_prefix = '../../';
             <div class="section-header">
                 <h2>Form fields</h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;">Control which fields appear on the change editor and detail view. Hidden fields will not be shown or required.</p>
+            <p style="color: #666; margin-bottom: 16px;">Drag to reorder sections and fields, drag fields between sections, click a section name to rename. Sections with no visible fields are hidden on the change form. Changes save automatically.</p>
+
+            <div class="field-toolbar">
+                <button type="button" class="add-section-btn" onclick="addSection()">+ Add section</button>
+                <span class="field-save-status" id="fieldSaveStatus">Saved</span>
+            </div>
 
             <div id="fieldSettings"></div>
-
-            <div class="form-actions">
-                <button class="btn btn-primary" onclick="saveSettings()">Save</button>
-            </div>
         </div>
 
         <!-- Statuses Tab -->
@@ -308,62 +432,17 @@ $path_prefix = '../../';
     <script>
         const API_BASE = '../../api/change-management/';
 
-        // Field configuration organised by section
-        const FIELD_SECTIONS = [
-            {
-                id: 'general',
-                label: 'General information',
-                fields: [
-                    { id: 'title',       label: 'Title' },
-                    { id: 'change_type', label: 'Change type' },
-                    { id: 'status',      label: 'Status' },
-                    { id: 'priority',    label: 'Priority' },
-                    { id: 'impact',      label: 'Impact' },
-                    { id: 'category',    label: 'Category' }
-                ]
-            },
-            {
-                id: 'people',
-                label: 'People',
-                fields: [
-                    { id: 'requester',   label: 'Requester' },
-                    { id: 'assigned_to', label: 'Assigned to' },
-                    { id: 'approver',    label: 'Approver' }
-                ]
-            },
-            {
-                id: 'schedule',
-                label: 'Schedule',
-                fields: [
-                    { id: 'work_start',   label: 'Work start' },
-                    { id: 'work_end',     label: 'Work end' },
-                    { id: 'outage_start', label: 'Outage start' },
-                    { id: 'outage_end',   label: 'Outage end' }
-                ]
-            },
-            {
-                id: 'details',
-                label: 'Details',
-                fields: [
-                    { id: 'description', label: 'Description' },
-                    { id: 'reason',      label: 'Reason for change' },
-                    { id: 'risk',        label: 'Risk evaluation' },
-                    { id: 'testplan',    label: 'Test plan' },
-                    { id: 'rollback',    label: 'Rollback plan' },
-                    { id: 'pir',         label: 'Post-implementation review' }
-                ]
-            },
-            {
-                id: 'attachments',
-                label: 'Attachments',
-                fields: [
-                    { id: 'attachments', label: 'Attachments' }
-                ]
-            }
-        ];
-
-        // Current visibility state (default all visible)
-        let fieldVisibility = {};
+        // Layout state — loaded from get_field_layout.php; mutated locally
+        // on every UI action and then auto-saved to save_field_layout.php.
+        // Shape:
+        //   sections: [{ id, name, display_order }]
+        //   fields:   [{ key, label, section_id, display_order, is_visible }]
+        //   unplaced: [{ key, label }]  // catalogue keys with no layout row
+        // Section ids < 0 are tempIds for locally-created sections that
+        // haven't been saved yet — the API resolves them on save and
+        // returns real ids in the response.
+        let layout = { sections: [], fields: [], unplaced: [] };
+        let nextTempSectionId = -1;
 
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -543,63 +622,382 @@ $path_prefix = '../../';
             }
         });
 
+        // ============================================================
+        // Form fields tab — load / render / auto-save
+        // ============================================================
         async function loadSettings() {
             try {
-                const res = await fetch(API_BASE + 'get_settings.php');
+                const res = await fetch(API_BASE + 'get_field_layout.php');
                 const data = await res.json();
-                if (data.success && data.settings && data.settings.field_visibility) {
-                    fieldVisibility = data.settings.field_visibility;
+                if (data.success) {
+                    layout.sections = data.sections || [];
+                    layout.fields   = data.fields   || [];
+                    layout.unplaced = data.unplaced || [];
                 }
             } catch (e) {
-                console.error(e);
+                console.error('Failed to load field layout:', e);
             }
             renderFieldSettings();
         }
 
         function renderFieldSettings() {
             const container = document.getElementById('fieldSettings');
-            let html = '';
+            const sections = [...layout.sections].sort((a, b) => a.display_order - b.display_order);
 
-            FIELD_SECTIONS.forEach(section => {
-                html += `<div class="field-group-heading">${section.label}</div>`;
-                section.fields.forEach(field => {
-                    const isVisible = fieldVisibility[field.id] !== false;
-                    html += `
-                        <div class="field-row">
-                            <span class="field-row-label">${field.label}</span>
-                            <label class="toggle-switch">
-                                <input type="checkbox" data-field="${field.id}" ${isVisible ? 'checked' : ''} onchange="toggleField('${field.id}', this.checked)">
-                                <span class="toggle-slider"></span>
-                            </label>
+            let html = '';
+            sections.forEach(section => {
+                const fieldsInSection = layout.fields
+                    .filter(f => f.section_id === section.id)
+                    .sort((a, b) => a.display_order - b.display_order);
+
+                html += `
+                    <div class="section-card" data-section-id="${section.id}" draggable="true">
+                        <div class="section-card-header">
+                            <span class="drag-handle" title="Drag to reorder section">⋮⋮</span>
+                            <input type="text" class="section-name-input"
+                                   value="${escapeAttr(section.name)}"
+                                   data-section-id="${section.id}"
+                                   onblur="renameSection(${section.id}, this.value)"
+                                   onkeydown="if (event.key === 'Enter') this.blur();">
+                            <button type="button" class="section-delete-btn"
+                                    title="Delete section"
+                                    onclick="deleteSection(${section.id})">&times;</button>
                         </div>
-                    `;
+                        <div class="section-fields" data-section-id="${section.id}">
+                            ${fieldsInSection.map(f => renderFieldRow(f)).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Unplaced fields — catalogue entries that have no layout row yet
+            // (e.g. a newly-added field key or fields orphaned by a deleted
+            // section). The admin needs to drag them into a section before
+            // they appear on the change form.
+            if (layout.unplaced.length > 0) {
+                html += `
+                    <div class="unplaced-fields">
+                        <h4>Unplaced fields</h4>
+                        <p class="hint">These fields aren't in any section yet, so they won't appear on the change form. Drag them into a section above.</p>
+                        ${layout.unplaced.map(f => renderFieldRow({
+                            key: f.key, label: f.label,
+                            section_id: null, display_order: 0, is_visible: true
+                        }, true)).join('')}
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+            wireDragAndDrop();
+        }
+
+        function renderFieldRow(field, isUnplaced) {
+            return `
+                <div class="field-row" data-field-key="${field.key}" draggable="true">
+                    <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+                    <span class="field-row-label">${escapeHtml(field.label)}</span>
+                    ${isUnplaced ? '' : `
+                        <label class="toggle-switch" title="Show / hide this field on the change form">
+                            <input type="checkbox" ${field.is_visible ? 'checked' : ''}
+                                   onchange="toggleFieldVisibility('${field.key}', this.checked)">
+                            <span class="toggle-slider"></span>
+                        </label>
+                    `}
+                </div>
+            `;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : text;
+            return div.innerHTML;
+        }
+        function escapeAttr(text) {
+            return escapeHtml(text).replace(/"/g, '&quot;');
+        }
+
+        // ----- State mutations (each triggers an auto-save) -----
+
+        function addSection() {
+            const id = nextTempSectionId--;
+            const maxOrder = layout.sections.reduce((m, s) => Math.max(m, s.display_order), 0);
+            layout.sections.push({ id, name: 'New section', display_order: maxOrder + 10 });
+            renderFieldSettings();
+            // Focus the new name input so the user can rename immediately
+            requestAnimationFrame(() => {
+                const input = document.querySelector(`input.section-name-input[data-section-id="${id}"]`);
+                if (input) { input.focus(); input.select(); }
+            });
+            scheduleAutoSave();
+        }
+
+        function renameSection(sectionId, newName) {
+            const section = layout.sections.find(s => s.id === sectionId);
+            if (!section) return;
+            const trimmed = (newName || '').trim();
+            if (!trimmed || trimmed === section.name) return;
+            section.name = trimmed;
+            scheduleAutoSave();
+        }
+
+        async function deleteSection(sectionId) {
+            const section = layout.sections.find(s => s.id === sectionId);
+            if (!section) return;
+            const fieldsInSection = layout.fields.filter(f => f.section_id === sectionId);
+            if (fieldsInSection.length > 0) {
+                const msg = `Delete "${section.name}"?\n\n${fieldsInSection.length} field${fieldsInSection.length === 1 ? '' : 's'} will become unplaced and won't appear on the change form until you drag ${fieldsInSection.length === 1 ? 'it' : 'them'} into another section.`;
+                if (!confirm(msg)) return;
+            } else if (!confirm(`Delete "${section.name}"?`)) {
+                return;
+            }
+            // Locally: remove the section and the fields-in-section. The
+            // fields then re-surface as "unplaced" after the server save.
+            layout.sections = layout.sections.filter(s => s.id !== sectionId);
+            const orphaned = layout.fields.filter(f => f.section_id === sectionId);
+            layout.fields = layout.fields.filter(f => f.section_id !== sectionId);
+            orphaned.forEach(f => layout.unplaced.push({ key: f.key, label: f.label }));
+            renderFieldSettings();
+            scheduleAutoSave();
+        }
+
+        function toggleFieldVisibility(fieldKey, isVisible) {
+            const field = layout.fields.find(f => f.key === fieldKey);
+            if (!field) return;
+            field.is_visible = !!isVisible;
+            scheduleAutoSave();
+        }
+
+        // ----- Drag-and-drop wiring -----
+        //
+        // Two interactions:
+        //   - Drag a .section-card by its header (drag handle) to reorder sections
+        //   - Drag a .field-row by its handle to reorder within a section
+        //     or move it between sections (including from / to "Unplaced")
+        //
+        // We use HTML5 native drag-and-drop. The dragged item carries its
+        // type + identifier on dataTransfer; drop targets accept based on type.
+        let draggedSectionId = null;
+        let draggedFieldKey  = null;
+
+        function wireDragAndDrop() {
+            // Section drag
+            document.querySelectorAll('.section-card').forEach(card => {
+                card.addEventListener('dragstart', e => {
+                    // Don't initiate section drag if the user is dragging a field row
+                    if (e.target.closest('.field-row')) {
+                        e.stopPropagation();
+                        return;
+                    }
+                    draggedSectionId = parseInt(card.dataset.sectionId, 10);
+                    draggedFieldKey = null;
+                    card.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', `section:${draggedSectionId}`);
+                });
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('dragging');
+                    document.querySelectorAll('.section-card').forEach(c =>
+                        c.classList.remove('drop-target-section'));
+                });
+                card.addEventListener('dragover', e => {
+                    if (draggedSectionId == null) return;
+                    if (parseInt(card.dataset.sectionId, 10) === draggedSectionId) return;
+                    e.preventDefault();
+                    document.querySelectorAll('.section-card').forEach(c =>
+                        c.classList.remove('drop-target-section'));
+                    card.classList.add('drop-target-section');
+                });
+                card.addEventListener('drop', e => {
+                    if (draggedSectionId == null) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const targetId = parseInt(card.dataset.sectionId, 10);
+                    if (targetId === draggedSectionId) return;
+                    reorderSection(draggedSectionId, targetId);
                 });
             });
 
-            container.innerHTML = html;
+            // Field-row drag
+            document.querySelectorAll('.field-row').forEach(row => {
+                row.addEventListener('dragstart', e => {
+                    e.stopPropagation(); // Don't bubble up to section drag
+                    draggedFieldKey = row.dataset.fieldKey;
+                    draggedSectionId = null;
+                    row.classList.add('dragging');
+                    e.dataTransfer.effectAllowed = 'move';
+                    e.dataTransfer.setData('text/plain', `field:${draggedFieldKey}`);
+                });
+                row.addEventListener('dragend', () => {
+                    row.classList.remove('dragging');
+                    document.querySelectorAll('.field-row').forEach(r =>
+                        r.classList.remove('drop-target-field'));
+                });
+                row.addEventListener('dragover', e => {
+                    if (draggedFieldKey == null) return;
+                    if (row.dataset.fieldKey === draggedFieldKey) return;
+                    e.preventDefault();
+                    document.querySelectorAll('.field-row').forEach(r =>
+                        r.classList.remove('drop-target-field'));
+                    row.classList.add('drop-target-field');
+                });
+                row.addEventListener('drop', e => {
+                    if (draggedFieldKey == null) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const targetKey = row.dataset.fieldKey;
+                    if (targetKey === draggedFieldKey) return;
+                    moveFieldBeforeField(draggedFieldKey, targetKey);
+                });
+            });
+
+            // Drop a field on an empty section's body (so empty sections can
+            // receive fields). Each section-fields container accepts drops.
+            document.querySelectorAll('.section-fields').forEach(zone => {
+                zone.addEventListener('dragover', e => {
+                    if (draggedFieldKey == null) return;
+                    e.preventDefault();
+                });
+                zone.addEventListener('drop', e => {
+                    if (draggedFieldKey == null) return;
+                    // Ignore if the drop landed on a child field-row — that
+                    // row's own drop handler covers it.
+                    if (e.target.closest('.field-row')) return;
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const sectionId = parseInt(zone.dataset.sectionId, 10);
+                    moveFieldToSectionEnd(draggedFieldKey, sectionId);
+                });
+            });
         }
 
-        function toggleField(fieldId, visible) {
-            fieldVisibility[fieldId] = visible;
+        function reorderSection(draggedId, targetId) {
+            const sections = [...layout.sections].sort((a, b) => a.display_order - b.display_order);
+            const dragged = sections.find(s => s.id === draggedId);
+            const targetIdx = sections.findIndex(s => s.id === targetId);
+            if (!dragged || targetIdx < 0) return;
+            const without = sections.filter(s => s.id !== draggedId);
+            without.splice(targetIdx, 0, dragged);
+            without.forEach((s, i) => { s.display_order = (i + 1) * 10; });
+            layout.sections = without;
+            renderFieldSettings();
+            scheduleAutoSave();
         }
 
-        async function saveSettings() {
+        function moveFieldBeforeField(draggedKey, targetKey) {
+            const dragged = layout.fields.find(f => f.key === draggedKey)
+                          || promoteUnplacedToField(draggedKey);
+            const target  = layout.fields.find(f => f.key === targetKey);
+            if (!dragged || !target) return;
+            dragged.section_id = target.section_id;
+            // Insert dragged just before target by sliding the orders
+            // around. Re-pack the whole section to keep numbers tidy.
+            const inSection = layout.fields
+                .filter(f => f.section_id === target.section_id && f.key !== draggedKey)
+                .sort((a, b) => a.display_order - b.display_order);
+            const targetIdx = inSection.findIndex(f => f.key === targetKey);
+            inSection.splice(targetIdx, 0, dragged);
+            inSection.forEach((f, i) => { f.display_order = (i + 1) * 10; });
+            renderFieldSettings();
+            scheduleAutoSave();
+        }
+
+        function moveFieldToSectionEnd(draggedKey, sectionId) {
+            const dragged = layout.fields.find(f => f.key === draggedKey)
+                          || promoteUnplacedToField(draggedKey);
+            if (!dragged) return;
+            dragged.section_id = sectionId;
+            const inSection = layout.fields
+                .filter(f => f.section_id === sectionId)
+                .sort((a, b) => a.display_order - b.display_order);
+            const maxOrder = inSection.length > 0
+                ? Math.max(...inSection.map(f => f.display_order))
+                : 0;
+            dragged.display_order = maxOrder + 10;
+            renderFieldSettings();
+            scheduleAutoSave();
+        }
+
+        // Helper: when a field is dragged FROM the Unplaced list, it needs
+        // to be promoted into layout.fields so the save endpoint sees it.
+        function promoteUnplacedToField(fieldKey) {
+            const idx = layout.unplaced.findIndex(f => f.key === fieldKey);
+            if (idx < 0) return null;
+            const meta = layout.unplaced.splice(idx, 1)[0];
+            const newField = {
+                key: meta.key,
+                label: meta.label,
+                section_id: 0,        // placeholder — caller will overwrite
+                display_order: 0,
+                is_visible: true,
+            };
+            layout.fields.push(newField);
+            return newField;
+        }
+
+        // ----- Auto-save -----
+        let autoSaveTimer = null;
+        function scheduleAutoSave() {
+            clearTimeout(autoSaveTimer);
+            autoSaveTimer = setTimeout(saveLayout, 350);
+        }
+
+        async function saveLayout() {
             try {
-                const res = await fetch(API_BASE + 'save_settings.php', {
+                const payload = {
+                    sections: layout.sections.map(s => ({
+                        id: s.id,
+                        name: s.name,
+                        display_order: s.display_order,
+                    })),
+                    fields: layout.fields.map(f => ({
+                        key: f.key,
+                        section_id: f.section_id,
+                        display_order: f.display_order,
+                        is_visible: f.is_visible,
+                    })),
+                };
+                const res = await fetch(API_BASE + 'save_field_layout.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ settings: { field_visibility: fieldVisibility } })
+                    body: JSON.stringify(payload),
                 });
                 const data = await res.json();
-
-                if (data.success) {
-                    showToast('Settings saved');
-                } else {
-                    showToast('Error: ' + data.error, true);
+                if (!data.success) {
+                    showToast('Save failed: ' + (data.error || 'unknown error'), true);
+                    return;
                 }
+                // Replace local state with the server's authoritative copy.
+                // This swaps any negative tempIds for real ones and ensures
+                // unplaced is in sync with what's actually in the DB.
+                const placedKeys = new Set((data.fields || []).map(f => f.key));
+                layout.sections = data.sections || [];
+                layout.fields = data.fields || [];
+                layout.unplaced = layout.unplaced.filter(u => !placedKeys.has(u.key));
+                // Plus any catalogue keys that fell out of layout.fields
+                // (e.g. their section was deleted) should appear in unplaced.
+                // The server already knows the catalogue — easier to just
+                // re-fetch the full layout to refresh `unplaced`.
+                fetch(API_BASE + 'get_field_layout.php')
+                    .then(r => r.json())
+                    .then(d => {
+                        if (d.success) {
+                            layout.unplaced = d.unplaced || [];
+                            renderFieldSettings();
+                        }
+                    });
+                showSaveStatus();
             } catch (e) {
-                showToast('Failed to save settings', true);
+                console.error('Auto-save error:', e);
+                showToast('Save failed: ' + e.message, true);
             }
+        }
+
+        function showSaveStatus() {
+            const el = document.getElementById('fieldSaveStatus');
+            if (!el) return;
+            el.classList.add('visible');
+            clearTimeout(showSaveStatus._t);
+            showSaveStatus._t = setTimeout(() => el.classList.remove('visible'), 1500);
         }
 
         function showToast(message, isError) {

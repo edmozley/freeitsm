@@ -705,6 +705,27 @@ $schema = [
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // Layout tables that drive the Change form's section structure.
+    // Sections are user-editable (admin can add / rename / reorder / delete).
+    // Each field_key in change_field_layout corresponds to a fixed slot in the
+    // form (validated against a hardcoded catalogue in api/change-management/
+    // get_field_layout.php) — what's configurable is which section the field
+    // appears in, the order within that section, and whether it's visible.
+    'change_field_sections' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'name'              => 'VARCHAR(100) NOT NULL',
+        'display_order'     => 'INT NOT NULL DEFAULT 0',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'change_field_layout' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'field_key'         => 'VARCHAR(50) NOT NULL',
+        'section_id'        => 'INT NOT NULL',
+        'display_order'     => 'INT NOT NULL DEFAULT 0',
+        'is_visible'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+    ],
+
     'changes' => [
         'id'                            => 'INT NOT NULL AUTO_INCREMENT',
         'title'                         => 'VARCHAR(255) NOT NULL',
@@ -2497,6 +2518,78 @@ try {
         }
     }
 
+    // Seed default change form sections + per-field layout.
+    // The sections + initial field-to-section assignment mirror what was
+    // previously hardcoded in change-management/settings/index.php's
+    // FIELD_SECTIONS const. Field visibility is migrated from the old
+    // system_settings.field_visibility JSON blob if present (so admins
+    // who had toggled fields off don't lose their setting).
+    if ($tableExists('change_field_sections') && $tableExists('change_field_layout')) {
+        $cnt = (int) $conn->query("SELECT COUNT(*) FROM change_field_sections")->fetchColumn();
+        if ($cnt === 0) {
+            $conn->exec("INSERT INTO change_field_sections (id, name, display_order) VALUES
+                (1, 'General information', 10),
+                (2, 'People',              20),
+                (3, 'Schedule',            30),
+                (4, 'Details',             40),
+                (5, 'Attachments',         50)");
+            // Field catalogue mirrors api/change-management/get_field_layout.php
+            // — single source of truth lives there. We seed in this order.
+            $defaultLayout = [
+                // section_id, field_key, display_order
+                [1, 'title',        10],
+                [1, 'change_type',  20],
+                [1, 'status',       30],
+                [1, 'priority',     40],
+                [1, 'impact',       50],
+                [1, 'category',     60],
+                [2, 'requester',    10],
+                [2, 'assigned_to',  20],
+                [2, 'approver',     30],
+                [2, 'cab',          40],
+                [3, 'work_start',   10],
+                [3, 'work_end',     20],
+                [3, 'outage_start', 30],
+                [3, 'outage_end',   40],
+                [4, 'description',  10],
+                [4, 'reason',       20],
+                [4, 'risk',         30],
+                [4, 'testplan',     40],
+                [4, 'rollback',     50],
+                [4, 'pir',          60],
+                [5, 'attachments',  10],
+            ];
+            // Pull any pre-existing visibility from system_settings so we keep
+            // the admin's earlier toggles. Best-effort — silent fallback if
+            // the row / column doesn't exist on this install.
+            $visMap = [];
+            try {
+                $stmt = $conn->query("SELECT settings_json FROM system_settings WHERE id = 1");
+                $row = $stmt ? $stmt->fetch(PDO::FETCH_ASSOC) : null;
+                if ($row && !empty($row['settings_json'])) {
+                    $decoded = json_decode($row['settings_json'], true);
+                    if (is_array($decoded) && isset($decoded['field_visibility']) && is_array($decoded['field_visibility'])) {
+                        $visMap = $decoded['field_visibility'];
+                    }
+                }
+            } catch (Exception $e) {
+                // Fine — no previous layout to migrate
+            }
+            $insertStmt = $conn->prepare(
+                "INSERT INTO change_field_layout (field_key, section_id, display_order, is_visible) VALUES (?, ?, ?, ?)"
+            );
+            foreach ($defaultLayout as [$sectionId, $fieldKey, $order]) {
+                $isVisible = array_key_exists($fieldKey, $visMap) ? ($visMap[$fieldKey] ? 1 : 0) : 1;
+                $insertStmt->execute([$fieldKey, $sectionId, $order, $isVisible]);
+            }
+            $results[] = [
+                'table' => 'change_field_sections',
+                'status' => 'seeded',
+                'details' => ['Inserted 5 default sections + ' . count($defaultLayout) . ' field placements (visibility migrated from system_settings.field_visibility where present)']
+            ];
+        }
+    }
+
     // Backfill changes.{change_type_id, status_id, priority_id, impact_id} and change_templates equivalents
     $changeBackfills = [
         ['changes',           'change_type', 'change_type_id', 'change_types'],
@@ -2538,6 +2631,7 @@ try {
         ['change_templates', 'fk_template_change_type',"ALTER TABLE change_templates ADD CONSTRAINT fk_template_change_type FOREIGN KEY (change_type_id) REFERENCES change_types (id)"],
         ['change_templates', 'fk_template_priority',   "ALTER TABLE change_templates ADD CONSTRAINT fk_template_priority FOREIGN KEY (priority_id) REFERENCES change_priorities (id)"],
         ['change_templates', 'fk_template_impact',     "ALTER TABLE change_templates ADD CONSTRAINT fk_template_impact FOREIGN KEY (impact_id) REFERENCES change_impacts (id)"],
+        ['change_field_layout', 'fk_cfl_section',      "ALTER TABLE change_field_layout ADD CONSTRAINT fk_cfl_section FOREIGN KEY (section_id) REFERENCES change_field_sections (id) ON DELETE CASCADE"],
     ];
     foreach ($changeFks as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
@@ -2906,6 +3000,7 @@ try {
         ['cmdb_object_relationships', 'uq_cmdb_or_triple', '(`from_object_id`, `to_object_id`, `relationship_type_id`)'],
         ['ticket_cmdb_objects', 'uq_ticket_cmdb_obj', '(`ticket_id`, `cmdb_object_id`)'],
         ['process_step_types', 'uq_process_step_types_slug', '(`slug`)'],
+        ['change_field_layout', 'uq_cfl_field_key', '(`field_key`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {

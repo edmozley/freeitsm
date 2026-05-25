@@ -999,6 +999,56 @@ INSERT IGNORE INTO `change_impacts` (`name`, `colour`, `is_default`, `display_or
     ('Medium', '#2563eb', 1, 20),
     ('High',   '#f59e0b', 0, 30);
 
+-- Change form layout tables — admin-editable sections + per-field placement.
+CREATE TABLE IF NOT EXISTS `change_field_sections` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(100) NOT NULL,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `change_field_sections` (`id`, `name`, `display_order`) VALUES
+    (1, 'General information', 10),
+    (2, 'People',              20),
+    (3, 'Schedule',            30),
+    (4, 'Details',             40),
+    (5, 'Attachments',         50);
+
+CREATE TABLE IF NOT EXISTS `change_field_layout` (
+    `id`             INT NOT NULL AUTO_INCREMENT,
+    `field_key`      VARCHAR(50) NOT NULL,
+    `section_id`     INT NOT NULL,
+    `display_order`  INT NOT NULL DEFAULT 0,
+    `is_visible`     TINYINT(1) NOT NULL DEFAULT 1,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_cfl_field_key` (`field_key`),
+    CONSTRAINT `fk_cfl_section` FOREIGN KEY (`section_id`) REFERENCES `change_field_sections` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `change_field_layout` (`field_key`, `section_id`, `display_order`, `is_visible`) VALUES
+    ('title',        1, 10, 1),
+    ('change_type',  1, 20, 1),
+    ('status',       1, 30, 1),
+    ('priority',     1, 40, 1),
+    ('impact',       1, 50, 1),
+    ('category',     1, 60, 1),
+    ('requester',    2, 10, 1),
+    ('assigned_to',  2, 20, 1),
+    ('approver',     2, 30, 1),
+    ('cab',          2, 40, 1),
+    ('work_start',   3, 10, 1),
+    ('work_end',     3, 20, 1),
+    ('outage_start', 3, 30, 1),
+    ('outage_end',   3, 40, 1),
+    ('description',  4, 10, 1),
+    ('reason',       4, 20, 1),
+    ('risk',         4, 30, 1),
+    ('testplan',     4, 40, 1),
+    ('rollback',     4, 50, 1),
+    ('pir',          4, 60, 1),
+    ('attachments',  5, 10, 1);
+
 CREATE TABLE IF NOT EXISTS `changes` (
     `id`                            INT NOT NULL AUTO_INCREMENT,
     `title`                         VARCHAR(255) NOT NULL,
