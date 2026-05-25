@@ -79,6 +79,14 @@ $path_prefix = '../';
         }
         .mc-divider:hover { background: rgba(0, 123, 255, 0.18); }
         .mc-divider.dragging { background: rgba(0, 123, 255, 0.35); }
+
+        /* Slimmed chart header (just the collapse chevron now). The
+           "Last 30 days overview" heading moved into the chart's x-axis
+           title to free up vertical real estate. */
+        .chart-footer-header {
+            padding: 4px 12px;
+            justify-content: flex-end;
+        }
     </style>
 </head>
 <body>
@@ -120,10 +128,12 @@ $path_prefix = '../';
 
         <!-- Chart now lives inside .container so it participates in the
              flex column layout — sits at the bottom and shrinks /
-             expands as toggled, with the checks-section above adjusting. -->
+             expands as toggled, with the checks-section above adjusting.
+             The "Last 30 days overview" heading lives in the chart's
+             x-axis title (see displayChart) so the header only holds the
+             collapse chevron and stays thin. -->
         <div class="chart-footer">
             <div class="chart-footer-header" onclick="toggleChart()">
-                <h2 id="chartTitle">Last 30 days overview</h2>
                 <span id="chartToggle" class="toggle-icon">▼</span>
             </div>
             <div id="chartContainer" class="chart-container-inner">
@@ -520,11 +530,16 @@ $path_prefix = '../';
             if (chartInstance) chartInstance.destroy();
 
             // X-axis: just the day number per tick (instead of the full
-            // "May 25" label). The month name(s) move to a single axis
-            // title below — when the 30-day window spans two months we
-            // show both joined by an en-dash. Tooltips still show the
-            // full original label so hovering a bar is still informative.
+            // "May 25" label). The chart heading and month name(s) move
+            // to a single axis title below — frees up the chart-footer
+            // header to be just the collapse chevron. When the 30-day
+            // window spans two months we show both joined by an en-dash.
+            // Tooltips still show the full original label so hovering a
+            // bar is still informative.
             const monthTitle = monthRangeText(chartRawDates);
+            const axisTitle = monthTitle
+                ? ('Last 30 days overview · ' + monthTitle)
+                : 'Last 30 days overview';
 
             chartInstance = new Chart(ctx, {
                 type: 'bar',
@@ -558,11 +573,11 @@ $path_prefix = '../';
                                 maxRotation: 0
                             },
                             title: {
-                                display: !!monthTitle,
-                                text: monthTitle,
-                                font: { size: 12, weight: '500' },
-                                color: '#666',
-                                padding: { top: 4 }
+                                display: true,
+                                text: axisTitle,
+                                font: { size: 13, weight: '600' },
+                                color: '#2c3e50',
+                                padding: { top: 6 }
                             }
                         },
                         y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }
