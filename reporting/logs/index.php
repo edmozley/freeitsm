@@ -195,7 +195,7 @@ $path_prefix = '../../';
             justify-content: center;
             align-items: center;
             gap: 10px;
-            padding: 12px 0 16px;
+            padding: 9px 0 19px;   /* shaved 3px off the top, kept the same overall row height */
             border-top: 1px solid #eee;
             background: #f5f7fa;
             flex-shrink: 0;
