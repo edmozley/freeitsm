@@ -15,7 +15,7 @@ $path_prefix = '../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Change Management</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=2">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=3">
     <script src="<?php echo BASE_URL; ?>assets/js/tinymce/tinymce.min.js"></script>
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
@@ -62,14 +62,13 @@ $path_prefix = '../';
                 <div class="change-detail-content" id="changeDetailContent"></div>
             </div>
 
-            <!-- Change editor view -->
+            <!-- Change editor view. Lays out as a vertical flex column when
+                 visible: editor-header pins at top, editor-form scrolls in
+                 the middle, editor-footer pins at bottom. JS toggles
+                 body.cm-editor-open to switch changes-main into this mode. -->
             <div id="changeEditorView" style="display: none;">
                 <div class="editor-header">
                     <h2 id="editorTitle">New change</h2>
-                    <div class="editor-header-actions">
-                        <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
-                        <button class="btn btn-primary" onclick="saveChange()">Save</button>
-                    </div>
                 </div>
                 <div class="editor-form">
                     <input type="hidden" id="editChangeId" value="">
@@ -372,6 +371,10 @@ $path_prefix = '../';
 
                     <div class="editor-actions"></div>
                 </div>
+                <div class="editor-footer">
+                    <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveChange()">Save</button>
+                </div>
             </div>
         </div>
     </div>
@@ -453,6 +456,6 @@ $path_prefix = '../';
         window.openCreateOnLoad = true;
         <?php endif; ?>
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=8"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=9"></script>
 </body>
 </html>

@@ -1689,7 +1689,13 @@ async function submitCabVote(vote) {
 function showView(view) {
     document.getElementById('changeListView').style.display = view === 'list' ? '' : 'none';
     document.getElementById('changeDetailView').style.display = view === 'detail' ? '' : 'none';
-    document.getElementById('changeEditorView').style.display = view === 'editor' ? '' : 'none';
+    // Editor view uses flex column when visible — set display explicitly
+    // so the layout works on first show (CSS doesn't see the bare `display`
+    // toggle); body class drives the changes-main override CSS that pins
+    // the sticky header / footer.
+    const editorEl = document.getElementById('changeEditorView');
+    editorEl.style.display = view === 'editor' ? 'flex' : 'none';
+    document.body.classList.toggle('cm-editor-open', view === 'editor');
     if (view === 'editor') {
         refreshFormLayout();
     }
