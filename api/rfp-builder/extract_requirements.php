@@ -8,7 +8,7 @@
  * in its previous state (raw_text untouched) and the failure is
  * logged to rfp_processing_log.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rfp_ai.php';

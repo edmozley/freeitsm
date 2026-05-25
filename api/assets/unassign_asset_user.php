@@ -3,7 +3,7 @@
  * API Endpoint: Remove a user from an asset
  * Deletes the users_assets record
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

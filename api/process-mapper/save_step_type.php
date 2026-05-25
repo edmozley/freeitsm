@@ -5,7 +5,7 @@
  * On create, a unique slug is generated from the name; the slug never changes
  * afterwards because existing process_steps.type strings reference it.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

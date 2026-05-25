@@ -3,7 +3,7 @@
  * API Endpoint: Create or update a dashboard widget definition
  * POST: { id?, title, description, chart_type, aggregate_property, is_status_filterable, default_status_id? }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -2,7 +2,7 @@
 /**
  * API: Delete a form (cascades to fields, submissions cascade separately)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

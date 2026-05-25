@@ -3,7 +3,7 @@
  * API Endpoint: Serve email attachment
  * Returns attachment file by ID or content_id
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

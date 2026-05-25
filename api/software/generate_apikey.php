@@ -3,7 +3,7 @@
  * API Endpoint: Generate new API Key
  * Creates a new random API key, bound to the current analyst
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

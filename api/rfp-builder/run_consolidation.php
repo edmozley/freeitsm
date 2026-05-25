@@ -16,7 +16,7 @@
  * The DB transaction only runs after the stream finishes successfully —
  * if anything fails mid-stream, no data is written.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rfp_ai.php';

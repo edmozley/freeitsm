@@ -6,7 +6,7 @@
  *   - closed: closed tickets, capped to the most recent 20 so the panel
  *             doesn't grow unbounded for objects with long histories
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

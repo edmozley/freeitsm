@@ -3,7 +3,7 @@
  * API: Check encryption key status
  * GET - Returns whether the encryption key file exists and is valid
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

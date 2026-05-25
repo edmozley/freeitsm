@@ -3,7 +3,7 @@
  * API: Create Ticket from Self-Service Portal
  * POST - Creates a new ticket for the logged-in user
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

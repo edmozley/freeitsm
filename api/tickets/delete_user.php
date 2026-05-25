@@ -5,7 +5,7 @@
  * Refuses to delete if the user is referenced by any tickets or asset assignments,
  * so analyst-visible history is never silently broken.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

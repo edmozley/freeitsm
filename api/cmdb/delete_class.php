@@ -3,7 +3,7 @@
  * API: Delete a CMDB class.
  * Refuses if any objects exist for the class — analyst must reassign or delete them first.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

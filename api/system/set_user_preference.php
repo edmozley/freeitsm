@@ -4,7 +4,7 @@
  * POST { key, value }
  * Upserts on (analyst_id, preference_key). Pass null/empty value to clear.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

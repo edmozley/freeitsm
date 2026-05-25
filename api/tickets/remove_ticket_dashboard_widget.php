@@ -3,7 +3,7 @@
  * API Endpoint: Remove a widget from analyst's ticket dashboard
  * POST: { widget_id: int }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

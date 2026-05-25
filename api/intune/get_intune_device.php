@@ -3,7 +3,7 @@
  * API: return the cached intune_devices row for a given asset_id, if any.
  * Used by the asset detail panel's InTune tab.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

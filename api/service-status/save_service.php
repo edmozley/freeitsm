@@ -3,7 +3,7 @@
  * API: Save (create or update) a service
  * POST - JSON body: { id?, name, description, display_order, is_active }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

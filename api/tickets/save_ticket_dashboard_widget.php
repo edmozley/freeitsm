@@ -4,7 +4,7 @@
  * POST: { id?, title, description, chart_type, aggregate_property, series_property,
  *          is_status_filterable, date_range, department_filter, time_grouping }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

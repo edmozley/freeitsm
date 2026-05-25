@@ -3,7 +3,7 @@
  * API Endpoint: Get files referencing a specific database table
  * Query param: ?table=tickets
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

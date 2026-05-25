@@ -4,7 +4,7 @@
  * The api key is encrypted at rest. Submitting an empty or masked
  * value (e.g. "****abcd") leaves the existing stored key unchanged.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

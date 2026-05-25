@@ -3,7 +3,7 @@
  * API Endpoint: Get list of emails
  * Returns emails from the database for display in inbox
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

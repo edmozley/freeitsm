@@ -4,7 +4,7 @@
  * current row's metadata so the UI can show "current" alongside the
  * historical entries. Newest first.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

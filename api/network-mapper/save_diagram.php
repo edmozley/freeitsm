@@ -16,7 +16,7 @@
  * are read-only. Replaces nodes + connectors transactionally (delete + reinsert)
  * with temp-to-real id mapping for the connector references.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

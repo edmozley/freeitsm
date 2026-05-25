@@ -3,7 +3,7 @@
  * API: Get active mailboxes for self-service ticket creation
  * GET - Returns mailbox id, name, and email address only
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

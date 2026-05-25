@@ -13,7 +13,7 @@
  *   exclude_id — optional: skip this object (e.g. exclude self for parent picker)
  *   limit     — optional cap, default 20, max 50
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

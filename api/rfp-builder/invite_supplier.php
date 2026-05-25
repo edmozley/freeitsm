@@ -4,7 +4,7 @@
  * supplier_id) prevents duplicate invitations; we surface that as a
  * friendly error rather than a PDO exception.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

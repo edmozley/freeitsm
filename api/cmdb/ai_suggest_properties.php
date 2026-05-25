@@ -8,7 +8,7 @@
  * the existing labels/keys before being sent back, so the client can show
  * them in a checklist UI for confirmation.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once __DIR__ . '/_ai_helpers.php';

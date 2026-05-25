@@ -3,7 +3,7 @@
  * API Endpoint: Get Calendar Categories
  * Returns all categories (or only active ones if specified)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

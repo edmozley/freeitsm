@@ -7,7 +7,7 @@
  * coupling is intentionally loose (process_steps.type is a free-text string,
  * not a foreign key), so a delete can never corrupt a saved diagram.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

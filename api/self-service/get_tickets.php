@@ -3,7 +3,7 @@
  * API: Get Self-Service User's Tickets
  * GET - Returns all tickets for the logged-in user, with optional status filter
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

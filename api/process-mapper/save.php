@@ -5,7 +5,7 @@
  * For updates: replaces all steps and connectors (delete + re-insert).
  * Step IDs are re-assigned on save; the frontend reloads after saving.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

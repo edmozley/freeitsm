@@ -3,7 +3,7 @@
  * API: Create or update a form with its fields
  * Expects JSON body: { id?, title, description, fields: [{ field_type, label, options?, is_required }] }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

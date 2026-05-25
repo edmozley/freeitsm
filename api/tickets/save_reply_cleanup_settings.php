@@ -4,7 +4,7 @@
  * Encrypts the API key at rest. Honours the masked-no-change pattern so an
  * analyst can edit other fields without re-entering the key.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

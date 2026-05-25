@@ -4,7 +4,7 @@
  * Documents that reference this department have department_id auto-NULLed
  * via the FK constraint (ON DELETE SET NULL), so no manual cascade is needed.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

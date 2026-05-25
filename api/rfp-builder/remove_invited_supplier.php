@@ -10,7 +10,7 @@
  * tidy up rfp_scores in the same transaction to keep the page state
  * coherent.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

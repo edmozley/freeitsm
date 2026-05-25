@@ -3,7 +3,7 @@
  * API Endpoint: Get users assigned to an asset
  * Returns list of users with assignment details
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

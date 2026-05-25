@@ -3,7 +3,7 @@
  * API Endpoint: Trigger a codebase rescan
  * POST request - launches the PowerShell scanner as a background process
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

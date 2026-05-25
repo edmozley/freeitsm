@@ -3,7 +3,7 @@
  * API Endpoint: Get attachments for a ticket
  * Returns all attachments from all emails in a ticket
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

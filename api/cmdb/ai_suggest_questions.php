@@ -7,7 +7,7 @@
  * Different organisations run very different stacks — the questions exist
  * so we don't end up suggesting Oracle properties for someone's MongoDB.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once __DIR__ . '/_ai_helpers.php';

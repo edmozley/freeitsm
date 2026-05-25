@@ -3,7 +3,7 @@
  * API Endpoint: Save task tag (create or update)
  * Returns the tag id so the detail-panel picker can attach a newly created tag.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -8,7 +8,7 @@
  *
  * Mirrors the test pattern from api/rfp-builder/test_ai_connection.php.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

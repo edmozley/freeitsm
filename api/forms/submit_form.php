@@ -3,7 +3,7 @@
  * API: Submit a filled-in form
  * Expects JSON body: { form_id, data: { field_id: value, ... } }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

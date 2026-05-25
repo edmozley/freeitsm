@@ -3,7 +3,7 @@
  * API: List CMDB objects, optionally filtered by class and/or text search.
  * Returns lightweight rows for the browse page table.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

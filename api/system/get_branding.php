@@ -11,7 +11,7 @@
  *   - Network Mapper diagram editor to render header/footer overlays
  *   - (future) PDF/PNG exporters in any module that wants branded output
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

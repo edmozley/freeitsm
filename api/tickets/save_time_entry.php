@@ -11,7 +11,7 @@
  *
  * On update, only the entry's own analyst can edit it.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

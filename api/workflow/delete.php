@@ -5,7 +5,7 @@
  * survives — they just become orphaned on workflow_id. The list query
  * filters them by joining only with workflows that still exist.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

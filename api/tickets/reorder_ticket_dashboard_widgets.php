@@ -3,7 +3,7 @@
  * API Endpoint: Reorder analyst's ticket dashboard widgets
  * POST: { order: [widget_id, widget_id, ...] }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

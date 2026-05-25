@@ -3,7 +3,7 @@
  * API Endpoint: Get changes pending approval
  * Filters: all, requested (by me), assigned (to me as approver), cab (my CAB reviews)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -9,7 +9,7 @@
  * a different endpoint. Pass nulls for minutes to clear targets; pass null
  * sla_calendar_id to detach the calendar.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

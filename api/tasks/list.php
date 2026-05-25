@@ -4,7 +4,7 @@
  * GET — Returns filtered task list with subtask counts
  * Also supports ?analysts=1 and ?teams=1 for dropdown data
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

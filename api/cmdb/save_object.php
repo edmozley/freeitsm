@@ -14,7 +14,7 @@
  * Validates required properties. Wipes/re-inserts cmdb_object_properties rows
  * for the supplied property_values inside a transaction.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

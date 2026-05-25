@@ -7,7 +7,7 @@
  * grouping/expansion) and is enhanced in 3b (group by category, expand
  * source quotes inline, badges, etc.). Same shape works for both.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

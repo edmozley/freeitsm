@@ -3,7 +3,7 @@
  * API: Create or update a property definition on a class.
  * Handles dropdown options inline (passed as `options` array; we wipe and re-insert).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

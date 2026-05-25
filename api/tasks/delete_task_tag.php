@@ -3,7 +3,7 @@
  * API Endpoint: Delete task tag
  * The ON DELETE CASCADE FK on task_tag_map removes it from any tasks.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

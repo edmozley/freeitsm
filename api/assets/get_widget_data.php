@@ -3,7 +3,7 @@
  * API Endpoint: Get aggregated data for a dashboard widget
  * Params: widget_id (required), status_id (optional filter)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

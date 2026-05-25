@@ -17,7 +17,7 @@
  *   remove_logo (optional, '1' to clear the stored logo)
  *   logo (optional file upload)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

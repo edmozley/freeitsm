@@ -11,7 +11,7 @@
  * unlocking moves a status of 'generating' back to 'consolidating' so
  * the analyst's intent is reflected in the RFP list.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

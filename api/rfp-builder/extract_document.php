@@ -4,7 +4,7 @@
  * Useful when initial extraction failed (status = 'error') or after the
  * file has been replaced.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rfp_docx_parser.php';

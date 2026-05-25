@@ -3,7 +3,7 @@
  * API: Generate encryption key
  * POST - Generates a new AES-256 encryption key and writes it to the key file
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

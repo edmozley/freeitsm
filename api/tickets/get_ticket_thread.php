@@ -3,7 +3,7 @@
  * API Endpoint: Get all emails for a ticket (for building reply thread)
  * Returns emails ordered by received_datetime ASC
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

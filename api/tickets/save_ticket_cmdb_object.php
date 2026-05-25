@@ -4,7 +4,7 @@
  * Idempotent — returns success even if the link already exists (the unique
  * key catches dupes; we surface a friendly message rather than a SQL error).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

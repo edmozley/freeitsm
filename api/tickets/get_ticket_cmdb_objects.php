@@ -4,7 +4,7 @@
  * Returns hydrated info-card data (name, class, parent name+class, optional
  * Owner) so the reading pane can render each link without follow-up calls.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

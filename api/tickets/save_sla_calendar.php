@@ -15,7 +15,7 @@
  * Hours and holidays are replaced wholesale (delete-then-insert in a transaction)
  * so the caller sends the complete desired state, not deltas.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

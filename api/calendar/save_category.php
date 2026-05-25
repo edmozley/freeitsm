@@ -3,7 +3,7 @@
  * API Endpoint: Save Calendar Category
  * Creates or updates a category
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

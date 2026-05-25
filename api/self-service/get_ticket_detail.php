@@ -3,7 +3,7 @@
  * API: Get Ticket Detail for Self-Service User
  * GET ?ticket_id=X - Returns ticket info, email thread, and non-internal notes
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -9,7 +9,7 @@
  * Inputs:
  *   GET ?rfp_id=X&section_key=introduction|scope|response_instructions
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rfp_ai.php';

@@ -3,7 +3,7 @@
  * API: Tasks — Search tickets/changes for linking
  * GET ?type=ticket|change&q=searchterm
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

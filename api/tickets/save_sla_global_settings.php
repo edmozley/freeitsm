@@ -9,7 +9,7 @@
  * Validation: enums are checked against the allowed set; the threshold is bounded
  * 1-100; sla_enforce_from must parse as a datetime or be empty/null.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

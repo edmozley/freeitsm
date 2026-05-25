@@ -5,7 +5,7 @@
  * Returns: analysts, shifts, entries for the Mon–Sun week containing the given date,
  *          plus the rota_include_weekends setting.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

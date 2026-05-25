@@ -3,7 +3,7 @@
  * API: Get analyst module assignments
  * GET - Returns all active analysts and their module permissions
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

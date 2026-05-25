@@ -3,7 +3,7 @@
  * API Endpoint: Delete ticket priority
  * Refuses if the priority is in use by any ticket, or if it's the default.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

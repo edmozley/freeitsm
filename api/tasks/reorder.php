@@ -3,7 +3,7 @@
  * API: Tasks — Reorder after drag-and-drop
  * POST — JSON body with {task_id, new_status, positions: [{id, board_position}, ...]}
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

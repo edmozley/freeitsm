@@ -14,7 +14,7 @@
  * Only returns rows for tickets where SLA is enabled (others are silently
  * omitted to keep the payload small).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/sla.php';

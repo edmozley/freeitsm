@@ -3,7 +3,7 @@
  * API Endpoint: Get Calendar Changes
  * Returns changes within a date range, optionally filtered by status
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -3,7 +3,7 @@
  * API Endpoint: Get software installed on a specific asset
  * Returns list of applications with version, install date, and last seen
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

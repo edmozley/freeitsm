@@ -16,7 +16,7 @@
  *   - The Impact panel on the object detail page
  *   - The AI summary generator (so the prose can say "X databases depend on this")
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -4,7 +4,7 @@
  * legal/trading name and to the supplier_statuses lookup so the page
  * can show status badges. Most-recently-invited first.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

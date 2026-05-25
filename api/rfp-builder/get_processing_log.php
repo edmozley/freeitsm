@@ -9,7 +9,7 @@
  * We surface duration_ms / cache_read in the recent rows so the analyst
  * can see prompt-cache hits saving them money.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

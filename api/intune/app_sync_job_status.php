@@ -5,7 +5,7 @@
  *
  * GET ?id=<jobId> for a specific job; no id returns the latest job (or null).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

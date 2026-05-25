@@ -4,7 +4,7 @@
  * Sends a tiny request to Anthropic to validate the configured key + model.
  * Returns success/failure with a friendly message.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

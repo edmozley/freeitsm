@@ -6,7 +6,7 @@
  * (1 = worst e.g. Major Outage, higher = less severe). Two rows can share the
  * same severity_order; ties break on the lookup id.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

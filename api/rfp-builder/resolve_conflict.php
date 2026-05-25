@@ -9,7 +9,7 @@
  * the underlying rows; the conflict row cascade-deletes itself as a
  * by-product. This endpoint covers the non-destructive resolutions.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -4,7 +4,7 @@
  * The M:N source links and any conflicts referencing this row are
  * cleaned up automatically by ON DELETE CASCADE.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -9,7 +9,7 @@
  *   department_id    optional ("" or 0 = all)
  *   requirement_type optional (requirement | pain_point | challenge | "" for all)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

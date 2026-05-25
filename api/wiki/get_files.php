@@ -3,7 +3,7 @@
  * API Endpoint: Get file list with optional filters
  * Query params: ?folder=api/tickets&type=PHP&search=get_users
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

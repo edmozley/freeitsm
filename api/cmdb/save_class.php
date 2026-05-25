@@ -5,7 +5,7 @@
  * class_key is updatable but defaults to the existing value (immutable in
  * spirit — see docs/cmdb.md — though changes are technically allowed).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

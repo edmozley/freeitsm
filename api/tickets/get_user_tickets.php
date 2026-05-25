@@ -3,7 +3,7 @@
  * API Endpoint: Get tickets for a specific user
  * Returns all tickets associated with a user
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

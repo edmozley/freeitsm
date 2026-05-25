@@ -2,7 +2,7 @@
 /**
  * API Endpoint: Assign ticket to department and/or ticket type
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once dirname(dirname(__DIR__)) . '/workflow/includes/engine.php';

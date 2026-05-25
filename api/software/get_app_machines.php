@@ -3,7 +3,7 @@
  * API Endpoint: Get machines with a specific software application
  * Returns hostname, version, install date, and last seen for each machine
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

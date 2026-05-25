@@ -3,7 +3,7 @@
  * API Endpoint: Submit a CAB vote
  * Auto-updates change status when approval/rejection threshold is met.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

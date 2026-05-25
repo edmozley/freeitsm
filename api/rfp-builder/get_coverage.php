@@ -10,7 +10,7 @@
  * source items spanned departments — that's the entire point of the
  * consolidation pass and the heatmap reflects it.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

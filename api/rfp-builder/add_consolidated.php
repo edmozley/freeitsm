@@ -6,7 +6,7 @@
  *
  * Auto-marked as "manually added" via ai_rationale = "Manually added".
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

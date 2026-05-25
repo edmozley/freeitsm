@@ -3,7 +3,7 @@
  * API Endpoint: Database Verification
  * Checks all tables and columns exist, creates any that are missing.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

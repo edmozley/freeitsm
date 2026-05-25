@@ -8,7 +8,7 @@
  * conditions and actions are stored JSON-encoded — see workflow/includes/engine.php
  * for the contract each entry must obey.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once __DIR__ . '/../../workflow/includes/engine.php';

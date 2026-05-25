@@ -3,7 +3,7 @@
  * API Endpoint: Reorder task statuses (board column order)
  * POST { order: [statusId, statusId, ...] } — rewrites display_order to match.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

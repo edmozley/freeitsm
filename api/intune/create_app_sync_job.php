@@ -4,7 +4,7 @@
  * and spawn the CLI worker. Returns the job id (or the existing one if a job
  * is already pending/running).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/intune.php';

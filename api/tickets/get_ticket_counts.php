@@ -4,7 +4,7 @@
  * Returns hierarchical count data for folder view
  * Respects team-based filtering for users with team assignments
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

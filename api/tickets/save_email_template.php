@@ -3,7 +3,7 @@
  * API Endpoint: Create or update an email template
  * POST: { id, name, event_trigger, subject_template, body_template, is_active, display_order }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -7,7 +7,7 @@
  *
  * POST JSON: { "identifier": "username_or_email" }
  */
-session_start();
+session_start(['read_and_close' => true]);
 header('Content-Type: application/json');
 
 require_once '../../config.php';

@@ -3,7 +3,7 @@
  * API Endpoint: Get email details
  * Returns full email content for display in reading pane
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

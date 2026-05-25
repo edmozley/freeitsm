@@ -3,7 +3,7 @@
  * API Endpoint: Get function detail with callers
  * Query param: ?id=456
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

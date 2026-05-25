@@ -26,7 +26,7 @@
  *               all matching rows as a downloadable attachment.
  */
 
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

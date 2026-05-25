@@ -4,7 +4,7 @@
  * Returns the four user-facing CSAT keys from system_settings.
  * The HMAC secret is deliberately NOT returned to the client.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

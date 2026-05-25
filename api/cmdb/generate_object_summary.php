@@ -11,7 +11,7 @@
  * The frontend hits this when the analyst clicks "Regenerate". The cached
  * summary is returned by get_object.php for free on every page render.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once __DIR__ . '/_ai_helpers.php';

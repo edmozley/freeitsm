@@ -5,7 +5,7 @@
  * Returns only active (is_active = 1) entries, newest entry_datetime first.
  * Each row carries the logging analyst's name for inline display.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -13,7 +13,7 @@
  * is_manually_edited = 0 since the AI produced the result, but the
  * version pill still bumps so the analyst can see a restyle happened.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rfp_ai.php';

@@ -4,7 +4,7 @@
  * Saves the file to disk under contracts/rfp-builder/uploads/, inserts
  * a row in rfp_documents, and runs DOCX text extraction inline.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rfp_docx_parser.php';

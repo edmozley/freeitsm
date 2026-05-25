@@ -3,7 +3,7 @@
  * List documents for an RFP, with department info and a character count.
  * raw_text itself is NOT returned — fetch via get_document_text.php.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -2,7 +2,7 @@
 /**
  * API Endpoint: Get all active software dashboard widgets from the library
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

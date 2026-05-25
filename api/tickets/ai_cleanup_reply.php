@@ -13,7 +13,7 @@
  * its own line on the Anthropic billing dashboard.
  */
 
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

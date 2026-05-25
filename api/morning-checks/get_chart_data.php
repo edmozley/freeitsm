@@ -2,7 +2,7 @@
 /**
  * API Endpoint: Get Chart Data for Morning Checks (Last 30 Days)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

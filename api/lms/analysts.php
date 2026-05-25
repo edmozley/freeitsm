@@ -2,7 +2,7 @@
 /**
  * LMS API: Get all active analysts (for group member selection)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

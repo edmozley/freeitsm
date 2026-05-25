@@ -3,7 +3,7 @@
  * API Endpoint: Get Articles for Embedding
  * Returns list of published articles that don't have embeddings yet
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

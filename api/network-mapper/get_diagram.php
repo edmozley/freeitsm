@@ -12,7 +12,7 @@
  *   connectors[{ id, from_node_id, to_node_id, cmdb_relationship_id,
  *                label, line_style }]
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

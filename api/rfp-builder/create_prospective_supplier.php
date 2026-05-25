@@ -11,7 +11,7 @@
  *
  * Returns the new supplier_id and the resulting invitation_id.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

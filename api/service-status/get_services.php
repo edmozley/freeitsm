@@ -3,7 +3,7 @@
  * API: Get all services for the Service Status module
  * GET - Returns list of services ordered by display_order then name
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

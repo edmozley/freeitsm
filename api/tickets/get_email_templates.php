@@ -3,7 +3,7 @@
  * API Endpoint: Get all email templates
  * GET: Returns all templates ordered by display_order, id
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

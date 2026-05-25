@@ -4,7 +4,7 @@
  * POST: { mailbox_id, entries: [{ entry_type, entry_value }] }
  * Replaces all existing entries for the mailbox.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -3,7 +3,7 @@
  * API Endpoint: Create a new ticket manually
  * Creates a ticket and an initial "email" entry for display in the inbox
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once dirname(dirname(__DIR__)) . '/workflow/includes/engine.php';

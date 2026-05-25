@@ -3,7 +3,7 @@
  * API: Unlink a CMDB object from a ticket. Accepts either the link row id
  * (link_id), or a ticket_id + cmdb_object_id pair.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

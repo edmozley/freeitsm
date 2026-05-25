@@ -8,7 +8,7 @@
  *
  * The UI is expected to warn before calling this when child_count > 0.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -2,7 +2,7 @@
 /**
  * API Endpoint: Get Today's Morning Checks with Results
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

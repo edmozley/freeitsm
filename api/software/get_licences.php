@@ -3,7 +3,7 @@
  * API Endpoint: Get software licences list
  * Returns all licences with application names and publisher info
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

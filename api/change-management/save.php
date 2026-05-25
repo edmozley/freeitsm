@@ -3,7 +3,7 @@
  * API Endpoint: Create or update a change record
  * Includes server-side audit logging for all field changes.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

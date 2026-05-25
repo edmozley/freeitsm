@@ -3,7 +3,7 @@
  * API Endpoint: Get activity log for a mailbox
  * GET: ?mailbox_id=N&search=text&page=1
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

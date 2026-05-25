@@ -3,7 +3,7 @@
  * API Endpoint: Get software applications list
  * Returns all applications with publisher and install counts
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

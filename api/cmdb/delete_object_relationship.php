@@ -2,7 +2,7 @@
 /**
  * API: Delete a single object relationship by its row id.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

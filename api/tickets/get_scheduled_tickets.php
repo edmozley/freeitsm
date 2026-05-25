@@ -2,7 +2,7 @@
 /**
  * API Endpoint: Get scheduled tickets for calendar view
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

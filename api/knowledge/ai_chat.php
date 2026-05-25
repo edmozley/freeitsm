@@ -4,7 +4,7 @@
  * Uses Claude Haiku to answer questions based solely on knowledge article content
  * Supports vector similarity search for finding relevant articles (if embeddings are configured)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

@@ -4,7 +4,7 @@
  * Cascade to rfp_extracted_requirements / rfp_consolidated_sources is
  * handled by FK ON DELETE CASCADE.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

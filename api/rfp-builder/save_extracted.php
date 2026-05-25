@@ -3,7 +3,7 @@
  * Update one extracted requirement row (text, type, source_quote).
  * Triggered from the inline edit modal on the extracted-requirements page.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

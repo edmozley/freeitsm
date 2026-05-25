@@ -3,7 +3,7 @@
  * API Endpoint: Get full detail for a single file
  * Query param: ?id=123
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -3,7 +3,7 @@
  * API: Get dashboard data for Service Status module
  * GET - Returns all active services with worst current impact + recent incidents
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -3,7 +3,7 @@
  * API: Delete a CMDB relationship type.
  * Refuses if any relationships currently use this type.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

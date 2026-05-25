@@ -4,7 +4,7 @@
  * what the AI drafted. Marks the row is_manually_edited so future
  * regenerations are gated on `force=1` (we don't trample edits silently).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

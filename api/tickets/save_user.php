@@ -6,7 +6,7 @@
  * the same state inbound-ticket users start in. They can later claim the account via
  * the self-service portal's register flow by setting their own password.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -6,7 +6,7 @@
  *
  * Returns { id } of the new diagram so the client can navigate into the editor.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

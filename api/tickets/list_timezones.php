@@ -4,7 +4,7 @@
  *
  * Returns: { groups: { 'Europe': ['Europe/London', 'Europe/Paris', ...], 'America': [...], ... } }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 header('Content-Type: application/json');
 

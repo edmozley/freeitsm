@@ -2,7 +2,7 @@
 /**
  * API: Get all forms with field count and submission count
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

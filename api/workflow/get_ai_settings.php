@@ -7,7 +7,7 @@
  * so the form can show that something is stored without exposing the secret.
  * Save endpoint treats the masked value as "no change".
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

@@ -3,7 +3,7 @@
  * API Endpoint: Get drill-down data for a software dashboard chart click
  * Params: widget_id (required), plus one of: version+app_id, app_id alone, or publisher
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

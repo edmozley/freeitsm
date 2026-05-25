@@ -3,7 +3,7 @@
  * API: Tasks — Get module settings
  * Returns tasks_* keys from system_settings (prefix stripped).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

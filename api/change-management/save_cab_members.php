@@ -3,7 +3,7 @@
  * API Endpoint: Sync CAB members for a change
  * Diffs against existing members: adds new, removes deleted, updates is_required changes.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

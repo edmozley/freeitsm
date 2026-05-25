@@ -3,7 +3,7 @@
  * API Endpoint: Sync VM data from vCenter REST API
  * Connects to vCenter, fetches all VMs with specs, saves to servers table
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

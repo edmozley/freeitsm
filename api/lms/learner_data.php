@@ -3,7 +3,7 @@
  * LMS API: Get all CMI data for a specific analyst + course
  * Returns structured data grouped by category for display.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

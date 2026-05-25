@@ -3,7 +3,7 @@
  * API Endpoint: Reorder process step types.
  * POST { order: [typeId, typeId, ...] } — rewrites display_order to match.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

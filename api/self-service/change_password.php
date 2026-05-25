@@ -3,7 +3,7 @@
  * API: Change password for self-service user
  * POST - Verifies current password and updates to new one
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

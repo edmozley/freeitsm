@@ -3,7 +3,7 @@
  * API: Create a relationship between two CMDB objects.
  * Refuses self-links and duplicates of an existing (from, to, type) triple.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

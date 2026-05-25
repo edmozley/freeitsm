@@ -3,7 +3,7 @@
  * API Endpoint: Get aggregated chart data for a software dashboard widget
  * Params: widget_id (required)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

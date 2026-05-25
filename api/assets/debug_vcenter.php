@@ -4,7 +4,7 @@
  * Read-only - does NOT write to the database
  * Shows every field returned by the API, including ones not used in get_vcenter.php
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

@@ -7,7 +7,7 @@
  *   priorities:  [{ id, name, sla_response_minutes, sla_resolution_minutes, sla_calendar_id }]
  *   calendars:   [{ id, name, timezone, is_default, hours: [...], holiday_count }]
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

@@ -3,7 +3,7 @@
  * LMS API: Get progress data for the admin dashboard
  * Joins assignments -> group members -> progress to show every analyst's status
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

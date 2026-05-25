@@ -8,7 +8,7 @@
  * means there's exactly one row per (analyst, requirement) pair —
  * this endpoint keeps it that way via INSERT...ON DUPLICATE KEY UPDATE.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

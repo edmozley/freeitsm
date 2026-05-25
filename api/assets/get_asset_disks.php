@@ -3,7 +3,7 @@
  * API Endpoint: Get disks for a specific asset
  * Returns list of logical drives with size, free space, and usage percentage
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

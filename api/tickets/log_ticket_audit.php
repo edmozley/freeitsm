@@ -3,7 +3,7 @@
  * API Endpoint: Log ticket audit entry
  * Records changes to ticket properties
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

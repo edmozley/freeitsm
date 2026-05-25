@@ -17,7 +17,7 @@
  * server-side before being returned to the client, with unknown items dropped
  * (logged in `warnings`) rather than failing the whole compose.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once __DIR__ . '/../../workflow/includes/engine.php';

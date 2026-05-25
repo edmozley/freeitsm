@@ -3,7 +3,7 @@
  * API Endpoint: Verify a mail folder exists in a mailbox
  * POST: { "mailbox_id": N, "folder_name": "Processed" }
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

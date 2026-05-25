@@ -3,7 +3,7 @@
  * List active suppliers not yet invited to a given RFP — feeds the
  * "invite supplier" picker.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

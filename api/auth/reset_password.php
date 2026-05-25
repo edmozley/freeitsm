@@ -6,7 +6,7 @@
  *
  * POST JSON: { "token": "...", "new_password": "...", "confirm_password": "..." }
  */
-session_start();
+session_start(['read_and_close' => true]);
 header('Content-Type: application/json');
 
 require_once '../../config.php';

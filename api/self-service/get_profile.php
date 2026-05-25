@@ -3,7 +3,7 @@
  * API: Get self-service user profile
  * GET - Returns display name, email, and preferred name
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

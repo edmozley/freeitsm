@@ -4,7 +4,7 @@
  * POST { id: <int> } — soft-delete not used (rules can be toggled inactive
  * instead if the admin wants to keep the config).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 header('Content-Type: application/json');

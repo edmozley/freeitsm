@@ -5,7 +5,7 @@
  * If the user has no team assignments, returns all active departments.
  * If the user has team assignments, returns only departments linked to those teams.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

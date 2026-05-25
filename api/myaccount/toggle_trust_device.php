@@ -3,7 +3,7 @@
  * API: Toggle trusted device preference for current analyst
  * POST - Flips trust_device_enabled on/off. If disabling, clears all trusted devices.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

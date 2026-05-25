@@ -2,7 +2,7 @@
 /**
  * API: List property definitions for a single class, including dropdown options.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

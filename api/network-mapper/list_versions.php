@@ -7,7 +7,7 @@
  * Walks back to the root then forward, returning each version in chain order
  * (oldest first). Used by the version-switcher dropdown in the editor.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

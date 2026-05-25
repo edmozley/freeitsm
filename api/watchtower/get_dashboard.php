@@ -3,7 +3,7 @@
  * API: Watchtower Dashboard — Unified attention summary across all modules
  * GET — Returns attention items from every module in a single response
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/watchtower_queries.php';

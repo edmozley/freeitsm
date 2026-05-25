@@ -11,7 +11,7 @@
  *   - node_count, connector_count for the leaf version
  *   - version_count for the whole chain
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

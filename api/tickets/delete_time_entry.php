@@ -6,7 +6,7 @@
  * audit / restore — get_time_entries.php filters on is_active = 1 so deleted
  * rows just disappear from the UI.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

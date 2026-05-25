@@ -4,7 +4,7 @@
  * supplier itself isn't editable here (that's the suppliers module);
  * this endpoint covers per-RFP fields only.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -5,7 +5,7 @@
  * Inserts a row into intune_sync_jobs, spawns the CLI worker, returns the
  * job id so the UI can poll sync_status.php.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/intune.php';

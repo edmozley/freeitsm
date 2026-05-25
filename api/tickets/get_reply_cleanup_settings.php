@@ -4,7 +4,7 @@
  * Returns the configured model + tone, plus a masked preview of the API key
  * so the analyst can tell whether one is set without leaking the key itself.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';

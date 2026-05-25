@@ -3,7 +3,7 @@
  * API: Delete a property definition.
  * Refuses if any objects have a value set for this property — analyst must clear values first.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

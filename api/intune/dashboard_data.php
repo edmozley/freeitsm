@@ -5,7 +5,7 @@
  * single JSON payload — KPI numbers + every chart's data — so the page
  * makes one request rather than ten.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

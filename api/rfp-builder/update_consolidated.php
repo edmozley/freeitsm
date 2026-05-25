@@ -5,7 +5,7 @@
  * after the AI's first pass. category_id is validated against the
  * RFP's own categories; null is allowed (uncategorised).
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

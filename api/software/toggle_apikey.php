@@ -2,7 +2,7 @@
 /**
  * API Endpoint: Toggle API Key active status (revoke/activate)
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 

@@ -12,7 +12,7 @@
  * Files land in recordings/pending/{uuid}.{ext}; create_ticket.php moves them to
  * recordings/{ticket_id}/{uuid}.{ext} on claim.
  */
-session_start();
+session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 
