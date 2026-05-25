@@ -10,6 +10,17 @@
     display: flex;
     flex-direction: column;
     background: #f5f5f5;
+    overflow: hidden;
+}
+
+/* Scrollable region: weekday header + day grid scroll together so the
+   top nav (prev/next/today) stays fixed — matches the calendar module. */
+.calendar-scroll {
+    flex-grow: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 /* Calendar header with navigation */
@@ -62,7 +73,6 @@
     border-left: 1px solid #e0e0e0;
     border-radius: 0 0 8px 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    flex-grow: 1;
 }
 
 /* Individual day cells */

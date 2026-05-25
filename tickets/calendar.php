@@ -35,18 +35,20 @@ $translationNamespaces = ['common', 'tickets'];
             <button class="btn btn-primary" onclick="goToToday()" style="margin-left: 20px;"><?php echo htmlspecialchars(t('common.calendar.today')); ?></button>
         </div>
 
-        <div class="calendar-weekdays">
-            <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.monday')); ?></div>
-            <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.tuesday')); ?></div>
-            <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.wednesday')); ?></div>
-            <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.thursday')); ?></div>
-            <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.friday')); ?></div>
-            <div class="weekday weekend"><?php echo htmlspecialchars(t('common.calendar.weekdays.saturday')); ?></div>
-            <div class="weekday weekend"><?php echo htmlspecialchars(t('common.calendar.weekdays.sunday')); ?></div>
-        </div>
+        <div class="calendar-scroll">
+            <div class="calendar-weekdays">
+                <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.monday')); ?></div>
+                <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.tuesday')); ?></div>
+                <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.wednesday')); ?></div>
+                <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.thursday')); ?></div>
+                <div class="weekday"><?php echo htmlspecialchars(t('common.calendar.weekdays.friday')); ?></div>
+                <div class="weekday weekend"><?php echo htmlspecialchars(t('common.calendar.weekdays.saturday')); ?></div>
+                <div class="weekday weekend"><?php echo htmlspecialchars(t('common.calendar.weekdays.sunday')); ?></div>
+            </div>
 
-        <div class="calendar-grid" id="calendarGrid">
-            <!-- Calendar days will be rendered here -->
+            <div class="calendar-grid" id="calendarGrid">
+                <!-- Calendar days will be rendered here -->
+            </div>
         </div>
     </div>
 
