@@ -1291,26 +1291,9 @@ CREATE TABLE IF NOT EXISTS `morningChecks_Checks` (
     PRIMARY KEY (`CheckID`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `morningChecks_Results` (
-    `ResultID`      INT NOT NULL AUTO_INCREMENT,
-    `CheckID`       INT NOT NULL,
-    `CheckDate`     DATETIME NOT NULL,
-    -- Status is the label string from morningChecks_Statuses.Label.
-    -- VARCHAR(50) allows for longer custom labels. We store the label
-    -- rather than the StatusID so historical results remain readable if
-    -- a status is later renamed or deleted.
-    `Status`        VARCHAR(50) NOT NULL,
-    `Notes`         LONGTEXT NULL,
-    `CreatedBy`     VARCHAR(100) NULL,
-    `CreatedDate`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `ModifiedDate`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`ResultID`),
-    UNIQUE KEY `uq_check_date` (`CheckID`, `CheckDate`),
-    CONSTRAINT `fk_results_checks` FOREIGN KEY (`CheckID`) REFERENCES `morningChecks_Checks` (`CheckID`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 -- Configurable status options for morning checks (drives the dashboard
 -- status buttons and whether picking a status pops the notes modal).
+-- Defined ABOVE morningChecks_Results so the FK in Results can reference it.
 CREATE TABLE IF NOT EXISTS `morningChecks_Statuses` (
     `StatusID`        INT NOT NULL AUTO_INCREMENT,
     `Label`           VARCHAR(50) NOT NULL,
@@ -1327,6 +1310,28 @@ INSERT IGNORE INTO `morningChecks_Statuses` (`StatusID`, `Label`, `Colour`, `Req
     (1, 'Green', '#28a745', 0, 10, 1),
     (2, 'Amber', '#ffc107', 1, 20, 1),
     (3, 'Red',   '#dc3545', 1, 30, 1);
+
+CREATE TABLE IF NOT EXISTS `morningChecks_Results` (
+    `ResultID`      INT NOT NULL AUTO_INCREMENT,
+    `CheckID`       INT NOT NULL,
+    `CheckDate`     DATETIME NOT NULL,
+    -- Normalised FK to morningChecks_Statuses.StatusID. NULL allowed
+    -- for orphan rows (pre-normalisation imports or rows whose status
+    -- was later deleted — FK is ON DELETE SET NULL).
+    `StatusID`      INT NULL,
+    -- Label snapshot — nullable now that StatusID is the source of
+    -- truth. Holds the original label for orphan rows so the
+    -- normalisation tool in Settings can show what needs remapping.
+    `Status`        VARCHAR(50) NULL,
+    `Notes`         LONGTEXT NULL,
+    `CreatedBy`     VARCHAR(100) NULL,
+    `CreatedDate`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `ModifiedDate`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`ResultID`),
+    UNIQUE KEY `uq_check_date` (`CheckID`, `CheckDate`),
+    CONSTRAINT `fk_results_checks` FOREIGN KEY (`CheckID`) REFERENCES `morningChecks_Checks` (`CheckID`),
+    CONSTRAINT `fk_results_status` FOREIGN KEY (`StatusID`) REFERENCES `morningChecks_Statuses` (`StatusID`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
 -- Knowledge Base

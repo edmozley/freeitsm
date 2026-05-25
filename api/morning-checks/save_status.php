@@ -12,12 +12,10 @@
  *     sortOrder?:      int     // optional; defaults to end-of-list on insert
  *   }
  *
- * Note on label changes: historical morningChecks_Results rows store
- * the label string directly. When the label is changed here we update
- * existing rows that match the old label so the dashboard / chart /
- * PDF keep showing the new name. Filter is bounded to rows whose Status
- * equals the *old* Label so we don't accidentally rename rows that
- * happen to share a string with a different status.
+ * Note: results normalised to StatusID don't need a label-cascade on
+ * rename — the JOIN at read time gives the current label automatically.
+ * Orphan rows (StatusID NULL, Status string set) are left alone; the
+ * admin remaps them explicitly via normalise_status.php.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
@@ -61,18 +59,14 @@ try {
         exit;
     }
 
-    // Update. Fetch the existing row so we can detect label rename.
-    $existing = $conn->prepare("SELECT Label FROM morningChecks_Statuses WHERE StatusID = ?");
-    $existing->execute([$statusId]);
-    $row = $existing->fetch(PDO::FETCH_ASSOC);
-    if (!$row) throw new Exception('Status not found');
-    $oldLabel = $row['Label'];
-
+    // Verify the row exists; sort order defaults to the existing value
+    // if the caller didn't provide one.
     if ($sortOrder === null) {
-        // Keep existing sort order if caller didn't provide one.
         $sortStmt = $conn->prepare("SELECT SortOrder FROM morningChecks_Statuses WHERE StatusID = ?");
         $sortStmt->execute([$statusId]);
-        $sortOrder = (int)$sortStmt->fetchColumn();
+        $sortRow = $sortStmt->fetchColumn();
+        if ($sortRow === false) throw new Exception('Status not found');
+        $sortOrder = (int)$sortRow;
     }
 
     $stmt = $conn->prepare(
@@ -82,16 +76,7 @@ try {
     );
     $stmt->execute([$label, $colour, $requiresNotes, $sortOrder, $isActive, $statusId]);
 
-    // If the label changed, cascade the new value to existing results
-    // that were saved against the old label string.
-    $renamed = 0;
-    if ($label !== $oldLabel) {
-        $upd = $conn->prepare("UPDATE morningChecks_Results SET Status = ? WHERE Status = ?");
-        $upd->execute([$label, $oldLabel]);
-        $renamed = $upd->rowCount();
-    }
-
-    echo json_encode(['success' => true, 'statusId' => $statusId, 'renamedResults' => $renamed]);
+    echo json_encode(['success' => true, 'statusId' => $statusId]);
 
 } catch (Exception $e) {
     http_response_code(500);

@@ -176,6 +176,31 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
             border-color: #007bff;
         }
 
+        /* Orphan-status banner (top of dashboard) + per-row badge
+           (inside .status-buttons cell). Surface unmapped results so
+           the admin knows to use the Settings normalisation tool. */
+        .orphan-banner {
+            background: #fff3cd;
+            border: 1px solid #ffe69c;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin: 0 30px 12px;
+            font-size: 13px;
+            color: #664d03;
+        }
+        .orphan-banner a { color: #664d03; font-weight: 600; }
+        .status-orphan-badge {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            background: #fff3cd;
+            color: #664d03;
+            border: 1px solid #ffe69c;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
         /* Dynamic status buttons — colour comes from CSS custom
            properties on each button (--c = base, --tc = readable
            text on filled background). Overrides the legacy hard-coded
@@ -220,6 +245,16 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
                 <button onclick="setToday()" class="btn-today">Today</button>
                 <button onclick="saveToPDF()" class="btn-pdf">Save to PDF</button>
             </div>
+        </div>
+
+        <!-- Orphan-statuses banner. Populated by checkForOrphans() when
+             results exist with unmapped StatusID (e.g. left over from
+             a deleted status). Links to the Settings → Statuses
+             normalisation tool. Hidden by default. -->
+        <div id="orphanBanner" class="orphan-banner" style="display: none;">
+            <strong>⚠ Unmapped check statuses found.</strong>
+            <span id="orphanBannerCount"></span>
+            Go to <a href="settings/#statuses-tab">Settings → Statuses</a> to map them.
         </div>
 
         <div class="checks-section">
@@ -270,7 +305,9 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
             <p>Please provide details about this <span id="modalStatus"></span> status.</p>
             <form id="notesForm">
                 <input type="hidden" id="modalCheckId">
-                <input type="hidden" id="modalStatusValue">
+                <!-- Holds the StatusID picked from a button. modalStatus
+                     (the span above) shows the human label. -->
+                <input type="hidden" id="modalStatusId">
                 <div class="form-group">
                     <label for="modalNotes">Notes *</label>
                     <textarea id="modalNotes" name="modalNotes" rows="5" required></textarea>
@@ -423,14 +460,6 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
             return lum > 0.6 ? '#333' : '#fff';
         }
 
-        // Resolve the saved status string to a status row. Falls back to
-        // null if the label no longer matches any configured status
-        // (e.g. the status was deleted after this result was saved).
-        function statusByLabel(label) {
-            if (!label) return null;
-            return MC_STATUSES.find(s => s.Label === label) || null;
-        }
-
         function displayChecks(checks) {
             const tbody = document.getElementById('checksTableBody');
 
@@ -444,26 +473,34 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
             }
 
             tbody.innerHTML = checks.map(check => {
-                // Status row currently saved against this check (if any).
-                const currentStatus = statusByLabel(check.Status);
-                // "Raise ticket" appears only for statuses that require
-                // notes (a reasonable proxy for "something needs attention").
-                const showRaise = currentStatus && currentStatus.RequiresNotes;
+                // "Raise ticket" appears only when the saved status
+                // requires notes (a reasonable "something needs attention"
+                // proxy). For orphans we can't tell — show nothing.
+                const showRaise = check.StatusRequiresNotes === true;
                 const raiseBtn = showRaise
-                    ? `<button class="raise-ticket-btn" onclick="openRaiseTicketModal(${check.CheckID}, '${escapeJsString(check.CheckName)}', '${escapeJsString(check.CheckDescription || '')}', '${escapeJsString(check.Status)}', '${escapeJsString(check.Notes || '')}')">+ Raise ticket</button>`
+                    ? `<button class="raise-ticket-btn" onclick="openRaiseTicketModal(${check.CheckID}, '${escapeJsString(check.CheckName)}', '${escapeJsString(check.CheckDescription || '')}', '${escapeJsString(check.Status || '')}', '${escapeJsString(check.Notes || '')}')">+ Raise ticket</button>`
                     : '';
 
-                // Status buttons — one per active status. Inline CSS
-                // custom properties drive border/background/text colour
-                // (see .status-btn rules in the page-local <style>).
+                // Buttons — one per active status. The active button is
+                // the one whose StatusID matches the saved StatusID.
+                // For orphan rows (StatusID is null), no button is
+                // highlighted — the orphan badge below makes that
+                // visible and prompts the admin to remap.
                 const buttonsHtml = MC_ACTIVE_STATUSES.map(s => {
-                    const isActive = currentStatus && currentStatus.StatusID === s.StatusID;
+                    const isActive = check.StatusID !== null && check.StatusID === s.StatusID;
                     const textColour = readableTextOn(s.Colour);
                     const styleVars = '--c: ' + s.Colour + '; --tc: ' + textColour + ';';
                     return `<button class="status-btn${isActive ? ' active' : ''}"
                                     style="${styleVars}"
                                     onclick="handleStatusClick(${check.CheckID}, ${s.StatusID}, '${escapeJsString(check.Notes || '')}')">${escapeHtml(s.Label)}</button>`;
                 }).join('');
+
+                // Inline orphan badge — flags rows whose Status label
+                // doesn't match any current StatusID (e.g. their status
+                // was deleted). Settings → Statuses has the remap tool.
+                const orphanBadge = check.IsOrphan
+                    ? `<span class="status-orphan-badge" title="Unmapped status — fix in Settings → Statuses">⚠ unmapped: ${escapeHtml(check.Status)}</span>`
+                    : '';
 
                 // Row's status-{slug} class — keeps existing CSS hooks
                 // working for legacy row-level highlight rules.
@@ -475,6 +512,7 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
                     <td>${escapeHtml(check.CheckDescription || '')}</td>
                     <td>
                         <div class="status-buttons">${buttonsHtml}</div>
+                        ${orphanBadge}
                         ${raiseBtn}
                     </td>
                     <td class="notes-display">${check.Notes ? escapeHtml(check.Notes) : '-'}</td>
@@ -504,17 +542,17 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
             const s = MC_STATUSES.find(x => x.StatusID === statusId);
             if (!s) return;
             if (!s.RequiresNotes) {
-                saveCheckResult(checkId, s.Label, '');
+                saveCheckResult(checkId, s.StatusID, '');
             } else {
                 document.getElementById('modalCheckId').value = checkId;
-                document.getElementById('modalStatusValue').value = s.Label;
+                document.getElementById('modalStatusId').value = s.StatusID;
                 document.getElementById('modalStatus').textContent = s.Label;
                 document.getElementById('modalNotes').value = existingNotes;
                 document.getElementById('notesModal').classList.add('active');
             }
         }
 
-        async function saveCheckResult(checkId, status, notes) {
+        async function saveCheckResult(checkId, statusId, notes) {
             const selectedDate = document.getElementById('checkDate').value;
             try {
                 const response = await fetch(`${API_BASE}save_check_result.php`, {
@@ -522,7 +560,7 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         checkId: checkId,
-                        status: status,
+                        statusId: statusId,
                         notes: notes,
                         checkDate: selectedDate
                     })
@@ -534,6 +572,7 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
                     showToast('Check saved successfully', 'success');
                     loadChecks();
                     loadChart();
+                    checkForOrphans();   // recount in case this save resolved orphans for the same check on the same date
                 } else {
                     showToast('Error: ' + data.error, 'error');
                 }
@@ -549,17 +588,18 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
 
         document.getElementById('notesForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            const checkId = parseInt(document.getElementById('modalCheckId').value);
-            const status = document.getElementById('modalStatusValue').value;
-            const notes = document.getElementById('modalNotes').value.trim();
+            const checkId  = parseInt(document.getElementById('modalCheckId').value, 10);
+            const statusId = parseInt(document.getElementById('modalStatusId').value, 10);
+            const label    = document.getElementById('modalStatus').textContent;
+            const notes    = document.getElementById('modalNotes').value.trim();
 
             if (!notes) {
-                showToast('Notes are required for ' + status + ' status', 'error');
+                showToast('Notes are required for ' + label + ' status', 'error');
                 return;
             }
 
             closeNotesModal();
-            saveCheckResult(checkId, status, notes);
+            saveCheckResult(checkId, statusId, notes);
         });
 
         window.onclick = function(event) {
@@ -1044,10 +1084,33 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
             showToast('PDF saved successfully', 'success');
         }
 
+        // Check the orphan-results count (rows whose StatusID is NULL
+        // but Status string is set — e.g. left over from a deleted
+        // status). Shows / hides the warning banner accordingly.
+        async function checkForOrphans() {
+            try {
+                const res = await fetch(API_BASE + 'get_status_orphans.php');
+                const data = await res.json();
+                const banner = document.getElementById('orphanBanner');
+                const count  = document.getElementById('orphanBannerCount');
+                if (data && data.success && data.totalOrphans > 0) {
+                    const n = data.totalOrphans;
+                    count.textContent = n + ' result' + (n === 1 ? '' : 's') + ' across ' +
+                                        data.labels.length + ' label' + (data.labels.length === 1 ? '' : 's') + '.';
+                    banner.style.display = '';
+                } else {
+                    banner.style.display = 'none';
+                }
+            } catch (e) {
+                // Soft-fail — banner stays hidden
+            }
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadChecks();
             loadChart();
+            checkForOrphans();
             // Pin the calc()-based initial height to an exact pixel
             // value (so drag math and window-resize handling work).
             lockChartHeightFromInitial();

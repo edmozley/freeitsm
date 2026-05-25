@@ -46,52 +46,58 @@ try {
 
     // Active statuses define the chart's datasets.
     $statusStmt = $conn->query(
-        "SELECT Label, Colour FROM morningChecks_Statuses
+        "SELECT StatusID, Label, Colour FROM morningChecks_Statuses
          WHERE IsActive = 1 ORDER BY SortOrder, StatusID"
     );
     $activeStatuses = $statusStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $sql = "SELECT DATE_FORMAT(r.CheckDate, '%Y-%m-%d') as CheckDate, r.Status, COUNT(*) as Count
+    // Normalised query — group by StatusID via the FK. Orphan rows
+    // (r.StatusID IS NULL) are excluded from the chart; admin sees
+    // the dashboard banner and uses the normalisation tool to remap
+    // them, after which they'll re-appear in subsequent chart loads.
+    $sql = "SELECT DATE_FORMAT(r.CheckDate, '%Y-%m-%d') as CheckDate,
+                   s.StatusID, COUNT(*) as Count
             FROM morningChecks_Results r
             INNER JOIN morningChecks_Checks c ON r.CheckID = c.CheckID
+            INNER JOIN morningChecks_Statuses s ON r.StatusID = s.StatusID
             WHERE r.CheckDate >= ? AND r.CheckDate <= ?
-            GROUP BY DATE_FORMAT(r.CheckDate, '%Y-%m-%d'), r.Status
+              AND s.IsActive = 1
+            GROUP BY DATE_FORMAT(r.CheckDate, '%Y-%m-%d'), s.StatusID
             ORDER BY DATE_FORMAT(r.CheckDate, '%Y-%m-%d')";
 
     $stmt = $conn->prepare($sql);
     $stmt->execute([$startDate, $endDate]);
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Initialise: each of 30 days × each active status → 0
+    // Initialise: each of 30 days × each active status → 0.
     $dates = [];
     $rawDates = [];
-    $countsByDate = [];
+    $countsByDate = [];   // [yyyy-mm-dd][statusId] => count
     for ($i = 29; $i >= 0; $i--) {
         $date = date('Y-m-d', strtotime($endDate . " -$i days"));
         $rawDates[] = $date;
         $dates[] = date('M j', strtotime($date));
         $countsByDate[$date] = [];
         foreach ($activeStatuses as $s) {
-            $countsByDate[$date][$s['Label']] = 0;
+            $countsByDate[$date][(int)$s['StatusID']] = 0;
         }
     }
 
-    // Populate counts; rows whose Status is no longer an active label
-    // are silently skipped (their data isn't represented in the chart).
     foreach ($results as $row) {
         $date = $row['CheckDate'];
-        $label = $row['Status'];
-        if (isset($countsByDate[$date]) && array_key_exists($label, $countsByDate[$date])) {
-            $countsByDate[$date][$label] = (int)$row['Count'];
+        $sid = (int)$row['StatusID'];
+        if (isset($countsByDate[$date]) && array_key_exists($sid, $countsByDate[$date])) {
+            $countsByDate[$date][$sid] = (int)$row['Count'];
         }
     }
 
-    // Build one dataset per status, preserving SortOrder.
+    // Build one dataset per active status, preserving SortOrder.
     $datasets = [];
     foreach ($activeStatuses as $s) {
+        $sid = (int)$s['StatusID'];
         $arr = [];
         foreach ($rawDates as $d) {
-            $arr[] = $countsByDate[$d][$s['Label']];
+            $arr[] = $countsByDate[$d][$sid];
         }
         $datasets[] = [
             'label'  => $s['Label'],

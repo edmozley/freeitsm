@@ -249,6 +249,31 @@ $path_prefix = '../../';
                     <tr><td colspan="5" style="padding: 24px; text-align: center; color: #999;">Loading statuses...</td></tr>
                 </tbody>
             </table>
+
+            <!-- Normalisation tool — only rendered when there are
+                 results in the DB whose Status string doesn't resolve
+                 to a current StatusID (e.g. left over from a deleted
+                 status). Hidden when no orphans exist. -->
+            <div id="orphanSection" style="display: none; margin-top: 32px; padding: 16px; background: #fff8e1; border: 1px solid #ffd54f; border-radius: 6px;">
+                <h3 style="margin: 0 0 6px; font-size: 16px; color: #663d00;">⚠ Unmapped result data</h3>
+                <p style="font-size: 13px; color: #5d4a00; margin-bottom: 14px;">
+                    Some historical check results reference status labels that no longer match any current status (typically because the status was deleted). Pick a current status for each and click <strong>Map</strong> to convert them to the normalised FK.
+                </p>
+                <table class="lookup-table" id="orphanTable">
+                    <thead>
+                        <tr>
+                            <th>Orphan label</th>
+                            <th>Rows</th>
+                            <th>Map to</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="orphanTableBody"></tbody>
+                </table>
+                <div style="margin-top: 14px; display: flex; justify-content: flex-end; gap: 10px;">
+                    <button type="button" class="btn-primary" id="mapAllBtn" onclick="normaliseAllOrphans()">Map all</button>
+                </div>
+            </div>
         </div>
 
         <!-- Chart tab: visual options for the dashboard trend chart.
@@ -675,6 +700,9 @@ $path_prefix = '../../';
                 if (data.success) {
                     statuses = data.statuses || [];
                     renderStatuses();
+                    // Statuses now loaded — orphan tool can render its
+                    // dropdowns against them.
+                    loadOrphans();
                 } else {
                     document.getElementById('statusesTableBody').innerHTML =
                         '<tr><td colspan="5" style="padding: 24px; text-align: center; color: #c62828;">Error loading statuses</td></tr>';
@@ -682,6 +710,100 @@ $path_prefix = '../../';
             } catch (e) {
                 document.getElementById('statusesTableBody').innerHTML =
                     '<tr><td colspan="5" style="padding: 24px; text-align: center; color: #c62828;">Error loading statuses</td></tr>';
+            }
+        }
+
+        // ===== Orphan normalisation tool =====
+        // Only shown when there's results data that doesn't join with
+        // a current StatusID. Each orphan label gets a row with a
+        // dropdown of active statuses + a Map button.
+
+        let orphanLabels = [];
+
+        async function loadOrphans() {
+            try {
+                const res = await fetch(API_BASE + 'get_status_orphans.php');
+                const data = await res.json();
+                if (data && data.success && data.totalOrphans > 0) {
+                    orphanLabels = data.labels;
+                    renderOrphans();
+                    document.getElementById('orphanSection').style.display = '';
+                } else {
+                    orphanLabels = [];
+                    document.getElementById('orphanSection').style.display = 'none';
+                }
+            } catch (e) {
+                // Soft-fail; section stays hidden
+            }
+        }
+
+        function renderOrphans() {
+            const activeStatuses = statuses.filter(s => s.IsActive);
+            const tbody = document.getElementById('orphanTableBody');
+
+            if (orphanLabels.length === 0) {
+                tbody.innerHTML = '';
+                return;
+            }
+
+            tbody.innerHTML = orphanLabels.map((row, idx) => {
+                const options = activeStatuses.map(s =>
+                    '<option value="' + s.StatusID + '">' + escapeHtml(s.Label) + '</option>'
+                ).join('');
+                return `
+                    <tr data-label="${escapeHtmlAttr(row.label)}">
+                        <td><code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 12px;">${escapeHtml(row.label)}</code></td>
+                        <td>${row.count}</td>
+                        <td>
+                            <select class="orphan-target" data-idx="${idx}" style="padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                                ${options}
+                            </select>
+                        </td>
+                        <td>
+                            <button type="button" class="btn-primary" style="padding: 6px 12px; font-size: 12px;" onclick="normaliseOneOrphan(${idx})">Map</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        async function normaliseOneOrphan(idx) {
+            const orphan = orphanLabels[idx];
+            if (!orphan) return;
+            const sel = document.querySelector('.orphan-target[data-idx="' + idx + '"]');
+            const targetId = sel ? parseInt(sel.value, 10) : 0;
+            if (!targetId) return;
+            await postNormalise([{ label: orphan.label, statusId: targetId }]);
+        }
+
+        async function normaliseAllOrphans() {
+            const mappings = [];
+            document.querySelectorAll('.orphan-target').forEach(sel => {
+                const idx = parseInt(sel.dataset.idx, 10);
+                const orphan = orphanLabels[idx];
+                const targetId = parseInt(sel.value, 10);
+                if (orphan && targetId) mappings.push({ label: orphan.label, statusId: targetId });
+            });
+            if (mappings.length === 0) return;
+            await postNormalise(mappings);
+        }
+
+        async function postNormalise(mappings) {
+            try {
+                const res = await fetch(API_BASE + 'normalise_status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mappings: mappings })
+                });
+                const data = await res.json();
+                if (data && data.success) {
+                    showToast('Mapped ' + data.updated + ' row' + (data.updated === 1 ? '' : 's'), 'success');
+                    loadOrphans();
+                } else {
+                    showToast((data && data.error) || 'Failed to normalise', 'error');
+                }
+            } catch (e) {
+                showToast('Failed to normalise', 'error');
             }
         }
 

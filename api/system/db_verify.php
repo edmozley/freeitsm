@@ -909,11 +909,19 @@ $schema = [
         'ResultID'      => 'INT NOT NULL AUTO_INCREMENT',
         'CheckID'       => 'INT NOT NULL',
         'CheckDate'     => 'DATETIME NOT NULL',
-        // Status is the label string from morningChecks_Statuses.Label.
-        // Bumped to VARCHAR(50) so admins can use names longer than "Green".
-        // We store the label rather than the StatusID so historical results
-        // remain readable if a status is later deleted.
-        'Status'        => 'VARCHAR(50) NOT NULL',
+        // Normalised reference to morningChecks_Statuses.StatusID. NULL
+        // is allowed for two cases: (a) pre-#424 rows whose Status label
+        // didn't match any seeded status (orphans the admin needs to
+        // normalise via Settings); (b) rows whose status was later
+        // deleted (FK is ON DELETE SET NULL, with delete_status.php
+        // snapshotting the label into Status first so the orphan keeps
+        // its label for the normalisation tool).
+        'StatusID'      => 'INT NULL',
+        // Label snapshot — nullable now that StatusID is the source of
+        // truth. Holds the original label string for orphan rows so the
+        // normalisation tool in Settings can show "you have N results
+        // with label X, map them to ...".
+        'Status'        => 'VARCHAR(50) NULL',
         'Notes'         => 'LONGTEXT NULL',
         'CreatedBy'     => 'VARCHAR(100) NULL',
         'CreatedDate'   => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
@@ -2538,6 +2546,65 @@ try {
                 ('Amber', '#ffc107', 1, 20, 1),
                 ('Red',   '#dc3545', 1, 30, 1)");
             $results[] = ['table' => 'morningChecks_Statuses', 'status' => 'seeded', 'details' => ['Inserted 3 default morning-check statuses (Green / Amber / Red)']];
+        }
+    }
+
+    // Normalise morningChecks_Results — switch from label-string-only to a
+    // proper StatusID FK while keeping the Status column as a label
+    // snapshot for orphans. Idempotent: each step is guarded so re-runs
+    // are no-ops.
+    if ($tableExists('morningChecks_Results') && $tableExists('morningChecks_Statuses')) {
+        // Step 1: relax morningChecks_Results.Status to NULL (was
+        // VARCHAR(50) NOT NULL). New normalised writes set Status = NULL.
+        try {
+            $col = $conn->prepare(
+                "SELECT IS_NULLABLE FROM information_schema.columns
+                 WHERE table_schema = ? AND table_name = 'morningChecks_Results' AND column_name = 'Status'"
+            );
+            $col->execute([$dbName]);
+            $row = $col->fetch(PDO::FETCH_ASSOC);
+            if ($row && strtoupper($row['IS_NULLABLE']) === 'NO') {
+                $conn->exec("ALTER TABLE `morningChecks_Results` MODIFY `Status` VARCHAR(50) NULL");
+                $results[] = ['table' => 'morningChecks_Results', 'status' => 'updated', 'details' => ['Status: NOT NULL → NULL (StatusID is now the source of truth)']];
+            }
+        } catch (Exception $e) { /* shrug */ }
+
+        // Step 2: backfill StatusID from the Status label where it
+        // matches a row in morningChecks_Statuses. Targets rows where
+        // StatusID is NULL — newly migrated rows OR newly added column
+        // (the schema loop above just created it).
+        try {
+            $stmt = $conn->exec(
+                "UPDATE morningChecks_Results r
+                 JOIN morningChecks_Statuses s ON s.Label = r.Status
+                 SET r.StatusID = s.StatusID
+                 WHERE r.StatusID IS NULL"
+            );
+            if ($stmt > 0) {
+                $results[] = ['table' => 'morningChecks_Results', 'status' => 'migrated', 'details' => ["Backfilled StatusID for $stmt result row(s) from existing label strings"]];
+            }
+        } catch (Exception $e) { /* shrug */ }
+
+        // Step 3: add the FK. ON DELETE SET NULL preserves the result
+        // row (and its label snapshot in Status) when a status is
+        // deleted — the dashboard banner + normalisation tool then
+        // surfaces the orphan to the admin.
+        $hasFk = $conn->prepare(
+            "SELECT COUNT(*) FROM information_schema.table_constraints
+             WHERE table_schema = ? AND table_name = 'morningChecks_Results'
+               AND constraint_name = 'fk_results_status' AND constraint_type = 'FOREIGN KEY'"
+        );
+        $hasFk->execute([$dbName]);
+        if ((int)$hasFk->fetchColumn() === 0) {
+            try {
+                $conn->exec(
+                    "ALTER TABLE morningChecks_Results
+                     ADD CONSTRAINT fk_results_status
+                     FOREIGN KEY (StatusID) REFERENCES morningChecks_Statuses (StatusID)
+                     ON DELETE SET NULL"
+                );
+                $results[] = ['table' => 'morningChecks_Results', 'status' => 'updated', 'details' => ['Added fk_results_status (StatusID → morningChecks_Statuses.StatusID, ON DELETE SET NULL)']];
+            } catch (Exception $e) { /* shrug — possibly mismatched engine */ }
         }
     }
 
