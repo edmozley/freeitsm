@@ -54,7 +54,7 @@ $path_prefix = '../../';
             display: flex;
             justify-content: flex-end;
             gap: 10px;
-            padding: 12px 30px 16px;
+            padding: 12px 30px 19px;   /* +3px bottom for breathing room */
             border-top: 1px solid #e0e0e0;
             background: #f5f7fa;
         }
