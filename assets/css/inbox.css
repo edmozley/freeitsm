@@ -1470,6 +1470,9 @@ body.ticket-popout .ticket-toolbar {
     font-size: 14px;
     font-weight: 500;
     transition: all 0.2s;
+    /* When .btn is on an <a> the user-agent underline bleeds through — strip
+       it so anchor-as-button looks identical to <button>-as-button. */
+    text-decoration: none;
 }
 
 .btn-primary {

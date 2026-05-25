@@ -41,12 +41,15 @@ document.addEventListener('DOMContentLoaded', function() {
         // loadStatuses() before it can set the default value, so wait
         // for that fetch to land before opening the editor.
         statusesReady.then(() => openCreateChange());
-        // Swap the URL back to the pretty path so the address bar reads
-        // /change-management/new/ (not /change-management/?new=1).
-        // replaceState (not pushState) — keeps the history entry, just
-        // renames it, so the browser Back button still goes to the
-        // page the user came from.
-        try { history.replaceState(null, '', 'new/'); } catch (e) {}
+        // Drop ?new=1 from the URL so a page refresh after the user
+        // has saved doesn't re-open the create-mode editor on top of
+        // the just-saved change. The /new/ pretty URL is still
+        // available as the button target / bookmark — it just 302s
+        // here, and the param triggers the editor exactly once.
+        // We deliberately do NOT push the URL to /new/ instead: header
+        // nav links are built with $path_prefix='../' relative to
+        // /change-management/ so a deeper URL would break them all.
+        try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
     }
 
     // Enter key triggers search in search modal

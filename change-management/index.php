@@ -381,6 +381,6 @@ $path_prefix = '../';
     <!-- html2pdf for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>window.API_BASE = '../api/change-management/';</script>
-    <script src="../assets/js/change-management.js?v=4"></script>
+    <script src="../assets/js/change-management.js?v=5"></script>
 </body>
 </html>
