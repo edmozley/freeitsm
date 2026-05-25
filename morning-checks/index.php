@@ -27,20 +27,23 @@ $path_prefix = '../';
     <script src="../assets/js/toast.js"></script>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* Override body padding for header */
+        /* Layout: body is the outer flex column so .container fills
+           exactly the viewport minus the global header — no manual
+           calc(100vh - Npx), which was undershooting (the global header
+           is actually ~60px tall, not 48). Modals are position: fixed
+           so they sit outside the flex flow. */
         body {
             padding-top: 0;
+            display: flex;
+            flex-direction: column;
+            /* inbox.css already sets height: 100vh; overflow: hidden */
         }
-        /* Full-width dashboard laid out as a vertical flex column so the
-           checks table scrolls internally without disappearing behind the
-           chart-footer. inbox.css clamps body to 100vh / overflow:hidden
-           so a single page-level scroll doesn't work — instead the
-           checks-section becomes its own scroll container. */
         .container {
             max-width: none;
             margin: 0;
             padding: 0;
-            height: calc(100vh - 48px);
+            flex: 1;
+            min-height: 0;   /* lets the inner overflow:auto work in a flex parent */
             display: flex;
             flex-direction: column;
         }
