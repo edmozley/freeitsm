@@ -104,6 +104,40 @@ $path_prefix = '../../';
         .check-item.drag-over-top { box-shadow: inset 0 2px 0 0 #007bff; }
         .check-item.drag-over-bottom { box-shadow: inset 0 -2px 0 0 #007bff; }
 
+        /* Statuses tab — table styling matches the canonical lookup-table
+           used in change-management / calendar settings. */
+        .lookup-table { width: 100%; border-collapse: collapse; }
+        .lookup-table th,
+        .lookup-table td {
+            padding: 10px 8px;
+            text-align: left;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        .lookup-table th { font-weight: 600; color: #666; background: #fafafa; }
+        .lookup-table td:last-child,
+        .lookup-table th:last-child { white-space: nowrap; width: 1%; }
+        .status-swatch {
+            display: inline-block;
+            width: 18px; height: 18px;
+            border-radius: 3px;
+            border: 1px solid #ddd;
+            vertical-align: middle;
+            margin-right: 6px;
+        }
+        .badge-active {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            background: #e3f2fd; color: #1565c0;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge-inactive {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            background: #fafafa; color: #999;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge-yes { color: #1565c0; font-weight: 600; }
+        .badge-no  { color: #999; }
+
         /* Check actions — icon buttons (pencil + trash). Overrides
            inbox.css's chunky .action-btn default for this page so the
            buttons sit tight at the end of each row. */
@@ -177,6 +211,7 @@ $path_prefix = '../../';
     <div class="settings-container">
         <div class="tabs">
             <button class="tab active" data-tab="checks" onclick="switchTab('checks')">Checks</button>
+            <button class="tab" data-tab="statuses" onclick="switchTab('statuses')">Statuses</button>
             <button class="tab" data-tab="chart" onclick="switchTab('chart')">Chart</button>
         </div>
 
@@ -188,6 +223,32 @@ $path_prefix = '../../';
             <div class="checks-list" id="checksList">
                 <div class="checks-empty">Loading checks...</div>
             </div>
+        </div>
+
+        <!-- Statuses tab: manage the available status options for the
+             dashboard buttons. Each status carries a label, colour, and
+             a RequiresNotes flag (controls whether picking it pops the
+             notes modal on the dashboard). -->
+        <div class="tab-content" id="statuses-tab">
+            <div class="section-header">
+                <h2>Statuses</h2>
+                <button class="btn-primary" onclick="openAddStatusModal()">Add</button>
+            </div>
+            <p style="color: #666; margin-bottom: 16px;">Status options shown as buttons on the dashboard for each check. Mark <em>Requires notes</em> to force the analyst to add notes when picking that status.</p>
+            <table class="lookup-table">
+                <thead>
+                    <tr>
+                        <th>Label</th>
+                        <th>Colour</th>
+                        <th>Requires notes</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody id="statusesTableBody">
+                    <tr><td colspan="5" style="padding: 24px; text-align: center; color: #999;">Loading statuses...</td></tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- Chart tab: visual options for the dashboard trend chart.
@@ -262,6 +323,46 @@ $path_prefix = '../../';
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn-secondary" onclick="closeEditModal()">Cancel</button>
+                    <button type="submit" class="btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Status Add/Edit Modal -->
+    <div id="statusModal" class="modal">
+        <div class="modal-content">
+            <h2 id="statusModalTitle">Add status</h2>
+            <form id="statusForm" autocomplete="off">
+                <input type="hidden" id="statusId">
+                <div class="form-group">
+                    <label for="statusLabel">Label *</label>
+                    <input type="text" id="statusLabel" required maxlength="50" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label for="statusColour">Colour</label>
+                    <input type="color" id="statusColour" value="#28a745" style="width: 60px; height: 40px; padding: 2px; cursor: pointer;">
+                </div>
+                <div class="form-group">
+                    <label class="toggle-group">
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="statusRequiresNotes">
+                            <span class="toggle-slider"></span>
+                        </span>
+                        <span class="toggle-label">Requires notes</span>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="toggle-group">
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="statusIsActive" checked>
+                            <span class="toggle-slider"></span>
+                        </span>
+                        <span class="toggle-label">Active</span>
+                    </label>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-secondary" onclick="closeStatusModal()">Cancel</button>
                     <button type="submit" class="btn-primary">Save</button>
                 </div>
             </form>
@@ -558,6 +659,147 @@ $path_prefix = '../../';
             return div.innerHTML;
         }
 
+        // ===== Statuses tab =====
+        // Manages the morningChecks_Statuses table — label / colour /
+        // requires-notes flag / active toggle / sort order.
+
+        const ICON_EDIT_S = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+        const ICON_DELETE_S = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+
+        let statuses = [];
+
+        async function loadStatuses() {
+            try {
+                const res = await fetch(API_BASE + 'get_statuses.php');
+                const data = await res.json();
+                if (data.success) {
+                    statuses = data.statuses || [];
+                    renderStatuses();
+                } else {
+                    document.getElementById('statusesTableBody').innerHTML =
+                        '<tr><td colspan="5" style="padding: 24px; text-align: center; color: #c62828;">Error loading statuses</td></tr>';
+                }
+            } catch (e) {
+                document.getElementById('statusesTableBody').innerHTML =
+                    '<tr><td colspan="5" style="padding: 24px; text-align: center; color: #c62828;">Error loading statuses</td></tr>';
+            }
+        }
+
+        function renderStatuses() {
+            const tbody = document.getElementById('statusesTableBody');
+            if (statuses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: #999;">No statuses defined. Click <strong>Add</strong> to create one.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = statuses.map(s => `
+                <tr>
+                    <td>
+                        <span class="status-swatch" style="background-color: ${escapeHtmlAttr(s.Colour)}"></span>
+                        ${escapeHtml(s.Label)}
+                    </td>
+                    <td><code style="font-size: 12px; color: #666;">${escapeHtml(s.Colour)}</code></td>
+                    <td>${s.RequiresNotes ? '<span class="badge-yes">Yes</span>' : '<span class="badge-no">No</span>'}</td>
+                    <td><span class="${s.IsActive ? 'badge-active' : 'badge-inactive'}">${s.IsActive ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="action-btn" onclick="openEditStatusModal(${s.StatusID})" title="Edit">${ICON_EDIT_S}</button>
+                        <button class="action-btn delete" onclick="deleteStatus(${s.StatusID}, '${escapeJsString(s.Label)}')" title="Delete">${ICON_DELETE_S}</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openAddStatusModal() {
+            document.getElementById('statusModalTitle').textContent = 'Add status';
+            document.getElementById('statusId').value = '';
+            document.getElementById('statusLabel').value = '';
+            document.getElementById('statusColour').value = '#28a745';
+            document.getElementById('statusRequiresNotes').checked = false;
+            document.getElementById('statusIsActive').checked = true;
+            document.getElementById('statusModal').classList.add('active');
+            document.getElementById('statusLabel').focus();
+        }
+
+        function openEditStatusModal(statusId) {
+            const s = statuses.find(x => x.StatusID === statusId);
+            if (!s) return;
+            document.getElementById('statusModalTitle').textContent = 'Edit status';
+            document.getElementById('statusId').value = s.StatusID;
+            document.getElementById('statusLabel').value = s.Label;
+            document.getElementById('statusColour').value = s.Colour;
+            document.getElementById('statusRequiresNotes').checked = s.RequiresNotes;
+            document.getElementById('statusIsActive').checked = s.IsActive;
+            document.getElementById('statusModal').classList.add('active');
+            document.getElementById('statusLabel').focus();
+        }
+
+        function closeStatusModal() {
+            document.getElementById('statusModal').classList.remove('active');
+        }
+
+        document.getElementById('statusForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('statusId').value;
+            const payload = {
+                statusId:      id ? parseInt(id, 10) : null,
+                label:         document.getElementById('statusLabel').value.trim(),
+                colour:        document.getElementById('statusColour').value,
+                requiresNotes: document.getElementById('statusRequiresNotes').checked,
+                isActive:      document.getElementById('statusIsActive').checked
+            };
+            try {
+                const res = await fetch(API_BASE + 'save_status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeStatusModal();
+                    loadStatuses();
+                    showToast(id ? 'Status updated' : 'Status added', 'success');
+                } else {
+                    showToast(data.error || 'Failed to save', 'error');
+                }
+            } catch (e) {
+                showToast('Failed to save status', 'error');
+            }
+        });
+
+        async function deleteStatus(statusId, label) {
+            if (!confirm('Delete the "' + label + '" status?\n\nHistorical results that used this status will keep showing the label but will lose its colour mapping.')) return;
+            try {
+                const res = await fetch(API_BASE + 'delete_status.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ statusId: statusId })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    loadStatuses();
+                    showToast('Status deleted', 'success');
+                } else {
+                    showToast(data.error || 'Failed to delete', 'error');
+                }
+            } catch (e) {
+                showToast('Failed to delete status', 'error');
+            }
+        }
+
+        // Dismiss the status modal on backdrop click
+        document.getElementById('statusModal').addEventListener('click', function(e) {
+            if (e.target === this) closeStatusModal();
+        });
+
+        // Helpers reused by the statuses tab (escapeHtml already exists
+        // further down, so just declare these once here).
+        function escapeHtmlAttr(t) { return String(t).replace(/"/g, '&quot;'); }
+        function escapeJsString(t) {
+            return String(t == null ? '' : t)
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/\n/g, '\\n');
+        }
+
         // ===== Chart tab — fill style preference =====
         // Per-analyst preference saved via the generic user-preference
         // API. Dashboard reads the same key on page load to decide
@@ -602,6 +844,7 @@ $path_prefix = '../../';
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
             loadChecks();
+            loadStatuses();
             loadChartFillSetting();
             wireChartFillSetting();
         });

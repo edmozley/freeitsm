@@ -1,6 +1,22 @@
 <?php
 /**
  * API Endpoint: Get Chart Data for Morning Checks (Last 30 Days)
+ *
+ * Returns one dataset per ACTIVE status (so admins can add/remove
+ * status options and the chart picks up the change). Historical
+ * results saved against a status that's since been deactivated /
+ * deleted won't appear in the chart but the underlying row keeps
+ * its label string.
+ *
+ * Response shape:
+ *   {
+ *     dates:    ["May 25", ...]            // 30 human-readable labels
+ *     rawDates: ["2026-05-25", ...]        // matching ISO dates (for click-through)
+ *     datasets: [
+ *       { label: "Green", colour: "#28a745", data: [0,1,2,...] },
+ *       ...
+ *     ]
+ *   }
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
@@ -28,6 +44,13 @@ try {
 
     $conn = connectToDatabase();
 
+    // Active statuses define the chart's datasets.
+    $statusStmt = $conn->query(
+        "SELECT Label, Colour FROM morningChecks_Statuses
+         WHERE IsActive = 1 ORDER BY SortOrder, StatusID"
+    );
+    $activeStatuses = $statusStmt->fetchAll(PDO::FETCH_ASSOC);
+
     $sql = "SELECT DATE_FORMAT(r.CheckDate, '%Y-%m-%d') as CheckDate, r.Status, COUNT(*) as Count
             FROM morningChecks_Results r
             INNER JOIN morningChecks_Checks c ON r.CheckID = c.CheckID
@@ -39,52 +62,51 @@ try {
     $stmt->execute([$startDate, $endDate]);
     $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Build data structure - generate all dates for the 30 days ending on endDate
+    // Initialise: each of 30 days × each active status → 0
     $dates = [];
-    $data = [];
-
+    $rawDates = [];
+    $countsByDate = [];
     for ($i = 29; $i >= 0; $i--) {
         $date = date('Y-m-d', strtotime($endDate . " -$i days"));
+        $rawDates[] = $date;
         $dates[] = date('M j', strtotime($date));
-        $data[$date] = [
-            'Green' => 0,
-            'Amber' => 0,
-            'Red' => 0
-        ];
-    }
-
-    // Fill in the actual data
-    foreach ($results as $row) {
-        $date = $row['CheckDate'];
-        $status = $row['Status'];
-        $count = (int)$row['Count'];
-
-        if (isset($data[$date])) {
-            $data[$date][$status] = $count;
+        $countsByDate[$date] = [];
+        foreach ($activeStatuses as $s) {
+            $countsByDate[$date][$s['Label']] = 0;
         }
     }
 
-    // Convert to format expected by Chart.js
-    $green = [];
-    $amber = [];
-    $red = [];
+    // Populate counts; rows whose Status is no longer an active label
+    // are silently skipped (their data isn't represented in the chart).
+    foreach ($results as $row) {
+        $date = $row['CheckDate'];
+        $label = $row['Status'];
+        if (isset($countsByDate[$date]) && array_key_exists($label, $countsByDate[$date])) {
+            $countsByDate[$date][$label] = (int)$row['Count'];
+        }
+    }
 
-    foreach ($data as $dateData) {
-        $green[] = $dateData['Green'];
-        $amber[] = $dateData['Amber'];
-        $red[] = $dateData['Red'];
+    // Build one dataset per status, preserving SortOrder.
+    $datasets = [];
+    foreach ($activeStatuses as $s) {
+        $arr = [];
+        foreach ($rawDates as $d) {
+            $arr[] = $countsByDate[$d][$s['Label']];
+        }
+        $datasets[] = [
+            'label'  => $s['Label'],
+            'colour' => $s['Colour'],
+            'data'   => $arr,
+        ];
     }
 
     echo json_encode([
-        'dates' => $dates,
-        'rawDates' => array_keys($data),
-        'green' => $green,
-        'amber' => $amber,
-        'red' => $red
+        'dates'    => $dates,
+        'rawDates' => $rawDates,
+        'datasets' => $datasets,
     ]);
 
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
 }
-?>

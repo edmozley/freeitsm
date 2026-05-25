@@ -18,15 +18,15 @@ $analyst_id = $_SESSION['analyst_id'] ?? 0;
 $current_page = 'dashboard';
 $path_prefix = '../';
 
-// Pre-fetch the analyst's chart preferences so the first paint is
-// already correct. Two preferences:
-//   mc_chart_height_pct   — how much of the screen the chart occupies
-//   mc_chart_fill_style   — 'plain' or 'gradient' bar fill
-// Falling back to defaults if not set / DB unreachable.
+// Pre-fetch the analyst's chart preferences AND the configured status
+// list so the first paint is already correct (no flash of empty status
+// buttons or wrong chart height).
 $chart_height_pct = 35.0;     // matches DEFAULT_CHART_PCT in the page-script
 $chart_fill_style = 'plain';
+$mc_statuses = [];            // [{StatusID, Label, Colour, RequiresNotes, SortOrder, IsActive}]
 try {
     $conn = connectToDatabase();
+
     $stmt = $conn->prepare(
         "SELECT preference_key, preference_value FROM user_preferences
          WHERE analyst_id = ? AND preference_key IN ('mc_chart_height_pct', 'mc_chart_fill_style')"
@@ -40,8 +40,28 @@ try {
             $chart_fill_style = 'gradient';
         }
     }
+
+    // Active statuses — drive the dashboard's status buttons. We fetch
+    // ALL of them (active + inactive) so a historical result saved
+    // against a now-deactivated status can still resolve its colour
+    // for the row classname / PDF; the UI filters to active for the
+    // actual button list.
+    $sStmt = $conn->query(
+        "SELECT StatusID, Label, Colour, RequiresNotes, SortOrder, IsActive
+         FROM morningChecks_Statuses ORDER BY SortOrder, StatusID"
+    );
+    foreach ($sStmt->fetchAll(PDO::FETCH_ASSOC) as $s) {
+        $mc_statuses[] = [
+            'StatusID'      => (int)$s['StatusID'],
+            'Label'         => $s['Label'],
+            'Colour'        => $s['Colour'],
+            'RequiresNotes' => (bool)$s['RequiresNotes'],
+            'SortOrder'     => (int)$s['SortOrder'],
+            'IsActive'      => (bool)$s['IsActive'],
+        ];
+    }
 } catch (Exception $e) {
-    // Stick with the defaults
+    // Stick with the defaults / empty statuses; JS will deal with it
 }
 // CSS calc() needs the percentage as a fraction (0-1). The 60px is a
 // reasonable approximation of the global header height — JS will
@@ -154,6 +174,21 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
         .chart-toggle-btn:hover {
             background: white;
             border-color: #007bff;
+        }
+
+        /* Dynamic status buttons — colour comes from CSS custom
+           properties on each button (--c = base, --tc = readable
+           text on filled background). Overrides the legacy hard-coded
+           .status-btn.green / .amber / .red rules in style.css. */
+        .status-btn {
+            border-color: var(--c, #999) !important;
+            color: var(--c, #555) !important;
+            background: white !important;
+        }
+        .status-btn:hover,
+        .status-btn.active {
+            background: var(--c, #999) !important;
+            color: var(--tc, #fff) !important;
         }
 
         /* Drag handle between the checks list and the chart. Hover /
@@ -316,6 +351,11 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
         // the right size and style from the start).
         const INITIAL_CHART_PCT = <?php echo json_encode($chart_height_pct); ?>;
         const CHART_FILL_STYLE = <?php echo json_encode($chart_fill_style); ?>;
+        // All configured statuses (active + inactive). Drives the
+        // status buttons on each check row and the colour lookup for
+        // historical results.
+        const MC_STATUSES = <?php echo json_encode($mc_statuses); ?>;
+        const MC_ACTIVE_STATUSES = MC_STATUSES.filter(s => s.IsActive);
         let rtAnalystOptions = [];
         let rtDepartmentOptions = [];
         let rtTicketTypeOptions = [];
@@ -372,6 +412,26 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
             return date.toLocaleDateString('en-US', options);
         }
 
+        // Pick black/white text for a given hex background so the active
+        // pill is always readable. Standard relative-luminance threshold.
+        function readableTextOn(hexColour) {
+            const m = /^#([0-9a-f]{6})$/i.exec(hexColour || '');
+            if (!m) return '#fff';
+            const r = parseInt(m[1].slice(0, 2), 16);
+            const g = parseInt(m[1].slice(2, 4), 16);
+            const b = parseInt(m[1].slice(4, 6), 16);
+            const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+            return lum > 0.6 ? '#333' : '#fff';
+        }
+
+        // Resolve the saved status string to a status row. Falls back to
+        // null if the label no longer matches any configured status
+        // (e.g. the status was deleted after this result was saved).
+        function statusByLabel(label) {
+            if (!label) return null;
+            return MC_STATUSES.find(s => s.Label === label) || null;
+        }
+
         function displayChecks(checks) {
             const tbody = document.getElementById('checksTableBody');
 
@@ -379,25 +439,43 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
                 tbody.innerHTML = '<tr><td colspan="4" class="no-data">No checks defined. <a href="settings/">Add some checks</a> to get started.</td></tr>';
                 return;
             }
+            if (MC_ACTIVE_STATUSES.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="no-data">No statuses defined. <a href="settings/">Add statuses</a> to get started.</td></tr>';
+                return;
+            }
 
             tbody.innerHTML = checks.map(check => {
-                const showRaise = check.Status === 'Amber' || check.Status === 'Red';
+                // Status row currently saved against this check (if any).
+                const currentStatus = statusByLabel(check.Status);
+                // "Raise ticket" appears only for statuses that require
+                // notes (a reasonable proxy for "something needs attention").
+                const showRaise = currentStatus && currentStatus.RequiresNotes;
                 const raiseBtn = showRaise
-                    ? `<button class="raise-ticket-btn" onclick="openRaiseTicketModal(${check.CheckID}, '${escapeJsString(check.CheckName)}', '${escapeJsString(check.CheckDescription || '')}', '${check.Status}', '${escapeJsString(check.Notes || '')}')">+ Raise ticket</button>`
+                    ? `<button class="raise-ticket-btn" onclick="openRaiseTicketModal(${check.CheckID}, '${escapeJsString(check.CheckName)}', '${escapeJsString(check.CheckDescription || '')}', '${escapeJsString(check.Status)}', '${escapeJsString(check.Notes || '')}')">+ Raise ticket</button>`
                     : '';
+
+                // Status buttons — one per active status. Inline CSS
+                // custom properties drive border/background/text colour
+                // (see .status-btn rules in the page-local <style>).
+                const buttonsHtml = MC_ACTIVE_STATUSES.map(s => {
+                    const isActive = currentStatus && currentStatus.StatusID === s.StatusID;
+                    const textColour = readableTextOn(s.Colour);
+                    const styleVars = '--c: ' + s.Colour + '; --tc: ' + textColour + ';';
+                    return `<button class="status-btn${isActive ? ' active' : ''}"
+                                    style="${styleVars}"
+                                    onclick="handleStatusClick(${check.CheckID}, ${s.StatusID}, '${escapeJsString(check.Notes || '')}')">${escapeHtml(s.Label)}</button>`;
+                }).join('');
+
+                // Row's status-{slug} class — keeps existing CSS hooks
+                // working for legacy row-level highlight rules.
+                const slug = check.Status ? check.Status.toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'none';
+
                 return `
-                <tr data-check-id="${check.CheckID}" class="status-${check.Status ? check.Status.toLowerCase() : 'none'}">
+                <tr data-check-id="${check.CheckID}" class="status-${slug}">
                     <td><strong>${escapeHtml(check.CheckName)}</strong></td>
                     <td>${escapeHtml(check.CheckDescription || '')}</td>
                     <td>
-                        <div class="status-buttons">
-                            <button class="status-btn green ${check.Status === 'Green' ? 'active' : ''}"
-                                    onclick="handleStatusClick(${check.CheckID}, 'Green')">Green</button>
-                            <button class="status-btn amber ${check.Status === 'Amber' ? 'active' : ''}"
-                                    onclick="handleStatusClick(${check.CheckID}, 'Amber', '${escapeJsString(check.Notes || '')}')">Amber</button>
-                            <button class="status-btn red ${check.Status === 'Red' ? 'active' : ''}"
-                                    onclick="handleStatusClick(${check.CheckID}, 'Red', '${escapeJsString(check.Notes || '')}')">Red</button>
-                        </div>
+                        <div class="status-buttons">${buttonsHtml}</div>
                         ${raiseBtn}
                     </td>
                     <td class="notes-display">${check.Notes ? escapeHtml(check.Notes) : '-'}</td>
@@ -419,13 +497,19 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
             return text.replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, '\\n').replace(/\r/g, '\\r');
         }
 
-        function handleStatusClick(checkId, status, existingNotes = '') {
-            if (status === 'Green') {
-                saveCheckResult(checkId, status, '');
+        // Click handler for a status button. Looks up the status by its
+        // numeric StatusID, then decides whether to save immediately
+        // (RequiresNotes = false) or pop the notes modal first
+        // (RequiresNotes = true).
+        function handleStatusClick(checkId, statusId, existingNotes = '') {
+            const s = MC_STATUSES.find(x => x.StatusID === statusId);
+            if (!s) return;
+            if (!s.RequiresNotes) {
+                saveCheckResult(checkId, s.Label, '');
             } else {
                 document.getElementById('modalCheckId').value = checkId;
-                document.getElementById('modalStatusValue').value = status;
-                document.getElementById('modalStatus').textContent = status;
+                document.getElementById('modalStatusValue').value = s.Label;
+                document.getElementById('modalStatus').textContent = s.Label;
                 document.getElementById('modalNotes').value = existingNotes;
                 document.getElementById('notesModal').classList.add('active');
             }
@@ -522,7 +606,15 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
 
             document.getElementById('rtSubject').value = subject;
             document.getElementById('rtBody').value = body;
-            document.getElementById('rtPriority').value = status === 'Red' ? 'High' : 'Normal';
+            // Map status → ticket priority. Used to be hard-coded Red→High,
+            // others→Normal; with configurable statuses we use the
+            // highest-sort-order RequiresNotes status as the "High"
+            // proxy (typically the most severe — e.g. Red). Falls back
+            // to Normal if no such status or the current one isn't it.
+            const sevStatuses = MC_STATUSES.filter(s => s.RequiresNotes)
+                                          .sort((a, b) => b.SortOrder - a.SortOrder);
+            const isMostSevere = sevStatuses.length > 0 && status === sevStatuses[0].Label;
+            document.getElementById('rtPriority').value = isMostSevere ? 'High' : 'Normal';
 
             // Populate selects
             const assigneeSel = document.getElementById('rtAssignee');
@@ -650,15 +742,19 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
                 };
             }
 
+            // Build one Chart.js dataset per status returned by the API
+            // (already filtered to active + ordered by SortOrder server-side).
+            const datasets = (data.datasets || []).map(d => ({
+                label: d.label,
+                data: d.data,
+                backgroundColor: barFill(d.colour)
+            }));
+
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: data.dates,
-                    datasets: [
-                        { label: 'Green', data: data.green, backgroundColor: barFill('#28a745') },
-                        { label: 'Amber', data: data.amber, backgroundColor: barFill('#ffc107') },
-                        { label: 'Red',   data: data.red,   backgroundColor: barFill('#dc3545') }
-                    ]
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
@@ -928,10 +1024,19 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
                     if (data.section === 'body' && data.column.index === 2) {
                         const status = data.cell.raw;
                         data.cell.styles.fontStyle = 'bold';
-                        if (status === 'Green') data.cell.styles.textColor = [40, 167, 69];
-                        else if (status === 'Amber') data.cell.styles.textColor = [200, 150, 0];
-                        else if (status === 'Red') data.cell.styles.textColor = [220, 53, 69];
-                        else data.cell.styles.textColor = [108, 117, 125];
+                        // Look up the status's configured colour from MC_STATUSES
+                        // and convert #rrggbb → [r,g,b] for jsPDF. Unknown
+                        // statuses (e.g. a "Not set" placeholder, or a label
+                        // that's been since deleted) fall back to grey.
+                        const s = MC_STATUSES.find(x => x.Label === status);
+                        if (s) {
+                            const m = /^#([0-9a-f]{6})$/i.exec(s.Colour);
+                            data.cell.styles.textColor = m
+                                ? [parseInt(m[1].slice(0,2),16), parseInt(m[1].slice(2,4),16), parseInt(m[1].slice(4,6),16)]
+                                : [108, 117, 125];
+                        } else {
+                            data.cell.styles.textColor = [108, 117, 125];
+                        }
                     }
                 }
             });

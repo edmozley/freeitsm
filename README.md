@@ -222,7 +222,7 @@ The platform is organised into 16 modules, accessible from a landing page (`inde
 | **Knowledge** | `knowledge/` | Purple `#8764b8` | Rich-text knowledge base articles with AI chat and vector search |
 | **Changes** | `change-management/` | Teal `#00897b` | ITIL change management with risk matrix, audit trail, comments, and post-implementation review |
 | **Calendar** | `calendar/` | Orange `#ef6c00` | Event calendar with categories and scheduling |
-| **Checks** | `morning-checks/` | Cyan `#00acc1` | Daily infrastructure health checks (RAG status) with 30-day trend charts |
+| **Checks** | `morning-checks/` | Cyan `#00acc1` | Daily infrastructure health checks with configurable status options (label + colour + requires-notes), 30-day trend charts and PDF export |
 | **Reporting** | `reporting/` | Brown `#ca5010` | System logs, audit trails, and analytics |
 | **Software** | `software/` | Indigo `#5c6bc0` | Software inventory and deployment tracking |
 | **Forms** | `forms/` | Teal `#00897b` | Dynamic form builder with sidebar list, tabbed editor (Fields/Preview), filler, and submission reporting |

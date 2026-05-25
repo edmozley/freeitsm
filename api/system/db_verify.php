@@ -909,11 +909,29 @@ $schema = [
         'ResultID'      => 'INT NOT NULL AUTO_INCREMENT',
         'CheckID'       => 'INT NOT NULL',
         'CheckDate'     => 'DATETIME NOT NULL',
-        'Status'        => 'VARCHAR(10) NOT NULL',
+        // Status is the label string from morningChecks_Statuses.Label.
+        // Bumped to VARCHAR(50) so admins can use names longer than "Green".
+        // We store the label rather than the StatusID so historical results
+        // remain readable if a status is later deleted.
+        'Status'        => 'VARCHAR(50) NOT NULL',
         'Notes'         => 'LONGTEXT NULL',
         'CreatedBy'     => 'VARCHAR(100) NULL',
         'CreatedDate'   => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'ModifiedDate'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // Configurable status options for morning checks. Drives the status
+    // buttons on the dashboard (label + colour) and whether picking a
+    // status pops the notes modal (RequiresNotes).
+    'morningChecks_Statuses' => [
+        'StatusID'        => 'INT NOT NULL AUTO_INCREMENT',
+        'Label'           => 'VARCHAR(50) NOT NULL',
+        'Colour'          => 'VARCHAR(20) NOT NULL',
+        'RequiresNotes'   => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'SortOrder'       => 'INT NOT NULL DEFAULT 0',
+        'IsActive'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'CreatedDate'     => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'ModifiedDate'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     'system_logs' => [
@@ -1881,6 +1899,7 @@ $primaryKeys = [
     'system_settings'           => 'setting_key',
     'morningChecks_Checks'      => 'CheckID',
     'morningChecks_Results'     => 'ResultID',
+    'morningChecks_Statuses'    => 'StatusID',
     'knowledge_article_tags'    => null, // composite PK: article_id, tag_id
     'task_tag_map'              => null, // composite PK: task_id, tag_id
 ];
@@ -2503,6 +2522,22 @@ try {
                 ('High',     '#f59e0b', 0, 30),
                 ('Critical', '#dc2626', 0, 40)");
             $results[] = ['table' => 'change_priorities', 'status' => 'seeded', 'details' => ['Inserted 4 default change priorities']];
+        }
+    }
+
+    // Seed default morning check statuses. Matches the three hardcoded
+    // statuses (Green / Amber / Red) that the dashboard used before the
+    // statuses became configurable, so existing historical results
+    // continue to render with the right colour and the dashboard keeps
+    // working out of the box.
+    if ($tableExists('morningChecks_Statuses')) {
+        $cnt = (int) $conn->query("SELECT COUNT(*) FROM morningChecks_Statuses")->fetchColumn();
+        if ($cnt === 0) {
+            $conn->exec("INSERT INTO morningChecks_Statuses (Label, Colour, RequiresNotes, SortOrder, IsActive) VALUES
+                ('Green', '#28a745', 0, 10, 1),
+                ('Amber', '#ffc107', 1, 20, 1),
+                ('Red',   '#dc3545', 1, 30, 1)");
+            $results[] = ['table' => 'morningChecks_Statuses', 'status' => 'seeded', 'details' => ['Inserted 3 default morning-check statuses (Green / Amber / Red)']];
         }
     }
 
