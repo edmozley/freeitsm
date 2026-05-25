@@ -31,17 +31,38 @@ $path_prefix = '../';
         body {
             padding-top: 0;
         }
-        /* Full-width dashboard. inbox.css's .container defaults to max-width
-           1200px centered with 30px top margin; we override to fill the
-           viewport the same way every other module's main view does. */
+        /* Full-width dashboard laid out as a vertical flex column so the
+           checks table scrolls internally without disappearing behind the
+           chart-footer. inbox.css clamps body to 100vh / overflow:hidden
+           so a single page-level scroll doesn't work — instead the
+           checks-section becomes its own scroll container. */
         .container {
             max-width: none;
             margin: 0;
-            padding: 16px 30px 24px;
+            padding: 0;
+            height: calc(100vh - 48px);
+            display: flex;
+            flex-direction: column;
         }
-        /* Update chart border color to match theme */
+        .date-display {
+            flex-shrink: 0;
+            padding: 16px 30px 0;
+        }
+        .checks-section {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            padding: 16px 30px 16px;
+            margin-bottom: 0;
+        }
+        /* Chart sits in flow at the bottom of the flex column (was
+           position: fixed). flex-shrink: 0 pins it; the checks-section
+           above scrolls underneath. */
         .chart-footer {
+            position: static;
+            flex-shrink: 0;
             border-top-color: #00acc1;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
         }
     </style>
 </head>
@@ -75,6 +96,19 @@ $path_prefix = '../';
                     </tr>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Chart now lives inside .container so it participates in the
+             flex column layout — sits at the bottom and shrinks /
+             expands as toggled, with the checks-section above adjusting. -->
+        <div class="chart-footer">
+            <div class="chart-footer-header" onclick="toggleChart()">
+                <h2 id="chartTitle">Last 30 days overview</h2>
+                <span id="chartToggle" class="toggle-icon">▼</span>
+            </div>
+            <div id="chartContainer" class="chart-container-inner">
+                <canvas id="statusChart"></canvas>
+            </div>
         </div>
     </div>
 
@@ -147,17 +181,6 @@ $path_prefix = '../';
                     <button type="button" class="btn-secondary" onclick="closeRaiseTicketModal()">Cancel</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- Sticky Footer Chart -->
-    <div class="chart-footer">
-        <div class="chart-footer-header" onclick="toggleChart()">
-            <h2 id="chartTitle">Last 30 days overview</h2>
-            <span id="chartToggle" class="toggle-icon">▼</span>
-        </div>
-        <div id="chartContainer" class="chart-container-inner">
-            <canvas id="statusChart"></canvas>
         </div>
     </div>
 
@@ -476,6 +499,13 @@ $path_prefix = '../';
 
             if (chartInstance) chartInstance.destroy();
 
+            // X-axis: just the day number per tick (instead of the full
+            // "May 25" label). The month name(s) move to a single axis
+            // title below — when the 30-day window spans two months we
+            // show both joined by an en-dash. Tooltips still show the
+            // full original label so hovering a bar is still informative.
+            const monthTitle = monthRangeText(chartRawDates);
+
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -490,7 +520,31 @@ $path_prefix = '../';
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        x: { stacked: true },
+                        x: {
+                            stacked: true,
+                            ticks: {
+                                // Day-of-month only. chartRawDates is the
+                                // ISO YYYY-MM-DD parallel array we
+                                // already store for the click-through
+                                // (parsing through Date avoids timezone
+                                // skew on the day component).
+                                callback: function(value, index) {
+                                    const raw = chartRawDates[index];
+                                    if (!raw) return '';
+                                    const d = new Date(raw + 'T00:00:00');
+                                    return d.getDate();
+                                },
+                                autoSkip: false,
+                                maxRotation: 0
+                            },
+                            title: {
+                                display: !!monthTitle,
+                                text: monthTitle,
+                                font: { size: 12, weight: '500' },
+                                color: '#666',
+                                padding: { top: 4 }
+                            }
+                        },
                         y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }
                     },
                     plugins: {
@@ -513,6 +567,19 @@ $path_prefix = '../';
                     }
                 }
             });
+        }
+
+        // Build the x-axis title that replaces per-tick month names.
+        // Returns 'May' if all dates fall in one month, 'May – June' if
+        // the window spans two. Empty string if no dates.
+        function monthRangeText(rawDates) {
+            if (!rawDates || !rawDates.length) return '';
+            const first = new Date(rawDates[0] + 'T00:00:00');
+            const last = new Date(rawDates[rawDates.length - 1] + 'T00:00:00');
+            const fmt = d => d.toLocaleString('en-GB', { month: 'long' });
+            const sameMonth = first.getMonth() === last.getMonth()
+                && first.getFullYear() === last.getFullYear();
+            return sameMonth ? fmt(first) : (fmt(first) + ' – ' + fmt(last));
         }
 
         function toggleChart() {
