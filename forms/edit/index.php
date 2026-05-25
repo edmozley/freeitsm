@@ -851,23 +851,94 @@ $path_prefix = '../../';
             return div.innerHTML;
         }
 
-        // ===== AI Assist (streaming SSE) — copied verbatim from
-        //       forms/index.php so this page is self-contained. =====
+        // ===== AI Assist (streaming SSE) =====
+        // Two flavours, switched at modal-open time based on whether
+        // there's already a form to modify:
+        //  - NEW mode: user describes the form they want, AI builds
+        //    it from scratch.
+        //  - EDIT mode: user describes a CHANGE, AI receives the
+        //    current form as context and returns an updated copy.
+        // The backend (ai_generate.php) keys off whether current_form
+        // is sent in the payload — see #439.
         let aiAbortController = null;
+
+        // True when there's enough form content to treat the AI call
+        // as an edit rather than a fresh build.
+        function isEditingExistingForm() {
+            const hasFields = fields.length > 0;
+            const hasTitle  = (document.getElementById('formTitle').value || '').trim() !== '';
+            return hasFields || hasTitle;
+        }
+
+        // Suggested-prompt lists shown inside the modal. Swapped at
+        // open-time so the user sees relevant ideas for the mode
+        // they're in.
+        const AI_EXAMPLES_NEW = [
+            { label: 'New starter onboarding form for IT', text: "A new starter onboarding form for the IT team. Capture the new starter's name, job title, start date, line manager, software needed (Outlook, Teams, Adobe, Visual Studio), and a notes field for special equipment." },
+            { label: 'HR leaver form',                    text: "A leaver form for HR. Capture the leaver's name, last working day, line manager, reason for leaving (resignation / retirement / redundancy / dismissal / end of contract), exit interview required (yes/no), and a notes field." },
+            { label: 'User incident reporting form',       text: "An incident reporting form for end users. Subject, description, severity (low / medium / high / critical), affected service, when it started (date as text), and a checkbox confirming they've already tried restarting." },
+        ];
+        const AI_EXAMPLES_EDIT = [
+            { label: 'Add a phone number field',                    text: 'Add a phone number field after the email address. Required.' },
+            { label: 'Make all fields required',                    text: 'Mark every field as required.' },
+            { label: 'Reorder so the name field comes first',       text: 'Reorder the fields so the name field is at the top.' },
+            { label: 'Tighten the description to one short sentence', text: 'Rewrite the description to one short, neutral sentence (under 25 words).' },
+            { label: 'Remove the consent checkbox',                 text: 'Remove the consent checkbox at the bottom.' },
+        ];
+
         function openAiModal() {
-            document.getElementById('aiModal').classList.add('active');
+            const editing = isEditingExistingForm();
+
+            // Toggle modal copy to match the mode.
+            document.getElementById('aiModalTitle').innerHTML = editing
+                ? '<span class="ai-sparkle">&#10024;</span> AI Assist &mdash; what would you like to change?'
+                : '<span class="ai-sparkle">&#10024;</span> AI Assist &mdash; describe your form';
+            document.getElementById('aiPromptLabel').textContent = editing
+                ? 'What change do you want?'
+                : "What's the form for?";
             const ta = document.getElementById('aiDescription');
-            ta.value = '';
-            setTimeout(() => ta.focus(), 50);
-            resetAiProgress();
+            ta.placeholder = editing
+                ? 'e.g. Add a date-of-birth field. Make the email field required. Rewrite the description to mention the SLA.'
+                : "e.g. A holiday request form for staff. Capture the requester's name, the start and end date, the type of leave (annual / sick / parental / unpaid), an optional note, and a confirmation checkbox that they've checked the team rota.";
+            document.getElementById('aiHint').textContent = editing
+                ? "The AI will see the current form and modify it based on your request — it won't rebuild from scratch."
+                : 'Tell it what the form does and what info it needs to capture. The more specific you are, the better the result.';
+
+            // Swap the suggested-prompt list.
+            const list = document.getElementById('aiExamplesList');
+            const examples = editing ? AI_EXAMPLES_EDIT : AI_EXAMPLES_NEW;
+            list.innerHTML = examples.map(e =>
+                `<li class="ai-example" data-text="${escAttr(e.text)}">${escHtml(e.label)}</li>`
+            ).join('');
+            // (Re-)wire each example. We re-bind on every open because
+            // the list contents change between modes.
             document.querySelectorAll('.ai-example').forEach(el => {
-                if (el.dataset.wired) return;
-                el.dataset.wired = '1';
                 el.addEventListener('click', () => {
                     document.getElementById('aiDescription').value = el.dataset.text || '';
                     document.getElementById('aiDescription').focus();
                 });
             });
+
+            document.getElementById('aiModal').classList.add('active');
+            ta.value = '';
+            setTimeout(() => ta.focus(), 50);
+            resetAiProgress();
+        }
+
+        // Small attribute escape helper for the example data-text values
+        // (the existing esc() is fine for inner-text but we need quote
+        // escaping for attribute values).
+        function escAttr(s) {
+            return String(s == null ? '' : s)
+                .replace(/&/g, '&amp;')
+                .replace(/"/g, '&quot;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;');
+        }
+        function escHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s == null ? '' : String(s);
+            return d.innerHTML;
         }
         function closeAiModal() {
             if (aiAbortController) { aiAbortController.abort(); aiAbortController = null; }
@@ -886,12 +957,20 @@ $path_prefix = '../../';
         }
         async function runAiGeneration() {
             const description = document.getElementById('aiDescription').value.trim();
-            if (!description) { showToast('Please describe the form you want to build', true); return; }
-            if (description.length > 2000) { showToast('Description is too long (max 2000 characters)', true); return; }
-            const replaceConfirm = (fields.length > 0)
-                ? confirm('This will replace the current form title, description and fields. Continue?')
-                : true;
-            if (!replaceConfirm) return;
+            const editing = isEditingExistingForm();
+            if (!description) {
+                showToast(editing ? 'Please describe what you want to change' : 'Please describe the form you want to build', true);
+                return;
+            }
+            if (description.length > 2000) {
+                showToast('Description is too long (max 2000 characters)', true);
+                return;
+            }
+            // No destructive-replace warning in edit mode — the backend
+            // (ai_generate.php #439) preserves the existing form and
+            // applies the user's modification, so this isn't a nuke.
+            // For brand-new forms there's nothing to lose either.
+
             const generateBtn = document.getElementById('aiGenerateBtn');
             generateBtn.disabled = true;
             const prog = document.getElementById('aiProgress');
@@ -900,13 +979,31 @@ $path_prefix = '../../';
             const status = document.getElementById('aiStatus');
             const stream = document.getElementById('aiStream');
             stream.textContent = '';
-            status.textContent = 'Designing your form…';
+            status.textContent = editing ? 'Applying your change…' : 'Designing your form…';
             aiAbortController = new AbortController();
+
+            // Snapshot the current form to send as context when editing.
+            // Same shape as the request payload we send to save_form so
+            // the AI sees clean, normalised data.
+            const payload = { description: description };
+            if (editing) {
+                payload.current_form = {
+                    title:       document.getElementById('formTitle').value.trim(),
+                    description: document.getElementById('formDesc').value.trim(),
+                    fields:      fields.map(f => ({
+                        field_type:  f.field_type,
+                        label:       (f.label || '').trim(),
+                        options:     f.field_type === 'dropdown' ? (f.options || []).filter(o => o && o.trim()) : [],
+                        is_required: !!f.is_required,
+                    })),
+                };
+            }
+
             try {
                 const resp = await fetch(API_BASE + 'ai_generate.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ description: description }),
+                    body: JSON.stringify(payload),
                     signal: aiAbortController.signal
                 });
                 if (!resp.body) throw new Error('Streaming not supported by your browser');
@@ -942,7 +1039,9 @@ $path_prefix = '../../';
                             applyGeneratedForm(data.form);
                             const seconds = data.duration_ms ? (data.duration_ms / 1000).toFixed(1) : '?';
                             const fieldWord = data.form.fields.length === 1 ? 'field' : 'fields';
-                            showToast(`Form built — ${data.form.fields.length} ${fieldWord} in ${seconds}s`, false);
+                            showToast(editing
+                                ? `Form updated — ${data.form.fields.length} ${fieldWord} in ${seconds}s`
+                                : `Form built — ${data.form.fields.length} ${fieldWord} in ${seconds}s`, false);
                             closeAiModal();
                             switchFormTab('preview');
                             break;
@@ -996,25 +1095,22 @@ $path_prefix = '../../';
         }
     </script>
 
-    <!-- AI Assist Modal -->
+    <!-- AI Assist Modal — copy + examples swap between New and Edit
+         modes when the modal opens (see openAiModal). -->
     <div class="ai-modal-overlay" id="aiModal">
         <div class="ai-modal">
             <div class="ai-modal-header">
-                <h3><span class="ai-sparkle">&#10024;</span> AI Assist &mdash; describe your form</h3>
+                <h3 id="aiModalTitle"><span class="ai-sparkle">&#10024;</span> AI Assist &mdash; describe your form</h3>
                 <button type="button" class="ai-modal-close" onclick="closeAiModal()">&times;</button>
             </div>
             <div class="ai-modal-body">
-                <label for="aiDescription">What's the form for?</label>
-                <textarea id="aiDescription" placeholder="e.g. A holiday request form for staff. Capture the requester's name, the start and end date, the type of leave (annual / sick / parental / unpaid), an optional note, and a confirmation checkbox that they've checked the team rota."></textarea>
-                <div class="ai-hint">Tell it what the form does and what info it needs to capture. The more specific you are, the better the result.</div>
+                <label for="aiDescription" id="aiPromptLabel">What's the form for?</label>
+                <textarea id="aiDescription"></textarea>
+                <div class="ai-hint" id="aiHint">Tell it what the form does and what info it needs to capture. The more specific you are, the better the result.</div>
 
                 <div class="ai-examples">
                     <strong>Try:</strong>
-                    <ul>
-                        <li class="ai-example" data-text="A new starter onboarding form for the IT team. Capture the new starter's name, job title, start date, line manager, software needed (Outlook, Teams, Adobe, Visual Studio), and a notes field for special equipment.">New starter onboarding form for IT</li>
-                        <li class="ai-example" data-text="A leaver form for HR. Capture the leaver's name, last working day, line manager, reason for leaving (resignation / retirement / redundancy / dismissal / end of contract), exit interview required (yes/no), and a notes field.">HR leaver form</li>
-                        <li class="ai-example" data-text="An incident reporting form for end users. Subject, description, severity (low / medium / high / critical), affected service, when it started (date as text), and a checkbox confirming they've already tried restarting.">User incident reporting form</li>
-                    </ul>
+                    <ul id="aiExamplesList"></ul>
                 </div>
 
                 <div class="ai-progress" id="aiProgress" style="display:none;">

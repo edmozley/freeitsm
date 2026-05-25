@@ -55,8 +55,26 @@ $rawBody = file_get_contents('php://input');
 $input   = json_decode($rawBody, true);
 $description = trim($input['description'] ?? '');
 
+// Optional — the form the user is currently editing. When present we
+// switch from "build from scratch" mode to "modify this form based on
+// the user's request" mode (#439). Validated lightly: title is a
+// string, fields is an array. Anything else gets ignored.
+$currentForm = null;
+if (isset($input['current_form']) && is_array($input['current_form'])) {
+    $cf = $input['current_form'];
+    if (isset($cf['title']) && isset($cf['fields']) && is_array($cf['fields'])) {
+        $currentForm = [
+            'title'       => (string)$cf['title'],
+            'description' => (string)($cf['description'] ?? ''),
+            'fields'      => array_values($cf['fields']),
+        ];
+    }
+}
+
 if ($description === '') {
-    sse_send('error', ['message' => 'Please describe the form you want to build']);
+    sse_send('error', ['message' => $currentForm
+        ? 'Please describe what you want to change'
+        : 'Please describe the form you want to build']);
     exit;
 }
 if (mb_strlen($description) > 2000) {
@@ -106,6 +124,18 @@ You may use ONLY these four field types — no others exist:
 - Use clear, professional, neutral language for labels and the description. No marketing copy.
 - Order the fields in a sensible flow: identifying information first (name, email, reference), then context (dates, type, category), then free-text fields (descriptions, notes), then any agreement / consent checkbox at the end.
 
+# MODIFICATION MODE
+
+If the user's message contains a "Current form" JSON block (i.e. they're editing an existing form rather than building one from scratch), treat their request as an instruction to MODIFY that existing form, not to replace it. Specifically:
+
+- Start from the current form's title, description and fields exactly as given.
+- Apply the user's requested change (add / remove / reorder / rename / re-type a field; rewrite the description; change required flags; edit dropdown options; etc.).
+- Keep everything the user didn't ask you to change exactly as it is — don't paraphrase labels, don't reorder unaffected fields, don't bump unrelated required flags.
+- If the user's request is ambiguous, make the smallest sensible change that satisfies it.
+- The output JSON must still be a complete form definition in the same shape — return the entire updated form, not a diff.
+
+If there is no "Current form" block, generate a new form from scratch as usual.
+
 # CRITICAL FORMAT RULES
 
 - Return ONLY valid JSON. No markdown code fences. No explanation prose. No leading or trailing text.
@@ -132,9 +162,20 @@ try {
     $accumulated = '';
     $finalUsage  = ['tokens_in' => null, 'tokens_out' => null, 'cache_read' => null, 'cache_write' => null];
 
+    // User message changes shape depending on whether we're modifying
+    // an existing form or building a new one. The system prompt's
+    // MODIFICATION MODE section keys off the "Current form" header.
+    if ($currentForm) {
+        $userMessage =
+            "Current form:\n```json\n" . json_encode($currentForm, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "\n```\n\n" .
+            "User's modification request:\n\n" . $description;
+    } else {
+        $userMessage = "Form description from the user:\n\n" . $description;
+    }
+
     $resp = rfpAiCallAnthropicStreaming($conn, [
         'system'      => FORM_AI_SYSTEM,
-        'user'        => "Form description from the user:\n\n" . $description,
+        'user'        => $userMessage,
         'max_tokens'  => 4000,
         'temperature' => 0.2,
     ], function (string $eventType, array $data) use (&$accumulated, &$finalUsage) {
