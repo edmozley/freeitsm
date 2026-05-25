@@ -19,7 +19,7 @@ $path_prefix = '../../';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Change Management Settings</title>
+    <title>Service Desk - Change management settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .container {
@@ -182,7 +182,7 @@ $path_prefix = '../../';
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="fields" onclick="switchTab('fields')">Form Fields</button>
+            <button class="tab active" data-tab="fields" onclick="switchTab('fields')">Form fields</button>
             <button class="tab" data-tab="statuses" onclick="switchTab('statuses')">Statuses</button>
             <button class="tab" data-tab="priorities" onclick="switchTab('priorities')">Priorities</button>
             <button class="tab" data-tab="types" onclick="switchTab('types')">Types</button>
@@ -192,7 +192,7 @@ $path_prefix = '../../';
         <!-- Form Fields Tab -->
         <div class="tab-content active" id="fields-tab">
             <div class="section-header">
-                <h2>Form Fields</h2>
+                <h2>Form fields</h2>
             </div>
             <p style="color: #666; margin-bottom: 20px;">Control which fields appear on the change editor and detail view. Hidden fields will not be shown or required.</p>
 
@@ -232,7 +232,7 @@ $path_prefix = '../../';
         <!-- Types Tab -->
         <div class="tab-content" id="types-tab">
             <div class="section-header">
-                <h2>Change Types</h2>
+                <h2>Change types</h2>
                 <button class="add-btn" onclick="openLookupModal('type')">Add</button>
             </div>
             <p style="color: #666; margin-bottom: 16px;">Categories of change request — typically Standard, Normal, Emergency. Exactly one type is the default for new changes.</p>
@@ -259,7 +259,7 @@ $path_prefix = '../../';
     <!-- Lookup edit modal (shared by all four tabs) -->
     <div class="lk-modal" id="lookupModal">
         <div class="lk-modal-content">
-            <div class="lk-modal-header" id="lookupModalTitle">Add Item</div>
+            <div class="lk-modal-header" id="lookupModalTitle">Add item</div>
             <form id="lookupForm">
                 <input type="hidden" id="lookupItemKind">
                 <input type="hidden" id="lookupItemId">
@@ -286,7 +286,7 @@ $path_prefix = '../../';
                 </div>
 
                 <div class="lk-form-group">
-                    <label for="lookupItemOrder">Display Order</label>
+                    <label for="lookupItemOrder">Display order</label>
                     <input type="number" id="lookupItemOrder" value="0">
                 </div>
 
@@ -312,10 +312,10 @@ $path_prefix = '../../';
         const FIELD_SECTIONS = [
             {
                 id: 'general',
-                label: 'General Information',
+                label: 'General information',
                 fields: [
                     { id: 'title',       label: 'Title' },
-                    { id: 'change_type', label: 'Change Type' },
+                    { id: 'change_type', label: 'Change type' },
                     { id: 'status',      label: 'Status' },
                     { id: 'priority',    label: 'Priority' },
                     { id: 'impact',      label: 'Impact' },
@@ -327,7 +327,7 @@ $path_prefix = '../../';
                 label: 'People',
                 fields: [
                     { id: 'requester',   label: 'Requester' },
-                    { id: 'assigned_to', label: 'Assigned To' },
+                    { id: 'assigned_to', label: 'Assigned to' },
                     { id: 'approver',    label: 'Approver' }
                 ]
             },
@@ -335,10 +335,10 @@ $path_prefix = '../../';
                 id: 'schedule',
                 label: 'Schedule',
                 fields: [
-                    { id: 'work_start',   label: 'Work Start' },
-                    { id: 'work_end',     label: 'Work End' },
-                    { id: 'outage_start', label: 'Outage Start' },
-                    { id: 'outage_end',   label: 'Outage End' }
+                    { id: 'work_start',   label: 'Work start' },
+                    { id: 'work_end',     label: 'Work end' },
+                    { id: 'outage_start', label: 'Outage start' },
+                    { id: 'outage_end',   label: 'Outage end' }
                 ]
             },
             {
@@ -346,11 +346,11 @@ $path_prefix = '../../';
                 label: 'Details',
                 fields: [
                     { id: 'description', label: 'Description' },
-                    { id: 'reason',      label: 'Reason for Change' },
-                    { id: 'risk',        label: 'Risk Evaluation' },
-                    { id: 'testplan',    label: 'Test Plan' },
-                    { id: 'rollback',    label: 'Rollback Plan' },
-                    { id: 'pir',         label: 'Post-Implementation Review' }
+                    { id: 'reason',      label: 'Reason for change' },
+                    { id: 'risk',        label: 'Risk evaluation' },
+                    { id: 'testplan',    label: 'Test plan' },
+                    { id: 'rollback',    label: 'Rollback plan' },
+                    { id: 'pir',         label: 'Post-implementation review' }
                 ]
             },
             {
@@ -384,10 +384,10 @@ $path_prefix = '../../';
 
         // Per-kind metadata: API filenames, response key, table id, column count, fields shown.
         const LOOKUP_KINDS = {
-            'status':   { get: 'get_change_statuses.php',   save: 'save_change_status.php',   del: 'delete_change_status.php',   listKey: 'statuses',   tableId: 'statuses-list',   colspan: 7, hasClosed: true,  label: 'Status'  },
-            'priority': { get: 'get_change_priorities.php', save: 'save_change_priority.php', del: 'delete_change_priority.php', listKey: 'priorities', tableId: 'priorities-list', colspan: 6, hasClosed: false, label: 'Priority'},
-            'type':     { get: 'get_change_types.php',      save: 'save_change_type.php',     del: 'delete_change_type.php',     listKey: 'types',      tableId: 'types-list',      colspan: 6, hasClosed: false, label: 'Type'    },
-            'impact':   { get: 'get_change_impacts.php',    save: 'save_change_impact.php',   del: 'delete_change_impact.php',   listKey: 'impacts',    tableId: 'impacts-list',    colspan: 6, hasClosed: false, label: 'Impact'  }
+            'status':   { get: 'get_change_statuses.php',   save: 'save_change_status.php',   del: 'delete_change_status.php',   listKey: 'statuses',   tableId: 'statuses-list',   colspan: 7, hasClosed: true,  label: 'status'  },
+            'priority': { get: 'get_change_priorities.php', save: 'save_change_priority.php', del: 'delete_change_priority.php', listKey: 'priorities', tableId: 'priorities-list', colspan: 6, hasClosed: false, label: 'priority'},
+            'type':     { get: 'get_change_types.php',      save: 'save_change_type.php',     del: 'delete_change_type.php',     listKey: 'types',      tableId: 'types-list',      colspan: 6, hasClosed: false, label: 'type'    },
+            'impact':   { get: 'get_change_impacts.php',    save: 'save_change_impact.php',   del: 'delete_change_impact.php',   listKey: 'impacts',    tableId: 'impacts-list',    colspan: 6, hasClosed: false, label: 'impact'  }
         };
 
         const lookupCache = { status: [], priority: [], type: [], impact: [] };
