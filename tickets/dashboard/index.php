@@ -22,9 +22,9 @@ $path_prefix = '../../';
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/toast.js"></script>
     <style>
-        body {
-            overflow: auto;
-            height: auto;
+        .dashboard-page {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
         }
 
         .dashboard-toolbar {
@@ -225,6 +225,8 @@ $path_prefix = '../../';
 <body>
     <?php require_once '../includes/header.php'; ?>
 
+    <div class="dashboard-page">
+
     <div class="dashboard-toolbar">
         <h2><?php echo htmlspecialchars(t('tickets.nav.dashboard')); ?></h2>
         <div class="dashboard-toolbar-actions">
@@ -250,6 +252,8 @@ $path_prefix = '../../';
             <?php echo htmlspecialchars(t('common.add')); ?>
         </button>
     </div>
+
+    </div><!-- /.dashboard-page -->
 
     <!-- Widget edit modal -->
     <div class="modal" id="widgetEditModal">

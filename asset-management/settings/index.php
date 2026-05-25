@@ -18,9 +18,9 @@ $path_prefix = '../../';
     <script src="../../assets/js/toast.js"></script>
     <script src="../../assets/js/chart.min.js"></script>
     <style>
-        body {
-            overflow: auto;
-            height: auto;
+        .container {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
         }
 
         .tab-content .action-btn {

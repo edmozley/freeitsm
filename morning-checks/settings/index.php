@@ -24,8 +24,8 @@ $path_prefix = '../../';
     <script src="../../assets/js/toast.js"></script>
     <link rel="stylesheet" href="../style.css">
     <style>
-        body { overflow: auto; height: auto; padding-top: 0; }
-        .settings-container { max-width: 900px; margin: 0 auto; padding: 30px; }
+        body { padding-top: 0; }
+        .settings-container { height: calc(100vh - 48px); overflow-y: auto; max-width: 900px; margin: 0 auto; padding: 30px; }
 
         /* Blue theme for Morning Checks tabs */
         .tab:hover { color: #007bff; }

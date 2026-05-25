@@ -17,9 +17,9 @@ $path_prefix = '../';
     <title>Service Desk - Service Status</title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
-        body { overflow: auto; height: auto; }
-
         .status-layout {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
             padding: 30px;
         }
 

@@ -23,7 +23,10 @@ $path_prefix = '../../';
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/toast.js"></script>
     <style>
-        body { overflow: auto; height: auto; }
+        .dashboard-page {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
+        }
 
         .dashboard-toolbar {
             display: flex; align-items: center; justify-content: space-between;
@@ -198,6 +201,8 @@ $path_prefix = '../../';
 <body>
     <?php require_once '../includes/header.php'; ?>
 
+    <div class="dashboard-page">
+
     <div class="dashboard-toolbar">
         <div style="display:flex; align-items:baseline;">
             <h2>Intune Dashboard</h2>
@@ -216,6 +221,8 @@ $path_prefix = '../../';
     <div id="dashboardBody">
         <div class="loading-state" id="loadingState">Loading Intune data&hellip;</div>
     </div>
+
+    </div><!-- /.dashboard-page -->
 
     <!-- Drill-down modal -->
     <div class="drill-overlay" id="drillOverlay" onclick="if(event.target===this)closeDrillModal()">

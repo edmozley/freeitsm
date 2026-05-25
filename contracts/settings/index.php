@@ -16,7 +16,7 @@ $path_prefix = '../../';
     <title>Service Desk - Contract Settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        body { overflow: auto; height: auto; }
+        .container { height: calc(100vh - 48px); overflow-y: auto; }
 
         /* Amber theme for Contracts tabs */
         .tab:hover { color: #f59e0b; }

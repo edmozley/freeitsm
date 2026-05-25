@@ -24,12 +24,9 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         /* Page-specific overrides for settings page */
-        body {
-            overflow: auto;
-            height: auto;
-        }
-
         .container {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
             max-width: 900px;
             margin: 0 auto;
             padding: 30px;

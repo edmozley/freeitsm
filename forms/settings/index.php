@@ -22,12 +22,9 @@ $path_prefix = '../../';
     <title>Service Desk - Forms Settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        body {
-            overflow: auto;
-            height: auto;
-        }
-
         .container {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
             max-width: 900px;
             margin: 0 auto;
             padding: 30px;

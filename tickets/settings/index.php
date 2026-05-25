@@ -38,14 +38,14 @@ $translationNamespaces = ['common', 'tickets'];
     <script src="../../assets/js/toast.js"></script>
     <style>
         /* Page-specific overrides for settings page */
-        body {
-            overflow: auto;
-            height: auto;
-        }
 
         /* Override the shared .container 1200px cap so settings fills the
          * full width, matching other modules' settings pages (#268-#270). */
-        .container { max-width: none; }
+        .container {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
+            max-width: none;
+        }
 
         /* Settings page uses .action-btn for table buttons */
         .tab-content .action-btn {

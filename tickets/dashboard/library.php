@@ -18,9 +18,9 @@ $path_prefix = '../../';
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/toast.js"></script>
     <style>
-        body {
-            overflow: auto;
-            height: auto;
+        .dashboard-page {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
         }
 
         .library-toolbar {
@@ -230,6 +230,8 @@ $path_prefix = '../../';
 <body>
     <?php require_once '../includes/header.php'; ?>
 
+    <div class="dashboard-page">
+
     <div class="library-toolbar">
         <div class="library-toolbar-left">
             <a href="./">
@@ -274,6 +276,8 @@ $path_prefix = '../../';
         </table>
         <div class="no-results" id="noResults" style="display:none;">No widgets match your search</div>
     </div>
+
+    </div><!-- /.dashboard-page -->
 
     <script src="../../assets/js/widget-editor.js"></script>
     <script>

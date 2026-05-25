@@ -29,8 +29,7 @@ $translationNamespaces = ['common', 'workflow'];
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/toast.js"></script>
     <style>
-        body { overflow: auto; height: auto; }
-        .container { max-width: none; }
+        .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
     </style>
 </head>
 <body>

@@ -17,10 +17,8 @@ $path_prefix = '../../';
     <title>Service Desk - Service Status Settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        body { overflow: auto; height: auto; }
-
         /* Override the shared .container max-width so this page uses the full screen */
-        .container { max-width: none; }
+        .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
 
         .tab:hover { color: #10b981; }
         .tab.active { color: #10b981; border-bottom-color: #10b981; }

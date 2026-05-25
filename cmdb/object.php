@@ -22,8 +22,8 @@ $current_page = 'browse';
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script src="../assets/js/toast.js"></script>
     <style>
-        body { overflow: auto; height: auto; background: #f5f5f5; }
-        .obj-page { max-width: 1100px; margin: 24px auto; padding: 0 20px; }
+        body { background: #f5f5f5; }
+        .obj-page { height: calc(100vh - 48px); overflow-y: auto; max-width: 1100px; margin: 24px auto; padding: 0 20px; }
 
         .obj-breadcrumb { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
         .obj-breadcrumb a { color: #be185d; text-decoration: none; }

@@ -93,8 +93,8 @@ $emojis = ['', '😡', '🙁', '😐', '🙂', '😀'];
 <title>CSAT &mdash; Service Desk</title>
 <link rel="stylesheet" href="../../assets/css/inbox.css">
 <style>
-body { overflow: auto; height: auto; background: #f5f5f5; }
-.csat-page { max-width: 1200px; margin: 0 auto; padding: 24px; }
+body { background: #f5f5f5; }
+.csat-page { height: calc(100vh - 48px); overflow-y: auto; max-width: 1200px; margin: 0 auto; padding: 24px; }
 .csat-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
 .csat-header h1 { font-size: 22px; margin: 0; color: #333; }
 .range-picker { display: flex; gap: 4px; }

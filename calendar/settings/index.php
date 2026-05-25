@@ -23,12 +23,9 @@ $path_prefix = '../../';
     <title>Service Desk - Calendar Settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        body {
-            overflow: auto;
-            height: auto;
-        }
-
         .settings-container {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
             max-width: 900px;
             margin: 0 auto;
             padding: 30px;

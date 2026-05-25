@@ -22,9 +22,9 @@ if (!isset($_SESSION['analyst_id'])) {
     <title>Service Desk - Demo Data</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        body { overflow: auto; height: auto; }
-
         .demo-container {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
             max-width: 900px;
             margin: 30px auto;
             padding: 0 20px 40px;

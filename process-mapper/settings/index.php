@@ -40,14 +40,10 @@ $shapes = include '../includes/shapes.php';
     <style>
         /* Identical to tickets/settings/index.php — settings pages scroll the
            page rather than the body, and fill the full width (no 1200px cap). */
-        body {
-            overflow: auto;
-            height: auto;
-        }
 
         /* Override the shared .container 1200px cap so settings fills the
          * full width, matching tickets-settings and the other modules (#268-#270). */
-        .container { max-width: none; }
+        .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
 
         /* Settings page uses the shared .table-action-btn for row buttons.
            No tickets-only `.tab-content .action-btn` override needed here —

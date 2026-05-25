@@ -22,9 +22,9 @@ $path_prefix = '../../';
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/toast.js"></script>
     <style>
-        body { overflow: auto; height: auto; }
-
         .branding-container {
+            height: calc(100vh - 48px);
+            overflow-y: auto;
             max-width: 800px;
             margin: 0 auto;
             padding: 30px 20px;
