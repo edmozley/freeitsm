@@ -683,7 +683,9 @@ function backToList() {
 function showView(view) {
     document.getElementById('articleListView').style.display = view === 'list' ? 'block' : 'none';
     document.getElementById('articleDetailView').style.display = view === 'detail' ? 'block' : 'none';
-    document.getElementById('articleEditorView').style.display = view === 'editor' ? 'block' : 'none';
+    // 'flex' (not 'block') so the column layout that holds the sticky-footer
+    // action row activates — overrides the inline display: none from PHP.
+    document.getElementById('articleEditorView').style.display = view === 'editor' ? 'flex' : 'none';
 
     // Reset recycle bin state when navigating away from list
     if (view !== 'list' && isRecycleBinView) {
