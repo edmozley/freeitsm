@@ -355,12 +355,14 @@
     display: flex;
     gap: 12px;
     justify-content: flex-end;
-    padding: 8px 30px;
+    /* Symmetric padding so there's equal space above and below the buttons,
+       with breathing room on the right too. */
+    padding: 14px 30px;
     background: white;
     border-top: 1px solid #e0e0e0;
     box-shadow: 0 -2px 6px rgba(0, 0, 0, 0.04);
-    /* Negative horizontal margin to cancel .knowledge-main's 30px padding-x
-       so the footer bar reaches the edges of the pane. */
+    /* Negative margins to cancel .knowledge-main's 20px / 30px padding so the
+       footer bar reaches the actual panel edges (no white gap below). */
     margin: 0 -30px -20px;
 }
 
