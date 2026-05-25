@@ -50,10 +50,10 @@ function handleList($conn) {
 
     $sql = "SELECT a.id, a.title, a.created_datetime, a.modified_datetime,
                    a.archived_datetime, a.view_count,
-                   author.full_name as author_name,
+                   COALESCE(author.full_name, '(deleted analyst)') as author_name,
                    archiver.full_name as archived_by_name
             FROM knowledge_articles a
-            INNER JOIN analysts author ON author.id = a.author_id
+            LEFT JOIN analysts author ON author.id = a.author_id
             LEFT JOIN analysts archiver ON archiver.id = a.archived_by_id
             WHERE a.is_archived = 1
             ORDER BY a.archived_datetime DESC";

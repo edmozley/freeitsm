@@ -19,12 +19,14 @@ $tagIds = isset($_GET['tags']) ? array_filter(explode(',', $_GET['tags'])) : [];
 try {
     $conn = connectToDatabase();
 
-    // Build the query
+    // LEFT JOIN (not INNER) so articles authored by a since-deleted analyst
+    // still show up — otherwise they vanish from the list but stay counted in
+    // the tag sidebar, causing the count mismatch reported in #391.
     $sql = "SELECT DISTINCT a.id, a.title, a.created_datetime, a.modified_datetime, a.view_count,
                    LEFT(a.body, 300) as preview,
-                   an.full_name as author_name
+                   COALESCE(an.full_name, '(deleted analyst)') as author_name
             FROM knowledge_articles a
-            INNER JOIN analysts an ON an.id = a.author_id
+            LEFT JOIN analysts an ON an.id = a.author_id
             WHERE a.is_published = 1
               AND (a.is_archived = 0 OR a.is_archived IS NULL)";
 
