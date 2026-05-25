@@ -56,8 +56,6 @@ $diagnostics = [
         .debug-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            max-width: 1000px;
-            margin: 30px auto;
             padding: 0 20px 40px;
         }
 

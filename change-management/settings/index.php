@@ -25,8 +25,7 @@ $path_prefix = '../../';
         .container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            max-width: 900px;
-            margin: 0 auto;
+            max-width: none;
             padding: 30px;
         }
 

@@ -25,8 +25,6 @@ $currentLocale = I18n::getLocale();
         .prefs-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            max-width: 700px;
-            margin: 0 auto;
             padding: 30px;
         }
 

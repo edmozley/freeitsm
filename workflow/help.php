@@ -27,7 +27,7 @@ $path_prefix = '../';
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/workflow.css?v=4">
     <style>
-        .container { height: calc(100vh - 48px); overflow-y: auto; max-width: 900px; padding-bottom: 60px; }
+        .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; padding-bottom: 60px; }
         .wf-help h2 { font-size: 22px; color: #333; margin: 0 0 4px; }
         .wf-help p { color: #555; line-height: 1.6; }
         .wf-help .lede { font-size: 15px; color: #444; }

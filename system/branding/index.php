@@ -25,8 +25,6 @@ $path_prefix = '../../';
         .branding-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            max-width: 800px;
-            margin: 0 auto;
             padding: 30px 20px;
         }
 

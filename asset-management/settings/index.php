@@ -21,6 +21,7 @@ $path_prefix = '../../';
         .container {
             height: calc(100vh - 48px);
             overflow-y: auto;
+            max-width: none;
         }
 
         .tab-content .action-btn {
