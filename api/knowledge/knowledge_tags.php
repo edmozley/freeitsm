@@ -16,11 +16,15 @@ if (!isset($_SESSION['analyst_id'])) {
 try {
     $conn = connectToDatabase();
 
+    // article_count must match exactly what knowledge_articles.php returns
+    // for the list view — same WHERE clause — otherwise clicking a tag
+    // appears to show fewer matches than its sidebar count suggests.
     $sql = "SELECT t.id, t.name,
                    (SELECT COUNT(*) FROM knowledge_article_tags kat
                     INNER JOIN knowledge_articles ka ON ka.id = kat.article_id
                     WHERE kat.tag_id = t.id
-                    AND (ka.is_archived = 0 OR ka.is_archived IS NULL)) as article_count
+                      AND ka.is_published = 1
+                      AND (ka.is_archived = 0 OR ka.is_archived IS NULL)) as article_count
             FROM knowledge_tags t
             ORDER BY t.name";
 
