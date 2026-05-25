@@ -135,7 +135,7 @@ $path_prefix = '../';
         <!-- Sidebar with status filters -->
         <div class="calendar-sidebar">
             <div class="sidebar-section">
-                <h3>Change Status</h3>
+                <h3>Status</h3>
                 <div class="category-filter-list" id="statusFilterList">
                     <div class="loading"><div class="spinner"></div></div>
                 </div>
