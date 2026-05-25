@@ -36,9 +36,18 @@ try {
     $formId = (int)($input['id'] ?? 0);
 
     if ($formId > 0) {
-        // Update form metadata
-        $stmt = $conn->prepare("UPDATE forms SET title = ?, description = ?, modified_date = UTC_TIMESTAMP() WHERE id = ?");
-        $stmt->execute([$title, $description, $formId]);
+        // Update form metadata. Versioning: bump version_number,
+        // stamp modified_by with the current analyst, refresh
+        // modified_date. The dashboard / builder UI shows these
+        // alongside the original author + created_date.
+        $stmt = $conn->prepare(
+            "UPDATE forms
+             SET title = ?, description = ?,
+                 modified_by = ?, modified_date = UTC_TIMESTAMP(),
+                 version_number = version_number + 1
+             WHERE id = ?"
+        );
+        $stmt->execute([$title, $description, $_SESSION['analyst_id'], $formId]);
 
         // Get existing field IDs in sort order
         $stmt = $conn->prepare("SELECT id FROM form_fields WHERE form_id = ? ORDER BY sort_order");
@@ -82,9 +91,13 @@ try {
             $stmt->execute([$removeId]);
         }
     } else {
-        // Create new form
-        $stmt = $conn->prepare("INSERT INTO forms (title, description, created_by) VALUES (?, ?, ?)");
-        $stmt->execute([$title, $description, $_SESSION['analyst_id']]);
+        // Create new form — author + initial modified_by both default
+        // to the current analyst; version_number starts at 1.
+        $stmt = $conn->prepare(
+            "INSERT INTO forms (title, description, created_by, modified_by, version_number)
+             VALUES (?, ?, ?, ?, 1)"
+        );
+        $stmt->execute([$title, $description, $_SESSION['analyst_id'], $_SESSION['analyst_id']]);
         $formId = (int)$conn->lastInsertId();
 
         // Insert fields

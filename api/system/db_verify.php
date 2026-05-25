@@ -1325,13 +1325,18 @@ $schema = [
     ],
 
     'forms' => [
-        'id'            => 'INT NOT NULL AUTO_INCREMENT',
-        'title'         => 'VARCHAR(255) NOT NULL',
-        'description'   => 'LONGTEXT NULL',
-        'is_active'     => 'TINYINT(1) NOT NULL DEFAULT 1',
-        'created_by'    => 'INT NULL',
-        'created_date'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
-        'modified_date' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'id'             => 'INT NOT NULL AUTO_INCREMENT',
+        'title'          => 'VARCHAR(255) NOT NULL',
+        'description'    => 'LONGTEXT NULL',
+        'is_active'      => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_by'     => 'INT NULL',
+        'created_date'   => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        // Versioning: who last touched the form and how many save passes
+        // it has had. Version starts at 1 on create and increments on
+        // every successful save_form.php update.
+        'modified_by'    => 'INT NULL',
+        'modified_date'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'version_number' => 'INT NOT NULL DEFAULT 1',
     ],
 
     'form_fields' => [

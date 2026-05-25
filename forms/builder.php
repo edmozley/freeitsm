@@ -110,6 +110,35 @@ $path_prefix = '../';
         .form-settings .field-group { margin-bottom: 14px; }
         .form-settings .field-group:last-child { margin-bottom: 0; }
 
+        /* Versioning metadata strip — only shown for existing forms
+           (hidden on new) so the analyst can see who authored it, when
+           it was last touched, and which version they're editing. */
+        .form-meta {
+            margin-top: 14px;
+            padding: 10px 12px;
+            background: #f5f7fa;
+            border: 1px solid #e5e9f0;
+            border-radius: 6px;
+            font-size: 12px;
+            color: #555;
+            line-height: 1.6;
+            display: grid;
+            grid-template-columns: max-content 1fr;
+            column-gap: 12px;
+            row-gap: 2px;
+        }
+        .form-meta dt { color: #888; font-weight: 500; margin: 0; }
+        .form-meta dd { margin: 0; color: #333; }
+        .form-meta .form-meta-version {
+            display: inline-block;
+            padding: 1px 8px;
+            border-radius: 10px;
+            background: #00897b;
+            color: white;
+            font-weight: 600;
+            font-size: 11px;
+        }
+
         /* Fields List */
         .fields-panel {
             background: #fff;
@@ -424,6 +453,22 @@ $path_prefix = '../';
                             <label>Description</label>
                             <textarea id="formDesc" rows="2" placeholder="Optional description..."></textarea>
                         </div>
+
+                        <!-- Versioning metadata — populated by loadForm()
+                             when editing an existing form. Hidden when
+                             creating a new one. -->
+                        <dl class="form-meta" id="formMeta" style="display:none;">
+                            <dt>Version</dt>
+                            <dd><span class="form-meta-version" id="formMetaVersion">v1</span></dd>
+                            <dt>Author</dt>
+                            <dd id="formMetaAuthor">&mdash;</dd>
+                            <dt>Created</dt>
+                            <dd id="formMetaCreated">&mdash;</dd>
+                            <dt>Last modified</dt>
+                            <dd id="formMetaModified">&mdash;</dd>
+                            <dt>Modified by</dt>
+                            <dd id="formMetaModifiedBy">&mdash;</dd>
+                        </dl>
                     </div>
 
                     <div class="fields-panel">
@@ -495,7 +540,29 @@ $path_prefix = '../';
                 }));
                 renderFields();
                 updatePreview();
+                renderFormMeta(data.form);
             }
+        }
+
+        // Populate the versioning info panel — author, created date,
+        // last modified date, who last modified, and the version
+        // counter. Only shown for forms that have an id (i.e. already
+        // saved at least once).
+        function renderFormMeta(form) {
+            const meta = document.getElementById('formMeta');
+            if (!meta || !form || !form.id) return;
+            const fmt = (s) => {
+                if (!s) return '—';
+                const d = new Date(s.replace(' ', 'T') + 'Z');
+                if (isNaN(d.getTime())) return s;
+                return d.toLocaleString();
+            };
+            document.getElementById('formMetaVersion').textContent     = 'v' + (form.version_number || 1);
+            document.getElementById('formMetaAuthor').textContent      = form.created_by_name || '—';
+            document.getElementById('formMetaCreated').textContent     = fmt(form.created_date);
+            document.getElementById('formMetaModified').textContent    = fmt(form.modified_date);
+            document.getElementById('formMetaModifiedBy').textContent  = form.modified_by_name || '—';
+            meta.style.display = '';
         }
 
         function toggleAddMenu() {
@@ -695,6 +762,9 @@ $path_prefix = '../';
                         document.getElementById('pageTitle').textContent = 'Edit Form';
                     }
                     showToast('Form saved', 'success');
+                    // Re-fetch so the meta panel reflects the new
+                    // version_number / modified_date / modified_by.
+                    loadForm(formId);
                 } else {
                     showToast('Error: ' + data.error, 'error');
                 }

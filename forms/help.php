@@ -71,15 +71,6 @@ $path_prefix = '../';
             font-weight: 600;
         }
 
-        .fm-help-nav-link.highlight {
-            color: #004d40;
-        }
-
-        .fm-help-nav-link.highlight.active {
-            background: #00695c;
-            color: white;
-        }
-
         .fm-help-nav-num {
             display: flex;
             align-items: center;
@@ -96,16 +87,6 @@ $path_prefix = '../';
 
         .fm-help-nav-link.active .fm-help-nav-num {
             background: #00897b;
-            color: white;
-        }
-
-        .fm-help-nav-num.highlight {
-            background: #e0f2f1;
-            color: #004d40;
-        }
-
-        .fm-help-nav-link.highlight.active .fm-help-nav-num {
-            background: rgba(255,255,255,0.25);
             color: white;
         }
 
@@ -438,8 +419,8 @@ $path_prefix = '../';
                 <span class="fm-help-nav-num">1</span>
                 Overview
             </a>
-            <a href="#building-forms" class="fm-help-nav-link highlight" data-section="building-forms">
-                <span class="fm-help-nav-num highlight">2</span>
+            <a href="#building-forms" class="fm-help-nav-link" data-section="building-forms">
+                <span class="fm-help-nav-num">2</span>
                 Building forms
             </a>
             <a href="#filling-in" class="fm-help-nav-link" data-section="filling-in">
@@ -450,8 +431,8 @@ $path_prefix = '../';
                 <span class="fm-help-nav-num">4</span>
                 Submissions
             </a>
-            <a href="#export" class="fm-help-nav-link highlight" data-section="export">
-                <span class="fm-help-nav-num highlight">5</span>
+            <a href="#export" class="fm-help-nav-link" data-section="export">
+                <span class="fm-help-nav-num">5</span>
                 Export
             </a>
             <a href="#settings" class="fm-help-nav-link" data-section="settings">

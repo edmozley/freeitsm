@@ -26,7 +26,11 @@ $path_prefix = '../../';
             height: calc(100vh - 48px);
             overflow-y: auto;
             max-width: none;
-            padding: 30px;
+            margin: 0;
+            /* 30px top padding pushed the tab bar off the global
+               header; tightened to match the other modules' settings
+               pages (16px 30px 24px). */
+            padding: 16px 30px 24px;
         }
 
         /* Teal theme for tabs */
@@ -194,7 +198,7 @@ $path_prefix = '../../';
             </div>
 
             <div class="form-actions">
-                <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Save</button>
             </div>
         </div>
     </div>

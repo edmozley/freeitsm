@@ -1578,13 +1578,17 @@ CREATE TABLE IF NOT EXISTS `task_tag_map` (
 -- ----------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS `forms` (
-    `id`            INT NOT NULL AUTO_INCREMENT,
-    `title`         VARCHAR(255) NOT NULL,
-    `description`   LONGTEXT NULL,
-    `is_active`     TINYINT(1) NOT NULL DEFAULT 1,
-    `created_by`    INT NULL,
-    `created_date`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `modified_date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `id`             INT NOT NULL AUTO_INCREMENT,
+    `title`          VARCHAR(255) NOT NULL,
+    `description`    LONGTEXT NULL,
+    `is_active`      TINYINT(1) NOT NULL DEFAULT 1,
+    `created_by`     INT NULL,
+    `created_date`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Versioning: who last touched the form, and a counter that ticks up
+    -- on every successful save_form.php update (starts at 1 on create).
+    `modified_by`    INT NULL,
+    `modified_date`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `version_number` INT NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

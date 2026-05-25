@@ -22,9 +22,18 @@ if ($formId <= 0) {
 try {
     $conn = connectToDatabase();
 
-    $stmt = $conn->prepare("SELECT id, title, description, is_active, created_by,
-                                   DATE_FORMAT(created_date, '%Y-%m-%d %H:%i:%s') as created_date
-                            FROM forms WHERE id = ?");
+    $stmt = $conn->prepare(
+        "SELECT f.id, f.title, f.description, f.is_active,
+                f.created_by,  ca.full_name AS created_by_name,
+                DATE_FORMAT(f.created_date,  '%Y-%m-%d %H:%i:%s') AS created_date,
+                f.modified_by, ma.full_name AS modified_by_name,
+                DATE_FORMAT(f.modified_date, '%Y-%m-%d %H:%i:%s') AS modified_date,
+                f.version_number
+         FROM forms f
+         LEFT JOIN analysts ca ON f.created_by  = ca.id
+         LEFT JOIN analysts ma ON f.modified_by = ma.id
+         WHERE f.id = ?"
+    );
     $stmt->execute([$formId]);
     $form = $stmt->fetch(PDO::FETCH_ASSOC);
 
