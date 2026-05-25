@@ -13,7 +13,7 @@ $path_prefix = '../../';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Asset Settings</title>
+    <title>Service Desk - Asset settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/toast.js"></script>
     <script src="../../assets/js/chart.min.js"></script>
@@ -201,8 +201,8 @@ $path_prefix = '../../';
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="asset-types" onclick="switchTab('asset-types')">Asset Types</button>
-            <button class="tab" data-tab="asset-statuses" onclick="switchTab('asset-statuses')">Asset Statuses</button>
+            <button class="tab active" data-tab="asset-types" onclick="switchTab('asset-types')">Asset types</button>
+            <button class="tab" data-tab="asset-statuses" onclick="switchTab('asset-statuses')">Asset statuses</button>
             <button class="tab" data-tab="vcenter" onclick="switchTab('vcenter')">vCenter</button>
             <button class="tab" data-tab="intune" onclick="switchTab('intune')">InTune</button>
         </div>
@@ -210,7 +210,7 @@ $path_prefix = '../../';
         <!-- Asset Types Tab -->
         <div class="tab-content active" id="asset-types-tab">
             <div class="section-header">
-                <h2>Asset Types</h2>
+                <h2>Asset types</h2>
                 <button class="add-btn" onclick="openAddModal('asset-type')">Add</button>
             </div>
             <table>
@@ -232,7 +232,7 @@ $path_prefix = '../../';
         <!-- Asset Statuses Tab -->
         <div class="tab-content" id="asset-statuses-tab">
             <div class="section-header">
-                <h2>Asset Statuses</h2>
+                <h2>Asset statuses</h2>
                 <button class="add-btn" onclick="openAddModal('asset-status')">Add</button>
             </div>
             <table>
@@ -261,7 +261,7 @@ $path_prefix = '../../';
                         <line x1="6" y1="6" x2="6.01" y2="6"></line>
                         <line x1="6" y1="18" x2="6.01" y2="18"></line>
                     </svg>
-                    <h2>vCenter Integration</h2>
+                    <h2>vCenter integration</h2>
                 </div>
                 <div class="settings-section-body">
                     <p class="settings-description">
@@ -269,16 +269,16 @@ $path_prefix = '../../';
                     </p>
                     <form id="vcenterForm" onsubmit="saveVcenterSettings(event)">
                         <div class="form-group">
-                            <label class="form-label" for="vcenterServer">vCenter Server</label>
+                            <label class="form-label" for="vcenterServer">vCenter server</label>
                             <input type="text" class="form-input" id="vcenterServer" placeholder="e.g. vcenter.company.local">
                             <div class="form-hint">Hostname or IP address of the vCenter Server</div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="vcenterUser">vCenter User</label>
+                            <label class="form-label" for="vcenterUser">vCenter user</label>
                             <input type="text" class="form-input" id="vcenterUser" placeholder="e.g. administrator@vsphere.local">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="vcenterPassword">vCenter Password</label>
+                            <label class="form-label" for="vcenterPassword">vCenter password</label>
                             <div class="password-wrapper">
                                 <input type="password" class="form-input" id="vcenterPassword" placeholder="Enter password">
                                 <button type="button" class="password-toggle" onclick="togglePassword()">Show</button>
@@ -302,7 +302,7 @@ $path_prefix = '../../';
                         <line x1="8" y1="20" x2="16" y2="20"></line>
                         <line x1="12" y1="16" x2="12" y2="20"></line>
                     </svg>
-                    <h2>Microsoft InTune Integration</h2>
+                    <h2>Microsoft InTune integration</h2>
                 </div>
                 <div class="settings-section-body">
                     <p class="settings-description">
@@ -319,7 +319,7 @@ $path_prefix = '../../';
                             <input type="text" class="form-input" id="intuneClientId" placeholder="Application (client) ID">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="intuneClientSecret">Client Secret</label>
+                            <label class="form-label" for="intuneClientSecret">Client secret</label>
                             <div class="password-wrapper">
                                 <input type="password" class="form-input" id="intuneClientSecret" placeholder="Enter client secret">
                                 <button type="button" class="password-toggle" onclick="toggleIntuneSecret()">Show</button>
@@ -379,7 +379,7 @@ $path_prefix = '../../';
     <!-- Edit/Add Modal -->
     <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Add Item</div>
+            <div class="modal-header" id="modalTitle">Add item</div>
             <form id="editForm">
                 <input type="hidden" id="itemId">
                 <input type="hidden" id="itemType">
@@ -392,7 +392,7 @@ $path_prefix = '../../';
                     <textarea id="itemDescription"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="itemOrder">Display Order</label>
+                    <label for="itemOrder">Display order</label>
                     <input type="number" id="itemOrder" value="0" min="0">
                 </div>
                 <div class="form-group">
@@ -422,7 +422,7 @@ $path_prefix = '../../';
                 delete: API_BASE + 'delete_asset_type.php',
                 key: 'asset_types',
                 listId: 'asset-types-list',
-                label: 'Asset Type'
+                label: 'asset type'
             },
             'asset-status': {
                 get: API_BASE + 'get_asset_status_types.php',
@@ -430,7 +430,7 @@ $path_prefix = '../../';
                 delete: API_BASE + 'delete_asset_status_type.php',
                 key: 'asset_status_types',
                 listId: 'asset-statuses-list',
-                label: 'Asset Status'
+                label: 'asset status'
             }
         };
 
