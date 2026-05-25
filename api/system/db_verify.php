@@ -1331,11 +1331,15 @@ $schema = [
         'is_active'      => 'TINYINT(1) NOT NULL DEFAULT 1',
         'created_by'     => 'INT NULL',
         'created_date'   => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
-        // Versioning: who last touched the form and how many save passes
-        // it has had. Version starts at 1 on create and increments on
-        // every successful save_form.php update.
         'modified_by'    => 'INT NULL',
         'modified_date'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        // Versioning (#442): a form's history is a chain of rows, each
+        // pointing back at its predecessor via parent_form_id. The leaf
+        // (no children) is the current editable version; older rows are
+        // frozen snapshots. version_number is the position in the
+        // chain — set on create / clone, NEVER incremented by an
+        // in-place save (regular Save just updates modified_by/date).
+        'parent_form_id' => 'INT NULL',
         'version_number' => 'INT NOT NULL DEFAULT 1',
     ],
 

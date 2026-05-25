@@ -1584,10 +1584,14 @@ CREATE TABLE IF NOT EXISTS `forms` (
     `is_active`      TINYINT(1) NOT NULL DEFAULT 1,
     `created_by`     INT NULL,
     `created_date`   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    -- Versioning: who last touched the form, and a counter that ticks up
-    -- on every successful save_form.php update (starts at 1 on create).
     `modified_by`    INT NULL,
     `modified_date`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Versioning (#442): each form row is one snapshot in a chain.
+    -- parent_form_id chains back to the previous version (NULL for the
+    -- root). The leaf (no children) is editable; older rows are frozen.
+    -- version_number is set on create / clone, never incremented by
+    -- in-place saves.
+    `parent_form_id` INT NULL,
     `version_number` INT NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

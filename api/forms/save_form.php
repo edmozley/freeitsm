@@ -36,15 +36,25 @@ try {
     $formId = (int)($input['id'] ?? 0);
 
     if ($formId > 0) {
-        // Update form metadata. Versioning: bump version_number,
-        // stamp modified_by with the current analyst, refresh
-        // modified_date. The dashboard / builder UI shows these
-        // alongside the original author + created_date.
+        // Block in-place saves of frozen (non-leaf) versions (#442).
+        // The UI hides the Save button for non-leaf rows but this
+        // server-side check stops a stale tab / direct API call from
+        // mutating a historical snapshot.
+        $leafCheck = $conn->prepare("SELECT COUNT(*) FROM forms WHERE parent_form_id = ?");
+        $leafCheck->execute([$formId]);
+        if ((int)$leafCheck->fetchColumn() > 0) {
+            throw new Exception('This is a historical version. Open the current (latest) version to make changes, or click "Save as new version" to fork from here.');
+        }
+
+        // In-place save. Refresh modified_by + modified_date;
+        // version_number is NEVER bumped here — that only happens via
+        // create_version.php which forks the form into a new chain
+        // entry. Lets analysts iterate on the current version without
+        // littering the chain with tiny "fix typo" snapshots.
         $stmt = $conn->prepare(
             "UPDATE forms
              SET title = ?, description = ?,
-                 modified_by = ?, modified_date = UTC_TIMESTAMP(),
-                 version_number = version_number + 1
+                 modified_by = ?, modified_date = UTC_TIMESTAMP()
              WHERE id = ?"
         );
         $stmt->execute([$title, $description, $_SESSION['analyst_id'], $formId]);

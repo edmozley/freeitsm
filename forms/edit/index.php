@@ -46,6 +46,91 @@ $path_prefix = '../../';
             overflow-y: auto;
         }
 
+        /* Versions dropdown — opens below the Versions button in the
+           top toolbar. Each row is a version in chain order with a
+           "current" badge on the leaf. */
+        .versions-wrap { position: relative; }
+        .versions-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            min-width: 340px;
+            max-width: 420px;
+            max-height: 380px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #e5e7eb;
+            border-radius: 6px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            z-index: 100;
+        }
+        .versions-dropdown .vd-loading,
+        .versions-dropdown .vd-empty {
+            padding: 20px 16px;
+            text-align: center;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+        .versions-dropdown .vd-row {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 10px 14px;
+            border-bottom: 1px solid #f3f4f6;
+            cursor: pointer;
+            text-decoration: none;
+            color: inherit;
+        }
+        .versions-dropdown .vd-row:last-child { border-bottom: 0; }
+        .versions-dropdown .vd-row:hover { background: #e0f2f1; }
+        .versions-dropdown .vd-row.active { background: #e0f2f1; }
+        .versions-dropdown .vd-row-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+        .versions-dropdown .vd-row-title {
+            font-weight: 600;
+            color: #111827;
+            font-size: 13px;
+        }
+        .versions-dropdown .vd-row-meta {
+            font-size: 11px;
+            color: #6b7280;
+        }
+        .versions-dropdown .vd-pill {
+            display: inline-block;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: 600;
+            background: #00897b;
+            color: white;
+        }
+        .versions-dropdown .vd-pill.current {
+            background: #16a34a;
+        }
+
+        /* Read-only banner under the toolbar for frozen versions. */
+        .readonly-banner {
+            margin: 0 0 12px 0;
+            padding: 10px 14px;
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #9a3412;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .readonly-banner a {
+            color: #9a3412;
+            text-decoration: underline;
+            font-weight: 600;
+        }
+
         /* Sticky footer for the form-completion actions (Cancel + Save).
            Pinned via flex-shrink: 0 so the scrollbar inside .forms-main
            stops at this strip's top edge. */
@@ -308,14 +393,17 @@ $path_prefix = '../../';
 
     <div class="forms-container forms-edit-page">
         <div class="forms-main">
-            <!-- Top toolbar holds INSPECTION tools — AI Assist (build
-                 for me) + Properties (show me the metadata). Save and
-                 Cancel are the form-completion actions and live in the
-                 sticky footer below where the eye naturally lands after
-                 finishing the form. -->
+            <!-- Top toolbar holds INSPECTION tools — AI Assist, Versions
+                 dropdown, Save as new version, Properties. Regular
+                 Save + Cancel sit in the sticky footer where the eye
+                 naturally lands after finishing the form. -->
             <div class="editor-toolbar">
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <h2 id="editorTitle">New form</h2>
+                    <!-- v-pill from #434 — quick at-a-glance version
+                         indicator next to the title. Click to open the
+                         full properties drawer. -->
+                    <span id="versionPill" class="form-meta-version" style="display:none; cursor:pointer;" onclick="togglePropertiesDrawer()" title="Open properties"></span>
                     <div class="unsaved-indicator" id="unsavedIndicator">
                         <span class="unsaved-dot"></span>
                         Unsaved changes
@@ -326,11 +414,36 @@ $path_prefix = '../../';
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l1.9 5.8L20 10l-5.8 1.9L12 18l-1.9-5.8L4 10l6.1-2.2z"></path><path d="M19 14l1 3 3 1-3 1-1 3-1-3-3-1 3-1z"></path><path d="M5 16l.6 1.8L7.5 18l-1.9.6L5 20l-.6-1.4L2.5 18l2-.2z"></path></svg>
                         AI Assist
                     </button>
+                    <!-- Versions dropdown — hidden for brand-new forms,
+                         populated on first open via list_versions.php. -->
+                    <div class="versions-wrap" id="versionsWrap" style="display:none;">
+                        <button class="btn btn-secondary" id="versionsBtn" onclick="toggleVersionsDropdown(event)" title="Browse the version history of this form">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8v4l3 3"></path><circle cx="12" cy="12" r="10"></circle></svg>
+                            Versions <span id="versionsBtnCount" style="opacity:0.7;"></span>
+                        </button>
+                        <div class="versions-dropdown" id="versionsDropdown" style="display:none;"></div>
+                    </div>
+                    <!-- Save as new version — only shown for the leaf
+                         (current) version; hidden for frozen snapshots
+                         (the read-only banner explains how to fork from
+                         the current version instead). -->
+                    <button class="btn btn-secondary" id="newVersionBtn" onclick="createNewVersion()" style="display:none;" title="Snapshot the current form as a new version. The current version becomes a frozen historical record.">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline><line x1="12" y1="11" x2="12" y2="17"></line><line x1="9" y1="14" x2="15" y2="14"></line></svg>
+                        Save as new version
+                    </button>
                     <button class="btn btn-secondary" id="propertiesBtn" onclick="togglePropertiesDrawer()" title="Show form properties + version history">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
                         Properties
                     </button>
                 </div>
+            </div>
+
+            <!-- Read-only banner — shown when viewing a frozen (non-leaf)
+                 version. Tells the user how to either edit the current
+                 version or fork from it into a new one. -->
+            <div class="readonly-banner" id="readonlyBanner" style="display:none;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                <span><strong>Read-only version.</strong> This is a historical snapshot. To make changes, open the <a href="#" onclick="jumpToCurrentVersion(event)">current version</a> or click Save as new version from there to fork forward.</span>
             </div>
 
             <!-- Title & description. Versioning metadata moved to the
@@ -536,17 +649,33 @@ $path_prefix = '../../';
             }
         }
 
+        // Versioning state (#442). currentForm holds the most recent
+        // get_form.php response so we know whether to enable Save (only
+        // when is_leaf is true) and which versions chain to show.
+        let currentForm = null;
+
         // Populate the Properties drawer's version metadata section.
         // Called after a successful load + after a save (so the new
-        // version_number / modified_by show up immediately). Toggles
-        // the "not yet saved" placeholder so the drawer never shows
-        // dashes for a brand-new unsaved form.
+        // version_number / modified_by show up immediately). Also
+        // updates the toolbar v-pill + Versions dropdown count.
         function renderFormMeta(form) {
+            currentForm = form || null;
             const meta  = document.getElementById('formMeta');
             const empty = document.getElementById('propertiesEmpty');
+            const pill  = document.getElementById('versionPill');
+            const wrap  = document.getElementById('versionsWrap');
+            const newBtn = document.getElementById('newVersionBtn');
+            const banner = document.getElementById('readonlyBanner');
+            const saveBtn = document.getElementById('saveBtn');
+
             if (!form || !form.id) {
-                if (meta)  meta.style.display = 'none';
-                if (empty) empty.style.display = '';
+                if (meta)   meta.style.display = 'none';
+                if (empty)  empty.style.display = '';
+                if (pill)   pill.style.display = 'none';
+                if (wrap)   wrap.style.display = 'none';
+                if (newBtn) newBtn.style.display = 'none';
+                if (banner) banner.style.display = 'none';
+                if (saveBtn) { saveBtn.disabled = false; saveBtn.title = ''; }
                 return;
             }
             const fmt = (s) => {
@@ -555,13 +684,153 @@ $path_prefix = '../../';
                 if (isNaN(d.getTime())) return s;
                 return d.toLocaleString();
             };
-            document.getElementById('formMetaVersion').textContent    = 'v' + (form.version_number || 1);
+            const vLabel = 'v' + (form.version_number || 1);
+            document.getElementById('formMetaVersion').textContent    = vLabel;
             document.getElementById('formMetaAuthor').textContent     = form.created_by_name || '—';
             document.getElementById('formMetaCreated').textContent    = fmt(form.created_date);
             document.getElementById('formMetaModified').textContent   = fmt(form.modified_date);
             document.getElementById('formMetaModifiedBy').textContent = form.modified_by_name || '—';
             if (meta)  meta.style.display = '';
             if (empty) empty.style.display = 'none';
+
+            // Toolbar v-pill + read-only state vs leaf
+            if (pill) { pill.textContent = vLabel; pill.style.display = ''; }
+            if (wrap) wrap.style.display = '';
+
+            const isLeaf = form.is_leaf !== false;
+            if (newBtn) newBtn.style.display = isLeaf ? '' : 'none';
+            if (banner) banner.style.display = isLeaf ? 'none' : '';
+            if (saveBtn) {
+                saveBtn.disabled = !isLeaf;
+                saveBtn.title = isLeaf ? '' : 'This is a historical version — open the current one to edit, or fork from there with "Save as new version"';
+            }
+
+            // Refresh the version dropdown's cached count + (if open)
+            // its rows. Loaded lazily — the API call only fires when
+            // the dropdown is opened OR after a chain-mutating action.
+            cachedVersions = null;
+            const dd = document.getElementById('versionsDropdown');
+            if (dd && dd.style.display !== 'none') loadVersions();
+        }
+
+        // ===== Versions dropdown =====
+        // Cached so flicking it open + closed doesn't re-fetch each
+        // time. Invalidated by renderFormMeta() after any chain change.
+        let cachedVersions = null;
+
+        function toggleVersionsDropdown(e) {
+            if (e) e.stopPropagation();
+            const dd = document.getElementById('versionsDropdown');
+            if (!dd) return;
+            const willOpen = dd.style.display === 'none';
+            dd.style.display = willOpen ? 'block' : 'none';
+            if (willOpen) loadVersions();
+        }
+
+        // Close the dropdown if you click outside it.
+        document.addEventListener('click', function(e) {
+            const wrap = document.getElementById('versionsWrap');
+            if (wrap && !wrap.contains(e.target)) {
+                const dd = document.getElementById('versionsDropdown');
+                if (dd) dd.style.display = 'none';
+            }
+        });
+
+        async function loadVersions() {
+            const dd = document.getElementById('versionsDropdown');
+            if (!dd) return;
+            if (!currentFormId) { dd.innerHTML = '<div class="vd-empty">Save the form first to start a version history.</div>'; return; }
+            if (cachedVersions) {
+                renderVersionsList(cachedVersions);
+                return;
+            }
+            dd.innerHTML = '<div class="vd-loading">Loading…</div>';
+            try {
+                const res = await fetch(API_BASE + 'list_versions.php?id=' + currentFormId);
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'Failed');
+                cachedVersions = data.versions || [];
+                // Update the count next to the toolbar Versions button
+                const countEl = document.getElementById('versionsBtnCount');
+                if (countEl) countEl.textContent = '(' + cachedVersions.length + ')';
+                renderVersionsList(cachedVersions);
+            } catch (e) {
+                dd.innerHTML = '<div class="vd-empty">Couldn\'t load versions: ' + escHtml(e.message) + '</div>';
+            }
+        }
+
+        function renderVersionsList(versions) {
+            const dd = document.getElementById('versionsDropdown');
+            if (!dd) return;
+            if (!versions.length) { dd.innerHTML = '<div class="vd-empty">No version history yet.</div>'; return; }
+            const fmt = (s) => {
+                if (!s) return '';
+                const d = new Date(s.replace(' ', 'T') + 'Z');
+                if (isNaN(d.getTime())) return s;
+                return d.toLocaleString();
+            };
+            // Most recent first reads more naturally in a dropdown
+            // (you'd expect "current" + recent forks at the top).
+            const sorted = versions.slice().sort((a, b) => b.version_number - a.version_number);
+            dd.innerHTML = sorted.map(v => {
+                const isActive = v.id === currentFormId;
+                const pillClass = v.is_current ? 'vd-pill current' : 'vd-pill';
+                const pillText  = v.is_current ? 'current' : ('v' + v.version_number);
+                return `<a href="?id=${v.id}" class="vd-row ${isActive ? 'active' : ''}">
+                    <div class="vd-row-top">
+                        <span class="vd-row-title">v${v.version_number} &middot; ${escHtml(v.title || 'Untitled')}</span>
+                        <span class="${pillClass}">${pillText}</span>
+                    </div>
+                    <div class="vd-row-meta">
+                        Edited by ${escHtml(v.modified_by_name || 'Unknown')} &middot; ${escHtml(fmt(v.modified_date))}
+                    </div>
+                </a>`;
+            }).join('');
+        }
+
+        // Jump to the leaf (current) version from the read-only banner link.
+        function jumpToCurrentVersion(e) {
+            if (e) e.preventDefault();
+            (async () => {
+                if (!cachedVersions) await loadVersions();
+                const cur = (cachedVersions || []).find(v => v.is_current);
+                if (cur) window.location.href = '?id=' + cur.id;
+            })();
+        }
+
+        // ===== Save as new version =====
+        async function createNewVersion() {
+            if (!currentFormId) {
+                showToast('Save the form first before creating a new version.', true);
+                return;
+            }
+            if (isDirty && !confirm('You have unsaved changes. Save them as part of the new version? Cancel here and click Save first if you want to keep both.')) {
+                return;
+            }
+            // If the user has unsaved changes, persist them first so
+            // the new version snapshot reflects what they see.
+            if (isDirty) {
+                const ok = await saveForm();
+                if (!ok) return;
+            }
+            if (!confirm('Create a new version? The current version becomes a frozen historical snapshot; the new one becomes the editable current version.')) return;
+            try {
+                const res = await fetch(API_BASE + 'create_version.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ parent_form_id: currentFormId })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    showToast(data.error || 'Failed to create version', true);
+                    return;
+                }
+                showToast('Created v' + data.version_number);
+                // Jump to the new version
+                window.location.href = '?id=' + data.id;
+            } catch (e) {
+                showToast('Failed to create version', true);
+            }
         }
 
         // Properties drawer — slide-in from the right with the form's
@@ -889,13 +1158,16 @@ $path_prefix = '../../';
         }
 
         // ===== Save =====
+        // Returns a Promise<boolean> indicating success — callers like
+        // createNewVersion() chain a save before forking so the new
+        // version snapshot reflects exactly what the user sees.
         async function saveForm() {
             const title = document.getElementById('formTitle').value.trim();
-            if (!title) { showToast('Please enter a form title', true); return; }
+            if (!title) { showToast('Please enter a form title', true); return false; }
             const validFields = fields.filter(f => f.label.trim());
             if (validFields.length === 0) {
                 showToast('Please add at least one field with a label', true);
-                return;
+                return false;
             }
             const payload = {
                 title: title,
@@ -903,7 +1175,11 @@ $path_prefix = '../../';
                 fields: validFields.map(f => ({
                     field_type: f.field_type,
                     label: f.label.trim(),
-                    options: f.field_type === 'dropdown' ? f.options.filter(o => o.trim()) : null,
+                    // hasOptions() covers dropdown + radio + checkboxes
+                    // (the legacy single 'checkbox' has no options).
+                    // Without this the new types from #441 would lose
+                    // their options on save.
+                    options: hasOptions(f.field_type) ? f.options.filter(o => o && o.trim()) : null,
                     is_required: f.is_required ? 1 : 0
                 }))
             };
@@ -925,14 +1201,16 @@ $path_prefix = '../../';
                     }
                     clearDirty();
                     showToast('Form saved successfully');
-                    // Reload so the version pill / modified-by reflect the
-                    // bump from this save.
+                    // Reload so the version pill / modified-by reflect
+                    // the latest values from the DB.
                     loadFormForEdit(currentFormId);
-                } else {
-                    showToast('Error: ' + data.error, true);
+                    return true;
                 }
+                showToast('Error: ' + data.error, true);
+                return false;
             } catch (e) {
                 showToast('Failed to save form', true);
+                return false;
             }
         }
 
