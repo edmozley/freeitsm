@@ -585,7 +585,7 @@ $path_prefix = '../../';
                     showToast(data.error || 'Failed to delete', 'error');
                 }
             } catch (e) {
-                showToast('Failed to delete', 'error', 'success');
+                showToast('Failed to delete', 'error');
             }
         }
 
@@ -617,7 +617,7 @@ $path_prefix = '../../';
                     showToast(data.error || 'Failed to save', 'error');
                 }
             } catch (e) {
-                showToast('Failed to save', 'error', 'success');
+                showToast('Failed to save', 'error');
             }
         });
 
@@ -960,7 +960,7 @@ $path_prefix = '../../';
                 });
                 const data = await res.json();
                 if (!data.success) {
-                    showToast('Save failed: ' + (data.error || 'unknown error'), 'error', 'success');
+                    showToast('Save failed: ' + (data.error || 'unknown error'), 'error');
                     return;
                 }
                 // Replace local state with the server's authoritative copy.
@@ -985,7 +985,7 @@ $path_prefix = '../../';
                 showSaveStatus();
             } catch (e) {
                 console.error('Auto-save error:', e);
-                showToast('Save failed: ' + e.message, 'error', 'success');
+                showToast('Save failed: ' + e.message, 'error');
             }
         }
 

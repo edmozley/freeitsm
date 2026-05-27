@@ -343,6 +343,7 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     closeModal();
+                    showToast('Saved', 'success');
                     loadServices();
                 } else {
                     showToast(data.error || 'Failed to save', 'error');
@@ -363,6 +364,7 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
+                    showToast('Deleted', 'success');
                     loadServices();
                 } else {
                     showToast(data.error || 'Failed to delete', 'error');
@@ -491,7 +493,7 @@ $path_prefix = '../../';
                     body: JSON.stringify({id: id})
                 });
                 const data = await res.json();
-                if (data.success) loadLookup(kind);
+                if (data.success) { showToast('Deleted', 'success'); loadLookup(kind); }
                 else showToast(data.error || 'Failed to delete', 'error');
             } catch (e) { showToast('Failed to delete', 'error'); }
         }
@@ -517,7 +519,7 @@ $path_prefix = '../../';
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                if (data.success) { closeLookupModal(); loadLookup(kind); }
+                if (data.success) { closeLookupModal(); showToast('Saved', 'success'); loadLookup(kind); }
                 else showToast(data.error || 'Failed to save', 'error');
             } catch (e) { showToast('Failed to save', 'error'); }
         });

@@ -1595,6 +1595,7 @@ $path_prefix = '../';
 
                 if (data.success) {
                     closeAssignModal();
+                    showToast('User assigned', 'success');
                     // Refresh the asset details and list
                     loadAssets(document.getElementById('assetSearch').value);
                     selectAsset(selectedAssetId);
@@ -1623,6 +1624,7 @@ $path_prefix = '../';
                 const data = await response.json();
 
                 if (data.success) {
+                    showToast('User removed', 'success');
                     // Refresh the asset details and list
                     loadAssets(document.getElementById('assetSearch').value);
                     selectAsset(selectedAssetId);

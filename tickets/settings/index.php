@@ -480,7 +480,6 @@ $translationNamespaces = ['common', 'tickets'];
 
                     <div style="grid-column:span 2;margin-top:8px;">
                         <button type="button" class="btn btn-primary" onclick="saveSlaGlobalSettings()">Save global settings</button>
-                        <span id="slaGlobalSaveStatus" style="margin-left:10px;font-size:13px;color:#16a34a;"></span>
                     </div>
                 </form>
             </div>
@@ -2047,6 +2046,7 @@ $translationNamespaces = ['common', 'tickets'];
                 const data = await response.json();
 
                 if (data.success) {
+                    showToast('Deleted', 'success');
                     if (type === 'department') {
                         loadDepartments();
                     } else if (type === 'ticket-type') {
@@ -2165,6 +2165,7 @@ $translationNamespaces = ['common', 'tickets'];
 
                 if (data.success) {
                     closeTeamAssignmentModal();
+                    showToast('Saved', 'success');
                     // Clear cache and reload
                     if (entityType === 'department') {
                         delete departmentTeams[entityId];
@@ -2242,6 +2243,7 @@ $translationNamespaces = ['common', 'tickets'];
 
                 if (data.success) {
                     closeModal();
+                    showToast('Saved', 'success');
                     if (type === 'department') {
                         loadDepartments();
                     } else if (type === 'ticket-type') {
@@ -2520,6 +2522,7 @@ $translationNamespaces = ['common', 'tickets'];
                 const data = await response.json();
 
                 if (data.success) {
+                    showToast('Mailbox deleted', 'success');
                     loadMailboxes();
                 } else {
                     showToast('Error deleting mailbox: ' + data.error, 'error');
@@ -2585,6 +2588,7 @@ $translationNamespaces = ['common', 'tickets'];
                 const data = await response.json();
 
                 if (data.success) {
+                    showToast('Mailbox signed out', 'success');
                     loadMailboxes();
                 } else {
                     showToast('Error: ' + data.error, 'error');
@@ -2742,6 +2746,7 @@ $translationNamespaces = ['common', 'tickets'];
                     }
 
                     closeMailboxModal();
+                    showToast('Mailbox saved', 'success');
                     loadMailboxes();
                 } else {
                     showToast('Error saving mailbox: ' + data.error, 'error');
@@ -3053,6 +3058,7 @@ $translationNamespaces = ['common', 'tickets'];
                 const data = await response.json();
 
                 if (data.success) {
+                    showToast('Analyst deleted', 'success');
                     loadAnalysts();
                 } else {
                     showToast('Error deleting analyst: ' + data.error, 'error');
@@ -3098,6 +3104,7 @@ $translationNamespaces = ['common', 'tickets'];
 
                 if (data.success) {
                     closeAnalystModal();
+                    showToast('Analyst saved', 'success');
                     loadAnalysts();
                 } else {
                     showToast('Error saving analyst: ' + data.error, 'error');
@@ -3773,9 +3780,7 @@ $translationNamespaces = ['common', 'tickets'];
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'save failed');
-                const status = document.getElementById('slaGlobalSaveStatus');
-                status.textContent = '✓ Saved';
-                setTimeout(() => { status.textContent = ''; }, 2500);
+                showToast('SLA settings saved', 'success');
                 // Refresh local copy from server (normalised values)
                 loadSlaTab();
             } catch (e) {

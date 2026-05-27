@@ -413,18 +413,6 @@ $path_prefix = '../../';
         </div>
     </div>
 
-    <!-- Delete confirmation -->
-    <div class="confirm-overlay" id="confirmOverlay" onclick="if(event.target===this)closeConfirm()">
-        <div class="confirm-box">
-            <h4>Delete API Key</h4>
-            <p>Are you sure you want to permanently delete this API key? Any clients using it will immediately lose access.</p>
-            <div class="confirm-actions">
-                <button class="btn btn-secondary" onclick="closeConfirm()">Cancel</button>
-                <button class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
-            </div>
-        </div>
-    </div>
-
     <script>
         function switchTab(tab) {
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -442,7 +430,6 @@ $path_prefix = '../../';
         // trash icon for delete.
         const ICON_TOGGLE = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path><line x1="12" y1="2" x2="12" y2="12"></line></svg>';
         const ICON_DELETE = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
-        let deleteKeyId = null;
         let newlyGeneratedKey = null;
 
         document.addEventListener('DOMContentLoaded', function() {
@@ -561,6 +548,7 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
+                    showToast('API key updated', 'success');
                     loadKeys();
                 } else {
                     showToast('Error: ' + data.error, 'error');
@@ -571,27 +559,23 @@ $path_prefix = '../../';
             }
         }
 
-        function promptDelete(id) {
-            deleteKeyId = id;
-            document.getElementById('confirmOverlay').classList.add('open');
-        }
-
-        function closeConfirm() {
-            deleteKeyId = null;
-            document.getElementById('confirmOverlay').classList.remove('open');
-        }
-
-        async function confirmDelete() {
-            if (!deleteKeyId) return;
+        async function promptDelete(id) {
+            const ok = await showConfirm({
+                title: 'Delete API key',
+                message: 'Delete this API key? Any integrations using it will stop working immediately. This cannot be undone.',
+                okLabel: 'Delete',
+                okClass: 'danger'
+            });
+            if (!ok) return;
             try {
                 const response = await fetch(API_BASE + 'delete_apikey.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: deleteKeyId })
+                    body: JSON.stringify({ id })
                 });
                 const data = await response.json();
                 if (data.success) {
-                    closeConfirm();
+                    showToast('API key deleted', 'success');
                     loadKeys();
                 } else {
                     showToast('Error: ' + data.error, 'error');
@@ -629,9 +613,6 @@ $path_prefix = '../../';
             return div.innerHTML;
         }
 
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeConfirm();
-        });
     </script>
 </body>
 </html>

@@ -388,6 +388,7 @@ $path_prefix = '../../';
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'Save failed');
                 closeModal();
+                showToast('RFP saved', 'success');
                 loadRfps();
             } catch (err) {
                 showToast('Save failed: ' + err.message, 'error');
@@ -406,6 +407,7 @@ $path_prefix = '../../';
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'Delete failed');
+                showToast('RFP deleted', 'success');
                 loadRfps();
             } catch (err) {
                 showToast('Delete failed: ' + err.message, 'error');

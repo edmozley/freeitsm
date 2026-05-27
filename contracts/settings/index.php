@@ -565,6 +565,7 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
+                    showToast('Department deleted', 'success');
                     loadRfpDepartments();
                 } else {
                     showToast('Error: ' + data.error, 'error');
@@ -602,6 +603,7 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     closeRfpDeptModal();
+                    showToast('Department saved', 'success');
                     loadRfpDepartments();
                 } else {
                     showToast('Error: ' + data.error, 'error');
@@ -895,6 +897,7 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
+                    showToast('Deleted', 'success');
                     loadItems(type);
                 } else {
                     showToast('Error: ' + data.error, 'error');
@@ -932,6 +935,7 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     closeModal();
+                    showToast('Saved', 'success');
                     loadItems(type);
                 } else {
                     showToast('Error: ' + data.error, 'error');

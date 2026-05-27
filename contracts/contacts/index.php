@@ -385,7 +385,7 @@ $path_prefix = '../../';
                     body: JSON.stringify({ id })
                 });
                 const data = await response.json();
-                if (data.success) loadContacts();
+                if (data.success) { showToast('Contact deleted', 'success'); loadContacts(); }
                 else showToast('Error: ' + data.error, 'error');
             } catch (error) { showToast('Failed to delete contact', 'error'); }
         }
@@ -411,7 +411,7 @@ $path_prefix = '../../';
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
-                if (data.success) { closeModal(); loadContacts(); }
+                if (data.success) { closeModal(); showToast('Contact saved', 'success'); loadContacts(); }
                 else showToast('Error: ' + data.error, 'error');
             } catch (error) { showToast('Failed to save contact', 'error'); }
         });

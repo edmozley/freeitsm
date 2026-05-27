@@ -592,6 +592,7 @@ $path_prefix = '../../../';
                 const data = await response.json();
                 if (data.success) {
                     closeModal();
+                    showToast('Supplier saved', 'success');
                     loadSuppliers();
                 } else {
                     showToast('Error: ' + data.error, 'error');

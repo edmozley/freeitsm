@@ -524,6 +524,7 @@ $path_prefix = '../';
                 const data = await response.json();
                 if (data.success) {
                     closeIncidentModal();
+                    showToast('Incident saved', 'success');
                     loadDashboard();
                 } else {
                     showToast(data.error || 'Failed to save', 'error');
@@ -553,6 +554,7 @@ $path_prefix = '../';
                 const data = await response.json();
                 if (data.success) {
                     closeIncidentModal();
+                    showToast('Incident deleted', 'success');
                     loadDashboard();
                 } else {
                     showToast(data.error || 'Failed to delete', 'error');

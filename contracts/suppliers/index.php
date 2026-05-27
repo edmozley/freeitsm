@@ -491,7 +491,7 @@ $path_prefix = '../../';
                     body: JSON.stringify({ id })
                 });
                 const data = await response.json();
-                if (data.success) loadSuppliers();
+                if (data.success) { showToast('Supplier deleted', 'success'); loadSuppliers(); }
                 else showToast('Error: ' + data.error, 'error');
             } catch (error) { showToast('Failed to delete supplier', 'error'); }
         }
@@ -524,7 +524,7 @@ $path_prefix = '../../';
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
-                if (data.success) { closeModal(); loadSuppliers(); }
+                if (data.success) { closeModal(); showToast('Supplier saved', 'success'); loadSuppliers(); }
                 else showToast('Error: ' + data.error, 'error');
             } catch (error) { showToast('Failed to save supplier', 'error'); }
         });
