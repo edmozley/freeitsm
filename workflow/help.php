@@ -233,33 +233,42 @@ $path_prefix = '../';
     <script>
     // Scroll-spy: highlight the active sidebar link as the user scrolls.
     (function () {
-        const main = document.querySelector('.wfh-main');
-        const links = document.querySelectorAll('.wfh-nav-link');
-        const sections = Array.from(links).map(a => document.getElementById(a.dataset.section)).filter(Boolean);
-        if (!main || sections.length === 0) return;
+        const helpMain = document.querySelector('.wfh-main');
+        const navLinks = document.querySelectorAll('.wfh-nav-link');
+        const sections = [];
 
-        function setActive(id) {
-            links.forEach(a => a.classList.toggle('active', a.dataset.section === id));
-        }
+        navLinks.forEach(link => {
+            const id = link.dataset.section;
+            const el = document.getElementById(id);
+            if (el) sections.push({ id, el });
+        });
 
-        main.addEventListener('scroll', () => {
-            const top = main.scrollTop + 80;
-            let current = sections[0].id;
-            for (const sec of sections) {
-                if (sec.offsetTop <= top) current = sec.id;
-                else break;
+        helpMain.addEventListener('scroll', function () {
+            const scrollTop = helpMain.scrollTop;
+            let current = sections[0]?.id;
+
+            for (const s of sections) {
+                if (s.el.offsetTop - 200 <= scrollTop) {
+                    current = s.id;
+                }
             }
-            setActive(current);
-        }, { passive: true });
 
-        // Smooth-scroll within the main container when a sidebar link is clicked.
-        links.forEach(a => {
-            a.addEventListener('click', (e) => {
-                const target = document.getElementById(a.dataset.section);
-                if (!target) return;
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.dataset.section === current);
+            });
+        });
+
+        navLinks.forEach(link => {
+            link.addEventListener('click', function (e) {
                 e.preventDefault();
-                main.scrollTo({ top: target.offsetTop - 16, behavior: 'smooth' });
-                setActive(a.dataset.section);
+                const el = document.getElementById(this.dataset.section);
+                if (el) {
+                    const containerTop = helpMain.getBoundingClientRect().top;
+                    const elTop = el.getBoundingClientRect().top;
+                    helpMain.scrollTo({ top: helpMain.scrollTop + (elTop - containerTop) - 20, behavior: 'smooth' });
+                }
+                navLinks.forEach(l => l.classList.remove('active'));
+                this.classList.add('active');
             });
         });
     })();
