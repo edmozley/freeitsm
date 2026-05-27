@@ -71,14 +71,6 @@ $path_prefix = '../';
             font-weight: 600;
         }
 
-        /* .kb-help-nav-link.highlight and .kb-help-nav-num.highlight previously
-           coloured a couple of "important" links purple to draw attention, but
-           it left the sidebar with a mix of grey + purple text and looked
-           inconsistent. All links now share the default colour; only the
-           currently-active section stands out. The .highlight class is kept
-           on the markup in case we ever want to re-introduce differentiation
-           via something subtler. */
-
         .kb-help-nav-num {
             display: flex;
             align-items: center;
@@ -510,8 +502,8 @@ $path_prefix = '../';
                 <span class="kb-help-nav-num">2</span>
                 Writing articles
             </a>
-            <a href="#review-workflow" class="kb-help-nav-link highlight" data-section="review-workflow">
-                <span class="kb-help-nav-num highlight">3</span>
+            <a href="#review-workflow" class="kb-help-nav-link" data-section="review-workflow">
+                <span class="kb-help-nav-num">3</span>
                 Review workflow
             </a>
             <a href="#ask-ai" class="kb-help-nav-link" data-section="ask-ai">
@@ -522,8 +514,8 @@ $path_prefix = '../';
                 <span class="kb-help-nav-num">5</span>
                 Search &amp; navigation
             </a>
-            <a href="#sharing-export" class="kb-help-nav-link highlight" data-section="sharing-export">
-                <span class="kb-help-nav-num highlight">6</span>
+            <a href="#sharing-export" class="kb-help-nav-link" data-section="sharing-export">
+                <span class="kb-help-nav-num">6</span>
                 Sharing &amp; export
             </a>
             <a href="#tips" class="kb-help-nav-link" data-section="tips">

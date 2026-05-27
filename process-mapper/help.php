@@ -74,15 +74,6 @@ $path_prefix = '../';
             font-weight: 600;
         }
 
-        .pm-help-nav-link.highlight {
-            color: #3730a3;
-        }
-
-        .pm-help-nav-link.highlight.active {
-            background: #4f46e5;
-            color: white;
-        }
-
         .pm-help-nav-num {
             display: flex;
             align-items: center;
@@ -102,15 +93,6 @@ $path_prefix = '../';
             color: white;
         }
 
-        .pm-help-nav-num.highlight {
-            background: #eef2ff;
-            color: #3730a3;
-        }
-
-        .pm-help-nav-link.highlight.active .pm-help-nav-num {
-            background: rgba(255,255,255,0.25);
-            color: white;
-        }
 
         /* Main content */
         .pm-help-main {
@@ -466,8 +448,8 @@ $path_prefix = '../';
                 <span class="pm-help-nav-num">1</span>
                 Overview
             </a>
-            <a href="#creating" class="pm-help-nav-link highlight" data-section="creating">
-                <span class="pm-help-nav-num highlight">2</span>
+            <a href="#creating" class="pm-help-nav-link" data-section="creating">
+                <span class="pm-help-nav-num">2</span>
                 Creating a process
             </a>
             <a href="#step-types" class="pm-help-nav-link" data-section="step-types">
@@ -478,16 +460,16 @@ $path_prefix = '../';
                 <span class="pm-help-nav-num">4</span>
                 Connectors &amp; right-click
             </a>
-            <a href="#arranging" class="pm-help-nav-link highlight" data-section="arranging">
-                <span class="pm-help-nav-num highlight">5</span>
+            <a href="#arranging" class="pm-help-nav-link" data-section="arranging">
+                <span class="pm-help-nav-num">5</span>
                 Arranging &amp; editing
             </a>
             <a href="#saving" class="pm-help-nav-link" data-section="saving">
                 <span class="pm-help-nav-num">6</span>
                 Saving &amp; loading
             </a>
-            <a href="#export" class="pm-help-nav-link highlight" data-section="export">
-                <span class="pm-help-nav-num highlight">7</span>
+            <a href="#export" class="pm-help-nav-link" data-section="export">
+                <span class="pm-help-nav-num">7</span>
                 Exporting
             </a>
             <a href="#tips" class="pm-help-nav-link" data-section="tips">

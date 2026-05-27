@@ -71,15 +71,6 @@ $path_prefix = '../';
             font-weight: 600;
         }
 
-        .ct-help-nav-link.highlight {
-            color: #92400e;
-        }
-
-        .ct-help-nav-link.highlight.active {
-            background: #d97706;
-            color: white;
-        }
-
         .ct-help-nav-num {
             display: flex;
             align-items: center;
@@ -96,16 +87,6 @@ $path_prefix = '../';
 
         .ct-help-nav-link.active .ct-help-nav-num {
             background: #f59e0b;
-            color: white;
-        }
-
-        .ct-help-nav-num.highlight {
-            background: #fffbeb;
-            color: #92400e;
-        }
-
-        .ct-help-nav-link.highlight.active .ct-help-nav-num {
-            background: rgba(255,255,255,0.25);
             color: white;
         }
 
@@ -489,8 +470,8 @@ $path_prefix = '../';
                 <span class="ct-help-nav-num">2</span>
                 Managing contracts
             </a>
-            <a href="#contract-terms" class="ct-help-nav-link highlight" data-section="contract-terms">
-                <span class="ct-help-nav-num highlight">3</span>
+            <a href="#contract-terms" class="ct-help-nav-link" data-section="contract-terms">
+                <span class="ct-help-nav-num">3</span>
                 Contract terms
             </a>
             <a href="#suppliers" class="ct-help-nav-link" data-section="suppliers">

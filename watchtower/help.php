@@ -71,15 +71,6 @@ $path_prefix = '../';
             font-weight: 600;
         }
 
-        .wt-help-nav-link.highlight {
-            color: #1e293b;
-        }
-
-        .wt-help-nav-link.highlight.active {
-            background: #1e293b;
-            color: white;
-        }
-
         .wt-help-nav-num {
             display: flex;
             align-items: center;
@@ -99,15 +90,6 @@ $path_prefix = '../';
             color: white;
         }
 
-        .wt-help-nav-num.highlight {
-            background: #e2e8f0;
-            color: #1e293b;
-        }
-
-        .wt-help-nav-link.highlight.active .wt-help-nav-num {
-            background: rgba(255,255,255,0.25);
-            color: white;
-        }
 
         /* Main content */
         .wt-help-main {
@@ -576,8 +558,8 @@ $path_prefix = '../';
                 <span class="wt-help-nav-num">2</span>
                 The dashboard layout
             </a>
-            <a href="#status-dots" class="wt-help-nav-link highlight" data-section="status-dots">
-                <span class="wt-help-nav-num highlight">3</span>
+            <a href="#status-dots" class="wt-help-nav-link" data-section="status-dots">
+                <span class="wt-help-nav-num">3</span>
                 Understanding status dots
             </a>
             <a href="#module-cards" class="wt-help-nav-link" data-section="module-cards">

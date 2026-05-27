@@ -71,15 +71,6 @@ $path_prefix = '../';
             font-weight: 600;
         }
 
-        .tk-help-nav-link.highlight {
-            color: #005a9e;
-        }
-
-        .tk-help-nav-link.highlight.active {
-            background: #0078d4;
-            color: white;
-        }
-
         .tk-help-nav-num {
             display: flex;
             align-items: center;
@@ -99,15 +90,6 @@ $path_prefix = '../';
             color: white;
         }
 
-        .tk-help-nav-num.highlight {
-            background: #e3f2fd;
-            color: #005a9e;
-        }
-
-        .tk-help-nav-link.highlight.active .tk-help-nav-num {
-            background: rgba(255,255,255,0.25);
-            color: white;
-        }
 
         /* Main content */
         .tk-help-main {
@@ -444,8 +426,8 @@ $path_prefix = '../';
                 <span class="tk-help-nav-num">2</span>
                 The inbox
             </a>
-            <a href="#working-with-tickets" class="tk-help-nav-link highlight" data-section="working-with-tickets">
-                <span class="tk-help-nav-num highlight">3</span>
+            <a href="#working-with-tickets" class="tk-help-nav-link" data-section="working-with-tickets">
+                <span class="tk-help-nav-num">3</span>
                 Working with tickets
             </a>
             <a href="#comments-attachments" class="tk-help-nav-link" data-section="comments-attachments">
@@ -468,8 +450,8 @@ $path_prefix = '../';
                 <span class="tk-help-nav-num">8</span>
                 Dashboard
             </a>
-            <a href="#calendar-rota" class="tk-help-nav-link highlight" data-section="calendar-rota">
-                <span class="tk-help-nav-num highlight">9</span>
+            <a href="#calendar-rota" class="tk-help-nav-link" data-section="calendar-rota">
+                <span class="tk-help-nav-num">9</span>
                 Calendar &amp; rota
             </a>
             <a href="#settings" class="tk-help-nav-link" data-section="settings">

@@ -71,15 +71,6 @@ $path_prefix = '../';
             font-weight: 600;
         }
 
-        .cal-help-nav-link.highlight {
-            color: #e65100;
-        }
-
-        .cal-help-nav-link.highlight.active {
-            background: #e65100;
-            color: white;
-        }
-
         .cal-help-nav-num {
             display: flex;
             align-items: center;
@@ -99,15 +90,6 @@ $path_prefix = '../';
             color: white;
         }
 
-        .cal-help-nav-num.highlight {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .cal-help-nav-link.highlight.active .cal-help-nav-num {
-            background: rgba(255,255,255,0.25);
-            color: white;
-        }
 
         /* Main content */
         .cal-help-main {
@@ -442,16 +424,16 @@ $path_prefix = '../';
                 <span class="cal-help-nav-num">2</span>
                 Calendar views
             </a>
-            <a href="#creating-events" class="cal-help-nav-link highlight" data-section="creating-events">
-                <span class="cal-help-nav-num highlight">3</span>
+            <a href="#creating-events" class="cal-help-nav-link" data-section="creating-events">
+                <span class="cal-help-nav-num">3</span>
                 Creating events
             </a>
             <a href="#categories" class="cal-help-nav-link" data-section="categories">
                 <span class="cal-help-nav-num">4</span>
                 Event categories
             </a>
-            <a href="#settings" class="cal-help-nav-link highlight" data-section="settings">
-                <span class="cal-help-nav-num highlight">5</span>
+            <a href="#settings" class="cal-help-nav-link" data-section="settings">
+                <span class="cal-help-nav-num">5</span>
                 Settings
             </a>
             <a href="#tips" class="cal-help-nav-link" data-section="tips">

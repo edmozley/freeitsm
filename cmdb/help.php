@@ -60,35 +60,6 @@ $path_prefix = '../';
         }
         .cmdb-help-nav-link:hover { background: #fdf2f8; color: #be185d; }
         .cmdb-help-nav-link.active { background: #fce7f3; color: #be185d; font-weight: 600; }
-        .cmdb-help-nav-link.highlight { color: #be185d; }
-        .cmdb-help-nav-link.highlight.active { background: linear-gradient(135deg, #be185d, #9d174d); color: white; }
-
-        /* Red star pinned to the right edge of each highlighted nav item.
-           The legend at the bottom of the sidebar explains it. */
-        .cmdb-help-nav-link.highlight::after {
-            content: '\2605';
-            margin-left: auto;
-            color: #dc2626;
-            font-size: 14px;
-            line-height: 1;
-        }
-        .cmdb-help-nav-link.highlight.active::after { color: rgba(255,255,255,0.95); }
-
-        /* Legend at the bottom of the sidebar */
-        .cmdb-help-legend {
-            margin-top: auto;
-            padding-top: 16px;
-            border-top: 1px solid #f3f4f6;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #6b7280;
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-weight: 600;
-        }
-        .cmdb-help-legend .legend-star { color: #dc2626; font-size: 14px; }
         .cmdb-help-nav-num {
             display: flex; align-items: center; justify-content: center;
             min-width: 24px; height: 24px;
@@ -98,8 +69,6 @@ $path_prefix = '../';
             flex-shrink: 0;
         }
         .cmdb-help-nav-link.active .cmdb-help-nav-num { background: #be185d; color: white; }
-        .cmdb-help-nav-num.highlight { background: #fce7f3; color: #be185d; }
-        .cmdb-help-nav-link.highlight.active .cmdb-help-nav-num { background: rgba(255,255,255,0.25); color: white; }
 
         /* Main content area */
         .cmdb-help-main { flex: 1; overflow-y: auto; }
@@ -333,14 +302,14 @@ $path_prefix = '../';
             <a href="#overview" class="cmdb-help-nav-link active" data-section="overview">
                 <span class="cmdb-help-nav-num">1</span> Overview
             </a>
-            <a href="#concepts" class="cmdb-help-nav-link highlight" data-section="concepts">
-                <span class="cmdb-help-nav-num highlight">2</span> Core concepts
+            <a href="#concepts" class="cmdb-help-nav-link" data-section="concepts">
+                <span class="cmdb-help-nav-num">2</span> Core concepts
             </a>
             <a href="#classes" class="cmdb-help-nav-link" data-section="classes">
                 <span class="cmdb-help-nav-num">3</span> Classes &amp; properties
             </a>
-            <a href="#ai-suggest" class="cmdb-help-nav-link highlight" data-section="ai-suggest">
-                <span class="cmdb-help-nav-num highlight">4</span> AI Suggest Properties
+            <a href="#ai-suggest" class="cmdb-help-nav-link" data-section="ai-suggest">
+                <span class="cmdb-help-nav-num">4</span> AI Suggest Properties
             </a>
             <a href="#objects" class="cmdb-help-nav-link" data-section="objects">
                 <span class="cmdb-help-nav-num">5</span> Adding objects
@@ -351,8 +320,8 @@ $path_prefix = '../';
             <a href="#relationships" class="cmdb-help-nav-link" data-section="relationships">
                 <span class="cmdb-help-nav-num">7</span> Relationships
             </a>
-            <a href="#when-to-use" class="cmdb-help-nav-link highlight" data-section="when-to-use">
-                <span class="cmdb-help-nav-num highlight">8</span> Property vs parent vs relationship
+            <a href="#when-to-use" class="cmdb-help-nav-link" data-section="when-to-use">
+                <span class="cmdb-help-nav-num">8</span> Property vs parent vs relationship
             </a>
             <a href="#synthesis" class="cmdb-help-nav-link" data-section="synthesis">
                 <span class="cmdb-help-nav-num">9</span> AI summary, Impact &amp; Map
@@ -367,10 +336,6 @@ $path_prefix = '../';
                 <span class="cmdb-help-nav-num">12</span> Tips &amp; conventions
             </a>
 
-            <div class="cmdb-help-legend">
-                <span class="legend-star">&#9733;</span>
-                <span>Critical reading</span>
-            </div>
         </div>
 
         <!-- Main content -->

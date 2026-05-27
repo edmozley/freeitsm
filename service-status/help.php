@@ -71,15 +71,6 @@ $path_prefix = '../';
             font-weight: 600;
         }
 
-        .ss-help-nav-link.highlight {
-            color: #065f46;
-        }
-
-        .ss-help-nav-link.highlight.active {
-            background: #059669;
-            color: white;
-        }
-
         .ss-help-nav-num {
             display: flex;
             align-items: center;
@@ -99,15 +90,6 @@ $path_prefix = '../';
             color: white;
         }
 
-        .ss-help-nav-num.highlight {
-            background: #ecfdf5;
-            color: #065f46;
-        }
-
-        .ss-help-nav-link.highlight.active .ss-help-nav-num {
-            background: rgba(255,255,255,0.25);
-            color: white;
-        }
 
         /* Main content */
         .ss-help-main {
@@ -457,8 +439,8 @@ $path_prefix = '../';
                 <span class="ss-help-nav-num">2</span>
                 The status dashboard
             </a>
-            <a href="#managing-services" class="ss-help-nav-link highlight" data-section="managing-services">
-                <span class="ss-help-nav-num highlight">3</span>
+            <a href="#managing-services" class="ss-help-nav-link" data-section="managing-services">
+                <span class="ss-help-nav-num">3</span>
                 Managing services
             </a>
             <a href="#incident-history" class="ss-help-nav-link" data-section="incident-history">

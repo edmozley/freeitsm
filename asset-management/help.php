@@ -71,15 +71,6 @@ $path_prefix = '../';
             font-weight: 600;
         }
 
-        .am-help-nav-link.highlight {
-            color: #1b5e20;
-        }
-
-        .am-help-nav-link.highlight.active {
-            background: #2e7d32;
-            color: white;
-        }
-
         .am-help-nav-num {
             display: flex;
             align-items: center;
@@ -99,15 +90,6 @@ $path_prefix = '../';
             color: white;
         }
 
-        .am-help-nav-num.highlight {
-            background: #e8f5e9;
-            color: #1b5e20;
-        }
-
-        .am-help-nav-link.highlight.active .am-help-nav-num {
-            background: rgba(255,255,255,0.25);
-            color: white;
-        }
 
         /* Main content */
         .am-help-main {
@@ -470,16 +452,16 @@ $path_prefix = '../';
                 <span class="am-help-nav-num">3</span>
                 Table view
             </a>
-            <a href="#inventory-script" class="am-help-nav-link highlight" data-section="inventory-script">
-                <span class="am-help-nav-num highlight">4</span>
+            <a href="#inventory-script" class="am-help-nav-link" data-section="inventory-script">
+                <span class="am-help-nav-num">4</span>
                 Inventory script
             </a>
             <a href="#what-gets-collected" class="am-help-nav-link" data-section="what-gets-collected">
                 <span class="am-help-nav-num">5</span>
                 What gets collected
             </a>
-            <a href="#deployment" class="am-help-nav-link highlight" data-section="deployment">
-                <span class="am-help-nav-num highlight">6</span>
+            <a href="#deployment" class="am-help-nav-link" data-section="deployment">
+                <span class="am-help-nav-num">6</span>
                 Deploying at scale
             </a>
             <a href="#servers" class="am-help-nav-link" data-section="servers">
