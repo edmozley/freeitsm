@@ -523,7 +523,7 @@ $translationNamespaces = ['common', 'tickets'];
                     one rule (start with a Default-scope Warning + Breach pair to get coverage for everything).
                 </div>
 
-                <p style="color:#666;margin-bottom:14px;font-size:13px;">
+                <p style="color:#666;margin-bottom:14px;">
                     Each ticket fires at most one email per target per trigger &mdash; the cron worker tracks what's already been sent so you don't get duplicates.
                 </p>
                 <table>
@@ -553,7 +553,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <h3 style="margin:0;">Cron activity</h3>
                     <button class="add-btn" onclick="loadSlaCronRuns()" title="Refresh">&#x21bb;</button>
                 </div>
-                <p style="color:#666;margin-bottom:14px;font-size:13px;">
+                <p style="color:#666;margin-bottom:14px;">
                     Last <span id="slaCronRunsLimit">20</span> invocations of the breach-check cron (CLI and HTTP).
                     Includes rejected requests (rate-limited, auth-failed) so the same source-of-truth supports the rate-limit
                     checks and security audits. Pruned automatically after
@@ -573,7 +573,7 @@ $translationNamespaces = ['common', 'tickets'];
                         </tr>
                     </thead>
                     <tbody id="slaCronRunsList">
-                        <tr><td colspan="7" style="text-align:center;color:#888;">Loading...</td></tr>
+                        <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -631,7 +631,7 @@ $translationNamespaces = ['common', 'tickets'];
                         <div class="form-group" style="margin-bottom:0;">
                             <label for="slaNotifEmails">Additional email addresses</label>
                             <textarea id="slaNotifEmails" class="form-control" rows="2" placeholder="alerts@company.com, slm@company.com"></textarea>
-                            <small style="color:#888;">Comma, semicolon, or newline separated. Useful for distribution lists or Slack/Teams email bridges.</small>
+                            <small>Comma, semicolon, or newline separated. Useful for distribution lists or Slack/Teams email bridges.</small>
                         </div>
                     </fieldset>
 
@@ -4090,7 +4090,7 @@ $translationNamespaces = ['common', 'tickets'];
         function renderSlaNotifRules() {
             const tbody = document.getElementById('slaNotifRulesList');
             if (!slaNotifData.rules.length) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#888;">No rules configured &mdash; SLA breach emails are disabled until you add at least one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No rules configured &mdash; SLA breach emails are disabled until you add at least one.</td></tr>';
                 return;
             }
             const targetLabel = { response: 'Response', resolution: 'Resolution', both: 'Both' };
@@ -4243,7 +4243,7 @@ $translationNamespaces = ['common', 'tickets'];
 
             const tbody = document.getElementById('slaCronRunsList');
             if (!runs.length) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#888;">No runs yet &mdash; once you set up the scheduled task they\'ll appear here.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;">No runs yet &mdash; once you set up the scheduled task they\'ll appear here.</td></tr>';
                 return;
             }
             const outcomeColour = {
