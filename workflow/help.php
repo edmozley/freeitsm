@@ -27,11 +27,52 @@ $path_prefix = '../';
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/workflow.css?v=4">
     <style>
-        .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; padding-bottom: 60px; }
+        /* ---- Layout: sidebar + scrolling main, same shape as other modules' help pages ---- */
+        .wfh-container { display: flex; height: calc(100vh - 48px); background: #f5f5f5; }
+
+        .wfh-sidebar {
+            width: 260px;
+            background: white;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex-shrink: 0;
+            overflow-y: auto;
+        }
+        .wfh-sidebar h3 {
+            font-size: 12px; font-weight: 600;
+            color: #888; text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0 0 12px;
+        }
+        .wfh-nav-link {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 12px; border-radius: 6px;
+            font-size: 13px; color: #555;
+            text-decoration: none;
+            transition: background 0.15s, color 0.15s;
+        }
+        .wfh-nav-link:hover { background: #f5f5f5; color: #333; }
+        .wfh-nav-link.active { background: #fff7ed; color: #b45309; font-weight: 600; }
+        .wfh-nav-num {
+            display: flex; align-items: center; justify-content: center;
+            min-width: 22px; height: 22px;
+            border-radius: 50%;
+            background: #f5f5f5; color: #888;
+            font-size: 11px; font-weight: 700;
+        }
+        .wfh-nav-link.active .wfh-nav-num { background: #f59e0b; color: white; }
+
+        .wfh-main { flex: 1; overflow-y: auto; padding: 24px 32px 60px; }
+
+        /* ---- Per-section content styling (preserved from the original page) ---- */
         .wf-help h2 { font-size: 22px; color: #333; margin: 0 0 4px; }
         .wf-help p { color: #555; line-height: 1.6; }
         .wf-help .lede { font-size: 15px; color: #444; }
-        .wf-help h3 { margin: 32px 0 10px; font-size: 16px; color: #333; padding-bottom: 6px; border-bottom: 1px solid #eee; }
+        .wf-help h3 { margin: 32px 0 10px; font-size: 16px; color: #333; padding-bottom: 6px; border-bottom: 1px solid #eee; scroll-margin-top: 20px; }
+        .wf-help h3:first-of-type { margin-top: 22px; }
         .wf-help h4 { margin: 22px 0 6px; font-size: 14px; color: #444; }
         .wf-help ul, .wf-help ol { color: #555; line-height: 1.7; padding-left: 22px; }
         .wf-help li { margin-bottom: 6px; }
@@ -47,12 +88,47 @@ $path_prefix = '../';
 <body>
     <?php include 'includes/header.php'; ?>
 
-    <div class="container">
-        <div class="tab-content active wf-help">
+    <div class="wfh-container">
+        <aside class="wfh-sidebar">
+            <h3>Guide</h3>
+            <a href="#anatomy" class="wfh-nav-link active" data-section="anatomy">
+                <span class="wfh-nav-num">1</span> Anatomy of a workflow
+            </a>
+            <a href="#canvas" class="wfh-nav-link" data-section="canvas">
+                <span class="wfh-nav-num">2</span> The visual canvas
+            </a>
+            <a href="#conditions" class="wfh-nav-link" data-section="conditions">
+                <span class="wfh-nav-num">3</span> Conditions
+            </a>
+            <a href="#actions" class="wfh-nav-link" data-section="actions">
+                <span class="wfh-nav-num">4</span> Actions
+            </a>
+            <a href="#variables" class="wfh-nav-link" data-section="variables">
+                <span class="wfh-nav-num">5</span> Variables
+            </a>
+            <a href="#ai" class="wfh-nav-link" data-section="ai">
+                <span class="wfh-nav-num">6</span> AI co-author
+            </a>
+            <a href="#testing" class="wfh-nav-link" data-section="testing">
+                <span class="wfh-nav-num">7</span> Saving and testing
+            </a>
+            <a href="#triggers" class="wfh-nav-link" data-section="triggers">
+                <span class="wfh-nav-num">8</span> Wired triggers today
+            </a>
+            <a href="#failures" class="wfh-nav-link" data-section="failures">
+                <span class="wfh-nav-num">9</span> Engine failures are isolated
+            </a>
+            <a href="#ahead" class="wfh-nav-link" data-section="ahead">
+                <span class="wfh-nav-num">10</span> What's still ahead
+            </a>
+        </aside>
+
+        <main class="wfh-main">
+            <div class="tab-content active wf-help">
             <h2><?php echo htmlspecialchars(t('workflow.help.page_title')); ?></h2>
             <p class="lede">Workflows let you automate the things you find yourself doing manually after a ticket arrives: tagging, escalating, assigning, notifying, fanning out to other systems. A workflow listens for an event, optionally filters with conditions, then runs one or more actions in order.</p>
 
-            <h3>1. Anatomy of a workflow</h3>
+            <h3 id="anatomy">1. Anatomy of a workflow</h3>
             <p>Every workflow has three parts:</p>
             <ul>
                 <li><strong>Trigger</strong> &mdash; the event that fires the workflow. Examples: <code>ticket.created</code>, <code>ticket.priority_changed</code>, <code>ticket.assigned</code>. Exactly one trigger per workflow.</li>
@@ -61,7 +137,7 @@ $path_prefix = '../';
             </ul>
             <p>Execution is synchronous &mdash; the workflow runs in the same web request that fired the event. Each run writes a row to the execution log with the full trigger payload, every condition's pass/fail, and every action's result.</p>
 
-            <h3>2. The visual canvas</h3>
+            <h3 id="canvas">2. The visual canvas</h3>
             <p>The editor is a dot-grid canvas with three node shapes:</p>
             <ul>
                 <li><strong>Trigger node</strong> &mdash; amber pill, pinned at the top centre. One per workflow; can't be deleted.</li>
@@ -71,7 +147,7 @@ $path_prefix = '../';
             <p>Connectors are drawn automatically in execution order: trigger &rarr; conditions (top to bottom by y position) &rarr; actions (top to bottom). <strong>Position IS the order</strong> &mdash; drag a condition above another to swap them.</p>
             <p>Click any node to open the detail panel on the right. Click empty canvas to switch the panel back to the workflow-level fields (name / description / active flag / recent runs). Right-click or press Delete to remove the selected node (except the trigger).</p>
 
-            <h3>3. Conditions</h3>
+            <h3 id="conditions">3. Conditions</h3>
             <p>The condition panel has three controls: <strong>Field</strong>, <strong>Operator</strong>, <strong>Value</strong>. Their behaviour adapts to the chosen field type:</p>
             <h4>Lookup fields (priority, status, department, type, analyst&hellip;)</h4>
             <p>The value control is a <strong>checkbox list of real values</strong> pulled from the lookup table &mdash; not opaque ids. Tick one for an exact match, tick several for OR semantics (e.g. <em>"priority is Critical OR High"</em>). The operator dropdown collapses to <strong>is / is not / is empty / is not empty</strong> &mdash; the multi-select handles the rest.</p>
@@ -80,7 +156,7 @@ $path_prefix = '../';
             <h4>Numeric fields (ids, durations&hellip;)</h4>
             <p>Numeric operators: <strong>equals / not equals / is one of / is not one of / greater than / less than / is empty / is not empty</strong>. No <em>contains</em> &mdash; substring search on a number is meaningless.</p>
 
-            <h3>4. Actions</h3>
+            <h3 id="actions">4. Actions</h3>
             <p>Eight handlers ship today. Pick an action's type from the dropdown and a labelled form appears below with the right widget per arg (text input, textarea, number input, lookup dropdown):</p>
             <table>
                 <tr><th>Type</th><th>What it does</th><th>Key args</th></tr>
@@ -95,7 +171,7 @@ $path_prefix = '../';
             </table>
             <p>Each action's required args are marked with a <code>*</code> in the form. Missing required args cause the action to fail at execution time &mdash; the engine logs the failure to the execution row and stops the rest of the chain.</p>
 
-            <h3>5. Variables &mdash; <code>{{path.to.field}}</code></h3>
+            <h3 id="variables">5. Variables &mdash; <code>{{path.to.field}}</code></h3>
             <p>Any free-text action arg supports variable substitution against the trigger's payload. The hint <em>"Supports variables like {{ticket.id}}"</em> appears under each variable-friendly field.</p>
             <p>Common variables for ticket triggers:</p>
             <ul>
@@ -107,7 +183,7 @@ $path_prefix = '../';
             </ul>
             <div class="tip"><strong>Best practice:</strong> in action <code>ticket_id</code> fields, leave the default <code>{{ticket.id}}</code> rather than typing a specific id &mdash; that way the workflow operates on whichever ticket triggered it, not a fixed one.</div>
 
-            <h3>6. AI co-author</h3>
+            <h3 id="ai">6. AI co-author</h3>
             <p>Click <strong>AI co-author</strong> on the toolbar and describe the workflow in plain English. The AI returns a structured proposal &mdash; trigger, conditions, actions &mdash; that you can <em>Apply</em> to the canvas or <em>Discard</em>.</p>
             <p>Examples that work well:</p>
             <ul>
@@ -118,12 +194,12 @@ $path_prefix = '../';
             <p>The AI knows the engine's full catalogue &mdash; every trigger, condition operator, action, and the available lookup-table values &mdash; so it can only propose things that will actually work. If you iterate on an existing workflow (<em>"now only match Finance"</em> / <em>"add an action to log the ticket id"</em>) it edits what's on the canvas rather than starting over.</p>
             <p>Configure the provider (Anthropic / OpenAI), model and API key under <strong>Workflow &rarr; Settings &rarr; AI</strong>. Keys are stored per module so billing and access can be granular.</p>
 
-            <h3>7. Saving and testing</h3>
+            <h3 id="testing">7. Saving and testing</h3>
             <p>The status pip in the toolbar shows <em>Unsaved</em> / <em>Saving&hellip;</em> / <em>Saved</em>. Click <strong>Save</strong> to persist. You can save in-progress drafts with zero actions &mdash; you'll get a soft "this workflow has no actions yet" warning rather than being blocked.</p>
             <p><strong>Test fire</strong> runs the workflow with a synthetic payload generated from its own conditions, so the action path actually executes. The result lands in <em>Recent runs</em> on the workflow detail panel with status (<em>success / failed / skipped</em>) and full step log.</p>
             <p>To test against real data, just do the thing that triggers it &mdash; assign a ticket, change its priority, etc. The dispatch from the host module (Tickets) is live; the execution log shows every fire.</p>
 
-            <h3>8. Wired triggers today</h3>
+            <h3 id="triggers">8. Wired triggers today</h3>
             <p>The trigger catalogue lists seven events. Wiring from host modules is being rolled out incrementally:</p>
             <table>
                 <tr><th>Trigger</th><th>Wired?</th><th>Notes</th></tr>
@@ -136,10 +212,10 @@ $path_prefix = '../';
                 <tr><td><code>change.approved</code></td><td>Soon</td><td>Changes module dispatch wiring is next.</td></tr>
             </table>
 
-            <h3>9. Engine failures are isolated</h3>
+            <h3 id="failures">9. Engine failures are isolated</h3>
             <div class="callout"><strong>A buggy workflow cannot break the host module's request.</strong> Every dispatch is wrapped in a try/catch and every action's failure is logged to the execution row without aborting the chain. If a workflow stops doing what you expect, check the workflow's <em>Recent runs</em> panel &mdash; failures show up there with the underlying error, not as a 500 on the page that triggered them.</div>
 
-            <h3>10. What's still ahead</h3>
+            <h3 id="ahead">10. What's still ahead</h3>
             <ul>
                 <li><strong>Tier 3 actions</strong> &mdash; Microsoft Graph: <code>graph_add_to_group</code>, <code>graph_assign_license</code>, <code>graph_disable_user</code>. The new-starter / leaver automations that justify the module's existence vs paid ITSM suites. Reuses the existing tenant OAuth scaffolding.</li>
                 <li><strong>Teams / Slack messages</strong> &mdash; channel pings on important events.</li>
@@ -150,7 +226,43 @@ $path_prefix = '../';
                 <li><strong>Workflow versioning</strong> &mdash; draft / publish / rollback.</li>
                 <li><strong>Streaming AI co-author</strong> &mdash; claude.ai-style live output as the canvas builds.</li>
             </ul>
-        </div>
+            </div>
+        </main>
     </div>
+
+    <script>
+    // Scroll-spy: highlight the active sidebar link as the user scrolls.
+    (function () {
+        const main = document.querySelector('.wfh-main');
+        const links = document.querySelectorAll('.wfh-nav-link');
+        const sections = Array.from(links).map(a => document.getElementById(a.dataset.section)).filter(Boolean);
+        if (!main || sections.length === 0) return;
+
+        function setActive(id) {
+            links.forEach(a => a.classList.toggle('active', a.dataset.section === id));
+        }
+
+        main.addEventListener('scroll', () => {
+            const top = main.scrollTop + 80;
+            let current = sections[0].id;
+            for (const sec of sections) {
+                if (sec.offsetTop <= top) current = sec.id;
+                else break;
+            }
+            setActive(current);
+        }, { passive: true });
+
+        // Smooth-scroll within the main container when a sidebar link is clicked.
+        links.forEach(a => {
+            a.addEventListener('click', (e) => {
+                const target = document.getElementById(a.dataset.section);
+                if (!target) return;
+                e.preventDefault();
+                main.scrollTo({ top: target.offsetTop - 16, behavior: 'smooth' });
+                setActive(a.dataset.section);
+            });
+        });
+    })();
+    </script>
 </body>
 </html>
