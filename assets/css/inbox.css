@@ -1333,7 +1333,7 @@ body.ticket-popout .ticket-toolbar {
 }
 
 .modal-header {
-    padding: 10px 24px;
+    padding: 15px 24px;
     border-bottom: 1px solid #e0e0e0;
     font-size: 20px;
     font-weight: 600;
@@ -2181,7 +2181,7 @@ body.ticket-popout .ticket-toolbar {
 }
 .modal-content:has(> .modal-body) > .modal-header,
 .modal-content:has(> form > .modal-body) > .modal-header {
-    padding: 10px 24px;
+    padding: 15px 24px;
     margin: 0;
     border-bottom: 1px solid #e0e0e0;
     font-size: 18px;
