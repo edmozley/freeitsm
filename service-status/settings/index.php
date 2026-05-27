@@ -14,7 +14,7 @@ $path_prefix = '../../';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Service Status Settings</title>
+    <title>Service Desk - Service status settings</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         /* Override the shared .container max-width so this page uses the full screen */
@@ -66,7 +66,7 @@ $path_prefix = '../../';
         <div class="tabs">
             <button class="tab active" data-tab="services" onclick="switchTab('services')">Services</button>
             <button class="tab" data-tab="statuses" onclick="switchTab('statuses')">Statuses</button>
-            <button class="tab" data-tab="impacts" onclick="switchTab('impacts')">Impact Levels</button>
+            <button class="tab" data-tab="impacts" onclick="switchTab('impacts')">Impact levels</button>
         </div>
 
         <div class="tab-content active" id="services-tab">
@@ -93,23 +93,23 @@ $path_prefix = '../../';
         <!-- Statuses Tab -->
         <div class="tab-content" id="statuses-tab">
             <div class="section-header">
-                <h2>Incident Statuses</h2>
+                <h2>Incident statuses</h2>
                 <button class="add-btn" onclick="openLookupModal('status')">Add</button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Workflow states for service incidents. Statuses flagged as <em>Resolved</em> close the incident — auto-stamping <code>resolved_datetime</code> and removing the incident from the active dashboard. Exactly one status is the default for new incidents.</p>
+            <p style="color: #666; margin-bottom: 16px;">Workflow states for service incidents. Statuses flagged as <em>resolved</em> close the incident — auto-stamping <code>resolved_datetime</code> and removing the incident from the active dashboard. Exactly one status is the default for new incidents.</p>
             <table>
                 <thead><tr><th>Name</th><th>Colour</th><th>Resolved</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="statuses-list"><tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">Loading...</td></tr></tbody>
             </table>
         </div>
 
-        <!-- Impact Levels Tab -->
+        <!-- Impact levels Tab -->
         <div class="tab-content" id="impacts-tab">
             <div class="section-header">
-                <h2>Impact Levels</h2>
+                <h2>Impact levels</h2>
                 <button class="add-btn" onclick="openLookupModal('impact')">Add</button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Severity bands shown as the badge on each service card. <strong>Severity order</strong> drives the "worst current impact" ordering on the dashboard — lower = worse (1 = Major Outage, 5 = Operational). Two rows can share an order.</p>
+            <p style="color: #666; margin-bottom: 16px;">Severity bands shown as the badge on each service card. <strong>Severity order</strong> drives the "worst current impact" ordering on the dashboard — lower = worse (1 = major outage, 5 = operational). Two rows can share an order.</p>
             <table>
                 <thead><tr><th>Name</th><th>Colour</th><th>Severity</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
                 <tbody id="impacts-list"><tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">Loading...</td></tr></tbody>
@@ -120,7 +120,7 @@ $path_prefix = '../../';
     <!-- Lookup edit modal (Statuses + Impact Levels share this) -->
     <div class="modal" id="lookupModal">
         <div class="modal-content" style="max-width: 480px;">
-            <div class="modal-header" id="lookupModalTitle">Add Item</div>
+            <div class="modal-header" id="lookupModalTitle">Add item</div>
             <form id="lookupForm">
                 <input type="hidden" id="lookupItemKind">
                 <input type="hidden" id="lookupItemId">
@@ -144,7 +144,7 @@ $path_prefix = '../../';
                 </div>
 
                 <div class="form-group" id="lookupItemSeverityGroup" style="display: none;">
-                    <label for="lookupItemSeverityOrder">Severity Order</label>
+                    <label for="lookupItemSeverityOrder">Severity order</label>
                     <input type="number" id="lookupItemSeverityOrder" value="99" min="1">
                     <small style="display:block; color:#666; margin-top:4px;">1 = worst (Major Outage). Higher = less severe.</small>
                 </div>
@@ -157,7 +157,7 @@ $path_prefix = '../../';
                 </div>
 
                 <div class="form-group">
-                    <label for="lookupItemOrder">Display Order</label>
+                    <label for="lookupItemOrder">Display order</label>
                     <input type="number" id="lookupItemOrder" value="0">
                 </div>
 
@@ -179,7 +179,7 @@ $path_prefix = '../../';
     <!-- Edit/Add Modal -->
     <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Add Service</div>
+            <div class="modal-header" id="modalTitle">Add service</div>
             <form id="editForm" autocomplete="off">
                 <input type="hidden" id="itemId">
                 <div class="form-group">
@@ -191,7 +191,7 @@ $path_prefix = '../../';
                     <textarea id="itemDescription"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="itemOrder">Display Order</label>
+                    <label for="itemOrder">Display order</label>
                     <input type="number" id="itemOrder" value="0" min="0">
                 </div>
                 <div class="form-group">
@@ -279,7 +279,7 @@ $path_prefix = '../../';
         }
 
         function openAddModal() {
-            document.getElementById('modalTitle').textContent = 'Add Service';
+            document.getElementById('modalTitle').textContent = 'Add service';
             document.getElementById('itemId').value = '';
             document.getElementById('itemName').value = '';
             document.getElementById('itemDescription').value = '';
@@ -292,7 +292,7 @@ $path_prefix = '../../';
             const item = allServices.find(i => i.id == id);
             if (!item) return;
 
-            document.getElementById('modalTitle').textContent = 'Edit Service';
+            document.getElementById('modalTitle').textContent = 'Edit service';
             document.getElementById('itemId').value = item.id;
             document.getElementById('itemName').value = item.name;
             document.getElementById('itemDescription').value = item.description || '';
@@ -372,8 +372,8 @@ $path_prefix = '../../';
         // ============================================================
 
         const LOOKUP_KINDS = {
-            'status': { get: 'get_incident_statuses.php', save: 'save_incident_status.php', del: 'delete_incident_status.php', listKey: 'statuses',      tableId: 'statuses-list', colspan: 7, hasResolved: true,  hasSeverity: false, label: 'Status'       },
-            'impact': { get: 'get_impact_levels.php',     save: 'save_impact_level.php',    del: 'delete_impact_level.php',    listKey: 'impact_levels', tableId: 'impacts-list',  colspan: 7, hasResolved: false, hasSeverity: true,  label: 'Impact Level' }
+            'status': { get: 'get_incident_statuses.php', save: 'save_incident_status.php', del: 'delete_incident_status.php', listKey: 'statuses',      tableId: 'statuses-list', colspan: 7, hasResolved: true,  hasSeverity: false, label: 'status'       },
+            'impact': { get: 'get_impact_levels.php',     save: 'save_impact_level.php',    del: 'delete_impact_level.php',    listKey: 'impact_levels', tableId: 'impacts-list',  colspan: 7, hasResolved: false, hasSeverity: true,  label: 'impact level' }
         };
 
         const lookupCache = { status: [], impact: [] };
