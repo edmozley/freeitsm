@@ -46,13 +46,6 @@ $path_prefix = '../../';
             margin-bottom: 20px;
         }
         .section-header h2 { margin: 0; font-size: 18px; color: #2c3e50; }
-        .section-header .btn-primary {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 16px;
-            font-size: 14px;
-        }
 
         /* Check items list. Rendered as a flat list with thin separators
            rather than per-row cards — the outer .tab-content already
@@ -182,7 +175,7 @@ $path_prefix = '../../';
         <div class="tab-content active" id="checks-tab">
             <div class="section-header">
                 <h2>Checks</h2>
-                <button class="btn-primary" onclick="openAddModal()">Add</button>
+                <button class="add-btn" onclick="openAddModal()">Add</button>
             </div>
             <div class="checks-list" id="checksList">
                 <div class="checks-empty">Loading checks...</div>
@@ -196,7 +189,7 @@ $path_prefix = '../../';
         <div class="tab-content" id="statuses-tab">
             <div class="section-header">
                 <h2>Statuses</h2>
-                <button class="btn-primary" onclick="openAddStatusModal()">Add</button>
+                <button class="add-btn" onclick="openAddStatusModal()">Add</button>
             </div>
             <p style="color: #666; margin-bottom: 16px;">Status options shown as buttons on the dashboard for each check. Mark <em>Requires notes</em> to force the analyst to add notes when picking that status.</p>
             <table class="lookup-table">
