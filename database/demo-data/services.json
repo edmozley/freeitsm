@@ -85,12 +85,12 @@
             {
                 "incident_id": "@status_incidents.si1",
                 "service_id": "@status_services.svc_internet",
-                "impact_level": "Degraded Performance"
+                "impact_level": "Degraded"
             },
             {
                 "incident_id": "@status_incidents.si2",
                 "service_id": "@status_services.svc_email",
-                "impact_level": "Degraded Performance"
+                "impact_level": "Degraded"
             },
             {
                 "incident_id": "@status_incidents.si2",

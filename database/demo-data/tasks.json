@@ -96,7 +96,7 @@
                 "title": "Renew SSL certificate for portal.example.com",
                 "description": "<p>Wildcard cert *.example.com expires in 9 days. Generate CSR, request renewal from DigiCert, install on the load balancer and verify chain.</p>",
                 "status": "To Do",
-                "priority": "Critical",
+                "priority": "Urgent",
                 "due_date": "__RELATIVE_DATEONLY:+5d__",
                 "assigned_analyst_id": "@analysts.mjones",
                 "board_position": 3,

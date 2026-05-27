@@ -311,33 +311,68 @@ try {
                 // Remove meta fields
                 unset($record['_ref'], $record['_match_by'], $record['_match_value'], $record['_skip_insert']);
 
-                // Tickets-specific translation: legacy string status/priority -> FK ids,
-                // drop requester_email/requester_name (now sourced from users via user_id).
+                // Legacy string field -> FK id translations for tables that have been
+                // normalised. Demo JSON still uses human-readable strings ("Open",
+                // "High", "Normal") — look each one up in its lookup table and swap
+                // for the matching id. Each entry: [str_col, id_col, lookup_table].
+                $lookupTranslations = [
+                    'tickets' => [
+                        ['status',      'status_id',      'ticket_statuses'],
+                        ['priority',    'priority_id',    'ticket_priorities'],
+                    ],
+                    'changes' => [
+                        ['change_type', 'change_type_id', 'change_types'],
+                        ['status',      'status_id',      'change_statuses'],
+                        ['priority',    'priority_id',    'change_priorities'],
+                        ['impact',      'impact_id',      'change_impacts'],
+                    ],
+                    'tasks' => [
+                        ['status',      'status_id',      'task_statuses'],
+                        ['priority',    'priority_id',    'task_priorities'],
+                    ],
+                    'status_incidents' => [
+                        ['status',      'status_id',      'service_incident_statuses'],
+                    ],
+                    'status_incident_services' => [
+                        ['impact_level','impact_level_id','service_impact_levels'],
+                    ],
+                ];
+                if (isset($lookupTranslations[$tableName])) {
+                    foreach ($lookupTranslations[$tableName] as [$strCol, $idCol, $lkTbl]) {
+                        if (!array_key_exists($strCol, $record)) continue;
+                        if ($record[$strCol] !== null && $record[$strCol] !== '') {
+                            $lk = $conn->prepare("SELECT id FROM `$lkTbl` WHERE name = ? LIMIT 1");
+                            $lk->execute([$record[$strCol]]);
+                            $id = $lk->fetchColumn();
+                            if (!$id) {
+                                throw new Exception("Demo $tableName has unknown $strCol: " . $record[$strCol]);
+                            }
+                            $record[$idCol] = (int)$id;
+                        }
+                        unset($record[$strCol]);
+                    }
+                }
+
+                // morningChecks_Results uses StatusID (not status_id) and looks up via
+                // Label (not name) — different column naming convention. Status is kept
+                // as a nullable label snapshot but StatusID is the source of truth, so
+                // we resolve the label to an id and null out Status.
+                if ($tableName === 'morningChecks_Results' && array_key_exists('Status', $record)) {
+                    if ($record['Status'] !== null && $record['Status'] !== '') {
+                        $lk = $conn->prepare("SELECT StatusID FROM morningChecks_Statuses WHERE Label = ? LIMIT 1");
+                        $lk->execute([$record['Status']]);
+                        $sid = $lk->fetchColumn();
+                        if (!$sid) {
+                            throw new Exception("Demo morningChecks_Results has unknown Status: " . $record['Status']);
+                        }
+                        $record['StatusID'] = (int)$sid;
+                        $record['Status'] = null;
+                    }
+                }
+
+                // Tickets-specific: drop legacy requester_email/requester_name (now
+                // sourced from users via user_id).
                 if ($tableName === 'tickets') {
-                    if (array_key_exists('status', $record)) {
-                        if ($record['status'] !== null && $record['status'] !== '') {
-                            $lk = $conn->prepare("SELECT id FROM ticket_statuses WHERE name = ? LIMIT 1");
-                            $lk->execute([$record['status']]);
-                            $sid = $lk->fetchColumn();
-                            if (!$sid) {
-                                throw new Exception("Demo ticket has unknown status: " . $record['status']);
-                            }
-                            $record['status_id'] = (int)$sid;
-                        }
-                        unset($record['status']);
-                    }
-                    if (array_key_exists('priority', $record)) {
-                        if ($record['priority'] !== null && $record['priority'] !== '') {
-                            $lk = $conn->prepare("SELECT id FROM ticket_priorities WHERE name = ? LIMIT 1");
-                            $lk->execute([$record['priority']]);
-                            $pid = $lk->fetchColumn();
-                            if (!$pid) {
-                                throw new Exception("Demo ticket has unknown priority: " . $record['priority']);
-                            }
-                            $record['priority_id'] = (int)$pid;
-                        }
-                        unset($record['priority']);
-                    }
                     unset($record['requester_email'], $record['requester_name']);
                 }
 
