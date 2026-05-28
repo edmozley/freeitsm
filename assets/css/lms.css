@@ -3,8 +3,6 @@
    ============================================================= */
 
 .lms-container {
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 20px;
 }
 
@@ -127,40 +125,7 @@
 
 /* --- Action buttons ---------------------------------------- */
 .lms-actions {
-    display: flex;
-    gap: 4px;
-}
-
-.lms-action-btn {
-    background: none;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    padding: 4px 8px;
-    cursor: pointer;
-    color: #555;
-    font-size: 12px;
-    transition: all 0.15s;
-}
-
-.lms-action-btn:hover {
-    background: #f0f0f0;
-    border-color: #ccc;
-}
-
-.lms-action-btn.delete:hover {
-    background: #fce4ec;
-    border-color: #ef9a9a;
-    color: #c62828;
-}
-
-.lms-action-btn.launch {
-    background: #2563eb;
-    color: #fff;
-    border-color: #2563eb;
-}
-
-.lms-action-btn.launch:hover {
-    background: #1d4ed8;
+    white-space: nowrap;
 }
 
 /* --- Buttons ----------------------------------------------- */
