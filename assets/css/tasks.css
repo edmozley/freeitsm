@@ -1305,6 +1305,22 @@ body {
     font-size: 14px;
 }
 
+/* Detail-panel description preview (calendar quick-look) */
+.cal-detail-desc-preview {
+    padding: 10px 12px;
+    background: #fafafa;
+    border: 1px solid #eee;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #444;
+    line-height: 1.5;
+    max-height: 240px;
+    overflow-y: auto;
+}
+.cal-detail-desc-preview img { max-width: 100%; }
+.cal-detail-desc-preview p:first-child { margin-top: 0; }
+.cal-detail-desc-preview p:last-child  { margin-bottom: 0; }
+
 .cal-bar {
     position: absolute;
     height: 20px;

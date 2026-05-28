@@ -18,7 +18,7 @@ $translationNamespaces = ['common', 'tasks'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('tasks.title') . ' ' . t('tasks.nav.calendar')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
-    <link rel="stylesheet" href="../../assets/css/tasks.css?v=12">
+    <link rel="stylesheet" href="../../assets/css/tasks.css?v=13">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
 </head>
@@ -101,7 +101,27 @@ $translationNamespaces = ['common', 'tasks'];
             </div>
         </div>
     </div>
+
+    <!-- Detail panel overlay -->
+    <div class="detail-overlay" id="calDetailOverlay" onclick="closeCalDetail()"></div>
+
+    <!-- Detail panel -->
+    <div class="detail-panel" id="calDetailPanel">
+        <div class="detail-panel-header">
+            <h3><?php echo htmlspecialchars(t('tasks.detail.heading')); ?></h3>
+            <div class="detail-panel-actions">
+                <a class="btn-icon" id="calDetailOpenFull" href="#" title="<?php echo htmlspecialchars(t('tasks.detail.open_full')); ?>">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line><path d="M21 14v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5"></path></svg>
+                </a>
+                <button class="btn-icon" onclick="closeCalDetail()" title="<?php echo htmlspecialchars(t('tasks.detail.close')); ?>">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+        </div>
+        <div class="detail-panel-body" id="calDetailBody"></div>
+    </div>
+
     <script>window.API_BASE = '../../api/tasks/';</script>
-    <script src="../../assets/js/tasks-calendar.js?v=5"></script>
+    <script src="../../assets/js/tasks-calendar.js?v=6"></script>
 </body>
 </html>

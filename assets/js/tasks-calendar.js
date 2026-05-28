@@ -20,6 +20,10 @@ let currentFilterTeamId = null;
 let currentFilterAnalystId = null;
 let tasks = [];
 let statuses = [];
+let priorities = [];
+let analysts = [];
+let teams = [];
+let detailTaskId = null;
 let spanMode = 'deadline';
 let surfaceTags = false;
 
@@ -29,8 +33,11 @@ const UI_LOCALE = document.documentElement.lang || 'en';
 // ── Init ───────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
     await loadSettings();
-    await Promise.all([loadDropdowns(), loadStatuses()]);
+    await Promise.all([loadDropdowns(), loadStatuses(), loadPriorities()]);
     loadTasks();
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape' && detailTaskId) closeCalDetail();
+    });
 });
 
 async function loadSettings() {
@@ -51,6 +58,13 @@ async function loadStatuses() {
     } catch (e) { console.error('Failed to load statuses:', e); }
 }
 
+async function loadPriorities() {
+    try {
+        const d = await fetch(API_BASE + 'get_task_priorities.php').then(r => r.json());
+        if (d.success) priorities = (d.priorities || []).filter(p => p.is_active);
+    } catch (e) { console.error('Failed to load priorities:', e); }
+}
+
 async function loadDropdowns() {
     try {
         const [aRes, tRes] = await Promise.all([
@@ -58,14 +72,16 @@ async function loadDropdowns() {
             fetch(API_BASE + 'list.php?teams=1').then(r => r.json())
         ]);
         if (aRes.success) {
+            analysts = aRes.analysts;
             document.getElementById('analystFilter').innerHTML =
                 '<option value="">' + esc(window.t('tasks.filter.all_analysts')) + '</option>' +
-                aRes.analysts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+                analysts.map(a => `<option value="${a.id}">${esc(a.name)}</option>`).join('');
         }
         if (tRes.success) {
+            teams = tRes.teams;
             document.getElementById('teamFilter').innerHTML =
                 '<option value="">' + esc(window.t('tasks.filter.all_teams')) + '</option>' +
-                tRes.teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
+                teams.map(t => `<option value="${t.id}">${esc(t.name)}</option>`).join('');
         }
     } catch (e) { console.error('Failed to load dropdowns:', e); }
 }
@@ -383,8 +399,112 @@ function renderLegend() {
         </div>`).join('');
 }
 
-function openTask(id) {
-    window.location.href = '../index.php?task=' + id;
+// ── Detail panel ───────────────────────────────────────────────────
+async function openTask(id) {
+    detailTaskId = id;
+    document.getElementById('calDetailOpenFull').href = '../index.php?task=' + id;
+    document.getElementById('calDetailBody').innerHTML =
+        '<div style="text-align:center;color:#999;padding:40px 0;">' + esc(window.t('tasks.calendar.loading')) + '</div>';
+    document.getElementById('calDetailPanel').classList.add('open');
+    document.getElementById('calDetailOverlay').classList.add('open');
+    try {
+        const d = await fetch(API_BASE + 'get.php?id=' + id).then(r => r.json());
+        if (d.success) renderCalDetail(d.task);
+    } catch (e) { console.error(e); }
+}
+
+function closeCalDetail() {
+    document.getElementById('calDetailPanel').classList.remove('open');
+    document.getElementById('calDetailOverlay').classList.remove('open');
+    detailTaskId = null;
+    loadTasks();  // refresh in case inline edits changed visible state
+}
+
+async function saveCalField(field, value) {
+    if (!detailTaskId) return;
+    try {
+        await fetch(API_BASE + 'save.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: detailTaskId, [field]: value })
+        });
+    } catch (e) { console.error(e); }
+}
+
+function renderCalDetail(task) {
+    const T = (k) => window.t('tasks.detail.' + k);
+
+    const statusOpts = statuses.filter(s => s.is_active).map(s =>
+        `<option value="${esc(s.name)}"${s.name === task.status ? ' selected' : ''}>${esc(s.name)}</option>`).join('');
+    const priorityOpts = priorities.map(p =>
+        `<option value="${esc(p.name)}"${p.name === task.priority ? ' selected' : ''}>${esc(p.name)}</option>`).join('');
+    const analystOpts = `<option value="">${esc(T('unassigned'))}</option>` +
+        analysts.map(a =>
+            `<option value="${a.id}"${a.id == task.assigned_analyst_id ? ' selected' : ''}>${esc(a.name)}</option>`).join('');
+    const teamOpts = `<option value="">${esc(T('no_team'))}</option>` +
+        teams.map(t =>
+            `<option value="${t.id}"${t.id == task.assigned_team_id ? ' selected' : ''}>${esc(t.name)}</option>`).join('');
+
+    const tagChips = (task.tags && task.tags.length)
+        ? task.tags.map(tg => {
+            const c = tg.colour || '#6b7280';
+            return `<span class="tag-chip" style="background:${esc(c)}1f;color:${esc(c)};border-color:${esc(c)}55">${esc(tg.name)}</span>`;
+        }).join('')
+        : `<span style="color:#999;font-size:13px;">—</span>`;
+
+    const descBlock = task.description
+        ? `<div class="cal-detail-desc-preview">${task.description}</div>
+           <div style="font-size:12px;color:#999;margin-top:6px;">${esc(T('description_preview_hint'))}</div>`
+        : `<div style="color:#999;font-size:13px;">${esc(T('no_description'))}</div>`;
+
+    document.getElementById('calDetailBody').innerHTML = `
+        <div class="detail-field">
+            <input class="detail-title-input" value="${esc(task.title)}" onchange="saveCalField('title', this.value)">
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-field">
+                <label>${esc(T('status'))}</label>
+                <select class="detail-select" onchange="saveCalField('status', this.value)">${statusOpts}</select>
+            </div>
+            <div class="detail-field">
+                <label>${esc(T('priority'))}</label>
+                <select class="detail-select" onchange="saveCalField('priority', this.value)">${priorityOpts}</select>
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-field">
+                <label>${esc(T('assignee'))}</label>
+                <select class="detail-select" onchange="saveCalField('assigned_analyst_id', this.value || null)">${analystOpts}</select>
+            </div>
+            <div class="detail-field">
+                <label>${esc(T('team'))}</label>
+                <select class="detail-select" onchange="saveCalField('assigned_team_id', this.value || null)">${teamOpts}</select>
+            </div>
+        </div>
+
+        <div class="detail-row">
+            <div class="detail-field">
+                <label>${esc(T('start_date'))}</label>
+                <input class="detail-input" type="date" value="${esc(task.start_date || '')}" onchange="saveCalField('start_date', this.value || null)">
+            </div>
+            <div class="detail-field">
+                <label>${esc(T('due_date'))}</label>
+                <input class="detail-input" type="date" value="${esc(task.due_date || '')}" onchange="saveCalField('due_date', this.value || null)">
+            </div>
+        </div>
+
+        <div class="detail-field">
+            <label>${esc(T('tags'))}</label>
+            <div>${tagChips}</div>
+        </div>
+
+        <div class="detail-field">
+            <label>${esc(T('description'))}</label>
+            ${descBlock}
+        </div>
+    `;
 }
 
 // ── Utilities ──────────────────────────────────────────────────────
