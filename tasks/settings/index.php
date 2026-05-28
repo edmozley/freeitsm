@@ -300,13 +300,13 @@ $translationNamespaces = ['common', 'tasks'];
     <div class="modal" id="lookupModal">
         <div class="modal-content">
             <div class="modal-header" id="lookupModalTitle"></div>
-            <form id="lookupForm">
+            <form id="lookupForm" autocomplete="off">
                 <input type="hidden" id="lookupItemKind">
                 <input type="hidden" id="lookupItemId">
 
                 <div class="form-group">
                     <label for="lookupItemName"><?php echo htmlspecialchars(t('tasks.settings.modal_name')); ?></label>
-                    <input type="text" id="lookupItemName" required>
+                    <input type="text" id="lookupItemName" autocomplete="off" required>
                 </div>
 
                 <div class="form-group">
