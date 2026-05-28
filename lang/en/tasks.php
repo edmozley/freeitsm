@@ -15,6 +15,7 @@ return [
         'board'    => 'Board',
         'calendar' => 'Calendar',
         'timeline' => 'Timeline',
+        'table'    => 'Table',
         'settings' => 'Settings',
         'help'     => 'Help',
     ],
