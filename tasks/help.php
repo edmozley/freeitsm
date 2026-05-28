@@ -135,6 +135,7 @@ $path_prefix = '../';
         .thp-feature-icon.blue   { background: #e3f2fd; color: #0078d4; }
         .thp-feature-icon.green  { background: #e8f5e9; color: #2e7d32; }
         .thp-feature-icon.orange { background: #fff3e0; color: #e65100; }
+        .thp-feature-icon.indigo { background: #e0e7ff; color: #4338ca; }
         .thp-feature-icon.teal   { background: #e0f2f1; color: #00695c; }
         .thp-feature-icon.red    { background: #fce4ec; color: #c62828; }
         .thp-feature-card h4 { margin: 0 0 6px; font-size: 15px; color: #333; }
@@ -238,17 +239,20 @@ $path_prefix = '../';
             <a href="#timeline" class="thp-nav-link" data-section="timeline">
                 <span class="thp-nav-num">5</span> Timeline view
             </a>
+            <a href="#table" class="thp-nav-link" data-section="table">
+                <span class="thp-nav-num">6</span> Table view
+            </a>
             <a href="#panel" class="thp-nav-link" data-section="panel">
-                <span class="thp-nav-num">6</span> The task panel
+                <span class="thp-nav-num">7</span> The task panel
             </a>
             <a href="#tags" class="thp-nav-link" data-section="tags">
-                <span class="thp-nav-num">7</span> Tags
+                <span class="thp-nav-num">8</span> Tags
             </a>
             <a href="#settings" class="thp-nav-link" data-section="settings">
-                <span class="thp-nav-num">8</span> Settings
+                <span class="thp-nav-num">9</span> Settings
             </a>
             <a href="#tips" class="thp-nav-link" data-section="tips">
-                <span class="thp-nav-num">9</span> Quick tips
+                <span class="thp-nav-num">10</span> Quick tips
             </a>
         </div>
 
@@ -267,7 +271,7 @@ $path_prefix = '../';
                         <span class="thp-section-num">1</span>
                         <div>
                             <h3>Overview</h3>
-                            <p>The Tasks module is a lightweight work tracker for your service desk team. Use it for the jobs that aren't tickets &mdash; project work, internal admin, recurring chores, follow-ups &mdash; and see them as a Kanban board, a sortable list, a calendar, or a Gantt-style timeline. Tasks can link to tickets and changes, carry tags, and be broken into subtasks.</p>
+                            <p>The Tasks module is a lightweight work tracker for your service desk team. Use it for the jobs that aren't tickets &mdash; project work, internal admin, recurring chores, follow-ups &mdash; and see them as a Kanban board, a sortable list, a calendar, a Gantt-style timeline, or a full-screen editable spreadsheet. Tasks can link to tickets and changes, carry tags, and be broken into subtasks.</p>
                         </div>
                     </div>
                     <div class="thp-features-grid">
@@ -297,7 +301,14 @@ $path_prefix = '../';
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="14" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="5" y1="18" x2="16" y2="18"></line></svg>
                             </div>
                             <h4>Timeline</h4>
-                            <p>A Gantt-style chart showing each task as a bar from its start date to its due date, grouped by assignee, status, or shown flat.</p>
+                            <p>A Gantt-style chart showing each task as a bar from its start date to its due date. Drag bars to reschedule, drag the edges to set start and due dates.</p>
+                        </div>
+                        <div class="thp-feature-card">
+                            <div class="thp-feature-icon indigo">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="3" y1="15" x2="21" y2="15"></line><line x1="9" y1="3" x2="9" y2="21"></line><line x1="15" y1="3" x2="15" y2="21"></line></svg>
+                            </div>
+                            <h4>Table</h4>
+                            <p>Excel-style grid with inline cell editing &mdash; tweak status, priority, assignee, team or dates straight in the row. Columns, sort, filter and search persist per analyst.</p>
                         </div>
                         <div class="thp-feature-card">
                             <div class="thp-feature-icon teal">
@@ -372,10 +383,13 @@ $path_prefix = '../';
                         <span class="thp-section-num">4</span>
                         <div>
                             <h3>Calendar view</h3>
-                            <p>The calendar places tasks on a month grid so you can see deadlines and workload at a glance. Tasks are coloured by their status.</p>
+                            <p>The calendar places tasks on a date grid so you can see deadlines and workload at a glance. Tasks are coloured by their status.</p>
                         </div>
                     </div>
-                    <p>Navigate with the prev / next / Today buttons. The sidebar shows a colour legend and the same My / All / Team / Analyst filters as the board. Clicking a task jumps to the board with its panel open.</p>
+                    <p>The toolbar has <strong>Today</strong>, prev / next, and a <strong>Month / Week / Day</strong> view toggle on the right. <em>Month</em> is the familiar 4&ndash;6 week grid; <em>Week</em> zooms in on a single seven-day row that stretches to fill the screen; <em>Day</em> drops to a single date and lists every task occurring on it as a card row. Prev / next steps by month, week or day to match whichever view is active.</p>
+                    <p>The sidebar shows a colour legend, the same My / All / Team / Analyst filters as the board, and a <strong>Span mode</strong> panel with a Change link straight to the Calendar settings.</p>
+                    <h4>Clicking a task</h4>
+                    <p>Clicking a task chip, bar or day-view row opens a slide-in <strong>quick panel</strong> on the right of the calendar &mdash; you stay where you are. Title, status, priority, assignee, team and dates are all editable in the panel; the launch icon at the top opens the dashboard's full editor when you need rich-text description, subtasks or comments.</p>
                     <h4>How multi-day tasks are drawn</h4>
                     <p>A task with a start date earlier than its due date covers a range of days. How that range is shown is set once, per install, in Settings &rarr; Calendar:</p>
                     <div class="thp-fields">
@@ -395,16 +409,61 @@ $path_prefix = '../';
                             <p>The timeline is a Gantt-style chart. Each task is a horizontal bar running from its start date to its due date, so you can see overlaps, gaps and durations.</p>
                         </div>
                     </div>
-                    <p>A task with only a due date shows as a single-day bar. Rows can be grouped by <strong>Assignee</strong>, <strong>Status</strong>, or shown flat &mdash; pick from the sidebar. A dashed marker shows today, the task-name column and date header stay put while you scroll, and the zoom control switches the day-column width. Click a bar to open the task on the board.</p>
+                    <p>A task with only a due date shows as a single-day bar. Rows can be grouped by <strong>Assignee</strong>, <strong>Status</strong>, or shown flat &mdash; pick from the sidebar. A dashed marker shows today, the task-name column and date header stay put while you scroll, and the day grid auto-fits the screen: short ranges stretch edge-to-edge, longer ones hold each day at a comfortable size and scroll horizontally.</p>
+
+                    <h4>Drag bars to reschedule</h4>
+                    <p>The bars are live editors. Hover one and translucent grips appear on either end:</p>
+                    <div class="thp-fields">
+                        <div><strong>Drag the bar body</strong> &mdash; both the start and due dates shift by the same number of days. The task moves bodily without changing duration.</div>
+                        <div><strong>Drag the left edge</strong> &mdash; only the start date changes. Useful for pulling the start back earlier or pushing it later, while the deadline stays put.</div>
+                        <div><strong>Drag the right edge</strong> &mdash; only the due date changes. On a deadline-only task (no start date set), the old due date becomes the new start date, so the bar grows into a proper range rather than jumping to a single-day position at the new end.</div>
+                    </div>
+                    <p style="margin-top:14px;">Drags snap to whole days. A short, non-drag click on a bar still opens the task &mdash; below a 3px movement threshold it's treated as a click, not a drag.</p>
+
+                    <h4>Right-click for quick actions</h4>
+                    <p>Right-click any bar for the same context menu the board uses &mdash; <strong>Assign analyst</strong>, <strong>Assign team</strong>, <strong>Change status</strong>, <strong>Change priority</strong> &mdash; without opening anything. Each submenu marks the task's current value with a tick.</p>
+
+                    <h4>Clicking a bar</h4>
+                    <p>A normal click on a bar (or on the task-name column on the left) opens the same slide-in quick panel the calendar uses, on the right of the timeline. Edit the everyday fields in place, or hit the launch icon at the top of the panel to jump to the dashboard's full editor.</p>
                 </div>
 
-                <!-- 6. The task panel -->
-                <div class="thp-section" id="panel">
+                <!-- 6. Table view -->
+                <div class="thp-section" id="table">
                     <div class="thp-section-header">
                         <span class="thp-section-num">6</span>
                         <div>
+                            <h3>Table view</h3>
+                            <p>The Table view is a full-screen Excel-style grid &mdash; one row per task, with editable cells. It's the fastest place to triage a list, bulk-tweak fields, or build the exact column layout you want to live in.</p>
+                        </div>
+                    </div>
+
+                    <h4>Edit straight in the cell</h4>
+                    <p>Most columns render an editable control instead of static text. Pick a new status or priority from its dropdown, swap the assignee or team, type a new title, type or pick a new start / due date &mdash; each cell saves on change with no Save button to hunt for. Status and priority show a coloured dot that updates in place after the save.</p>
+
+                    <h4>Columns: show, hide, reorder</h4>
+                    <p>Click the <strong>Columns</strong> button on the toolbar to open a drawer with every column the table knows about. Tick the ones you want visible; drag the rows to reorder. The drag handle on a column header also reorders columns directly. Your visibility and order are saved to your account, so the next time you open the table it's the way you left it.</p>
+
+                    <h4>Sort, filter, search</h4>
+                    <div class="thp-fields">
+                        <div><strong>Sort</strong> &mdash; click any column header to sort by it. Click again to flip the direction. The active sort is saved per analyst alongside the column layout.</div>
+                        <div><strong>Filter</strong> &mdash; click the funnel icon on a column header to pop up an Excel-style tickbox list of every value that column actually contains. Untick the ones you don't want; counts in the list show how many rows match each value. Active filters show the funnel in violet.</div>
+                        <div><strong>Search</strong> &mdash; the toolbar search box matches every visible column's text. It filters as you type.</div>
+                        <div><strong>Reset</strong> &mdash; the toolbar Reset button clears all filters, the search box, and resets the sort.</div>
+                    </div>
+
+                    <h4>Right-click and export</h4>
+                    <p>Right-clicking a row opens the same context menu the board and timeline use &mdash; Assign analyst / team, Change status / priority. The <strong>CSV</strong> button on the toolbar downloads the current view (respecting visible columns, search, filters and sort) as a UTF-8 CSV that Excel opens cleanly.</p>
+
+                    <p class="thp-tip">Sort and filter <em>don't</em> rerun while you're editing a cell &mdash; they'd steal your focus. Your edit is saved straight away; when you next change the sort, change a filter, or hit Reset, the new value is what gets used.</p>
+                </div>
+
+                <!-- 7. The task panel -->
+                <div class="thp-section" id="panel">
+                    <div class="thp-section-header">
+                        <span class="thp-section-num">7</span>
+                        <div>
                             <h3>The task panel</h3>
-                            <p>Clicking a task opens a slide-in panel on the right. Every field auto-saves the moment you change it &mdash; there's no Save button.</p>
+                            <p>Clicking a task opens a slide-in panel on the right. Every field auto-saves the moment you change it &mdash; there's no Save button. The board's panel is the full editor; the calendar and timeline open a lighter <em>quick panel</em> with the everyday fields and a launch icon that jumps to the full editor when you need rich-text description, subtasks or comments.</p>
                         </div>
                     </div>
                     <div class="thp-fields">
@@ -421,10 +480,10 @@ $path_prefix = '../';
                     <p style="margin-top:14px;">The delete button (top-right of the panel) removes the task and all of its subtasks &mdash; it asks for confirmation first.</p>
                 </div>
 
-                <!-- 7. Tags -->
+                <!-- 8. Tags -->
                 <div class="thp-section" id="tags">
                     <div class="thp-section-header">
-                        <span class="thp-section-num">7</span>
+                        <span class="thp-section-num">8</span>
                         <div>
                             <h3>Tags</h3>
                             <p>Tags are multi-value labels for cross-cutting themes &mdash; the things that don't fit a status or a priority. A task can carry any number of them.</p>
@@ -435,10 +494,10 @@ $path_prefix = '../';
                     <p class="thp-tip">A tag is the right home for a "someday / maybe" theme. Tag a handful of ideas as <em>Blue Sky</em> and you can pull them up any time with the tag filter, without a dedicated column.</p>
                 </div>
 
-                <!-- 8. Settings -->
+                <!-- 9. Settings -->
                 <div class="thp-section" id="settings">
                     <div class="thp-section-header">
-                        <span class="thp-section-num">8</span>
+                        <span class="thp-section-num">9</span>
                         <div>
                             <h3>Settings</h3>
                             <p>The Settings page has five tabs &mdash; Statuses, Priorities, Calendar, Card and Tags. Settings are install-wide: a change here shapes the board, calendar and cards for the whole team, not just for you.</p>
@@ -476,10 +535,10 @@ $path_prefix = '../';
                     <p style="margin-top:14px;">The toggles are independent &mdash; you can, for example, keep tags off the cards but still filter and search by them. Tag-display changes take effect the next time a view loads.</p>
                 </div>
 
-                <!-- 9. Quick tips -->
+                <!-- 10. Quick tips -->
                 <div class="thp-section" id="tips">
                     <div class="thp-section-header">
-                        <span class="thp-section-num">9</span>
+                        <span class="thp-section-num">10</span>
                         <div>
                             <h3>Quick tips</h3>
                             <p>A few shortcuts and habits that make the module quicker to live in.</p>
@@ -509,6 +568,14 @@ $path_prefix = '../';
                         <div class="thp-tip-card">
                             <span class="thp-tip-icon">🔗</span>
                             <div><strong>Link the source.</strong> Attach the ticket or change a task came from, so the context is one click away.</div>
+                        </div>
+                        <div class="thp-tip-card">
+                            <span class="thp-tip-icon">✋</span>
+                            <div><strong>Drag the bar.</strong> On the timeline, drag the body to reschedule and drag either edge to set the start or due date directly &mdash; no panel needed.</div>
+                        </div>
+                        <div class="thp-tip-card">
+                            <span class="thp-tip-icon">📊</span>
+                            <div><strong>Build your own table.</strong> On the Table view, pick which columns to show, drag them into the order you want, sort and filter &mdash; your layout is saved per analyst.</div>
                         </div>
                     </div>
                 </div>
