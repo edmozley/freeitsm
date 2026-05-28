@@ -54,7 +54,6 @@ $path_prefix = '../';
         }
         .lh-nav-link:hover { background: #f5f5f5; color: #333; }
         .lh-nav-link.active { background: #dbeafe; color: #1e40af; font-weight: 600; }
-        .lh-nav-link.highlight { color: #1e40af; }
         .lh-nav-num {
             display: flex; align-items: center; justify-content: center;
             min-width: 22px; height: 22px;
@@ -63,8 +62,6 @@ $path_prefix = '../';
             font-size: 11px; font-weight: 700;
         }
         .lh-nav-link.active .lh-nav-num { background: #2563eb; color: white; }
-        .lh-nav-num.highlight { background: #dbeafe; color: #1e40af; }
-        .lh-nav-link.highlight.active .lh-nav-num { background: rgba(255,255,255,0.25); color: white; }
 
         /* ---- Main content ---- */
         .lh-main { flex: 1; overflow-y: auto; }
@@ -258,8 +255,8 @@ $path_prefix = '../';
             <a href="#overview" class="lh-nav-link active" data-section="overview">
                 <span class="lh-nav-num">1</span> Overview
             </a>
-            <a href="#uploading" class="lh-nav-link highlight" data-section="uploading">
-                <span class="lh-nav-num highlight">2</span> Uploading a course
+            <a href="#uploading" class="lh-nav-link" data-section="uploading">
+                <span class="lh-nav-num">2</span> Uploading a course
             </a>
             <a href="#groups" class="lh-nav-link" data-section="groups">
                 <span class="lh-nav-num">3</span> Learning groups
@@ -267,8 +264,8 @@ $path_prefix = '../';
             <a href="#assigning" class="lh-nav-link" data-section="assigning">
                 <span class="lh-nav-num">4</span> Assigning courses
             </a>
-            <a href="#launching" class="lh-nav-link highlight" data-section="launching">
-                <span class="lh-nav-num highlight">5</span> Launching a course
+            <a href="#launching" class="lh-nav-link" data-section="launching">
+                <span class="lh-nav-num">5</span> Launching a course
             </a>
             <a href="#progress" class="lh-nav-link" data-section="progress">
                 <span class="lh-nav-num">6</span> Tracking progress
