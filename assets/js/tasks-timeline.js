@@ -49,6 +49,13 @@ document.addEventListener('DOMContentLoaded', async () => {
         apiBase: API_BASE,
     });
 
+    TasksQuickPanel.init({
+        apiBase: API_BASE,
+        getLookups: () => ({ analysts, teams, statuses, priorities }),
+        onUpdate: () => loadTasks(),
+        fullEditUrl: id => '../index.php?task=' + id,
+    });
+
     // Re-fit when the viewport changes
     let resizeTimer = null;
     window.addEventListener('resize', () => {
@@ -321,9 +328,8 @@ function scrollToToday() {
     host.scrollLeft = Math.max(0, left - host.clientWidth / 3);
 }
 
-function openTask(id) {
-    window.location.href = '../index.php?task=' + id;
-}
+// Row-label clicks, bar mouseup-without-drag, and bar clicks all route here
+function openTask(id) { TasksQuickPanel.open(id); }
 
 // ── Utilities ──────────────────────────────────────────────────────
 function ymd(d) {
