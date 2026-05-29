@@ -49,7 +49,13 @@ try {
                     a.build_number,
                     a.cpu_name,
                     a.speed,
-                    a.bios_version,";
+                    a.bios_version,
+                    a.location_id,
+                    a.purchase_date,
+                    a.purchase_cost,
+                    a.supplier,
+                    a.order_number,
+                    a.warranty_expiry,";
 
         if ($typeTableExists) {
             $sql .= "
@@ -97,6 +103,12 @@ try {
                     a.cpu_name,
                     a.speed,
                     a.bios_version,
+                    a.location_id,
+                    a.purchase_date,
+                    a.purchase_cost,
+                    a.supplier,
+                    a.order_number,
+                    a.warranty_expiry,
                     NULL AS asset_type_id,
                     NULL AS asset_type_name,
                     NULL AS asset_status_id,
@@ -114,7 +126,7 @@ try {
     }
 
     if ($tableExists) {
-        $groupBy = " GROUP BY a.id, a.hostname, a.manufacturer, a.model, a.memory, a.service_tag, a.operating_system, a.feature_release, a.build_number, a.cpu_name, a.speed, a.bios_version";
+        $groupBy = " GROUP BY a.id, a.hostname, a.manufacturer, a.model, a.memory, a.service_tag, a.operating_system, a.feature_release, a.build_number, a.cpu_name, a.speed, a.bios_version, a.location_id, a.purchase_date, a.purchase_cost, a.supplier, a.order_number, a.warranty_expiry";
         if ($typeTableExists) {
             $groupBy .= ", a.asset_type_id, aty.name";
         }
@@ -129,6 +141,32 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
     $assets = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Attach the full location path (e.g. "UK › London › Office 1") for each
+    // asset, built in PHP from the location tree so the client doesn't need
+    // the tree loaded. Only if the location table exists.
+    $locTableCheck = $conn->prepare("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = ? AND table_name = 'asset_locations'");
+    $locTableCheck->execute([DB_NAME]);
+    if ((int)$locTableCheck->fetchColumn() > 0) {
+        $locRows = $conn->query("SELECT id, name, parent_id FROM asset_locations")->fetchAll(PDO::FETCH_ASSOC);
+        $locById = [];
+        foreach ($locRows as $lr) { $locById[(int)$lr['id']] = $lr; }
+        $pathOf = function ($id) use ($locById) {
+            $parts = [];
+            $guard = 0;
+            while ($id !== null && isset($locById[$id]) && $guard++ < 1000) {
+                array_unshift($parts, $locById[$id]['name']);
+                $id = $locById[$id]['parent_id'] !== null ? (int)$locById[$id]['parent_id'] : null;
+            }
+            return implode(' › ', $parts);
+        };
+        foreach ($assets as &$a) {
+            $lid = isset($a['location_id']) && $a['location_id'] !== null ? (int)$a['location_id'] : null;
+            $a['location_name'] = $lid !== null && isset($locById[$lid]) ? $locById[$lid]['name'] : null;
+            $a['location_path'] = $lid !== null ? $pathOf($lid) : null;
+        }
+        unset($a);
+    }
 
     echo json_encode([
         'success' => true,

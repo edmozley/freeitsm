@@ -632,13 +632,22 @@ CREATE TABLE IF NOT EXISTS `assets` (
     `last_seen`         DATETIME NULL,
     `asset_type_id`     INT NULL,
     `asset_status_id`   INT NULL,
+    `location_id`       INT NULL,
     `domain`            VARCHAR(100) NULL,
     `logged_in_user`    VARCHAR(100) NULL,
     `last_boot_utc`     DATETIME NULL,
     `tpm_version`       VARCHAR(50) NULL,
     `bitlocker_status`  VARCHAR(20) NULL,
     `gpu_name`          VARCHAR(250) NULL,
-    PRIMARY KEY (`id`)
+    -- Procurement & warranty (Snipe-IT-style lifecycle fields)
+    `purchase_date`     DATE NULL,
+    `purchase_cost`     DECIMAL(12,2) NULL,
+    `supplier`          VARCHAR(150) NULL,
+    `order_number`      VARCHAR(100) NULL,
+    `warranty_expiry`   DATE NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_assets_location` (`location_id`),
+    CONSTRAINT `fk_assets_location` FOREIGN KEY (`location_id`) REFERENCES `asset_locations` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `users_assets` (

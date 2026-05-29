@@ -25,6 +25,11 @@
         { key: 'memory',            label: 'Memory',          type: 'number', defaultVisible: false, defaultOrder: 11 },
         { key: 'bios_version',      label: 'BIOS',            type: 'string', defaultVisible: false, defaultOrder: 12 },
         { key: 'user_count',        label: 'Assigned users',  type: 'number', defaultVisible: true,  defaultOrder: 13 },
+        { key: 'location_path',     label: 'Location',        type: 'string', defaultVisible: true,  defaultOrder: 14 },
+        { key: 'purchase_date',     label: 'Purchase date',   type: 'date',   defaultVisible: false, defaultOrder: 15 },
+        { key: 'purchase_cost',     label: 'Cost',            type: 'number', defaultVisible: false, defaultOrder: 16 },
+        { key: 'supplier',          label: 'Supplier',        type: 'string', defaultVisible: false, defaultOrder: 17 },
+        { key: 'warranty_expiry',   label: 'Warranty expiry', type: 'date',   defaultVisible: false, defaultOrder: 18 },
     ];
 
     createDataTable({

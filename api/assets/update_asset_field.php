@@ -25,7 +25,8 @@ try {
     }
 
     // Whitelist allowed fields to prevent SQL injection
-    $allowedFields = ['asset_type_id', 'asset_status_id'];
+    $allowedFields = ['asset_type_id', 'asset_status_id', 'location_id',
+                      'purchase_date', 'purchase_cost', 'supplier', 'order_number', 'warranty_expiry'];
     if (!in_array($field, $allowedFields)) {
         throw new Exception('Invalid field');
     }
@@ -58,10 +59,19 @@ try {
         $nameQuery = "SELECT name FROM asset_status_types WHERE id = ?";
         if ($oldValue) { $n = $conn->prepare($nameQuery); $n->execute([$oldValue]); $r = $n->fetch(PDO::FETCH_ASSOC); if ($r) $oldDisplay = $r['name']; }
         if ($value)    { $n = $conn->prepare($nameQuery); $n->execute([$value]);    $r = $n->fetch(PDO::FETCH_ASSOC); if ($r) $newDisplay = $r['name']; }
+    } elseif ($field === 'location_id') {
+        $nameQuery = "SELECT name FROM asset_locations WHERE id = ?";
+        if ($oldValue) { $n = $conn->prepare($nameQuery); $n->execute([$oldValue]); $r = $n->fetch(PDO::FETCH_ASSOC); if ($r) $oldDisplay = $r['name']; }
+        if ($value)    { $n = $conn->prepare($nameQuery); $n->execute([$value]);    $r = $n->fetch(PDO::FETCH_ASSOC); if ($r) $newDisplay = $r['name']; }
     }
 
     // Log the change to asset_history
-    $fieldLabel = $field === 'asset_type_id' ? 'Type' : ($field === 'asset_status_id' ? 'Status' : $field);
+    $fieldLabels = [
+        'asset_type_id' => 'Type', 'asset_status_id' => 'Status', 'location_id' => 'Location',
+        'purchase_date' => 'Purchase date', 'purchase_cost' => 'Purchase cost', 'supplier' => 'Supplier',
+        'order_number' => 'Order number', 'warranty_expiry' => 'Warranty expiry',
+    ];
+    $fieldLabel = $fieldLabels[$field] ?? $field;
     $auditSql = "INSERT INTO asset_history (asset_id, analyst_id, field_name, old_value, new_value, created_datetime)
                  VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())";
     $auditStmt = $conn->prepare($auditSql);

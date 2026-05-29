@@ -227,6 +227,23 @@ $path_prefix = '../';
             box-shadow: 0 0 0 2px rgba(16, 124, 16, 0.1);
         }
 
+        .info-value-input {
+            font-size: 14px;
+            color: #333;
+            padding: 4px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+            max-width: 200px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .info-value-input:focus {
+            outline: none;
+            border-color: #107c10;
+            box-shadow: 0 0 0 2px rgba(16, 124, 16, 0.1);
+        }
+
         .assigned-users-section {
             flex: 1;
             display: flex;
@@ -949,6 +966,7 @@ $path_prefix = '../';
         let currentAssignedUserId = null;
         let assetTypes = [];
         let assetStatusTypes = [];
+        let assetLocations = [];
         let allAssetSoftware = [];
         let activeSwFilter = 'apps';
         let allDevices = [];
@@ -958,6 +976,7 @@ $path_prefix = '../';
             loadAssets();
             loadAssetTypesForDropdown();
             loadAssetStatusTypesForDropdown();
+            loadLocationsForDropdown();
         });
 
         async function loadAssetTypesForDropdown() {
@@ -974,6 +993,33 @@ $path_prefix = '../';
                 const data = await response.json();
                 if (data.success) assetStatusTypes = data.asset_status_types.filter(t => t.is_active);
             } catch (e) { console.error('Error loading asset status types:', e); }
+        }
+
+        async function loadLocationsForDropdown() {
+            try {
+                const response = await fetch(API_BASE + 'get_asset_locations.php');
+                const data = await response.json();
+                if (data.success) assetLocations = data.locations || [];
+            } catch (e) { console.error('Error loading locations:', e); }
+        }
+
+        // Build indented full-path <option>s for the location picker, e.g.
+        //   UK
+        //      London
+        //         Office 1
+        function buildLocationOptions(selectedId) {
+            const childrenOf = (pid) => assetLocations.filter(l => l.parent_id === pid);
+            const opts = ['<option value="">-- None --</option>'];
+            const walk = (pid, depth) => {
+                childrenOf(pid).forEach(loc => {
+                    const indent = '   '.repeat(depth);
+                    const sel = (selectedId != null && String(loc.id) === String(selectedId)) ? ' selected' : '';
+                    opts.push(`<option value="${loc.id}"${sel}>${indent}${escapeHtml(loc.name)}</option>`);
+                    walk(loc.id, depth + 1);
+                });
+            };
+            walk(null, 0);
+            return opts.join('');
         }
 
         async function updateAssetField(field, value) {
@@ -1092,6 +1138,12 @@ $path_prefix = '../';
                             </select>
                         </div>
                         <div class="info-item">
+                            <span class="info-label">Location</span>
+                            <select class="info-value-select" onchange="updateAssetField('location_id', this.value)">
+                                ${buildLocationOptions(selectedAsset.location_id)}
+                            </select>
+                        </div>
+                        <div class="info-item">
                             <span class="info-label">Manufacturer</span>
                             <span class="info-value">${escapeHtml(selectedAsset.manufacturer) || '-'}</span>
                         </div>
@@ -1126,6 +1178,26 @@ $path_prefix = '../';
                         <div class="info-item">
                             <span class="info-label">BIOS Version</span>
                             <span class="info-value">${escapeHtml(selectedAsset.bios_version) || '-'}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Purchase date</span>
+                            <input type="date" class="info-value-input" value="${selectedAsset.purchase_date || ''}" onchange="updateAssetField('purchase_date', this.value)">
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Purchase cost</span>
+                            <input type="number" step="0.01" min="0" class="info-value-input" value="${selectedAsset.purchase_cost != null ? selectedAsset.purchase_cost : ''}" placeholder="0.00" onchange="updateAssetField('purchase_cost', this.value)">
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Supplier</span>
+                            <input type="text" class="info-value-input" value="${escapeHtml(selectedAsset.supplier || '')}" placeholder="-" onchange="updateAssetField('supplier', this.value)">
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Order number</span>
+                            <input type="text" class="info-value-input" value="${escapeHtml(selectedAsset.order_number || '')}" placeholder="-" onchange="updateAssetField('order_number', this.value)">
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">Warranty expiry</span>
+                            <input type="date" class="info-value-input" value="${selectedAsset.warranty_expiry || ''}" onchange="updateAssetField('warranty_expiry', this.value)">
                         </div>
                     </div>
                 </div>

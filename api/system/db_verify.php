@@ -435,12 +435,18 @@ $schema = [
         'last_seen'         => 'DATETIME NULL',
         'asset_type_id'     => 'INT NULL',
         'asset_status_id'   => 'INT NULL',
+        'location_id'       => 'INT NULL',
         'domain'            => 'VARCHAR(100) NULL',
         'logged_in_user'    => 'VARCHAR(100) NULL',
         'last_boot_utc'     => 'DATETIME NULL',
         'tpm_version'       => 'VARCHAR(50) NULL',
         'bitlocker_status'  => 'VARCHAR(20) NULL',
         'gpu_name'          => 'VARCHAR(250) NULL',
+        'purchase_date'     => 'DATE NULL',
+        'purchase_cost'     => 'DECIMAL(12,2) NULL',
+        'supplier'          => 'VARCHAR(150) NULL',
+        'order_number'      => 'VARCHAR(100) NULL',
+        'warranty_expiry'   => 'DATE NULL',
     ],
 
     'asset_types' => [
@@ -2862,9 +2868,11 @@ try {
         $conn->exec("UPDATE `$tbl` SET `$newCol` = (SELECT id FROM `$lkTbl` WHERE is_default = 1 LIMIT 1) WHERE `$newCol` IS NULL");
     }
 
-    // FK + index for the asset location tree (self-referencing parent).
+    // FK + index for the asset location tree (self-referencing parent) and the
+    // assets -> location link.
     foreach ([
         ['asset_locations', 'fk_asset_locations_parent', "ALTER TABLE asset_locations ADD CONSTRAINT fk_asset_locations_parent FOREIGN KEY (parent_id) REFERENCES asset_locations (id)"],
+        ['assets', 'fk_assets_location', "ALTER TABLE assets ADD CONSTRAINT fk_assets_location FOREIGN KEY (location_id) REFERENCES asset_locations (id) ON DELETE SET NULL"],
     ] as [$tbl, $name, $sql]) {
         if ($tableExists($tbl) && !$fkExists($tbl, $name)) {
             try { $conn->exec($sql); } catch (Exception $e) {}
@@ -2872,6 +2880,7 @@ try {
     }
     foreach ([
         ['asset_locations', 'idx_asset_locations_parent', 'parent_id'],
+        ['assets', 'idx_assets_location', 'location_id'],
     ] as [$tbl, $name, $col]) {
         if ($tableExists($tbl) && !$idxExists($tbl, $name)) {
             try { $conn->exec("ALTER TABLE `$tbl` ADD KEY `$name` (`$col`)"); } catch (Exception $e) {}

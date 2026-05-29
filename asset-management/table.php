@@ -39,6 +39,6 @@ $dtShowPdf = true;
     </div>
 
     <script src="../assets/js/data-table.js?v=2"></script>
-    <script src="../assets/js/asset-table.js?v=2"></script>
+    <script src="../assets/js/asset-table.js?v=3"></script>
 </body>
 </html>
