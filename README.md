@@ -593,7 +593,7 @@ Rich-text knowledge base with AI integration.
 ### Change Management (`change-management/`)
 Change request tracking and approval workflows with ITIL-aligned processes.
 - Calendar view with month/week/day views for visualising scheduled changes
-- **Table view** (`table.php`): full-screen Excel-style grid of all changes (ref, title, type, status, priority, risk, assignee, work dates and more) with column show/hide + drag-reorder (persisted per analyst), click-to-sort, search, per-column tickbox filters, and CSV export; click a row to open the change. Read-only by design — edits go through the full change form
+- **Table view** (`table.php`): full-screen Excel-style grid of all changes (ref, title, type, status, priority, risk, assignee, work dates and more) with column show/hide + drag-reorder (persisted per analyst), click-to-sort, search, per-column tickbox filters, and CSV export; click a row to open the change. Read-only by design — a "Read only — click to learn more" note in the toolbar opens a plain-English explainer of why, and edits go through the full change form
 - Status-based filtering (Draft, Pending Approval, Approved, In Progress, Completed, Failed, Cancelled)
 - Click-through from calendar to change detail view
 - Approvals page showing changes pending approval (filter by All, Assigned to me, Requested by me, My CAB reviews)

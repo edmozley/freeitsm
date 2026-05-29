@@ -52,6 +52,7 @@
         exportName: 'changes',
         defaultSort: { key: 'modified_datetime', dir: 'desc' },
         columns: COLUMNS,
+        hideCount: true,   // the toolbar's right slot holds the read-only note instead
         onRowClick: row => { window.location.href = `index.php?change=${row.id}`; },
 
         load: async () => {
@@ -59,5 +60,28 @@
             if (!d.success) { console.error('change list:', d.error); return []; }
             return d.changes || [];
         },
+    });
+
+    // Read-only note in place of the row count → opens the plain-English explainer.
+    document.addEventListener('DOMContentLoaded', () => {
+        const slot = document.getElementById('dtCount');
+        if (slot) {
+            slot.innerHTML =
+                '<button type="button" class="dt-readonly-note" id="readonlyNote">' +
+                '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line>' +
+                '</svg>Read only — click to learn more</button>';
+        }
+
+        const modal = document.getElementById('readonlyModal');
+        const open = () => modal && modal.classList.add('active');
+        const close = () => modal && modal.classList.remove('active');
+
+        const note = document.getElementById('readonlyNote');
+        if (note) note.addEventListener('click', open);
+        const closeBtn = document.getElementById('readonlyModalClose');
+        if (closeBtn) closeBtn.addEventListener('click', close);
+        if (modal) modal.addEventListener('click', e => { if (e.target === modal) close(); });
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
     });
 })();

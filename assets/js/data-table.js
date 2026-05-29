@@ -250,8 +250,10 @@
             const cols = visibleColumns();
             const rows = applyFiltersAndSort();
 
+            // A module can suppress the row count (e.g. to put its own note in
+            // the toolbar's right slot) with config.hideCount.
             const countEl = byId(els.count);
-            if (countEl) {
+            if (countEl && !config.hideCount) {
                 countEl.textContent = rows.length === allRows.length
                     ? `${rows.length} ${noun}${rows.length === 1 ? '' : 's'}`
                     : `${rows.length} of ${allRows.length}`;
