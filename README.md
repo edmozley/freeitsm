@@ -593,6 +593,7 @@ Rich-text knowledge base with AI integration.
 ### Change Management (`change-management/`)
 Change request tracking and approval workflows with ITIL-aligned processes.
 - Calendar view with month/week/day views for visualising scheduled changes
+- **Table view** (`table.php`): full-screen Excel-style grid of all changes (ref, title, type, status, priority, risk, assignee, work dates and more) with column show/hide + drag-reorder (persisted per analyst), click-to-sort, search, per-column tickbox filters, and CSV export; click a row to open the change. Read-only by design — edits go through the full change form
 - Status-based filtering (Draft, Pending Approval, Approved, In Progress, Completed, Failed, Cancelled)
 - Click-through from calendar to change detail view
 - Approvals page showing changes pending approval (filter by All, Assigned to me, Requested by me, My CAB reviews)
@@ -611,6 +612,7 @@ Event calendar with configurable categories.
 - Drag-and-drop to move events between days in month view
 - Category colour coding and filtering
 - Events visible in adjacent-month cells for context
+- **Table view** (`calendar/table/`): full-screen Excel-style grid of every event with inline cell editing (title, category, start/end, all-day, location), column show/hide + drag-reorder (persisted per analyst), click-to-sort, search, per-column tickbox filters, and CSV export — the same table experience as the Asset Management and Tasks modules
 - **Help guide** (`help.php`): Interactive guide covering calendar views, event creation, categories, settings configuration, and scheduling tips for IT teams
 
 ### Morning Checks (`morning-checks/`)

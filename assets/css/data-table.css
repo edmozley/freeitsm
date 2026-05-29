@@ -1,0 +1,292 @@
+/**
+ * FreeITSM shared data-table styles
+ *
+ * One look-and-feel for every module's full-screen table view (assets, tasks,
+ * calendar, change management). Drives the markup produced by
+ * assets/js/data-table.js. The module accent colour is supplied at runtime via
+ * the `--dt-accent` custom property (the engine sets it on :root from its
+ * config), so this file carries zero per-module colour — only a sensible blue
+ * fallback. Soft tints derive from the accent with color-mix (Chrome/Edge,
+ * which is the platform target).
+ */
+
+:root { --dt-accent: #0078d4; }
+
+/* Full-height wrapper for standalone table pages (assets, calendar, change).
+   Tasks embeds .dt-layout inside its own flex column instead. */
+.dt-page {
+    height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.dt-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+/* ── Toolbar ──────────────────────────────────────────────────────── */
+.dt-toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    background: #fff;
+    border-bottom: 1px solid #e0e0e0;
+    flex-shrink: 0;
+}
+.dt-toolbar .dt-search {
+    flex: 1 1 240px;
+    max-width: 320px;
+    padding: 7px 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 13px;
+}
+.dt-toolbar .dt-search:focus {
+    outline: none;
+    border-color: var(--dt-accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--dt-accent) 18%, transparent);
+}
+.dt-toolbar .dt-btn {
+    padding: 7px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+}
+.dt-toolbar .dt-btn:hover { border-color: var(--dt-accent); color: var(--dt-accent); }
+.dt-toolbar .dt-btn svg { flex-shrink: 0; }
+.dt-toolbar .dt-count { color: #666; font-size: 13px; margin-left: auto; }
+
+/* ── Table ────────────────────────────────────────────────────────── */
+.dt-wrap {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: #fff;
+    margin: 12px 16px;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+}
+table.dt-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 13px;
+}
+.dt-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f5f7fa;
+    z-index: 2;
+    border-bottom: 2px solid #e0e0e0;
+    border-right: 1px solid #e0e0e0;
+    padding: 0;
+    text-align: left;
+    color: #333;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.dt-table thead th:last-child { border-right: none; }
+.dt-th-content {
+    display: flex; align-items: center; gap: 6px;
+    padding: 9px 10px;
+    cursor: pointer;
+    user-select: none;
+}
+.dt-th-content:hover { background: #eef2f7; }
+.dt-th-label { flex: 1; }
+.dt-sort-arrow { font-size: 11px; color: #999; line-height: 1; }
+.dt-th-content.sorted .dt-sort-arrow { color: var(--dt-accent); }
+
+.dt-filter-btn {
+    width: 18px; height: 18px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    color: #999;
+    padding: 0;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 3px;
+}
+.dt-filter-btn:hover { background: #dde4ee; color: #333; }
+.dt-filter-btn.active { color: var(--dt-accent); }
+
+.dt-table tbody td {
+    padding: 8px 10px;
+    border-bottom: 1px solid #f0f0f0;
+    border-right: 1px solid #f5f5f5;
+    color: #333;
+    vertical-align: middle;
+    max-width: 320px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+/* Tighter rows when cells carry inline-edit controls. */
+.dt-table.dt-editable tbody td { padding: 4px 6px; }
+.dt-table tbody td:last-child { border-right: none; }
+.dt-table tbody tr:hover { background: #fafbfc; }
+.dt-table tbody tr.dt-clickable { cursor: pointer; }
+
+/* Drag-reorder affordance on header cells */
+.dt-table thead th.dt-dragging { opacity: 0.4; }
+.dt-table thead th.dt-drag-over { background: color-mix(in srgb, var(--dt-accent) 14%, #fff); }
+
+/* ── Inline edit controls ─────────────────────────────────────────── */
+.dt-cell-input,
+.dt-cell-date,
+.dt-cell-select {
+    width: 100%;
+    border: 1px solid transparent;
+    background: transparent;
+    padding: 4px 6px;
+    border-radius: 3px;
+    font-size: 13px;
+    color: #333;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+.dt-cell-input:hover,
+.dt-cell-date:hover,
+.dt-cell-select:hover {
+    border-color: #ddd;
+    background: #fafbfc;
+}
+.dt-cell-input:focus,
+.dt-cell-date:focus,
+.dt-cell-select:focus {
+    outline: none;
+    border-color: var(--dt-accent);
+    background: #fff;
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--dt-accent) 14%, transparent);
+}
+.dt-cell-wrap { display: flex; align-items: center; gap: 6px; }
+.dt-cell-wrap .dt-cell-select { flex: 1; min-width: 0; }
+.dt-swatch {
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.dt-empty {
+    padding: 60px 20px;
+    text-align: center;
+    color: #888;
+}
+
+/* ── Popovers (filter + columns drawer) ───────────────────────────── */
+.dt-pop {
+    position: absolute;
+    z-index: 1000;
+    background: #fff;
+    border: 1px solid #d0d7e1;
+    border-radius: 6px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    font-size: 13px;
+}
+.dt-filter-pop {
+    min-width: 220px;
+    max-width: 320px;
+    padding: 10px 12px;
+}
+.dt-filter-pop .dt-pop-search {
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 12px;
+    margin-bottom: 8px;
+}
+.dt-filter-pop .dt-pop-actions {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+    font-size: 12px;
+}
+.dt-filter-pop .dt-pop-actions a {
+    color: var(--dt-accent);
+    cursor: pointer;
+    text-decoration: none;
+}
+.dt-filter-pop .dt-pop-actions a:hover { text-decoration: underline; }
+.dt-filter-pop .dt-pop-list {
+    max-height: 280px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+    border-top: 1px solid #eee;
+    padding-top: 6px;
+}
+.dt-filter-pop .dt-pop-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 4px 2px;
+    cursor: pointer;
+}
+.dt-filter-pop .dt-pop-item:hover { background: #f5f7fa; }
+.dt-filter-pop .dt-pop-item input { margin: 0; }
+.dt-filter-pop .dt-pop-value {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.dt-filter-pop .dt-pop-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 6px;
+    border-top: 1px solid #eee;
+    padding-top: 8px;
+}
+.dt-filter-pop .dt-pop-buttons button {
+    padding: 5px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background: #fff;
+    font-size: 12px;
+    cursor: pointer;
+}
+.dt-filter-pop .dt-pop-buttons .dt-pop-apply {
+    background: var(--dt-accent);
+    color: #fff;
+    border-color: var(--dt-accent);
+}
+
+.dt-cols-pop {
+    min-width: 240px;
+    max-height: 70vh;
+    overflow-y: auto;
+    padding: 12px 14px;
+}
+.dt-cols-pop h4 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #333;
+}
+.dt-cols-hint { color: #888; font-size: 11px; margin-bottom: 10px; }
+.dt-cols-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 6px;
+    border-radius: 3px;
+    cursor: grab;
+}
+.dt-cols-item:hover { background: #f5f7fa; }
+.dt-cols-item.dragging { opacity: 0.4; }
+.dt-cols-item.drag-over { background: color-mix(in srgb, var(--dt-accent) 14%, #fff); }
+.dt-cols-drag {
+    color: #aaa;
+    cursor: grab;
+    font-size: 14px;
+    line-height: 1;
+}

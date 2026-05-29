@@ -18,9 +18,11 @@ $startDate = $_GET['start'] ?? null;
 $endDate = $_GET['end'] ?? null;
 $categoryIds = isset($_GET['categories']) ? explode(',', $_GET['categories']) : null;
 $contractId = isset($_GET['contract_id']) && $_GET['contract_id'] !== '' ? (int)$_GET['contract_id'] : null;
+// The table view requests every event regardless of date (all=1).
+$allEvents = isset($_GET['all']) && $_GET['all'] !== '' && $_GET['all'] !== '0';
 
-// Date range is required unless filtering by contract_id
-if (!$contractId && (!$startDate || !$endDate)) {
+// Date range is required unless filtering by contract_id or fetching all events
+if (!$contractId && !$allEvents && (!$startDate || !$endDate)) {
     echo json_encode(['success' => false, 'error' => 'Start and end dates are required']);
     exit;
 }
