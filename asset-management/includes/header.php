@@ -5,7 +5,7 @@
 
 $path_prefix = $path_prefix ?? '../';
 $current_module = 'assets';
-$module_title = 'Assets';
+$module_title = function_exists('t') ? t('asset-management.title') : 'Assets';
 
 // Ensure user is logged in
 if (!isset($_SESSION['analyst_id'])) {
@@ -24,18 +24,18 @@ require_once $path_prefix . 'includes/waffle-menu.php';
     <div class="waffle-menu-container">
         <?php renderWaffleMenuButton(); ?>
         <?php renderWaffleMenuPanel($modules, $current_module, $path_prefix); ?>
-        <span class="module-title"><?php echo $module_title; ?></span>
+        <span class="module-title"><?php echo htmlspecialchars($module_title); ?></span>
     </div>
     <nav class="header-nav">
-        <a href="<?php echo BASE_URL; ?>asset-management/" class="nav-btn <?php echo $current_page === 'assets' ? 'active' : ''; ?>" title="Assets">
+        <a href="<?php echo BASE_URL; ?>asset-management/" class="nav-btn <?php echo $current_page === 'assets' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.assets') : 'Assets'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
                 <line x1="8" y1="21" x2="16" y2="21"></line>
                 <line x1="12" y1="17" x2="12" y2="21"></line>
             </svg>
-            <span>Assets</span>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.assets') : 'Assets'); ?></span>
         </a>
-        <a href="<?php echo BASE_URL; ?>asset-management/table.php" class="nav-btn <?php echo $current_page === 'table' ? 'active' : ''; ?>" title="Table view">
+        <a href="<?php echo BASE_URL; ?>asset-management/table.php" class="nav-btn <?php echo $current_page === 'table' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.table') : 'Table view'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="3" y1="9" x2="21" y2="9"></line>
@@ -43,39 +43,39 @@ require_once $path_prefix . 'includes/waffle-menu.php';
                 <line x1="9" y1="3" x2="9" y2="21"></line>
                 <line x1="15" y1="3" x2="15" y2="21"></line>
             </svg>
-            <span>Table</span>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.table') : 'Table'); ?></span>
         </a>
-        <a href="<?php echo BASE_URL; ?>asset-management/dashboard/" class="nav-btn <?php echo $current_page === 'dashboard' ? 'active' : ''; ?>" title="Dashboard">
+        <a href="<?php echo BASE_URL; ?>asset-management/dashboard/" class="nav-btn <?php echo $current_page === 'dashboard' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.dashboard') : 'Dashboard'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
                 <line x1="3" y1="9" x2="21" y2="9"></line>
                 <line x1="9" y1="21" x2="9" y2="9"></line>
             </svg>
-            <span>Dashboard</span>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.dashboard') : 'Dashboard'); ?></span>
         </a>
-        <a href="<?php echo BASE_URL; ?>asset-management/servers/" class="nav-btn <?php echo $current_page === 'servers' ? 'active' : ''; ?>" title="Servers">
+        <a href="<?php echo BASE_URL; ?>asset-management/servers/" class="nav-btn <?php echo $current_page === 'servers' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.servers') : 'Servers'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect>
                 <rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect>
                 <line x1="6" y1="6" x2="6.01" y2="6"></line>
                 <line x1="6" y1="18" x2="6.01" y2="18"></line>
             </svg>
-            <span>Servers</span>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.servers') : 'Servers'); ?></span>
         </a>
-        <a href="<?php echo BASE_URL; ?>asset-management/settings/" class="nav-btn <?php echo $current_page === 'settings' ? 'active' : ''; ?>" title="Settings">
+        <a href="<?php echo BASE_URL; ?>asset-management/settings/" class="nav-btn <?php echo $current_page === 'settings' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.settings') : 'Settings'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"></circle>
                 <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
             </svg>
-            <span>Settings</span>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.settings') : 'Settings'); ?></span>
         </a>
-        <a href="<?php echo BASE_URL; ?>asset-management/help.php" class="nav-btn <?php echo $current_page === 'help' ? 'active' : ''; ?>" title="Help">
+        <a href="<?php echo BASE_URL; ?>asset-management/help.php" class="nav-btn <?php echo $current_page === 'help' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.help') : 'Help'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
-            <span>Help</span>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('asset-management.nav.help') : 'Help'); ?></span>
         </a>
     </nav>
     <?php renderHeaderRight($analyst_name, $path_prefix); ?>

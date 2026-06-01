@@ -1,0 +1,140 @@
+<?php
+/**
+ * Nederlands (nl) — Workflows module strings.
+ * Missing keys fall back to lang/en/workflow.php per-key.
+ */
+return [
+    'title' => 'Workflows',
+
+    'nav' => [
+        'workflows' => 'Workflows',
+        'settings'  => 'Instellingen',
+        'help'      => 'Help',
+    ],
+
+    'settings_tabs' => [
+        'ai' => 'AI',
+    ],
+
+    'ai_settings' => [
+        'title'                   => 'AI-integratie',
+        'intro'                   => 'Configureer de AI-provider die de workflow-co-auteur aandrijft. Elke module heeft een eigen sleutel zodat facturatie en toegang per module kunnen worden geregeld. De API key wordt versleuteld opgeslagen. Gebruik Testen om je sleutel + model te verifiëren voordat je opslaat.',
+        'provider_label'          => 'Provider',
+        'model_label'             => 'Model',
+        'model_hint'              => 'Kies een suggestie of plak een willekeurige model-id die door de gekozen provider wordt ondersteund.',
+        'key_label'               => 'API key',
+        'key_placeholder_empty'   => '(geen sleutel opgeslagen — plak een nieuwe om in te stellen)',
+        'key_placeholder_stored'  => 'Opgeslagen — laat ongewijzigd om te behouden',
+        'key_hint'                => 'Versleuteld opgeslagen. Laat leeg of ongewijzigd om de bestaande sleutel te behouden.',
+        'verify_ssl_label'        => 'SSL verifiëren',
+        'verify_ssl_hint'         => 'Schakel dit alleen uit om te testen tegen omgevingen met zelfondertekende certificaten (bijv. achter een inspecterende proxy).',
+        'ssl_warning_title'       => 'Waarschuwing',
+        'ssl_warning_body'        => 'SSL-verificatie staat uit. FreeITSM accepteert elk TLS-certificaat van de AI-provider zonder het te controleren. Iedereen met toegang tot je netwerk kan zich voordoen als de provider, het verkeer onderscheppen en je API key stelen — samen met elke prompt en elk antwoord dat volgt. Laat dit alleen uit in testomgevingen met zelfondertekende certificaten — nooit in productie.',
+        'test_btn'                => 'Testen',
+        'testing'                 => 'Testen…',
+    ],
+
+    'list' => [
+        'page_title'      => 'Workflows',
+        'intro'           => 'Automatiseringsregels die luisteren naar gebeurtenissen uit andere modules en daarop reageren. Elke regel bestaat uit een trigger, optionele voorwaarden en een of meer acties.',
+        'add_btn'         => 'Nieuw',
+        'no_workflows'    => 'Nog geen workflows — klik op "Nieuw" om je eerste automatisering te maken.',
+        'col_name'        => 'Naam',
+        'col_trigger'     => 'Trigger',
+        'col_actions'     => 'Acties',
+        'col_last_run'    => 'Laatste run',
+        'col_status'      => 'Status',
+        'col_row_actions' => 'Acties',
+        'never_run'       => 'Nooit',
+        'active'          => 'Actief',
+        'inactive'        => 'Inactief',
+    ],
+
+    'editor' => [
+        'new_title'       => 'Nieuwe workflow',
+        'edit_title'      => 'Workflow bewerken',
+        'name_label'      => 'Naam',
+        'name_placeholder'=> 'bijv. P1-ticketmelding',
+        'description_label' => 'Beschrijving',
+        'description_placeholder' => 'Optioneel — leg uit wat deze workflow doet en waarom',
+        'trigger_label'   => 'Trigger',
+        'trigger_hint'    => 'De gebeurtenis die deze workflow activeert.',
+        'conditions_label'=> 'Voorwaarden',
+        'conditions_hint' => 'Optioneel. Alle voorwaarden moeten overeenkomen om de acties uit te voeren. Laat leeg om bij elke triggergebeurtenis uit te voeren.',
+        'actions_label'   => 'Acties',
+        'actions_hint'    => 'Voer deze in volgorde uit, van boven naar beneden. Minstens één actie is vereist.',
+        'active_label'    => 'Actief — uitvoeren wanneer de trigger afgaat',
+        'add_condition'   => 'Voorwaarde toevoegen',
+        'add_action'      => 'Actie toevoegen',
+        'remove'          => 'Verwijderen',
+        'test_fire'       => 'Test uitvoeren',
+        'test_fire_hint'  => 'Voer deze workflow één keer uit met een synthetische payload zodat je kunt controleren of de acties werken. Echte triggers worden in latere commits gekoppeld.',
+        'no_conditions'   => 'Geen voorwaarden — wordt bij elke gebeurtenis uitgevoerd.',
+        'no_actions'      => 'Nog geen acties — voeg er minstens één toe.',
+        'condition_field' => 'Veld',
+        'condition_op'    => 'Operator',
+        'condition_value' => 'Waarde',
+        'action_type'     => 'Actie',
+        'action_args'     => 'Argumenten (JSON)',
+        'back'            => 'Terug',
+    ],
+
+    'op' => [
+        'equals'      => 'is gelijk aan',
+        'not_equals'  => 'is niet gelijk aan',
+        'in'          => 'is een van',
+        'not_in'      => 'is niet een van',
+        'contains'    => 'bevat',
+        'not_contains'=> 'bevat niet',
+        'gt'          => 'groter dan',
+        'lt'          => 'kleiner dan',
+        'is_empty'    => 'is leeg',
+        'is_not_empty'=> 'is niet leeg',
+    ],
+
+    'status' => [
+        'success' => 'Geslaagd',
+        'failed'  => 'Mislukt',
+        'skipped' => 'Overgeslagen (voorwaarden kwamen niet overeen)',
+        'running' => 'Wordt uitgevoerd',
+        'aborted' => 'Afgebroken (lusbeveiliging)',
+    ],
+
+    'toast' => [
+        'saved'         => 'Workflow opgeslagen.',
+        'deleted'       => 'Workflow verwijderd.',
+        'delete_confirm'=> 'Deze workflow verwijderen?',
+        'fire_started'  => 'Testuitvoering gestart — zie het Uitvoeringslogboek.',
+        'fire_done'     => 'Testuitvoering voltooid: %s.',
+        'fire_failed'   => 'Testuitvoering mislukt: %s',
+        'name_required' => 'Naam is vereist.',
+        'actions_required' => 'Minstens één actie is vereist.',
+        'saved_no_actions' => 'Opgeslagen — maar deze workflow heeft nog geen acties, dus hij doet niets totdat je er een toevoegt.',
+        'ai_applied'      => 'AI-voorstel toegepast op het canvas. Pas het aan en sla op.',
+        'ai_failed'       => 'AI-co-auteur mislukt: %s',
+        'saved_settings'  => 'Instellingen opgeslagen.',
+    ],
+
+    'ai' => [
+        'btn'              => 'AI-co-auteur',
+        'modal_title'      => 'AI-co-auteur',
+        'intro'            => 'Beschrijf de workflow die je wilt en de AI bouwt er een opzet voor op het canvas. Je kunt doorgaan — zeg "voeg nu een voorwaarde toe voor…" en hij werkt verder op wat er al staat.',
+        'prompt_label'     => 'Wat moet deze workflow doen?',
+        'prompt_placeholder' => 'bijv. Wanneer een P1-ticket van Financiën wordt aangemaakt, log een bericht met de tekst "P1 ticket Financiën — waarschuw team"',
+        'generate'         => 'Genereren',
+        'thinking'         => 'Bezig met nadenken…',
+        'apply'            => 'Toepassen op canvas',
+        'discard'          => 'Verwerpen',
+        'close'            => 'Sluiten',
+        'iterate_hint'     => 'Tip: zodra je een workflow op het canvas hebt, werkt de AI daarop verder. Probeer "laat het alleen overeenkomen met Financiën, niet alle afdelingen" of "voeg een actie toe om ook de ticket-id te loggen".',
+        'explanation_label' => 'Wat ik heb gebouwd',
+        'preview_label'    => 'Voorgestelde workflow',
+        'warnings_label'   => 'Opmerkingen',
+        'only_log_message' => 'Alleen de actie log_message is momenteel geïmplementeerd; de AI gebruikt deze als tijdelijke aanduiding voor niet-geïmplementeerde acties (bijv. "e-mail versturen" → log_message die de bedoeling documenteert).',
+    ],
+
+    'help' => [
+        'page_title' => 'Workflows-handleiding',
+        'intro'      => 'Workflows automatiseren de dingen die je handmatig doet nadat een ticket binnenkomt: labelen, escaleren, toewijzen, melden, uitvouwen naar andere systemen. Een workflow luistert naar een gebeurtenis, filtert optioneel met voorwaarden en voert vervolgens een of meer acties in volgorde uit.',
+    ],
+];

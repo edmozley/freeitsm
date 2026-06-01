@@ -1,0 +1,140 @@
+<?php
+/**
+ * Português (Brasil) (pt-BR) — Workflows module strings.
+ * Missing keys fall back to lang/en/workflow.php per-key.
+ */
+return [
+    'title' => 'Workflows',
+
+    'nav' => [
+        'workflows' => 'Workflows',
+        'settings'  => 'Configurações',
+        'help'      => 'Ajuda',
+    ],
+
+    'settings_tabs' => [
+        'ai' => 'IA',
+    ],
+
+    'ai_settings' => [
+        'title'                   => 'Integração de IA',
+        'intro'                   => 'Configure o provedor de IA que alimenta o coautor de workflows. Cada módulo tem sua própria chave para que a cobrança e o acesso possam ser granulares. A API key é criptografada em repouso. Use Testar para verificar sua chave + modelo antes de salvar.',
+        'provider_label'          => 'Provedor',
+        'model_label'             => 'Modelo',
+        'model_hint'              => 'Escolha uma sugestão ou cole qualquer id de modelo suportado pelo provedor escolhido.',
+        'key_label'               => 'API key',
+        'key_placeholder_empty'   => '(nenhuma chave armazenada — cole uma nova para definir)',
+        'key_placeholder_stored'  => 'Armazenada — deixe inalterada para manter',
+        'key_hint'                => 'Criptografada em repouso. Deixe em branco ou inalterada para manter a chave existente.',
+        'verify_ssl_label'        => 'Verificar SSL',
+        'verify_ssl_hint'         => 'Desative apenas para testes em ambientes com certificados autoassinados (por exemplo, atrás de um proxy de inspeção).',
+        'ssl_warning_title'       => 'Aviso',
+        'ssl_warning_body'        => 'A verificação SSL está desativada. O FreeITSM aceitará qualquer certificado TLS do provedor de IA sem verificá-lo. Qualquer pessoa com acesso à sua rede poderia se passar pelo provedor, interceptar o tráfego e roubar sua API key — junto com cada prompt e resposta que vier a seguir. Deixe isso desativado apenas em ambientes de teste com certificados autoassinados — nunca em produção.',
+        'test_btn'                => 'Testar',
+        'testing'                 => 'Testando…',
+    ],
+
+    'list' => [
+        'page_title'      => 'Workflows',
+        'intro'           => 'Regras de automação que escutam eventos de outros módulos e agem sobre eles. Cada regra é um gatilho, condições opcionais e uma ou mais ações.',
+        'add_btn'         => 'Novo',
+        'no_workflows'    => 'Nenhum workflow ainda — clique em "Novo" para criar sua primeira automação.',
+        'col_name'        => 'Nome',
+        'col_trigger'     => 'Gatilho',
+        'col_actions'     => 'Ações',
+        'col_last_run'    => 'Última execução',
+        'col_status'      => 'Status',
+        'col_row_actions' => 'Ações',
+        'never_run'       => 'Nunca',
+        'active'          => 'Ativo',
+        'inactive'        => 'Inativo',
+    ],
+
+    'editor' => [
+        'new_title'       => 'Novo workflow',
+        'edit_title'      => 'Editar workflow',
+        'name_label'      => 'Nome',
+        'name_placeholder'=> 'ex.: alerta de ticket P1',
+        'description_label' => 'Descrição',
+        'description_placeholder' => 'Opcional — explique o que este workflow faz e por quê',
+        'trigger_label'   => 'Gatilho',
+        'trigger_hint'    => 'O evento que dispara este workflow.',
+        'conditions_label'=> 'Condições',
+        'conditions_hint' => 'Opcional. Todas as condições precisam ser atendidas para que as ações sejam executadas. Deixe vazio para executar em todo evento de gatilho.',
+        'actions_label'   => 'Ações',
+        'actions_hint'    => 'Execute estas em ordem, de cima para baixo. É necessária pelo menos uma ação.',
+        'active_label'    => 'Ativo — executar quando o gatilho disparar',
+        'add_condition'   => 'Adicionar condição',
+        'add_action'      => 'Adicionar ação',
+        'remove'          => 'Remover',
+        'test_fire'       => 'Disparo de teste',
+        'test_fire_hint'  => 'Execute este workflow uma vez com um payload sintético para que você possa verificar se as ações funcionam. Os gatilhos reais dispararão quando forem conectados em commits subsequentes.',
+        'no_conditions'   => 'Sem condições — executa em todo evento.',
+        'no_actions'      => 'Nenhuma ação ainda — adicione pelo menos uma.',
+        'condition_field' => 'Campo',
+        'condition_op'    => 'Operador',
+        'condition_value' => 'Valor',
+        'action_type'     => 'Ação',
+        'action_args'     => 'Argumentos (JSON)',
+        'back'            => 'Voltar',
+    ],
+
+    'op' => [
+        'equals'      => 'é igual a',
+        'not_equals'  => 'não é igual a',
+        'in'          => 'é um de',
+        'not_in'      => 'não é um de',
+        'contains'    => 'contém',
+        'not_contains'=> 'não contém',
+        'gt'          => 'maior que',
+        'lt'          => 'menor que',
+        'is_empty'    => 'está vazio',
+        'is_not_empty'=> 'não está vazio',
+    ],
+
+    'status' => [
+        'success' => 'Sucesso',
+        'failed'  => 'Falhou',
+        'skipped' => 'Ignorado (as condições não foram atendidas)',
+        'running' => 'Em execução',
+        'aborted' => 'Abortado (proteção contra loop)',
+    ],
+
+    'toast' => [
+        'saved'         => 'Workflow salvo.',
+        'deleted'       => 'Workflow excluído.',
+        'delete_confirm'=> 'Excluir este workflow?',
+        'fire_started'  => 'Disparo de teste iniciado — veja o log de execução.',
+        'fire_done'     => 'Disparo de teste concluído: %s.',
+        'fire_failed'   => 'Disparo de teste falhou: %s',
+        'name_required' => 'O nome é obrigatório.',
+        'actions_required' => 'É necessária pelo menos uma ação.',
+        'saved_no_actions' => 'Salvo — mas este workflow ainda não tem ações, então não fará nada até você adicionar uma.',
+        'ai_applied'      => 'Proposta da IA aplicada à tela. Ajuste e salve.',
+        'ai_failed'       => 'O coautor de IA falhou: %s',
+        'saved_settings'  => 'Configurações salvas.',
+    ],
+
+    'ai' => [
+        'btn'              => 'Coautor de IA',
+        'modal_title'      => 'Coautor de IA',
+        'intro'            => 'Descreva o workflow que você quer e a IA o esboçará na tela. Você pode continuar — diga "agora adicione uma condição para…" e ela itera sobre o que já existe.',
+        'prompt_label'     => 'O que este workflow deve fazer?',
+        'prompt_placeholder' => 'ex.: Quando um ticket P1 do Financeiro for criado, registre uma mensagem dizendo "Ticket P1 do financeiro — alertar a equipe"',
+        'generate'         => 'Gerar',
+        'thinking'         => 'Pensando…',
+        'apply'            => 'Aplicar à tela',
+        'discard'          => 'Descartar',
+        'close'            => 'Fechar',
+        'iterate_hint'     => 'Dica: quando você tem um workflow na tela, a IA itera sobre ele. Tente "faça corresponder apenas ao Financeiro, não a todos os departamentos" ou "adicione uma ação para registrar também o id do ticket".',
+        'explanation_label' => 'O que eu construí',
+        'preview_label'    => 'Workflow proposto',
+        'warnings_label'   => 'Notas',
+        'only_log_message' => 'Apenas a ação log_message está implementada hoje; a IA se apoiará nela como um placeholder para ações não implementadas (por exemplo, "enviar e-mail" → log_message documentando a intenção).',
+    ],
+
+    'help' => [
+        'page_title' => 'Guia de workflows',
+        'intro'      => 'Os workflows automatizam as coisas que você acaba fazendo manualmente depois que um ticket chega: etiquetar, escalar, atribuir, notificar, distribuir para outros sistemas. Um workflow escuta um evento, opcionalmente filtra com condições e então executa uma ou mais ações em ordem.',
+    ],
+];

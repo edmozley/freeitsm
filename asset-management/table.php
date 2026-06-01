@@ -9,6 +9,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -18,15 +20,18 @@ if (!isset($_SESSION['analyst_id'])) {
 $current_page = 'table';
 $path_prefix = '../';
 $dtShowPdf = true;
+$translationNamespaces = ['common', 'asset-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Asset table</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('asset-management.table.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css?v=22">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=1">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <!-- jsPDF + autotable (same versions as morning-checks) for PDF export -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>

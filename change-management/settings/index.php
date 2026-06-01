@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../../login.php');
@@ -13,13 +15,14 @@ if (!isset($_SESSION['analyst_id'])) {
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = 'settings';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'change-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Change management settings</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.settings')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .container {
@@ -250,29 +253,31 @@ $path_prefix = '../../';
         .modal-header { padding: 0; border-bottom: none; margin-bottom: 20px; font-size: 20px; font-weight: 600; color: #333; }
         .modal-actions { margin-top: 20px; }
     </style>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="fields" onclick="switchTab('fields')">Form fields</button>
-            <button class="tab" data-tab="statuses" onclick="switchTab('statuses')">Statuses</button>
-            <button class="tab" data-tab="priorities" onclick="switchTab('priorities')">Priorities</button>
-            <button class="tab" data-tab="types" onclick="switchTab('types')">Types</button>
-            <button class="tab" data-tab="impacts" onclick="switchTab('impacts')">Impacts</button>
+            <button class="tab active" data-tab="fields" onclick="switchTab('fields')"><?php echo htmlspecialchars(t('change-management.settings.tab_fields')); ?></button>
+            <button class="tab" data-tab="statuses" onclick="switchTab('statuses')"><?php echo htmlspecialchars(t('change-management.settings.tab_statuses')); ?></button>
+            <button class="tab" data-tab="priorities" onclick="switchTab('priorities')"><?php echo htmlspecialchars(t('change-management.settings.tab_priorities')); ?></button>
+            <button class="tab" data-tab="types" onclick="switchTab('types')"><?php echo htmlspecialchars(t('change-management.settings.tab_types')); ?></button>
+            <button class="tab" data-tab="impacts" onclick="switchTab('impacts')"><?php echo htmlspecialchars(t('change-management.settings.tab_impacts')); ?></button>
         </div>
 
         <!-- Form Fields Tab -->
         <div class="tab-content active" id="fields-tab">
             <div class="section-header">
-                <h2>Form fields</h2>
+                <h2><?php echo htmlspecialchars(t('change-management.settings.fields_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Drag to reorder sections and fields, drag fields between sections, click a section name to rename. Sections with no visible fields are hidden on the change form. Changes save automatically.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('change-management.settings.fields_intro')); ?></p>
 
             <div class="field-toolbar">
-                <button type="button" class="add-section-btn" onclick="addSection()">+ Add section</button>
-                <span class="field-save-status" id="fieldSaveStatus">Saved</span>
+                <button type="button" class="add-section-btn" onclick="addSection()"><?php echo htmlspecialchars(t('change-management.settings.add_section')); ?></button>
+                <span class="field-save-status" id="fieldSaveStatus"><?php echo htmlspecialchars(t('change-management.settings.saved')); ?></span>
             </div>
 
             <div id="fieldSettings"></div>
@@ -281,52 +286,52 @@ $path_prefix = '../../';
         <!-- Statuses Tab -->
         <div class="tab-content" id="statuses-tab">
             <div class="section-header">
-                <h2>Statuses</h2>
-                <button class="add-btn" onclick="openLookupModal('status')">Add</button>
+                <h2><?php echo htmlspecialchars(t('change-management.settings.statuses_heading')); ?></h2>
+                <button class="add-btn" onclick="openLookupModal('status')"><?php echo htmlspecialchars(t('change-management.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Workflow states a change can be in. Statuses flagged as <em>Closed</em> count as terminal — used by reports and watchtower counters. Exactly one status is the default for new changes.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo t('change-management.settings.statuses_intro'); ?></p>
             <table class="lookup-table">
-                <thead><tr><th>Name</th><th>Colour</th><th>Closed</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="statuses-list"><tr><td colspan="7" style="text-align:center;">Loading...</td></tr></tbody>
+                <thead><tr><th><?php echo htmlspecialchars(t('change-management.settings.col_name')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_colour')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_closed')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_default')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_order')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_status')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_actions')); ?></th></tr></thead>
+                <tbody id="statuses-list"><tr><td colspan="7" style="text-align:center;"><?php echo htmlspecialchars(t('change-management.settings.loading')); ?></td></tr></tbody>
             </table>
         </div>
 
         <!-- Priorities Tab -->
         <div class="tab-content" id="priorities-tab">
             <div class="section-header">
-                <h2>Priorities</h2>
-                <button class="add-btn" onclick="openLookupModal('priority')">Add</button>
+                <h2><?php echo htmlspecialchars(t('change-management.settings.priorities_heading')); ?></h2>
+                <button class="add-btn" onclick="openLookupModal('priority')"><?php echo htmlspecialchars(t('change-management.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Priority bands shown on change records. Exactly one priority is the default for new changes.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('change-management.settings.priorities_intro')); ?></p>
             <table class="lookup-table">
-                <thead><tr><th>Name</th><th>Colour</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="priorities-list"><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+                <thead><tr><th><?php echo htmlspecialchars(t('change-management.settings.col_name')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_colour')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_default')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_order')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_status')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_actions')); ?></th></tr></thead>
+                <tbody id="priorities-list"><tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('change-management.settings.loading')); ?></td></tr></tbody>
             </table>
         </div>
 
         <!-- Types Tab -->
         <div class="tab-content" id="types-tab">
             <div class="section-header">
-                <h2>Change types</h2>
-                <button class="add-btn" onclick="openLookupModal('type')">Add</button>
+                <h2><?php echo htmlspecialchars(t('change-management.settings.types_heading')); ?></h2>
+                <button class="add-btn" onclick="openLookupModal('type')"><?php echo htmlspecialchars(t('change-management.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Categories of change request — typically Standard, Normal, Emergency. Exactly one type is the default for new changes.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('change-management.settings.types_intro')); ?></p>
             <table class="lookup-table">
-                <thead><tr><th>Name</th><th>Colour</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="types-list"><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+                <thead><tr><th><?php echo htmlspecialchars(t('change-management.settings.col_name')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_colour')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_default')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_order')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_status')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_actions')); ?></th></tr></thead>
+                <tbody id="types-list"><tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('change-management.settings.loading')); ?></td></tr></tbody>
             </table>
         </div>
 
         <!-- Impacts Tab -->
         <div class="tab-content" id="impacts-tab">
             <div class="section-header">
-                <h2>Impacts</h2>
-                <button class="add-btn" onclick="openLookupModal('impact')">Add</button>
+                <h2><?php echo htmlspecialchars(t('change-management.settings.impacts_heading')); ?></h2>
+                <button class="add-btn" onclick="openLookupModal('impact')"><?php echo htmlspecialchars(t('change-management.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Impact bands describing how widely a change affects the business. Combines with priority to drive risk scoring.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('change-management.settings.impacts_intro')); ?></p>
             <table class="lookup-table">
-                <thead><tr><th>Name</th><th>Colour</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="impacts-list"><tr><td colspan="6" style="text-align:center;">Loading...</td></tr></tbody>
+                <thead><tr><th><?php echo htmlspecialchars(t('change-management.settings.col_name')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_colour')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_default')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_order')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_status')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_actions')); ?></th></tr></thead>
+                <tbody id="impacts-list"><tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('change-management.settings.loading')); ?></td></tr></tbody>
             </table>
         </div>
     </div>
@@ -334,34 +339,34 @@ $path_prefix = '../../';
     <!-- Lookup edit modal (shared by all four tabs) -->
     <div class="modal" id="lookupModal">
         <div class="modal-content">
-            <div class="modal-header" id="lookupModalTitle">Add item</div>
+            <div class="modal-header" id="lookupModalTitle"><?php echo htmlspecialchars(t('change-management.settings.modal_add_item')); ?></div>
             <form id="lookupForm">
                 <input type="hidden" id="lookupItemKind">
                 <input type="hidden" id="lookupItemId">
 
                 <div class="form-group">
-                    <label for="lookupItemName">Name</label>
+                    <label for="lookupItemName"><?php echo htmlspecialchars(t('change-management.settings.modal_name')); ?></label>
                     <input type="text" id="lookupItemName" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="lookupItemColour">Colour</label>
+                    <label for="lookupItemColour"><?php echo htmlspecialchars(t('change-management.settings.modal_colour')); ?></label>
                     <input type="color" id="lookupItemColour" value="#2563eb" style="width: 60px; height: 32px; padding: 2px;">
-                    <span class="help">Used for badges in lists, dashboards and the calendar.</span>
+                    <span class="help"><?php echo htmlspecialchars(t('change-management.settings.modal_colour_help')); ?></span>
                 </div>
 
                 <div class="form-group" id="lookupItemClosedGroup" style="display: none;">
-                    <label><input type="checkbox" id="lookupItemClosed"> Counts as closed</label>
-                    <span class="help">Changes in this status are treated as terminal — excluded from open-queue counts.</span>
+                    <label><input type="checkbox" id="lookupItemClosed"> <?php echo htmlspecialchars(t('change-management.settings.modal_closed')); ?></label>
+                    <span class="help"><?php echo htmlspecialchars(t('change-management.settings.modal_closed_help')); ?></span>
                 </div>
 
                 <div class="form-group">
-                    <label><input type="checkbox" id="lookupItemDefault"> Default for new changes</label>
-                    <span class="help">Only one row can be the default — setting this clears the flag on the others.</span>
+                    <label><input type="checkbox" id="lookupItemDefault"> <?php echo htmlspecialchars(t('change-management.settings.modal_default')); ?></label>
+                    <span class="help"><?php echo htmlspecialchars(t('change-management.settings.modal_default_help')); ?></span>
                 </div>
 
                 <div class="form-group">
-                    <label for="lookupItemOrder">Display order</label>
+                    <label for="lookupItemOrder"><?php echo htmlspecialchars(t('change-management.settings.modal_order')); ?></label>
                     <input type="number" id="lookupItemOrder" value="0">
                 </div>
 
@@ -371,13 +376,13 @@ $path_prefix = '../../';
                             <input type="checkbox" id="lookupItemActive" checked>
                             <span class="toggle-slider"></span>
                         </span>
-                        Active
+                        <?php echo htmlspecialchars(t('change-management.settings.modal_active')); ?>
                     </label>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeLookupModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeLookupModal()"><?php echo htmlspecialchars(t('change-management.settings.modal_cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('change-management.settings.modal_save')); ?></button>
                 </div>
             </form>
         </div>
@@ -419,10 +424,10 @@ $path_prefix = '../../';
 
         // Per-kind metadata: API filenames, response key, table id, column count, fields shown.
         const LOOKUP_KINDS = {
-            'status':   { get: 'get_change_statuses.php',   save: 'save_change_status.php',   del: 'delete_change_status.php',   listKey: 'statuses',   tableId: 'statuses-list',   colspan: 7, hasClosed: true,  label: 'status'  },
-            'priority': { get: 'get_change_priorities.php', save: 'save_change_priority.php', del: 'delete_change_priority.php', listKey: 'priorities', tableId: 'priorities-list', colspan: 6, hasClosed: false, label: 'priority'},
-            'type':     { get: 'get_change_types.php',      save: 'save_change_type.php',     del: 'delete_change_type.php',     listKey: 'types',      tableId: 'types-list',      colspan: 6, hasClosed: false, label: 'type'    },
-            'impact':   { get: 'get_change_impacts.php',    save: 'save_change_impact.php',   del: 'delete_change_impact.php',   listKey: 'impacts',    tableId: 'impacts-list',    colspan: 6, hasClosed: false, label: 'impact'  }
+            'status':   { get: 'get_change_statuses.php',   save: 'save_change_status.php',   del: 'delete_change_status.php',   listKey: 'statuses',   tableId: 'statuses-list',   colspan: 7, hasClosed: true,  label: window.t('change-management.settings.kind_status')   },
+            'priority': { get: 'get_change_priorities.php', save: 'save_change_priority.php', del: 'delete_change_priority.php', listKey: 'priorities', tableId: 'priorities-list', colspan: 6, hasClosed: false, label: window.t('change-management.settings.kind_priority') },
+            'type':     { get: 'get_change_types.php',      save: 'save_change_type.php',     del: 'delete_change_type.php',     listKey: 'types',      tableId: 'types-list',      colspan: 6, hasClosed: false, label: window.t('change-management.settings.kind_type')     },
+            'impact':   { get: 'get_change_impacts.php',    save: 'save_change_impact.php',   del: 'delete_change_impact.php',   listKey: 'impacts',    tableId: 'impacts-list',    colspan: 6, hasClosed: false, label: window.t('change-management.settings.kind_impact')   }
         };
 
         const lookupCache = { status: [], priority: [], type: [], impact: [] };
@@ -452,7 +457,7 @@ $path_prefix = '../../';
             const rows = lookupCache[kind];
             const tbody = document.getElementById(cfg.tableId);
             if (!rows || rows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" style="text-align:center;">No items found</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" style="text-align:center;">${window.t('change-management.settings.no_items')}</td></tr>`;
                 return;
             }
             tbody.innerHTML = rows.map(r => {
@@ -461,21 +466,21 @@ $path_prefix = '../../';
                     ? `<span class="swatch" style="background:${escapeHtml(r.colour)};"></span><code style="font-size:12px;">${escapeHtml(r.colour)}</code>`
                     : '<span class="badge-no">—</span>';
                 const closedCol = cfg.hasClosed
-                    ? `<td>${r.is_closed ? '<span class="badge-yes">Yes</span>' : '<span class="badge-no">No</span>'}</td>`
+                    ? `<td>${r.is_closed ? `<span class="badge-yes">${window.t('change-management.settings.yes')}</span>` : `<span class="badge-no">${window.t('change-management.settings.no')}</span>`}</td>`
                     : '';
                 return `
                 <tr>
                     <td><strong>${escapeHtml(r.name)}</strong></td>
                     <td>${swatch}</td>
                     ${closedCol}
-                    <td>${r.is_default ? '<span class="badge-yes">Yes</span>' : '<span class="badge-no">No</span>'}</td>
+                    <td>${r.is_default ? `<span class="badge-yes">${window.t('change-management.settings.yes')}</span>` : `<span class="badge-no">${window.t('change-management.settings.no')}</span>`}</td>
                     <td>${r.display_order}</td>
-                    <td><span class="${r.is_active ? 'badge-active' : 'badge-inactive'}">${r.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="${r.is_active ? 'badge-active' : 'badge-inactive'}">${r.is_active ? window.t('change-management.settings.active') : window.t('change-management.settings.inactive')}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editLookup('${kind}', ${r.id})" title="Edit">
+                        <button class="action-btn" onclick="editLookup('${kind}', ${r.id})" title="${window.t('change-management.settings.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteLookup('${kind}', ${r.id}, '${safeName}')" title="Delete">
+                        <button class="action-btn delete" onclick="deleteLookup('${kind}', ${r.id}, '${safeName}')" title="${window.t('change-management.settings.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>
@@ -492,7 +497,7 @@ $path_prefix = '../../';
 
         function openLookupModal(kind) {
             const cfg = LOOKUP_KINDS[kind];
-            document.getElementById('lookupModalTitle').textContent = `Add ${cfg.label}`;
+            document.getElementById('lookupModalTitle').textContent = window.t('change-management.settings.modal_add', { kind: cfg.label });
             document.getElementById('lookupItemKind').value = kind;
             document.getElementById('lookupItemId').value = '';
             document.getElementById('lookupItemName').value = '';
@@ -509,7 +514,7 @@ $path_prefix = '../../';
             const cfg = LOOKUP_KINDS[kind];
             const item = (lookupCache[kind] || []).find(r => r.id == id);
             if (!item) return;
-            document.getElementById('lookupModalTitle').textContent = `Edit ${cfg.label}`;
+            document.getElementById('lookupModalTitle').textContent = window.t('change-management.settings.modal_edit', { kind: cfg.label });
             document.getElementById('lookupItemKind').value = kind;
             document.getElementById('lookupItemId').value = item.id;
             document.getElementById('lookupItemName').value = item.name;
@@ -527,7 +532,7 @@ $path_prefix = '../../';
         }
 
         async function deleteLookup(kind, id, name) {
-            if (!(await showConfirm({ title: 'Delete', message: `Delete "${name}"?`, okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('change-management.settings.delete'), message: window.t('change-management.settings.delete_confirm', { name }), okLabel: window.t('change-management.settings.delete'), okClass: 'danger' }))) return;
             const cfg = LOOKUP_KINDS[kind];
             try {
                 const res = await fetch(API_BASE + cfg.del, {
@@ -536,13 +541,13 @@ $path_prefix = '../../';
                 });
                 const data = await res.json();
                 if (data.success) {
-                    showToast('Deleted', 'success');
+                    showToast(window.t('change-management.toast.deleted'), 'success');
                     loadLookup(kind);
                 } else {
-                    showToast(data.error || 'Failed to delete', 'error');
+                    showToast(data.error || window.t('change-management.toast.delete_failed'), 'error');
                 }
             } catch (e) {
-                showToast('Failed to delete', 'error');
+                showToast(window.t('change-management.toast.delete_failed'), 'error');
             }
         }
 
@@ -568,13 +573,13 @@ $path_prefix = '../../';
                 const data = await res.json();
                 if (data.success) {
                     closeLookupModal();
-                    showToast('Saved', 'success');
+                    showToast(window.t('change-management.toast.saved'), 'success');
                     loadLookup(kind);
                 } else {
-                    showToast(data.error || 'Failed to save', 'error');
+                    showToast(data.error || window.t('change-management.toast.save_failed'), 'error');
                 }
             } catch (e) {
-                showToast('Failed to save', 'error');
+                showToast(window.t('change-management.toast.save_failed'), 'error');
             }
         });
 
@@ -609,14 +614,14 @@ $path_prefix = '../../';
                 html += `
                     <div class="section-card" data-section-id="${section.id}" draggable="true">
                         <div class="section-card-header">
-                            <span class="drag-handle" title="Drag to reorder section">⋮⋮</span>
+                            <span class="drag-handle" title="${window.t('change-management.settings.rename_section')}">⋮⋮</span>
                             <input type="text" class="section-name-input"
                                    value="${escapeAttr(section.name)}"
                                    data-section-id="${section.id}"
                                    onblur="renameSection(${section.id}, this.value)"
                                    onkeydown="if (event.key === 'Enter') this.blur();">
                             <button type="button" class="section-delete-btn"
-                                    title="Delete section"
+                                    title="${window.t('change-management.settings.delete_section')}"
                                     onclick="deleteSection(${section.id})">&times;</button>
                         </div>
                         <div class="section-fields" data-section-id="${section.id}">
@@ -633,8 +638,8 @@ $path_prefix = '../../';
             if (layout.unplaced.length > 0) {
                 html += `
                     <div class="unplaced-fields">
-                        <h4>Unplaced fields</h4>
-                        <p class="hint">These fields aren't in any section yet, so they won't appear on the change form. Drag them into a section above.</p>
+                        <h4>${window.t('change-management.settings.unplaced_heading')}</h4>
+                        <p class="hint">${window.t('change-management.settings.unplaced_intro')}</p>
                         ${layout.unplaced.map(f => renderFieldRow({
                             key: f.key, label: f.label,
                             section_id: null, display_order: 0, is_visible: true
@@ -650,10 +655,10 @@ $path_prefix = '../../';
         function renderFieldRow(field, isUnplaced) {
             return `
                 <div class="field-row" data-field-key="${field.key}" draggable="true">
-                    <span class="drag-handle" title="Drag to reorder">⋮⋮</span>
+                    <span class="drag-handle" title="${window.t('change-management.settings.drag_reorder')}">⋮⋮</span>
                     <span class="field-row-label">${escapeHtml(field.label)}</span>
                     ${isUnplaced ? '' : `
-                        <label class="toggle-switch" title="Show / hide this field on the change form">
+                        <label class="toggle-switch" title="${window.t('change-management.settings.toggle_field')}">
                             <input type="checkbox" ${field.is_visible ? 'checked' : ''}
                                    onchange="toggleFieldVisibility('${field.key}', this.checked)">
                             <span class="toggle-slider"></span>
@@ -677,7 +682,7 @@ $path_prefix = '../../';
         function addSection() {
             const id = nextTempSectionId--;
             const maxOrder = layout.sections.reduce((m, s) => Math.max(m, s.display_order), 0);
-            layout.sections.push({ id, name: 'New section', display_order: maxOrder + 10 });
+            layout.sections.push({ id, name: window.t('change-management.settings.new_section'), display_order: maxOrder + 10 });
             renderFieldSettings();
             // Focus the new name input so the user can rename immediately
             requestAnimationFrame(() => {
@@ -701,9 +706,14 @@ $path_prefix = '../../';
             if (!section) return;
             const fieldsInSection = layout.fields.filter(f => f.section_id === sectionId);
             if (fieldsInSection.length > 0) {
-                const msg = `Delete "${section.name}"?\n\n${fieldsInSection.length} field${fieldsInSection.length === 1 ? '' : 's'} will become unplaced and won't appear on the change form until you drag ${fieldsInSection.length === 1 ? 'it' : 'them'} into another section.`;
-                if (!(await showConfirm({ title: 'Delete section', message: msg, okLabel: 'Delete', okClass: 'danger' }))) return;
-            } else if (!(await showConfirm({ title: 'Delete', message: `Delete "${section.name}"?`, okLabel: 'Delete', okClass: 'danger' }))) return;
+                const msg = window.t('change-management.settings.delete_section_fields', {
+                    name: section.name,
+                    count: fieldsInSection.length,
+                    plural: fieldsInSection.length === 1 ? '' : 's',
+                    them: fieldsInSection.length === 1 ? 'it' : 'them'
+                });
+                if (!(await showConfirm({ title: window.t('change-management.settings.delete_section'), message: msg, okLabel: window.t('change-management.settings.delete'), okClass: 'danger' }))) return;
+            } else if (!(await showConfirm({ title: window.t('change-management.settings.delete'), message: window.t('change-management.settings.delete_section_confirm', { name: section.name }), okLabel: window.t('change-management.settings.delete'), okClass: 'danger' }))) return;
             // Locally: remove the section and the fields-in-section. The
             // fields then re-surface as "unplaced" after the server save.
             layout.sections = layout.sections.filter(s => s.id !== sectionId);
@@ -917,7 +927,7 @@ $path_prefix = '../../';
                 });
                 const data = await res.json();
                 if (!data.success) {
-                    showToast('Save failed: ' + (data.error || 'unknown error'), 'error');
+                    showToast(window.t('change-management.settings.save_failed', { message: data.error || window.t('change-management.settings.unknown_error') }), 'error');
                     return;
                 }
                 // Replace local state with the server's authoritative copy.
@@ -942,7 +952,7 @@ $path_prefix = '../../';
                 showSaveStatus();
             } catch (e) {
                 console.error('Auto-save error:', e);
-                showToast('Save failed: ' + e.message, 'error');
+                showToast(window.t('change-management.settings.save_failed', { message: e.message }), 'error');
             }
         }
 

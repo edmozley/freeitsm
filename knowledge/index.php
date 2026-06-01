@@ -5,9 +5,12 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'knowledge';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'knowledge'];
 
 // Read the per-analyst sidebar preference server-side so the .sidebar-hover
 // class is on the HTML from the first paint — avoids the flash where the
@@ -31,16 +34,18 @@ if (isset($_SESSION['analyst_id'])) {
 $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Knowledge Base</title>
+    <title><?php echo htmlspecialchars(t('knowledge.browser_title.main')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/knowledge.css">
     <!-- Prism.js for code syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
 </head>
 <body>
@@ -50,24 +55,24 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
         <!-- Sidebar with search and tags -->
         <div class="knowledge-sidebar">
             <div class="sidebar-section">
-                <h3>Search Articles</h3>
+                <h3><?php echo htmlspecialchars(t('knowledge.sidebar.search_heading')); ?></h3>
                 <div class="search-box">
-                    <input type="text" id="articleSearch" placeholder="Search by title or content..." onkeyup="debounceSearch()">
+                    <input type="text" id="articleSearch" placeholder="<?php echo htmlspecialchars(t('knowledge.sidebar.search_placeholder')); ?>" onkeyup="debounceSearch()">
                 </div>
             </div>
             <div class="sidebar-section">
-                <h3>Filter by Tags</h3>
+                <h3><?php echo htmlspecialchars(t('knowledge.sidebar.tags_heading')); ?></h3>
                 <div class="tag-filter-list" id="tagFilterList">
                     <div class="loading"><div class="spinner"></div></div>
                 </div>
             </div>
             <div class="sidebar-section">
-                <button class="btn btn-primary btn-full" onclick="openCreateArticle()">+ New Article</button>
+                <button class="btn btn-primary btn-full" onclick="openCreateArticle()"><?php echo htmlspecialchars(t('knowledge.sidebar.new_article')); ?></button>
             </div>
             <div class="sidebar-section">
                 <button class="btn btn-secondary btn-full recycle-bin-toggle" id="recycleBinToggle" onclick="toggleRecycleBin()">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                    Recycle Bin
+                    <?php echo htmlspecialchars(t('knowledge.sidebar.recycle_bin')); ?>
                 </button>
             </div>
         </div>
@@ -77,7 +82,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
             <!-- Article list view -->
             <div class="article-list-view" id="articleListView">
                 <div class="article-list-header">
-                    <h2 id="articleListHeader">Knowledge Articles</h2>
+                    <h2 id="articleListHeader"><?php echo htmlspecialchars(t('knowledge.list.heading')); ?></h2>
                     <div class="article-count" id="articleCount"></div>
                 </div>
                 <div class="article-list" id="articleList">
@@ -88,7 +93,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
             <!-- Article detail view -->
             <div class="article-detail-view" id="articleDetailView" style="display: none;">
                 <div class="article-detail-header">
-                    <a class="btn btn-secondary" href="./">Back to list</a>
+                    <a class="btn btn-secondary" href="./"><?php echo htmlspecialchars(t('knowledge.detail.back')); ?></a>
                     <div class="article-actions" id="articleActions">
                         <div class="share-dropdown">
                             <button class="btn btn-share" onclick="toggleShareDropdown()">
@@ -99,7 +104,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                                     <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                     <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                 </svg>
-                                Share
+                                <?php echo htmlspecialchars(t('knowledge.detail.share')); ?>
                             </button>
                             <div class="share-dropdown-menu" id="shareDropdownMenu">
                                 <a href="#" onclick="shareArticleLink(); return false;">
@@ -107,7 +112,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                                         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                                         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                                     </svg>
-                                    Share Link
+                                    <?php echo htmlspecialchars(t('knowledge.share.link')); ?>
                                 </a>
                                 <a href="#" onclick="shareArticlePdf(); return false;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -117,19 +122,19 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                                         <line x1="16" y1="17" x2="8" y2="17"></line>
                                         <polyline points="10 9 9 9 8 9"></polyline>
                                     </svg>
-                                    Export as PDF
+                                    <?php echo htmlspecialchars(t('knowledge.share.pdf')); ?>
                                 </a>
                                 <a href="#" onclick="shareArticleBoth(); return false;">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                         <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                                     </svg>
-                                    Email (Link + PDF)
+                                    <?php echo htmlspecialchars(t('knowledge.share.email')); ?>
                                 </a>
                             </div>
                         </div>
-                        <button class="btn btn-primary" onclick="editCurrentArticle()">Edit</button>
-                        <button class="btn btn-danger" onclick="deleteCurrentArticle()">Archive</button>
+                        <button class="btn btn-primary" onclick="editCurrentArticle()"><?php echo htmlspecialchars(t('knowledge.detail.edit')); ?></button>
+                        <button class="btn btn-danger" onclick="deleteCurrentArticle()"><?php echo htmlspecialchars(t('knowledge.detail.archive')); ?></button>
                     </div>
                 </div>
                 <div class="article-content" id="articleContent"></div>
@@ -139,8 +144,8 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
             <div class="article-editor-view" id="articleEditorView" style="display: none;">
                 <div class="editor-scroll">
                     <div class="editor-header">
-                        <h2 id="editorTitle">New article</h2>
-                        <button class="icon-btn editor-popout-toggle" onclick="toggleEditorPopout()" title="Toggle full-screen view" aria-label="Toggle full-screen view">
+                        <h2 id="editorTitle"><?php echo htmlspecialchars(t('knowledge.editor.new_title')); ?></h2>
+                        <button class="icon-btn editor-popout-toggle" onclick="toggleEditorPopout()" title="<?php echo htmlspecialchars(t('knowledge.editor.popout_title')); ?>" aria-label="<?php echo htmlspecialchars(t('knowledge.editor.popout_title')); ?>">
                             <svg class="popout-icon-expand" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
                             <svg class="popout-icon-contract" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
                         </button>
@@ -152,29 +157,29 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                         <div class="editor-properties">
                             <div class="form-row" style="display: flex; gap: 20px;">
                                 <div class="form-group" style="flex: 1;">
-                                    <label class="form-label">Title *</label>
-                                    <input type="text" class="form-input" id="articleTitle" placeholder="Enter article title...">
+                                    <label class="form-label"><?php echo htmlspecialchars(t('knowledge.editor.field_title')); ?></label>
+                                    <input type="text" class="form-input" id="articleTitle" placeholder="<?php echo htmlspecialchars(t('knowledge.editor.title_placeholder')); ?>">
                                 </div>
                                 <div class="form-group tag-form-group" style="flex: 1;">
                                     <div class="tag-label-row">
-                                        <label class="form-label">Tags <small style="display: inline; margin-top: 0; font-weight: normal; color: #888;">— press Enter or comma to add</small></label>
+                                        <label class="form-label"><?php echo htmlspecialchars(t('knowledge.editor.field_tags')); ?> <small style="display: inline; margin-top: 0; font-weight: normal; color: #888;"><?php echo htmlspecialchars(t('knowledge.editor.tags_hint')); ?></small></label>
                                         <div class="selected-tags" id="selectedTags"></div>
                                     </div>
                                     <div class="tag-input-container">
-                                        <input type="text" class="tag-input" id="tagInput" placeholder="Type to add tags...">
+                                        <input type="text" class="tag-input" id="tagInput" placeholder="<?php echo htmlspecialchars(t('knowledge.editor.tags_placeholder')); ?>">
                                         <div class="tag-suggestions" id="tagSuggestions"></div>
                                     </div>
                                 </div>
                             </div>
                             <div class="form-row" style="display: flex; gap: 20px;">
                                 <div class="form-group" style="flex: 1;">
-                                    <label class="form-label">Owner</label>
+                                    <label class="form-label"><?php echo htmlspecialchars(t('knowledge.editor.field_owner')); ?></label>
                                     <select class="form-input" id="articleOwner">
-                                        <option value="">-- No owner assigned --</option>
+                                        <option value=""><?php echo htmlspecialchars(t('knowledge.editor.owner_none')); ?></option>
                                     </select>
                                 </div>
                                 <div class="form-group" style="flex: 1;">
-                                    <label class="form-label">Next review date</label>
+                                    <label class="form-label"><?php echo htmlspecialchars(t('knowledge.editor.field_review')); ?></label>
                                     <input type="date" class="form-input" id="articleReviewDate">
                                 </div>
                             </div>
@@ -187,9 +192,9 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                     </div>
                 </div>
                 <div class="editor-actions">
-                    <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
-                    <button class="btn btn-primary" onclick="saveArticle()">Save</button>
-                    <button class="btn btn-primary" id="btnSaveAsVersion" onclick="saveAsNewVersion()" style="display:none;">Version</button>
+                    <button class="btn btn-secondary" onclick="cancelEdit()"><?php echo htmlspecialchars(t('knowledge.editor.cancel')); ?></button>
+                    <button class="btn btn-primary" onclick="saveArticle()"><?php echo htmlspecialchars(t('knowledge.editor.save')); ?></button>
+                    <button class="btn btn-primary" id="btnSaveAsVersion" onclick="saveAsNewVersion()" style="display:none;"><?php echo htmlspecialchars(t('knowledge.editor.version')); ?></button>
                 </div>
             </div>
         </div>
@@ -199,32 +204,32 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <div class="modal" id="shareEmailModal">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h3>Share Article via Email</h3>
+                <h3><?php echo htmlspecialchars(t('knowledge.modal.share_title')); ?></h3>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label class="form-label">Recipient Email *</label>
-                    <input type="email" class="form-input" id="shareEmailTo" placeholder="recipient@example.com">
+                    <label class="form-label"><?php echo htmlspecialchars(t('knowledge.modal.recipient')); ?></label>
+                    <input type="email" class="form-input" id="shareEmailTo" placeholder="<?php echo htmlspecialchars(t('knowledge.modal.recipient_placeholder')); ?>">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Message (optional)</label>
-                    <textarea class="form-textarea" id="shareEmailMessage" rows="3" placeholder="Add a personal message..."></textarea>
+                    <label class="form-label"><?php echo htmlspecialchars(t('knowledge.modal.message')); ?></label>
+                    <textarea class="form-textarea" id="shareEmailMessage" rows="3" placeholder="<?php echo htmlspecialchars(t('knowledge.modal.message_placeholder')); ?>"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Include:</label>
+                    <label class="form-label"><?php echo htmlspecialchars(t('knowledge.modal.include')); ?></label>
                     <div style="display: flex; gap: 20px; margin-top: 8px;">
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="checkbox" id="shareIncludeLink" checked> Link to article
+                            <input type="checkbox" id="shareIncludeLink" checked> <?php echo htmlspecialchars(t('knowledge.modal.include_link')); ?>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="checkbox" id="shareIncludePdf" checked> PDF attachment
+                            <input type="checkbox" id="shareIncludePdf" checked> <?php echo htmlspecialchars(t('knowledge.modal.include_pdf')); ?>
                         </label>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeShareEmailModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="sendShareEmail()">Send</button>
+                <button class="btn btn-secondary" onclick="closeShareEmailModal()"><?php echo htmlspecialchars(t('knowledge.modal.cancel')); ?></button>
+                <button class="btn btn-primary" onclick="sendShareEmail()"><?php echo htmlspecialchars(t('knowledge.modal.send')); ?></button>
             </div>
         </div>
     </div>
@@ -240,7 +245,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                 <div id="archivedArticleBody" class="article-content-body"></div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeArchivedArticleModal()">Close</button>
+                <button class="btn btn-secondary" onclick="closeArchivedArticleModal()"><?php echo htmlspecialchars(t('knowledge.modal.close')); ?></button>
             </div>
         </div>
     </div>
@@ -253,19 +258,19 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
                 </svg>
-                Ask AI
+                <?php echo htmlspecialchars(t('knowledge.ai.title')); ?>
             </div>
             <button class="ai-chat-close" onclick="closeAiChat()">&times;</button>
         </div>
         <div class="ai-chat-messages" id="aiChatMessages">
             <div class="ai-chat-welcome">
-                <p>Ask me anything about your knowledge base articles. I'll search through all published articles to find the answer.</p>
-                <p style="font-size:12px; color:#999; margin-top:8px;">Powered by Claude Haiku</p>
+                <p><?php echo htmlspecialchars(t('knowledge.ai.welcome')); ?></p>
+                <p style="font-size:12px; color:#999; margin-top:8px;"><?php echo htmlspecialchars(t('knowledge.ai.powered_by')); ?></p>
             </div>
         </div>
         <div class="ai-chat-options">
-            <label class="ai-archive-toggle" title="Include archived (recycle bin) articles in AI search">
-                <span class="toggle-label">Include archived articles</span>
+            <label class="ai-archive-toggle" title="<?php echo htmlspecialchars(t('knowledge.ai.include_archived_title')); ?>">
+                <span class="toggle-label"><?php echo htmlspecialchars(t('knowledge.ai.include_archived')); ?></span>
                 <div class="toggle-switch">
                     <input type="checkbox" id="aiIncludeArchived">
                     <span class="toggle-slider"></span>
@@ -273,7 +278,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
             </label>
         </div>
         <div class="ai-chat-input-area">
-            <textarea id="aiChatInput" placeholder="Ask a question about your knowledge base..." rows="2" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); askAi();}"></textarea>
+            <textarea id="aiChatInput" placeholder="<?php echo htmlspecialchars(t('knowledge.ai.input_placeholder')); ?>" rows="2" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); askAi();}"></textarea>
             <button class="ai-chat-send" onclick="askAi()" id="aiSendBtn">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="22" y1="2" x2="11" y2="13"></line>

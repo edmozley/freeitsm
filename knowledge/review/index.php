@@ -9,18 +9,23 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'review';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'knowledge'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Knowledge review</title>
+    <title><?php echo htmlspecialchars(t('knowledge.browser_title.review')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <link rel="stylesheet" href="../../assets/css/knowledge.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <style>
         /* Layout: the container takes the remaining viewport height and is
            a flex column. Header / filter tabs / search bar are flex-shrink: 0
@@ -286,22 +291,22 @@ $path_prefix = '../../';
 
     <div class="review-container">
         <div class="review-header">
-            <h1>Article review schedule</h1>
-            <input type="text" class="review-search" id="reviewSearch" placeholder="Search title or owner..." autocomplete="off">
+            <h1><?php echo htmlspecialchars(t('knowledge.review.heading')); ?></h1>
+            <input type="text" class="review-search" id="reviewSearch" placeholder="<?php echo htmlspecialchars(t('knowledge.review.search_placeholder')); ?>" autocomplete="off">
         </div>
 
         <div class="filter-tabs">
             <button class="filter-tab active" data-filter="all" onclick="filterArticles('all')">
-                All articles <span class="badge" id="countAll">0</span>
+                <?php echo htmlspecialchars(t('knowledge.review.tab_all')); ?> <span class="badge" id="countAll">0</span>
             </button>
             <button class="filter-tab overdue" data-filter="overdue" onclick="filterArticles('overdue')">
-                Overdue <span class="badge" id="countOverdue">0</span>
+                <?php echo htmlspecialchars(t('knowledge.review.tab_overdue')); ?> <span class="badge" id="countOverdue">0</span>
             </button>
             <button class="filter-tab" data-filter="upcoming" onclick="filterArticles('upcoming')">
-                Due in 30 days <span class="badge" id="countUpcoming">0</span>
+                <?php echo htmlspecialchars(t('knowledge.review.tab_upcoming')); ?> <span class="badge" id="countUpcoming">0</span>
             </button>
             <button class="filter-tab" data-filter="no_date" onclick="filterArticles('no_date')">
-                No review date <span class="badge" id="countNoDate">0</span>
+                <?php echo htmlspecialchars(t('knowledge.review.tab_no_date')); ?> <span class="badge" id="countNoDate">0</span>
             </button>
         </div>
 
@@ -335,12 +340,12 @@ $path_prefix = '../../';
                     updateCounts(data.counts);
                 } else {
                     document.getElementById('reviewContent').innerHTML =
-                        '<div class="empty-state">Error loading articles: ' + data.error + '</div>';
+                        '<div class="empty-state">' + escapeHtml(window.t('knowledge.review.error_loading', { message: data.error })) + '</div>';
                 }
             } catch (error) {
                 console.error('Error:', error);
                 document.getElementById('reviewContent').innerHTML =
-                    '<div class="empty-state">Failed to load review list</div>';
+                    '<div class="empty-state">' + escapeHtml(window.t('knowledge.review.failed_load')) + '</div>';
             }
         }
 
@@ -369,7 +374,7 @@ $path_prefix = '../../';
                             <line x1="3" y1="10" x2="21" y2="10"></line>
                             <path d="M9 16l2 2 4-4"></path>
                         </svg>
-                        <p>${searchTerm ? 'No articles match "' + escapeHtml(searchTerm) + '"' : 'No articles found for this filter'}</p>
+                        <p>${searchTerm ? escapeHtml(window.t('knowledge.review.no_match', { term: searchTerm })) : escapeHtml(window.t('knowledge.review.no_results'))}</p>
                     </div>
                 `;
                 return;
@@ -379,12 +384,12 @@ $path_prefix = '../../';
                 <table class="review-table">
                     <thead>
                         <tr>
-                            <th>Article title</th>
-                            <th>Owner</th>
-                            <th>Next review date</th>
-                            <th>Days overdue</th>
-                            <th>Last modified</th>
-                            <th>Edit</th>
+                            <th>${escapeHtml(window.t('knowledge.review.col_title'))}</th>
+                            <th>${escapeHtml(window.t('knowledge.review.col_owner'))}</th>
+                            <th>${escapeHtml(window.t('knowledge.review.col_review_date'))}</th>
+                            <th>${escapeHtml(window.t('knowledge.review.col_days_overdue'))}</th>
+                            <th>${escapeHtml(window.t('knowledge.review.col_modified'))}</th>
+                            <th>${escapeHtml(window.t('knowledge.review.col_edit'))}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -398,11 +403,11 @@ $path_prefix = '../../';
                 if (article.next_review_date_formatted) {
                     let dueBadge = '';
                     if (!article.is_overdue && article.days_until_review !== null && article.days_until_review <= 30) {
-                        dueBadge = `<span class="days-badge">in ${article.days_until_review} days</span>`;
+                        dueBadge = `<span class="days-badge">${escapeHtml(window.t('knowledge.review.in_days', { count: article.days_until_review }))}</span>`;
                     }
                     reviewDateHtml = `<span class="review-date ${reviewDateClass}">${article.next_review_date_formatted} ${dueBadge}</span>`;
                 } else {
-                    reviewDateHtml = '<span class="no-date">Not set</span>';
+                    reviewDateHtml = `<span class="no-date">${escapeHtml(window.t('knowledge.review.not_set'))}</span>`;
                 }
 
                 const daysOverdueHtml = article.is_overdue
@@ -411,7 +416,7 @@ $path_prefix = '../../';
 
                 const ownerHtml = article.owner_name
                     ? `<span class="owner-cell">${escapeHtml(article.owner_name)}</span>`
-                    : '<span class="owner-cell unassigned">Unassigned</span>';
+                    : `<span class="owner-cell unassigned">${escapeHtml(window.t('knowledge.review.unassigned'))}</span>`;
 
                 const modifiedDate = new Date(article.modified_datetime).toLocaleDateString('en-GB', {
                     day: 'numeric', month: 'short', year: 'numeric'
@@ -427,7 +432,7 @@ $path_prefix = '../../';
                         <td>${daysOverdueHtml}</td>
                         <td>${modifiedDate}</td>
                         <td>
-                            <a href="../?article=${article.id}&edit=1" class="action-btn" title="Edit">
+                            <a href="../?article=${article.id}&edit=1" class="action-btn" title="${escapeHtml(window.t('knowledge.review.edit'))}">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>

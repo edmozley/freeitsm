@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 // Check if user is logged in
 if (!isset($_SESSION['analyst_id'])) {
@@ -14,13 +16,14 @@ if (!isset($_SESSION['analyst_id'])) {
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = 'settings';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'calendar'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Calendar settings</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('calendar.settings.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         /* Module accent — drives toggle, focus rings, button colours.
@@ -237,6 +240,8 @@ $path_prefix = '../../';
         }
         @keyframes spin { to { transform: rotate(360deg); } }
     </style>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>
@@ -246,22 +251,22 @@ $path_prefix = '../../';
              modules' settings pages so the page can grow without
              restructuring (e.g. future Holidays / Working hours tabs). -->
         <div class="tabs">
-            <button class="tab active" data-tab="categories" onclick="switchTab('categories')">Categories</button>
+            <button class="tab active" data-tab="categories" onclick="switchTab('categories')"><?php echo htmlspecialchars(t('calendar.settings.tab_categories')); ?></button>
         </div>
 
         <div class="tab-content active" id="categories-tab">
             <div class="section-header">
-                <h2>Event categories</h2>
-                <button class="add-btn" onclick="openCategoryModal()">Add</button>
+                <h2><?php echo htmlspecialchars(t('calendar.settings.heading')); ?></h2>
+                <button class="add-btn" onclick="openCategoryModal()"><?php echo htmlspecialchars(t('calendar.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Manage categories used to organise calendar events. Each category can have a custom colour for easy identification.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('calendar.settings.intro')); ?></p>
 
             <table class="lookup-table">
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Status</th>
+                        <th><?php echo htmlspecialchars(t('calendar.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('calendar.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('calendar.settings.col_status')); ?></th>
                         <th></th>
                     </tr>
                 </thead>
@@ -276,7 +281,7 @@ $path_prefix = '../../';
     <div class="modal" id="categoryModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="categoryModalTitle">Add category</h3>
+                <h3 id="categoryModalTitle"><?php echo htmlspecialchars(t('calendar.settings.modal_add')); ?></h3>
             </div>
             <!-- autocomplete="off" on the form + each input so the browser
                  doesn't suggest previously-entered category names from
@@ -285,16 +290,16 @@ $path_prefix = '../../';
             <form class="modal-body" autocomplete="off" onsubmit="event.preventDefault(); saveCategory();">
                 <input type="hidden" id="categoryId" value="">
                 <div class="form-group">
-                    <label for="categoryName">Name *</label>
-                    <input type="text" id="categoryName" placeholder="e.g. Certificate expiry" autocomplete="off">
+                    <label for="categoryName"><?php echo htmlspecialchars(t('calendar.settings.modal_name')); ?> *</label>
+                    <input type="text" id="categoryName" placeholder="<?php echo htmlspecialchars(t('calendar.settings.modal_name_ph')); ?>" autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label for="categoryDescription">Description</label>
-                    <textarea id="categoryDescription" placeholder="Optional description..." autocomplete="off"></textarea>
+                    <label for="categoryDescription"><?php echo htmlspecialchars(t('calendar.settings.modal_description')); ?></label>
+                    <textarea id="categoryDescription" placeholder="<?php echo htmlspecialchars(t('calendar.settings.modal_description_ph')); ?>" autocomplete="off"></textarea>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="categoryColor">Colour</label>
+                        <label for="categoryColor"><?php echo htmlspecialchars(t('calendar.settings.modal_colour')); ?></label>
                         <input type="color" id="categoryColor" value="#ef6c00" autocomplete="off">
                     </div>
                     <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 10px;">
@@ -303,14 +308,14 @@ $path_prefix = '../../';
                                 <input type="checkbox" id="categoryActive" checked>
                                 <span class="toggle-slider"></span>
                             </span>
-                            Active
+                            <?php echo htmlspecialchars(t('calendar.settings.modal_active')); ?>
                         </label>
                     </div>
                 </div>
             </form>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeCategoryModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveCategory()">Save</button>
+                <button class="btn btn-secondary" onclick="closeCategoryModal()"><?php echo htmlspecialchars(t('calendar.settings.cancel')); ?></button>
+                <button class="btn btn-primary" onclick="saveCategory()"><?php echo htmlspecialchars(t('calendar.settings.save')); ?></button>
             </div>
         </div>
     </div>
@@ -355,7 +360,7 @@ $path_prefix = '../../';
                     renderCategories();
                 } else {
                     document.getElementById('categoryTableBody').innerHTML =
-                        '<tr><td colspan="4"><div class="empty-state">Error loading categories</div></td></tr>';
+                        '<tr><td colspan="4"><div class="empty-state">' + window.t('calendar.settings.load_error') + '</div></td></tr>';
                 }
             } catch (error) {
                 console.error('Error:', error);
@@ -368,7 +373,7 @@ $path_prefix = '../../';
             const tbody = document.getElementById('categoryTableBody');
 
             if (categories.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">No categories yet. Click <strong>Add</strong> to create one.</div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4"><div class="empty-state">' + window.t('calendar.settings.empty') + '</div></td></tr>';
                 return;
             }
 
@@ -381,12 +386,12 @@ $path_prefix = '../../';
                     <td>${cat.description ? escapeHtml(cat.description) : '<span style="color:#999">&mdash;</span>'}</td>
                     <td>
                         <span class="${cat.is_active ? 'badge-active' : 'badge-inactive'}">
-                            ${cat.is_active ? 'Active' : 'Inactive'}
+                            ${cat.is_active ? window.t('calendar.settings.active') : window.t('calendar.settings.inactive')}
                         </span>
                     </td>
                     <td>
-                        <button class="action-btn" onclick="editCategory(${cat.id})" title="Edit">${ICON_EDIT}</button>
-                        <button class="action-btn delete" onclick="deleteCategory(${cat.id})" title="Delete">${ICON_DELETE}</button>
+                        <button class="action-btn" onclick="editCategory(${cat.id})" title="${window.t('calendar.settings.edit')}">${ICON_EDIT}</button>
+                        <button class="action-btn delete" onclick="deleteCategory(${cat.id})" title="${window.t('calendar.settings.delete')}">${ICON_DELETE}</button>
                     </td>
                 </tr>
             `).join('');
@@ -406,7 +411,7 @@ $path_prefix = '../../';
             if (categoryId) {
                 const cat = categories.find(c => c.id == categoryId);
                 if (cat) {
-                    title.textContent = 'Edit category';
+                    title.textContent = window.t('calendar.settings.modal_edit');
                     document.getElementById('categoryId').value = cat.id;
                     document.getElementById('categoryName').value = cat.name;
                     document.getElementById('categoryColor').value = cat.color;
@@ -414,7 +419,7 @@ $path_prefix = '../../';
                     document.getElementById('categoryActive').checked = cat.is_active;
                 }
             } else {
-                title.textContent = 'Add category';
+                title.textContent = window.t('calendar.settings.modal_add');
             }
 
             modal.classList.add('active');
@@ -436,7 +441,7 @@ $path_prefix = '../../';
             const isActive = document.getElementById('categoryActive').checked;
 
             if (!name) {
-                showToast('Please enter a category name', 'error');
+                showToast(window.t('calendar.settings.name_required'), 'error');
                 return;
             }
 
@@ -459,23 +464,23 @@ $path_prefix = '../../';
                 if (data.success) {
                     closeCategoryModal();
                     loadCategories();
-                    showToast('Saved', 'success');
+                    showToast(window.t('calendar.toast.saved'), 'success');
                 } else {
-                    showToast(data.error || 'Failed to save', 'error');
+                    showToast(data.error || window.t('calendar.toast.save_failed'), 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('Failed to save', 'error');
+                showToast(window.t('calendar.toast.save_failed'), 'error');
             }
         }
 
         function deleteCategory(id) {
             const cat = categories.find(c => c.id == id);
-            const name = cat ? cat.name : 'this category';
+            const name = cat ? cat.name : window.t('calendar.settings.delete_this');
             showConfirm({
-                title: 'Delete category',
-                message: `Are you sure you want to delete "${name}"? This cannot be undone.`,
-                okLabel: 'Delete',
+                title: window.t('calendar.settings.delete_title'),
+                message: window.t('calendar.settings.delete_confirm', { name }),
+                okLabel: window.t('calendar.settings.delete'),
                 okClass: 'danger',
                 onConfirm: () => doDeleteCategory(id)
             });
@@ -492,13 +497,13 @@ $path_prefix = '../../';
 
                 if (data.success) {
                     loadCategories();
-                    showToast('Deleted', 'success');
+                    showToast(window.t('calendar.toast.deleted'), 'success');
                 } else {
-                    showToast(data.error || 'Failed to delete', 'error');
+                    showToast(data.error || window.t('calendar.toast.delete_failed'), 'error');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                showToast('Failed to delete', 'error');
+                showToast(window.t('calendar.toast.delete_failed'), 'error');
             }
         }
 

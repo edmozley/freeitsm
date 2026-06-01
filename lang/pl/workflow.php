@@ -1,0 +1,140 @@
+<?php
+/**
+ * Polski (pl) — Workflows module strings.
+ * Missing keys fall back to lang/en/workflow.php per-key.
+ */
+return [
+    'title' => 'Przepływy pracy',
+
+    'nav' => [
+        'workflows' => 'Przepływy pracy',
+        'settings'  => 'Ustawienia',
+        'help'      => 'Pomoc',
+    ],
+
+    'settings_tabs' => [
+        'ai' => 'AI',
+    ],
+
+    'ai_settings' => [
+        'title'                   => 'Integracja AI',
+        'intro'                   => 'Skonfiguruj dostawcę AI, który zasila współautora przepływów pracy. Każdy moduł ma własny klucz, dzięki czemu rozliczenia i dostęp mogą być precyzyjne. Klucz API jest szyfrowany w spoczynku. Użyj opcji Testuj, aby zweryfikować klucz i model przed zapisaniem.',
+        'provider_label'          => 'Dostawca',
+        'model_label'             => 'Model',
+        'model_hint'              => 'Wybierz sugestię lub wklej dowolny identyfikator modelu obsługiwany przez wybranego dostawcę.',
+        'key_label'               => 'API key',
+        'key_placeholder_empty'   => '(brak zapisanego klucza — wklej nowy, aby ustawić)',
+        'key_placeholder_stored'  => 'Zapisany — pozostaw bez zmian, aby zachować',
+        'key_hint'                => 'Szyfrowany w spoczynku. Pozostaw pole puste lub bez zmian, aby zachować istniejący klucz.',
+        'verify_ssl_label'        => 'Weryfikuj SSL',
+        'verify_ssl_hint'         => 'Wyłącz tylko podczas testów w środowiskach z certyfikatami z podpisem własnym (np. za serwerem proxy inspekcyjnym).',
+        'ssl_warning_title'       => 'Ostrzeżenie',
+        'ssl_warning_body'        => 'Weryfikacja SSL jest wyłączona. FreeITSM zaakceptuje dowolny certyfikat TLS od dostawcy AI bez jego sprawdzania. Każdy, kto ma dostęp do Twojej sieci, mógłby podszyć się pod dostawcę, przechwycić ruch i wykraść Twój klucz API — wraz z każdym kolejnym promptem i odpowiedzią. Pozostawiaj to wyłączone wyłącznie w środowiskach testowych z certyfikatami z podpisem własnym — nigdy w środowisku produkcyjnym.',
+        'test_btn'                => 'Testuj',
+        'testing'                 => 'Testowanie…',
+    ],
+
+    'list' => [
+        'page_title'      => 'Przepływy pracy',
+        'intro'           => 'Reguły automatyzacji, które nasłuchują zdarzeń z innych modułów i reagują na nie. Każda reguła to wyzwalacz, opcjonalne warunki oraz jedna lub więcej akcji.',
+        'add_btn'         => 'Nowy',
+        'no_workflows'    => 'Brak przepływów pracy — kliknij „Nowy”, aby utworzyć pierwszą automatyzację.',
+        'col_name'        => 'Nazwa',
+        'col_trigger'     => 'Wyzwalacz',
+        'col_actions'     => 'Akcje',
+        'col_last_run'    => 'Ostatnie uruchomienie',
+        'col_status'      => 'Status',
+        'col_row_actions' => 'Akcje',
+        'never_run'       => 'Nigdy',
+        'active'          => 'Aktywny',
+        'inactive'        => 'Nieaktywny',
+    ],
+
+    'editor' => [
+        'new_title'       => 'Nowy przepływ pracy',
+        'edit_title'      => 'Edytuj przepływ pracy',
+        'name_label'      => 'Nazwa',
+        'name_placeholder'=> 'np. alert o zgłoszeniu P1',
+        'description_label' => 'Opis',
+        'description_placeholder' => 'Opcjonalnie — wyjaśnij, co robi ten przepływ pracy i dlaczego',
+        'trigger_label'   => 'Wyzwalacz',
+        'trigger_hint'    => 'Zdarzenie, które uruchamia ten przepływ pracy.',
+        'conditions_label'=> 'Warunki',
+        'conditions_hint' => 'Opcjonalnie. Wszystkie warunki muszą być spełnione, aby akcje zostały uruchomione. Pozostaw puste, aby uruchamiać przy każdym zdarzeniu wyzwalacza.',
+        'actions_label'   => 'Akcje',
+        'actions_hint'    => 'Uruchamiane po kolei, od góry do dołu. Wymagana jest co najmniej jedna akcja.',
+        'active_label'    => 'Aktywny — uruchamiaj, gdy zadziała wyzwalacz',
+        'add_condition'   => 'Dodaj warunek',
+        'add_action'      => 'Dodaj akcję',
+        'remove'          => 'Usuń',
+        'test_fire'       => 'Uruchom testowo',
+        'test_fire_hint'  => 'Uruchom ten przepływ pracy raz z syntetycznym ładunkiem danych, aby zweryfikować działanie akcji. Prawdziwe wyzwalacze zadziałają po podłączeniu w kolejnych zatwierdzeniach.',
+        'no_conditions'   => 'Brak warunków — uruchamia się przy każdym zdarzeniu.',
+        'no_actions'      => 'Brak akcji — dodaj co najmniej jedną.',
+        'condition_field' => 'Pole',
+        'condition_op'    => 'Operator',
+        'condition_value' => 'Wartość',
+        'action_type'     => 'Akcja',
+        'action_args'     => 'Argumenty (JSON)',
+        'back'            => 'Wstecz',
+    ],
+
+    'op' => [
+        'equals'      => 'równa się',
+        'not_equals'  => 'nie równa się',
+        'in'          => 'jest jednym z',
+        'not_in'      => 'nie jest jednym z',
+        'contains'    => 'zawiera',
+        'not_contains'=> 'nie zawiera',
+        'gt'          => 'większe niż',
+        'lt'          => 'mniejsze niż',
+        'is_empty'    => 'jest puste',
+        'is_not_empty'=> 'nie jest puste',
+    ],
+
+    'status' => [
+        'success' => 'Powodzenie',
+        'failed'  => 'Niepowodzenie',
+        'skipped' => 'Pominięto (warunki nie zostały spełnione)',
+        'running' => 'W trakcie',
+        'aborted' => 'Przerwano (ochrona przed pętlą)',
+    ],
+
+    'toast' => [
+        'saved'         => 'Przepływ pracy zapisany.',
+        'deleted'       => 'Przepływ pracy usunięty.',
+        'delete_confirm'=> 'Usunąć ten przepływ pracy?',
+        'fire_started'  => 'Uruchomienie testowe rozpoczęte — zobacz dziennik wykonań.',
+        'fire_done'     => 'Uruchomienie testowe zakończone: %s.',
+        'fire_failed'   => 'Uruchomienie testowe nie powiodło się: %s',
+        'name_required' => 'Nazwa jest wymagana.',
+        'actions_required' => 'Wymagana jest co najmniej jedna akcja.',
+        'saved_no_actions' => 'Zapisano — ale ten przepływ pracy nie ma jeszcze żadnych akcji, więc nie zrobi nic, dopóki nie dodasz przynajmniej jednej.',
+        'ai_applied'      => 'Propozycja AI zastosowana na kanwie. Dostosuj i zapisz.',
+        'ai_failed'       => 'Współautor AI nie powiódł się: %s',
+        'saved_settings'  => 'Ustawienia zapisane.',
+    ],
+
+    'ai' => [
+        'btn'              => 'Współautor AI',
+        'modal_title'      => 'Współautor AI',
+        'intro'            => 'Opisz przepływ pracy, którego potrzebujesz, a AI zbuduje jego szkielet na kanwie. Możesz kontynuować — powiedz „teraz dodaj warunek dla…”, a AI rozwinie to, co już jest.',
+        'prompt_label'     => 'Co ma robić ten przepływ pracy?',
+        'prompt_placeholder' => 'np. Gdy zostanie utworzone zgłoszenie P1 z działu Finanse, zapisz komunikat „Zgłoszenie P1 z Finansów — powiadom zespół”',
+        'generate'         => 'Generuj',
+        'thinking'         => 'Myślę…',
+        'apply'            => 'Zastosuj na kanwie',
+        'discard'          => 'Odrzuć',
+        'close'            => 'Zamknij',
+        'iterate_hint'     => 'Wskazówka: gdy masz przepływ pracy na kanwie, AI go rozwija. Spróbuj „dopasuj tylko do Finansów, nie do wszystkich działów” lub „dodaj akcję zapisującą również identyfikator zgłoszenia”.',
+        'explanation_label' => 'Co zbudowałem',
+        'preview_label'    => 'Proponowany przepływ pracy',
+        'warnings_label'   => 'Uwagi',
+        'only_log_message' => 'Obecnie zaimplementowana jest tylko akcja log_message; AI będzie się na niej opierać jako zastępniku dla niezaimplementowanych akcji (np. „wyślij e-mail” → log_message dokumentujący zamiar).',
+    ],
+
+    'help' => [
+        'page_title' => 'Przewodnik po przepływach pracy',
+        'intro'      => 'Przepływy pracy automatyzują czynności, które zwykle wykonujesz ręcznie po nadejściu zgłoszenia: tagowanie, eskalowanie, przypisywanie, powiadamianie, rozsyłanie do innych systemów. Przepływ pracy nasłuchuje zdarzenia, opcjonalnie filtruje je warunkami, a następnie po kolei uruchamia jedną lub więcej akcji.',
+    ],
+];

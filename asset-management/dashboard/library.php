@@ -5,17 +5,22 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'dashboard';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'asset-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Widget Library</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('asset-management.library.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <style>
         .dashboard-page {
             height: calc(100vh - 48px);
@@ -288,15 +293,15 @@ $path_prefix = '../../';
         <div class="library-toolbar-left">
             <a href="./">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                Dashboard
+                <?php echo htmlspecialchars(t('asset-management.nav.dashboard')); ?>
             </a>
-            <h2>Widget Library</h2>
+            <h2><?php echo htmlspecialchars(t('asset-management.library.heading')); ?></h2>
         </div>
         <div class="library-toolbar-right">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search widgets..." oninput="filterWidgets()">
+            <input type="text" class="search-input" id="searchInput" placeholder="<?php echo htmlspecialchars(t('asset-management.library.search_placeholder')); ?>" oninput="filterWidgets()">
             <button class="btn btn-primary" onclick="showNewForm()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                New
+                <?php echo htmlspecialchars(t('asset-management.library.new')); ?>
             </button>
         </div>
     </div>
@@ -304,51 +309,51 @@ $path_prefix = '../../';
     <div class="library-container">
         <!-- Edit/New panel -->
         <div class="edit-panel" id="editPanel">
-            <h3 id="editPanelTitle">New Widget</h3>
+            <h3 id="editPanelTitle"><?php echo htmlspecialchars(t('asset-management.library.new_widget')); ?></h3>
             <input type="hidden" id="editId">
             <div class="edit-form">
                 <div class="form-group">
-                    <label>Title</label>
-                    <input type="text" id="editTitle" maxlength="100" placeholder="e.g. OS Distribution">
+                    <label><?php echo htmlspecialchars(t('asset-management.library.field_title')); ?></label>
+                    <input type="text" id="editTitle" maxlength="100" placeholder="<?php echo htmlspecialchars(t('asset-management.library.title_placeholder')); ?>">
                 </div>
                 <div class="form-group">
-                    <label>Chart Type</label>
+                    <label><?php echo htmlspecialchars(t('asset-management.library.field_chart_type')); ?></label>
                     <select id="editChartType">
-                        <option value="bar">Bar</option>
-                        <option value="doughnut">Doughnut</option>
-                        <option value="pie">Pie</option>
+                        <option value="bar"><?php echo htmlspecialchars(t('asset-management.library.chart_bar')); ?></option>
+                        <option value="doughnut"><?php echo htmlspecialchars(t('asset-management.library.chart_doughnut')); ?></option>
+                        <option value="pie"><?php echo htmlspecialchars(t('asset-management.library.chart_pie')); ?></option>
                     </select>
                 </div>
                 <div class="form-group full-width">
-                    <label>Description</label>
-                    <textarea id="editDescription" maxlength="255" placeholder="Brief description of what this widget shows"></textarea>
+                    <label><?php echo htmlspecialchars(t('asset-management.library.field_description')); ?></label>
+                    <textarea id="editDescription" maxlength="255" placeholder="<?php echo htmlspecialchars(t('asset-management.library.description_placeholder')); ?>"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Aggregate Property</label>
+                    <label><?php echo htmlspecialchars(t('asset-management.library.field_property')); ?></label>
                     <select id="editProperty">
-                        <option value="operating_system">Operating System</option>
-                        <option value="manufacturer">Manufacturer</option>
-                        <option value="model">Model</option>
-                        <option value="asset_type_id">Asset Type</option>
-                        <option value="asset_status_id">Asset Status</option>
-                        <option value="feature_release">Feature Release</option>
-                        <option value="domain">Domain</option>
-                        <option value="cpu_name">CPU</option>
-                        <option value="memory">Memory</option>
-                        <option value="gpu_name">GPU</option>
-                        <option value="tpm_version">TPM Version</option>
-                        <option value="bitlocker_status">BitLocker Status</option>
-                        <option value="bios_version">BIOS Version</option>
+                        <option value="operating_system"><?php echo htmlspecialchars(t('asset-management.property.operating_system')); ?></option>
+                        <option value="manufacturer"><?php echo htmlspecialchars(t('asset-management.property.manufacturer')); ?></option>
+                        <option value="model"><?php echo htmlspecialchars(t('asset-management.property.model')); ?></option>
+                        <option value="asset_type_id"><?php echo htmlspecialchars(t('asset-management.property.asset_type')); ?></option>
+                        <option value="asset_status_id"><?php echo htmlspecialchars(t('asset-management.property.asset_status')); ?></option>
+                        <option value="feature_release"><?php echo htmlspecialchars(t('asset-management.property.feature_release')); ?></option>
+                        <option value="domain"><?php echo htmlspecialchars(t('asset-management.property.domain')); ?></option>
+                        <option value="cpu_name"><?php echo htmlspecialchars(t('asset-management.property.cpu')); ?></option>
+                        <option value="memory"><?php echo htmlspecialchars(t('asset-management.property.memory')); ?></option>
+                        <option value="gpu_name"><?php echo htmlspecialchars(t('asset-management.property.gpu')); ?></option>
+                        <option value="tpm_version"><?php echo htmlspecialchars(t('asset-management.property.tpm_version')); ?></option>
+                        <option value="bitlocker_status"><?php echo htmlspecialchars(t('asset-management.property.bitlocker_status')); ?></option>
+                        <option value="bios_version"><?php echo htmlspecialchars(t('asset-management.property.bios_version')); ?></option>
                     </select>
                 </div>
                 <div class="form-group checkbox-group">
                     <input type="checkbox" id="editFilterable" checked>
-                    <label for="editFilterable">Allow status filtering</label>
+                    <label for="editFilterable"><?php echo htmlspecialchars(t('asset-management.library.allow_status_filtering')); ?></label>
                 </div>
             </div>
             <div class="edit-panel-actions">
-                <button class="btn btn-primary" onclick="saveWidget()">Save</button>
-                <button class="btn" onclick="closeEditPanel()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveWidget()"><?php echo htmlspecialchars(t('asset-management.common.save')); ?></button>
+                <button class="btn" onclick="closeEditPanel()"><?php echo htmlspecialchars(t('asset-management.common.cancel')); ?></button>
             </div>
         </div>
 
@@ -356,16 +361,16 @@ $path_prefix = '../../';
         <table class="widget-table" id="widgetTable">
             <thead>
                 <tr>
-                    <th>Widget</th>
-                    <th>Chart</th>
-                    <th>Property</th>
-                    <th>Filterable</th>
-                    <th>Actions</th>
+                    <th><?php echo htmlspecialchars(t('asset-management.library.col_widget')); ?></th>
+                    <th><?php echo htmlspecialchars(t('asset-management.library.col_chart')); ?></th>
+                    <th><?php echo htmlspecialchars(t('asset-management.library.col_property')); ?></th>
+                    <th><?php echo htmlspecialchars(t('asset-management.library.col_filterable')); ?></th>
+                    <th><?php echo htmlspecialchars(t('asset-management.common.actions')); ?></th>
                 </tr>
             </thead>
             <tbody id="widgetTableBody"></tbody>
         </table>
-        <div class="no-results" id="noResults" style="display:none;">No widgets match your search</div>
+        <div class="no-results" id="noResults" style="display:none;"><?php echo htmlspecialchars(t('asset-management.library.no_results')); ?></div>
     </div>
 
     </div><!-- /.dashboard-page -->
@@ -376,19 +381,19 @@ $path_prefix = '../../';
         let dashboardWidgetIds = new Set();
 
         const PROPERTY_LABELS = {
-            operating_system: 'Operating System',
-            manufacturer: 'Manufacturer',
-            model: 'Model',
-            asset_type_id: 'Asset Type',
-            asset_status_id: 'Asset Status',
-            feature_release: 'Feature Release',
-            domain: 'Domain',
-            cpu_name: 'CPU',
-            memory: 'Memory',
-            gpu_name: 'GPU',
-            tpm_version: 'TPM Version',
-            bitlocker_status: 'BitLocker Status',
-            bios_version: 'BIOS Version'
+            operating_system: window.t('asset-management.property.operating_system'),
+            manufacturer: window.t('asset-management.property.manufacturer'),
+            model: window.t('asset-management.property.model'),
+            asset_type_id: window.t('asset-management.property.asset_type'),
+            asset_status_id: window.t('asset-management.property.asset_status'),
+            feature_release: window.t('asset-management.property.feature_release'),
+            domain: window.t('asset-management.property.domain'),
+            cpu_name: window.t('asset-management.property.cpu'),
+            memory: window.t('asset-management.property.memory'),
+            gpu_name: window.t('asset-management.property.gpu'),
+            tpm_version: window.t('asset-management.property.tpm_version'),
+            bitlocker_status: window.t('asset-management.property.bitlocker_status'),
+            bios_version: window.t('asset-management.property.bios_version')
         };
 
         async function init() {
@@ -426,18 +431,18 @@ $path_prefix = '../../';
                     </td>
                     <td><span class="type-badge">${escapeHtml(w.chart_type)}</span></td>
                     <td>${escapeHtml(propLabel)}</td>
-                    <td>${parseInt(w.is_status_filterable) ? 'Yes' : 'No'}</td>
+                    <td>${parseInt(w.is_status_filterable) ? window.t('asset-management.common.yes') : window.t('asset-management.common.no')}</td>
                     <td class="actions-cell">
-                        <button class="btn btn-sm btn-primary" onclick="addToDashboard(${w.id})" ${onDash ? 'disabled title="Already on dashboard"' : ''}>
-                            ${onDash ? 'Added' : 'Add'}
+                        <button class="btn btn-sm btn-primary" onclick="addToDashboard(${w.id})" ${onDash ? `disabled title="${window.t('asset-management.library.already_on_dashboard')}"` : ''}>
+                            ${onDash ? window.t('asset-management.library.added') : window.t('asset-management.common.add')}
                         </button>
-                        <button class="btn btn-sm" onclick="editWidget(${w.id})" title="Edit">
+                        <button class="btn btn-sm" onclick="editWidget(${w.id})" title="${window.t('asset-management.common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="btn btn-sm" onclick="duplicateWidget(${w.id})" title="Duplicate">
+                        <button class="btn btn-sm" onclick="duplicateWidget(${w.id})" title="${window.t('asset-management.library.duplicate')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteWidget(${w.id}, '${escapeHtml(w.title)}')" title="Delete">
+                        <button class="btn btn-sm btn-danger" onclick="deleteWidget(${w.id}, '${escapeHtml(w.title)}')" title="${window.t('asset-management.common.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>
@@ -451,7 +456,7 @@ $path_prefix = '../../';
 
         // Edit panel
         function showNewForm() {
-            document.getElementById('editPanelTitle').textContent = 'New Widget';
+            document.getElementById('editPanelTitle').textContent = window.t('asset-management.library.new_widget');
             document.getElementById('editId').value = '';
             document.getElementById('editTitle').value = '';
             document.getElementById('editDescription').value = '';
@@ -466,7 +471,7 @@ $path_prefix = '../../';
             const w = allWidgets.find(w => parseInt(w.id) === id);
             if (!w) return;
 
-            document.getElementById('editPanelTitle').textContent = 'Edit Widget';
+            document.getElementById('editPanelTitle').textContent = window.t('asset-management.library.edit_widget');
             document.getElementById('editId').value = w.id;
             document.getElementById('editTitle').value = w.title;
             document.getElementById('editDescription').value = w.description || '';
@@ -491,7 +496,7 @@ $path_prefix = '../../';
             const is_status_filterable = document.getElementById('editFilterable').checked ? 1 : 0;
 
             if (!title) {
-                showToast('Title is required', 'error');
+                showToast(window.t('asset-management.library.title_required'), 'error');
                 return;
             }
 
@@ -504,7 +509,7 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to save', 'error');
+                    showToast(data.error || window.t('asset-management.toast.save_failed'), 'error');
                     return;
                 }
 
@@ -517,9 +522,9 @@ $path_prefix = '../../';
 
                 closeEditPanel();
                 renderTable();
-                showToast(id ? 'Widget updated' : 'Widget created', 'success');
+                showToast(id ? window.t('asset-management.library.widget_updated') : window.t('asset-management.library.widget_created'), 'success');
             } catch (err) {
-                showToast('Failed to save widget', 'error');
+                showToast(window.t('asset-management.library.save_widget_failed'), 'error');
             }
         }
 
@@ -532,7 +537,7 @@ $path_prefix = '../../';
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        title: w.title + ' (Copy)',
+                        title: window.t('asset-management.library.copy_name', { name: w.title }),
                         description: w.description || '',
                         chart_type: w.chart_type,
                         aggregate_property: w.aggregate_property,
@@ -542,20 +547,20 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to duplicate', 'error');
+                    showToast(data.error || window.t('asset-management.library.duplicate_failed'), 'error');
                     return;
                 }
 
                 allWidgets.push(data.widget);
                 renderTable();
-                showToast('Widget duplicated', 'success');
+                showToast(window.t('asset-management.library.widget_duplicated'), 'success');
             } catch (err) {
-                showToast('Failed to duplicate widget', 'error');
+                showToast(window.t('asset-management.library.duplicate_widget_failed'), 'error');
             }
         }
 
         async function deleteWidget(id, title) {
-            if (!(await showConfirm({ title: 'Delete', message: 'Delete "' + title + '"? This will also remove it from all analyst dashboards.', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('asset-management.common.delete'), message: window.t('asset-management.library.delete_confirm', { name: title }), okLabel: window.t('asset-management.common.delete'), okClass: 'danger' }))) return;
 
             try {
                 const res = await fetch(API_BASE + 'delete_dashboard_widget.php', {
@@ -566,16 +571,16 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to delete', 'error');
+                    showToast(data.error || window.t('asset-management.toast.delete_failed'), 'error');
                     return;
                 }
 
                 allWidgets = allWidgets.filter(w => parseInt(w.id) !== id);
                 dashboardWidgetIds.delete(id);
                 renderTable();
-                showToast('Widget deleted', 'success');
+                showToast(window.t('asset-management.library.widget_deleted'), 'success');
             } catch (err) {
-                showToast('Failed to delete widget', 'error');
+                showToast(window.t('asset-management.library.delete_widget_failed'), 'error');
             }
         }
 
@@ -589,15 +594,15 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to add', 'error');
+                    showToast(data.error || window.t('asset-management.library.add_failed'), 'error');
                     return;
                 }
 
                 dashboardWidgetIds.add(widgetId);
                 renderTable();
-                showToast('Added to dashboard', 'success');
+                showToast(window.t('asset-management.library.added_to_dashboard'), 'success');
             } catch (err) {
-                showToast('Failed to add to dashboard', 'error');
+                showToast(window.t('asset-management.library.add_to_dashboard_failed'), 'error');
             }
         }
 

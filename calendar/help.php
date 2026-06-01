@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -12,13 +14,14 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'help';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'calendar'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Calendar Guide</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('calendar.help.page_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .cal-help-container {
@@ -408,6 +411,8 @@ $path_prefix = '../';
             .cal-help-tips-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -415,30 +420,30 @@ $path_prefix = '../';
     <div class="cal-help-container">
         <!-- Left pane navigation -->
         <div class="cal-help-sidebar">
-            <h3>Guide</h3>
+            <h3><?php echo htmlspecialchars(t('calendar.help.guide')); ?></h3>
             <a href="#overview" class="cal-help-nav-link active" data-section="overview">
                 <span class="cal-help-nav-num">1</span>
-                Overview
+                <?php echo htmlspecialchars(t('calendar.help.nav_overview')); ?>
             </a>
             <a href="#views" class="cal-help-nav-link" data-section="views">
                 <span class="cal-help-nav-num">2</span>
-                Calendar views
+                <?php echo htmlspecialchars(t('calendar.help.nav_views')); ?>
             </a>
             <a href="#creating-events" class="cal-help-nav-link" data-section="creating-events">
                 <span class="cal-help-nav-num">3</span>
-                Creating events
+                <?php echo htmlspecialchars(t('calendar.help.nav_creating')); ?>
             </a>
             <a href="#categories" class="cal-help-nav-link" data-section="categories">
                 <span class="cal-help-nav-num">4</span>
-                Event categories
+                <?php echo htmlspecialchars(t('calendar.help.nav_categories')); ?>
             </a>
             <a href="#settings" class="cal-help-nav-link" data-section="settings">
                 <span class="cal-help-nav-num">5</span>
-                Settings
+                <?php echo htmlspecialchars(t('calendar.help.nav_settings')); ?>
             </a>
             <a href="#tips" class="cal-help-nav-link" data-section="tips">
                 <span class="cal-help-nav-num">6</span>
-                Quick tips
+                <?php echo htmlspecialchars(t('calendar.help.nav_tips')); ?>
             </a>
         </div>
 
@@ -446,8 +451,8 @@ $path_prefix = '../';
         <div class="cal-help-main" id="helpMain">
             <!-- Hero banner -->
             <div class="cal-help-hero">
-                <h2>Calendar guide</h2>
-                <p>Track certificates, contracts, maintenance windows, and recurring events &mdash; all in one place.</p>
+                <h2><?php echo htmlspecialchars(t('calendar.help.hero_title')); ?></h2>
+                <p><?php echo t('calendar.help.hero_sub'); ?></p>
             </div>
 
             <div class="cal-help-content">
@@ -457,8 +462,8 @@ $path_prefix = '../';
                     <div class="cal-help-section-header">
                         <span class="cal-help-section-num">1</span>
                         <div>
-                            <h3>Overview</h3>
-                            <p>The Calendar module gives your IT team a shared timeline for everything that matters. Instead of relying on spreadsheets or personal reminders, you can track certificate expiry dates, contract renewals, scheduled maintenance windows, and team events in a single, colour-coded calendar that everyone on the service desk can see.</p>
+                            <h3><?php echo htmlspecialchars(t('calendar.help.overview_heading')); ?></h3>
+                            <p><?php echo htmlspecialchars(t('calendar.help.overview_intro')); ?></p>
                         </div>
                     </div>
                     <div class="cal-help-features-grid">
@@ -471,8 +476,8 @@ $path_prefix = '../';
                                     <line x1="3" y1="10" x2="21" y2="10"></line>
                                 </svg>
                             </div>
-                            <h4>Event tracking</h4>
-                            <p>Create events with titles, dates, times, locations, and descriptions. Every event is visible to the team so nothing falls through the cracks.</p>
+                            <h4><?php echo htmlspecialchars(t('calendar.help.feature_tracking_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('calendar.help.feature_tracking_desc')); ?></p>
                         </div>
                         <div class="cal-help-feature-card">
                             <div class="cal-help-feature-icon blue">
@@ -483,8 +488,8 @@ $path_prefix = '../';
                                     <rect x="3" y="14" width="7" height="7"></rect>
                                 </svg>
                             </div>
-                            <h4>Multiple views</h4>
-                            <p>Switch between month, week, and day views to get the level of detail you need. The month view shows an overview; week and day views show precise time slots.</p>
+                            <h4><?php echo htmlspecialchars(t('calendar.help.feature_views_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('calendar.help.feature_views_desc')); ?></p>
                         </div>
                         <div class="cal-help-feature-card">
                             <div class="cal-help-feature-icon green">
@@ -493,8 +498,8 @@ $path_prefix = '../';
                                     <line x1="4" y1="22" x2="4" y2="15"></line>
                                 </svg>
                             </div>
-                            <h4>Categories</h4>
-                            <p>Organise events into colour-coded categories like certificates, contracts, maintenance, and meetings. Filter the calendar to show only what you care about.</p>
+                            <h4><?php echo htmlspecialchars(t('calendar.help.feature_categories_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('calendar.help.feature_categories_desc')); ?></p>
                         </div>
                         <div class="cal-help-feature-card">
                             <div class="cal-help-feature-icon purple">
@@ -503,8 +508,8 @@ $path_prefix = '../';
                                     <polyline points="12 6 12 12 16 14"></polyline>
                                 </svg>
                             </div>
-                            <h4>Scheduling</h4>
-                            <p>Plan maintenance windows, set all-day events for deadlines, and schedule recurring work. The calendar helps your team coordinate and avoid conflicts.</p>
+                            <h4><?php echo htmlspecialchars(t('calendar.help.feature_scheduling_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('calendar.help.feature_scheduling_desc')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -513,171 +518,171 @@ $path_prefix = '../';
                 <div class="cal-help-section" id="views">
                     <div class="cal-help-section-header">
                         <span class="cal-help-section-num">2</span>
-                        <h3>Calendar views</h3>
+                        <h3><?php echo htmlspecialchars(t('calendar.help.views_heading')); ?></h3>
                     </div>
-                    <p>The calendar offers three views so you can zoom in or out depending on what you need. Switch between them using the toggle buttons in the top-right corner of the calendar header.</p>
+                    <p><?php echo htmlspecialchars(t('calendar.help.views_intro')); ?></p>
 
                     <div class="cal-help-data-grid">
                         <div class="cal-help-data-card">
-                            <strong>Month view</strong>
-                            <span>The default view. Shows a full month grid with events displayed as coloured bars on each day. Ideal for getting an overview of what is coming up across the team.</span>
+                            <strong><?php echo htmlspecialchars(t('calendar.help.views_month_title')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('calendar.help.views_month_desc')); ?></span>
                         </div>
                         <div class="cal-help-data-card">
-                            <strong>Week view</strong>
-                            <span>Displays seven days with hourly time slots. Events are positioned according to their start and end times, making it easy to spot scheduling conflicts.</span>
+                            <strong><?php echo htmlspecialchars(t('calendar.help.views_week_title')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('calendar.help.views_week_desc')); ?></span>
                         </div>
                         <div class="cal-help-data-card">
-                            <strong>Day view</strong>
-                            <span>Focuses on a single day with detailed hourly breakdowns. Use this when you need to see exactly what is happening hour by hour during a busy day.</span>
+                            <strong><?php echo htmlspecialchars(t('calendar.help.views_day_title')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('calendar.help.views_day_desc')); ?></span>
                         </div>
                     </div>
 
-                    <p>Use the navigation arrows next to the month/week/day title to move forwards and backwards in time. The <strong>Today</strong> button brings you straight back to the current date, no matter how far you have navigated.</p>
+                    <p><?php echo t('calendar.help.views_nav'); ?></p>
 
                     <div class="cal-help-flow">
-                        <div class="cal-help-flow-step calendar">Today button</div>
+                        <div class="cal-help-flow-step calendar"><?php echo htmlspecialchars(t('calendar.help.views_flow_today')); ?></div>
                         <div class="cal-help-flow-arrow">&rarr;</div>
-                        <div class="cal-help-flow-step view">Navigate prev/next</div>
+                        <div class="cal-help-flow-step view"><?php echo htmlspecialchars(t('calendar.help.views_flow_nav')); ?></div>
                         <div class="cal-help-flow-arrow">&rarr;</div>
-                        <div class="cal-help-flow-step category">Choose view</div>
+                        <div class="cal-help-flow-step category"><?php echo htmlspecialchars(t('calendar.help.views_flow_choose')); ?></div>
                         <div class="cal-help-flow-arrow">&rarr;</div>
-                        <div class="cal-help-flow-step action">Click event</div>
+                        <div class="cal-help-flow-step action"><?php echo htmlspecialchars(t('calendar.help.views_flow_click')); ?></div>
                     </div>
 
-                    <p class="cal-help-tip">Click any event on the calendar to open a quick-view popup showing the title, time, location, and description. From there you can open the full edit form.</p>
+                    <p class="cal-help-tip"><?php echo htmlspecialchars(t('calendar.help.views_tip')); ?></p>
                 </div>
 
                 <!-- Section 3: Creating Events (highlighted) -->
                 <div class="cal-help-section cal-help-section-highlight" id="creating-events">
                     <div class="cal-help-section-header">
                         <span class="cal-help-section-num highlight">3</span>
-                        <h3>Creating events</h3>
+                        <h3><?php echo htmlspecialchars(t('calendar.help.creating_heading')); ?></h3>
                     </div>
-                    <p class="cal-help-intro">Adding events to the calendar is straightforward. Click the <strong>+ New Event</strong> button in the sidebar to open the event form. Fill in the details and save &mdash; the event appears on the calendar immediately.</p>
+                    <p class="cal-help-intro"><?php echo t('calendar.help.creating_intro'); ?></p>
 
                     <div class="cal-help-steps">
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">1</div>
                             <div>
-                                <strong>Click + New Event</strong> &mdash; the button is in the calendar sidebar on the left. This opens the event creation modal.
+                                <?php echo t('calendar.help.creating_step1'); ?>
                             </div>
                         </div>
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">2</div>
                             <div>
-                                <strong>Enter a title</strong> &mdash; give the event a clear, descriptive name. For example: "SSL certificate renewal &mdash; webserver01" or "Monthly patching window".
+                                <?php echo t('calendar.help.creating_step2'); ?>
                             </div>
                         </div>
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">3</div>
                             <div>
-                                <strong>Choose a category</strong> &mdash; select from the dropdown to colour-code the event. Categories are configured in Settings and help you filter the calendar later.
+                                <?php echo t('calendar.help.creating_step3'); ?>
                             </div>
                         </div>
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">4</div>
                             <div>
-                                <strong>Set the dates and times</strong> &mdash; pick a start date and optionally an end date. Add start and end times for timed events, or tick "All day event" for deadlines and full-day entries.
+                                <?php echo t('calendar.help.creating_step4'); ?>
                             </div>
                         </div>
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">5</div>
                             <div>
-                                <strong>Add location and description</strong> &mdash; optionally specify where the event takes place and add notes. These details are shown in the quick-view popup when someone clicks the event.
+                                <?php echo t('calendar.help.creating_step5'); ?>
                             </div>
                         </div>
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">6</div>
                             <div>
-                                <strong>Save</strong> &mdash; click Save and the event is created. It appears on the calendar straight away, colour-coded by its category.
+                                <?php echo t('calendar.help.creating_step6'); ?>
                             </div>
                         </div>
                     </div>
 
-                    <p class="cal-help-tip">To edit an existing event, click it on the calendar to open the popup, then click <strong>Edit</strong>. The same form opens pre-filled with the event's current details. You can also delete events from the edit form.</p>
+                    <p class="cal-help-tip"><?php echo t('calendar.help.creating_tip'); ?></p>
                 </div>
 
                 <!-- Section 4: Event Categories -->
                 <div class="cal-help-section" id="categories">
                     <div class="cal-help-section-header">
                         <span class="cal-help-section-num">4</span>
-                        <h3>Event categories</h3>
+                        <h3><?php echo htmlspecialchars(t('calendar.help.categories_heading')); ?></h3>
                     </div>
-                    <p>Categories are the backbone of calendar organisation. Each category has a name and a colour, so events are instantly recognisable at a glance. The sidebar shows all available categories with checkboxes &mdash; untick a category to hide those events from the calendar.</p>
+                    <p><?php echo t('calendar.help.categories_intro'); ?></p>
 
                     <div class="cal-help-fields">
-                        <div><strong>Certificates</strong> &mdash; track SSL/TLS certificate expiry dates, code signing certificates, and other credentials that need periodic renewal</div>
-                        <div><strong>Contracts</strong> &mdash; log vendor contract renewal dates, licence expiry, and SLA review milestones so nothing lapses unexpectedly</div>
-                        <div><strong>Maintenance</strong> &mdash; schedule planned maintenance windows for servers, network equipment, and infrastructure. Your team and stakeholders can see exactly when downtime is expected</div>
-                        <div><strong>Meetings</strong> &mdash; record team stand-ups, CAB meetings, vendor calls, and other recurring appointments relevant to IT operations</div>
-                        <div><strong>Custom categories</strong> &mdash; add your own categories in Settings to suit your team's workflow. Common additions include "Deployments", "Audits", and "Training"</div>
+                        <div><?php echo t('calendar.help.categories_certificates'); ?></div>
+                        <div><?php echo t('calendar.help.categories_contracts'); ?></div>
+                        <div><?php echo t('calendar.help.categories_maintenance'); ?></div>
+                        <div><?php echo t('calendar.help.categories_meetings'); ?></div>
+                        <div><?php echo t('calendar.help.categories_custom'); ?></div>
                     </div>
 
-                    <p>Filtering is applied in real time. When you untick a category in the sidebar, events in that category are hidden immediately without reloading the page. Tick it again to bring them back.</p>
+                    <p><?php echo htmlspecialchars(t('calendar.help.categories_filtering')); ?></p>
 
-                    <p class="cal-help-tip">Colour-coding works across all three views. In month view, events show as coloured bars. In week and day views, events are displayed as coloured blocks positioned at the correct time.</p>
+                    <p class="cal-help-tip"><?php echo htmlspecialchars(t('calendar.help.categories_tip')); ?></p>
                 </div>
 
                 <!-- Section 5: Settings (highlighted) -->
                 <div class="cal-help-section cal-help-section-highlight" id="settings">
                     <div class="cal-help-section-header">
                         <span class="cal-help-section-num highlight">5</span>
-                        <h3>Settings</h3>
+                        <h3><?php echo htmlspecialchars(t('calendar.help.settings_heading')); ?></h3>
                     </div>
-                    <p class="cal-help-intro">The Settings page lets you configure how the calendar works for your team. Access it by clicking <strong>Settings</strong> in the navigation bar at the top of the calendar module.</p>
+                    <p class="cal-help-intro"><?php echo t('calendar.help.settings_intro'); ?></p>
 
                     <div class="cal-help-steps">
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">1</div>
                             <div>
-                                <strong>Manage categories</strong> &mdash; add, edit, or remove event categories. Each category has a name and a colour. Changes take effect immediately across the calendar for all users.
+                                <?php echo t('calendar.help.settings_step1'); ?>
                             </div>
                         </div>
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">2</div>
                             <div>
-                                <strong>Set colours</strong> &mdash; choose a colour for each category using the colour picker. Pick distinct colours so events are easy to tell apart on a busy calendar.
+                                <?php echo t('calendar.help.settings_step2'); ?>
                             </div>
                         </div>
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">3</div>
                             <div>
-                                <strong>Rename categories</strong> &mdash; click on a category name to edit it. Existing events assigned to that category are updated automatically.
+                                <?php echo t('calendar.help.settings_step3'); ?>
                             </div>
                         </div>
                         <div class="cal-help-step-item">
                             <div class="cal-help-step-num">4</div>
                             <div>
-                                <strong>Delete categories</strong> &mdash; remove categories you no longer need. Events in a deleted category are not removed &mdash; they remain on the calendar without a category assignment.
+                                <?php echo t('calendar.help.settings_step4'); ?>
                             </div>
                         </div>
                     </div>
 
-                    <p class="cal-help-tip">Keep your category list focused. Having too many categories can make the sidebar cluttered and the colour coding harder to read. Aim for 5&ndash;10 well-defined categories that cover your team's needs.</p>
+                    <p class="cal-help-tip"><?php echo t('calendar.help.settings_tip'); ?></p>
                 </div>
 
                 <!-- Section 6: Quick Tips -->
                 <div class="cal-help-section" id="tips">
                     <div class="cal-help-section-header">
                         <span class="cal-help-section-num">6</span>
-                        <h3>Quick tips</h3>
+                        <h3><?php echo htmlspecialchars(t('calendar.help.tips_heading')); ?></h3>
                     </div>
                     <div class="cal-help-tips-grid">
                         <div class="cal-help-tip-card">
                             <div class="cal-help-tip-icon">&#128197;</div>
-                            <div><strong>Maintenance windows</strong><br>Create all-day events or timed blocks for planned maintenance. Include the affected systems in the description so analysts can quickly check if an outage is expected.</div>
+                            <div><strong><?php echo htmlspecialchars(t('calendar.help.tips_maintenance_title')); ?></strong><br><?php echo htmlspecialchars(t('calendar.help.tips_maintenance_desc')); ?></div>
                         </div>
                         <div class="cal-help-tip-card">
                             <div class="cal-help-tip-icon">&#128274;</div>
-                            <div><strong>Certificate renewals</strong><br>Add events 30 days before each certificate expires. This gives your team enough lead time to renew without risking an outage from an expired cert.</div>
+                            <div><strong><?php echo htmlspecialchars(t('calendar.help.tips_certificates_title')); ?></strong><br><?php echo htmlspecialchars(t('calendar.help.tips_certificates_desc')); ?></div>
                         </div>
                         <div class="cal-help-tip-card">
                             <div class="cal-help-tip-icon">&#128203;</div>
-                            <div><strong>Contract tracking</strong><br>Log contract renewal dates as all-day events. Add the vendor name and contract value in the description so the information is at hand when it is time to negotiate.</div>
+                            <div><strong><?php echo htmlspecialchars(t('calendar.help.tips_contracts_title')); ?></strong><br><?php echo htmlspecialchars(t('calendar.help.tips_contracts_desc')); ?></div>
                         </div>
                         <div class="cal-help-tip-card">
                             <div class="cal-help-tip-icon">&#128269;</div>
-                            <div><strong>Use category filters</strong><br>When the calendar gets busy, untick categories you do not need. For example, hide meetings when you are only interested in upcoming maintenance windows.</div>
+                            <div><strong><?php echo htmlspecialchars(t('calendar.help.tips_filters_title')); ?></strong><br><?php echo htmlspecialchars(t('calendar.help.tips_filters_desc')); ?></div>
                         </div>
                     </div>
                 </div>

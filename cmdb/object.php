@@ -10,16 +10,21 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'browse';
+$translationNamespaces = ['common', 'cmdb'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreeITSM - CMDB Object</title>
+    <title>FreeITSM - <?php echo htmlspecialchars(t('cmdb.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <style>
         body { background: #f5f5f5; }
         .obj-page { height: calc(100vh - 48px); overflow-y: auto; padding: 0 20px; }
@@ -632,32 +637,32 @@ $current_page = 'browse';
     <?php include 'includes/header.php'; ?>
 
     <div class="obj-page" id="objPage">
-        <div style="text-align: center; padding: 60px; color: #9ca3af;">Loading…</div>
+        <div style="text-align: center; padding: 60px; color: #9ca3af;"><?php echo htmlspecialchars(t('cmdb.object.loading')); ?></div>
     </div>
 
     <!-- Add Relationship Modal -->
     <div class="modal" id="relModal">
         <div class="modal-content">
-            <div class="modal-header">Add relationship</div>
+            <div class="modal-header"><?php echo htmlspecialchars(t('cmdb.rel_modal.add_heading')); ?></div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="relTypeSelect">Verb *</label>
+                    <label for="relTypeSelect"><?php echo htmlspecialchars(t('cmdb.rel_modal.verb_label')); ?></label>
                     <select id="relTypeSelect"></select>
                     <small id="relInverseHint" style="color: #6b7280; font-size: 12px; display: block; margin-top: 4px;"></small>
                 </div>
                 <div class="form-group">
-                    <label for="relTargetInput">Linked object *</label>
+                    <label for="relTargetInput"><?php echo htmlspecialchars(t('cmdb.rel_modal.target_label')); ?></label>
                     <div class="autocomplete-wrap">
-                        <input type="text" id="relTargetInput" autocomplete="off" placeholder="Type to search any object…">
+                        <input type="text" id="relTargetInput" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('cmdb.rel_modal.target_placeholder')); ?>">
                         <input type="hidden" id="relTargetId">
                         <div class="autocomplete-results" id="relTargetResults"></div>
                     </div>
-                    <small style="color: #6b7280; font-size: 12px;">Type at least 1 character to search across every class.</small>
+                    <small style="color: #6b7280; font-size: 12px;"><?php echo htmlspecialchars(t('cmdb.rel_modal.target_help')); ?></small>
                 </div>
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeRelModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveRelationship()">Add</button>
+                <button type="button" class="btn btn-secondary" onclick="closeRelModal()"><?php echo htmlspecialchars(t('cmdb.rel_modal.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" onclick="saveRelationship()"><?php echo htmlspecialchars(t('cmdb.rel_modal.add')); ?></button>
             </div>
         </div>
     </div>
@@ -665,22 +670,22 @@ $current_page = 'browse';
     <!-- Parent Picker Modal -->
     <div class="modal" id="parentModal">
         <div class="modal-content">
-            <div class="modal-header">Set parent</div>
+            <div class="modal-header"><?php echo htmlspecialchars(t('cmdb.parent_modal.heading')); ?></div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="parentInput">Parent object</label>
+                    <label for="parentInput"><?php echo htmlspecialchars(t('cmdb.parent_modal.label')); ?></label>
                     <div class="autocomplete-wrap">
-                        <input type="text" id="parentInput" autocomplete="off" placeholder="Type to search…">
+                        <input type="text" id="parentInput" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('cmdb.parent_modal.placeholder')); ?>">
                         <input type="hidden" id="parentId">
                         <div class="autocomplete-results" id="parentResults"></div>
                     </div>
-                    <small style="color: #6b7280; font-size: 12px;">The object this one belongs inside (e.g. a Database's parent might be a SQL Instance).</small>
+                    <small style="color: #6b7280; font-size: 12px;"><?php echo htmlspecialchars(t('cmdb.parent_modal.help')); ?></small>
                 </div>
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-danger" onclick="clearParent()">Clear parent</button>
-                <button type="button" class="btn btn-secondary" onclick="closeParentModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveParent()">Save</button>
+                <button type="button" class="btn btn-danger" onclick="clearParent()"><?php echo htmlspecialchars(t('cmdb.parent_modal.clear')); ?></button>
+                <button type="button" class="btn btn-secondary" onclick="closeParentModal()"><?php echo htmlspecialchars(t('cmdb.parent_modal.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" onclick="saveParent()"><?php echo htmlspecialchars(t('cmdb.parent_modal.save')); ?></button>
             </div>
         </div>
     </div>
@@ -688,60 +693,60 @@ $current_page = 'browse';
     <!-- Floating draggable Edit-Property-Definition modal — drag the pink header to move it -->
     <div class="float-modal" id="propDefModal">
         <div class="float-modal-header" id="propDefModalHeader">
-            <span id="propDefModalTitle">Edit property</span>
+            <span id="propDefModalTitle"><?php echo htmlspecialchars(t('cmdb.prop_def.title')); ?></span>
         </div>
         <div class="float-modal-body">
             <form id="propDefForm" onsubmit="event.preventDefault(); savePropDef();">
                 <input type="hidden" id="pdId">
                 <div class="form-group">
-                    <label for="pdLabel">Label *</label>
+                    <label for="pdLabel"><?php echo htmlspecialchars(t('cmdb.prop_def.label_label')); ?></label>
                     <input type="text" id="pdLabel" required maxlength="150">
-                    <small>What an analyst sees on the object form. Edit freely.</small>
+                    <small><?php echo htmlspecialchars(t('cmdb.prop_def.label_help')); ?></small>
                 </div>
                 <div class="form-group">
-                    <label for="pdKey">Key</label>
+                    <label for="pdKey"><?php echo htmlspecialchars(t('cmdb.prop_def.key_label')); ?></label>
                     <input type="text" id="pdKey" maxlength="100">
-                    <small class="key-hint">Immutable identifier — change only if you have a strong reason.</small>
+                    <small class="key-hint"><?php echo htmlspecialchars(t('cmdb.prop_def.key_help')); ?></small>
                 </div>
                 <div class="form-row">
                     <div class="form-group">
-                        <label for="pdType">Type *</label>
+                        <label for="pdType"><?php echo htmlspecialchars(t('cmdb.prop_def.type_label')); ?></label>
                         <select id="pdType" required onchange="onPropDefTypeChange()">
-                            <option value="text">Text</option>
-                            <option value="number">Number</option>
-                            <option value="date">Date</option>
-                            <option value="boolean">Yes/No</option>
-                            <option value="dropdown">Dropdown</option>
-                            <option value="object_ref">Object Reference</option>
+                            <option value="text"><?php echo htmlspecialchars(t('cmdb.prop_def.type_text')); ?></option>
+                            <option value="number"><?php echo htmlspecialchars(t('cmdb.prop_def.type_number')); ?></option>
+                            <option value="date"><?php echo htmlspecialchars(t('cmdb.prop_def.type_date')); ?></option>
+                            <option value="boolean"><?php echo htmlspecialchars(t('cmdb.prop_def.type_boolean')); ?></option>
+                            <option value="dropdown"><?php echo htmlspecialchars(t('cmdb.prop_def.type_dropdown')); ?></option>
+                            <option value="object_ref"><?php echo htmlspecialchars(t('cmdb.prop_def.type_object_ref')); ?></option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="pdDisplayOrder">Display Order</label>
+                        <label for="pdDisplayOrder"><?php echo htmlspecialchars(t('cmdb.prop_def.display_order')); ?></label>
                         <input type="number" id="pdDisplayOrder" value="0">
                     </div>
                 </div>
                 <div class="form-group" id="pdTargetClassGroup" style="display: none;">
-                    <label for="pdTargetClass">Target Class *</label>
+                    <label for="pdTargetClass"><?php echo htmlspecialchars(t('cmdb.prop_def.target_class')); ?></label>
                     <select id="pdTargetClass">
-                        <option value="">— Select —</option>
+                        <option value=""><?php echo htmlspecialchars(t('cmdb.prop_def.select')); ?></option>
                     </select>
-                    <small>The class of objects this property can point at.</small>
+                    <small><?php echo htmlspecialchars(t('cmdb.prop_def.target_class_help')); ?></small>
                 </div>
                 <div class="form-group" id="pdOptionsGroup" style="display: none;">
-                    <label>Dropdown Options</label>
+                    <label><?php echo htmlspecialchars(t('cmdb.prop_def.options')); ?></label>
                     <div id="pdOptionsContainer"></div>
-                    <small>One row per allowed value, with an optional colour. The colour drives a coloured pill on the object detail page when set; leave grey for plain text. Existing object values matching the new list are preserved; values no longer in the list stay on existing objects but are no longer offered in the picker until you clear them.</small>
+                    <small><?php echo htmlspecialchars(t('cmdb.prop_def.options_help')); ?></small>
                 </div>
                 <div class="form-group">
                     <label class="form-check">
-                        <input type="checkbox" id="pdIsRequired"> Required
+                        <input type="checkbox" id="pdIsRequired"> <?php echo htmlspecialchars(t('cmdb.prop_def.required')); ?>
                     </label>
                 </div>
             </form>
         </div>
         <div class="float-modal-actions">
-            <button type="button" class="btn btn-secondary" onclick="closePropDefModal()">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="savePropDef()">Save</button>
+            <button type="button" class="btn btn-secondary" onclick="closePropDefModal()"><?php echo htmlspecialchars(t('cmdb.prop_def.cancel')); ?></button>
+            <button type="button" class="btn btn-primary" onclick="savePropDef()"><?php echo htmlspecialchars(t('cmdb.prop_def.save')); ?></button>
         </div>
     </div>
 

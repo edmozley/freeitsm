@@ -5,16 +5,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'settings';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'service-status'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Service status settings</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('service-status.nav.settings')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         /* Override the shared .container max-width so this page uses the full screen */
@@ -64,28 +69,28 @@ $path_prefix = '../../';
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="services" onclick="switchTab('services')">Services</button>
-            <button class="tab" data-tab="statuses" onclick="switchTab('statuses')">Statuses</button>
-            <button class="tab" data-tab="impacts" onclick="switchTab('impacts')">Impact levels</button>
+            <button class="tab active" data-tab="services" onclick="switchTab('services')"><?php echo htmlspecialchars(t('service-status.settings.tab_services')); ?></button>
+            <button class="tab" data-tab="statuses" onclick="switchTab('statuses')"><?php echo htmlspecialchars(t('service-status.settings.tab_statuses')); ?></button>
+            <button class="tab" data-tab="impacts" onclick="switchTab('impacts')"><?php echo htmlspecialchars(t('service-status.settings.tab_impacts')); ?></button>
         </div>
 
         <div class="tab-content active" id="services-tab">
             <div class="section-header">
-                <h2>Services</h2>
-                <button class="add-btn" onclick="openAddModal()">Add</button>
+                <h2><?php echo htmlspecialchars(t('service-status.settings.services_heading')); ?></h2>
+                <button class="add-btn" onclick="openAddModal()"><?php echo htmlspecialchars(t('service-status.settings.add')); ?></button>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('service-status.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('service-status.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('service-status.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('service-status.settings.col_status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('service-status.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="services-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('service-status.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -93,26 +98,26 @@ $path_prefix = '../../';
         <!-- Statuses Tab -->
         <div class="tab-content" id="statuses-tab">
             <div class="section-header">
-                <h2>Incident statuses</h2>
-                <button class="add-btn" onclick="openLookupModal('status')">Add</button>
+                <h2><?php echo htmlspecialchars(t('service-status.settings.statuses_heading')); ?></h2>
+                <button class="add-btn" onclick="openLookupModal('status')"><?php echo htmlspecialchars(t('service-status.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Workflow states for service incidents. Statuses flagged as <em>resolved</em> close the incident — auto-stamping <code>resolved_datetime</code> and removing the incident from the active dashboard. Exactly one status is the default for new incidents.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo t('service-status.settings.statuses_intro_html'); ?></p>
             <table>
-                <thead><tr><th>Name</th><th>Colour</th><th>Resolved</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="statuses-list"><tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">Loading...</td></tr></tbody>
+                <thead><tr><th><?php echo htmlspecialchars(t('service-status.settings.col_name')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_colour')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_resolved')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_default')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_order')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_status')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_actions')); ?></th></tr></thead>
+                <tbody id="statuses-list"><tr><td colspan="7" style="text-align:center;padding:20px;color:#999;"><?php echo htmlspecialchars(t('service-status.settings.loading')); ?></td></tr></tbody>
             </table>
         </div>
 
         <!-- Impact levels Tab -->
         <div class="tab-content" id="impacts-tab">
             <div class="section-header">
-                <h2>Impact levels</h2>
-                <button class="add-btn" onclick="openLookupModal('impact')">Add</button>
+                <h2><?php echo htmlspecialchars(t('service-status.settings.impacts_heading')); ?></h2>
+                <button class="add-btn" onclick="openLookupModal('impact')"><?php echo htmlspecialchars(t('service-status.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;">Severity bands shown as the badge on each service card. <strong>Severity order</strong> drives the "worst current impact" ordering on the dashboard — lower = worse (1 = major outage, 5 = operational). Two rows can share an order.</p>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo t('service-status.settings.impacts_intro_html'); ?></p>
             <table>
-                <thead><tr><th>Name</th><th>Colour</th><th>Severity</th><th>Default</th><th>Order</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="impacts-list"><tr><td colspan="7" style="text-align:center;padding:20px;color:#999;">Loading...</td></tr></tbody>
+                <thead><tr><th><?php echo htmlspecialchars(t('service-status.settings.col_name')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_colour')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_severity')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_default')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_order')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_status')); ?></th><th><?php echo htmlspecialchars(t('service-status.settings.col_actions')); ?></th></tr></thead>
+                <tbody id="impacts-list"><tr><td colspan="7" style="text-align:center;padding:20px;color:#999;"><?php echo htmlspecialchars(t('service-status.settings.loading')); ?></td></tr></tbody>
             </table>
         </div>
     </div>
@@ -120,57 +125,57 @@ $path_prefix = '../../';
     <!-- Lookup edit modal (Statuses + Impact Levels share this) -->
     <div class="modal" id="lookupModal">
         <div class="modal-content" style="max-width: 480px;">
-            <div class="modal-header" id="lookupModalTitle">Add item</div>
+            <div class="modal-header" id="lookupModalTitle"><?php echo htmlspecialchars(t('service-status.settings.add_item')); ?></div>
             <form id="lookupForm">
                 <input type="hidden" id="lookupItemKind">
                 <input type="hidden" id="lookupItemId">
 
                 <div class="form-group">
-                    <label for="lookupItemName">Name</label>
+                    <label for="lookupItemName"><?php echo htmlspecialchars(t('service-status.settings.field_name')); ?></label>
                     <input type="text" id="lookupItemName" required>
                 </div>
 
                 <div class="form-group">
-                    <label for="lookupItemColour">Colour</label>
+                    <label for="lookupItemColour"><?php echo htmlspecialchars(t('service-status.settings.field_colour')); ?></label>
                     <input type="color" id="lookupItemColour" value="#10b981" style="width: 60px; height: 32px; padding: 2px;">
                 </div>
 
                 <div class="form-group" id="lookupItemResolvedGroup" style="display: none;">
                     <label class="toggle-label">
                         <span class="toggle-switch"><input type="checkbox" id="lookupItemResolved"><span class="toggle-slider"></span></span>
-                        Counts as resolved
+                        <?php echo htmlspecialchars(t('service-status.settings.field_resolved')); ?>
                     </label>
-                    <small style="display:block; color:#666; margin-top:4px;">Incidents in this status auto-stamp <code>resolved_datetime</code> and drop off the active dashboard.</small>
+                    <small style="display:block; color:#666; margin-top:4px;"><?php echo t('service-status.settings.resolved_help_html'); ?></small>
                 </div>
 
                 <div class="form-group" id="lookupItemSeverityGroup" style="display: none;">
-                    <label for="lookupItemSeverityOrder">Severity order</label>
+                    <label for="lookupItemSeverityOrder"><?php echo htmlspecialchars(t('service-status.settings.field_severity')); ?></label>
                     <input type="number" id="lookupItemSeverityOrder" value="99" min="1">
-                    <small style="display:block; color:#666; margin-top:4px;">1 = worst (Major Outage). Higher = less severe.</small>
+                    <small style="display:block; color:#666; margin-top:4px;"><?php echo htmlspecialchars(t('service-status.settings.severity_help')); ?></small>
                 </div>
 
                 <div class="form-group">
                     <label class="toggle-label">
                         <span class="toggle-switch"><input type="checkbox" id="lookupItemDefault"><span class="toggle-slider"></span></span>
-                        Default
+                        <?php echo htmlspecialchars(t('service-status.settings.field_default')); ?>
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label for="lookupItemOrder">Display order</label>
+                    <label for="lookupItemOrder"><?php echo htmlspecialchars(t('service-status.settings.field_order')); ?></label>
                     <input type="number" id="lookupItemOrder" value="0">
                 </div>
 
                 <div class="form-group">
                     <label class="toggle-label">
                         <span class="toggle-switch"><input type="checkbox" id="lookupItemActive" checked><span class="toggle-slider"></span></span>
-                        Active
+                        <?php echo htmlspecialchars(t('service-status.settings.field_active')); ?>
                     </label>
                 </div>
 
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeLookupModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeLookupModal()"><?php echo htmlspecialchars(t('service-status.settings.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('service-status.settings.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -179,19 +184,19 @@ $path_prefix = '../../';
     <!-- Edit/Add Modal -->
     <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Add service</div>
+            <div class="modal-header" id="modalTitle"><?php echo htmlspecialchars(t('service-status.settings.add_service')); ?></div>
             <form id="editForm" autocomplete="off">
                 <input type="hidden" id="itemId">
                 <div class="form-group">
-                    <label for="itemName">Name</label>
+                    <label for="itemName"><?php echo htmlspecialchars(t('service-status.settings.field_name')); ?></label>
                     <input type="text" id="itemName" required>
                 </div>
                 <div class="form-group">
-                    <label for="itemDescription">Description</label>
+                    <label for="itemDescription"><?php echo htmlspecialchars(t('service-status.settings.field_description')); ?></label>
                     <textarea id="itemDescription"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="itemOrder">Display order</label>
+                    <label for="itemOrder"><?php echo htmlspecialchars(t('service-status.settings.field_order')); ?></label>
                     <input type="number" id="itemOrder" value="0" min="0">
                 </div>
                 <div class="form-group">
@@ -200,12 +205,12 @@ $path_prefix = '../../';
                             <input type="checkbox" id="itemActive" checked>
                             <span class="toggle-slider"></span>
                         </span>
-                        Active
+                        <?php echo htmlspecialchars(t('service-status.settings.field_active')); ?>
                     </label>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()"><?php echo htmlspecialchars(t('service-status.settings.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('service-status.settings.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -238,11 +243,11 @@ $path_prefix = '../../';
                     renderServices(data.services);
                 } else {
                     document.getElementById('services-list').innerHTML =
-                        '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">Error: ' + escapeHtml(data.error) + '</td></tr>';
+                        '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">' + escapeHtml(window.t('service-status.settings.error_prefix', { message: data.error })) + '</td></tr>';
                 }
             } catch (error) {
                 document.getElementById('services-list').innerHTML =
-                    '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">Failed to load data</td></tr>';
+                    '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">' + escapeHtml(window.t('service-status.settings.load_failed')) + '</td></tr>';
             }
         }
 
@@ -250,7 +255,7 @@ $path_prefix = '../../';
             const tbody = document.getElementById('services-list');
 
             if (items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">No services yet. Click Add to create one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">' + escapeHtml(window.t('service-status.settings.no_services')) + '</td></tr>';
                 return;
             }
 
@@ -259,15 +264,15 @@ $path_prefix = '../../';
                     <td><strong>${escapeHtml(item.name)}</strong></td>
                     <td>${escapeHtml(item.description || '-')}</td>
                     <td>${item.display_order}</td>
-                    <td><span class="status-badge ${item.is_active ? 'active' : 'inactive'}">${item.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge ${item.is_active ? 'active' : 'inactive'}">${item.is_active ? escapeHtml(window.t('service-status.settings.active')) : escapeHtml(window.t('service-status.settings.inactive'))}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editService(${item.id})" title="Edit">
+                        <button class="action-btn" onclick="editService(${item.id})" title="${escapeHtml(window.t('service-status.settings.edit'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                             </svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteService(${item.id}, '${escapeHtml(item.name)}')" title="Delete">
+                        <button class="action-btn delete" onclick="deleteService(${item.id}, '${escapeHtml(item.name)}')" title="${escapeHtml(window.t('service-status.settings.delete'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -279,7 +284,7 @@ $path_prefix = '../../';
         }
 
         function openAddModal() {
-            document.getElementById('modalTitle').textContent = 'Add service';
+            document.getElementById('modalTitle').textContent = window.t('service-status.settings.add_service');
             document.getElementById('itemId').value = '';
             document.getElementById('itemName').value = '';
             document.getElementById('itemDescription').value = '';
@@ -292,7 +297,7 @@ $path_prefix = '../../';
             const item = allServices.find(i => i.id == id);
             if (!item) return;
 
-            document.getElementById('modalTitle').textContent = 'Edit service';
+            document.getElementById('modalTitle').textContent = window.t('service-status.settings.edit_service');
             document.getElementById('itemId').value = item.id;
             document.getElementById('itemName').value = item.name;
             document.getElementById('itemDescription').value = item.description || '';
@@ -325,18 +330,18 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     closeModal();
-                    showToast('Saved', 'success');
+                    showToast(window.t('service-status.toast.saved'), 'success');
                     loadServices();
                 } else {
-                    showToast(data.error || 'Failed to save', 'error');
+                    showToast(data.error || window.t('service-status.toast.save_failed'), 'error');
                 }
             } catch (error) {
-                showToast('Failed to save service', 'error');
+                showToast(window.t('service-status.toast.save_service_failed'), 'error');
             }
         });
 
         async function deleteService(id, name) {
-            if (!(await showConfirm({ title: 'Delete', message: 'Delete "' + name + '"?', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('service-status.confirm.delete_title'), message: window.t('service-status.confirm.delete_message', { name: name }), okLabel: window.t('service-status.confirm.delete_label'), okClass: 'danger' }))) return;
 
             try {
                 const response = await fetch(API_BASE + 'delete_service.php', {
@@ -346,13 +351,13 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showToast('Deleted', 'success');
+                    showToast(window.t('service-status.toast.deleted'), 'success');
                     loadServices();
                 } else {
-                    showToast(data.error || 'Failed to delete', 'error');
+                    showToast(data.error || window.t('service-status.toast.delete_failed'), 'error');
                 }
             } catch (error) {
-                showToast('Failed to delete service', 'error');
+                showToast(window.t('service-status.toast.delete_service_failed'), 'error');
             }
         }
 
@@ -372,8 +377,8 @@ $path_prefix = '../../';
         // ============================================================
 
         const LOOKUP_KINDS = {
-            'status': { get: 'get_incident_statuses.php', save: 'save_incident_status.php', del: 'delete_incident_status.php', listKey: 'statuses',      tableId: 'statuses-list', colspan: 7, hasResolved: true,  hasSeverity: false, label: 'status'       },
-            'impact': { get: 'get_impact_levels.php',     save: 'save_impact_level.php',    del: 'delete_impact_level.php',    listKey: 'impact_levels', tableId: 'impacts-list',  colspan: 7, hasResolved: false, hasSeverity: true,  label: 'impact level' }
+            'status': { get: 'get_incident_statuses.php', save: 'save_incident_status.php', del: 'delete_incident_status.php', listKey: 'statuses',      tableId: 'statuses-list', colspan: 7, hasResolved: true,  hasSeverity: false, labelKey: 'service-status.settings.kind_status' },
+            'impact': { get: 'get_impact_levels.php',     save: 'save_impact_level.php',    del: 'delete_impact_level.php',    listKey: 'impact_levels', tableId: 'impacts-list',  colspan: 7, hasResolved: false, hasSeverity: true,  labelKey: 'service-status.settings.kind_impact' }
         };
 
         const lookupCache = { status: [], impact: [] };
@@ -395,7 +400,7 @@ $path_prefix = '../../';
             const rows = lookupCache[kind];
             const tbody = document.getElementById(cfg.tableId);
             if (!rows || rows.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" style="text-align:center;padding:20px;color:#999;">No items found</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="${cfg.colspan}" style="text-align:center;padding:20px;color:#999;">${escapeHtml(window.t('service-status.settings.no_items'))}</td></tr>`;
                 return;
             }
             tbody.innerHTML = rows.map(r => {
@@ -403,22 +408,24 @@ $path_prefix = '../../';
                 const swatch = r.colour
                     ? `<span style="display:inline-block;width:18px;height:18px;border-radius:3px;background:${escapeHtml(r.colour)};vertical-align:middle;border:1px solid #ddd;margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(r.colour)}</code>`
                     : '<span style="color:#999;">—</span>';
+                const yesBadge = `<span class="status-badge active">${escapeHtml(window.t('service-status.settings.yes'))}</span>`;
+                const noBadge = `<span style="color:#999;">${escapeHtml(window.t('service-status.settings.no'))}</span>`;
                 const flagCol = cfg.hasResolved
-                    ? `<td>${r.is_resolved ? '<span class="status-badge active">Yes</span>' : '<span style="color:#999;">No</span>'}</td>`
+                    ? `<td>${r.is_resolved ? yesBadge : noBadge}</td>`
                     : `<td>${r.severity_order}</td>`;
                 return `
                 <tr>
                     <td><strong>${escapeHtml(r.name)}</strong></td>
                     <td>${swatch}</td>
                     ${flagCol}
-                    <td>${r.is_default ? '<span class="status-badge active">Yes</span>' : '<span style="color:#999;">No</span>'}</td>
+                    <td>${r.is_default ? yesBadge : noBadge}</td>
                     <td>${r.display_order}</td>
-                    <td><span class="status-badge ${r.is_active ? 'active' : 'inactive'}">${r.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge ${r.is_active ? 'active' : 'inactive'}">${r.is_active ? escapeHtml(window.t('service-status.settings.active')) : escapeHtml(window.t('service-status.settings.inactive'))}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editLookup('${kind}', ${r.id})" title="Edit">
+                        <button class="action-btn" onclick="editLookup('${kind}', ${r.id})" title="${escapeHtml(window.t('service-status.settings.edit'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteLookup('${kind}', ${r.id}, '${safeName}')" title="Delete">
+                        <button class="action-btn delete" onclick="deleteLookup('${kind}', ${r.id}, '${safeName}')" title="${escapeHtml(window.t('service-status.settings.delete'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>
@@ -428,7 +435,7 @@ $path_prefix = '../../';
 
         function openLookupModal(kind) {
             const cfg = LOOKUP_KINDS[kind];
-            document.getElementById('lookupModalTitle').textContent = `Add ${cfg.label}`;
+            document.getElementById('lookupModalTitle').textContent = window.t('service-status.settings.add_kind', { kind: window.t(cfg.labelKey) });
             document.getElementById('lookupItemKind').value = kind;
             document.getElementById('lookupItemId').value = '';
             document.getElementById('lookupItemName').value = '';
@@ -447,7 +454,7 @@ $path_prefix = '../../';
             const cfg = LOOKUP_KINDS[kind];
             const item = (lookupCache[kind] || []).find(r => r.id == id);
             if (!item) return;
-            document.getElementById('lookupModalTitle').textContent = `Edit ${cfg.label}`;
+            document.getElementById('lookupModalTitle').textContent = window.t('service-status.settings.edit_kind', { kind: window.t(cfg.labelKey) });
             document.getElementById('lookupItemKind').value = kind;
             document.getElementById('lookupItemId').value = item.id;
             document.getElementById('lookupItemName').value = item.name;
@@ -467,7 +474,7 @@ $path_prefix = '../../';
         }
 
         async function deleteLookup(kind, id, name) {
-            if (!(await showConfirm({ title: 'Delete', message: `Delete "${name}"?`, okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('service-status.confirm.delete_title'), message: window.t('service-status.confirm.delete_message', { name: name }), okLabel: window.t('service-status.confirm.delete_label'), okClass: 'danger' }))) return;
             const cfg = LOOKUP_KINDS[kind];
             try {
                 const res = await fetch(API_BASE + cfg.del, {
@@ -475,9 +482,9 @@ $path_prefix = '../../';
                     body: JSON.stringify({id: id})
                 });
                 const data = await res.json();
-                if (data.success) { showToast('Deleted', 'success'); loadLookup(kind); }
-                else showToast(data.error || 'Failed to delete', 'error');
-            } catch (e) { showToast('Failed to delete', 'error'); }
+                if (data.success) { showToast(window.t('service-status.toast.deleted'), 'success'); loadLookup(kind); }
+                else showToast(data.error || window.t('service-status.toast.delete_failed'), 'error');
+            } catch (e) { showToast(window.t('service-status.toast.delete_failed'), 'error'); }
         }
 
         document.getElementById('lookupForm').addEventListener('submit', async function(e) {
@@ -501,9 +508,9 @@ $path_prefix = '../../';
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                if (data.success) { closeLookupModal(); showToast('Saved', 'success'); loadLookup(kind); }
-                else showToast(data.error || 'Failed to save', 'error');
-            } catch (e) { showToast('Failed to save', 'error'); }
+                if (data.success) { closeLookupModal(); showToast(window.t('service-status.toast.saved'), 'success'); loadLookup(kind); }
+                else showToast(data.error || window.t('service-status.toast.save_failed'), 'error');
+            } catch (e) { showToast(window.t('service-status.toast.save_failed'), 'error'); }
         });
 
         document.getElementById('lookupModal').addEventListener('click', function(e) {

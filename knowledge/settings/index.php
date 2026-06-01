@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 // Check if user is logged in
 if (!isset($_SESSION['analyst_id'])) {
@@ -14,14 +16,17 @@ if (!isset($_SESSION['analyst_id'])) {
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = 'settings';
 $path_prefix = '../../';  // Two levels up from knowledge/settings/
+$translationNamespaces = ['common', 'knowledge'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Knowledge settings</title>
+    <title><?php echo htmlspecialchars(t('knowledge.browser_title.settings')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <style>
         /* Page-specific overrides for settings page */
         .container {
@@ -223,77 +228,77 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="email" onclick="switchTab('email')">Email</button>
-            <button class="tab" data-tab="ai" onclick="switchTab('ai')">AI</button>
-            <button class="tab" data-tab="embeddings" onclick="switchTab('embeddings')">Embeddings</button>
-            <button class="tab" data-tab="recycle-bin" onclick="switchTab('recycle-bin')">Recycle bin</button>
-            <button class="tab" data-tab="left-panel" onclick="switchTab('left-panel')">Left panel</button>
+            <button class="tab active" data-tab="email" onclick="switchTab('email')"><?php echo htmlspecialchars(t('knowledge.settings.tab_email')); ?></button>
+            <button class="tab" data-tab="ai" onclick="switchTab('ai')"><?php echo htmlspecialchars(t('knowledge.settings.tab_ai')); ?></button>
+            <button class="tab" data-tab="embeddings" onclick="switchTab('embeddings')"><?php echo htmlspecialchars(t('knowledge.settings.tab_embeddings')); ?></button>
+            <button class="tab" data-tab="recycle-bin" onclick="switchTab('recycle-bin')"><?php echo htmlspecialchars(t('knowledge.settings.tab_recycle')); ?></button>
+            <button class="tab" data-tab="left-panel" onclick="switchTab('left-panel')"><?php echo htmlspecialchars(t('knowledge.settings.tab_left_panel')); ?></button>
         </div>
 
         <!-- Email Tab -->
         <div class="tab-content active" id="email-tab">
             <div class="section-header">
-                <h2>Outbound email settings</h2>
+                <h2><?php echo htmlspecialchars(t('knowledge.settings.email_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;">Configure how knowledge articles are shared via email. Choose to use an SMTP server or a configured Microsoft 365 mailbox.</p>
+            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.email_intro')); ?></p>
 
             <form id="emailSettingsForm">
                 <div class="radio-group">
                     <label class="radio-option" id="optionSmtp">
                         <input type="radio" name="email_method" value="smtp" onchange="toggleEmailMethod('smtp')">
                         <div class="radio-option-content">
-                            <div class="radio-option-title">SMTP server</div>
-                            <div class="radio-option-desc">Use a dedicated SMTP server for sending emails</div>
+                            <div class="radio-option-title"><?php echo htmlspecialchars(t('knowledge.settings.method_smtp_title')); ?></div>
+                            <div class="radio-option-desc"><?php echo htmlspecialchars(t('knowledge.settings.method_smtp_desc')); ?></div>
                         </div>
                     </label>
 
                     <label class="radio-option" id="optionMailbox">
                         <input type="radio" name="email_method" value="mailbox" onchange="toggleEmailMethod('mailbox')">
                         <div class="radio-option-content">
-                            <div class="radio-option-title">Microsoft 365 mailbox</div>
-                            <div class="radio-option-desc">Use a configured mailbox from the Tickets module</div>
+                            <div class="radio-option-title"><?php echo htmlspecialchars(t('knowledge.settings.method_mailbox_title')); ?></div>
+                            <div class="radio-option-desc"><?php echo htmlspecialchars(t('knowledge.settings.method_mailbox_desc')); ?></div>
                         </div>
                     </label>
 
                     <label class="radio-option" id="optionDisabled">
                         <input type="radio" name="email_method" value="disabled" onchange="toggleEmailMethod('disabled')">
                         <div class="radio-option-content">
-                            <div class="radio-option-title">Disabled</div>
-                            <div class="radio-option-desc">Email sharing is disabled</div>
+                            <div class="radio-option-title"><?php echo htmlspecialchars(t('knowledge.settings.method_disabled_title')); ?></div>
+                            <div class="radio-option-desc"><?php echo htmlspecialchars(t('knowledge.settings.method_disabled_desc')); ?></div>
                         </div>
                     </label>
                 </div>
 
                 <!-- SMTP Settings -->
                 <div class="smtp-settings" id="smtpSettings">
-                    <h3 style="font-size: 16px; margin-bottom: 15px;">SMTP configuration</h3>
+                    <h3 style="font-size: 16px; margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.smtp_config')); ?></h3>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="smtpHost">SMTP server hostname</label>
-                            <input type="text" id="smtpHost" placeholder="e.g., smtp.office365.com">
+                            <label for="smtpHost"><?php echo htmlspecialchars(t('knowledge.settings.smtp_host')); ?></label>
+                            <input type="text" id="smtpHost" placeholder="<?php echo htmlspecialchars(t('knowledge.settings.smtp_host_placeholder')); ?>">
                         </div>
                         <div class="form-group">
-                            <label for="smtpPort">SMTP port</label>
-                            <input type="number" id="smtpPort" placeholder="e.g., 587">
+                            <label for="smtpPort"><?php echo htmlspecialchars(t('knowledge.settings.smtp_port')); ?></label>
+                            <input type="number" id="smtpPort" placeholder="<?php echo htmlspecialchars(t('knowledge.settings.smtp_port_placeholder')); ?>">
                         </div>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="smtpEncryption">Connection type</label>
+                            <label for="smtpEncryption"><?php echo htmlspecialchars(t('knowledge.settings.smtp_encryption')); ?></label>
                             <select id="smtpEncryption">
-                                <option value="none">None (not recommended)</option>
-                                <option value="tls" selected>TLS (STARTTLS)</option>
-                                <option value="ssl">SSL</option>
+                                <option value="none"><?php echo htmlspecialchars(t('knowledge.settings.enc_none')); ?></option>
+                                <option value="tls" selected><?php echo htmlspecialchars(t('knowledge.settings.enc_tls')); ?></option>
+                                <option value="ssl"><?php echo htmlspecialchars(t('knowledge.settings.enc_ssl')); ?></option>
                             </select>
-                            <small>TLS is recommended for most servers on port 587</small>
+                            <small><?php echo htmlspecialchars(t('knowledge.settings.smtp_enc_help')); ?></small>
                         </div>
                         <div class="form-group">
-                            <label for="smtpAuth">Authentication required</label>
+                            <label for="smtpAuth"><?php echo htmlspecialchars(t('knowledge.settings.smtp_auth')); ?></label>
                             <select id="smtpAuth" onchange="toggleSmtpAuth()">
-                                <option value="yes" selected>Yes</option>
-                                <option value="no">No</option>
+                                <option value="yes" selected><?php echo htmlspecialchars(t('knowledge.settings.auth_yes')); ?></option>
+                                <option value="no"><?php echo htmlspecialchars(t('knowledge.settings.auth_no')); ?></option>
                             </select>
                         </div>
                     </div>
@@ -301,47 +306,47 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                     <div id="smtpAuthFields">
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="smtpUsername">SMTP username</label>
-                                <input type="text" id="smtpUsername" placeholder="e.g., noreply@company.com">
+                                <label for="smtpUsername"><?php echo htmlspecialchars(t('knowledge.settings.smtp_username')); ?></label>
+                                <input type="text" id="smtpUsername" placeholder="<?php echo htmlspecialchars(t('knowledge.settings.smtp_username_placeholder')); ?>">
                             </div>
                             <div class="form-group">
-                                <label for="smtpPassword">SMTP password</label>
-                                <input type="password" id="smtpPassword" placeholder="Enter password">
+                                <label for="smtpPassword"><?php echo htmlspecialchars(t('knowledge.settings.smtp_password')); ?></label>
+                                <input type="password" id="smtpPassword" placeholder="<?php echo htmlspecialchars(t('knowledge.settings.smtp_password_placeholder')); ?>">
                             </div>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="smtpFromEmail">From email address</label>
-                        <input type="email" id="smtpFromEmail" placeholder="e.g., knowledge@company.com">
-                        <small>The email address that will appear in the "From" field</small>
+                        <label for="smtpFromEmail"><?php echo htmlspecialchars(t('knowledge.settings.smtp_from_email')); ?></label>
+                        <input type="email" id="smtpFromEmail" placeholder="<?php echo htmlspecialchars(t('knowledge.settings.smtp_from_email_placeholder')); ?>">
+                        <small><?php echo htmlspecialchars(t('knowledge.settings.smtp_from_email_help')); ?></small>
                     </div>
 
                     <div class="form-group">
-                        <label for="smtpFromName">From name</label>
-                        <input type="text" id="smtpFromName" placeholder="e.g., Knowledge Base">
-                        <small>The name that will appear alongside the email address</small>
+                        <label for="smtpFromName"><?php echo htmlspecialchars(t('knowledge.settings.smtp_from_name')); ?></label>
+                        <input type="text" id="smtpFromName" placeholder="<?php echo htmlspecialchars(t('knowledge.settings.smtp_from_name_placeholder')); ?>">
+                        <small><?php echo htmlspecialchars(t('knowledge.settings.smtp_from_name_help')); ?></small>
                     </div>
 
-                    <button type="button" class="btn btn-test" onclick="testSmtp()">Test</button>
+                    <button type="button" class="btn btn-test" onclick="testSmtp()"><?php echo htmlspecialchars(t('knowledge.settings.test')); ?></button>
                     <div class="test-result" id="smtpTestResult"></div>
                 </div>
 
                 <!-- Mailbox Settings -->
                 <div class="mailbox-settings" id="mailboxSettings">
-                    <h3 style="font-size: 16px; margin-bottom: 15px;">Mailbox selection</h3>
+                    <h3 style="font-size: 16px; margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.mailbox_heading')); ?></h3>
 
                     <div class="form-group">
-                        <label for="selectedMailbox">Select mailbox</label>
+                        <label for="selectedMailbox"><?php echo htmlspecialchars(t('knowledge.settings.mailbox_select')); ?></label>
                         <select id="selectedMailbox">
-                            <option value="">Loading mailboxes...</option>
+                            <option value=""><?php echo htmlspecialchars(t('knowledge.settings.mailbox_loading')); ?></option>
                         </select>
-                        <small>Choose a mailbox that has been configured in the Tickets module settings</small>
+                        <small><?php echo htmlspecialchars(t('knowledge.settings.mailbox_help')); ?></small>
                     </div>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('knowledge.settings.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -349,28 +354,28 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
         <!-- AI Assistant Tab -->
         <div class="tab-content" id="ai-tab">
             <div class="section-header">
-                <h2>AI assistant</h2>
+                <h2><?php echo htmlspecialchars(t('knowledge.settings.ai_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;">Configure the AI-powered assistant that answers questions based on your knowledge base articles.</p>
+            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_intro')); ?></p>
 
             <form id="aiSettingsForm">
-                <h3 style="font-size: 16px; margin-bottom: 15px;">Claude API (chat)</h3>
+                <h3 style="font-size: 16px; margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_claude_heading')); ?></h3>
                 <div class="form-group">
-                    <label for="aiApiKey">Anthropic API key</label>
+                    <label for="aiApiKey"><?php echo htmlspecialchars(t('knowledge.settings.ai_anthropic_key')); ?></label>
                     <input type="password" id="aiApiKey" placeholder="sk-ant-...">
-                    <small>Get your API key from <a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#8764b8;">console.anthropic.com</a>. Used for answering questions.</small>
+                    <small><?php echo t('knowledge.settings.ai_anthropic_help', ['link' => '<a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#8764b8;">console.anthropic.com</a>']); ?></small>
                 </div>
 
-                <h3 style="font-size: 16px; margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid #e0e0e0;">OpenAI API (embeddings)</h3>
+                <h3 style="font-size: 16px; margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid #e0e0e0;"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_heading')); ?></h3>
                 <div class="form-group">
-                    <label for="openaiApiKey">OpenAI API key</label>
+                    <label for="openaiApiKey"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_key')); ?></label>
                     <input type="password" id="openaiApiKey" placeholder="sk-proj-...">
-                    <small>Get your API key from <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#8764b8;">platform.openai.com</a>. Used for semantic search (finding relevant articles).</small>
+                    <small><?php echo t('knowledge.settings.ai_openai_help', ['link' => '<a href="https://platform.openai.com/api-keys" target="_blank" style="color:#8764b8;">platform.openai.com</a>']); ?></small>
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-test" onclick="testAiConnection()">Test</button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('knowledge.settings.save')); ?></button>
+                    <button type="button" class="btn btn-test" onclick="testAiConnection()"><?php echo htmlspecialchars(t('knowledge.settings.test')); ?></button>
                 </div>
                 <div class="test-result" id="aiTestResult"></div>
             </form>
@@ -379,23 +384,23 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
         <!-- Embeddings Tab -->
         <div class="tab-content" id="embeddings-tab">
             <div class="section-header">
-                <h2>Article embeddings</h2>
+                <h2><?php echo htmlspecialchars(t('knowledge.settings.embeddings_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;">Generate vector embeddings for your knowledge articles to enable semantic search. This allows the AI to find the most relevant articles based on meaning, not just keywords.</p>
+            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.embeddings_intro')); ?></p>
 
             <div id="embeddingStatus" style="padding: 15px; background: #f9f9f9; border-radius: 6px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <strong>Embedding status</strong>
-                        <div id="embeddingStats" style="margin-top: 5px; color: #666; font-size: 13px;">Loading...</div>
+                        <strong><?php echo htmlspecialchars(t('knowledge.settings.embedding_status')); ?></strong>
+                        <div id="embeddingStats" style="margin-top: 5px; color: #666; font-size: 13px;"><?php echo htmlspecialchars(t('knowledge.settings.embed_loading')); ?></div>
                     </div>
-                    <button type="button" class="btn btn-primary" id="generateEmbeddingsBtn" onclick="generateEmbeddings()">Generate</button>
+                    <button type="button" class="btn btn-primary" id="generateEmbeddingsBtn" onclick="generateEmbeddings()"><?php echo htmlspecialchars(t('knowledge.settings.generate')); ?></button>
                 </div>
             </div>
 
             <div id="embeddingProgress" style="display: none;">
                 <div style="margin-bottom: 10px;">
-                    <span id="embeddingProgressText">Processing...</span>
+                    <span id="embeddingProgressText"><?php echo htmlspecialchars(t('knowledge.settings.processing')); ?></span>
                 </div>
                 <div style="background: #e0e0e0; border-radius: 4px; height: 8px; overflow: hidden;">
                     <div id="embeddingProgressBar" style="background: #8764b8; height: 100%; width: 0%; transition: width 0.3s;"></div>
@@ -408,17 +413,17 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
         <!-- Recycle Bin Tab -->
         <div class="tab-content" id="recycle-bin-tab">
             <div class="section-header">
-                <h2>Recycle bin</h2>
+                <h2><?php echo htmlspecialchars(t('knowledge.settings.recycle_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;">Configure how long archived knowledge articles are retained in the recycle bin before automatic permanent deletion.</p>
+            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.recycle_intro')); ?></p>
             <form id="recycleBinSettingsForm">
                 <div class="form-group">
-                    <label for="recycleBinDays">Auto-delete after (days)</label>
+                    <label for="recycleBinDays"><?php echo htmlspecialchars(t('knowledge.settings.recycle_days_label')); ?></label>
                     <input type="number" id="recycleBinDays" min="0" max="999" value="30" style="max-width: 200px;">
-                    <small>Set to 0 to keep archived articles indefinitely. Range: 0-999 days. Default: 30.</small>
+                    <small><?php echo htmlspecialchars(t('knowledge.settings.recycle_days_help')); ?></small>
                 </div>
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('knowledge.settings.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -426,25 +431,25 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
         <!-- Left panel tab — per-analyst preference -->
         <div class="tab-content" id="left-panel-tab">
             <div class="section-header">
-                <h2>Left panel</h2>
+                <h2><?php echo htmlspecialchars(t('knowledge.settings.left_panel_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;">Choose how the search + tag-filter sidebar on the main Knowledge page behaves. Saved per analyst.</p>
+            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.left_panel_intro')); ?></p>
 
             <form id="leftPanelForm" autocomplete="off" onsubmit="event.preventDefault();">
                 <div class="form-group">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;">Visibility</label>
+                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;"><?php echo htmlspecialchars(t('knowledge.settings.visibility')); ?></label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="kbSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
-                        <strong>Always visible</strong>
+                        <strong><?php echo htmlspecialchars(t('knowledge.settings.always_title')); ?></strong>
                         <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
-                            The sidebar stays pinned open at 280px. Good when you want search and tag filters one click away.
+                            <?php echo htmlspecialchars(t('knowledge.settings.always_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="kbSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
-                        <strong>Show on hover</strong>
+                        <strong><?php echo htmlspecialchars(t('knowledge.settings.hover_title')); ?></strong>
                         <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
-                            Collapses to a thin 16px strip at the edge of the page; hovering over it slides the full sidebar back in. Frees space for reading articles.
+                            <?php echo htmlspecialchars(t('knowledge.settings.hover_desc')); ?>
                         </span>
                     </label>
                 </div>
@@ -497,7 +502,7 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                     body: JSON.stringify({ key: SIDEBAR_MODE_KEY, value: value })
                 });
                 const d = await r.json();
-                if (d.success) showToast('Saved', 'success');
+                if (d.success) showToast(window.t('knowledge.settings.toast_saved'), 'success');
             } catch (e) { /* no-op */ }
         }
 
@@ -537,7 +542,7 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                 const data = await response.json();
 
                 const select = document.getElementById('selectedMailbox');
-                select.innerHTML = '<option value="">-- Select a mailbox --</option>';
+                select.innerHTML = '<option value="">' + window.t('knowledge.settings.mailbox_default') + '</option>';
 
                 if (data.success && data.mailboxes) {
                     data.mailboxes.forEach(mailbox => {
@@ -611,13 +616,13 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast('Settings saved', 'success');
+                    showToast(window.t('knowledge.settings.toast_settings_saved'), 'success');
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('knowledge.settings.toast_error', { message: data.error }), 'error');
                 }
             } catch (error) {
                 console.error('Error saving settings:', error);
-                showToast('Failed to save settings', 'error');
+                showToast(window.t('knowledge.settings.toast_save_failed'), 'error');
             }
         });
 
@@ -625,7 +630,7 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
             const resultDiv = document.getElementById('smtpTestResult');
             resultDiv.className = 'test-result';
             resultDiv.style.display = 'block';
-            resultDiv.textContent = 'Testing connection...';
+            resultDiv.textContent = window.t('knowledge.settings.test_connecting');
 
             const settings = {
                 smtp_host: document.getElementById('smtpHost').value,
@@ -646,14 +651,14 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
 
                 if (data.success) {
                     resultDiv.className = 'test-result success';
-                    resultDiv.textContent = 'Connection successful! SMTP server is reachable.';
+                    resultDiv.textContent = window.t('knowledge.settings.test_smtp_ok');
                 } else {
                     resultDiv.className = 'test-result error';
-                    resultDiv.textContent = 'Connection failed: ' + data.error;
+                    resultDiv.textContent = window.t('knowledge.settings.test_smtp_failed', { message: data.error });
                 }
             } catch (error) {
                 resultDiv.className = 'test-result error';
-                resultDiv.textContent = 'Error testing connection: ' + error.message;
+                resultDiv.textContent = window.t('knowledge.settings.test_error', { message: error.message });
             }
         }
 
@@ -670,10 +675,10 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                 const data = await response.json();
                 if (data.success && data.settings) {
                     if (data.settings.ai_api_key) {
-                        document.getElementById('aiApiKey').placeholder = 'Key is saved (enter new key to change)';
+                        document.getElementById('aiApiKey').placeholder = window.t('knowledge.settings.key_saved_placeholder');
                     }
                     if (data.settings.openai_api_key) {
-                        document.getElementById('openaiApiKey').placeholder = 'Key is saved (enter new key to change)';
+                        document.getElementById('openaiApiKey').placeholder = window.t('knowledge.settings.key_saved_placeholder');
                     }
                 }
             } catch (error) {
@@ -688,7 +693,7 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
             const openaiKey = document.getElementById('openaiApiKey').value.trim();
 
             if (!anthropicKey && !openaiKey) {
-                showToast('Please enter at least one API key', 'error');
+                showToast(window.t('knowledge.settings.toast_need_key'), 'error');
                 return;
             }
 
@@ -705,21 +710,21 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast('AI settings saved', 'success');
+                    showToast(window.t('knowledge.settings.toast_ai_saved'), 'success');
                     if (anthropicKey) {
                         document.getElementById('aiApiKey').value = '';
-                        document.getElementById('aiApiKey').placeholder = 'Key is saved (enter new key to change)';
+                        document.getElementById('aiApiKey').placeholder = window.t('knowledge.settings.key_saved_placeholder');
                     }
                     if (openaiKey) {
                         document.getElementById('openaiApiKey').value = '';
-                        document.getElementById('openaiApiKey').placeholder = 'Key is saved (enter new key to change)';
+                        document.getElementById('openaiApiKey').placeholder = window.t('knowledge.settings.key_saved_placeholder');
                     }
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('knowledge.settings.toast_error', { message: data.error }), 'error');
                 }
             } catch (error) {
                 console.error('Error saving AI settings:', error);
-                showToast('Failed to save AI settings', 'error');
+                showToast(window.t('knowledge.settings.toast_ai_save_failed'), 'error');
             }
         });
 
@@ -727,7 +732,7 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
             const resultDiv = document.getElementById('aiTestResult');
             resultDiv.className = 'test-result';
             resultDiv.style.display = 'block';
-            resultDiv.textContent = 'Testing connection to Claude API...';
+            resultDiv.textContent = window.t('knowledge.settings.test_ai_connecting');
 
             try {
                 const response = await fetch(API_BASE + 'ai_chat.php', {
@@ -739,14 +744,14 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
 
                 if (data.success) {
                     resultDiv.className = 'test-result success';
-                    resultDiv.textContent = 'Connection successful! Searched ' + data.articles_searched + ' articles. The AI assistant is ready to use.';
+                    resultDiv.textContent = window.t('knowledge.settings.test_ai_ok', { count: data.articles_searched });
                 } else {
                     resultDiv.className = 'test-result error';
-                    resultDiv.textContent = 'Error: ' + data.error;
+                    resultDiv.textContent = window.t('knowledge.settings.toast_error', { message: data.error });
                 }
             } catch (error) {
                 resultDiv.className = 'test-result error';
-                resultDiv.textContent = 'Connection error: ' + error.message;
+                resultDiv.textContent = window.t('knowledge.settings.test_ai_error', { message: error.message });
             }
         }
 
@@ -761,17 +766,17 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                 if (data.success) {
                     const { total, with_embeddings, without_embeddings } = data.stats;
                     if (total === 0) {
-                        statsDiv.textContent = 'No published articles found.';
+                        statsDiv.textContent = window.t('knowledge.settings.embed_none');
                     } else if (without_embeddings === 0) {
-                        statsDiv.innerHTML = `<span style="color: #155724;">All ${total} articles have embeddings</span>`;
+                        statsDiv.innerHTML = `<span style="color: #155724;">${window.t('knowledge.settings.embed_all', { total: total })}</span>`;
                     } else {
-                        statsDiv.innerHTML = `${with_embeddings} of ${total} articles have embeddings. <strong>${without_embeddings} need generation.</strong>`;
+                        statsDiv.innerHTML = window.t('knowledge.settings.embed_partial', { with: with_embeddings, total: total, missing: without_embeddings });
                     }
                 } else {
-                    statsDiv.textContent = 'Error loading stats: ' + data.error;
+                    statsDiv.textContent = window.t('knowledge.settings.embed_error', { message: data.error });
                 }
             } catch (error) {
-                document.getElementById('embeddingStats').textContent = 'Error loading stats';
+                document.getElementById('embeddingStats').textContent = window.t('knowledge.settings.embed_error_short');
             }
         }
 
@@ -783,7 +788,7 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
             const resultDiv = document.getElementById('embeddingResult');
 
             btn.disabled = true;
-            btn.textContent = 'Generating...';
+            btn.textContent = window.t('knowledge.settings.embed_generating');
             progressDiv.style.display = 'block';
             resultDiv.className = 'test-result';
             resultDiv.style.display = 'none';
@@ -794,16 +799,16 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                 const listData = await listResponse.json();
 
                 if (!listData.success) {
-                    throw new Error(listData.error || 'Failed to get articles');
+                    throw new Error(listData.error || window.t('knowledge.settings.embed_get_failed'));
                 }
 
                 const articles = listData.articles;
                 if (articles.length === 0) {
                     progressDiv.style.display = 'none';
                     resultDiv.className = 'test-result success';
-                    resultDiv.textContent = 'All articles already have embeddings!';
+                    resultDiv.textContent = window.t('knowledge.settings.embed_all_done');
                     btn.disabled = false;
-                    btn.textContent = 'Generate';
+                    btn.textContent = window.t('knowledge.settings.generate');
                     return;
                 }
 
@@ -811,7 +816,7 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                 let errors = 0;
 
                 for (const article of articles) {
-                    progressText.textContent = `Processing "${article.title}" (${processed + 1}/${articles.length})...`;
+                    progressText.textContent = window.t('knowledge.settings.embed_processing', { title: article.title, current: processed + 1, total: articles.length });
                     progressBar.style.width = ((processed / articles.length) * 100) + '%';
 
                     try {
@@ -839,10 +844,10 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
 
                 if (errors === 0) {
                     resultDiv.className = 'test-result success';
-                    resultDiv.textContent = `Successfully generated embeddings for ${processed} articles!`;
+                    resultDiv.textContent = window.t('knowledge.settings.embed_success', { count: processed });
                 } else {
                     resultDiv.className = 'test-result error';
-                    resultDiv.textContent = `Completed with ${errors} errors out of ${processed} articles.`;
+                    resultDiv.textContent = window.t('knowledge.settings.embed_errors', { errors: errors, total: processed });
                 }
 
                 loadEmbeddingStats();
@@ -850,11 +855,11 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
             } catch (error) {
                 progressDiv.style.display = 'none';
                 resultDiv.className = 'test-result error';
-                resultDiv.textContent = 'Error: ' + error.message;
+                resultDiv.textContent = window.t('knowledge.settings.toast_error', { message: error.message });
             }
 
             btn.disabled = false;
-            btn.textContent = 'Generate';
+            btn.textContent = window.t('knowledge.settings.generate');
         }
 
         // === Recycle Bin Settings ===
@@ -888,13 +893,13 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast('Settings saved', 'success');
+                    showToast(window.t('knowledge.settings.toast_settings_saved'), 'success');
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('knowledge.settings.toast_error', { message: data.error }), 'error');
                 }
             } catch (error) {
                 console.error('Error saving recycle bin settings:', error);
-                showToast('Failed to save settings', 'error');
+                showToast(window.t('knowledge.settings.toast_save_failed'), 'error');
             }
         });
     </script>

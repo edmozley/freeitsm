@@ -45,7 +45,7 @@ function formatDate(s) {
 
 document.addEventListener('DOMContentLoaded', () => {
     if (!OBJECT_ID) {
-        document.getElementById('objPage').innerHTML = '<div style="padding:40px;text-align:center;color:#b91c1c;">Missing object id</div>';
+        document.getElementById('objPage').innerHTML = `<div style="padding:40px;text-align:center;color:#b91c1c;">${escapeHtml(window.t('cmdb.object.missing_id'))}</div>`;
         return;
     }
     Promise.all([loadObject(), loadImpact(), loadActivity(), loadRelationshipTypes(), loadAllClasses()]).then(() => {
@@ -82,10 +82,10 @@ async function loadObject() {
     try {
         const res = await fetch(API + 'get_object.php?id=' + OBJECT_ID);
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to load');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.object.load_failed'));
         obj = data.object;
     } catch (err) {
-        document.getElementById('objPage').innerHTML = `<div style="padding:40px;text-align:center;color:#b91c1c;">Error: ${escapeHtml(err.message)}</div>`;
+        document.getElementById('objPage').innerHTML = `<div style="padding:40px;text-align:center;color:#b91c1c;">${escapeHtml(window.t('cmdb.object.error_prefix', { message: err.message }))}</div>`;
     }
 }
 
@@ -102,7 +102,7 @@ async function loadRelationshipTypes() {
 function render() {
     const html = `
         <div class="obj-breadcrumb">
-            <a href="./">Browse</a>
+            <a href="./">${escapeHtml(window.t('cmdb.object.breadcrumb_browse'))}</a>
             <span class="sep">›</span>
             <a href="./#class-${obj.class_id}">${escapeHtml(obj.class_name)}</a>
             ${obj.parent_id ? `<span class="sep">›</span><a href="object.php?id=${obj.parent_id}">${escapeHtml(obj.parent_name)}</a>` : ''}
@@ -114,24 +114,24 @@ function render() {
             <input type="text" class="obj-name" id="objName" value="${escapeHtml(obj.name)}" maxlength="255">
             <div class="obj-meta">
                 <span class="class-badge">${escapeHtml(obj.class_name)}</span>
-                ${obj.is_planned ? '<span class="planned-pill" title="This object doesn\'t physically exist yet — toggle off when it goes live">PLANNED</span>' : ''}
-                <span><strong>Parent:</strong>
+                ${obj.is_planned ? `<span class="planned-pill" title="${escapeHtml(window.t('cmdb.object.planned_title'))}">${escapeHtml(window.t('cmdb.list.planned_pill'))}</span>` : ''}
+                <span><strong>${escapeHtml(window.t('cmdb.object.parent'))}</strong>
                     ${obj.parent_id
                         ? `<a href="object.php?id=${obj.parent_id}">${escapeHtml(obj.parent_name)}</a> <span style="color:#9ca3af;">(${escapeHtml(obj.parent_class_name || '')})</span>`
-                        : '<span style="color:#d1d5db;">none</span>'}
-                    <button class="btn-mini" style="margin-left: 8px;" onclick="openParentModal()">Edit</button>
+                        : `<span style="color:#d1d5db;">${escapeHtml(window.t('cmdb.object.parent_none'))}</span>`}
+                    <button class="btn-mini" style="margin-left: 8px;" onclick="openParentModal()">${escapeHtml(window.t('cmdb.object.edit'))}</button>
                 </span>
-                <span><strong>Planned:</strong>
+                <span><strong>${escapeHtml(window.t('cmdb.object.planned'))}</strong>
                     <label style="cursor:pointer; display:inline-flex; align-items:center; gap:5px; vertical-align:middle;">
                         <input type="checkbox" id="objIsPlanned" ${obj.is_planned ? 'checked' : ''} onchange="togglePlanned(this.checked)" style="margin:0;">
-                        <span style="font-size:12px; color:#666;">${obj.is_planned ? 'Yes (future state)' : 'No (real, in service)'}</span>
+                        <span style="font-size:12px; color:#666;">${obj.is_planned ? escapeHtml(window.t('cmdb.object.planned_yes')) : escapeHtml(window.t('cmdb.object.planned_no'))}</span>
                     </label>
                 </span>
-                <span><strong>Created:</strong> ${formatDate(obj.created_datetime)}</span>
-                <span><strong>Updated:</strong> ${formatDate(obj.updated_datetime)}</span>
+                <span><strong>${escapeHtml(window.t('cmdb.object.created'))}</strong> ${formatDate(obj.created_datetime)}</span>
+                <span><strong>${escapeHtml(window.t('cmdb.object.updated'))}</strong> ${formatDate(obj.updated_datetime)}</span>
             </div>
             <div class="obj-actions">
-                <button class="btn btn-danger" onclick="deleteObject()">Delete object</button>
+                <button class="btn btn-danger" onclick="deleteObject()">${escapeHtml(window.t('cmdb.object.delete'))}</button>
             </div>
         </div>
 
@@ -142,32 +142,32 @@ function render() {
         ${renderActivityPanel()}
 
         <div class="obj-section">
-            <h3>Map</h3>
+            <h3>${escapeHtml(window.t('cmdb.object.map'))}</h3>
             ${renderMiniGraph()}
         </div>
 
         <div class="obj-section">
-            <h3>Properties</h3>
+            <h3>${escapeHtml(window.t('cmdb.object.properties'))}</h3>
             ${renderPropertiesTable()}
         </div>
 
         <div class="obj-section">
-            <h3>Hierarchy</h3>
+            <h3>${escapeHtml(window.t('cmdb.object.hierarchy'))}</h3>
             ${renderHierarchy()}
         </div>
 
         <div class="obj-section">
             <h3>
-                <span>Relationships</span>
-                <button class="btn-mini" onclick="openRelModal()">+ Add relationship</button>
+                <span>${escapeHtml(window.t('cmdb.object.relationships'))}</span>
+                <button class="btn-mini" onclick="openRelModal()">${escapeHtml(window.t('cmdb.object.add_relationship'))}</button>
             </h3>
             <div class="rel-split">
                 <div class="rel-col">
-                    <h4>Outgoing — this object…</h4>
+                    <h4>${escapeHtml(window.t('cmdb.object.outgoing'))}</h4>
                     ${renderRelationshipList(obj.relationships.outgoing, 'outgoing')}
                 </div>
                 <div class="rel-col">
-                    <h4>Incoming — other objects…</h4>
+                    <h4>${escapeHtml(window.t('cmdb.object.incoming'))}</h4>
                     ${renderRelationshipList(obj.relationships.incoming, 'incoming')}
                 </div>
             </div>
@@ -181,7 +181,7 @@ function render() {
     nameInput.addEventListener('blur', () => {
         const newName = nameInput.value.trim();
         if (newName === originalName) return;
-        if (newName === '') { nameInput.value = originalName; showInlineToast('Name can\'t be empty', true); return; }
+        if (newName === '') { nameInput.value = originalName; showInlineToast(window.t('cmdb.object.name_empty'), true); return; }
         savePartial({ name: newName });
         originalName = newName;
     });
@@ -201,20 +201,20 @@ function renderAiSummaryCard() {
     const hasSummary = !!obj.ai_summary;
     let body;
     if (summaryGenerating) {
-        body = `<div class="ai-summary-empty">Synthesising
+        body = `<div class="ai-summary-empty">${escapeHtml(window.t('cmdb.summary.synthesising'))}
             <span class="ai-summary-spinner-dot"></span><span class="ai-summary-spinner-dot"></span><span class="ai-summary-spinner-dot"></span>
         </div>`;
     } else if (hasSummary) {
         body = `<div class="ai-summary-text">${escapeHtml(obj.ai_summary)}</div>
-                <div class="ai-summary-meta">Generated ${formatDate(obj.ai_summary_generated_at)}</div>`;
+                <div class="ai-summary-meta">${escapeHtml(window.t('cmdb.summary.generated', { datetime: formatDate(obj.ai_summary_generated_at) }))}</div>`;
     } else {
-        body = `<div class="ai-summary-empty">No summary yet — click <strong>Generate</strong> to have the AI synthesise this object's context in 2-3 sentences.</div>`;
+        body = `<div class="ai-summary-empty">${window.t('cmdb.summary.empty', { generate: `<strong>${escapeHtml(window.t('cmdb.summary.generate'))}</strong>` })}</div>`;
     }
-    const btnLabel = hasSummary ? 'Regenerate' : 'Generate';
+    const btnLabel = hasSummary ? window.t('cmdb.summary.regenerate') : window.t('cmdb.summary.generate');
     return `
         <div class="ai-summary-card">
             <div class="ai-summary-head">
-                <span class="ai-summary-label">${sparkleSvg} AI Summary</span>
+                <span class="ai-summary-label">${sparkleSvg} ${escapeHtml(window.t('cmdb.summary.label'))}</span>
                 <button class="btn-mini" onclick="generateSummary()" ${summaryGenerating ? 'disabled' : ''}>${btnLabel}</button>
             </div>
             ${body}
@@ -241,24 +241,24 @@ function renderImpactPanel() {
     return `
         <div class="obj-section">
             <h3>
-                <span>Impact — what depends on this object</span>
-                <span style="color: #6b7280; font-weight: 400; font-size: 12px;">${total} ${total === 1 ? 'item' : 'items'}</span>
+                <span>${escapeHtml(window.t('cmdb.impact.heading'))}</span>
+                <span style="color: #6b7280; font-weight: 400; font-size: 12px;">${total} ${total === 1 ? escapeHtml(window.t('cmdb.impact.item')) : escapeHtml(window.t('cmdb.impact.items'))}</span>
             </h3>
             <div class="impact-grid">
-                ${bucket('Descendants', desc, 'No children — nothing cascades.',
+                ${bucket(escapeHtml(window.t('cmdb.impact.descendants')), desc, escapeHtml(window.t('cmdb.impact.descendants_empty')),
                     d => `<li>
                         <a href="object.php?id=${d.id}">${escapeHtml(d.name)}</a>
-                        <span class="meta"> ${escapeHtml(d.class_name)}${d.depth > 1 ? ` · ${d.depth} levels deep` : ''}</span>
+                        <span class="meta"> ${escapeHtml(d.class_name)}${d.depth > 1 ? ` · ${escapeHtml(window.t('cmdb.impact.levels_deep', { count: d.depth }))}` : ''}</span>
                     </li>`)}
-                ${bucket('Referenced by property', props, 'Nothing references this via a property.',
+                ${bucket(escapeHtml(window.t('cmdb.impact.referenced_by_property')), props, escapeHtml(window.t('cmdb.impact.referenced_by_property_empty')),
                     p => `<li>
                         <a href="object.php?id=${p.id}">${escapeHtml(p.name)}</a>
-                        <span class="meta"> ${escapeHtml(p.class_name)} · via <em>${escapeHtml(p.property_label)}</em></span>
+                        <span class="meta"> ${escapeHtml(p.class_name)} · ${escapeHtml(window.t('cmdb.impact.via'))} <em>${escapeHtml(p.property_label)}</em></span>
                     </li>`)}
-                ${bucket('Things that link in', rels, 'No incoming relationships.',
+                ${bucket(escapeHtml(window.t('cmdb.impact.things_link_in')), rels, escapeHtml(window.t('cmdb.impact.things_link_in_empty')),
                     r => `<li>
                         <a href="object.php?id=${r.id}">${escapeHtml(r.name)}</a>
-                        <span class="meta"> ${escapeHtml(r.class_name)} · ${escapeHtml(r.inverse_verb)} this</span>
+                        <span class="meta"> ${escapeHtml(r.class_name)} · ${escapeHtml(r.inverse_verb)} ${escapeHtml(window.t('cmdb.impact.this'))}</span>
                     </li>`)}
             </div>
         </div>
@@ -273,13 +273,13 @@ function renderActivityPanel() {
 
     if (open.length === 0 && closed.length === 0) {
         return `<div class="obj-section">
-            <h3>Activity</h3>
-            <div class="activity-empty">No tickets reference this object yet. Linking happens from the ticket reading pane → Affected CMDB Objects → + Link object.</div>
+            <h3>${escapeHtml(window.t('cmdb.activity.heading'))}</h3>
+            <div class="activity-empty">${escapeHtml(window.t('cmdb.activity.empty'))}</div>
         </div>`;
     }
 
     const renderTicket = (t, isClosed = false) => {
-        const status = t.status || 'Unknown';
+        const status = t.status || window.t('cmdb.activity.unknown_status');
         const colour = t.status_colour || '#6b7280';
         const styleAttr = `style="background:${colour}22; color:${colour}; border-color:${colour}55;"`;
         const ageText = formatDate(isClosed ? t.closed_datetime : t.updated_datetime);
@@ -287,14 +287,14 @@ function renderActivityPanel() {
             <div class="ticket-card-body">
                 <div class="ticket-card-line1">
                     <span class="ticket-card-number">${escapeHtml(t.ticket_number || '')}</span>
-                    <span class="ticket-card-subject">${escapeHtml(t.subject || '(no subject)')}</span>
+                    <span class="ticket-card-subject">${escapeHtml(t.subject || window.t('cmdb.activity.no_subject'))}</span>
                 </div>
                 <div class="ticket-card-meta">
                     <span class="ticket-status-pill" ${styleAttr}>${escapeHtml(status)}</span>
                     ${t.priority ? `<span>${escapeHtml(t.priority)}</span>` : ''}
-                    ${t.assigned_to ? `<span>assigned to <strong>${escapeHtml(t.assigned_to)}</strong></span>` : '<span style="color:#d1d5db;">unassigned</span>'}
+                    ${t.assigned_to ? `<span>${escapeHtml(window.t('cmdb.activity.assigned_to'))} <strong>${escapeHtml(t.assigned_to)}</strong></span>` : `<span style="color:#d1d5db;">${escapeHtml(window.t('cmdb.activity.unassigned'))}</span>`}
                     ${t.department_name ? `<span>${escapeHtml(t.department_name)}</span>` : ''}
-                    <span style="color:#9ca3af;">${isClosed ? 'closed' : 'updated'} ${ageText}</span>
+                    <span style="color:#9ca3af;">${isClosed ? escapeHtml(window.t('cmdb.activity.closed')) : escapeHtml(window.t('cmdb.activity.updated'))} ${ageText}</span>
                 </div>
             </div>
         </a>`;
@@ -304,7 +304,7 @@ function renderActivityPanel() {
     if (open.length > 0) {
         html += `<div style="margin-bottom: ${closed.length > 0 ? '20px' : '0'};">
             <div class="activity-bucket-head">
-                <span>Open tickets</span>
+                <span>${escapeHtml(window.t('cmdb.activity.open_tickets'))}</span>
                 <span class="count-badge">${open.length}</span>
             </div>
             <div>${open.map(t => renderTicket(t, false)).join('')}</div>
@@ -313,7 +313,7 @@ function renderActivityPanel() {
     if (closed.length > 0) {
         html += `<div>
             <div class="activity-bucket-head">
-                <span>Recent closed tickets${totalClosed > closed.length ? ` (showing ${closed.length} of ${totalClosed})` : ''}</span>
+                <span>${totalClosed > closed.length ? escapeHtml(window.t('cmdb.activity.recent_closed_showing', { shown: closed.length, total: totalClosed })) : escapeHtml(window.t('cmdb.activity.recent_closed'))}</span>
                 <span class="count-badge">${totalClosed}</span>
             </div>
             <div>${closed.map(t => renderTicket(t, true)).join('')}</div>
@@ -321,7 +321,7 @@ function renderActivityPanel() {
     }
 
     return `<div class="obj-section">
-        <h3>Activity</h3>
+        <h3>${escapeHtml(window.t('cmdb.activity.heading'))}</h3>
         ${html}
     </div>`;
 }
@@ -340,9 +340,9 @@ function renderMiniGraph() {
     const outgoingShown = outgoing.slice(0, CAP);
     const incomingShown = incoming.slice(0, CAP);
     const overflowParts = [];
-    if (children.length > CAP) overflowParts.push(`+${children.length - CAP} more children`);
-    if (outgoing.length > CAP) overflowParts.push(`+${outgoing.length - CAP} more outgoing relationships`);
-    if (incoming.length > CAP) overflowParts.push(`+${incoming.length - CAP} more incoming relationships`);
+    if (children.length > CAP) overflowParts.push(window.t('cmdb.map.more_children', { count: children.length - CAP }));
+    if (outgoing.length > CAP) overflowParts.push(window.t('cmdb.map.more_outgoing', { count: outgoing.length - CAP }));
+    if (incoming.length > CAP) overflowParts.push(window.t('cmdb.map.more_incoming', { count: incoming.length - CAP }));
 
     const node = (o, isThis = false) => `
         <a class="mg-node ${isThis ? 'this' : ''}" ${isThis ? '' : `href="object.php?id=${o.id}"`}>
@@ -364,9 +364,9 @@ function renderMiniGraph() {
     if (outgoingShown.length > 0 || incomingShown.length > 0) {
         html += `<div class="mg-side-rels">
             <div class="mg-side">
-                <div class="mg-side-label">Outgoing — this …</div>
+                <div class="mg-side-label">${escapeHtml(window.t('cmdb.map.outgoing'))}</div>
                 ${outgoingShown.length === 0
-                    ? '<div class="empty-row" style="padding: 0; font-size: 12px;">none</div>'
+                    ? `<div class="empty-row" style="padding: 0; font-size: 12px;">${escapeHtml(window.t('cmdb.map.none'))}</div>`
                     : outgoingShown.map(r => `
                         <a class="mg-rel-link" href="object.php?id=${r.other_id}">
                             <span class="mg-rel-verb">${escapeHtml(r.verb)}</span>
@@ -376,9 +376,9 @@ function renderMiniGraph() {
                 }
             </div>
             <div class="mg-side">
-                <div class="mg-side-label">Incoming — other objects …</div>
+                <div class="mg-side-label">${escapeHtml(window.t('cmdb.map.incoming'))}</div>
                 ${incomingShown.length === 0
-                    ? '<div class="empty-row" style="padding: 0; font-size: 12px;">none</div>'
+                    ? `<div class="empty-row" style="padding: 0; font-size: 12px;">${escapeHtml(window.t('cmdb.map.none'))}</div>`
                     : incomingShown.map(r => `
                         <a class="mg-rel-link" href="object.php?id=${r.other_id}">
                             <span class="mg-rel-verb">${escapeHtml(r.inverse_verb)}</span>
@@ -401,11 +401,11 @@ async function generateSummary() {
     render();
     try {
         const data = await postJson(API + 'generate_object_summary.php', { id: obj.id });
-        if (!data.success) throw new Error(data.error || 'Failed to generate summary');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.summary.generate_failed'));
         obj.ai_summary = data.summary;
         obj.ai_summary_generated_at = data.generated_at;
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.summary.error_prefix', { message: err.message }), true);
     } finally {
         summaryGenerating = false;
         render();
@@ -414,7 +414,7 @@ async function generateSummary() {
 
 function renderPropertiesTable() {
     if (!obj.properties.length) {
-        return '<div class="empty-row">This class has no properties yet. Add some via <a href="settings/" style="color:#be185d;">Settings → Classes → Properties</a>.</div>';
+        return `<div class="empty-row">${window.t('cmdb.object.props_empty', { link: `<a href="settings/" style="color:#be185d;">${escapeHtml(window.t('cmdb.object.props_empty_link'))}</a>` })}</div>`;
     }
     return `
         <table class="props-table">
@@ -424,7 +424,7 @@ function renderPropertiesTable() {
                         <td class="prop-label">
                             ${escapeHtml(p.label)}${p.is_required ? '<span class="req">*</span>' : ''}
                             <span class="prop-type-tag">${escapeHtml(p.property_type)}</span>
-                            <button class="prop-cog" title="Edit this property's definition (label, type, dropdown options, etc)" onclick="openPropDefModal(${p.property_id})">
+                            <button class="prop-cog" title="${escapeHtml(window.t('cmdb.object.edit_prop_title'))}" onclick="openPropDefModal(${p.property_id})">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             </button>
                         </td>
@@ -445,13 +445,13 @@ function renderPropertyDisplay(p) {
                 ${escapeHtml(p.value_object.name)}
                 <span class="pill-class">${escapeHtml(p.value_object.class_name || '')}</span>
             </a>
-            <button class="btn-mini" style="margin-left: 8px;" data-pid="${p.property_id}" onclick="beginEditProperty(${p.property_id})">Change</button>
-            <button class="btn-mini" style="margin-left: 4px;" data-pid="${p.property_id}" onclick="clearProperty(${p.property_id})">Clear</button>`;
+            <button class="btn-mini" style="margin-left: 8px;" data-pid="${p.property_id}" onclick="beginEditProperty(${p.property_id})">${escapeHtml(window.t('cmdb.object.change'))}</button>
+            <button class="btn-mini" style="margin-left: 4px;" data-pid="${p.property_id}" onclick="clearProperty(${p.property_id})">${escapeHtml(window.t('cmdb.object.clear'))}</button>`;
         }
-        return `<span class="prop-display empty" data-pid="${p.property_id}">(not set)</span>`;
+        return `<span class="prop-display empty" data-pid="${p.property_id}">${escapeHtml(window.t('cmdb.object.not_set'))}</span>`;
     }
     if (p.value === null || p.value === undefined || p.value === '') {
-        return `<span class="prop-display empty" data-pid="${p.property_id}">(not set)</span>`;
+        return `<span class="prop-display empty" data-pid="${p.property_id}">${escapeHtml(window.t('cmdb.object.not_set'))}</span>`;
     }
 
     // Dropdown: render as a coloured pill if the matched option has a colour set
@@ -469,7 +469,7 @@ function renderPropertyDisplay(p) {
     }
 
     let displayValue = '';
-    if (p.property_type === 'boolean') displayValue = p.value ? 'Yes' : 'No';
+    if (p.property_type === 'boolean') displayValue = p.value ? window.t('cmdb.object.yes') : window.t('cmdb.object.no');
     else if (p.property_type === 'date') displayValue = String(p.value).substring(0, 10);
     else displayValue = String(p.value);
     return `<span class="prop-display" data-pid="${p.property_id}">${escapeHtml(displayValue)}</span>`;
@@ -478,17 +478,17 @@ function renderPropertyDisplay(p) {
 function renderHierarchy() {
     let html = '';
     if (obj.parent_id) {
-        html += `<div style="margin-bottom: 12px;"><strong style="color:#6b7280; font-size:12px; text-transform:uppercase;">Parent</strong>
+        html += `<div style="margin-bottom: 12px;"><strong style="color:#6b7280; font-size:12px; text-transform:uppercase;">${escapeHtml(window.t('cmdb.object.hierarchy_parent'))}</strong>
             <ul class="item-list" style="margin-top: 6px;">
                 <li><span><a href="object.php?id=${obj.parent_id}">${escapeHtml(obj.parent_name)}</a> <span class="meta">${escapeHtml(obj.parent_class_name || '')}</span></span></li>
             </ul>
         </div>`;
     } else {
-        html += `<div style="margin-bottom: 12px; color: #9ca3af; font-style: italic; font-size: 13px;">No parent set.</div>`;
+        html += `<div style="margin-bottom: 12px; color: #9ca3af; font-style: italic; font-size: 13px;">${escapeHtml(window.t('cmdb.object.hierarchy_no_parent'))}</div>`;
     }
-    html += `<div><strong style="color:#6b7280; font-size:12px; text-transform:uppercase;">Children (${obj.children.length})</strong>`;
+    html += `<div><strong style="color:#6b7280; font-size:12px; text-transform:uppercase;">${escapeHtml(window.t('cmdb.object.hierarchy_children', { count: obj.children.length }))}</strong>`;
     if (obj.children.length === 0) {
-        html += '<div class="empty-row" style="margin-top: 6px;">None — children are added by setting THIS object as their parent.</div>';
+        html += `<div class="empty-row" style="margin-top: 6px;">${escapeHtml(window.t('cmdb.object.hierarchy_children_empty'))}</div>`;
     } else {
         html += `<ul class="item-list" style="margin-top: 6px;">
             ${obj.children.map(ch => `<li><span><a href="object.php?id=${ch.id}">${escapeHtml(ch.name)}</a> <span class="meta">${escapeHtml(ch.class_name)}</span></span></li>`).join('')}
@@ -500,7 +500,7 @@ function renderHierarchy() {
 
 function renderRelationshipList(rels, direction) {
     if (rels.length === 0) {
-        return '<div class="empty-row">None.</div>';
+        return `<div class="empty-row">${escapeHtml(window.t('cmdb.object.rel_none'))}</div>`;
     }
     return `<ul class="item-list">
         ${rels.map(r => `
@@ -510,7 +510,7 @@ function renderRelationshipList(rels, direction) {
                     <a href="object.php?id=${r.other_id}">${escapeHtml(r.other_name)}</a>
                     <span class="meta">${escapeHtml(r.other_class_name)}</span>
                 </span>
-                <button class="x-btn" title="Remove" onclick="deleteRelationship(${r.id})">×</button>
+                <button class="x-btn" title="${escapeHtml(window.t('cmdb.object.remove'))}" onclick="deleteRelationship(${r.id})">×</button>
             </li>
         `).join('')}
     </ul>`;
@@ -539,14 +539,14 @@ function beginEditProperty(propertyId) {
             break;
         case 'boolean':
             editorHtml = `<select class="prop-edit" id="propEdit_${propertyId}">
-                <option value="">— Not set —</option>
-                <option value="1" ${v === true ? 'selected' : ''}>Yes</option>
-                <option value="0" ${v === false ? 'selected' : ''}>No</option>
+                <option value="">${escapeHtml(window.t('cmdb.object.not_set_option'))}</option>
+                <option value="1" ${v === true ? 'selected' : ''}>${escapeHtml(window.t('cmdb.object.yes'))}</option>
+                <option value="0" ${v === false ? 'selected' : ''}>${escapeHtml(window.t('cmdb.object.no'))}</option>
             </select>`;
             break;
         case 'dropdown':
             editorHtml = `<select class="prop-edit" id="propEdit_${propertyId}">
-                <option value="">— Not set —</option>
+                <option value="">${escapeHtml(window.t('cmdb.object.not_set_option'))}</option>
                 ${p.options.map(opt => {
                     const val = (opt && typeof opt === 'object') ? opt.value : opt;
                     return `<option value="${escapeHtml(val)}" ${v === val ? 'selected' : ''}>${escapeHtml(val)}</option>`;
@@ -556,7 +556,7 @@ function beginEditProperty(propertyId) {
         case 'object_ref':
             editorHtml = `<div class="autocomplete-wrap">
                 <input type="text" class="prop-edit" id="propEdit_${propertyId}" autocomplete="off"
-                       placeholder="Search ${escapeHtml(p.target_class_name || 'objects')}…"
+                       placeholder="${escapeHtml(window.t('cmdb.object.search_placeholder', { name: p.target_class_name || window.t('cmdb.new_object.objects') }))}"
                        value="${p.value_object ? escapeHtml(p.value_object.name) : ''}">
                 <input type="hidden" id="propEditId_${propertyId}" value="${p.value_object ? p.value_object.id : ''}">
                 <div class="autocomplete-results" id="propEditResults_${propertyId}"></div>
@@ -638,12 +638,12 @@ async function savePropertyValue(prop, newRawValue) {
             parent_id: obj.parent_id,
             property_values: [{ property_id: prop.property_id, value: newRawValue }]
         });
-        if (!data.success) throw new Error(data.error || 'Save failed');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.object.save_failed'));
         // Reload to pick up the rendered value (esp. object_ref hydration)
         await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
     } catch (err) {
-        showInlineToast('Error saving "' + prop.label + '": ' + err.message, true);
+        showInlineToast(window.t('cmdb.object.error_saving', { label: prop.label, message: err.message }), true);
         // Restore the cell
         const cell = document.getElementById('propCell_' + prop.property_id);
         if (cell) {
@@ -671,12 +671,12 @@ async function savePartial(patch) {
         };
         if (patch.is_planned !== undefined) payload.is_planned = patch.is_planned;
         const data = await postJson(API + 'save_object.php', payload);
-        if (!data.success) throw new Error(data.error || 'Save failed');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.object.save_failed'));
         await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
-        showInlineToast('Saved');
+        showInlineToast(window.t('cmdb.object.saved'));
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.object.error_prefix', { message: err.message }), true);
         // Reload from DB to discard the optimistic edit
         await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
@@ -720,7 +720,7 @@ async function saveParent() {
         return;
     }
     if (!newId) {
-        showInlineToast('Pick a parent from the suggestions', true);
+        showInlineToast(window.t('cmdb.parent_modal.pick_suggestion'), true);
         return;
     }
     closeParentModal();
@@ -737,7 +737,7 @@ async function clearParent() {
 
 function openRelModal() {
     if (relationshipTypes.length === 0) {
-        showInlineToast('No relationship types defined — set some up in Settings', true);
+        showInlineToast(window.t('cmdb.rel_modal.none_defined'), true);
         return;
     }
     const sel = document.getElementById('relTypeSelect');
@@ -767,7 +767,7 @@ function updateRelInverseHint() {
     const id = parseInt(document.getElementById('relTypeSelect').value, 10);
     const rt = relationshipTypes.find(r => r.id === id);
     const hint = document.getElementById('relInverseHint');
-    if (rt) hint.textContent = `When viewed from the other side, this will read as "${rt.inverse_verb}".`;
+    if (rt) hint.textContent = window.t('cmdb.rel_modal.inverse_hint', { verb: rt.inverse_verb });
     else hint.textContent = '';
 }
 
@@ -775,7 +775,7 @@ async function saveRelationship() {
     const typeId = parseInt(document.getElementById('relTypeSelect').value, 10);
     const toId = document.getElementById('relTargetId').value;
     if (!typeId || !toId) {
-        showInlineToast('Pick a verb and an object to link to', true);
+        showInlineToast(window.t('cmdb.rel_modal.pick_verb_object'), true);
         return;
     }
     try {
@@ -784,48 +784,53 @@ async function saveRelationship() {
             to_object_id: parseInt(toId, 10),
             relationship_type_id: typeId
         });
-        if (!data.success) throw new Error(data.error || 'Save failed');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.rel_modal.save_failed'));
         closeRelModal();
-        showInlineToast('Relationship added');
+        showInlineToast(window.t('cmdb.rel_modal.added'));
         await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.rel_modal.error_prefix', { message: err.message }), true);
     }
 }
 
 async function deleteRelationship(id) {
-    if (!(await showConfirm({ title: 'Delete', message: 'Remove this relationship?', okLabel: 'Delete', okClass: 'danger' }))) return;
+    if (!(await showConfirm({ title: window.t('cmdb.rel_modal.delete_title'), message: window.t('cmdb.rel_modal.delete_confirm'), okLabel: window.t('cmdb.rel_modal.delete_ok'), okClass: 'danger' }))) return;
     try {
         const data = await postJson(API + 'delete_object_relationship.php', { id });
-        if (!data.success) throw new Error(data.error || 'Delete failed');
-        showInlineToast('Removed');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.rel_modal.delete_failed'));
+        showInlineToast(window.t('cmdb.rel_modal.removed'));
         await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.rel_modal.error_prefix', { message: err.message }), true);
     }
 }
 
 // ---------- Delete object ----------
 
 async function deleteObject() {
-    let msg = `Delete "${obj.name}"?`;
+    let msg = window.t('cmdb.object.delete_confirm', { name: obj.name });
     if (obj.children.length > 0) {
-        msg += `\n\nThis will ALSO delete all ${obj.children.length} direct child object(s) and their descendants — parent/child links cascade because the parent is what makes the child meaningful.`;
+        msg += '\n\n' + window.t('cmdb.object.delete_confirm_children', { count: obj.children.length });
     }
-    msg += '\n\nThis cannot be undone.';
-    if (!(await showConfirm({ title: 'Confirm', message: msg, okLabel: 'OK', okClass: 'primary' }))) return;
+    msg += '\n\n' + window.t('cmdb.object.delete_confirm_undone');
+    if (!(await showConfirm({ title: window.t('cmdb.object.delete_confirm_title'), message: msg, okLabel: window.t('cmdb.object.delete_confirm_ok'), okClass: 'primary' }))) return;
 
     try {
         const data = await postJson(API + 'delete_object.php', { id: obj.id });
-        if (!data.success) throw new Error(data.error || 'Delete failed');
-        const extra = data.deleted_descendants > 0 ? ` (and ${data.deleted_descendants} descendant${data.deleted_descendants === 1 ? '' : 's'})` : '';
-        showInlineToast('Deleted' + extra);
+        if (!data.success) throw new Error(data.error || window.t('cmdb.object.delete_failed'));
+        const toastMsg = data.deleted_descendants > 0
+            ? window.t('cmdb.object.deleted_with_descendants', {
+                count: data.deleted_descendants,
+                word: data.deleted_descendants === 1 ? window.t('cmdb.object.descendant') : window.t('cmdb.object.descendants')
+              })
+            : window.t('cmdb.object.deleted');
+        showInlineToast(toastMsg);
         // Navigate back to browse
         setTimeout(() => { window.location.href = './'; }, 600);
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.object.error_prefix', { message: err.message }), true);
     }
 }
 
@@ -872,7 +877,7 @@ function openPropDefModal(propertyId) {
     const p = obj.properties.find(x => x.property_id === propertyId);
     if (!p) return;
 
-    document.getElementById('propDefModalTitle').textContent = `Edit property — ${p.label}`;
+    document.getElementById('propDefModalTitle').textContent = window.t('cmdb.prop_def.title_named', { label: p.label });
     document.getElementById('pdId').value = p.property_id;
     document.getElementById('pdLabel').value = p.label;
     document.getElementById('pdKey').value = p.property_key;
@@ -882,7 +887,7 @@ function openPropDefModal(propertyId) {
 
     // Populate target-class dropdown from cached allClasses
     const tcSel = document.getElementById('pdTargetClass');
-    tcSel.innerHTML = '<option value="">— Select —</option>' + allClasses.map(c =>
+    tcSel.innerHTML = `<option value="">${escapeHtml(window.t('cmdb.prop_def.select'))}</option>` + allClasses.map(c =>
         `<option value="${c.id}" ${p.target_class_id === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
     ).join('');
 
@@ -934,24 +939,24 @@ async function savePropDef() {
     };
 
     if (type === 'object_ref' && !payload.target_class_id) {
-        showInlineToast('Pick a target class for the reference', true);
+        showInlineToast(window.t('cmdb.prop_def.pick_target'), true);
         return;
     }
     if (type === 'dropdown' && options.length === 0) {
-        showInlineToast('Add at least one dropdown option', true);
+        showInlineToast(window.t('cmdb.prop_def.add_option'), true);
         return;
     }
 
     try {
         const data = await postJson(API + 'save_class_property.php', payload);
-        if (!data.success) throw new Error(data.error || 'Save failed');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.prop_def.save_failed'));
         closePropDefModal();
-        showInlineToast('Property updated');
+        showInlineToast(window.t('cmdb.prop_def.updated'));
         // Reload to pick up new options / type changes
         await Promise.all([loadObject(), loadImpact(), loadActivity()]);
         render();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.prop_def.error_prefix', { message: err.message }), true);
     }
 }
 
@@ -1006,7 +1011,7 @@ function wireAutocomplete(inputEl, resultsEl, params, onPick) {
 
     function renderAcResults() {
         if (currentResults.length === 0) {
-            resultsEl.innerHTML = '<div class="ac-empty">No matches.</div>';
+            resultsEl.innerHTML = `<div class="ac-empty">${escapeHtml(window.t('cmdb.new_object.no_matches'))}</div>`;
             resultsEl.classList.add('active');
             return;
         }

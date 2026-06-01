@@ -5,17 +5,22 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'dashboard';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'asset-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Asset Dashboard</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('asset-management.dashboard.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <style>
         .dashboard-page {
             height: calc(100vh - 48px);
@@ -223,11 +228,11 @@ $path_prefix = '../../';
     <div class="dashboard-page">
 
     <div class="dashboard-toolbar">
-        <h2>Dashboard</h2>
+        <h2><?php echo htmlspecialchars(t('asset-management.nav.dashboard')); ?></h2>
         <div class="dashboard-toolbar-actions">
             <button class="btn btn-primary" onclick="window.location.href='library.php'">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                Add
+                <?php echo htmlspecialchars(t('asset-management.common.add')); ?>
             </button>
         </div>
     </div>
@@ -240,8 +245,8 @@ $path_prefix = '../../';
             <line x1="3" y1="9" x2="21" y2="9"></line>
             <line x1="9" y1="21" x2="9" y2="9"></line>
         </svg>
-        <h3>No widgets yet</h3>
-        <p>Use the <strong>Add</strong> button in the top right to pick widgets from the library.</p>
+        <h3><?php echo htmlspecialchars(t('asset-management.dashboard.empty_heading')); ?></h3>
+        <p><?php echo t('asset-management.dashboard.empty_body'); ?></p>
     </div>
 
     </div><!-- /.dashboard-page -->
@@ -308,7 +313,7 @@ $path_prefix = '../../';
                 const filterHtml = filterableInt ? `
                     <div class="widget-filter">
                         <select onchange="onStatusFilterChange(${w.widget_id}, this.value)" data-widget-filter="${w.widget_id}">
-                            <option value="">All statuses</option>
+                            <option value="">${window.t('asset-management.dashboard.all_statuses')}</option>
                             ${statusTypes.map(s => `<option value="${s.id}" ${w.status_filter_id == s.id ? 'selected' : ''}>${s.name}</option>`).join('')}
                         </select>
                     </div>
@@ -321,7 +326,7 @@ $path_prefix = '../../';
                             <p>${escapeHtml(w.description || '')}</p>
                         </div>
                         <div class="widget-actions">
-                            <button class="widget-action-btn" onclick="removeWidget(${w.widget_id})" title="Remove">
+                            <button class="widget-action-btn" onclick="removeWidget(${w.widget_id})" title="${window.t('asset-management.common.remove')}">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </div>
@@ -440,7 +445,7 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to add widget', 'error');
+                    showToast(data.error || window.t('asset-management.dashboard.add_failed'), 'error');
                     return;
                 }
 
@@ -452,9 +457,9 @@ $path_prefix = '../../';
                 }
 
                 renderDashboard();
-                showToast('Widget added', 'success');
+                showToast(window.t('asset-management.dashboard.widget_added'), 'success');
             } catch (err) {
-                showToast('Failed to add widget', 'error');
+                showToast(window.t('asset-management.dashboard.add_failed'), 'error');
             }
         }
 
@@ -468,7 +473,7 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to remove widget', 'error');
+                    showToast(data.error || window.t('asset-management.dashboard.remove_failed'), 'error');
                     return;
                 }
 
@@ -480,9 +485,9 @@ $path_prefix = '../../';
 
                 dashboardWidgets = dashboardWidgets.filter(w => w.widget_id != widgetId);
                 renderDashboard();
-                showToast('Widget removed', 'success');
+                showToast(window.t('asset-management.dashboard.widget_removed'), 'success');
             } catch (err) {
-                showToast('Failed to remove widget', 'error');
+                showToast(window.t('asset-management.dashboard.remove_failed'), 'error');
             }
         }
 

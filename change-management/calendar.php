@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -12,13 +14,14 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'calendar';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'change-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Change Calendar</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.calendar')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/itsm_calendar.css">
     <style>
@@ -127,6 +130,8 @@ $path_prefix = '../';
             text-align: right;
         }
     </style>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -135,7 +140,7 @@ $path_prefix = '../';
         <!-- Sidebar with status filters -->
         <div class="calendar-sidebar">
             <div class="sidebar-section">
-                <h3>Status</h3>
+                <h3><?php echo htmlspecialchars(t('change-management.calendar.status')); ?></h3>
                 <div class="category-filter-list" id="statusFilterList">
                     <div class="loading"><div class="spinner"></div></div>
                 </div>
@@ -147,15 +152,15 @@ $path_prefix = '../';
             <!-- Calendar header with navigation -->
             <div class="calendar-header">
                 <div class="calendar-nav">
-                    <button class="btn btn-secondary" onclick="goToToday()">Today</button>
-                    <button class="btn btn-icon" onclick="navigatePrev()" title="Previous">&lsaquo;</button>
-                    <button class="btn btn-icon" onclick="navigateNext()" title="Next">&rsaquo;</button>
-                    <h2 class="calendar-title" id="calendarTitle">February 2026</h2>
+                    <button class="btn btn-secondary" onclick="goToToday()"><?php echo htmlspecialchars(t('change-management.calendar.today')); ?></button>
+                    <button class="btn btn-icon" onclick="navigatePrev()" title="<?php echo htmlspecialchars(t('change-management.calendar.prev')); ?>">&lsaquo;</button>
+                    <button class="btn btn-icon" onclick="navigateNext()" title="<?php echo htmlspecialchars(t('change-management.calendar.next')); ?>">&rsaquo;</button>
+                    <h2 class="calendar-title" id="calendarTitle"></h2>
                 </div>
                 <div class="view-toggle">
-                    <button class="view-btn active" data-view="month" onclick="setView('month')">Month</button>
-                    <button class="view-btn" data-view="week" onclick="setView('week')">Week</button>
-                    <button class="view-btn" data-view="day" onclick="setView('day')">Day</button>
+                    <button class="view-btn active" data-view="month" onclick="setView('month')"><?php echo htmlspecialchars(t('change-management.calendar.month')); ?></button>
+                    <button class="view-btn" data-view="week" onclick="setView('week')"><?php echo htmlspecialchars(t('change-management.calendar.week')); ?></button>
+                    <button class="view-btn" data-view="day" onclick="setView('day')"><?php echo htmlspecialchars(t('change-management.calendar.day')); ?></button>
                 </div>
             </div>
 

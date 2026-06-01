@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -12,15 +14,18 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'help';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'change-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Change Management Guide</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.help')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/change-management.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -28,38 +33,38 @@ $path_prefix = '../';
     <div class="cm-help-container">
         <!-- Left pane navigation -->
         <div class="cm-help-sidebar">
-            <h3>Guide</h3>
+            <h3><?php echo htmlspecialchars(t('change-management.help.guide')); ?></h3>
             <a href="#what-is-a-change" class="cm-help-nav-link active" data-section="what-is-a-change">
                 <span class="cm-help-nav-num">1</span>
-                What is a change?
+                <?php echo htmlspecialchars(t('change-management.help.nav_what')); ?>
             </a>
             <a href="#change-types" class="cm-help-nav-link" data-section="change-types">
                 <span class="cm-help-nav-num">2</span>
-                Change types
+                <?php echo htmlspecialchars(t('change-management.help.nav_types')); ?>
             </a>
             <a href="#lifecycle" class="cm-help-nav-link" data-section="lifecycle">
                 <span class="cm-help-nav-num">3</span>
-                The change lifecycle
+                <?php echo htmlspecialchars(t('change-management.help.nav_lifecycle')); ?>
             </a>
             <a href="#recording" class="cm-help-nav-link" data-section="recording">
                 <span class="cm-help-nav-num">4</span>
-                Recording a change
+                <?php echo htmlspecialchars(t('change-management.help.nav_recording')); ?>
             </a>
             <a href="#cab" class="cm-help-nav-link cab" data-section="cab">
                 <span class="cm-help-nav-num cab">5</span>
-                CAB review
+                <?php echo htmlspecialchars(t('change-management.help.nav_cab')); ?>
             </a>
             <a href="#risk" class="cm-help-nav-link" data-section="risk">
                 <span class="cm-help-nav-num">6</span>
-                Risk assessment
+                <?php echo htmlspecialchars(t('change-management.help.nav_risk')); ?>
             </a>
             <a href="#pir" class="cm-help-nav-link" data-section="pir">
                 <span class="cm-help-nav-num">7</span>
-                Post-implementation review
+                <?php echo htmlspecialchars(t('change-management.help.nav_pir')); ?>
             </a>
             <a href="#tips" class="cm-help-nav-link" data-section="tips">
                 <span class="cm-help-nav-num">8</span>
-                Quick tips
+                <?php echo htmlspecialchars(t('change-management.help.nav_tips')); ?>
             </a>
         </div>
 
@@ -67,8 +72,8 @@ $path_prefix = '../';
         <div class="cm-help-main" id="helpMain">
             <!-- Hero banner -->
             <div class="cm-help-hero">
-                <h2>Change management guide</h2>
-                <p>Everything you need to know about recording, reviewing, and approving changes.</p>
+                <h2><?php echo htmlspecialchars(t('change-management.help.hero_heading')); ?></h2>
+                <p><?php echo htmlspecialchars(t('change-management.help.hero_intro')); ?></p>
             </div>
 
             <div class="cm-help-content">
@@ -78,8 +83,8 @@ $path_prefix = '../';
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">1</span>
                         <div>
-                            <h3>What is a change?</h3>
-                            <p>A change is any planned modification to your IT environment &mdash; installing software, upgrading a server, changing a firewall rule, deploying new hardware. Recording changes ensures nothing is done without proper planning, approval, and a rollback plan if things go wrong.</p>
+                            <h3><?php echo htmlspecialchars(t('change-management.help.what_heading')); ?></h3>
+                            <p><?php echo t('change-management.help.what_body'); ?></p>
                         </div>
                     </div>
                 </div>
@@ -88,29 +93,29 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="change-types">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">2</span>
-                        <h3>Change types</h3>
+                        <h3><?php echo htmlspecialchars(t('change-management.help.types_heading')); ?></h3>
                     </div>
                     <div class="cm-help-types-grid">
                         <div class="cm-help-type-card standard">
                             <div class="cm-help-type-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                             </div>
-                            <h4>Standard</h4>
-                            <p>Pre-approved, low-risk changes that follow a well-tested procedure. Think monthly patching or routine maintenance. No CAB review needed.</p>
+                            <h4><?php echo htmlspecialchars(t('change-management.help.type_standard')); ?></h4>
+                            <p><?php echo t('change-management.help.type_standard_desc'); ?></p>
                         </div>
                         <div class="cm-help-type-card normal">
                             <div class="cm-help-type-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                             </div>
-                            <h4>Normal</h4>
-                            <p>The most common type. Requires planning, risk assessment, and usually approval from one or more people. May need CAB review for higher-impact changes.</p>
+                            <h4><?php echo htmlspecialchars(t('change-management.help.type_normal')); ?></h4>
+                            <p><?php echo t('change-management.help.type_normal_desc'); ?></p>
                         </div>
                         <div class="cm-help-type-card emergency">
                             <div class="cm-help-type-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                             </div>
-                            <h4>Emergency</h4>
-                            <p>For urgent fixes that can't wait &mdash; like a critical security patch or a production outage. Expedited approval, but still documented after the fact.</p>
+                            <h4><?php echo htmlspecialchars(t('change-management.help.type_emergency')); ?></h4>
+                            <p><?php echo t('change-management.help.type_emergency_desc'); ?></p>
                         </div>
                     </div>
                 </div>
@@ -119,59 +124,62 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="lifecycle">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">3</span>
-                        <h3>The change lifecycle</h3>
+                        <h3><?php echo htmlspecialchars(t('change-management.help.lifecycle_heading')); ?></h3>
                     </div>
                     <div class="cm-help-lifecycle">
                         <div class="cm-help-lifecycle-step">
-                            <div class="cm-help-step-badge draft">Draft</div>
+                            <div class="cm-help-step-badge draft"><?php echo htmlspecialchars(t('change-management.help.lc_draft')); ?></div>
                             <div class="cm-help-step-desc">
-                                <strong>Create &amp; plan</strong>
-                                <span>Fill in the details: what, why, who, when. Add a risk assessment, test plan, and rollback plan.</span>
+                                <strong><?php echo t('change-management.help.lc_draft_title'); ?></strong>
+                                <span><?php echo htmlspecialchars(t('change-management.help.lc_draft_desc')); ?></span>
                             </div>
                         </div>
                         <div class="cm-help-lifecycle-arrow">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                         </div>
                         <div class="cm-help-lifecycle-step">
-                            <div class="cm-help-step-badge pending-approval">Pending Approval</div>
+                            <div class="cm-help-step-badge pending-approval"><?php echo htmlspecialchars(t('change-management.help.lc_pending')); ?></div>
                             <div class="cm-help-step-desc">
-                                <strong>Submit for review</strong>
-                                <span>Change the status to Pending Approval. If CAB is enabled, reviewers are notified to vote.</span>
+                                <strong><?php echo htmlspecialchars(t('change-management.help.lc_pending_title')); ?></strong>
+                                <span><?php echo htmlspecialchars(t('change-management.help.lc_pending_desc')); ?></span>
                             </div>
                         </div>
                         <div class="cm-help-lifecycle-arrow">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                         </div>
                         <div class="cm-help-lifecycle-step">
-                            <div class="cm-help-step-badge approved">Approved</div>
+                            <div class="cm-help-step-badge approved"><?php echo htmlspecialchars(t('change-management.help.lc_approved')); ?></div>
                             <div class="cm-help-step-desc">
-                                <strong>Green light</strong>
-                                <span>Approver or CAB signs off. The change is authorised to proceed during its scheduled window.</span>
+                                <strong><?php echo htmlspecialchars(t('change-management.help.lc_approved_title')); ?></strong>
+                                <span><?php echo htmlspecialchars(t('change-management.help.lc_approved_desc')); ?></span>
                             </div>
                         </div>
                         <div class="cm-help-lifecycle-arrow">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                         </div>
                         <div class="cm-help-lifecycle-step">
-                            <div class="cm-help-step-badge in-progress">In Progress</div>
+                            <div class="cm-help-step-badge in-progress"><?php echo htmlspecialchars(t('change-management.help.lc_inprogress')); ?></div>
                             <div class="cm-help-step-desc">
-                                <strong>Implementation</strong>
-                                <span>The work is underway. Update the status when you start. Add comments to log progress.</span>
+                                <strong><?php echo htmlspecialchars(t('change-management.help.lc_inprogress_title')); ?></strong>
+                                <span><?php echo htmlspecialchars(t('change-management.help.lc_inprogress_desc')); ?></span>
                             </div>
                         </div>
                         <div class="cm-help-lifecycle-arrow">
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>
                         </div>
                         <div class="cm-help-lifecycle-step">
-                            <div class="cm-help-step-badge completed">Completed</div>
+                            <div class="cm-help-step-badge completed"><?php echo htmlspecialchars(t('change-management.help.lc_completed')); ?></div>
                             <div class="cm-help-step-desc">
-                                <strong>Done!</strong>
-                                <span>Change is finished. Fill in the Post-Implementation Review: was it successful? Lessons learned?</span>
+                                <strong><?php echo htmlspecialchars(t('change-management.help.lc_completed_title')); ?></strong>
+                                <span><?php echo htmlspecialchars(t('change-management.help.lc_completed_desc')); ?></span>
                             </div>
                         </div>
                     </div>
                     <div class="cm-help-lifecycle-alt">
-                        <span>A change can also be marked <span class="cm-help-step-badge-inline failed">Failed</span> if it didn't work (trigger the rollback plan) or <span class="cm-help-step-badge-inline cancelled">Cancelled</span> if it's no longer needed.</span>
+                        <span><?php echo t('change-management.help.lc_alt', [
+                            'failed' => '<span class="cm-help-step-badge-inline failed">' . htmlspecialchars(t('change-management.help.lc_failed')) . '</span>',
+                            'cancelled' => '<span class="cm-help-step-badge-inline cancelled">' . htmlspecialchars(t('change-management.help.lc_cancelled')) . '</span>',
+                        ]); ?></span>
                     </div>
                 </div>
 
@@ -179,49 +187,49 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="recording">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">4</span>
-                        <h3>Recording a change &mdash; step by step</h3>
+                        <h3><?php echo t('change-management.help.recording_heading'); ?></h3>
                     </div>
                     <div class="cm-help-steps">
                         <div class="cm-help-step-item">
                             <div class="cm-help-step-num">1</div>
                             <div>
-                                <strong>Click "+ New change"</strong> in the sidebar to open the editor.
+                                <?php echo t('change-management.help.rec_1'); ?>
                             </div>
                         </div>
                         <div class="cm-help-step-item">
                             <div class="cm-help-step-num">2</div>
                             <div>
-                                <strong>Fill in general info</strong> &mdash; title, type (Standard/Normal/Emergency), priority, and impact.
+                                <?php echo t('change-management.help.rec_2'); ?>
                             </div>
                         </div>
                         <div class="cm-help-step-item">
                             <div class="cm-help-step-num">3</div>
                             <div>
-                                <strong>Assign people</strong> &mdash; requester (who wants the change), assigned to (who's doing it), and approver.
+                                <?php echo t('change-management.help.rec_3'); ?>
                             </div>
                         </div>
                         <div class="cm-help-step-item">
                             <div class="cm-help-step-num">4</div>
                             <div>
-                                <strong>Set the schedule</strong> &mdash; when the work window starts/ends and any expected outage times.
+                                <?php echo t('change-management.help.rec_4'); ?>
                             </div>
                         </div>
                         <div class="cm-help-step-item">
                             <div class="cm-help-step-num">5</div>
                             <div>
-                                <strong>Assess risk</strong> &mdash; pick Likelihood (1&ndash;5) and Impact (1&ndash;5). The risk score auto-calculates. A colour-coded matrix shows where it falls.
+                                <?php echo t('change-management.help.rec_5'); ?>
                             </div>
                         </div>
                         <div class="cm-help-step-item">
                             <div class="cm-help-step-num">6</div>
                             <div>
-                                <strong>Write the plans</strong> &mdash; use the tabs to fill in Description, Reason, Risk Evaluation, Test Plan, and Rollback Plan.
+                                <?php echo t('change-management.help.rec_6'); ?>
                             </div>
                         </div>
                         <div class="cm-help-step-item">
                             <div class="cm-help-step-num">7</div>
                             <div>
-                                <strong>Save</strong> as Draft. You can come back and edit anytime before submitting for approval.
+                                <?php echo t('change-management.help.rec_7'); ?>
                             </div>
                         </div>
                     </div>
@@ -231,31 +239,31 @@ $path_prefix = '../';
                 <div class="cm-help-section cm-help-section-highlight" id="cab">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num cab">5</span>
-                        <h3>CAB review &mdash; when you need multiple approvers</h3>
+                        <h3><?php echo t('change-management.help.cab_heading'); ?></h3>
                     </div>
-                    <p class="cm-help-intro">For higher-risk or higher-impact changes, a single approver may not be enough. The <strong>Change Advisory Board (CAB)</strong> lets you assemble a panel of reviewers who each vote on the change.</p>
+                    <p class="cm-help-intro"><?php echo t('change-management.help.cab_intro'); ?></p>
 
                     <div class="cm-help-cab-flow">
                         <div class="cm-help-cab-step">
                             <div class="cm-help-cab-step-icon setup">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             </div>
-                            <h4>Set up the board</h4>
-                            <p>In the editor, tick <strong>"Require CAB review"</strong>. Choose your approval type and add members from the analyst list.</p>
+                            <h4><?php echo htmlspecialchars(t('change-management.help.cab_setup_heading')); ?></h4>
+                            <p><?php echo t('change-management.help.cab_setup_desc'); ?></p>
                         </div>
                         <div class="cm-help-cab-step">
                             <div class="cm-help-cab-step-icon choose">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                             </div>
-                            <h4>Choose approval type</h4>
+                            <h4><?php echo htmlspecialchars(t('change-management.help.cab_choose_heading')); ?></h4>
                             <div class="cm-help-approval-types">
                                 <div class="cm-help-approval-type">
-                                    <span class="cm-help-approval-label all">All must approve</span>
-                                    <span>Every <em>required</em> member must vote Approve. One rejection sends it back to Draft.</span>
+                                    <span class="cm-help-approval-label all"><?php echo htmlspecialchars(t('change-management.help.cab_all_label')); ?></span>
+                                    <span><?php echo t('change-management.help.cab_all_desc'); ?></span>
                                 </div>
                                 <div class="cm-help-approval-type">
-                                    <span class="cm-help-approval-label majority">Majority</span>
-                                    <span>More than half of required members must vote Approve. One rejection still sends it back.</span>
+                                    <span class="cm-help-approval-label majority"><?php echo htmlspecialchars(t('change-management.help.cab_majority_label')); ?></span>
+                                    <span><?php echo htmlspecialchars(t('change-management.help.cab_majority_desc')); ?></span>
                                 </div>
                             </div>
                         </div>
@@ -263,40 +271,40 @@ $path_prefix = '../';
                             <div class="cm-help-cab-step-icon members">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
                             </div>
-                            <h4>Required vs optional members</h4>
-                            <p>Each member can be toggled between <strong>Required</strong> and <strong>Optional</strong>. Only required members' votes count toward the threshold. Optional members can provide input but their vote isn't mandatory.</p>
+                            <h4><?php echo htmlspecialchars(t('change-management.help.cab_members_heading')); ?></h4>
+                            <p><?php echo t('change-management.help.cab_members_desc'); ?></p>
                         </div>
                         <div class="cm-help-cab-step">
                             <div class="cm-help-cab-step-icon vote">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>
                             </div>
-                            <h4>The voting process</h4>
-                            <p>When the change moves to <strong>Pending Approval</strong>, each CAB member sees a voting panel on the change detail page with three options:</p>
+                            <h4><?php echo htmlspecialchars(t('change-management.help.cab_vote_heading')); ?></h4>
+                            <p><?php echo t('change-management.help.cab_vote_desc'); ?></p>
                             <div class="cm-help-vote-options">
-                                <span class="cm-help-vote approve">Approve</span>
-                                <span class="cm-help-vote reject">Reject</span>
-                                <span class="cm-help-vote abstain">Abstain</span>
+                                <span class="cm-help-vote approve"><?php echo htmlspecialchars(t('change-management.help.cab_approve')); ?></span>
+                                <span class="cm-help-vote reject"><?php echo htmlspecialchars(t('change-management.help.cab_reject')); ?></span>
+                                <span class="cm-help-vote abstain"><?php echo htmlspecialchars(t('change-management.help.cab_abstain')); ?></span>
                             </div>
-                            <p>Members can also add a comment explaining their vote.</p>
+                            <p><?php echo htmlspecialchars(t('change-management.help.cab_vote_comment')); ?></p>
                         </div>
                         <div class="cm-help-cab-step">
                             <div class="cm-help-cab-step-icon auto">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="13 17 18 12 13 7"></polyline><polyline points="6 17 11 12 6 7"></polyline></svg>
                             </div>
-                            <h4>Automatic status changes</h4>
+                            <h4><?php echo htmlspecialchars(t('change-management.help.cab_auto_heading')); ?></h4>
                             <div class="cm-help-auto-rules">
                                 <div class="cm-help-auto-rule approve">
                                     <span class="cm-help-auto-arrow">&#10003;</span>
                                     <div>
-                                        <strong>Threshold met</strong>
-                                        <span>Status automatically moves to <strong>Approved</strong></span>
+                                        <strong><?php echo htmlspecialchars(t('change-management.help.cab_auto_met')); ?></strong>
+                                        <span><?php echo t('change-management.help.cab_auto_met_desc'); ?></span>
                                     </div>
                                 </div>
                                 <div class="cm-help-auto-rule reject">
                                     <span class="cm-help-auto-arrow">&#10007;</span>
                                     <div>
-                                        <strong>Any required member rejects</strong>
-                                        <span>Status reverts to <strong>Draft</strong> so you can revise and resubmit</span>
+                                        <strong><?php echo htmlspecialchars(t('change-management.help.cab_auto_reject')); ?></strong>
+                                        <span><?php echo t('change-management.help.cab_auto_reject_desc'); ?></span>
                                     </div>
                                 </div>
                             </div>
@@ -308,57 +316,57 @@ $path_prefix = '../';
                 <div class="cm-help-section" id="risk">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">6</span>
-                        <h3>Risk assessment</h3>
+                        <h3><?php echo htmlspecialchars(t('change-management.help.risk_heading')); ?></h3>
                     </div>
-                    <p>Every change should be assessed for risk. Pick a <strong>Likelihood</strong> (1&ndash;5) and <strong>Impact</strong> (1&ndash;5) score. They multiply to give a risk level:</p>
+                    <p><?php echo t('change-management.help.risk_intro'); ?></p>
                     <div class="cm-help-risk-scale">
-                        <div class="cm-help-risk-level low"><span>1&ndash;4</span> Low</div>
-                        <div class="cm-help-risk-level medium"><span>5&ndash;9</span> Medium</div>
-                        <div class="cm-help-risk-level high"><span>10&ndash;15</span> High</div>
-                        <div class="cm-help-risk-level very-high"><span>16&ndash;20</span> Very High</div>
-                        <div class="cm-help-risk-level critical"><span>21&ndash;25</span> Critical</div>
+                        <div class="cm-help-risk-level low"><span>1&ndash;4</span> <?php echo htmlspecialchars(t('change-management.help.risk_low')); ?></div>
+                        <div class="cm-help-risk-level medium"><span>5&ndash;9</span> <?php echo htmlspecialchars(t('change-management.help.risk_medium')); ?></div>
+                        <div class="cm-help-risk-level high"><span>10&ndash;15</span> <?php echo htmlspecialchars(t('change-management.help.risk_high')); ?></div>
+                        <div class="cm-help-risk-level very-high"><span>16&ndash;20</span> <?php echo htmlspecialchars(t('change-management.help.risk_very_high')); ?></div>
+                        <div class="cm-help-risk-level critical"><span>21&ndash;25</span> <?php echo htmlspecialchars(t('change-management.help.risk_critical')); ?></div>
                     </div>
-                    <p class="cm-help-tip">Higher risk changes should generally go through CAB review and have a detailed rollback plan.</p>
+                    <p class="cm-help-tip"><?php echo htmlspecialchars(t('change-management.help.risk_tip')); ?></p>
                 </div>
 
                 <!-- Section 7: PIR -->
                 <div class="cm-help-section" id="pir">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">7</span>
-                        <h3>Post-implementation review</h3>
+                        <h3><?php echo htmlspecialchars(t('change-management.help.pir_heading')); ?></h3>
                     </div>
-                    <p>When a change is marked <strong>Completed</strong> or <strong>Failed</strong>, a PIR section appears in the editor. This is your chance to record what actually happened:</p>
+                    <p><?php echo t('change-management.help.pir_intro'); ?></p>
                     <div class="cm-help-pir-fields">
-                        <div><strong>Was it successful?</strong> &mdash; Yes or No</div>
-                        <div><strong>Actual start / end</strong> &mdash; Did it run to schedule?</div>
-                        <div><strong>Lessons learned</strong> &mdash; What went well? What didn't?</div>
-                        <div><strong>Follow-up actions</strong> &mdash; Anything that needs doing next?</div>
+                        <div><?php echo t('change-management.help.pir_successful'); ?></div>
+                        <div><?php echo t('change-management.help.pir_actual'); ?></div>
+                        <div><?php echo t('change-management.help.pir_lessons'); ?></div>
+                        <div><?php echo t('change-management.help.pir_followup'); ?></div>
                     </div>
-                    <p class="cm-help-tip">PIR is how teams learn and improve. Even successful changes often have useful insights.</p>
+                    <p class="cm-help-tip"><?php echo htmlspecialchars(t('change-management.help.pir_tip')); ?></p>
                 </div>
 
                 <!-- Section 8: Quick tips -->
                 <div class="cm-help-section" id="tips">
                     <div class="cm-help-section-header">
                         <span class="cm-help-section-num">8</span>
-                        <h3>Quick tips</h3>
+                        <h3><?php echo htmlspecialchars(t('change-management.help.tips_heading')); ?></h3>
                     </div>
                     <div class="cm-help-tips-grid">
                         <div class="cm-help-tip-card">
                             <div class="cm-help-tip-icon">&#128197;</div>
-                            <div><strong>Calendar</strong><br>All scheduled changes appear on the Calendar view so the team can spot clashes.</div>
+                            <div><strong><?php echo htmlspecialchars(t('change-management.help.tip_calendar')); ?></strong><br><?php echo htmlspecialchars(t('change-management.help.tip_calendar_desc')); ?></div>
                         </div>
                         <div class="cm-help-tip-card">
                             <div class="cm-help-tip-icon">&#128172;</div>
-                            <div><strong>Comments</strong><br>Use the Activity section to discuss changes. Everything is logged with timestamps.</div>
+                            <div><strong><?php echo htmlspecialchars(t('change-management.help.tip_comments')); ?></strong><br><?php echo htmlspecialchars(t('change-management.help.tip_comments_desc')); ?></div>
                         </div>
                         <div class="cm-help-tip-card">
                             <div class="cm-help-tip-icon">&#128206;</div>
-                            <div><strong>Attachments</strong><br>Upload screenshots, config backups, or approval emails alongside the change.</div>
+                            <div><strong><?php echo htmlspecialchars(t('change-management.help.tip_attachments')); ?></strong><br><?php echo htmlspecialchars(t('change-management.help.tip_attachments_desc')); ?></div>
                         </div>
                         <div class="cm-help-tip-card">
                             <div class="cm-help-tip-icon">&#128269;</div>
-                            <div><strong>Audit trail</strong><br>Every field change is automatically tracked. See who changed what and when in the Activity timeline.</div>
+                            <div><strong><?php echo htmlspecialchars(t('change-management.help.tip_audit')); ?></strong><br><?php echo htmlspecialchars(t('change-management.help.tip_audit_desc')); ?></div>
                         </div>
                     </div>
                 </div>

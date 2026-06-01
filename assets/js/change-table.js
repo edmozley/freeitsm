@@ -23,40 +23,42 @@
 
     function fmt(raw) { return raw ? String(raw).replace('T', ' ').slice(0, 16) : ''; }
 
+    const T = (k) => (window.t ? window.t('change-management.table.' + k) : k);
+
     const COLUMNS = [
-        { key: 'id', label: 'Ref', type: 'number', defaultVisible: true, defaultOrder: 0,
+        { key: 'id', label: T('col_ref'), type: 'number', defaultVisible: true, defaultOrder: 0,
           display: c => (c.id != null ? '#' + c.id : ''), value: c => Number(c.id) },
-        { key: 'title', label: 'Title', type: 'string', defaultVisible: true, defaultOrder: 1,
+        { key: 'title', label: T('col_title'), type: 'string', defaultVisible: true, defaultOrder: 1,
           display: c => c.title || '' },
-        { key: 'change_type', label: 'Type', type: 'string', defaultVisible: true, defaultOrder: 2,
+        { key: 'change_type', label: T('col_type'), type: 'string', defaultVisible: true, defaultOrder: 2,
           display: c => c.change_type || '',
           editable: { kind: 'lookup', listKey: 'types', valueKey: 'name', labelKey: 'name', colourKey: 'colour' } },
-        { key: 'status', label: 'Status', type: 'string', defaultVisible: true, defaultOrder: 3,
+        { key: 'status', label: T('col_status'), type: 'string', defaultVisible: true, defaultOrder: 3,
           display: c => c.status || '',
           // Read-only on purpose — open the change to move status (CAB / workflow).
-          cellTitle: () => 'Open the change to change status (CAB / approval workflow)' },
-        { key: 'priority', label: 'Priority', type: 'string', defaultVisible: true, defaultOrder: 4,
+          cellTitle: () => T('status_readonly') },
+        { key: 'priority', label: T('col_priority'), type: 'string', defaultVisible: true, defaultOrder: 4,
           display: c => c.priority || '',
           editable: { kind: 'lookup', listKey: 'priorities', valueKey: 'name', labelKey: 'name', colourKey: 'colour' } },
-        { key: 'impact', label: 'Impact', type: 'string', defaultVisible: false, defaultOrder: 5,
+        { key: 'impact', label: T('col_impact'), type: 'string', defaultVisible: false, defaultOrder: 5,
           display: c => c.impact || '',
           editable: { kind: 'lookup', listKey: 'impacts', valueKey: 'name', labelKey: 'name', colourKey: 'colour' } },
-        { key: 'risk_level', label: 'Risk', type: 'string', defaultVisible: true, defaultOrder: 6,
+        { key: 'risk_level', label: T('col_risk'), type: 'string', defaultVisible: true, defaultOrder: 6,
           display: c => c.risk_level || '' },
-        { key: 'assigned_to_id', label: 'Assigned to', type: 'string', defaultVisible: true, defaultOrder: 7,
+        { key: 'assigned_to_id', label: T('col_assigned_to'), type: 'string', defaultVisible: true, defaultOrder: 7,
           display: c => c.assigned_to_name || '',
           editable: { kind: 'lookup', listKey: 'analysts', valueKey: 'id', labelKey: 'name', allowNull: true, nullLabel: '—' } },
-        { key: 'requester_name', label: 'Requester', type: 'string', defaultVisible: false, defaultOrder: 8,
+        { key: 'requester_name', label: T('col_requester'), type: 'string', defaultVisible: false, defaultOrder: 8,
           display: c => c.requester_name || '' },
-        { key: 'category', label: 'Category', type: 'string', defaultVisible: false, defaultOrder: 9,
+        { key: 'category', label: T('col_category'), type: 'string', defaultVisible: false, defaultOrder: 9,
           display: c => c.category || '' },
-        { key: 'work_start_datetime', label: 'Work start', type: 'date', defaultVisible: true, defaultOrder: 10,
+        { key: 'work_start_datetime', label: T('col_work_start'), type: 'date', defaultVisible: true, defaultOrder: 10,
           value: c => c.work_start_datetime || '', display: c => fmt(c.work_start_datetime) },
-        { key: 'work_end_datetime', label: 'Work end', type: 'date', defaultVisible: false, defaultOrder: 11,
+        { key: 'work_end_datetime', label: T('col_work_end'), type: 'date', defaultVisible: false, defaultOrder: 11,
           value: c => c.work_end_datetime || '', display: c => fmt(c.work_end_datetime) },
-        { key: 'created_datetime', label: 'Created', type: 'date', defaultVisible: false, defaultOrder: 12,
+        { key: 'created_datetime', label: T('col_created'), type: 'date', defaultVisible: false, defaultOrder: 12,
           value: c => c.created_datetime || '', display: c => fmt(c.created_datetime) },
-        { key: 'modified_datetime', label: 'Modified', type: 'date', defaultVisible: false, defaultOrder: 13,
+        { key: 'modified_datetime', label: T('col_modified'), type: 'date', defaultVisible: false, defaultOrder: 13,
           value: c => c.modified_datetime || '', display: c => fmt(c.modified_datetime) },
     ];
 
@@ -107,7 +109,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: row.id, field: col.key, value }),
             }).then(r => r.json());
-            if (!d.success) throw new Error(d.error || 'Save failed');
+            if (!d.success) throw new Error(d.error || T('save_failed'));
         },
     });
 })();

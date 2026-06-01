@@ -4,17 +4,22 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'assets';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'asset-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Assets</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('asset-management.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <style>
         .assets-container {
             display: flex;
@@ -899,8 +904,8 @@ $path_prefix = '../';
         <!-- Assets List -->
         <div class="assets-list-container">
             <div class="assets-list-header">
-                <h3>Assets</h3>
-                <input type="text" class="search-box" id="assetSearch" placeholder="Search by hostname..." oninput="searchAssets()" autocomplete="off">
+                <h3><?php echo htmlspecialchars(t('asset-management.nav.assets')); ?></h3>
+                <input type="text" class="search-box" id="assetSearch" placeholder="<?php echo htmlspecialchars(t('asset-management.list.search_placeholder')); ?>" oninput="searchAssets()" autocomplete="off">
                 <div class="asset-count" id="assetCount"></div>
             </div>
             <div class="assets-list" id="assetsList">
@@ -913,7 +918,7 @@ $path_prefix = '../';
         <!-- Asset Detail -->
         <div class="asset-detail-container" id="assetDetail">
             <div class="empty-state">
-                Select an asset to view details and assigned users
+                <?php echo htmlspecialchars(t('asset-management.detail.select_prompt')); ?>
             </div>
         </div>
     </div>
@@ -922,24 +927,24 @@ $path_prefix = '../';
     <div class="modal" id="assignUserModal">
         <div class="modal-content">
             <div class="modal-header">
-                <span>Assign user to asset</span>
+                <span><?php echo htmlspecialchars(t('asset-management.assign.heading')); ?></span>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label class="form-label">Search for user</label>
-                    <input type="text" class="search-box" id="userSearchInput" placeholder="Search by name or email..." oninput="searchUsersForAssign()">
+                    <label class="form-label"><?php echo htmlspecialchars(t('asset-management.assign.search_label')); ?></label>
+                    <input type="text" class="search-box" id="userSearchInput" placeholder="<?php echo htmlspecialchars(t('asset-management.assign.search_placeholder')); ?>" oninput="searchUsersForAssign()">
                 </div>
                 <div class="user-search-results" id="userSearchResults">
-                    <div class="empty-state" style="padding: 20px;">Type to search for users</div>
+                    <div class="empty-state" style="padding: 20px;"><?php echo htmlspecialchars(t('asset-management.assign.type_to_search')); ?></div>
                 </div>
                 <div class="form-group" style="margin-top: 14px;">
-                    <label class="form-label">Expected return date (optional)</label>
+                    <label class="form-label"><?php echo htmlspecialchars(t('asset-management.assign.expected_return_label')); ?></label>
                     <input type="date" class="search-box" id="assignExpectedReturn">
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeAssignModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="confirmAssignUser()" id="assignBtn" disabled>Assign</button>
+                <button class="btn btn-secondary" onclick="closeAssignModal()"><?php echo htmlspecialchars(t('asset-management.common.cancel')); ?></button>
+                <button class="btn btn-primary" onclick="confirmAssignUser()" id="assignBtn" disabled><?php echo htmlspecialchars(t('asset-management.detail.assign')); ?></button>
             </div>
         </div>
     </div>
@@ -948,13 +953,13 @@ $path_prefix = '../';
     <div class="modal" id="assetHistoryModal">
         <div class="modal-content modal-wide">
             <div class="modal-header">
-                <span>Asset History</span>
+                <span><?php echo htmlspecialchars(t('asset-management.history.heading')); ?></span>
             </div>
             <div class="modal-body" id="historyModalBody">
                 <div class="loading"><div class="spinner"></div></div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeHistoryModal()">Close</button>
+                <button class="btn btn-secondary" onclick="closeHistoryModal()"><?php echo htmlspecialchars(t('asset-management.common.close')); ?></button>
             </div>
         </div>
     </div>
@@ -963,13 +968,13 @@ $path_prefix = '../';
     <div class="modal" id="checkoutLogModal">
         <div class="modal-content modal-wide">
             <div class="modal-header">
-                <span>Custody history</span>
+                <span><?php echo htmlspecialchars(t('asset-management.custody.heading')); ?></span>
             </div>
             <div class="modal-body" id="checkoutLogBody">
                 <div class="loading"><div class="spinner"></div></div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeCheckoutLog()">Close</button>
+                <button class="btn btn-secondary" onclick="closeCheckoutLog()"><?php echo htmlspecialchars(t('asset-management.common.close')); ?></button>
             </div>
         </div>
     </div>
@@ -1038,7 +1043,7 @@ $path_prefix = '../';
         //         Office 1
         function buildLocationOptions(selectedId) {
             const childrenOf = (pid) => assetLocations.filter(l => l.parent_id === pid);
-            const opts = ['<option value="">-- None --</option>'];
+            const opts = [`<option value="">${window.t('asset-management.common.none_option')}</option>`];
             const walk = (pid, depth) => {
                 childrenOf(pid).forEach(loc => {
                     const indent = '   '.repeat(depth);
@@ -1068,7 +1073,7 @@ $path_prefix = '../';
                     const asset = assets.find(a => a.id == selectedAssetId);
                     if (asset) asset[field] = value || null;
                 } else {
-                    showToast('Error updating asset: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.update_error', { error: data.error }), 'error');
                 }
             } catch (error) {
                 console.error('Error updating asset:', error);
@@ -1099,19 +1104,19 @@ $path_prefix = '../';
             const countEl = document.getElementById('assetCount');
 
             if (assets.length === 0) {
-                container.innerHTML = '<div class="empty-state">No assets found</div>';
-                countEl.textContent = '0 assets';
+                container.innerHTML = `<div class="empty-state">${window.t('asset-management.list.no_assets')}</div>`;
+                countEl.textContent = window.t('asset-management.list.count', { count: 0 });
                 return;
             }
 
-            countEl.textContent = `${assets.length} asset${assets.length !== 1 ? 's' : ''}`;
+            countEl.textContent = window.t('asset-management.list.count', { count: assets.length });
 
             container.innerHTML = assets.map(asset => `
                 <div class="asset-item ${selectedAssetId == asset.id ? 'selected' : ''}" onclick="selectAsset(${asset.id})">
                     <div class="asset-hostname">${escapeHtml(asset.hostname)}</div>
                     <div class="asset-meta">
                         <span class="${asset.user_count > 0 ? 'asset-assigned' : 'asset-unassigned'}">
-                            ${asset.user_count > 0 ? 'Assigned' : 'Unassigned'}
+                            ${asset.user_count > 0 ? window.t('asset-management.status.assigned') : window.t('asset-management.status.unassigned')}
                         </span>
                     </div>
                 </div>
@@ -1140,96 +1145,96 @@ $path_prefix = '../';
                 <div class="asset-detail-sticky">
                     <div class="asset-detail-header">
                         <h2 class="asset-detail-hostname">${escapeHtml(selectedAsset.hostname)}</h2>
-                        <div class="asset-detail-subtitle">Service Tag: ${escapeHtml(selectedAsset.service_tag) || '-'}</div>
+                        <div class="asset-detail-subtitle">${window.t('asset-management.detail.service_tag')}: ${escapeHtml(selectedAsset.service_tag) || '-'}</div>
                         <div style="margin-top: 10px;">
-                            <button class="btn btn-outline btn-sm" onclick="openHistoryModal(${selectedAsset.id})">View History</button>
-                            <button class="btn btn-outline btn-sm" onclick="openCheckoutLog(${selectedAsset.id})">Custody</button>
+                            <button class="btn btn-outline btn-sm" onclick="openHistoryModal(${selectedAsset.id})">${window.t('asset-management.detail.view_history')}</button>
+                            <button class="btn btn-outline btn-sm" onclick="openCheckoutLog(${selectedAsset.id})">${window.t('asset-management.detail.custody')}</button>
                         </div>
                         <div class="asset-assigned-bar" id="assignedBar">
                             <div class="asset-assigned-info" id="assignedInfo">
-                                <span class="unassigned-text">Loading...</span>
+                                <span class="unassigned-text">${window.t('asset-management.common.loading')}</span>
                             </div>
                             <span id="assignButtons"></span>
                         </div>
                     </div>
                     <div class="asset-info-grid">
                         <div class="info-item">
-                            <span class="info-label">Type</span>
+                            <span class="info-label">${window.t('asset-management.field.type')}</span>
                             <select class="info-value-select" onchange="updateAssetField('asset_type_id', this.value)">
-                                <option value="">-- None --</option>
+                                <option value="">${window.t('asset-management.common.none_option')}</option>
                                 ${assetTypes.map(t => `<option value="${t.id}" ${t.id == selectedAsset.asset_type_id ? 'selected' : ''}>${escapeHtml(t.name)}</option>`).join('')}
                             </select>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Status</span>
+                            <span class="info-label">${window.t('asset-management.field.status')}</span>
                             <select class="info-value-select" onchange="updateAssetField('asset_status_id', this.value)">
-                                <option value="">-- None --</option>
+                                <option value="">${window.t('asset-management.common.none_option')}</option>
                                 ${assetStatusTypes.map(s => `<option value="${s.id}" ${s.id == selectedAsset.asset_status_id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}
                             </select>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Location</span>
+                            <span class="info-label">${window.t('asset-management.field.location')}</span>
                             <select class="info-value-select" onchange="updateAssetField('location_id', this.value)">
                                 ${buildLocationOptions(selectedAsset.location_id)}
                             </select>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Manufacturer</span>
+                            <span class="info-label">${window.t('asset-management.field.manufacturer')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.manufacturer) || '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Model</span>
+                            <span class="info-label">${window.t('asset-management.field.model')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.model) || '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">CPU</span>
+                            <span class="info-label">${window.t('asset-management.field.cpu')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.cpu_name) || '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">CPU Speed</span>
+                            <span class="info-label">${window.t('asset-management.field.cpu_speed')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.speed) || '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Memory</span>
+                            <span class="info-label">${window.t('asset-management.field.memory')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.memory) || '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Operating System</span>
+                            <span class="info-label">${window.t('asset-management.field.operating_system')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.operating_system) || '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Feature Release</span>
+                            <span class="info-label">${window.t('asset-management.field.feature_release')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.feature_release) || '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Build Number</span>
+                            <span class="info-label">${window.t('asset-management.field.build_number')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.build_number) || '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">BIOS Version</span>
+                            <span class="info-label">${window.t('asset-management.field.bios_version')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.bios_version) || '-'}</span>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Purchase date</span>
+                            <span class="info-label">${window.t('asset-management.field.purchase_date')}</span>
                             <input type="date" class="info-value-input" value="${selectedAsset.purchase_date || ''}" onchange="updateAssetField('purchase_date', this.value)">
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Purchase cost</span>
+                            <span class="info-label">${window.t('asset-management.field.purchase_cost')}</span>
                             <input type="number" step="0.01" min="0" class="info-value-input" value="${selectedAsset.purchase_cost != null ? selectedAsset.purchase_cost : ''}" placeholder="0.00" onchange="updateAssetField('purchase_cost', this.value)">
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Supplier</span>
+                            <span class="info-label">${window.t('asset-management.field.supplier')}</span>
                             <select class="info-value-select" onchange="updateAssetField('supplier_id', this.value)">
-                                <option value="">-- None --</option>
+                                <option value="">${window.t('asset-management.common.none_option')}</option>
                                 ${assetSuppliers.map(s => `<option value="${s.id}" ${s.id == selectedAsset.supplier_id ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('')}
                             </select>
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Order number</span>
+                            <span class="info-label">${window.t('asset-management.field.order_number')}</span>
                             <input type="text" class="info-value-input" value="${escapeHtml(selectedAsset.order_number || '')}" placeholder="-" onchange="updateAssetField('order_number', this.value)">
                         </div>
                         <div class="info-item">
-                            <span class="info-label">Warranty expiry</span>
+                            <span class="info-label">${window.t('asset-management.field.warranty_expiry')}</span>
                             <input type="date" class="info-value-input" value="${selectedAsset.warranty_expiry || ''}" onchange="updateAssetField('warranty_expiry', this.value)">
                         </div>
                     </div>
@@ -1237,19 +1242,19 @@ $path_prefix = '../';
                 <div class="asset-detail-scroll">
                     <div class="disks-section">
                         <div class="section-header">
-                            <span class="section-title">Storage</span>
+                            <span class="section-title">${window.t('asset-management.detail.storage')}</span>
                         </div>
                         <div class="disks-grid" id="disksGrid">
                             <div class="loading"><div class="spinner"></div></div>
                         </div>
                     </div>
                     <div class="detail-tabs" id="detailTabs">
-                        <button class="detail-tab active" onclick="switchDetailTab('devices')" data-dtab="devices">Devices <span class="tab-count" id="devicesCountBadge">...</span></button>
-                        <button class="detail-tab" onclick="switchDetailTab('software')" data-dtab="software">Software <span class="tab-count" id="softwareCountBadge">...</span></button>
+                        <button class="detail-tab active" onclick="switchDetailTab('devices')" data-dtab="devices">${window.t('asset-management.detail.tab_devices')} <span class="tab-count" id="devicesCountBadge">...</span></button>
+                        <button class="detail-tab" onclick="switchDetailTab('software')" data-dtab="software">${window.t('asset-management.detail.tab_software')} <span class="tab-count" id="softwareCountBadge">...</span></button>
                     </div>
                     <div class="detail-tab-panel active" id="devicesPanel" data-dtab-panel="devices">
                         <div class="devices-search">
-                            <input type="text" id="devicesSearch" placeholder="Filter devices..." oninput="filterDevices()" autocomplete="off">
+                            <input type="text" id="devicesSearch" placeholder="${window.t('asset-management.devices.filter_placeholder')}" oninput="filterDevices()" autocomplete="off">
                         </div>
                         <div class="devices-list" id="devicesList">
                             <div class="loading"><div class="spinner"></div></div>
@@ -1257,9 +1262,9 @@ $path_prefix = '../';
                     </div>
                     <div class="detail-tab-panel" id="softwarePanel" data-dtab-panel="software">
                         <div class="sw-filter-tabs">
-                            <button class="sw-filter-tab active" data-swfilter="apps" onclick="switchSwTab('apps')">Applications <span class="sw-tab-count" id="swCountApps">0</span></button>
-                            <button class="sw-filter-tab" data-swfilter="components" onclick="switchSwTab('components')">Components <span class="sw-tab-count" id="swCountComponents">0</span></button>
-                            <button class="sw-filter-tab" data-swfilter="" onclick="switchSwTab('')">All <span class="sw-tab-count" id="swCountAll">0</span></button>
+                            <button class="sw-filter-tab active" data-swfilter="apps" onclick="switchSwTab('apps')">${window.t('asset-management.software.applications')} <span class="sw-tab-count" id="swCountApps">0</span></button>
+                            <button class="sw-filter-tab" data-swfilter="components" onclick="switchSwTab('components')">${window.t('asset-management.software.components')} <span class="sw-tab-count" id="swCountComponents">0</span></button>
+                            <button class="sw-filter-tab" data-swfilter="" onclick="switchSwTab('')">${window.t('asset-management.software.all')} <span class="sw-tab-count" id="swCountAll">0</span></button>
                         </div>
                         <div class="software-list" id="installedSoftwareList">
                             <div class="loading"><div class="spinner"></div></div>
@@ -1291,24 +1296,24 @@ $path_prefix = '../';
                     if (user) {
                         currentAssignedUserId = user.user_id;
                         infoSpan.innerHTML = `
-                            <span class="user-name">${escapeHtml(user.display_name || 'Unknown')}</span>
+                            <span class="user-name">${escapeHtml(user.display_name || window.t('asset-management.common.unknown'))}</span>
                             <span class="user-email">${escapeHtml(user.email || '')}</span>
-                            <span class="user-assigned-date">Assigned: ${formatDate(user.assigned_datetime)}</span>
-                            ${user.expected_return_date ? `<span class="user-assigned-date">Due back: ${escapeHtml(user.expected_return_date)}</span>` : ''}
+                            <span class="user-assigned-date">${window.t('asset-management.detail.assigned_on', { date: formatDate(user.assigned_datetime) })}</span>
+                            ${user.expected_return_date ? `<span class="user-assigned-date">${window.t('asset-management.detail.due_back', { date: escapeHtml(user.expected_return_date) })}</span>` : ''}
                         `;
                         buttonsSpan.innerHTML = `
-                            <button class="btn btn-primary btn-sm" onclick="reassignUser()">Re-assign</button>
-                            <button class="btn btn-danger btn-sm" onclick="unassignUser(${user.user_id})">Remove</button>
+                            <button class="btn btn-primary btn-sm" onclick="reassignUser()">${window.t('asset-management.detail.reassign')}</button>
+                            <button class="btn btn-danger btn-sm" onclick="unassignUser(${user.user_id})">${window.t('asset-management.detail.remove')}</button>
                         `;
                     } else {
                         currentAssignedUserId = null;
-                        infoSpan.innerHTML = '<span class="unassigned-text">Unassigned</span>';
+                        infoSpan.innerHTML = `<span class="unassigned-text">${window.t('asset-management.status.unassigned')}</span>`;
                         buttonsSpan.innerHTML = `
-                            <button class="btn btn-primary btn-sm" onclick="openAssignModal()">Assign</button>
+                            <button class="btn btn-primary btn-sm" onclick="openAssignModal()">${window.t('asset-management.detail.assign')}</button>
                         `;
                     }
                 } else {
-                    infoSpan.innerHTML = '<span class="unassigned-text">Error loading assignment</span>';
+                    infoSpan.innerHTML = `<span class="unassigned-text">${window.t('asset-management.detail.assignment_error')}</span>`;
                 }
             } catch (error) {
                 console.error('Error loading assigned users:', error);
@@ -1339,11 +1344,11 @@ $path_prefix = '../';
                                 <div class="disk-bar-fill usage-${level}" data-pct="${pct}"></div>
                             </div>
                             <div class="disk-details">
-                                <span>${usedGB} GB used of ${sizeGB} GB</span>
+                                <span>${window.t('asset-management.disk.used_of', { used: usedGB, total: sizeGB })}</span>
                                 <span class="disk-percent usage-${level}">${pct}%</span>
                             </div>
                             <div class="disk-details" style="margin-top: 4px;">
-                                <span>${freeGB} GB free</span>
+                                <span>${window.t('asset-management.disk.free', { free: freeGB })}</span>
                                 <span>${escapeHtml(disk.file_system || '')}</span>
                             </div>
                         </div>`;
@@ -1355,11 +1360,11 @@ $path_prefix = '../';
                         });
                     });
                 } else if (data.success) {
-                    container.innerHTML = '<div class="empty-state" style="padding: 20px;">No disk data available</div>';
+                    container.innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.disk.no_data')}</div>`;
                 }
             } catch (error) {
                 console.error('Error loading disks:', error);
-                document.getElementById('disksGrid').innerHTML = '<div class="empty-state" style="padding: 20px;">Error loading disks</div>';
+                document.getElementById('disksGrid').innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.disk.load_error')}</div>`;
             }
         }
 
@@ -1378,24 +1383,24 @@ $path_prefix = '../';
                 } else {
                     allDevices = [];
                     badge.textContent = '0';
-                    document.getElementById('devicesList').innerHTML = '<div class="empty-state" style="padding: 20px;">No device data available</div>';
+                    document.getElementById('devicesList').innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.devices.no_data')}</div>`;
                 }
             } catch (error) {
                 console.error('Error loading devices:', error);
-                document.getElementById('devicesList').innerHTML = '<div class="empty-state" style="padding: 20px;">Error loading devices</div>';
+                document.getElementById('devicesList').innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.devices.load_error')}</div>`;
             }
         }
 
         function renderDevices(devices) {
             const container = document.getElementById('devicesList');
             if (devices.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 20px;">No matching devices</div>';
+                container.innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.devices.no_match')}</div>`;
                 return;
             }
 
             const grouped = {};
             devices.forEach(d => {
-                const cls = d.device_class || 'Other';
+                const cls = d.device_class || window.t('asset-management.devices.other');
                 if (!grouped[cls]) grouped[cls] = [];
                 grouped[cls].push(d);
             });
@@ -1403,10 +1408,10 @@ $path_prefix = '../';
             const classes = Object.keys(grouped).sort();
             let html = `<table class="devices-table">
                 <thead><tr>
-                    <th>Device</th>
-                    <th>Manufacturer</th>
-                    <th>Driver Version</th>
-                    <th>Status</th>
+                    <th>${window.t('asset-management.devices.col_device')}</th>
+                    <th>${window.t('asset-management.devices.col_manufacturer')}</th>
+                    <th>${window.t('asset-management.devices.col_driver_version')}</th>
+                    <th>${window.t('asset-management.devices.col_status')}</th>
                 </tr></thead><tbody>`;
 
             classes.forEach(cls => {
@@ -1469,7 +1474,7 @@ $path_prefix = '../';
             const tabBtn = document.createElement('button');
             tabBtn.className = 'detail-tab';
             tabBtn.dataset.dtab = 'intune';
-            tabBtn.textContent = 'InTune';
+            tabBtn.textContent = window.t('asset-management.intune.tab');
             tabBtn.onclick = () => switchDetailTab('intune');
             tabs.appendChild(tabBtn);
 
@@ -1483,33 +1488,35 @@ $path_prefix = '../';
         function renderIntuneTabBody(d) {
             const totalGB = d.total_storage_bytes ? (d.total_storage_bytes / 1073741824).toFixed(1) : null;
             const freeGB  = d.free_storage_bytes  ? (d.free_storage_bytes  / 1073741824).toFixed(1) : null;
-            const storage = (totalGB && freeGB) ? `${freeGB} GB free of ${totalGB} GB` : '-';
+            const yes = window.t('asset-management.common.yes');
+            const no = window.t('asset-management.common.no');
+            const storage = (totalGB && freeGB) ? window.t('asset-management.intune.storage_value', { free: freeGB, total: totalGB }) : '-';
 
             const fields = [
-                ['Compliance State',     d.compliance_state],
-                ['Management State',     d.management_state],
-                ['Owner Type',           d.managed_device_owner_type],
-                ['Enrollment Type',      d.device_enrollment_type],
-                ['Registration State',   d.device_registration_state],
-                ['Enrolled',             d.enrolled_datetime ? formatDate(d.enrolled_datetime) : '-'],
-                ['Last Check-in',        d.last_sync_datetime ? formatDateTime(d.last_sync_datetime) : '-'],
-                ['Primary User',         d.user_display_name || '-'],
-                ['User Principal Name',  d.user_principal_name || '-'],
-                ['OS / Version',         (d.operating_system || '-') + (d.os_version ? ' ' + d.os_version : '')],
-                ['Manufacturer',         d.manufacturer || '-'],
-                ['Model',                d.model || '-'],
-                ['Serial Number',        d.serial_number || '-'],
-                ['Storage',              storage],
-                ['Encrypted',            d.is_encrypted == 1 ? 'Yes' : (d.is_encrypted == 0 ? 'No' : '-')],
-                ['Supervised',           d.is_supervised == 1 ? 'Yes' : (d.is_supervised == 0 ? 'No' : '-')],
-                ['Jail Broken / Rooted', d.jail_broken || '-'],
-                ['IMEI',                 d.imei || '-'],
-                ['MEID',                 d.meid || '-'],
-                ['Wi-Fi MAC',            d.wifi_mac_address || '-'],
-                ['Ethernet MAC',         d.ethernet_mac_address || '-'],
-                ['Azure AD Device ID',   d.azure_ad_device_id || '-'],
-                ['Intune Device ID',     d.intune_id || '-'],
-                ['Cached',               d.last_seen_local ? formatDateTime(d.last_seen_local) : '-'],
+                [window.t('asset-management.intune.compliance_state'),     d.compliance_state],
+                [window.t('asset-management.intune.management_state'),     d.management_state],
+                [window.t('asset-management.intune.owner_type'),           d.managed_device_owner_type],
+                [window.t('asset-management.intune.enrollment_type'),      d.device_enrollment_type],
+                [window.t('asset-management.intune.registration_state'),   d.device_registration_state],
+                [window.t('asset-management.intune.enrolled'),             d.enrolled_datetime ? formatDate(d.enrolled_datetime) : '-'],
+                [window.t('asset-management.intune.last_checkin'),         d.last_sync_datetime ? formatDateTime(d.last_sync_datetime) : '-'],
+                [window.t('asset-management.intune.primary_user'),         d.user_display_name || '-'],
+                [window.t('asset-management.intune.user_principal_name'),  d.user_principal_name || '-'],
+                [window.t('asset-management.intune.os_version'),           (d.operating_system || '-') + (d.os_version ? ' ' + d.os_version : '')],
+                [window.t('asset-management.field.manufacturer'),          d.manufacturer || '-'],
+                [window.t('asset-management.field.model'),                 d.model || '-'],
+                [window.t('asset-management.intune.serial_number'),        d.serial_number || '-'],
+                [window.t('asset-management.detail.storage'),              storage],
+                [window.t('asset-management.intune.encrypted'),            d.is_encrypted == 1 ? yes : (d.is_encrypted == 0 ? no : '-')],
+                [window.t('asset-management.intune.supervised'),           d.is_supervised == 1 ? yes : (d.is_supervised == 0 ? no : '-')],
+                [window.t('asset-management.intune.jail_broken'),          d.jail_broken || '-'],
+                [window.t('asset-management.intune.imei'),                 d.imei || '-'],
+                [window.t('asset-management.intune.meid'),                 d.meid || '-'],
+                [window.t('asset-management.intune.wifi_mac'),             d.wifi_mac_address || '-'],
+                [window.t('asset-management.intune.ethernet_mac'),         d.ethernet_mac_address || '-'],
+                [window.t('asset-management.intune.azure_ad_device_id'),   d.azure_ad_device_id || '-'],
+                [window.t('asset-management.intune.intune_device_id'),     d.intune_id || '-'],
+                [window.t('asset-management.intune.cached'),               d.last_seen_local ? formatDateTime(d.last_seen_local) : '-'],
             ];
 
             return `<div class="asset-info-grid">${fields.map(([k, v]) => `
@@ -1533,12 +1540,12 @@ $path_prefix = '../';
                 } else {
                     allAssetSoftware = [];
                     document.getElementById('softwareCountBadge').textContent = '0';
-                    document.getElementById('installedSoftwareList').innerHTML = '<div class="empty-state" style="padding: 20px;">Error loading software</div>';
+                    document.getElementById('installedSoftwareList').innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.software.load_error')}</div>`;
                 }
             } catch (error) {
                 console.error('Error loading installed software:', error);
                 allAssetSoftware = [];
-                document.getElementById('installedSoftwareList').innerHTML = '<div class="empty-state" style="padding: 20px;">Error loading software</div>';
+                document.getElementById('installedSoftwareList').innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.software.load_error')}</div>`;
                 document.getElementById('softwareCountBadge').textContent = '0';
             }
         }
@@ -1573,7 +1580,7 @@ $path_prefix = '../';
             badge.textContent = software.length;
 
             if (software.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 20px;">No software inventory data for this asset</div>';
+                container.innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.software.no_data')}</div>`;
                 return;
             }
 
@@ -1581,9 +1588,9 @@ $path_prefix = '../';
                 <table class="software-table">
                     <thead>
                         <tr>
-                            <th>Application</th>
-                            <th>Publisher</th>
-                            <th>Version</th>
+                            <th>${window.t('asset-management.software.col_application')}</th>
+                            <th>${window.t('asset-management.software.col_publisher')}</th>
+                            <th>${window.t('asset-management.software.col_version')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1603,7 +1610,7 @@ $path_prefix = '../';
         function openAssignModal() {
             selectedUserForAssign = null;
             document.getElementById('userSearchInput').value = '';
-            document.getElementById('userSearchResults').innerHTML = '<div class="empty-state" style="padding: 20px;">Type to search for users</div>';
+            document.getElementById('userSearchResults').innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.assign.type_to_search')}</div>`;
             document.getElementById('assignExpectedReturn').value = '';
             document.getElementById('assignBtn').disabled = true;
             document.getElementById('assignUserModal').classList.add('active');
@@ -1621,7 +1628,7 @@ $path_prefix = '../';
             const search = document.getElementById('userSearchInput').value;
 
             if (search.length < 2) {
-                document.getElementById('userSearchResults').innerHTML = '<div class="empty-state" style="padding: 20px;">Type at least 2 characters to search</div>';
+                document.getElementById('userSearchResults').innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.assign.min_chars')}</div>`;
                 return;
             }
 
@@ -1634,12 +1641,12 @@ $path_prefix = '../';
                 if (data.success && data.users.length > 0) {
                     container.innerHTML = data.users.map(user => `
                         <div class="user-search-item ${selectedUserForAssign == user.id ? 'selected' : ''}" onclick="selectUserForAssign(${user.id}, '${escapeHtml(user.display_name)}')">
-                            <div class="user-search-name">${escapeHtml(user.display_name || 'Unknown')}</div>
+                            <div class="user-search-name">${escapeHtml(user.display_name || window.t('asset-management.common.unknown'))}</div>
                             <div class="user-search-email">${escapeHtml(user.email || '')}</div>
                         </div>
                     `).join('');
                 } else {
-                    container.innerHTML = '<div class="empty-state" style="padding: 20px;">No users found</div>';
+                    container.innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.assign.no_users')}</div>`;
                 }
             } catch (error) {
                 console.error('Error searching users:', error);
@@ -1701,22 +1708,22 @@ $path_prefix = '../';
 
                 if (data.success) {
                     closeAssignModal();
-                    showToast('User assigned', 'success');
+                    showToast(window.t('asset-management.toast.user_assigned'), 'success');
                     // Refresh the asset details and list
                     loadAssets(document.getElementById('assetSearch').value);
                     selectAsset(selectedAssetId);
                 } else {
-                    showToast('Error assigning user: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.assign_error', { error: data.error }), 'error');
                 }
             } catch (error) {
                 console.error('Error assigning user:', error);
-                showToast('Error assigning user', 'error');
+                showToast(window.t('asset-management.toast.assign_failed'), 'error');
             }
         }
 
         // Unassign a user from the asset
         async function unassignUser(userId) {
-            if (!(await showConfirm({ title: 'Delete', message: 'Are you sure you want to remove this user from the asset?', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('asset-management.common.delete'), message: window.t('asset-management.confirm.remove_user'), okLabel: window.t('asset-management.common.delete'), okClass: 'danger' }))) return;
 
             try {
                 const response = await fetch(API_BASE + 'unassign_asset_user.php', {
@@ -1730,16 +1737,16 @@ $path_prefix = '../';
                 const data = await response.json();
 
                 if (data.success) {
-                    showToast('User removed', 'success');
+                    showToast(window.t('asset-management.toast.user_removed'), 'success');
                     // Refresh the asset details and list
                     loadAssets(document.getElementById('assetSearch').value);
                     selectAsset(selectedAssetId);
                 } else {
-                    showToast('Error removing user: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.remove_error', { error: data.error }), 'error');
                 }
             } catch (error) {
                 console.error('Error removing user:', error);
-                showToast('Error removing user', 'error');
+                showToast(window.t('asset-management.toast.remove_failed'), 'error');
             }
         }
 
@@ -1782,11 +1789,11 @@ $path_prefix = '../';
                     renderHistory(data.history);
                 } else {
                     document.getElementById('historyModalBody').innerHTML =
-                        '<div class="empty-state" style="padding: 20px;">Error loading history: ' + escapeHtml(data.error) + '</div>';
+                        `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.history.load_error', { error: escapeHtml(data.error) })}</div>`;
                 }
             } catch (error) {
                 document.getElementById('historyModalBody').innerHTML =
-                    '<div class="empty-state" style="padding: 20px;">Failed to load history</div>';
+                    `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.history.load_failed')}</div>`;
             }
         }
 
@@ -1794,24 +1801,25 @@ $path_prefix = '../';
             const container = document.getElementById('historyModalBody');
 
             if (history.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 20px;">No history recorded for this asset</div>';
+                container.innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.history.no_history')}</div>`;
                 return;
             }
 
             let html = `<table class="history-table">
                 <thead>
                     <tr>
-                        <th>Date</th>
-                        <th>Field</th>
-                        <th>Change</th>
-                        <th>Analyst</th>
+                        <th>${window.t('asset-management.history.col_date')}</th>
+                        <th>${window.t('asset-management.history.col_field')}</th>
+                        <th>${window.t('asset-management.history.col_change')}</th>
+                        <th>${window.t('asset-management.history.col_analyst')}</th>
                     </tr>
                 </thead>
                 <tbody>`;
 
             history.forEach(entry => {
-                const oldVal = entry.old_value ? escapeHtml(entry.old_value) : '<em style="color:#999;">None</em>';
-                const newVal = entry.new_value ? escapeHtml(entry.new_value) : '<em style="color:#999;">None</em>';
+                const noneEm = `<em style="color:#999;">${window.t('asset-management.common.none')}</em>`;
+                const oldVal = entry.old_value ? escapeHtml(entry.old_value) : noneEm;
+                const newVal = entry.new_value ? escapeHtml(entry.new_value) : noneEm;
 
                 html += `<tr>
                     <td class="history-meta">${formatDateTime(entry.created_datetime)}</td>
@@ -1821,7 +1829,7 @@ $path_prefix = '../';
                         <span class="history-arrow">&rarr;</span>
                         <span class="history-value-new">${newVal}</span>
                     </td>
-                    <td class="history-meta">${escapeHtml(entry.analyst_name || 'Unknown')}</td>
+                    <td class="history-meta">${escapeHtml(entry.analyst_name || window.t('asset-management.common.unknown'))}</td>
                 </tr>`;
             });
 
@@ -1860,36 +1868,36 @@ $path_prefix = '../';
                     renderCheckoutLog(data.log);
                 } else {
                     document.getElementById('checkoutLogBody').innerHTML =
-                        '<div class="empty-state" style="padding: 20px;">Error loading custody history: ' + escapeHtml(data.error) + '</div>';
+                        `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.custody.load_error', { error: escapeHtml(data.error) })}</div>`;
                 }
             } catch (error) {
                 document.getElementById('checkoutLogBody').innerHTML =
-                    '<div class="empty-state" style="padding: 20px;">Failed to load custody history</div>';
+                    `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.custody.load_failed')}</div>`;
             }
         }
 
         function renderCheckoutLog(log) {
             const container = document.getElementById('checkoutLogBody');
             if (!log || log.length === 0) {
-                container.innerHTML = '<div class="empty-state" style="padding: 20px;">No check-out / check-in events recorded yet. Assign or remove a user to start the trail.</div>';
+                container.innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.custody.no_events')}</div>`;
                 return;
             }
             let html = `<table class="history-table">
                 <thead>
-                    <tr><th>Date</th><th>Event</th><th>User</th><th>Due back</th><th>Analyst</th></tr>
+                    <tr><th>${window.t('asset-management.custody.col_date')}</th><th>${window.t('asset-management.custody.col_event')}</th><th>${window.t('asset-management.custody.col_user')}</th><th>${window.t('asset-management.custody.col_due_back')}</th><th>${window.t('asset-management.custody.col_analyst')}</th></tr>
                 </thead>
                 <tbody>`;
             log.forEach(e => {
                 const isOut = e.action === 'checkout';
                 const badge = isOut
-                    ? '<span class="history-field-badge" style="background:#e8f5e9;color:#2e7d32;">Checked out</span>'
-                    : '<span class="history-field-badge" style="background:#eef2f7;color:#37474f;">Checked in</span>';
+                    ? `<span class="history-field-badge" style="background:#e8f5e9;color:#2e7d32;">${window.t('asset-management.custody.checked_out')}</span>`
+                    : `<span class="history-field-badge" style="background:#eef2f7;color:#37474f;">${window.t('asset-management.custody.checked_in')}</span>`;
                 html += `<tr>
                     <td class="history-meta">${formatDateTime(e.action_datetime)}</td>
                     <td>${badge}</td>
-                    <td>${escapeHtml(e.user_name || 'Unknown')}</td>
+                    <td>${escapeHtml(e.user_name || window.t('asset-management.common.unknown'))}</td>
                     <td class="history-meta">${e.expected_return_date ? escapeHtml(e.expected_return_date) : '-'}</td>
-                    <td class="history-meta">${escapeHtml(e.analyst_name || 'Unknown')}</td>
+                    <td class="history-meta">${escapeHtml(e.analyst_name || window.t('asset-management.common.unknown'))}</td>
                 </tr>`;
             });
             html += '</tbody></table>';

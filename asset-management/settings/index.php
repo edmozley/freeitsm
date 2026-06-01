@@ -4,17 +4,22 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'settings';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'asset-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Asset settings</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('asset-management.settings.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script src="../../assets/js/chart.min.js"></script>
     <style>
         /* Module accent — drives toggle, focus rings, button colours.
@@ -253,33 +258,33 @@ $path_prefix = '../../';
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="asset-types" onclick="switchTab('asset-types')">Asset types</button>
-            <button class="tab" data-tab="asset-statuses" onclick="switchTab('asset-statuses')">Asset statuses</button>
-            <button class="tab" data-tab="locations" onclick="switchTab('locations')">Locations</button>
-            <button class="tab" data-tab="suppliers" onclick="switchTab('suppliers')">Suppliers</button>
-            <button class="tab" data-tab="warranty" onclick="switchTab('warranty')">Warranty alerts</button>
-            <button class="tab" data-tab="vcenter" onclick="switchTab('vcenter')">vCenter</button>
-            <button class="tab" data-tab="intune" onclick="switchTab('intune')">InTune</button>
+            <button class="tab active" data-tab="asset-types" onclick="switchTab('asset-types')"><?php echo htmlspecialchars(t('asset-management.settings.tab_asset_types')); ?></button>
+            <button class="tab" data-tab="asset-statuses" onclick="switchTab('asset-statuses')"><?php echo htmlspecialchars(t('asset-management.settings.tab_asset_statuses')); ?></button>
+            <button class="tab" data-tab="locations" onclick="switchTab('locations')"><?php echo htmlspecialchars(t('asset-management.settings.tab_locations')); ?></button>
+            <button class="tab" data-tab="suppliers" onclick="switchTab('suppliers')"><?php echo htmlspecialchars(t('asset-management.settings.tab_suppliers')); ?></button>
+            <button class="tab" data-tab="warranty" onclick="switchTab('warranty')"><?php echo htmlspecialchars(t('asset-management.settings.tab_warranty')); ?></button>
+            <button class="tab" data-tab="vcenter" onclick="switchTab('vcenter')"><?php echo htmlspecialchars(t('asset-management.settings.tab_vcenter')); ?></button>
+            <button class="tab" data-tab="intune" onclick="switchTab('intune')"><?php echo htmlspecialchars(t('asset-management.settings.tab_intune')); ?></button>
         </div>
 
         <!-- Asset Types Tab -->
         <div class="tab-content active" id="asset-types-tab">
             <div class="section-header">
-                <h2>Asset types</h2>
-                <button class="add-btn" onclick="openAddModal('asset-type')">Add</button>
+                <h2><?php echo htmlspecialchars(t('asset-management.settings.tab_asset_types')); ?></h2>
+                <button class="add-btn" onclick="openAddModal('asset-type')"><?php echo htmlspecialchars(t('asset-management.common.add')); ?></button>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('asset-management.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('asset-management.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('asset-management.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('asset-management.field.status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('asset-management.common.actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="asset-types-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('asset-management.common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -287,21 +292,21 @@ $path_prefix = '../../';
         <!-- Asset Statuses Tab -->
         <div class="tab-content" id="asset-statuses-tab">
             <div class="section-header">
-                <h2>Asset statuses</h2>
-                <button class="add-btn" onclick="openAddModal('asset-status')">Add</button>
+                <h2><?php echo htmlspecialchars(t('asset-management.settings.tab_asset_statuses')); ?></h2>
+                <button class="add-btn" onclick="openAddModal('asset-status')"><?php echo htmlspecialchars(t('asset-management.common.add')); ?></button>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('asset-management.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('asset-management.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('asset-management.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('asset-management.field.status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('asset-management.common.actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="asset-statuses-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('asset-management.common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -309,47 +314,40 @@ $path_prefix = '../../';
         <!-- Locations Tab -->
         <div class="tab-content" id="locations-tab">
             <div class="section-header">
-                <h2>Locations</h2>
-                <button class="add-btn" onclick="openAddLocation(null)">Add</button>
+                <h2><?php echo htmlspecialchars(t('asset-management.settings.tab_locations')); ?></h2>
+                <button class="add-btn" onclick="openAddLocation(null)"><?php echo htmlspecialchars(t('asset-management.common.add')); ?></button>
             </div>
             <p class="settings-description" style="margin-bottom: 18px;">
-                Build a location hierarchy that fits your organisation &mdash; nest it as deep or as
-                shallow as you like, and each branch can differ. For example
-                <code>UK &rsaquo; London &rsaquo; Office 1</code> alongside a simple
-                <code>Datacentre</code>. Use <strong>+</strong> on any location to add a sub-location.
+                <?php echo t('asset-management.settings.locations_intro'); ?>
             </p>
             <div id="locations-tree" class="loc-tree">
-                <div style="color:#999; padding: 12px;">Loading...</div>
+                <div style="color:#999; padding: 12px;"><?php echo htmlspecialchars(t('asset-management.common.loading')); ?></div>
             </div>
         </div>
 
         <!-- Suppliers Tab -->
         <div class="tab-content" id="suppliers-tab">
             <div class="section-header">
-                <h2>Suppliers</h2>
+                <h2><?php echo htmlspecialchars(t('asset-management.settings.tab_suppliers')); ?></h2>
             </div>
             <p class="settings-description" style="margin-bottom: 16px;">
-                Choose which suppliers are available to pick on an asset. These come from the shared
-                supplier registry (also used by Contracts), so a hardware vendor and a contract supplier
-                are the same record. Toggle <strong>Available for assets</strong> on the ones you buy
-                hardware from. Need one that isn't listed? Add it by name &mdash; you can fill in full
-                details later in Contracts.
+                <?php echo t('asset-management.settings.suppliers_intro'); ?>
             </p>
             <div class="supplier-toolbar">
-                <input type="text" id="supplierSearch" class="form-input" placeholder="Search suppliers..." autocomplete="off" oninput="renderSupplierList()" style="max-width: 280px;">
+                <input type="text" id="supplierSearch" class="form-input" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.supplier_search_placeholder')); ?>" autocomplete="off" oninput="renderSupplierList()" style="max-width: 280px;">
                 <span style="flex: 1;"></span>
-                <input type="text" id="supplierQuickAdd" class="form-input" placeholder="New supplier name" autocomplete="off" style="max-width: 220px;">
-                <button class="add-btn" onclick="quickAddSupplier()">Add</button>
+                <input type="text" id="supplierQuickAdd" class="form-input" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.supplier_new_placeholder')); ?>" autocomplete="off" style="max-width: 220px;">
+                <button class="add-btn" onclick="quickAddSupplier()"><?php echo htmlspecialchars(t('asset-management.common.add')); ?></button>
             </div>
             <table style="margin-top: 14px;">
                 <thead>
                     <tr>
-                        <th>Supplier</th>
-                        <th style="width: 160px;">Available for assets</th>
+                        <th><?php echo htmlspecialchars(t('asset-management.settings.col_supplier')); ?></th>
+                        <th style="width: 160px;"><?php echo htmlspecialchars(t('asset-management.settings.available_for_assets')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="suppliers-list">
-                    <tr><td colspan="2" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="2" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('asset-management.common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -361,31 +359,29 @@ $path_prefix = '../../';
                     <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
-                    <h2>Warranty expiry alerts</h2>
+                    <h2><?php echo htmlspecialchars(t('asset-management.settings.warranty_heading')); ?></h2>
                 </div>
                 <div class="settings-section-body">
                     <p class="settings-description">
-                        Surface assets whose warranty has expired or is about to, based on each asset's
-                        <strong>Warranty expiry</strong> date. Choose where they show up &mdash; a card on the
-                        Watchtower dashboard, events on the Calendar (in a "Warranty" category), or both.
+                        <?php echo t('asset-management.settings.warranty_intro'); ?>
                     </p>
                     <form id="warrantyForm" onsubmit="saveWarrantySettings(event)">
                         <div class="form-group">
-                            <label class="form-label" for="warrantySurface">Show alerts in</label>
+                            <label class="form-label" for="warrantySurface"><?php echo htmlspecialchars(t('asset-management.settings.warranty_show_in')); ?></label>
                             <select class="form-input" id="warrantySurface" style="max-width: 340px;">
-                                <option value="off">Off</option>
-                                <option value="dashboard">Watchtower dashboard only</option>
-                                <option value="calendar">Calendar only</option>
-                                <option value="both">Watchtower dashboard and Calendar</option>
+                                <option value="off"><?php echo htmlspecialchars(t('asset-management.settings.warranty_off')); ?></option>
+                                <option value="dashboard"><?php echo htmlspecialchars(t('asset-management.settings.warranty_dashboard_only')); ?></option>
+                                <option value="calendar"><?php echo htmlspecialchars(t('asset-management.settings.warranty_calendar_only')); ?></option>
+                                <option value="both"><?php echo htmlspecialchars(t('asset-management.settings.warranty_both')); ?></option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="warrantyDays">Warn this many days before expiry</label>
+                            <label class="form-label" for="warrantyDays"><?php echo htmlspecialchars(t('asset-management.settings.warranty_days_label')); ?></label>
                             <input type="number" class="form-input" id="warrantyDays" min="1" max="3650" value="30" style="max-width: 140px;">
-                            <div class="form-hint">Assets already past their warranty date are always included.</div>
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.warranty_days_hint')); ?></div>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary" id="warrantySaveBtn">Save</button>
+                            <button type="submit" class="btn btn-primary" id="warrantySaveBtn"><?php echo htmlspecialchars(t('asset-management.common.save')); ?></button>
                         </div>
                     </form>
                 </div>
@@ -402,32 +398,32 @@ $path_prefix = '../../';
                         <line x1="6" y1="6" x2="6.01" y2="6"></line>
                         <line x1="6" y1="18" x2="6.01" y2="18"></line>
                     </svg>
-                    <h2>vCenter integration</h2>
+                    <h2><?php echo htmlspecialchars(t('asset-management.settings.vcenter_heading')); ?></h2>
                 </div>
                 <div class="settings-section-body">
                     <p class="settings-description">
-                        Connect to a VMware vCenter Server to import virtual machine inventory data.
+                        <?php echo htmlspecialchars(t('asset-management.settings.vcenter_intro')); ?>
                     </p>
                     <form id="vcenterForm" onsubmit="saveVcenterSettings(event)">
                         <div class="form-group">
-                            <label class="form-label" for="vcenterServer">vCenter server</label>
-                            <input type="text" class="form-input" id="vcenterServer" placeholder="e.g. vcenter.company.local">
-                            <div class="form-hint">Hostname or IP address of the vCenter Server</div>
+                            <label class="form-label" for="vcenterServer"><?php echo htmlspecialchars(t('asset-management.settings.vcenter_server')); ?></label>
+                            <input type="text" class="form-input" id="vcenterServer" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.vcenter_server_placeholder')); ?>">
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.vcenter_server_hint')); ?></div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="vcenterUser">vCenter user</label>
-                            <input type="text" class="form-input" id="vcenterUser" placeholder="e.g. administrator@vsphere.local">
+                            <label class="form-label" for="vcenterUser"><?php echo htmlspecialchars(t('asset-management.settings.vcenter_user')); ?></label>
+                            <input type="text" class="form-input" id="vcenterUser" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.vcenter_user_placeholder')); ?>">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="vcenterPassword">vCenter password</label>
+                            <label class="form-label" for="vcenterPassword"><?php echo htmlspecialchars(t('asset-management.settings.vcenter_password')); ?></label>
                             <div class="password-wrapper">
-                                <input type="password" class="form-input" id="vcenterPassword" placeholder="Enter password">
-                                <button type="button" class="password-toggle" onclick="togglePassword()">Show</button>
+                                <input type="password" class="form-input" id="vcenterPassword" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.enter_password')); ?>">
+                                <button type="button" class="password-toggle" onclick="togglePassword()"><?php echo htmlspecialchars(t('asset-management.settings.show')); ?></button>
                             </div>
-                            <div class="form-hint">Leave unchanged to keep the saved password</div>
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.password_keep_hint')); ?></div>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
+                            <button type="submit" class="btn btn-primary" id="saveBtn"><?php echo htmlspecialchars(t('asset-management.common.save')); ?></button>
                         </div>
                     </form>
                 </div>
@@ -443,71 +439,71 @@ $path_prefix = '../../';
                         <line x1="8" y1="20" x2="16" y2="20"></line>
                         <line x1="12" y1="16" x2="12" y2="20"></line>
                     </svg>
-                    <h2>Microsoft InTune integration</h2>
+                    <h2><?php echo htmlspecialchars(t('asset-management.settings.intune_heading')); ?></h2>
                 </div>
                 <div class="settings-section-body">
                     <p class="settings-description">
-                        Connect to Microsoft InTune via Microsoft Graph using an Azure AD app registration to import managed device inventory.
+                        <?php echo htmlspecialchars(t('asset-management.settings.intune_intro')); ?>
                     </p>
                     <form id="intuneForm" onsubmit="saveIntuneSettings(event)">
                         <div class="form-group">
-                            <label class="form-label" for="intuneTenantId">Tenant ID</label>
-                            <input type="text" class="form-input" id="intuneTenantId" placeholder="e.g. 00000000-0000-0000-0000-000000000000">
-                            <div class="form-hint">Azure AD directory (tenant) ID</div>
+                            <label class="form-label" for="intuneTenantId"><?php echo htmlspecialchars(t('asset-management.settings.intune_tenant_id')); ?></label>
+                            <input type="text" class="form-input" id="intuneTenantId" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.intune_tenant_placeholder')); ?>">
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.intune_tenant_hint')); ?></div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="intuneClientId">Client ID</label>
-                            <input type="text" class="form-input" id="intuneClientId" placeholder="Application (client) ID">
+                            <label class="form-label" for="intuneClientId"><?php echo htmlspecialchars(t('asset-management.settings.intune_client_id')); ?></label>
+                            <input type="text" class="form-input" id="intuneClientId" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.intune_client_id_placeholder')); ?>">
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="intuneClientSecret">Client secret</label>
+                            <label class="form-label" for="intuneClientSecret"><?php echo htmlspecialchars(t('asset-management.settings.intune_client_secret')); ?></label>
                             <div class="password-wrapper">
-                                <input type="password" class="form-input" id="intuneClientSecret" placeholder="Enter client secret">
-                                <button type="button" class="password-toggle" onclick="toggleIntuneSecret()">Show</button>
+                                <input type="password" class="form-input" id="intuneClientSecret" placeholder="<?php echo htmlspecialchars(t('asset-management.settings.intune_secret_placeholder')); ?>">
+                                <button type="button" class="password-toggle" onclick="toggleIntuneSecret()"><?php echo htmlspecialchars(t('asset-management.settings.show')); ?></button>
                             </div>
-                            <div class="form-hint">Leave unchanged to keep the saved secret</div>
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.intune_secret_hint')); ?></div>
                         </div>
                         <div class="form-group">
                             <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
                                 <input type="checkbox" id="intuneVerifySsl" checked style="width: auto;" onchange="updateVerifySslWarning()">
-                                Verify SSL
+                                <?php echo htmlspecialchars(t('asset-management.settings.verify_ssl')); ?>
                             </label>
-                            <div class="form-hint">Disable only for testing against environments with self-signed certificates</div>
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.verify_ssl_hint')); ?></div>
                             <div id="intuneVerifySslWarning" class="intune-ssl-warning" style="display: none;">
-                                <strong>Warning:</strong> SSL verification is turned off. FreeITSM will accept any TLS certificate from Microsoft's servers without checking it. Anyone with access to your network (or your DNS, or a compromised certificate authority) could pose as Microsoft, intercept the traffic, and steal your tenant ID, client ID, client secret, and the access tokens that follow. Only leave this off in test environments with self-signed certificates &mdash; never in production.
+                                <?php echo t('asset-management.settings.verify_ssl_warning'); ?>
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="form-label" for="intuneAppBatchSize">Software sync batch size</label>
+                            <label class="form-label" for="intuneAppBatchSize"><?php echo htmlspecialchars(t('asset-management.settings.batch_size_label')); ?></label>
                             <input type="number" class="form-input" id="intuneAppBatchSize" min="1" max="500" value="30" style="max-width: 140px;">
-                            <div class="form-hint">Number of devices included in a single software-sync job (1–500). Smaller batches finish quicker but need more clicks to cover the estate.</div>
+                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.batch_size_hint')); ?></div>
                         </div>
                         <div class="form-actions">
-                            <button type="submit" class="btn btn-primary" id="intuneSaveBtn">Save</button>
-                            <button type="button" class="btn btn-secondary" id="intuneSyncBtn" onclick="startIntuneSync()">Sync</button>
+                            <button type="submit" class="btn btn-primary" id="intuneSaveBtn"><?php echo htmlspecialchars(t('asset-management.common.save')); ?></button>
+                            <button type="button" class="btn btn-secondary" id="intuneSyncBtn" onclick="startIntuneSync()"><?php echo htmlspecialchars(t('asset-management.settings.sync')); ?></button>
                             <span id="intuneLastSync" class="form-hint" style="margin-left: auto;"></span>
                         </div>
                         <div id="intuneSyncProgress" class="intune-progress" style="display: none;">
                             <div class="intune-progress-bar"><div class="intune-progress-fill" id="intuneProgressFill"></div></div>
-                            <div class="intune-progress-meta" id="intuneProgressMeta">Starting...</div>
+                            <div class="intune-progress-meta" id="intuneProgressMeta"><?php echo htmlspecialchars(t('asset-management.settings.starting')); ?></div>
                         </div>
                     </form>
 
                     <div class="intune-software-section">
-                        <h3 class="intune-subsection-title">Software inventory sync</h3>
+                        <h3 class="intune-subsection-title"><?php echo htmlspecialchars(t('asset-management.settings.software_sync_heading')); ?></h3>
                         <p class="settings-description">
-                            Pulls the list of installed applications from Microsoft Graph (<code>$expand=detectedApps</code>) for Intune-managed devices and merges into the existing software inventory. Each click queues one batch — keep clicking <strong>Sync software</strong> to work through the estate over time.
+                            <?php echo t('asset-management.settings.software_sync_intro'); ?>
                         </p>
                         <div class="form-actions" style="border-top: none; padding-top: 0;">
-                            <button type="button" class="btn btn-secondary" id="intuneAppSyncBtn" onclick="startAppSync()">Sync software</button>
+                            <button type="button" class="btn btn-secondary" id="intuneAppSyncBtn" onclick="startAppSync()"><?php echo htmlspecialchars(t('asset-management.settings.sync_software')); ?></button>
                             <span id="intuneAppEligible" class="form-hint" style="margin-left: auto;"></span>
                         </div>
                         <div id="intuneAppSyncProgress" class="intune-progress" style="display: none;">
                             <div class="intune-progress-bar"><div class="intune-progress-fill" id="intuneAppProgressFill"></div></div>
-                            <div class="intune-progress-meta" id="intuneAppProgressMeta">Starting...</div>
+                            <div class="intune-progress-meta" id="intuneAppProgressMeta"><?php echo htmlspecialchars(t('asset-management.settings.starting')); ?></div>
                         </div>
                         <div class="intune-freshness-wrap" id="intuneFreshnessWrap" style="display: none;">
-                            <div class="intune-freshness-title">Inventory freshness</div>
+                            <div class="intune-freshness-title"><?php echo htmlspecialchars(t('asset-management.settings.inventory_freshness')); ?></div>
                             <div class="intune-freshness-canvas-wrap"><canvas id="intuneFreshnessChart"></canvas></div>
                         </div>
                         <div id="intuneAppJobsList" class="intune-jobs-list"></div>
@@ -520,20 +516,20 @@ $path_prefix = '../../';
     <!-- Edit/Add Modal -->
     <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Add item</div>
+            <div class="modal-header" id="modalTitle"><?php echo htmlspecialchars(t('asset-management.settings.add_item')); ?></div>
             <form id="editForm">
                 <input type="hidden" id="itemId">
                 <input type="hidden" id="itemType">
                 <div class="form-group">
-                    <label for="itemName">Name</label>
+                    <label for="itemName"><?php echo htmlspecialchars(t('asset-management.settings.col_name')); ?></label>
                     <input type="text" id="itemName" required>
                 </div>
                 <div class="form-group">
-                    <label for="itemDescription">Description</label>
+                    <label for="itemDescription"><?php echo htmlspecialchars(t('asset-management.settings.col_description')); ?></label>
                     <textarea id="itemDescription"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="itemOrder">Display order</label>
+                    <label for="itemOrder"><?php echo htmlspecialchars(t('asset-management.settings.display_order')); ?></label>
                     <input type="number" id="itemOrder" value="0" min="0">
                 </div>
                 <div class="form-group">
@@ -542,12 +538,12 @@ $path_prefix = '../../';
                             <input type="checkbox" id="itemActive" checked>
                             <span class="toggle-slider"></span>
                         </span>
-                        Active
+                        <?php echo htmlspecialchars(t('asset-management.status.active')); ?>
                     </label>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()"><?php echo htmlspecialchars(t('asset-management.common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('asset-management.common.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -556,23 +552,23 @@ $path_prefix = '../../';
     <!-- Location Add/Edit Modal -->
     <div class="modal" id="locationModal">
         <div class="modal-content">
-            <div class="modal-header" id="locationModalTitle">Add location</div>
+            <div class="modal-header" id="locationModalTitle"><?php echo htmlspecialchars(t('asset-management.settings.add_location')); ?></div>
             <form id="locationForm">
                 <input type="hidden" id="locationId">
                 <div class="form-group">
-                    <label for="locationName">Name</label>
+                    <label for="locationName"><?php echo htmlspecialchars(t('asset-management.settings.col_name')); ?></label>
                     <input type="text" id="locationName" required autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label for="locationParent">Parent location</label>
+                    <label for="locationParent"><?php echo htmlspecialchars(t('asset-management.settings.parent_location')); ?></label>
                     <select id="locationParent">
-                        <option value="">— None (top level) —</option>
+                        <option value=""><?php echo htmlspecialchars(t('asset-management.settings.none_top_level')); ?></option>
                     </select>
-                    <div class="form-hint">Leave as "None" for a top-level location, or pick a parent to nest it underneath.</div>
+                    <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.parent_location_hint')); ?></div>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeLocationModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeLocationModal()"><?php echo htmlspecialchars(t('asset-management.common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('asset-management.common.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -591,7 +587,7 @@ $path_prefix = '../../';
                 delete: API_BASE + 'delete_asset_type.php',
                 key: 'asset_types',
                 listId: 'asset-types-list',
-                label: 'asset type'
+                label: window.t('asset-management.settings.label_asset_type')
             },
             'asset-status': {
                 get: API_BASE + 'get_asset_status_types.php',
@@ -599,7 +595,7 @@ $path_prefix = '../../';
                 delete: API_BASE + 'delete_asset_status_type.php',
                 key: 'asset_status_types',
                 listId: 'asset-statuses-list',
-                label: 'asset status'
+                label: window.t('asset-management.settings.label_asset_status')
             }
         };
 
@@ -630,12 +626,12 @@ $path_prefix = '../../';
                     renderItems(type, data[ep.key]);
                 } else {
                     document.getElementById(ep.listId).innerHTML =
-                        '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">Error: ' + escapeHtml(data.error) + '</td></tr>';
+                        `<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">${window.t('asset-management.toast.error', { error: escapeHtml(data.error) })}</td></tr>`;
                 }
             } catch (error) {
                 console.error('Error loading ' + type + ':', error);
                 document.getElementById(ep.listId).innerHTML =
-                    '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">Failed to load data</td></tr>';
+                    `<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">${window.t('asset-management.settings.load_data_failed')}</td></tr>`;
             }
         }
 
@@ -644,7 +640,7 @@ $path_prefix = '../../';
             const tbody = document.getElementById(ep.listId);
 
             if (items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">No items yet. Click Add to create one.</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">${window.t('asset-management.settings.no_items')}</td></tr>`;
                 return;
             }
 
@@ -653,15 +649,15 @@ $path_prefix = '../../';
                     <td><strong>${escapeHtml(item.name)}</strong></td>
                     <td>${escapeHtml(item.description || '-')}</td>
                     <td>${item.display_order}</td>
-                    <td><span class="status-badge ${item.is_active ? 'active' : 'inactive'}">${item.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge ${item.is_active ? 'active' : 'inactive'}">${item.is_active ? window.t('asset-management.status.active') : window.t('asset-management.status.inactive')}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editItem('${type}', ${item.id})" title="Edit">
+                        <button class="action-btn" onclick="editItem('${type}', ${item.id})" title="${window.t('asset-management.common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                             </svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteItem('${type}', ${item.id}, '${escapeHtml(item.name)}')" title="Delete">
+                        <button class="action-btn delete" onclick="deleteItem('${type}', ${item.id}, '${escapeHtml(item.name)}')" title="${window.t('asset-management.common.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -674,7 +670,7 @@ $path_prefix = '../../';
 
         function openAddModal(type) {
             const ep = endpoints[type];
-            document.getElementById('modalTitle').textContent = 'Add ' + ep.label;
+            document.getElementById('modalTitle').textContent = window.t('asset-management.settings.add_kind', { kind: ep.label });
             document.getElementById('itemId').value = '';
             document.getElementById('itemType').value = type;
             document.getElementById('itemName').value = '';
@@ -689,7 +685,7 @@ $path_prefix = '../../';
             const item = allItems[type].find(i => i.id == id);
             if (!item) return;
 
-            document.getElementById('modalTitle').textContent = 'Edit ' + ep.label;
+            document.getElementById('modalTitle').textContent = window.t('asset-management.settings.edit_kind', { kind: ep.label });
             document.getElementById('itemId').value = item.id;
             document.getElementById('itemType').value = type;
             document.getElementById('itemName').value = item.name;
@@ -701,7 +697,7 @@ $path_prefix = '../../';
 
         async function deleteItem(type, id, name) {
             const ep = endpoints[type];
-            if (!(await showConfirm({ title: 'Delete', message: 'Are you sure you want to delete "' + name + '"? Any assets using this ' + ep.label.toLowerCase() + ' will have it cleared.', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('asset-management.common.delete'), message: window.t('asset-management.settings.delete_item_confirm', { name: name, kind: ep.label.toLowerCase() }), okLabel: window.t('asset-management.common.delete'), okClass: 'danger' }))) return;
 
             try {
                 const response = await fetch(ep.delete, {
@@ -711,14 +707,14 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showToast('Deleted', 'success');
+                    showToast(window.t('asset-management.toast.deleted'), 'success');
                     loadItems(type);
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
                 }
             } catch (error) {
                 console.error('Error deleting:', error);
-                showToast('Failed to delete item', 'error');
+                showToast(window.t('asset-management.settings.delete_item_failed'), 'error');
             }
         }
 
@@ -749,14 +745,14 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     closeModal();
-                    showToast('Saved', 'success');
+                    showToast(window.t('asset-management.toast.saved'), 'success');
                     loadItems(type);
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
                 }
             } catch (error) {
                 console.error('Error saving:', error);
-                showToast('Failed to save item', 'error');
+                showToast(window.t('asset-management.settings.save_item_failed'), 'error');
             }
         });
 
@@ -782,16 +778,16 @@ $path_prefix = '../../';
                     const vcPwField = document.getElementById('vcenterPassword');
                     vcPwField.value = '';
                     vcPwField.placeholder = data.settings.vcenter_password
-                        ? 'Saved (enter new password to change)'
-                        : 'Enter password';
+                        ? window.t('asset-management.settings.password_saved_placeholder')
+                        : window.t('asset-management.settings.enter_password');
 
                     document.getElementById('intuneTenantId').value = data.settings.intune_tenant_id || '';
                     document.getElementById('intuneClientId').value = data.settings.intune_client_id || '';
                     const intSecField = document.getElementById('intuneClientSecret');
                     intSecField.value = '';
                     intSecField.placeholder = data.settings.intune_client_secret
-                        ? 'Saved (enter new secret to change)'
-                        : 'Enter client secret';
+                        ? window.t('asset-management.settings.secret_saved_placeholder')
+                        : window.t('asset-management.settings.intune_secret_placeholder');
                     // verify_ssl: default to true unless explicitly stored as "0"
                     document.getElementById('intuneVerifySsl').checked = data.settings.intune_verify_ssl !== '0';
                     updateVerifySslWarning();
@@ -812,7 +808,7 @@ $path_prefix = '../../';
         async function saveWarrantySettings(e) {
             e.preventDefault();
             const btn = document.getElementById('warrantySaveBtn');
-            btn.disabled = true; btn.textContent = 'Saving...';
+            btn.disabled = true; btn.textContent = window.t('asset-management.settings.saving');
             try {
                 const res = await fetch(API_SETTINGS + 'save_system_settings.php', {
                     method: 'POST',
@@ -826,21 +822,21 @@ $path_prefix = '../../';
                 if (data.success) {
                     // Resync the calendar so it immediately matches the new choice.
                     try { await fetch(API_BASE + 'sync_warranty_calendar.php', { method: 'POST' }); } catch (e) {}
-                    showToast('Warranty alert settings saved', 'success');
+                    showToast(window.t('asset-management.settings.warranty_saved'), 'success');
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
                 }
             } catch (e) {
-                showToast('Failed to save settings', 'error');
+                showToast(window.t('asset-management.settings.save_settings_failed'), 'error');
             }
-            btn.disabled = false; btn.textContent = 'Save';
+            btn.disabled = false; btn.textContent = window.t('asset-management.common.save');
         }
 
         async function saveVcenterSettings(e) {
             e.preventDefault();
             const saveBtn = document.getElementById('saveBtn');
             saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
+            saveBtn.textContent = window.t('asset-management.settings.saving');
 
             try {
                 const response = await fetch(API_SETTINGS + 'save_system_settings.php', {
@@ -856,24 +852,24 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showToast('Settings saved successfully', 'success');
+                    showToast(window.t('asset-management.settings.settings_saved'), 'success');
                     loadIntegrationSettings();
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
                 }
             } catch (error) {
-                showToast('Failed to save settings', 'error');
+                showToast(window.t('asset-management.settings.save_settings_failed'), 'error');
             }
 
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Save';
+            saveBtn.textContent = window.t('asset-management.common.save');
         }
 
         async function saveIntuneSettings(e) {
             e.preventDefault();
             const saveBtn = document.getElementById('intuneSaveBtn');
             saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
+            saveBtn.textContent = window.t('asset-management.settings.saving');
 
             try {
                 const response = await fetch(API_SETTINGS + 'save_system_settings.php', {
@@ -891,24 +887,24 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showToast('Settings saved successfully', 'success');
+                    showToast(window.t('asset-management.settings.settings_saved'), 'success');
                     loadIntegrationSettings();
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
                 }
             } catch (error) {
-                showToast('Failed to save settings', 'error');
+                showToast(window.t('asset-management.settings.save_settings_failed'), 'error');
             }
 
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Save';
+            saveBtn.textContent = window.t('asset-management.common.save');
         }
 
         function togglePassword() {
             const input = document.getElementById('vcenterPassword');
             const btn = input.nextElementSibling;
-            if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
-            else { input.type = 'password'; btn.textContent = 'Show'; }
+            if (input.type === 'password') { input.type = 'text'; btn.textContent = window.t('asset-management.settings.hide'); }
+            else { input.type = 'password'; btn.textContent = window.t('asset-management.settings.show'); }
         }
 
         function updateVerifySslWarning() {
@@ -919,8 +915,8 @@ $path_prefix = '../../';
         function toggleIntuneSecret() {
             const input = document.getElementById('intuneClientSecret');
             const btn = input.nextElementSibling;
-            if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
-            else { input.type = 'password'; btn.textContent = 'Show'; }
+            if (input.type === 'password') { input.type = 'text'; btn.textContent = window.t('asset-management.settings.hide'); }
+            else { input.type = 'password'; btn.textContent = window.t('asset-management.settings.show'); }
         }
 
         // InTune sync
@@ -930,23 +926,23 @@ $path_prefix = '../../';
         async function startIntuneSync() {
             const btn = document.getElementById('intuneSyncBtn');
             btn.disabled = true;
-            btn.textContent = 'Starting...';
-            showIntuneProgress(0, 'Starting...', false);
+            btn.textContent = window.t('asset-management.settings.starting');
+            showIntuneProgress(0, window.t('asset-management.settings.starting'), false);
 
             try {
                 const response = await fetch(API_INTUNE + 'sync.php', { method: 'POST' });
                 const data = await response.json();
                 if (!data.success) {
-                    showIntuneProgress(0, 'Error: ' + data.error, true);
+                    showIntuneProgress(0, window.t('asset-management.toast.error', { error: data.error }), true);
                     btn.disabled = false;
-                    btn.textContent = 'Sync';
+                    btn.textContent = window.t('asset-management.settings.sync');
                     return;
                 }
                 pollIntuneStatus(data.id);
             } catch (e) {
-                showIntuneProgress(0, 'Network error starting sync', true);
+                showIntuneProgress(0, window.t('asset-management.settings.sync_start_error'), true);
                 btn.disabled = false;
-                btn.textContent = 'Sync';
+                btn.textContent = window.t('asset-management.settings.sync');
             }
         }
 
@@ -957,7 +953,7 @@ $path_prefix = '../../';
                     const response = await fetch(API_INTUNE + 'sync_status.php?id=' + encodeURIComponent(jobId));
                     const data = await response.json();
                     if (!data.success || !data.job) {
-                        showIntuneProgress(0, 'Status unavailable', true);
+                        showIntuneProgress(0, window.t('asset-management.settings.status_unavailable'), true);
                         resetIntuneSyncButton();
                         return;
                     }
@@ -971,7 +967,7 @@ $path_prefix = '../../';
                         loadIntuneLastSync();
                     }
                 } catch (e) {
-                    showIntuneProgress(0, 'Network error polling status', true);
+                    showIntuneProgress(0, window.t('asset-management.settings.status_poll_error'), true);
                     resetIntuneSyncButton();
                 }
             };
@@ -991,7 +987,7 @@ $path_prefix = '../../';
         function resetIntuneSyncButton() {
             const btn = document.getElementById('intuneSyncBtn');
             btn.disabled = false;
-            btn.textContent = 'Sync';
+            btn.textContent = window.t('asset-management.settings.sync');
         }
 
         async function loadIntuneLastSync() {
@@ -1008,7 +1004,7 @@ $path_prefix = '../../';
                     }
                     const when = job.finished_datetime || job.started_datetime;
                     const date = when ? new Date(when + 'Z').toLocaleString('en-GB') : '';
-                    last.textContent = 'Last sync: ' + date + ' (' + job.status + ')';
+                    last.textContent = window.t('asset-management.settings.last_sync', { date: date, status: job.status });
                 } else {
                     last.textContent = '';
                 }
@@ -1026,21 +1022,22 @@ $path_prefix = '../../';
         async function startAppSync() {
             const btn = document.getElementById('intuneAppSyncBtn');
             btn.disabled = true;
-            btn.textContent = 'Starting...';
-            showAppSyncProgress(0, 'Starting...', false);
+            btn.textContent = window.t('asset-management.settings.starting');
+            showAppSyncProgress(0, window.t('asset-management.settings.starting'), false);
 
             try {
                 const response = await fetch(API_INTUNE + 'create_app_sync_job.php', { method: 'POST' });
                 const data = await response.json();
                 if (!data.success) {
-                    showAppSyncProgress(0, 'Error: ' + data.error, true);
+                    showAppSyncProgress(0, window.t('asset-management.toast.error', { error: data.error }), true);
                     resetAppSyncButton();
                     return;
                 }
-                showAppSyncProgress(0, (data.reused ? 'Resuming existing job' : 'Job queued') + ` for ${data.asset_count} asset${data.asset_count === 1 ? '' : 's'}...`, false);
+                const queuedMsg = data.reused ? window.t('asset-management.settings.resuming_job') : window.t('asset-management.settings.job_queued');
+                showAppSyncProgress(0, window.t('asset-management.settings.job_for_assets', { msg: queuedMsg, count: data.asset_count }), false);
                 pollAppSyncStatus(data.id);
             } catch (e) {
-                showAppSyncProgress(0, 'Network error starting software sync', true);
+                showAppSyncProgress(0, window.t('asset-management.settings.app_sync_start_error'), true);
                 resetAppSyncButton();
             }
         }
@@ -1052,15 +1049,15 @@ $path_prefix = '../../';
                     const response = await fetch(API_INTUNE + 'app_sync_job_status.php?id=' + encodeURIComponent(jobId));
                     const data = await response.json();
                     if (!data.success || !data.job) {
-                        showAppSyncProgress(0, 'Status unavailable', true);
+                        showAppSyncProgress(0, window.t('asset-management.settings.status_unavailable'), true);
                         resetAppSyncButton();
                         return;
                     }
                     const job = data.job;
                     const r = job.rollup || {};
-                    const summary = `${job.processed} of ${job.total} done` +
-                                    (job.failed > 0 ? `, ${job.failed} failed` : '') +
-                                    ((r.obsolete || 0) > 0 ? `, ${r.obsolete} obsolete` : '');
+                    const summary = window.t('asset-management.settings.sync_summary_done', { processed: job.processed, total: job.total }) +
+                                    (job.failed > 0 ? window.t('asset-management.settings.sync_summary_failed', { failed: job.failed }) : '') +
+                                    ((r.obsolete || 0) > 0 ? window.t('asset-management.settings.sync_summary_obsolete', { obsolete: r.obsolete }) : '');
                     const message = job.message ? `${job.message} (${summary})` : summary;
                     showAppSyncProgress(job.percent, message, job.status === 'error');
 
@@ -1072,7 +1069,7 @@ $path_prefix = '../../';
                         loadIntuneFreshness();
                     }
                 } catch (e) {
-                    showAppSyncProgress(0, 'Network error polling status', true);
+                    showAppSyncProgress(0, window.t('asset-management.settings.status_poll_error'), true);
                     resetAppSyncButton();
                 }
             };
@@ -1092,7 +1089,7 @@ $path_prefix = '../../';
         function resetAppSyncButton() {
             const btn = document.getElementById('intuneAppSyncBtn');
             btn.disabled = false;
-            btn.textContent = 'Sync software';
+            btn.textContent = window.t('asset-management.settings.sync_software');
         }
 
         async function loadAppSyncJobs() {
@@ -1109,11 +1106,11 @@ $path_prefix = '../../';
                 }
 
                 eligible.textContent = data.eligible_assets > 0
-                    ? `${data.eligible_assets} asset${data.eligible_assets === 1 ? '' : 's'} eligible for sync`
-                    : 'No eligible assets';
+                    ? window.t('asset-management.settings.eligible_for_sync', { count: data.eligible_assets })
+                    : window.t('asset-management.settings.no_eligible_assets');
 
                 if (!data.jobs || data.jobs.length === 0) {
-                    list.innerHTML = '<div class="form-hint" style="margin-top: 12px;">No app-sync jobs yet.</div>';
+                    list.innerHTML = `<div class="form-hint" style="margin-top: 12px;">${window.t('asset-management.settings.no_app_sync_jobs')}</div>`;
                     return;
                 }
 
@@ -1126,7 +1123,7 @@ $path_prefix = '../../';
                 list.innerHTML = `
                     <table class="intune-jobs-table">
                         <thead>
-                            <tr><th>Job</th><th>Status</th><th>Started</th><th>Finished</th><th>Result</th></tr>
+                            <tr><th>${window.t('asset-management.settings.job_col_job')}</th><th>${window.t('asset-management.field.status')}</th><th>${window.t('asset-management.settings.job_col_started')}</th><th>${window.t('asset-management.settings.job_col_finished')}</th><th>${window.t('asset-management.settings.job_col_result')}</th></tr>
                         </thead>
                         <tbody>
                             ${data.jobs.map(j => `
@@ -1135,7 +1132,7 @@ $path_prefix = '../../';
                                     <td><span class="intune-job-status ${escapeHtml(j.status)}">${escapeHtml(j.status)}</span></td>
                                     <td>${j.started_datetime ? new Date(j.started_datetime + 'Z').toLocaleString('en-GB') : '-'}</td>
                                     <td>${j.finished_datetime ? new Date(j.finished_datetime + 'Z').toLocaleString('en-GB') : '-'}</td>
-                                    <td>${j.processed}/${j.total}${j.failed > 0 ? ` (${j.failed} failed)` : ''}</td>
+                                    <td>${j.processed}/${j.total}${j.failed > 0 ? ` ${window.t('asset-management.settings.failed_count', { failed: j.failed })}` : ''}</td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -1187,7 +1184,7 @@ $path_prefix = '../../';
                     data: {
                         labels: labels,
                         datasets: [{
-                            label: 'Assets',
+                            label: window.t('asset-management.settings.assets_label'),
                             data: values,
                             backgroundColor: colours,
                             borderWidth: 0,
@@ -1200,7 +1197,7 @@ $path_prefix = '../../';
                             legend: { display: false },
                             tooltip: {
                                 callbacks: {
-                                    label: (ctx) => `${ctx.parsed.y} asset${ctx.parsed.y === 1 ? '' : 's'}`,
+                                    label: (ctx) => window.t('asset-management.settings.asset_count', { count: ctx.parsed.y }),
                                 },
                             },
                         },
@@ -1225,14 +1222,14 @@ $path_prefix = '../../';
                 const res = await fetch(API_BASE + 'get_asset_locations.php');
                 const data = await res.json();
                 if (!data.success) {
-                    tree.innerHTML = '<div class="loc-empty" style="color:#d13438;">Error: ' + escapeHtml(data.error) + '</div>';
+                    tree.innerHTML = `<div class="loc-empty" style="color:#d13438;">${window.t('asset-management.toast.error', { error: escapeHtml(data.error) })}</div>`;
                     return;
                 }
                 allLocations = data.locations || [];
                 renderLocationTree();
             } catch (e) {
                 console.error('Error loading locations:', e);
-                tree.innerHTML = '<div class="loc-empty" style="color:#d13438;">Failed to load locations</div>';
+                tree.innerHTML = `<div class="loc-empty" style="color:#d13438;">${window.t('asset-management.settings.locations_load_failed')}</div>`;
             }
         }
 
@@ -1243,7 +1240,7 @@ $path_prefix = '../../';
         function renderLocationTree() {
             const tree = document.getElementById('locations-tree');
             if (allLocations.length === 0) {
-                tree.innerHTML = '<div class="loc-empty">No locations yet. Click <strong>Add</strong> to create your first one.</div>';
+                tree.innerHTML = `<div class="loc-empty">${window.t('asset-management.settings.no_locations')}</div>`;
                 return;
             }
             const roots = locationChildren(null);
@@ -1261,13 +1258,13 @@ $path_prefix = '../../';
                     <span class="loc-caret ${caretClass}" onclick="toggleLocation(${loc.id})">&#9662;</span>
                     <span class="loc-name">${escapeHtml(loc.name)}${count}</span>
                     <span class="loc-actions">
-                        <button class="action-btn" title="Add sub-location" onclick="openAddLocation(${loc.id})">
+                        <button class="action-btn" title="${window.t('asset-management.settings.add_sublocation')}" onclick="openAddLocation(${loc.id})">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                         </button>
-                        <button class="action-btn" title="Edit" onclick="editLocation(${loc.id})">
+                        <button class="action-btn" title="${window.t('asset-management.common.edit')}" onclick="editLocation(${loc.id})">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn delete" title="Delete" onclick="deleteLocation(${loc.id})">
+                        <button class="action-btn delete" title="${window.t('asset-management.common.delete')}" onclick="deleteLocation(${loc.id})">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </span>
@@ -1296,7 +1293,7 @@ $path_prefix = '../../';
                     locationChildren(cur).forEach(c => stack.push(c.id));
                 }
             }
-            const opts = ['<option value="">— None (top level) —</option>'];
+            const opts = [`<option value="">${window.t('asset-management.settings.none_top_level')}</option>`];
             const walk = (parentId, depth) => {
                 locationChildren(parentId).forEach(loc => {
                     if (!exclude.has(loc.id)) {
@@ -1310,7 +1307,7 @@ $path_prefix = '../../';
         }
 
         function openAddLocation(parentId) {
-            document.getElementById('locationModalTitle').textContent = 'Add location';
+            document.getElementById('locationModalTitle').textContent = window.t('asset-management.settings.add_location');
             document.getElementById('locationId').value = '';
             document.getElementById('locationName').value = '';
             const sel = document.getElementById('locationParent');
@@ -1323,7 +1320,7 @@ $path_prefix = '../../';
         function editLocation(id) {
             const loc = allLocations.find(l => l.id === id);
             if (!loc) return;
-            document.getElementById('locationModalTitle').textContent = 'Edit location';
+            document.getElementById('locationModalTitle').textContent = window.t('asset-management.settings.edit_location');
             document.getElementById('locationId').value = loc.id;
             document.getElementById('locationName').value = loc.name;
             const sel = document.getElementById('locationParent');
@@ -1341,18 +1338,18 @@ $path_prefix = '../../';
             const loc = allLocations.find(l => l.id === id);
             if (!loc) return;
             if (locationChildren(id).length > 0) {
-                showToast('This location has sub-locations. Delete or move them first.', 'error');
+                showToast(window.t('asset-management.settings.location_has_children'), 'error');
                 return;
             }
-            if (!(await showConfirm({ title: 'Delete', message: 'Delete location "' + loc.name + '"?', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('asset-management.common.delete'), message: window.t('asset-management.settings.delete_location_confirm', { name: loc.name }), okLabel: window.t('asset-management.common.delete'), okClass: 'danger' }))) return;
             try {
                 const res = await fetch(API_BASE + 'delete_asset_location.php', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id })
                 });
                 const data = await res.json();
-                if (data.success) { showToast('Deleted', 'success'); loadLocations(); }
-                else showToast('Error: ' + data.error, 'error');
-            } catch (e) { showToast('Failed to delete location', 'error'); }
+                if (data.success) { showToast(window.t('asset-management.toast.deleted'), 'success'); loadLocations(); }
+                else showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
+            } catch (e) { showToast(window.t('asset-management.settings.delete_location_failed'), 'error'); }
         }
 
         document.getElementById('locationForm').addEventListener('submit', async function(e) {
@@ -1362,16 +1359,16 @@ $path_prefix = '../../';
                 name: document.getElementById('locationName').value.trim(),
                 parent_id: document.getElementById('locationParent').value || null
             };
-            if (!payload.name) { showToast('Name is required', 'error'); return; }
+            if (!payload.name) { showToast(window.t('asset-management.settings.name_required'), 'error'); return; }
             if (id) payload.id = parseInt(id);
             try {
                 const res = await fetch(API_BASE + 'save_asset_location.php', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                if (data.success) { closeLocationModal(); showToast('Saved', 'success'); loadLocations(); }
-                else showToast('Error: ' + data.error, 'error');
-            } catch (e) { showToast('Failed to save location', 'error'); }
+                if (data.success) { closeLocationModal(); showToast(window.t('asset-management.toast.saved'), 'success'); loadLocations(); }
+                else showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
+            } catch (e) { showToast(window.t('asset-management.settings.save_location_failed'), 'error'); }
         });
 
         let locationMouseDownTarget = null;
@@ -1389,14 +1386,14 @@ $path_prefix = '../../';
                 const res = await fetch(API_BASE + 'search_suppliers.php');
                 const data = await res.json();
                 if (!data.success) {
-                    tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:20px;color:#d13438;">Error: ' + escapeHtml(data.error) + '</td></tr>';
+                    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;padding:20px;color:#d13438;">${window.t('asset-management.toast.error', { error: escapeHtml(data.error) })}</td></tr>`;
                     return;
                 }
                 allSuppliers = data.suppliers || [];
                 renderSupplierList();
             } catch (e) {
                 console.error('Error loading suppliers:', e);
-                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:20px;color:#d13438;">Failed to load suppliers</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;padding:20px;color:#d13438;">${window.t('asset-management.settings.suppliers_load_failed')}</td></tr>`;
             }
         }
 
@@ -1407,14 +1404,14 @@ $path_prefix = '../../';
                 !term || (s.name || '').toLowerCase().includes(term) || (s.legal_name || '').toLowerCase().includes(term)
             );
             if (rows.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;padding:20px;color:#999;">' +
-                    (allSuppliers.length === 0 ? 'No suppliers in the registry yet. Add one by name above.' : 'No suppliers match your search.') + '</td></tr>';
+                tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;padding:20px;color:#999;">${
+                    allSuppliers.length === 0 ? window.t('asset-management.settings.no_suppliers') : window.t('asset-management.settings.no_supplier_match')}</td></tr>`;
                 return;
             }
             tbody.innerHTML = rows.map(s => {
                 const alt = (s.trading_name && s.legal_name && s.trading_name !== s.legal_name)
                     ? ` <span style="color:#999;font-size:12px;">(${escapeHtml(s.legal_name)})</span>` : '';
-                const inactive = !s.is_active ? ' <span class="status-badge inactive">Inactive</span>' : '';
+                const inactive = !s.is_active ? ` <span class="status-badge inactive">${window.t('asset-management.status.inactive')}</span>` : '';
                 return `
                     <tr>
                         <td><strong>${escapeHtml(s.name)}</strong>${alt}${inactive}</td>
@@ -1440,13 +1437,13 @@ $path_prefix = '../../';
                 if (data.success) {
                     const s = allSuppliers.find(x => x.id === id);
                     if (s) s.supplies_assets = checked ? 1 : 0;
-                    showToast(checked ? 'Available for assets' : 'Removed from asset suppliers', 'success');
+                    showToast(checked ? window.t('asset-management.settings.supplier_enabled') : window.t('asset-management.settings.supplier_disabled'), 'success');
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
                     renderSupplierList();
                 }
             } catch (e) {
-                showToast('Failed to update supplier', 'error');
+                showToast(window.t('asset-management.settings.update_supplier_failed'), 'error');
                 renderSupplierList();
             }
         }
@@ -1454,7 +1451,7 @@ $path_prefix = '../../';
         async function quickAddSupplier() {
             const input = document.getElementById('supplierQuickAdd');
             const name = input.value.trim();
-            if (!name) { showToast('Enter a supplier name', 'error'); return; }
+            if (!name) { showToast(window.t('asset-management.settings.enter_supplier_name'), 'error'); return; }
             try {
                 const res = await fetch(API_BASE + 'quick_add_supplier.php', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -1463,13 +1460,13 @@ $path_prefix = '../../';
                 const data = await res.json();
                 if (data.success) {
                     input.value = '';
-                    showToast(data.existing ? 'Supplier already existed — enabled for assets' : 'Supplier added', 'success');
+                    showToast(data.existing ? window.t('asset-management.settings.supplier_existed') : window.t('asset-management.settings.supplier_added'), 'success');
                     loadSuppliers();
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('asset-management.toast.error', { error: data.error }), 'error');
                 }
             } catch (e) {
-                showToast('Failed to add supplier', 'error');
+                showToast(window.t('asset-management.settings.add_supplier_failed'), 'error');
             }
         }
 

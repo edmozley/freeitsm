@@ -405,7 +405,7 @@ async function loadChanges() {
         }
     } catch (error) {
         console.error('Error loading changes:', error);
-        document.getElementById('changeList').innerHTML = '<div class="empty-state"><p>Error loading changes</p></div>';
+        document.getElementById('changeList').innerHTML = `<div class="empty-state"><p>${window.t('change-management.list.error')}</p></div>`;
     }
 }
 
@@ -433,19 +433,21 @@ function renderChangeList() {
     const countEl = document.getElementById('changeCount');
 
     if (!changes.length) {
-        container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#128221;</div><div class="empty-state-text">No changes found</div></div>';
+        container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">&#128221;</div><div class="empty-state-text">${window.t('change-management.list.no_changes')}</div></div>`;
         countEl.textContent = '';
         return;
     }
 
-    countEl.textContent = changes.length + ' change' + (changes.length !== 1 ? 's' : '');
+    countEl.textContent = changes.length === 1
+        ? window.t('change-management.list.count', { count: changes.length })
+        : window.t('change-management.list.count_plural', { count: changes.length });
 
     container.innerHTML = changes.map(c => {
         const ref = 'CHG-' + String(c.id).padStart(4, '0');
         const statusClass = c.status.toLowerCase().replace(/\s+/g, '-');
         const typeClass = c.change_type.toLowerCase();
         const priorityClass = c.priority.toLowerCase();
-        const assignedName = c.assigned_to_name || 'Unassigned';
+        const assignedName = c.assigned_to_name || window.t('change-management.list.unassigned');
         const workStart = c.work_start_datetime ? formatDate(c.work_start_datetime) : '';
 
         return `
@@ -455,7 +457,7 @@ function renderChangeList() {
                     <div class="change-card-title">${escapeHtml(c.title)}</div>
                     <div class="change-card-meta">
                         <span>${assignedName}</span>
-                        ${workStart ? '<span>Work: ' + workStart + '</span>' : ''}
+                        ${workStart ? `<span>${window.t('change-management.list.work', { date: workStart })}</span>` : ''}
                     </div>
                 </div>
                 <div class="change-card-badges">
@@ -477,7 +479,7 @@ async function viewChange(id) {
         const data = await response.json();
 
         if (!data.success) {
-            showToast('Error: ' + data.error, 'success');
+            showToast(window.t('change-management.toast.error_prefix', { message: data.error }), 'success');
             return;
         }
 
@@ -486,7 +488,7 @@ async function viewChange(id) {
         showView('detail');
     } catch (error) {
         console.error('Error loading change:', error);
-        showToast('Error loading change', 'success');
+        showToast(window.t('change-management.toast.error_loading'), 'success');
     }
 }
 
@@ -506,25 +508,25 @@ function renderChangeDetail() {
 
     // Build meta grid — only include visible fields
     let metaItems = '';
-    if (v('impact')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Impact</span><span class="detail-meta-value">${c.impact}</span></div>`;
-    if (v('category') && c.category) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Category</span><span class="detail-meta-value">${escapeHtml(c.category)}</span></div>`;
-    if (v('requester')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Requester</span><span class="detail-meta-value">${c.requester_name || 'Not set'}</span></div>`;
-    if (v('assigned_to')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Assigned To</span><span class="detail-meta-value">${c.assigned_to_name || 'Not set'}</span></div>`;
-    if (v('approver')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Approver</span><span class="detail-meta-value">${c.approver_name || 'Not set'}</span></div>`;
-    if (v('approver') && c.approval_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Approved</span><span class="detail-meta-value">${formatDateTime(c.approval_datetime)}</span></div>`;
-    if (v('work_start') && c.work_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Work Start</span><span class="detail-meta-value">${formatDateTime(c.work_start_datetime)}</span></div>`;
-    if (v('work_end') && c.work_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Work End</span><span class="detail-meta-value">${formatDateTime(c.work_end_datetime)}</span></div>`;
-    if (v('outage_start') && c.outage_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Outage Start</span><span class="detail-meta-value">${formatDateTime(c.outage_start_datetime)}</span></div>`;
-    if (v('outage_end') && c.outage_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Outage End</span><span class="detail-meta-value">${formatDateTime(c.outage_end_datetime)}</span></div>`;
-    if (v('risk') && c.risk_level) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Risk Level</span><span class="detail-meta-value"><span class="risk-badge risk-${c.risk_level.toLowerCase().replace(/\s+/g, '-')}">${c.risk_level} (${c.risk_score})</span></span></div>`;
-    metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Created</span><span class="detail-meta-value">${formatDateTime(c.created_datetime)}${c.created_by_name ? ' by ' + c.created_by_name : ''}</span></div>`;
-    metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">Last Modified</span><span class="detail-meta-value">${formatDateTime(c.modified_datetime)}</span></div>`;
+    if (v('impact')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.impact')}</span><span class="detail-meta-value">${c.impact}</span></div>`;
+    if (v('category') && c.category) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.category')}</span><span class="detail-meta-value">${escapeHtml(c.category)}</span></div>`;
+    if (v('requester')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.requester')}</span><span class="detail-meta-value">${c.requester_name || window.t('change-management.detail.not_set')}</span></div>`;
+    if (v('assigned_to')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.assigned_to')}</span><span class="detail-meta-value">${c.assigned_to_name || window.t('change-management.detail.not_set')}</span></div>`;
+    if (v('approver')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.approver')}</span><span class="detail-meta-value">${c.approver_name || window.t('change-management.detail.not_set')}</span></div>`;
+    if (v('approver') && c.approval_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.approved')}</span><span class="detail-meta-value">${formatDateTime(c.approval_datetime)}</span></div>`;
+    if (v('work_start') && c.work_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_start')}</span><span class="detail-meta-value">${formatDateTime(c.work_start_datetime)}</span></div>`;
+    if (v('work_end') && c.work_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_end')}</span><span class="detail-meta-value">${formatDateTime(c.work_end_datetime)}</span></div>`;
+    if (v('outage_start') && c.outage_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_start')}</span><span class="detail-meta-value">${formatDateTime(c.outage_start_datetime)}</span></div>`;
+    if (v('outage_end') && c.outage_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_end')}</span><span class="detail-meta-value">${formatDateTime(c.outage_end_datetime)}</span></div>`;
+    if (v('risk') && c.risk_level) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.risk_level')}</span><span class="detail-meta-value"><span class="risk-badge risk-${c.risk_level.toLowerCase().replace(/\s+/g, '-')}">${c.risk_level} (${c.risk_score})</span></span></div>`;
+    metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.created')}</span><span class="detail-meta-value">${c.created_by_name ? window.t('change-management.detail.created_by', { datetime: formatDateTime(c.created_datetime), name: c.created_by_name }) : formatDateTime(c.created_datetime)}</span></div>`;
+    metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.last_modified')}</span><span class="detail-meta-value">${formatDateTime(c.modified_datetime)}</span></div>`;
 
     // Build sticky header with buttons, title, badges, and meta grid
     let html = `
         <div class="change-detail-sticky-header">
             <div class="change-detail-header">
-                <button class="btn btn-secondary" onclick="backToList()">Back</button>
+                <button class="btn btn-secondary" onclick="backToList()">${window.t('change-management.detail.back')}</button>
                 <div class="change-detail-actions">
                     <div class="share-dropdown">
                         <button class="btn btn-share" onclick="toggleShareDropdown()">
@@ -535,7 +537,7 @@ function renderChangeDetail() {
                                 <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                 <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                             </svg>
-                            Share
+                            ${window.t('change-management.detail.share')}
                         </button>
                         <div class="share-dropdown-menu" id="shareDropdownMenu">
                             <a href="#" onclick="shareChangeLink(); return false;">
@@ -543,7 +545,7 @@ function renderChangeDetail() {
                                     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
                                     <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
                                 </svg>
-                                Copy Link
+                                ${window.t('change-management.detail.copy_link')}
                             </a>
                             <a href="#" onclick="shareChangePdf(); return false;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -553,19 +555,19 @@ function renderChangeDetail() {
                                     <line x1="16" y1="17" x2="8" y2="17"></line>
                                     <polyline points="10 9 9 9 8 9"></polyline>
                                 </svg>
-                                Export as PDF
+                                ${window.t('change-management.detail.export_pdf')}
                             </a>
                             <a href="#" onclick="shareChangeBoth(); return false;">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
                                     <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
                                 </svg>
-                                Email (Link + PDF)
+                                ${window.t('change-management.detail.email_link_pdf')}
                             </a>
                         </div>
                     </div>
-                    <button class="btn btn-primary" onclick="editCurrentChange()">Edit</button>
-                    <button class="btn btn-danger" onclick="deleteCurrentChange()">Delete</button>
+                    <button class="btn btn-primary" onclick="editCurrentChange()">${window.t('change-management.detail.edit')}</button>
+                    <button class="btn btn-danger" onclick="deleteCurrentChange()">${window.t('change-management.detail.delete')}</button>
                 </div>
             </div>
             <div class="sticky-header-top">
@@ -582,12 +584,12 @@ function renderChangeDetail() {
 
     // Detail sections — only include visible fields
     let sections = '';
-    if (v('description')) sections += renderDetailSection('Description', c.description);
-    if (v('reason')) sections += renderDetailSection('Reason for Change', c.reason_for_change);
-    if (v('risk')) sections += renderDetailSection('Risk Evaluation', c.risk_evaluation);
-    if (v('testplan')) sections += renderDetailSection('Test Plan', c.test_plan);
-    if (v('rollback')) sections += renderDetailSection('Rollback Plan', c.rollback_plan);
-    if (v('pir')) sections += renderDetailSection('Post-Implementation Review', c.post_implementation_review);
+    if (v('description')) sections += renderDetailSection(window.t('change-management.detail.description'), c.description);
+    if (v('reason')) sections += renderDetailSection(window.t('change-management.detail.reason'), c.reason_for_change);
+    if (v('risk')) sections += renderDetailSection(window.t('change-management.detail.risk_eval'), c.risk_evaluation);
+    if (v('testplan')) sections += renderDetailSection(window.t('change-management.detail.test_plan'), c.test_plan);
+    if (v('rollback')) sections += renderDetailSection(window.t('change-management.detail.rollback_plan'), c.rollback_plan);
+    if (v('pir')) sections += renderDetailSection(window.t('change-management.detail.pir'), c.post_implementation_review);
 
     if (sections) html += `<div class="detail-sections">${sections}</div>`;
 
@@ -605,7 +607,7 @@ function renderChangeDetail() {
     if (v('attachments') && c.attachments && c.attachments.length) {
         html += `
             <div class="attachments-section">
-                <h3>Attachments (${c.attachments.length})</h3>
+                <h3>${window.t('change-management.detail.attachments', { count: c.attachments.length })}</h3>
                 <div class="attachment-list">
                     ${c.attachments.map(a => `
                         <div class="attachment-item">
@@ -615,7 +617,7 @@ function renderChangeDetail() {
                                 <span class="attachment-size">${formatFileSize(a.file_size)}</span>
                             </div>
                             <div class="attachment-actions">
-                                <button onclick="downloadAttachment(${a.id})" title="Download">&#8595;</button>
+                                <button onclick="downloadAttachment(${a.id})" title="${window.t('change-management.detail.download')}">&#8595;</button>
                             </div>
                         </div>
                     `).join('')}
@@ -627,10 +629,10 @@ function renderChangeDetail() {
     // Activity section (comments + audit trail)
     html += `
         <div class="activity-section">
-            <h3>Activity</h3>
+            <h3>${window.t('change-management.detail.activity')}</h3>
             <div class="comment-input-area">
-                <textarea class="form-input" id="commentInput" rows="2" placeholder="Add a comment..."></textarea>
-                <button class="btn btn-primary btn-sm" onclick="postComment()">Post</button>
+                <textarea class="form-input" id="commentInput" rows="2" placeholder="${window.t('change-management.detail.add_comment')}"></textarea>
+                <button class="btn btn-primary btn-sm" onclick="postComment()">${window.t('change-management.detail.post')}</button>
             </div>
             <div class="activity-timeline" id="activityTimeline">
                 <div class="loading"><div class="spinner"></div></div>
@@ -649,7 +651,7 @@ function renderDetailSection(title, content) {
         return `
             <div class="detail-section">
                 <h3>${title}</h3>
-                <div class="detail-section-body"><span class="detail-section-empty">Not provided</span></div>
+                <div class="detail-section-body"><span class="detail-section-empty">${window.t('change-management.detail.not_provided')}</span></div>
             </div>
         `;
     }
@@ -694,7 +696,7 @@ function renderRiskMatrix(likelihood, impact, score, level) {
 
     return `
         <div class="risk-matrix-section">
-            <h3>Risk Assessment</h3>
+            <h3>${window.t('change-management.risk.assessment')}</h3>
             <div class="risk-matrix-wrapper">
                 <div class="risk-matrix-info">
                     <div class="risk-score-badge ${riskClass}">
@@ -702,12 +704,12 @@ function renderRiskMatrix(likelihood, impact, score, level) {
                         <span class="risk-score-label">${level}</span>
                     </div>
                     <div class="risk-matrix-details">
-                        <div><strong>Likelihood:</strong> ${likelihood} / 5</div>
-                        <div><strong>Impact:</strong> ${impact} / 5</div>
+                        <div><strong>${window.t('change-management.risk.likelihood')}:</strong> ${likelihood} / 5</div>
+                        <div><strong>${window.t('change-management.risk.impact')}:</strong> ${impact} / 5</div>
                     </div>
                 </div>
                 <div class="risk-matrix-grid-container">
-                    <div class="risk-matrix-y-label">Likelihood</div>
+                    <div class="risk-matrix-y-label">${window.t('change-management.risk.likelihood')}</div>
                     <div class="risk-matrix-grid">
                         ${gridHtml}
                         <div class="risk-matrix-spacer"></div>
@@ -717,7 +719,7 @@ function renderRiskMatrix(likelihood, impact, score, level) {
                         <div class="risk-matrix-label-x">4</div>
                         <div class="risk-matrix-label-x">5</div>
                     </div>
-                    <div class="risk-matrix-x-label">Impact</div>
+                    <div class="risk-matrix-x-label">${window.t('change-management.risk.impact')}</div>
                 </div>
             </div>
         </div>
@@ -727,26 +729,26 @@ function renderRiskMatrix(likelihood, impact, score, level) {
 // ============ PIR Detail ============
 
 function renderPirDetail(c) {
-    let html = '<div class="pir-detail-section"><h3>Post-Implementation Review</h3><div class="pir-detail-grid">';
+    let html = `<div class="pir-detail-section"><h3>${window.t('change-management.pir.heading')}</h3><div class="pir-detail-grid">`;
 
     if (c.pir_was_successful !== null && c.pir_was_successful !== '') {
-        const successText = parseInt(c.pir_was_successful) === 1 ? 'Yes' : 'No';
+        const successText = parseInt(c.pir_was_successful) === 1 ? window.t('change-management.pir.yes') : window.t('change-management.pir.no');
         const successClass = parseInt(c.pir_was_successful) === 1 ? 'pir-success' : 'pir-fail';
-        html += `<div class="detail-meta-item"><span class="detail-meta-label">Successful</span><span class="detail-meta-value ${successClass}">${successText}</span></div>`;
+        html += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.pir.successful')}</span><span class="detail-meta-value ${successClass}">${successText}</span></div>`;
     }
     if (c.pir_actual_start) {
-        html += `<div class="detail-meta-item"><span class="detail-meta-label">Actual Start</span><span class="detail-meta-value">${formatDateTime(c.pir_actual_start)}</span></div>`;
+        html += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.pir.actual_start')}</span><span class="detail-meta-value">${formatDateTime(c.pir_actual_start)}</span></div>`;
     }
     if (c.pir_actual_end) {
-        html += `<div class="detail-meta-item"><span class="detail-meta-label">Actual End</span><span class="detail-meta-value">${formatDateTime(c.pir_actual_end)}</span></div>`;
+        html += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.pir.actual_end')}</span><span class="detail-meta-value">${formatDateTime(c.pir_actual_end)}</span></div>`;
     }
     html += '</div>';
 
     if (c.pir_lessons_learned) {
-        html += `<div class="pir-text-block"><strong>Lessons Learned</strong><p>${escapeHtml(c.pir_lessons_learned)}</p></div>`;
+        html += `<div class="pir-text-block"><strong>${window.t('change-management.pir.lessons')}</strong><p>${escapeHtml(c.pir_lessons_learned)}</p></div>`;
     }
     if (c.pir_follow_up) {
-        html += `<div class="pir-text-block"><strong>Follow-up Actions</strong><p>${escapeHtml(c.pir_follow_up)}</p></div>`;
+        html += `<div class="pir-text-block"><strong>${window.t('change-management.pir.follow_up')}</strong><p>${escapeHtml(c.pir_follow_up)}</p></div>`;
     }
 
     html += '</div>';
@@ -772,7 +774,7 @@ async function loadActivityTimeline(changeId) {
         const auditEntries = (auditData.success ? auditData.entries : []).map(e => ({
             type: 'audit',
             datetime: e.created_datetime,
-            analyst: e.analyst_name || 'System',
+            analyst: e.analyst_name || 'System', // data value (analyst display name fallback)
             action_type: e.action_type,
             field_name: e.field_name,
             old_value: e.old_value,
@@ -794,13 +796,13 @@ async function loadActivityTimeline(changeId) {
         renderActivityTimeline(timeline, container);
     } catch (error) {
         console.error('Error loading activity:', error);
-        container.innerHTML = '<div class="timeline-empty">Error loading activity</div>';
+        container.innerHTML = `<div class="timeline-empty">${window.t('change-management.detail.activity_error')}</div>`;
     }
 }
 
 function renderActivityTimeline(timeline, container) {
     if (!timeline.length) {
-        container.innerHTML = '<div class="timeline-empty">No activity yet</div>';
+        container.innerHTML = `<div class="timeline-empty">${window.t('change-management.detail.no_activity')}</div>`;
         return;
     }
 
@@ -811,7 +813,7 @@ function renderActivityTimeline(timeline, container) {
                     <div class="timeline-icon comment-icon">&#128172;</div>
                     <div class="timeline-content">
                         <div class="timeline-header">
-                            <strong>${escapeHtml(entry.analyst)}</strong> commented
+                            <strong>${escapeHtml(entry.analyst)}</strong> ${window.t('change-management.detail.commented')}
                             <span class="timeline-date">${formatDateTime(entry.datetime)}</span>
                         </div>
                         <div class="timeline-body">${escapeHtml(entry.text)}</div>
@@ -822,7 +824,10 @@ function renderActivityTimeline(timeline, container) {
             // Audit entry
             let description = '';
             if (entry.action_type === 'status_change') {
-                description = `changed <strong>Status</strong> from <span class="old-val">${escapeHtml(entry.old_value || '')}</span> to <span class="new-val">${escapeHtml(entry.new_value || '')}</span>`;
+                description = window.t('change-management.detail.changed_status', {
+                    old: escapeHtml(entry.old_value || ''),
+                    new: escapeHtml(entry.new_value || '')
+                });
             } else if (entry.action_type === 'comment') {
                 return ''; // Already shown as comment entry
             } else if (entry.action_type === 'cab_vote') {
@@ -864,7 +869,7 @@ async function postComment() {
     const input = document.getElementById('commentInput');
     const text = input.value.trim();
     if (!text) {
-        showToast('Please enter a comment', 'success');
+        showToast(window.t('change-management.toast.comment_empty'), 'success');
         return;
     }
 
@@ -878,13 +883,13 @@ async function postComment() {
 
         if (data.success) {
             input.value = '';
-            showToast('Comment added', 'success');
+            showToast(window.t('change-management.toast.comment_added'), 'success');
             loadActivityTimeline(currentChange.id);
         } else {
-            showToast('Error: ' + data.error, 'success');
+            showToast(window.t('change-management.toast.error_prefix', { message: data.error }), 'success');
         }
     } catch (error) {
-        showToast('Error posting comment', 'success');
+        showToast(window.t('change-management.toast.comment_error'), 'success');
     }
 }
 
@@ -958,7 +963,7 @@ async function performSearch() {
     const title = document.getElementById('searchChangeTitle').value.trim();
 
     if (!changeNumber && !title) {
-        showToast('Please enter at least one search criterion', 'error');
+        showToast(window.t('change-management.search.need_criterion'), 'error');
         return;
     }
 
@@ -990,11 +995,11 @@ async function performSearch() {
 
             renderSearchResults(results);
         } else {
-            resultsContainer.innerHTML = '<div class="search-results-empty">Error: ' + (data.error || 'Unknown') + '</div>';
+            resultsContainer.innerHTML = `<div class="search-results-empty">${window.t('change-management.search.error', { message: data.error || 'Unknown' })}</div>`;
         }
     } catch (e) {
         console.error(e);
-        resultsContainer.innerHTML = '<div class="search-results-empty">Search failed</div>';
+        resultsContainer.innerHTML = `<div class="search-results-empty">${window.t('change-management.search.failed')}</div>`;
     }
 }
 
@@ -1002,11 +1007,13 @@ function renderSearchResults(results) {
     const container = document.getElementById('searchResults');
 
     if (!results || results.length === 0) {
-        container.innerHTML = '<div class="search-results-empty">No changes found</div>';
+        container.innerHTML = `<div class="search-results-empty">${window.t('change-management.search.no_results')}</div>`;
         return;
     }
 
-    let html = '<div class="search-results-count">' + results.length + ' change' + (results.length === 1 ? '' : 's') + ' found</div>';
+    let html = '<div class="search-results-count">' + (results.length === 1
+        ? window.t('change-management.search.count', { count: results.length })
+        : window.t('change-management.search.count_plural', { count: results.length })) + '</div>';
 
     results.forEach(c => {
         const ref = 'CHG-' + String(c.id).padStart(4, '0');
@@ -1034,14 +1041,14 @@ function selectSearchResult(changeId) {
 function clearSearch() {
     document.getElementById('searchChangeNumber').value = '';
     document.getElementById('searchChangeTitle').value = '';
-    document.getElementById('searchResults').innerHTML = '<div class="search-results-empty">Enter search criteria above</div>';
+    document.getElementById('searchResults').innerHTML = `<div class="search-results-empty">${window.t('change-management.search.empty')}</div>`;
 }
 
 // ============ Create / Edit ============
 
 function openCreateChange() {
     document.getElementById('editChangeId').value = '';
-    document.getElementById('editorTitle').textContent = 'New change';
+    document.getElementById('editorTitle').textContent = window.t('change-management.editor.new');
     document.getElementById('changeTitle').value = '';
     document.getElementById('changeType').value = 'Normal';
     // Prefer the status flagged as default in change_statuses; fall back to
@@ -1098,7 +1105,7 @@ function editCurrentChange() {
     const c = currentChange;
 
     document.getElementById('editChangeId').value = c.id;
-    document.getElementById('editorTitle').textContent = 'Edit change - CHG-' + String(c.id).padStart(4, '0');
+    document.getElementById('editorTitle').textContent = window.t('change-management.editor.edit', { ref: String(c.id).padStart(4, '0') });
     document.getElementById('changeTitle').value = c.title || '';
     document.getElementById('changeType').value = c.change_type || 'Normal';
     document.getElementById('changeStatus').value = c.status || 'Draft';
@@ -1182,7 +1189,7 @@ function restoreUrlFromNewRoute() {
 async function saveChange() {
     const title = document.getElementById('changeTitle').value.trim();
     if (!title) {
-        showToast('Title is required', 'success');
+        showToast(window.t('change-management.toast.title_required'), 'success');
         return;
     }
 
@@ -1244,7 +1251,7 @@ async function saveChange() {
                 });
             }
 
-            showToast('Change saved successfully', 'success');
+            showToast(window.t('change-management.toast.change_saved'), 'success');
             destroyEditors();
             // If we came in via /change-management/new/, drop the create-route
             // path now the change is saved — viewChange() will show the detail
@@ -1254,11 +1261,11 @@ async function saveChange() {
             await loadChanges();
             await viewChange(data.change_id);
         } else {
-            showToast('Error: ' + data.error, 'success');
+            showToast(window.t('change-management.toast.error_prefix', { message: data.error }), 'success');
         }
     } catch (error) {
         console.error('Error saving change:', error);
-        showToast('Error saving change', 'success');
+        showToast(window.t('change-management.toast.error_saving'), 'success');
     }
 }
 
@@ -1271,11 +1278,11 @@ function deleteCurrentChange() {
     document.getElementById('deleteModal').innerHTML = `
         <div class="modal-overlay" onclick="closeDeleteModal()">
             <div class="modal-box" onclick="event.stopPropagation()">
-                <h3>Delete Change</h3>
-                <p>Are you sure you want to delete <strong>${ref} - ${escapeHtml(currentChange.title)}</strong>? This cannot be undone.</p>
+                <h3>${window.t('change-management.delete.heading')}</h3>
+                <p>${window.t('change-management.delete.confirm', { ref: ref, title: escapeHtml(currentChange.title) })}</p>
                 <div class="modal-box-actions">
-                    <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                    <button class="btn btn-danger" onclick="confirmDelete(${currentChange.id})">Delete</button>
+                    <button class="btn btn-secondary" onclick="closeDeleteModal()">${window.t('change-management.delete.cancel')}</button>
+                    <button class="btn btn-danger" onclick="confirmDelete(${currentChange.id})">${window.t('change-management.delete.delete')}</button>
                 </div>
             </div>
         </div>
@@ -1296,16 +1303,16 @@ async function confirmDelete(id) {
         const data = await response.json();
 
         if (data.success) {
-            showToast('Change deleted', 'success');
+            showToast(window.t('change-management.toast.change_deleted'), 'success');
             closeDeleteModal();
             currentChange = null;
             showView('list');
             loadChanges();
         } else {
-            showToast('Error: ' + data.error, 'success');
+            showToast(window.t('change-management.toast.error_prefix', { message: data.error }), 'success');
         }
     } catch (error) {
-        showToast('Error deleting change', 'success');
+        showToast(window.t('change-management.toast.error_deleting'), 'success');
     }
 }
 
@@ -1345,7 +1352,7 @@ function setupFileUpload() {
 async function uploadFiles(files) {
     const changeId = document.getElementById('editChangeId').value;
     if (!changeId) {
-        showToast('Please save the change first before uploading attachments', 'success');
+        showToast(window.t('change-management.toast.save_first'), 'success');
         return;
     }
 
@@ -1362,7 +1369,7 @@ async function uploadFiles(files) {
             const data = await response.json();
 
             if (data.success) {
-                showToast('File uploaded: ' + file.name, 'success');
+                showToast(window.t('change-management.toast.file_uploaded', { name: file.name }), 'success');
                 // Refresh the change to get updated attachments
                 const refreshResp = await fetch(API_BASE + 'get.php?id=' + changeId);
                 const refreshData = await refreshResp.json();
@@ -1371,10 +1378,10 @@ async function uploadFiles(files) {
                     renderEditorAttachments(currentChange.attachments || []);
                 }
             } else {
-                showToast('Upload failed: ' + data.error, 'success');
+                showToast(window.t('change-management.toast.upload_failed', { message: data.error }), 'success');
             }
         } catch (error) {
-            showToast('Upload error: ' + file.name, 'success');
+            showToast(window.t('change-management.toast.upload_error', { name: file.name }), 'success');
         }
     }
 }
@@ -1394,8 +1401,8 @@ function renderEditorAttachments(attachments) {
                 <span class="attachment-size">${formatFileSize(a.file_size)}</span>
             </div>
             <div class="attachment-actions">
-                <button onclick="downloadAttachment(${a.id})" title="Download">&#8595;</button>
-                <button class="delete-btn" onclick="deleteAttachment(${a.id})" title="Delete">&#10005;</button>
+                <button onclick="downloadAttachment(${a.id})" title="${window.t('change-management.detail.download')}">&#8595;</button>
+                <button class="delete-btn" onclick="deleteAttachment(${a.id})" title="${window.t('change-management.detail.delete_attachment')}">&#10005;</button>
             </div>
         </div>
     `).join('');
@@ -1406,7 +1413,7 @@ function downloadAttachment(id) {
 }
 
 async function deleteAttachment(id) {
-    if (!(await showConfirm({ title: 'Delete', message: 'Delete this attachment?', okLabel: 'Delete', okClass: 'danger' }))) return;
+    if (!(await showConfirm({ title: window.t('change-management.delete.delete'), message: window.t('change-management.delete.attachment_confirm'), okLabel: window.t('change-management.delete.delete'), okClass: 'danger' }))) return;
 
     try {
         const response = await fetch(API_BASE + 'delete_attachment.php', {
@@ -1417,7 +1424,7 @@ async function deleteAttachment(id) {
         const data = await response.json();
 
         if (data.success) {
-            showToast('Attachment deleted', 'success');
+            showToast(window.t('change-management.toast.attachment_deleted'), 'success');
             // Refresh attachments
             const changeId = document.getElementById('editChangeId').value;
             if (changeId) {
@@ -1429,10 +1436,10 @@ async function deleteAttachment(id) {
                 }
             }
         } else {
-            showToast('Error: ' + data.error, 'success');
+            showToast(window.t('change-management.toast.error_prefix', { message: data.error }), 'success');
         }
     } catch (error) {
-        showToast('Error deleting attachment', 'success');
+        showToast(window.t('change-management.toast.attachment_error'), 'success');
     }
 }
 
@@ -1544,7 +1551,7 @@ function addCabMember() {
 
     // Check if already added
     if (cabEditorMembers.some(m => m.analyst_id === analystId)) {
-        showToast('Already added', 'success');
+        showToast(window.t('change-management.toast.already_added'), 'success');
         return;
     }
 
@@ -1572,17 +1579,17 @@ function renderCabMemberChips() {
     if (!container) return;
 
     if (!cabEditorMembers.length) {
-        container.innerHTML = '<div style="color: #999; font-size: 13px; padding: 8px 0;">No CAB members added</div>';
+        container.innerHTML = `<div style="color: #999; font-size: 13px; padding: 8px 0;">${window.t('change-management.cab.no_members')}</div>`;
         return;
     }
 
     container.innerHTML = cabEditorMembers.map(m => `
         <div class="cab-member-chip">
             <span class="cab-member-name">${escapeHtml(m.name)}</span>
-            <button type="button" class="cab-member-toggle ${m.is_required ? 'required' : 'optional'}" onclick="toggleCabMemberRequired(${m.analyst_id})" title="Toggle required/optional">
-                ${m.is_required ? 'Required' : 'Optional'}
+            <button type="button" class="cab-member-toggle ${m.is_required ? 'required' : 'optional'}" onclick="toggleCabMemberRequired(${m.analyst_id})" title="${window.t('change-management.cab.toggle_required')}">
+                ${m.is_required ? window.t('change-management.cab.required') : window.t('change-management.cab.optional')}
             </button>
-            <button type="button" class="cab-member-remove" onclick="removeCabMember(${m.analyst_id})" title="Remove">&times;</button>
+            <button type="button" class="cab-member-remove" onclick="removeCabMember(${m.analyst_id})" title="${window.t('change-management.cab.remove')}">&times;</button>
         </div>
     `).join('');
 }
@@ -1595,7 +1602,7 @@ function renderCabReviewPanel(c) {
     const members = c.cab_members;
     const requiredMembers = members.filter(m => parseInt(m.is_required));
     const requiredApproved = requiredMembers.filter(m => m.vote === 'Approve').length;
-    const approvalType = c.cab_approval_type === 'majority' ? 'Majority' : 'All must approve';
+    const approvalType = c.cab_approval_type === 'majority' ? window.t('change-management.cab.type_majority') : window.t('change-management.cab.type_all');
     const currentAnalystId = parseInt(document.body.dataset.analystId) || 0;
     const myMembership = members.find(m => parseInt(m.analyst_id) === currentAnalystId);
     const canVote = myMembership && !myMembership.vote && c.status === 'Pending Approval';
@@ -1603,9 +1610,9 @@ function renderCabReviewPanel(c) {
     let html = `
         <div class="cab-review-section">
             <div class="cab-review-header">
-                <h3>CAB Review</h3>
+                <h3>${window.t('change-management.cab.review')}</h3>
                 <div class="cab-review-meta">
-                    <span class="cab-progress-badge">${requiredApproved} of ${requiredMembers.length} required</span>
+                    <span class="cab-progress-badge">${window.t('change-management.cab.progress', { approved: requiredApproved, total: requiredMembers.length })}</span>
                     <span class="cab-approval-type">${approvalType}</span>
                 </div>
             </div>
@@ -1615,13 +1622,13 @@ function renderCabReviewPanel(c) {
     members.forEach(m => {
         const isReq = parseInt(m.is_required);
         const voteClass = m.vote ? m.vote.toLowerCase() : 'pending';
-        const voteLabel = m.vote || 'Pending';
+        const voteLabel = m.vote || window.t('change-management.cab.pending');
 
         html += `
             <div class="cab-member-card vote-${voteClass}">
                 <div class="cab-member-card-header">
                     <span class="cab-member-card-name">${escapeHtml(m.analyst_name || 'Unknown')}</span>
-                    <span class="cab-member-badge ${isReq ? 'required' : 'optional'}">${isReq ? 'Required' : 'Optional'}</span>
+                    <span class="cab-member-badge ${isReq ? 'required' : 'optional'}">${isReq ? window.t('change-management.cab.required') : window.t('change-management.cab.optional')}</span>
                 </div>
                 <div class="cab-member-card-vote">
                     <span class="cab-vote-status vote-${voteClass}">${voteLabel}</span>
@@ -1638,11 +1645,11 @@ function renderCabReviewPanel(c) {
     if (canVote) {
         html += `
             <div class="cab-vote-form">
-                <textarea class="form-input" id="cabVoteComment" rows="2" placeholder="Add a comment with your vote (optional)"></textarea>
+                <textarea class="form-input" id="cabVoteComment" rows="2" placeholder="${window.t('change-management.cab.vote_placeholder')}"></textarea>
                 <div class="cab-vote-buttons">
-                    <button class="btn cab-btn-approve" onclick="submitCabVote('Approve')">Approve</button>
-                    <button class="btn cab-btn-reject" onclick="submitCabVote('Reject')">Reject</button>
-                    <button class="btn cab-btn-abstain" onclick="submitCabVote('Abstain')">Abstain</button>
+                    <button class="btn cab-btn-approve" onclick="submitCabVote('Approve')">${window.t('change-management.cab.approve')}</button>
+                    <button class="btn cab-btn-reject" onclick="submitCabVote('Reject')">${window.t('change-management.cab.reject')}</button>
+                    <button class="btn cab-btn-abstain" onclick="submitCabVote('Abstain')">${window.t('change-management.cab.abstain')}</button>
                 </div>
             </div>
         `;
@@ -1670,17 +1677,17 @@ async function submitCabVote(vote) {
         const data = await response.json();
 
         if (data.success) {
-            showToast('Vote recorded: ' + vote, 'success');
+            showToast(window.t('change-management.toast.vote_recorded', { vote: vote }), 'success');
             // Refresh the change detail
             await viewChange(currentChange.id);
             if (data.status_changed) {
                 loadChanges();
             }
         } else {
-            showToast('Error: ' + data.error, 'success');
+            showToast(window.t('change-management.toast.error_prefix', { message: data.error }), 'success');
         }
     } catch (error) {
-        showToast('Error submitting vote', 'success');
+        showToast(window.t('change-management.toast.vote_error'), 'success');
     }
 }
 
@@ -1782,7 +1789,7 @@ function shareChangeLink() {
 
     const url = getChangeUrl();
     navigator.clipboard.writeText(url).then(() => {
-        showToast('Link copied to clipboard!', 'success');
+        showToast(window.t('change-management.toast.link_copied'), 'success');
     }).catch(() => {
         // Fallback for older browsers
         const input = document.createElement('input');
@@ -1791,7 +1798,7 @@ function shareChangeLink() {
         input.select();
         document.execCommand('copy');
         document.body.removeChild(input);
-        showToast('Link copied to clipboard!', 'success');
+        showToast(window.t('change-management.toast.link_copied'), 'success');
     });
 }
 
@@ -1838,12 +1845,12 @@ async function sendShareEmail() {
     const includePdf = document.getElementById('shareIncludePdf').checked;
 
     if (!toEmail) {
-        showToast('Please enter a recipient email address', 'error');
+        showToast(window.t('change-management.toast.email_recipient_required'), 'error');
         return;
     }
 
     if (!includeLink && !includePdf) {
-        showToast('Please select at least one option to include', 'error');
+        showToast(window.t('change-management.toast.email_select_one'), 'error');
         return;
     }
 
@@ -1867,7 +1874,7 @@ async function sendShareEmail() {
             pdfBase64 = await blobToBase64(pdfBlob);
         } catch (error) {
             console.error('Error generating PDF:', error);
-            showToast('Error generating PDF. Please try again.', 'error');
+            showToast(window.t('change-management.toast.pdf_error'), 'error');
             return;
         }
     }
@@ -1892,13 +1899,13 @@ async function sendShareEmail() {
 
         if (data.success) {
             closeShareEmailModal();
-            showToast('Email sent successfully!', 'success');
+            showToast(window.t('change-management.toast.email_sent'), 'success');
         } else {
-            showToast('Error: ' + data.error, 'error');
+            showToast(window.t('change-management.toast.error_prefix', { message: data.error }), 'error');
         }
     } catch (error) {
         console.error('Error sending email:', error);
-        showToast('Error sending email: ' + error.message, 'error');
+        showToast(window.t('change-management.toast.email_error', { message: error.message }), 'error');
     }
 }
 
@@ -1925,54 +1932,54 @@ function buildPdfContent() {
 
             <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 25%;"><strong>Status</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 25%;"><strong>${window.t('change-management.pdf.status')}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.status}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 25%;"><strong>Change Type</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9; width: 25%;"><strong>${window.t('change-management.pdf.change_type')}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.change_type}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Priority</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.priority')}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.priority}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Impact</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.impact')}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;">${c.impact}</td>
                 </tr>
                 ${c.category ? `<tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Category</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.category')}</strong></td>
                     <td style="padding: 8px; border: 1px solid #ddd;" colspan="3">${escapeHtml(c.category)}</td>
                 </tr>` : ''}
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Requester</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.requester_name || 'Not set'}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Assigned To</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.assigned_to_name || 'Not set'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.requester')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.requester_name || window.t('change-management.pdf.not_set')}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.assigned_to')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.assigned_to_name || window.t('change-management.pdf.not_set')}</td>
                 </tr>
                 <tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Approver</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;" colspan="3">${c.approver_name || 'Not set'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.approver')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;" colspan="3">${c.approver_name || window.t('change-management.pdf.not_set')}</td>
                 </tr>
                 ${c.work_start_datetime || c.work_end_datetime ? `<tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Work Start</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.work_start_datetime ? formatDateTime(c.work_start_datetime) : 'Not set'}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Work End</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.work_end_datetime ? formatDateTime(c.work_end_datetime) : 'Not set'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.work_start')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.work_start_datetime ? formatDateTime(c.work_start_datetime) : window.t('change-management.pdf.not_set')}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.work_end')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.work_end_datetime ? formatDateTime(c.work_end_datetime) : window.t('change-management.pdf.not_set')}</td>
                 </tr>` : ''}
                 ${c.outage_start_datetime || c.outage_end_datetime ? `<tr>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Outage Start</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_start_datetime ? formatDateTime(c.outage_start_datetime) : 'Not set'}</td>
-                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>Outage End</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_end_datetime ? formatDateTime(c.outage_end_datetime) : 'Not set'}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.outage_start')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_start_datetime ? formatDateTime(c.outage_start_datetime) : window.t('change-management.pdf.not_set')}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.outage_end')}</strong></td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_end_datetime ? formatDateTime(c.outage_end_datetime) : window.t('change-management.pdf.not_set')}</td>
                 </tr>` : ''}
             </table>
     `;
 
     // Add detail sections
     const sections = [
-        { title: 'Description', content: c.description },
-        { title: 'Reason for Change', content: c.reason_for_change },
-        { title: 'Risk Evaluation', content: c.risk_evaluation },
-        { title: 'Test Plan', content: c.test_plan },
-        { title: 'Rollback Plan', content: c.rollback_plan },
-        { title: 'Post-Implementation Review', content: c.post_implementation_review }
+        { title: window.t('change-management.pdf.description'), content: c.description },
+        { title: window.t('change-management.pdf.reason'), content: c.reason_for_change },
+        { title: window.t('change-management.pdf.risk_eval'), content: c.risk_evaluation },
+        { title: window.t('change-management.pdf.test_plan'), content: c.test_plan },
+        { title: window.t('change-management.pdf.rollback_plan'), content: c.rollback_plan },
+        { title: window.t('change-management.pdf.pir'), content: c.post_implementation_review }
     ];
 
     sections.forEach(section => {
@@ -1987,8 +1994,8 @@ function buildPdfContent() {
     html += `
             <hr style="border: none; border-top: 1px solid #ddd; margin: 30px 0 15px 0;">
             <p style="font-size: 11px; color: #888;">
-                Created: ${formatDateTime(c.created_datetime)}${c.created_by_name ? ' by ' + c.created_by_name : ''}<br>
-                Last Modified: ${formatDateTime(c.modified_datetime)}
+                ${c.created_by_name ? window.t('change-management.pdf.created_by', { datetime: formatDateTime(c.created_datetime), name: c.created_by_name }) : window.t('change-management.pdf.created', { datetime: formatDateTime(c.created_datetime) })}<br>
+                ${window.t('change-management.pdf.last_modified', { datetime: formatDateTime(c.modified_datetime) })}
             </p>
         </div>
     `;

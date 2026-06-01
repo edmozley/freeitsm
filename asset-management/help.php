@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -12,14 +14,17 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'help';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'asset-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Asset Management Guide</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('asset-management.help.page_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <style>
         .am-help-container {
             display: flex;
@@ -439,42 +444,42 @@ $path_prefix = '../';
     <div class="am-help-container">
         <!-- Left pane navigation -->
         <div class="am-help-sidebar">
-            <h3>Guide</h3>
+            <h3><?php echo htmlspecialchars(t('asset-management.help.guide')); ?></h3>
             <a href="#overview" class="am-help-nav-link active" data-section="overview">
                 <span class="am-help-nav-num">1</span>
-                Overview
+                <?php echo htmlspecialchars(t('asset-management.help.nav_overview')); ?>
             </a>
             <a href="#asset-detail" class="am-help-nav-link" data-section="asset-detail">
                 <span class="am-help-nav-num">2</span>
-                Asset detail view
+                <?php echo htmlspecialchars(t('asset-management.help.nav_asset_detail')); ?>
             </a>
             <a href="#table-view" class="am-help-nav-link" data-section="table-view">
                 <span class="am-help-nav-num">3</span>
-                Table view
+                <?php echo htmlspecialchars(t('asset-management.help.nav_table_view')); ?>
             </a>
             <a href="#inventory-script" class="am-help-nav-link" data-section="inventory-script">
                 <span class="am-help-nav-num">4</span>
-                Inventory script
+                <?php echo htmlspecialchars(t('asset-management.help.nav_inventory_script')); ?>
             </a>
             <a href="#what-gets-collected" class="am-help-nav-link" data-section="what-gets-collected">
                 <span class="am-help-nav-num">5</span>
-                What gets collected
+                <?php echo htmlspecialchars(t('asset-management.help.nav_what_collected')); ?>
             </a>
             <a href="#deployment" class="am-help-nav-link" data-section="deployment">
                 <span class="am-help-nav-num">6</span>
-                Deploying at scale
+                <?php echo htmlspecialchars(t('asset-management.help.nav_deployment')); ?>
             </a>
             <a href="#servers" class="am-help-nav-link" data-section="servers">
                 <span class="am-help-nav-num">7</span>
-                Servers &amp; vCenter
+                <?php echo htmlspecialchars(t('asset-management.help.nav_servers')); ?>
             </a>
             <a href="#dashboard" class="am-help-nav-link" data-section="dashboard">
                 <span class="am-help-nav-num">8</span>
-                Dashboard
+                <?php echo htmlspecialchars(t('asset-management.help.nav_dashboard')); ?>
             </a>
             <a href="#tips" class="am-help-nav-link" data-section="tips">
                 <span class="am-help-nav-num">9</span>
-                Quick tips
+                <?php echo htmlspecialchars(t('asset-management.help.nav_tips')); ?>
             </a>
         </div>
 
@@ -482,8 +487,8 @@ $path_prefix = '../';
         <div class="am-help-main" id="helpMain">
             <!-- Hero banner -->
             <div class="am-help-hero">
-                <h2>Asset management guide</h2>
-                <p>Discover, track, and manage every device in your estate &mdash; from laptops to servers.</p>
+                <h2><?php echo htmlspecialchars(t('asset-management.help.hero_title')); ?></h2>
+                <p><?php echo t('asset-management.help.hero_subtitle'); ?></p>
             </div>
 
             <div class="am-help-content">
@@ -493,8 +498,8 @@ $path_prefix = '../';
                     <div class="am-help-section-header">
                         <span class="am-help-section-num">1</span>
                         <div>
-                            <h3>Overview</h3>
-                            <p>Asset Management gives you a complete inventory of your IT estate. Windows machines report in automatically using a PowerShell script, and VMware virtual machines sync from vCenter. Everything lands in one place where you can search, assign users, and build dashboards.</p>
+                            <h3><?php echo htmlspecialchars(t('asset-management.help.nav_overview')); ?></h3>
+                            <p><?php echo htmlspecialchars(t('asset-management.help.overview_intro')); ?></p>
                         </div>
                     </div>
                     <div class="am-help-features-grid">
@@ -502,29 +507,29 @@ $path_prefix = '../';
                             <div class="am-help-feature-icon green">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
                             </div>
-                            <h4>Assets</h4>
-                            <p>Browse and search every discovered machine. Click any asset to see its hardware, storage, devices, and installed software at a glance.</p>
+                            <h4><?php echo htmlspecialchars(t('asset-management.help.card_assets_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('asset-management.help.card_assets_desc')); ?></p>
                         </div>
                         <div class="am-help-feature-card">
                             <div class="am-help-feature-icon blue">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
                             </div>
-                            <h4>Dashboard</h4>
-                            <p>Build your own dashboard from 13+ chart types &mdash; OS distribution, manufacturer breakdown, memory tiers, and more. Each analyst has their own layout.</p>
+                            <h4><?php echo htmlspecialchars(t('asset-management.help.card_dashboard_title')); ?></h4>
+                            <p><?php echo t('asset-management.help.card_dashboard_desc'); ?></p>
                         </div>
                         <div class="am-help-feature-card">
                             <div class="am-help-feature-icon orange">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg>
                             </div>
-                            <h4>Servers</h4>
-                            <p>Connect to VMware vCenter and sync your entire virtual estate. View VM details, host placement, storage, and network configuration.</p>
+                            <h4><?php echo htmlspecialchars(t('asset-management.help.card_servers_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('asset-management.help.card_servers_desc')); ?></p>
                         </div>
                         <div class="am-help-feature-card">
                             <div class="am-help-feature-icon purple">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                             </div>
-                            <h4>User assignment</h4>
-                            <p>Assign users to assets so you always know who has which device. Reassignments are logged in the audit trail.</p>
+                            <h4><?php echo htmlspecialchars(t('asset-management.help.card_assignment_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('asset-management.help.card_assignment_desc')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -533,7 +538,7 @@ $path_prefix = '../';
                 <div class="am-help-section" id="asset-detail">
                     <div class="am-help-section-header">
                         <span class="am-help-section-num">2</span>
-                        <h3>Asset detail view</h3>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.nav_asset_detail')); ?></h3>
                     </div>
                     <p>Click any asset in the list to open its detail panel. The view is split into sections:</p>
                     <div class="am-help-fields">
@@ -550,7 +555,7 @@ $path_prefix = '../';
                 <div class="am-help-section" id="table-view">
                     <div class="am-help-section-header">
                         <span class="am-help-section-num">3</span>
-                        <h3>Table view</h3>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.nav_table_view')); ?></h3>
                     </div>
                     <p>The <strong>Table</strong> tab in the module nav gives you a full-screen spreadsheet-style alternative to the split-pane Assets tab &mdash; built for power users who want to slice, sort and export the estate rather than drill into one asset at a time. Click any row to jump back into the split-pane detail view for that asset.</p>
 
@@ -580,7 +585,7 @@ $path_prefix = '../';
                 <div class="am-help-section am-help-section-highlight" id="inventory-script">
                     <div class="am-help-section-header">
                         <span class="am-help-section-num highlight">4</span>
-                        <h3>The inventory script</h3>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.inventory_script_heading')); ?></h3>
                     </div>
                     <p class="am-help-intro">Assets are discovered automatically using a PowerShell script that runs on each Windows machine. It collects hardware, software, and device information, then posts it to your FreeITSM instance via the API.</p>
 
@@ -614,7 +619,7 @@ $path_prefix = '../';
                 <div class="am-help-section" id="what-gets-collected">
                     <div class="am-help-section-header">
                         <span class="am-help-section-num">5</span>
-                        <h3>What gets collected</h3>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.nav_what_collected')); ?></h3>
                     </div>
                     <p>The PowerShell script gathers everything you'd want to know about a Windows machine in a single run:</p>
                     <div class="am-help-data-grid">
@@ -674,7 +679,7 @@ $path_prefix = '../';
                 <div class="am-help-section am-help-section-highlight" id="deployment">
                     <div class="am-help-section-header">
                         <span class="am-help-section-num highlight">6</span>
-                        <h3>Deploying at scale</h3>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.nav_deployment')); ?></h3>
                     </div>
                     <p class="am-help-intro">Running the script manually on one machine is fine for testing. In production, you'll want it running automatically across your entire estate.</p>
 
@@ -727,7 +732,7 @@ $path_prefix = '../';
                 <div class="am-help-section" id="servers">
                     <div class="am-help-section-header">
                         <span class="am-help-section-num">7</span>
-                        <h3>Servers &amp; vCenter</h3>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.nav_servers')); ?></h3>
                     </div>
                     <p>If you run VMware vCenter, FreeITSM can sync your entire virtual machine estate with a single click.</p>
                     <div class="am-help-steps">
@@ -756,7 +761,7 @@ $path_prefix = '../';
                 <div class="am-help-section" id="dashboard">
                     <div class="am-help-section-header">
                         <span class="am-help-section-num">8</span>
-                        <h3>Dashboard</h3>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.nav_dashboard')); ?></h3>
                     </div>
                     <p>The dashboard lets you visualise your asset estate with customisable Chart.js widgets. Each analyst has their own dashboard &mdash; choose the charts that matter to you.</p>
                     <div class="am-help-steps">
@@ -786,7 +791,7 @@ $path_prefix = '../';
                 <div class="am-help-section" id="tips">
                     <div class="am-help-section-header">
                         <span class="am-help-section-num">9</span>
-                        <h3>Quick tips</h3>
+                        <h3><?php echo htmlspecialchars(t('asset-management.help.nav_tips')); ?></h3>
                     </div>
                     <div class="am-help-tips-grid">
                         <div class="am-help-tip-card">

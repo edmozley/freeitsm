@@ -35,17 +35,17 @@ async function loadClasses() {
     try {
         const res = await fetch(API + 'get_classes.php');
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to load classes');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.list.classes_load_failed'));
         classes = (data.classes || []).filter(c => c.is_active);
         if (classes.length === 0) {
             list.innerHTML = `<div style="padding: 16px; color: #6b7280; font-size: 13px;">
-                No classes yet. <a href="settings/" style="color: #be185d;">Set some up in Settings</a>.
+                ${window.t('cmdb.list.no_classes', { link: `<a href="settings/" style="color: #be185d;">${escapeHtml(window.t('cmdb.list.no_classes_link'))}</a>` })}
             </div>`;
             return;
         }
         renderClassList();
     } catch (err) {
-        list.innerHTML = `<div style="padding: 16px; color: #b91c1c; font-size: 13px;">Error: ${escapeHtml(err.message)}</div>`;
+        list.innerHTML = `<div style="padding: 16px; color: #b91c1c; font-size: 13px;">${escapeHtml(window.t('cmdb.list.error_prefix', { message: err.message }))}</div>`;
     }
 }
 
@@ -73,17 +73,17 @@ function selectClass(id) {
 async function loadObjects(searchOverride = null) {
     if (!activeClass) return;
     const list = document.getElementById('objectList');
-    list.innerHTML = `<div class="empty-state"><p>Loading…</p></div>`;
+    list.innerHTML = `<div class="empty-state"><p>${escapeHtml(window.t('cmdb.list.loading'))}</p></div>`;
     const search = searchOverride !== null ? searchOverride : document.getElementById('searchInput').value.trim();
     const url = API + 'get_objects.php?class_id=' + activeClass.id + (search ? '&search=' + encodeURIComponent(search) : '');
     try {
         const res = await fetch(url);
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to load objects');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.list.objects_load_failed'));
         objects = data.objects || [];
         renderObjects();
     } catch (err) {
-        list.innerHTML = `<div class="empty-state"><p style="color: #b91c1c;">Error: ${escapeHtml(err.message)}</p></div>`;
+        list.innerHTML = `<div class="empty-state"><p style="color: #b91c1c;">${escapeHtml(window.t('cmdb.list.error_prefix', { message: err.message }))}</p></div>`;
     }
 }
 
@@ -92,8 +92,8 @@ function renderObjects() {
     if (objects.length === 0) {
         list.innerHTML = `
             <div class="empty-state">
-                <h3>No objects in <em>${escapeHtml(activeClass.name)}</em> yet.</h3>
-                <p>Click <strong>+ New</strong> to create one.</p>
+                <h3>${window.t('cmdb.list.no_objects_heading', { name: `<em>${escapeHtml(activeClass.name)}</em>` })}</h3>
+                <p>${window.t('cmdb.list.no_objects_hint', { new: `<strong>${escapeHtml(window.t('cmdb.list.new'))}</strong>` })}</p>
             </div>`;
         return;
     }
@@ -101,16 +101,16 @@ function renderObjects() {
         <table>
             <thead>
                 <tr>
-                    <th>Name</th>
-                    <th>Parent</th>
-                    <th>Children</th>
-                    <th style="width: 180px;">Updated</th>
+                    <th>${escapeHtml(window.t('cmdb.list.col_name'))}</th>
+                    <th>${escapeHtml(window.t('cmdb.list.col_parent'))}</th>
+                    <th>${escapeHtml(window.t('cmdb.list.col_children'))}</th>
+                    <th style="width: 180px;">${escapeHtml(window.t('cmdb.list.col_updated'))}</th>
                 </tr>
             </thead>
             <tbody>
                 ${objects.map(o => `
                     <tr onclick="openObject(${o.id})"${o.is_planned ? ' class="is-planned"' : ''}>
-                        <td><span class="object-name">${escapeHtml(o.name)}</span>${o.is_planned ? ' <span class="planned-pill" title="This object doesn\'t physically exist yet">PLANNED</span>' : ''}</td>
+                        <td><span class="object-name">${escapeHtml(o.name)}</span>${o.is_planned ? ` <span class="planned-pill" title="${escapeHtml(window.t('cmdb.list.planned_title'))}">${escapeHtml(window.t('cmdb.list.planned_pill'))}</span>` : ''}</td>
                         <td>${o.parent_id
                             ? `<span class="parent-link"><strong>${escapeHtml(o.parent_name || '?')}</strong> <span style="color:#9ca3af">(${escapeHtml(o.parent_class_name || '')})</span></span>`
                             : '<span style="color:#d1d5db;">—</span>'}</td>
@@ -174,7 +174,7 @@ function closeNewObjectModal() {
 
 function renderRequiredFieldEditors(reqProps) {
     const container = document.getElementById('newObjectReqFields');
-    let html = `<div class="req-fields-divider">Required fields for ${escapeHtml(activeClass.name)}</div>`;
+    let html = `<div class="req-fields-divider">${escapeHtml(window.t('cmdb.new_object.required_fields', { name: activeClass.name }))}</div>`;
     reqProps.forEach(p => {
         html += `<div class="form-group">
             <label>${escapeHtml(p.label)}<span class="req-mark">*</span></label>
@@ -197,13 +197,13 @@ function renderFieldEditor(p) {
             return `<input type="date" id="${id}" data-pid="${p.id}" data-ptype="date">`;
         case 'boolean':
             return `<select id="${id}" data-pid="${p.id}" data-ptype="boolean">
-                <option value="">— Pick one —</option>
-                <option value="1">Yes</option>
-                <option value="0">No</option>
+                <option value="">${escapeHtml(window.t('cmdb.new_object.pick_one'))}</option>
+                <option value="1">${escapeHtml(window.t('cmdb.new_object.yes'))}</option>
+                <option value="0">${escapeHtml(window.t('cmdb.new_object.no'))}</option>
             </select>`;
         case 'dropdown':
             return `<select id="${id}" data-pid="${p.id}" data-ptype="dropdown">
-                <option value="">— Pick one —</option>
+                <option value="">${escapeHtml(window.t('cmdb.new_object.pick_one'))}</option>
                 ${(p.options || []).map(o => {
                     const v = (o && typeof o === 'object') ? o.value : o;
                     return `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`;
@@ -212,11 +212,11 @@ function renderFieldEditor(p) {
         case 'object_ref':
             return `<div class="ac-wrap">
                 <input type="text" id="${id}" data-pid="${p.id}" data-ptype="object_ref" data-targetclass="${p.target_class_id || ''}"
-                       autocomplete="off" placeholder="Type to search ${escapeHtml(p.target_class_name || 'objects')}…">
+                       autocomplete="off" placeholder="${escapeHtml(window.t('cmdb.new_object.search_placeholder', { name: p.target_class_name || window.t('cmdb.new_object.objects') }))}">
                 <input type="hidden" id="${id}_id">
                 <div class="ac-results" id="${id}_results"></div>
             </div>
-            ${p.target_class_name ? `<small style="color:#6b7280;font-size:12px;">Picks from <strong>${escapeHtml(p.target_class_name)}</strong> objects.</small>` : ''}`;
+            ${p.target_class_name ? `<small style="color:#6b7280;font-size:12px;">${window.t('cmdb.new_object.picks_from', { name: `<strong>${escapeHtml(p.target_class_name)}</strong>` })}</small>` : ''}`;
         default:
             return `<input type="text" id="${id}" data-pid="${p.id}" data-ptype="text">`;
     }
@@ -233,7 +233,7 @@ function wireRefAutocomplete(prop) {
 
     const renderResults = () => {
         if (current.length === 0) {
-            resultsEl.innerHTML = '<div class="ac-empty">No matches.</div>';
+            resultsEl.innerHTML = `<div class="ac-empty">${escapeHtml(window.t('cmdb.new_object.no_matches'))}</div>`;
             resultsEl.classList.add('active');
             return;
         }
@@ -318,12 +318,12 @@ function collectRequiredFieldValues() {
 async function createObject() {
     const name = document.getElementById('newObjectName').value.trim();
     if (name === '') {
-        showInlineToast('Name is required', true);
+        showInlineToast(window.t('cmdb.new_object.name_required'), true);
         return;
     }
     const { values, missing } = collectRequiredFieldValues();
     if (missing.length > 0) {
-        showInlineToast('Missing required: ' + missing.join(', '), true);
+        showInlineToast(window.t('cmdb.new_object.missing_required', { fields: missing.join(', ') }), true);
         return;
     }
     const isPlanned = document.getElementById('newObjectIsPlanned')?.checked || false;
@@ -335,12 +335,12 @@ async function createObject() {
             is_planned: isPlanned,
             property_values: values
         });
-        if (!data.success) throw new Error(data.error || 'Save failed');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.new_object.save_failed'));
         closeNewObjectModal();
         // Jump straight into the new object's detail page so the analyst can fill in optional properties
         window.location.href = 'object.php?id=' + data.id;
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.new_object.error_prefix', { message: err.message }), true);
     }
 }
 

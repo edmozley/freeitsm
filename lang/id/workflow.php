@@ -1,0 +1,140 @@
+<?php
+/**
+ * Bahasa Indonesia (id) — Workflows module strings.
+ * Missing keys fall back to lang/en/workflow.php per-key.
+ */
+return [
+    'title' => 'Workflows',
+
+    'nav' => [
+        'workflows' => 'Workflows',
+        'settings'  => 'Pengaturan',
+        'help'      => 'Bantuan',
+    ],
+
+    'settings_tabs' => [
+        'ai' => 'AI',
+    ],
+
+    'ai_settings' => [
+        'title'                   => 'Integrasi AI',
+        'intro'                   => 'Konfigurasikan penyedia AI yang menggerakkan co-author workflow. Setiap modul memiliki kuncinya sendiri sehingga penagihan dan akses dapat diatur secara terperinci. API key dienkripsi saat disimpan. Gunakan Uji untuk memverifikasi key + model Anda sebelum menyimpan.',
+        'provider_label'          => 'Penyedia',
+        'model_label'             => 'Model',
+        'model_hint'              => 'Pilih saran atau tempel id model apa pun yang didukung oleh penyedia yang dipilih.',
+        'key_label'               => 'API key',
+        'key_placeholder_empty'   => '(tidak ada key tersimpan — tempel key baru untuk mengatur)',
+        'key_placeholder_stored'  => 'Tersimpan — biarkan tidak berubah untuk mempertahankan',
+        'key_hint'                => 'Dienkripsi saat disimpan. Biarkan kosong atau tidak berubah untuk mempertahankan key yang ada.',
+        'verify_ssl_label'        => 'Verifikasi SSL',
+        'verify_ssl_hint'         => 'Nonaktifkan hanya untuk pengujian terhadap lingkungan dengan sertifikat yang ditandatangani sendiri (mis. di belakang proxy pemeriksa).',
+        'ssl_warning_title'       => 'Peringatan',
+        'ssl_warning_body'        => 'Verifikasi SSL dinonaktifkan. FreeITSM akan menerima sertifikat TLS apa pun dari penyedia AI tanpa memeriksanya. Siapa pun yang memiliki akses ke jaringan Anda dapat menyamar sebagai penyedia, menyadap lalu lintas, dan mencuri API key Anda — beserta setiap prompt dan respons yang menyertainya. Biarkan ini nonaktif hanya di lingkungan pengujian dengan sertifikat yang ditandatangani sendiri — jangan pernah di produksi.',
+        'test_btn'                => 'Uji',
+        'testing'                 => 'Menguji…',
+    ],
+
+    'list' => [
+        'page_title'      => 'Workflows',
+        'intro'           => 'Aturan otomatisasi yang mendengarkan peristiwa dari modul lain dan menindaklanjutinya. Setiap aturan terdiri dari satu pemicu, kondisi opsional, dan satu atau beberapa tindakan.',
+        'add_btn'         => 'Baru',
+        'no_workflows'    => 'Belum ada workflow — klik "Baru" untuk membuat otomatisasi pertama Anda.',
+        'col_name'        => 'Nama',
+        'col_trigger'     => 'Pemicu',
+        'col_actions'     => 'Tindakan',
+        'col_last_run'    => 'Terakhir dijalankan',
+        'col_status'      => 'Status',
+        'col_row_actions' => 'Tindakan',
+        'never_run'       => 'Tidak pernah',
+        'active'          => 'Aktif',
+        'inactive'        => 'Nonaktif',
+    ],
+
+    'editor' => [
+        'new_title'       => 'Workflow baru',
+        'edit_title'      => 'Edit workflow',
+        'name_label'      => 'Nama',
+        'name_placeholder'=> 'mis. Peringatan tiket P1',
+        'description_label' => 'Deskripsi',
+        'description_placeholder' => 'Opsional — jelaskan apa yang dilakukan workflow ini dan alasannya',
+        'trigger_label'   => 'Pemicu',
+        'trigger_hint'    => 'Peristiwa yang menjalankan workflow ini.',
+        'conditions_label'=> 'Kondisi',
+        'conditions_hint' => 'Opsional. Semua kondisi harus cocok agar tindakan dijalankan. Biarkan kosong untuk dijalankan pada setiap peristiwa pemicu.',
+        'actions_label'   => 'Tindakan',
+        'actions_hint'    => 'Jalankan ini secara berurutan, dari atas ke bawah. Setidaknya satu tindakan diperlukan.',
+        'active_label'    => 'Aktif — jalankan saat pemicu menyala',
+        'add_condition'   => 'Tambah kondisi',
+        'add_action'      => 'Tambah tindakan',
+        'remove'          => 'Hapus',
+        'test_fire'       => 'Uji jalankan',
+        'test_fire_hint'  => 'Jalankan workflow ini sekali dengan payload sintetis sehingga Anda dapat memverifikasi tindakan berfungsi. Pemicu sebenarnya akan menyala saat dihubungkan pada commit berikutnya.',
+        'no_conditions'   => 'Tidak ada kondisi — dijalankan pada setiap peristiwa.',
+        'no_actions'      => 'Belum ada tindakan — tambahkan setidaknya satu.',
+        'condition_field' => 'Bidang',
+        'condition_op'    => 'Operator',
+        'condition_value' => 'Nilai',
+        'action_type'     => 'Tindakan',
+        'action_args'     => 'Argumen (JSON)',
+        'back'            => 'Kembali',
+    ],
+
+    'op' => [
+        'equals'      => 'sama dengan',
+        'not_equals'  => 'tidak sama dengan',
+        'in'          => 'adalah salah satu dari',
+        'not_in'      => 'bukan salah satu dari',
+        'contains'    => 'mengandung',
+        'not_contains'=> 'tidak mengandung',
+        'gt'          => 'lebih besar dari',
+        'lt'          => 'lebih kecil dari',
+        'is_empty'    => 'kosong',
+        'is_not_empty'=> 'tidak kosong',
+    ],
+
+    'status' => [
+        'success' => 'Berhasil',
+        'failed'  => 'Gagal',
+        'skipped' => 'Dilewati (kondisi tidak cocok)',
+        'running' => 'Berjalan',
+        'aborted' => 'Dibatalkan (perlindungan loop)',
+    ],
+
+    'toast' => [
+        'saved'         => 'Workflow disimpan.',
+        'deleted'       => 'Workflow dihapus.',
+        'delete_confirm'=> 'Hapus workflow ini?',
+        'fire_started'  => 'Uji jalankan dimulai — lihat log Eksekusi.',
+        'fire_done'     => 'Uji jalankan selesai: %s.',
+        'fire_failed'   => 'Uji jalankan gagal: %s',
+        'name_required' => 'Nama wajib diisi.',
+        'actions_required' => 'Setidaknya satu tindakan diperlukan.',
+        'saved_no_actions' => 'Disimpan — tetapi workflow ini belum memiliki tindakan, jadi tidak akan melakukan apa pun sampai Anda menambahkan satu.',
+        'ai_applied'      => 'Usulan AI diterapkan ke kanvas. Sesuaikan lalu simpan.',
+        'ai_failed'       => 'Co-author AI gagal: %s',
+        'saved_settings'  => 'Pengaturan disimpan.',
+    ],
+
+    'ai' => [
+        'btn'              => 'Co-author AI',
+        'modal_title'      => 'Co-author AI',
+        'intro'            => 'Jelaskan workflow yang Anda inginkan dan AI akan menyusunnya di kanvas. Anda dapat melanjutkan — katakan "sekarang tambahkan kondisi untuk…" dan AI akan menyempurnakan apa yang sudah ada.',
+        'prompt_label'     => 'Apa yang harus dilakukan workflow ini?',
+        'prompt_placeholder' => 'mis. Saat tiket P1 dari Keuangan dibuat, catat pesan yang berbunyi "Tiket keuangan P1 — beri tahu tim"',
+        'generate'         => 'Hasilkan',
+        'thinking'         => 'Berpikir…',
+        'apply'            => 'Terapkan ke kanvas',
+        'discard'          => 'Buang',
+        'close'            => 'Tutup',
+        'iterate_hint'     => 'Tips: saat Anda memiliki workflow di kanvas, AI akan menyempurnakannya. Coba "buat hanya cocok dengan Keuangan, bukan semua departemen" atau "tambahkan tindakan untuk mencatat id tiket juga".',
+        'explanation_label' => 'Yang saya buat',
+        'preview_label'    => 'Workflow yang diusulkan',
+        'warnings_label'   => 'Catatan',
+        'only_log_message' => 'Hanya tindakan log_message yang diterapkan saat ini; AI akan menggunakannya sebagai placeholder untuk tindakan yang belum diterapkan (mis. "kirim email" → log_message yang mendokumentasikan maksudnya).',
+    ],
+
+    'help' => [
+        'page_title' => 'Panduan Workflows',
+        'intro'      => 'Workflows mengotomatiskan hal-hal yang biasa Anda lakukan secara manual setelah tiket masuk: pemberian tag, eskalasi, penugasan, pemberitahuan, dan penyebaran ke sistem lain. Sebuah workflow mendengarkan suatu peristiwa, secara opsional memfilter dengan kondisi, lalu menjalankan satu atau beberapa tindakan secara berurutan.',
+    ],
+];

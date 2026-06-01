@@ -15,27 +15,29 @@
     const API_BASE = '../../api/calendar/';
     let categories = [];
 
+    const T = (k) => (window.t ? window.t(k) : k);
+
     function fmt(raw) { return raw ? String(raw).replace('T', ' ').slice(0, 16) : ''; }
 
     const COLUMNS = [
-        { key: 'title', label: 'Title', type: 'string', defaultVisible: true, defaultOrder: 0,
+        { key: 'title', label: T('calendar.table.col_title'), type: 'string', defaultVisible: true, defaultOrder: 0,
           display: e => e.title || '', editable: { kind: 'text' } },
-        { key: 'category_id', label: 'Category', type: 'string', defaultVisible: true, defaultOrder: 1,
+        { key: 'category_id', label: T('calendar.table.col_category'), type: 'string', defaultVisible: true, defaultOrder: 1,
           display: e => e.category_name || '',
           editable: { kind: 'lookup', listKey: 'categories', valueKey: 'id', labelKey: 'name', allowNull: true, nullLabel: '—', colourKey: 'color' } },
-        { key: 'start_datetime', label: 'Start', type: 'date', defaultVisible: true, defaultOrder: 2,
+        { key: 'start_datetime', label: T('calendar.table.col_start'), type: 'date', defaultVisible: true, defaultOrder: 2,
           value: e => e.start_datetime || '', display: e => fmt(e.start_datetime), editable: { kind: 'datetime' } },
-        { key: 'end_datetime', label: 'End', type: 'date', defaultVisible: true, defaultOrder: 3,
+        { key: 'end_datetime', label: T('calendar.table.col_end'), type: 'date', defaultVisible: true, defaultOrder: 3,
           value: e => e.end_datetime || '', display: e => fmt(e.end_datetime), editable: { kind: 'datetime' } },
-        { key: 'all_day', label: 'All day', type: 'string', defaultVisible: true, defaultOrder: 4,
-          value: e => (e.all_day ? 1 : 0), display: e => (e.all_day ? 'Yes' : 'No'), editable: { kind: 'bool' } },
-        { key: 'location', label: 'Location', type: 'string', defaultVisible: true, defaultOrder: 5,
+        { key: 'all_day', label: T('calendar.table.col_all_day'), type: 'string', defaultVisible: true, defaultOrder: 4,
+          value: e => (e.all_day ? 1 : 0), display: e => (e.all_day ? T('common.yes') : T('common.no')), editable: { kind: 'bool' } },
+        { key: 'location', label: T('calendar.table.col_location'), type: 'string', defaultVisible: true, defaultOrder: 5,
           display: e => e.location || '', editable: { kind: 'text' } },
-        { key: 'description', label: 'Description', type: 'string', defaultVisible: false, defaultOrder: 6,
+        { key: 'description', label: T('calendar.table.col_description'), type: 'string', defaultVisible: false, defaultOrder: 6,
           display: e => e.description || '', editable: { kind: 'text' } },
-        { key: 'created_by_name', label: 'Created by', type: 'string', defaultVisible: false, defaultOrder: 7,
+        { key: 'created_by_name', label: T('calendar.table.col_created_by'), type: 'string', defaultVisible: false, defaultOrder: 7,
           display: e => e.created_by_name || '' },
-        { key: 'created_at', label: 'Created', type: 'date', defaultVisible: false, defaultOrder: 8,
+        { key: 'created_at', label: T('calendar.table.col_created'), type: 'date', defaultVisible: false, defaultOrder: 8,
           value: e => e.created_at || '', display: e => fmt(e.created_at) },
     ];
 
@@ -70,7 +72,7 @@
                 row.category_name = c ? c.name : null;
                 row.category_color = c ? c.color : null;
             }
-            if (col.key === 'start_datetime' && !value) throw new Error('Start date/time is required');
+            if (col.key === 'start_datetime' && !value) throw new Error(T('calendar.table.start_required'));
 
             const payload = {
                 id: row.id,
@@ -88,7 +90,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload),
             }).then(r => r.json());
-            if (!d.success) throw new Error(d.error || 'Save failed');
+            if (!d.success) throw new Error(d.error || T('calendar.table.save_failed'));
         },
     });
 })();

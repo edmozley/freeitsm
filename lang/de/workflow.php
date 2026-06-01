@@ -1,0 +1,140 @@
+<?php
+/**
+ * Deutsch (de) — Workflows module strings.
+ * Missing keys fall back to lang/en/workflow.php per-key.
+ */
+return [
+    'title' => 'Workflows',
+
+    'nav' => [
+        'workflows' => 'Workflows',
+        'settings'  => 'Einstellungen',
+        'help'      => 'Hilfe',
+    ],
+
+    'settings_tabs' => [
+        'ai' => 'KI',
+    ],
+
+    'ai_settings' => [
+        'title'                   => 'KI-Integration',
+        'intro'                   => 'Konfigurieren Sie den KI-Anbieter, der den Workflow-Co-Autor antreibt. Jedes Modul hat seinen eigenen Schlüssel, sodass Abrechnung und Zugriff granular gesteuert werden können. Der API key wird verschlüsselt gespeichert. Verwenden Sie Testen, um Ihren Schlüssel und das Modell vor dem Speichern zu überprüfen.',
+        'provider_label'          => 'Anbieter',
+        'model_label'             => 'Modell',
+        'model_hint'              => 'Wählen Sie einen Vorschlag oder fügen Sie eine beliebige vom gewählten Anbieter unterstützte Modell-ID ein.',
+        'key_label'               => 'API key',
+        'key_placeholder_empty'   => '(kein Schlüssel gespeichert — fügen Sie einen neuen ein, um ihn zu setzen)',
+        'key_placeholder_stored'  => 'Gespeichert — unverändert lassen, um ihn beizubehalten',
+        'key_hint'                => 'Verschlüsselt gespeichert. Leer oder unverändert lassen, um den vorhandenen Schlüssel beizubehalten.',
+        'verify_ssl_label'        => 'SSL überprüfen',
+        'verify_ssl_hint'         => 'Nur zum Testen gegen Umgebungen mit selbstsignierten Zertifikaten deaktivieren (z. B. hinter einem prüfenden Proxy).',
+        'ssl_warning_title'       => 'Warnung',
+        'ssl_warning_body'        => 'Die SSL-Überprüfung ist deaktiviert. FreeITSM akzeptiert jedes TLS-Zertifikat des KI-Anbieters, ohne es zu prüfen. Jeder mit Zugriff auf Ihr Netzwerk könnte sich als der Anbieter ausgeben, den Datenverkehr abfangen und Ihren API key stehlen — zusammen mit jedem darauf folgenden Prompt und jeder Antwort. Lassen Sie dies nur in Testumgebungen mit selbstsignierten Zertifikaten deaktiviert — niemals im Produktivbetrieb.',
+        'test_btn'                => 'Testen',
+        'testing'                 => 'Test läuft…',
+    ],
+
+    'list' => [
+        'page_title'      => 'Workflows',
+        'intro'           => 'Automatisierungsregeln, die auf Ereignisse aus anderen Modulen warten und darauf reagieren. Jede Regel besteht aus einem Auslöser, optionalen Bedingungen und einer oder mehreren Aktionen.',
+        'add_btn'         => 'Neu',
+        'no_workflows'    => 'Noch keine Workflows — klicken Sie auf "Neu", um Ihre erste Automatisierung zu erstellen.',
+        'col_name'        => 'Name',
+        'col_trigger'     => 'Auslöser',
+        'col_actions'     => 'Aktionen',
+        'col_last_run'    => 'Letzte Ausführung',
+        'col_status'      => 'Status',
+        'col_row_actions' => 'Aktionen',
+        'never_run'       => 'Nie',
+        'active'          => 'Aktiv',
+        'inactive'        => 'Inaktiv',
+    ],
+
+    'editor' => [
+        'new_title'       => 'Neuer Workflow',
+        'edit_title'      => 'Workflow bearbeiten',
+        'name_label'      => 'Name',
+        'name_placeholder'=> 'z. B. P1-Ticket-Warnung',
+        'description_label' => 'Beschreibung',
+        'description_placeholder' => 'Optional — erklären Sie, was dieser Workflow tut und warum',
+        'trigger_label'   => 'Auslöser',
+        'trigger_hint'    => 'Das Ereignis, das diesen Workflow auslöst.',
+        'conditions_label'=> 'Bedingungen',
+        'conditions_hint' => 'Optional. Alle Bedingungen müssen zutreffen, damit die Aktionen ausgeführt werden. Leer lassen, um bei jedem Auslöseereignis ausgeführt zu werden.',
+        'actions_label'   => 'Aktionen',
+        'actions_hint'    => 'Werden der Reihe nach von oben nach unten ausgeführt. Mindestens eine Aktion ist erforderlich.',
+        'active_label'    => 'Aktiv — ausführen, wenn der Auslöser feuert',
+        'add_condition'   => 'Bedingung hinzufügen',
+        'add_action'      => 'Aktion hinzufügen',
+        'remove'          => 'Entfernen',
+        'test_fire'       => 'Testlauf',
+        'test_fire_hint'  => 'Führen Sie diesen Workflow einmal mit einer synthetischen Nutzlast aus, damit Sie überprüfen können, ob die Aktionen funktionieren. Echte Auslöser feuern, sobald sie in nachfolgenden Commits verdrahtet sind.',
+        'no_conditions'   => 'Keine Bedingungen — wird bei jedem Ereignis ausgeführt.',
+        'no_actions'      => 'Noch keine Aktionen — fügen Sie mindestens eine hinzu.',
+        'condition_field' => 'Feld',
+        'condition_op'    => 'Operator',
+        'condition_value' => 'Wert',
+        'action_type'     => 'Aktion',
+        'action_args'     => 'Argumente (JSON)',
+        'back'            => 'Zurück',
+    ],
+
+    'op' => [
+        'equals'      => 'gleich',
+        'not_equals'  => 'ungleich',
+        'in'          => 'ist eines von',
+        'not_in'      => 'ist keines von',
+        'contains'    => 'enthält',
+        'not_contains'=> 'enthält nicht',
+        'gt'          => 'größer als',
+        'lt'          => 'kleiner als',
+        'is_empty'    => 'ist leer',
+        'is_not_empty'=> 'ist nicht leer',
+    ],
+
+    'status' => [
+        'success' => 'Erfolgreich',
+        'failed'  => 'Fehlgeschlagen',
+        'skipped' => 'Übersprungen (Bedingungen trafen nicht zu)',
+        'running' => 'Wird ausgeführt',
+        'aborted' => 'Abgebrochen (Schleifenschutz)',
+    ],
+
+    'toast' => [
+        'saved'         => 'Workflow gespeichert.',
+        'deleted'       => 'Workflow gelöscht.',
+        'delete_confirm'=> 'Diesen Workflow löschen?',
+        'fire_started'  => 'Testlauf gestartet — siehe das Ausführungsprotokoll.',
+        'fire_done'     => 'Testlauf abgeschlossen: %s.',
+        'fire_failed'   => 'Testlauf fehlgeschlagen: %s',
+        'name_required' => 'Name ist erforderlich.',
+        'actions_required' => 'Mindestens eine Aktion ist erforderlich.',
+        'saved_no_actions' => 'Gespeichert — aber dieser Workflow hat noch keine Aktionen und tut daher nichts, bis Sie eine hinzufügen.',
+        'ai_applied'      => 'KI-Vorschlag auf die Arbeitsfläche angewendet. Anpassen und dann speichern.',
+        'ai_failed'       => 'KI-Co-Autor fehlgeschlagen: %s',
+        'saved_settings'  => 'Einstellungen gespeichert.',
+    ],
+
+    'ai' => [
+        'btn'              => 'KI-Co-Autor',
+        'modal_title'      => 'KI-Co-Autor',
+        'intro'            => 'Beschreiben Sie den gewünschten Workflow, und die KI gerüstet ihn auf der Arbeitsfläche. Sie können weitermachen — sagen Sie "jetzt eine Bedingung für… hinzufügen", und sie baut auf dem Vorhandenen auf.',
+        'prompt_label'     => 'Was soll dieser Workflow tun?',
+        'prompt_placeholder' => 'z. B. Wenn ein P1-Ticket aus der Finanzabteilung erstellt wird, eine Meldung protokollieren mit dem Text "P1-Finanz-Ticket — Team alarmieren"',
+        'generate'         => 'Generieren',
+        'thinking'         => 'Denkt nach…',
+        'apply'            => 'Auf Arbeitsfläche anwenden',
+        'discard'          => 'Verwerfen',
+        'close'            => 'Schließen',
+        'iterate_hint'     => 'Tipp: Wenn ein Workflow auf der Arbeitsfläche liegt, baut die KI darauf auf. Versuchen Sie "nur die Finanzabteilung treffen, nicht alle Abteilungen" oder "eine Aktion hinzufügen, die auch die Ticket-ID protokolliert".',
+        'explanation_label' => 'Was ich erstellt habe',
+        'preview_label'    => 'Vorgeschlagener Workflow',
+        'warnings_label'   => 'Hinweise',
+        'only_log_message' => 'Derzeit ist nur die Aktion log_message implementiert; die KI nutzt sie als Platzhalter für noch nicht implementierte Aktionen (z. B. "E-Mail senden" → log_message, die die Absicht dokumentiert).',
+    ],
+
+    'help' => [
+        'page_title' => 'Workflows-Anleitung',
+        'intro'      => 'Workflows automatisieren die Dinge, die Sie nach dem Eingang eines Tickets manuell erledigen: Kennzeichnen, Eskalieren, Zuweisen, Benachrichtigen, Verteilen an andere Systeme. Ein Workflow wartet auf ein Ereignis, filtert optional mit Bedingungen und führt dann eine oder mehrere Aktionen der Reihe nach aus.',
+    ],
+];

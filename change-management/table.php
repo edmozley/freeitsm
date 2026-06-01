@@ -10,6 +10,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -18,16 +20,19 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'table';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'change-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Change Table</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.table')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/change-management.css">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=1">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

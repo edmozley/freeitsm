@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -12,14 +14,17 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'help';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'knowledge'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Knowledge Base Guide</title>
+    <title><?php echo htmlspecialchars(t('knowledge.browser_title.help')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <style>
         .kb-help-container {
             display: flex;
@@ -493,34 +498,34 @@ $path_prefix = '../';
     <div class="kb-help-container">
         <!-- Left pane navigation -->
         <div class="kb-help-sidebar">
-            <h3>Guide</h3>
+            <h3><?php echo htmlspecialchars(t('knowledge.help.guide')); ?></h3>
             <a href="#overview" class="kb-help-nav-link active" data-section="overview">
                 <span class="kb-help-nav-num">1</span>
-                Overview
+                <?php echo htmlspecialchars(t('knowledge.help.nav_overview')); ?>
             </a>
             <a href="#writing-articles" class="kb-help-nav-link" data-section="writing-articles">
                 <span class="kb-help-nav-num">2</span>
-                Writing articles
+                <?php echo htmlspecialchars(t('knowledge.help.nav_writing')); ?>
             </a>
             <a href="#review-workflow" class="kb-help-nav-link" data-section="review-workflow">
                 <span class="kb-help-nav-num">3</span>
-                Review workflow
+                <?php echo htmlspecialchars(t('knowledge.help.nav_review')); ?>
             </a>
             <a href="#ask-ai" class="kb-help-nav-link" data-section="ask-ai">
                 <span class="kb-help-nav-num">4</span>
-                Ask AI
+                <?php echo htmlspecialchars(t('knowledge.help.nav_ask_ai')); ?>
             </a>
             <a href="#search-navigation" class="kb-help-nav-link" data-section="search-navigation">
                 <span class="kb-help-nav-num">5</span>
-                Search &amp; navigation
+                <?php echo htmlspecialchars(t('knowledge.help.nav_search')); ?>
             </a>
             <a href="#sharing-export" class="kb-help-nav-link" data-section="sharing-export">
                 <span class="kb-help-nav-num">6</span>
-                Sharing &amp; export
+                <?php echo htmlspecialchars(t('knowledge.help.nav_sharing')); ?>
             </a>
             <a href="#tips" class="kb-help-nav-link" data-section="tips">
                 <span class="kb-help-nav-num">7</span>
-                Quick tips
+                <?php echo htmlspecialchars(t('knowledge.help.nav_tips')); ?>
             </a>
         </div>
 
@@ -528,8 +533,8 @@ $path_prefix = '../';
         <div class="kb-help-main" id="helpMain">
             <!-- Hero banner -->
             <div class="kb-help-hero">
-                <h2>Knowledge base guide</h2>
-                <p>Create, review, and share knowledge articles so your team always has the answers they need.</p>
+                <h2><?php echo htmlspecialchars(t('knowledge.help.hero_title')); ?></h2>
+                <p><?php echo htmlspecialchars(t('knowledge.help.hero_subtitle')); ?></p>
             </div>
 
             <div class="kb-help-content">
@@ -539,8 +544,8 @@ $path_prefix = '../';
                     <div class="kb-help-section-header">
                         <span class="kb-help-section-num">1</span>
                         <div>
-                            <h3>Overview</h3>
-                            <p>The Knowledge module is your team's central repository for documentation, how-to guides, troubleshooting steps, and institutional know-how. Instead of answers living in someone's head or buried in email threads, they live here &mdash; searchable, version-controlled, and available to everyone. Well-maintained knowledge articles reduce ticket volumes, speed up resolution times, and help new team members get up to speed faster.</p>
+                            <h3><?php echo htmlspecialchars(t('knowledge.help.overview_heading')); ?></h3>
+                            <p><?php echo htmlspecialchars(t('knowledge.help.overview_intro')); ?></p>
                         </div>
                     </div>
                     <div class="kb-help-features-grid">
@@ -548,29 +553,29 @@ $path_prefix = '../';
                             <div class="kb-help-feature-icon purple">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
                             </div>
-                            <h4>Articles</h4>
-                            <p>Write rich-text articles with a full-featured editor. Add headings, lists, tables, code blocks, images, and more. Every article supports tagging, ownership, and scheduled review dates to keep content fresh.</p>
+                            <h4><?php echo htmlspecialchars(t('knowledge.help.overview_card1_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('knowledge.help.overview_card1_desc')); ?></p>
                         </div>
                         <div class="kb-help-feature-card">
                             <div class="kb-help-feature-icon orange">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                             </div>
-                            <h4>Review workflow</h4>
-                            <p>Submit articles for peer review before publishing. Reviewers can approve, request changes, or reject. The review queue keeps track of what needs attention so nothing falls through the cracks.</p>
+                            <h4><?php echo htmlspecialchars(t('knowledge.help.overview_card2_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('knowledge.help.overview_card2_desc')); ?></p>
                         </div>
                         <div class="kb-help-feature-card">
                             <div class="kb-help-feature-icon blue">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                             </div>
-                            <h4>Ask AI</h4>
-                            <p>Chat with an AI assistant that understands your knowledge base. Ask questions in natural language and get answers drawn from your published articles, complete with source references you can click through to.</p>
+                            <h4><?php echo htmlspecialchars(t('knowledge.help.overview_card3_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('knowledge.help.overview_card3_desc')); ?></p>
                         </div>
                         <div class="kb-help-feature-card">
                             <div class="kb-help-feature-icon green">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                             </div>
-                            <h4>Search &amp; tags</h4>
-                            <p>Find articles instantly with full-text search across titles and content. Filter by tags to narrow results. Tags act as flexible categories that let you organise articles across multiple dimensions.</p>
+                            <h4><?php echo htmlspecialchars(t('knowledge.help.overview_card4_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('knowledge.help.overview_card4_desc')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -579,139 +584,139 @@ $path_prefix = '../';
                 <div class="kb-help-section" id="writing-articles">
                     <div class="kb-help-section-header">
                         <span class="kb-help-section-num">2</span>
-                        <h3>Writing articles &mdash; step by step</h3>
+                        <h3><?php echo htmlspecialchars(t('knowledge.help.writing_heading')); ?></h3>
                     </div>
-                    <p>A good knowledge article answers a single question clearly and completely. Whether it's a how-to guide, a troubleshooting runbook, or a policy document, the goal is the same: someone who reads it should be able to act on it without needing to ask a colleague.</p>
+                    <p><?php echo htmlspecialchars(t('knowledge.help.writing_intro')); ?></p>
                     <div class="kb-help-steps">
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">1</div>
                             <div>
-                                <strong>Click "+ New Article"</strong> in the sidebar to open the article editor. This gives you a blank canvas with all the fields you need.
+                                <?php echo t('knowledge.help.writing_step1'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">2</div>
                             <div>
-                                <strong>Give it a clear title</strong> &mdash; use the kind of phrasing someone would actually search for. "How to reset a user's password in Active Directory" is better than "Password Reset Procedure v2.1".
+                                <?php echo t('knowledge.help.writing_step2'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">3</div>
                             <div>
-                                <strong>Add tags</strong> &mdash; type in the tag input and press Enter or comma to add. Tags let people find your article through filtering as well as search. Use a mix of broad tags (e.g. "Active Directory") and specific ones (e.g. "password-reset").
+                                <?php echo t('knowledge.help.writing_step3'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">4</div>
                             <div>
-                                <strong>Assign an owner</strong> &mdash; the owner is the person responsible for keeping the article up to date. When it comes up for review, the owner gets notified.
+                                <?php echo t('knowledge.help.writing_step4'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">5</div>
                             <div>
-                                <strong>Set a review date</strong> &mdash; knowledge goes stale. Set a next-review date so the article surfaces in the review queue at the right time. Quarterly reviews work well for most content; critical procedures might need monthly checks.
+                                <?php echo t('knowledge.help.writing_step5'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">6</div>
                             <div>
-                                <strong>Write the content</strong> &mdash; the rich text editor supports headings, bold, italic, bullet and numbered lists, tables, code blocks with syntax highlighting, images, and links. Structure your article with clear headings so readers can scan it quickly.
+                                <?php echo t('knowledge.help.writing_step6'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">7</div>
                             <div>
-                                <strong>Save</strong> &mdash; your article is saved as a draft. You can come back and edit it anytime. When you're happy with it, submit it for review or publish it directly depending on your team's workflow.
+                                <?php echo t('knowledge.help.writing_step7'); ?>
                             </div>
                         </div>
                     </div>
-                    <p class="kb-help-tip">Every time you save significant changes, use the "Save as new version" option. This creates a versioned snapshot so you can always look back at what the article said previously. Version numbers display on the article view so readers know how current it is.</p>
+                    <p class="kb-help-tip"><?php echo htmlspecialchars(t('knowledge.help.writing_tip')); ?></p>
                 </div>
 
                 <!-- Section 3: Review Workflow (highlighted) -->
                 <div class="kb-help-section kb-help-section-highlight" id="review-workflow">
                     <div class="kb-help-section-header">
                         <span class="kb-help-section-num highlight">3</span>
-                        <h3>Review workflow &mdash; getting articles approved</h3>
+                        <h3><?php echo htmlspecialchars(t('knowledge.help.review_heading')); ?></h3>
                     </div>
-                    <p class="kb-help-intro">For teams that need quality control over published content, the review workflow ensures every article is checked by a second pair of eyes before it goes live. This is especially valuable for customer-facing documentation, compliance procedures, and technical runbooks where accuracy matters.</p>
+                    <p class="kb-help-intro"><?php echo htmlspecialchars(t('knowledge.help.review_intro')); ?></p>
 
                     <div class="kb-help-workflow">
-                        <div class="kb-help-workflow-step draft">Draft</div>
+                        <div class="kb-help-workflow-step draft"><?php echo htmlspecialchars(t('knowledge.help.review_flow_draft')); ?></div>
                         <div class="kb-help-workflow-arrow">&rarr;</div>
-                        <div class="kb-help-workflow-step review">Pending Review</div>
+                        <div class="kb-help-workflow-step review"><?php echo htmlspecialchars(t('knowledge.help.review_flow_pending')); ?></div>
                         <div class="kb-help-workflow-arrow">&rarr;</div>
-                        <div class="kb-help-workflow-step approved">Approved</div>
+                        <div class="kb-help-workflow-step approved"><?php echo htmlspecialchars(t('knowledge.help.review_flow_approved')); ?></div>
                         <div class="kb-help-workflow-arrow">&rarr;</div>
-                        <div class="kb-help-workflow-step published">Published</div>
+                        <div class="kb-help-workflow-step published"><?php echo htmlspecialchars(t('knowledge.help.review_flow_published')); ?></div>
                     </div>
 
                     <div class="kb-help-steps" style="margin-left: 0;">
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">1</div>
                             <div>
-                                <strong>Author submits for review</strong> &mdash; when the article is ready, change its status to "Pending Review". It appears in the Review queue where reviewers can see it.
+                                <?php echo t('knowledge.help.review_step1'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">2</div>
                             <div>
-                                <strong>Reviewer opens the article</strong> &mdash; navigate to the Review page from the top navigation. The queue shows all articles awaiting review, with filter tabs to focus on what needs your attention.
+                                <?php echo t('knowledge.help.review_step2'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">3</div>
                             <div>
-                                <strong>Approve, request changes, or reject</strong> &mdash; after reading the article, the reviewer picks an action. If changes are needed, the article goes back to the author with feedback.
+                                <?php echo t('knowledge.help.review_step3'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">4</div>
                             <div>
-                                <strong>Article is published</strong> &mdash; once approved, the article becomes visible to all team members and is indexed for search and AI queries.
+                                <?php echo t('knowledge.help.review_step4'); ?>
                             </div>
                         </div>
                     </div>
 
                     <div class="kb-help-status-grid" style="margin-top: 20px;">
                         <div class="kb-help-status-card pending">
-                            <strong>Pending Review</strong>
-                            <span>The article is waiting for a reviewer to assess it. It shows in the review queue with the author's name and submission date.</span>
+                            <strong><?php echo htmlspecialchars(t('knowledge.help.review_status_pending_title')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('knowledge.help.review_status_pending_desc')); ?></span>
                         </div>
                         <div class="kb-help-status-card approved">
-                            <strong>Approved</strong>
-                            <span>A reviewer has signed off on the content. The article is accurate, well-structured, and ready for the team to use.</span>
+                            <strong><?php echo htmlspecialchars(t('knowledge.help.review_status_approved_title')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('knowledge.help.review_status_approved_desc')); ?></span>
                         </div>
                         <div class="kb-help-status-card rejected">
-                            <strong>Changes Requested</strong>
-                            <span>The reviewer found issues that need addressing. The article returns to draft status with the reviewer's feedback attached.</span>
+                            <strong><?php echo htmlspecialchars(t('knowledge.help.review_status_changes_title')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('knowledge.help.review_status_changes_desc')); ?></span>
                         </div>
                         <div class="kb-help-status-card">
-                            <strong>Scheduled Review</strong>
-                            <span>Articles with a review date appear in the queue when that date arrives. This keeps knowledge fresh without anyone having to remember manually.</span>
+                            <strong><?php echo htmlspecialchars(t('knowledge.help.review_status_scheduled_title')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('knowledge.help.review_status_scheduled_desc')); ?></span>
                         </div>
                     </div>
 
-                    <p class="kb-help-tip">Review isn't just about catching mistakes. It's an opportunity for knowledge sharing &mdash; reviewers often add useful context, alternative approaches, or edge cases the original author didn't consider.</p>
+                    <p class="kb-help-tip"><?php echo t('knowledge.help.review_tip'); ?></p>
                 </div>
 
                 <!-- Section 4: Ask AI -->
                 <div class="kb-help-section" id="ask-ai">
                     <div class="kb-help-section-header">
                         <span class="kb-help-section-num">4</span>
-                        <h3>Ask AI &mdash; your intelligent assistant</h3>
+                        <h3><?php echo htmlspecialchars(t('knowledge.help.ai_heading')); ?></h3>
                     </div>
-                    <p>The Ask AI feature connects you to an AI-powered assistant that has been trained on your published knowledge articles. Instead of searching and reading through multiple articles, you can ask a question in plain English and get a synthesised answer in seconds.</p>
+                    <p><?php echo htmlspecialchars(t('knowledge.help.ai_intro')); ?></p>
 
                     <div class="kb-help-ai-demo">
                         <div class="kb-help-ai-msg">
-                            <div class="kb-help-ai-avatar user">You</div>
-                            <div class="kb-help-ai-bubble user">How do I set up multi-factor authentication for a new starter?</div>
+                            <div class="kb-help-ai-avatar user"><?php echo htmlspecialchars(t('knowledge.help.ai_demo_user_label')); ?></div>
+                            <div class="kb-help-ai-bubble user"><?php echo htmlspecialchars(t('knowledge.help.ai_demo_user_msg')); ?></div>
                         </div>
                         <div class="kb-help-ai-msg">
-                            <div class="kb-help-ai-avatar ai">AI</div>
-                            <div class="kb-help-ai-bubble ai">Based on your knowledge base, here's the process for setting up MFA for new starters: First, ensure their account is created in Active Directory. Then navigate to the Azure AD portal and enable MFA for their account... <em>(references: "New Starter Onboarding Guide", "MFA Setup Procedure")</em></div>
+                            <div class="kb-help-ai-avatar ai"><?php echo htmlspecialchars(t('knowledge.help.ai_demo_ai_label')); ?></div>
+                            <div class="kb-help-ai-bubble ai"><?php echo t('knowledge.help.ai_demo_ai_msg'); ?></div>
                         </div>
                     </div>
 
@@ -719,113 +724,113 @@ $path_prefix = '../';
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">1</div>
                             <div>
-                                <strong>Open the chat</strong> &mdash; click "Ask AI" in the top navigation bar. A chat panel slides in from the right side of the screen, ready for your question.
+                                <?php echo t('knowledge.help.ai_step1'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">2</div>
                             <div>
-                                <strong>Type your question</strong> &mdash; ask anything you'd normally look up in the knowledge base. The AI searches across all published articles to find relevant information.
+                                <?php echo t('knowledge.help.ai_step2'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">3</div>
                             <div>
-                                <strong>Read the answer</strong> &mdash; the AI returns a synthesised response drawn from your articles. Source articles are referenced so you can click through to read the full content.
+                                <?php echo t('knowledge.help.ai_step3'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">4</div>
                             <div>
-                                <strong>Follow up</strong> &mdash; ask clarifying questions in the same conversation. The AI remembers the context so you can drill deeper without repeating yourself.
+                                <?php echo t('knowledge.help.ai_step4'); ?>
                             </div>
                         </div>
                     </div>
-                    <p class="kb-help-tip">The AI can also be accessed from the ticket detail view. When working a ticket, click "Ask AI" to get the AI pre-loaded with the ticket's context, so it can suggest relevant knowledge articles and solutions specific to that issue.</p>
+                    <p class="kb-help-tip"><?php echo htmlspecialchars(t('knowledge.help.ai_tip')); ?></p>
                 </div>
 
                 <!-- Section 5: Search & Navigation -->
                 <div class="kb-help-section" id="search-navigation">
                     <div class="kb-help-section-header">
                         <span class="kb-help-section-num">5</span>
-                        <h3>Search &amp; navigation</h3>
+                        <h3><?php echo htmlspecialchars(t('knowledge.help.search_heading')); ?></h3>
                     </div>
-                    <p>Finding the right article quickly is the difference between a knowledge base people actually use and one they ignore. The Knowledge module offers multiple ways to find what you need.</p>
+                    <p><?php echo htmlspecialchars(t('knowledge.help.search_intro')); ?></p>
 
                     <div class="kb-help-fields">
-                        <div><strong>Full-text search</strong> &mdash; the search box in the sidebar searches across article titles and body content as you type. Results update in real time with a short debounce so it doesn't fire on every keystroke.</div>
-                        <div><strong>Tag filtering</strong> &mdash; the sidebar lists all available tags. Click one or more tags to filter the article list to only those articles that carry the selected tags. This is a powerful way to browse by topic.</div>
-                        <div><strong>Combined search + tags</strong> &mdash; search and tag filters work together. Select a tag to narrow the scope, then type a search term to find specific content within that tag group.</div>
-                        <div><strong>Article count</strong> &mdash; the header always shows how many articles match your current filters, so you know how broad or narrow your results are.</div>
-                        <div><strong>Recycle bin</strong> &mdash; archived articles are moved to the recycle bin rather than permanently deleted. Click the Recycle Bin button in the sidebar to view and restore archived articles when needed.</div>
+                        <div><?php echo t('knowledge.help.search_field1'); ?></div>
+                        <div><?php echo t('knowledge.help.search_field2'); ?></div>
+                        <div><?php echo t('knowledge.help.search_field3'); ?></div>
+                        <div><?php echo t('knowledge.help.search_field4'); ?></div>
+                        <div><?php echo t('knowledge.help.search_field5'); ?></div>
                     </div>
-                    <p class="kb-help-tip">Consistent tagging makes a huge difference. Agree on a tagging convention with your team &mdash; for example, always using lowercase, hyphen-separated tags like "active-directory" or "network-setup". The tag suggestion feature helps by showing existing tags as you type.</p>
+                    <p class="kb-help-tip"><?php echo htmlspecialchars(t('knowledge.help.search_tip')); ?></p>
                 </div>
 
                 <!-- Section 6: Sharing & Export (highlighted) -->
                 <div class="kb-help-section kb-help-section-highlight" id="sharing-export">
                     <div class="kb-help-section-header">
                         <span class="kb-help-section-num highlight">6</span>
-                        <h3>Sharing &amp; export</h3>
+                        <h3><?php echo htmlspecialchars(t('knowledge.help.sharing_heading')); ?></h3>
                     </div>
-                    <p class="kb-help-intro">Knowledge is most valuable when it reaches the people who need it. The sharing features make it easy to get articles to colleagues, end users, or external stakeholders without requiring them to log into the system.</p>
+                    <p class="kb-help-intro"><?php echo htmlspecialchars(t('knowledge.help.sharing_intro')); ?></p>
 
                     <div class="kb-help-steps" style="margin-left: 0;">
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">1</div>
                             <div>
-                                <strong>Share Link</strong> &mdash; generates a direct link to the article. Send it to a colleague in chat or paste it into a ticket. Anyone with access to the knowledge base can open it.
+                                <?php echo t('knowledge.help.sharing_step1'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">2</div>
                             <div>
-                                <strong>Export as PDF</strong> &mdash; converts the article to a clean PDF document. Ideal for sending to people outside the system, including in support emails or attaching to change requests.
+                                <?php echo t('knowledge.help.sharing_step2'); ?>
                             </div>
                         </div>
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">3</div>
                             <div>
-                                <strong>Email (Link + PDF)</strong> &mdash; opens your email client with both the link and a PDF attachment pre-loaded. This gives the recipient the option to read online or offline.
+                                <?php echo t('knowledge.help.sharing_step3'); ?>
                             </div>
                         </div>
                     </div>
 
-                    <p>All sharing options are accessed from the <strong>Share</strong> dropdown button when viewing an article. Click the share icon to reveal the three options above.</p>
+                    <p><?php echo t('knowledge.help.sharing_note'); ?></p>
 
-                    <p class="kb-help-tip">When resolving a ticket, sharing a relevant knowledge article with the end user helps them solve similar problems in the future without needing to raise another ticket. This is one of the best ways to reduce repeat contacts.</p>
+                    <p class="kb-help-tip"><?php echo htmlspecialchars(t('knowledge.help.sharing_tip')); ?></p>
                 </div>
 
                 <!-- Section 7: Quick Tips -->
                 <div class="kb-help-section" id="tips">
                     <div class="kb-help-section-header">
                         <span class="kb-help-section-num">7</span>
-                        <h3>Quick tips</h3>
+                        <h3><?php echo htmlspecialchars(t('knowledge.help.tips_heading')); ?></h3>
                     </div>
                     <div class="kb-help-tips-grid">
                         <div class="kb-help-tip-card">
                             <div class="kb-help-tip-icon">&#128221;</div>
-                            <div><strong>Write for scanning</strong><br>Use headings, short paragraphs, and bullet lists. Most readers scan articles looking for the specific step they need, rather than reading top to bottom.</div>
+                            <div><strong><?php echo htmlspecialchars(t('knowledge.help.tip1_title')); ?></strong><br><?php echo htmlspecialchars(t('knowledge.help.tip1_desc')); ?></div>
                         </div>
                         <div class="kb-help-tip-card">
                             <div class="kb-help-tip-icon">&#128197;</div>
-                            <div><strong>Review dates matter</strong><br>Set a review date on every article. Outdated knowledge is worse than no knowledge &mdash; it leads people down the wrong path and erodes trust in the knowledge base.</div>
+                            <div><strong><?php echo htmlspecialchars(t('knowledge.help.tip2_title')); ?></strong><br><?php echo htmlspecialchars(t('knowledge.help.tip2_desc')); ?></div>
                         </div>
                         <div class="kb-help-tip-card">
                             <div class="kb-help-tip-icon">&#128278;</div>
-                            <div><strong>Version your changes</strong><br>Use "Save as new version" for significant updates. This preserves a history of how the article evolved and lets you roll back if something goes wrong.</div>
+                            <div><strong><?php echo htmlspecialchars(t('knowledge.help.tip3_title')); ?></strong><br><?php echo htmlspecialchars(t('knowledge.help.tip3_desc')); ?></div>
                         </div>
                         <div class="kb-help-tip-card">
                             <div class="kb-help-tip-icon">&#127991;</div>
-                            <div><strong>Tag consistently</strong><br>Agree on naming conventions for tags across your team. Consistent tagging makes filtering reliable and helps the AI give better answers.</div>
+                            <div><strong><?php echo htmlspecialchars(t('knowledge.help.tip4_title')); ?></strong><br><?php echo htmlspecialchars(t('knowledge.help.tip4_desc')); ?></div>
                         </div>
                         <div class="kb-help-tip-card">
                             <div class="kb-help-tip-icon">&#128172;</div>
-                            <div><strong>AI from tickets</strong><br>When working on a ticket, use the Ask AI button to get contextual suggestions. The AI reads the ticket details and searches your knowledge base for relevant solutions.</div>
+                            <div><strong><?php echo htmlspecialchars(t('knowledge.help.tip5_title')); ?></strong><br><?php echo htmlspecialchars(t('knowledge.help.tip5_desc')); ?></div>
                         </div>
                         <div class="kb-help-tip-card">
                             <div class="kb-help-tip-icon">&#9851;</div>
-                            <div><strong>Recycle bin</strong><br>Archived articles go to the recycle bin, not into the void. If you archive something by mistake, you can restore it with a click. Check the bin periodically and clean up articles that are truly no longer needed.</div>
+                            <div><strong><?php echo htmlspecialchars(t('knowledge.help.tip6_title')); ?></strong><br><?php echo htmlspecialchars(t('knowledge.help.tip6_desc')); ?></div>
                         </div>
                     </div>
                 </div>

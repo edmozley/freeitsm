@@ -10,26 +10,28 @@
 (function () {
     'use strict';
 
+    const tt = (k, p) => (window.t ? window.t('asset-management.' + k, p) : k);
+
     const COLUMNS = [
-        { key: 'hostname',          label: 'Hostname',        type: 'string', defaultVisible: true,  defaultOrder: 0  },
-        { key: 'asset_type_name',   label: 'Type',            type: 'string', defaultVisible: true,  defaultOrder: 1  },
-        { key: 'asset_status_name', label: 'Status',          type: 'string', defaultVisible: true,  defaultOrder: 2  },
-        { key: 'manufacturer',      label: 'Manufacturer',    type: 'string', defaultVisible: true,  defaultOrder: 3  },
-        { key: 'model',             label: 'Model',           type: 'string', defaultVisible: true,  defaultOrder: 4  },
-        { key: 'operating_system',  label: 'OS',              type: 'string', defaultVisible: true,  defaultOrder: 5  },
-        { key: 'feature_release',   label: 'Feature release', type: 'string', defaultVisible: false, defaultOrder: 6  },
-        { key: 'build_number',      label: 'Build',           type: 'string', defaultVisible: false, defaultOrder: 7  },
-        { key: 'service_tag',       label: 'Service tag',     type: 'string', defaultVisible: false, defaultOrder: 8  },
-        { key: 'cpu_name',          label: 'CPU',             type: 'string', defaultVisible: false, defaultOrder: 9  },
-        { key: 'speed',             label: 'CPU speed',       type: 'number', defaultVisible: false, defaultOrder: 10 },
-        { key: 'memory',            label: 'Memory',          type: 'number', defaultVisible: false, defaultOrder: 11 },
-        { key: 'bios_version',      label: 'BIOS',            type: 'string', defaultVisible: false, defaultOrder: 12 },
-        { key: 'user_count',        label: 'Assigned users',  type: 'number', defaultVisible: true,  defaultOrder: 13 },
-        { key: 'location_path',     label: 'Location',        type: 'string', defaultVisible: true,  defaultOrder: 14 },
-        { key: 'purchase_date',     label: 'Purchase date',   type: 'date',   defaultVisible: false, defaultOrder: 15 },
-        { key: 'purchase_cost',     label: 'Cost',            type: 'number', defaultVisible: false, defaultOrder: 16 },
-        { key: 'supplier_name',     label: 'Supplier',        type: 'string', defaultVisible: false, defaultOrder: 17 },
-        { key: 'warranty_expiry',   label: 'Warranty expiry', type: 'date',   defaultVisible: false, defaultOrder: 18 },
+        { key: 'hostname',          label: tt('table.col_hostname'),        type: 'string', defaultVisible: true,  defaultOrder: 0  },
+        { key: 'asset_type_name',   label: tt('field.type'),                type: 'string', defaultVisible: true,  defaultOrder: 1  },
+        { key: 'asset_status_name', label: tt('field.status'),              type: 'string', defaultVisible: true,  defaultOrder: 2  },
+        { key: 'manufacturer',      label: tt('field.manufacturer'),        type: 'string', defaultVisible: true,  defaultOrder: 3  },
+        { key: 'model',             label: tt('field.model'),               type: 'string', defaultVisible: true,  defaultOrder: 4  },
+        { key: 'operating_system',  label: tt('table.col_os'),              type: 'string', defaultVisible: true,  defaultOrder: 5  },
+        { key: 'feature_release',   label: tt('field.feature_release'),     type: 'string', defaultVisible: false, defaultOrder: 6  },
+        { key: 'build_number',      label: tt('table.col_build'),           type: 'string', defaultVisible: false, defaultOrder: 7  },
+        { key: 'service_tag',       label: tt('detail.service_tag'),        type: 'string', defaultVisible: false, defaultOrder: 8  },
+        { key: 'cpu_name',          label: tt('field.cpu'),                 type: 'string', defaultVisible: false, defaultOrder: 9  },
+        { key: 'speed',             label: tt('field.cpu_speed'),           type: 'number', defaultVisible: false, defaultOrder: 10 },
+        { key: 'memory',            label: tt('field.memory'),              type: 'number', defaultVisible: false, defaultOrder: 11 },
+        { key: 'bios_version',      label: tt('table.col_bios'),            type: 'string', defaultVisible: false, defaultOrder: 12 },
+        { key: 'user_count',        label: tt('table.col_assigned_users'),  type: 'number', defaultVisible: true,  defaultOrder: 13 },
+        { key: 'location_path',     label: tt('field.location'),            type: 'string', defaultVisible: true,  defaultOrder: 14 },
+        { key: 'purchase_date',     label: tt('field.purchase_date'),       type: 'date',   defaultVisible: false, defaultOrder: 15 },
+        { key: 'purchase_cost',     label: tt('table.col_cost'),            type: 'number', defaultVisible: false, defaultOrder: 16 },
+        { key: 'supplier_name',     label: tt('field.supplier'),            type: 'string', defaultVisible: false, defaultOrder: 17 },
+        { key: 'warranty_expiry',   label: tt('field.warranty_expiry'),     type: 'date',   defaultVisible: false, defaultOrder: 18 },
     ];
 
     createDataTable({
@@ -41,7 +43,7 @@
         defaultSort: { key: 'hostname', dir: 'asc' },
         columns: COLUMNS,
         onRowClick: row => { window.location.href = `index.php?asset=${row.id}`; },
-        pdf: { title: 'Assets', headFill: [0, 120, 212], logo: '../assets/images/CompanyLogo.png' },
+        pdf: { title: tt('nav.assets'), headFill: [0, 120, 212], logo: '../assets/images/CompanyLogo.png' },
 
         load: async () => {
             const d = await fetch('../api/assets/get_assets.php').then(r => r.json());

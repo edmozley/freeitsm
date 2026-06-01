@@ -41,7 +41,7 @@ async function loadAnalysts() {
             const select = document.getElementById('articleOwner');
             if (select) {
                 // Keep the first "no owner" option
-                select.innerHTML = '<option value="">-- No owner assigned --</option>';
+                select.innerHTML = '<option value="">' + escapeHtml(window.t('knowledge.editor.owner_none')) + '</option>';
                 data.analysts.forEach(analyst => {
                     const option = document.createElement('option');
                     option.value = analyst.id;
@@ -175,11 +175,11 @@ async function loadArticles(search = '', tagIds = []) {
             articles = data.articles;
             renderArticleList();
         } else {
-            articleList.innerHTML = '<div class="no-results">Error loading articles</div>';
+            articleList.innerHTML = '<div class="no-results">' + escapeHtml(window.t('knowledge.list.error_loading')) + '</div>';
         }
     } catch (error) {
         console.error('Error loading articles:', error);
-        articleList.innerHTML = '<div class="no-results">Failed to load articles</div>';
+        articleList.innerHTML = '<div class="no-results">' + escapeHtml(window.t('knowledge.list.failed_load')) + '</div>';
     }
 }
 
@@ -188,7 +188,7 @@ function renderTagFilters() {
     const container = document.getElementById('tagFilterList');
 
     if (tags.length === 0) {
-        container.innerHTML = '<div class="no-results">No tags yet</div>';
+        container.innerHTML = '<div class="no-results">' + escapeHtml(window.t('knowledge.sidebar.no_tags')) + '</div>';
         return;
     }
 
@@ -218,14 +218,14 @@ function renderArticleList() {
     const container = document.getElementById('articleList');
     const countEl = document.getElementById('articleCount');
 
-    countEl.textContent = `${articles.length} article${articles.length === 1 ? '' : 's'}`;
+    countEl.textContent = window.t(articles.length === 1 ? 'knowledge.list.count_one' : 'knowledge.list.count', { count: articles.length });
 
     if (articles.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
                 <div class="empty-state-icon">📚</div>
-                <div class="empty-state-text">No articles found</div>
-                <button class="btn btn-primary" onclick="openCreateArticle()">Create your first article</button>
+                <div class="empty-state-text">${escapeHtml(window.t('knowledge.list.no_articles'))}</div>
+                <button class="btn btn-primary" onclick="openCreateArticle()">${escapeHtml(window.t('knowledge.list.create_first'))}</button>
             </div>
         `;
         return;
@@ -240,7 +240,7 @@ function renderArticleList() {
                     ${(article.tags || []).map(tag => `<span class="article-tag">${escapeHtml(tag.name)}</span>`).join('')}
                 </div>
                 <div class="article-card-info">
-                    <span>By ${escapeHtml(article.author_name)}</span>
+                    <span>${escapeHtml(window.t('knowledge.list.by', { name: article.author_name }))}</span>
                     <span>${formatDate(article.modified_datetime)}</span>
                 </div>
             </div>
@@ -267,11 +267,11 @@ async function viewArticle(articleId) {
             renderArticleDetail();
             showView('detail');
         } else {
-            showToast('Error loading article: ' + data.error, 'error');
+            showToast(window.t('knowledge.toast.error_loading', { message: data.error }), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showToast('Failed to load article', 'error');
+        showToast(window.t('knowledge.toast.load_failed'), 'error');
     }
 }
 
@@ -283,10 +283,10 @@ function renderArticleDetail() {
         <div class="article-content-header">
             <h1 class="article-content-title">${escapeHtml(currentArticle.title)}</h1>
             <div class="article-content-meta">
-                <span>By ${escapeHtml(currentArticle.author_name)}</span>
-                <span>Created: ${formatDate(currentArticle.created_datetime)} (v${currentArticle.version || 1})</span>
-                <span>Modified: ${formatDate(currentArticle.modified_datetime)}</span>
-                <span>Views: ${currentArticle.view_count}</span>
+                <span>${escapeHtml(window.t('knowledge.detail.by', { name: currentArticle.author_name }))}</span>
+                <span>${escapeHtml(window.t('knowledge.detail.created', { date: formatDate(currentArticle.created_datetime), version: currentArticle.version || 1 }))}</span>
+                <span>${escapeHtml(window.t('knowledge.detail.modified', { date: formatDate(currentArticle.modified_datetime) }))}</span>
+                <span>${escapeHtml(window.t('knowledge.detail.views', { count: currentArticle.view_count }))}</span>
             </div>
             <div class="article-content-tags">
                 ${(currentArticle.tags || []).map(tag => `<span class="article-tag">${escapeHtml(tag.name)}</span>`).join('')}
@@ -309,7 +309,7 @@ function openCreateArticle() {
     selectedTags = [];
     document.getElementById('editArticleId').value = '';
     document.getElementById('articleTitle').value = '';
-    document.getElementById('editorTitle').textContent = 'New article';
+    document.getElementById('editorTitle').textContent = window.t('knowledge.editor.new_title');
     renderSelectedTags();
 
     // Clear owner and review date
@@ -333,7 +333,7 @@ function editCurrentArticle() {
 
     document.getElementById('editArticleId').value = currentArticle.id;
     document.getElementById('articleTitle').value = currentArticle.title;
-    document.getElementById('editorTitle').textContent = 'Edit article';
+    document.getElementById('editorTitle').textContent = window.t('knowledge.editor.edit_title');
 
     selectedTags = (currentArticle.tags || []).map(t => t.name);
     renderSelectedTags();
@@ -384,9 +384,9 @@ function applyEditorPopoutFromPref() {
 async function saveAsNewVersion() {
     const currentVersion = currentArticle.version || 1;
     const confirmed = await showConfirm({
-        title: 'Save as new version',
-        message: 'The current content will be archived as v' + currentVersion + ' and your changes will become v' + (currentVersion + 1) + '.',
-        okLabel: 'Confirm',
+        title: window.t('knowledge.confirm.version_title'),
+        message: window.t('knowledge.confirm.version_message', { old: currentVersion, new: currentVersion + 1 }),
+        okLabel: window.t('knowledge.confirm.version_ok'),
         okClass: 'primary'
     });
     if (!confirmed) return;
@@ -400,7 +400,7 @@ async function saveAsNewVersion() {
     const nextReviewDate = reviewDateInput ? reviewDateInput.value : null;
 
     if (!title) {
-        showToast('Please enter a title before saving.', 'warning');
+        showToast(window.t('knowledge.toast.need_title_save'), 'warning');
         return;
     }
 
@@ -422,16 +422,16 @@ async function saveAsNewVersion() {
         const data = await response.json();
 
         if (data.success) {
-            showToast('Saved as v' + (currentVersion + 1), 'success');
+            showToast(window.t('knowledge.toast.saved_version', { version: currentVersion + 1 }), 'success');
             loadTags();
             loadArticles();
             showView('list');
         } else {
-            showToast(data.error || 'Failed to save version.', 'error');
+            showToast(data.error || window.t('knowledge.toast.save_version_failed'), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showToast('Failed to save version. Please try again.', 'error');
+        showToast(window.t('knowledge.toast.save_version_failed'), 'error');
     }
 }
 
@@ -448,7 +448,7 @@ async function saveArticle() {
     const nextReviewDate = reviewDateInput ? reviewDateInput.value : null;
 
     if (!title) {
-        showToast('Please enter a title', 'error');
+        showToast(window.t('knowledge.toast.need_title'), 'error');
         return;
     }
 
@@ -469,16 +469,16 @@ async function saveArticle() {
         const data = await response.json();
 
         if (data.success) {
-            showToast(articleId ? 'Article updated successfully' : 'Article created successfully', 'success');
+            showToast(window.t(articleId ? 'knowledge.toast.article_updated' : 'knowledge.toast.article_created'), 'success');
             loadTags(); // Refresh tags in case new ones were added
             loadArticles();
             showView('list');
         } else {
-            showToast('Error saving article: ' + data.error, 'error');
+            showToast(window.t('knowledge.toast.error_saving', { message: data.error }), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showToast('Failed to save article', 'error');
+        showToast(window.t('knowledge.toast.save_failed'), 'error');
     }
 }
 
@@ -486,7 +486,7 @@ async function saveArticle() {
 async function deleteCurrentArticle() {
     if (!currentArticle) return;
 
-    if (!(await showConfirm({ title: 'Delete', message: 'Move this article to the recycle bin?', okLabel: 'Delete', okClass: 'danger' }))) return;
+    if (!(await showConfirm({ title: window.t('knowledge.confirm.delete_title'), message: window.t('knowledge.confirm.delete_message'), okLabel: window.t('knowledge.confirm.delete_ok'), okClass: 'danger' }))) return;
 
     try {
         const response = await fetch(API_BASE + 'knowledge_delete.php', {
@@ -498,16 +498,16 @@ async function deleteCurrentArticle() {
         const data = await response.json();
 
         if (data.success) {
-            showToast('Article moved to recycle bin', 'success');
+            showToast(window.t('knowledge.toast.archived'), 'success');
             loadTags();
             loadArticles();
             showView('list');
         } else {
-            showToast('Error archiving article: ' + data.error, 'error');
+            showToast(window.t('knowledge.toast.error_archiving', { message: data.error }), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showToast('Failed to archive article', 'error');
+        showToast(window.t('knowledge.toast.archive_failed'), 'error');
     }
 }
 
@@ -520,14 +520,14 @@ async function toggleRecycleBin() {
         // Exit recycle bin
         isRecycleBinView = false;
         toggle.classList.remove('active');
-        header.textContent = 'Knowledge Articles';
+        header.textContent = window.t('knowledge.list.heading');
         loadArticles();
         showView('list');
     } else {
         // Enter recycle bin
         isRecycleBinView = true;
         toggle.classList.add('active');
-        header.textContent = 'Recycle Bin';
+        header.textContent = window.t('knowledge.list.recycle_bin');
         showView('list');
         await loadRecycleBin();
     }
@@ -543,39 +543,39 @@ async function loadRecycleBin() {
         const data = await response.json();
 
         if (!data.success) {
-            articleList.innerHTML = '<div class="empty-state">Error loading recycle bin</div>';
+            articleList.innerHTML = '<div class="empty-state">' + escapeHtml(window.t('knowledge.recycle.error_loading')) + '</div>';
             return;
         }
 
         const items = data.articles || [];
         const retentionDays = data.retention_days || 0;
-        articleCount.textContent = items.length + ' archived';
+        articleCount.textContent = window.t('knowledge.list.archived', { count: items.length });
 
         if (items.length === 0) {
-            articleList.innerHTML = '<div class="empty-state">Recycle bin is empty</div>';
+            articleList.innerHTML = '<div class="empty-state">' + escapeHtml(window.t('knowledge.recycle.empty')) + '</div>';
             return;
         }
 
         let html = '';
         if (retentionDays > 0) {
-            html += `<div class="recycle-bin-notice">Articles are automatically deleted after ${retentionDays} days in the recycle bin.</div>`;
+            html += `<div class="recycle-bin-notice">${escapeHtml(window.t('knowledge.recycle.notice_days', { days: retentionDays }))}</div>`;
         } else {
-            html += '<div class="recycle-bin-notice">Articles are kept indefinitely until manually deleted.</div>';
+            html += `<div class="recycle-bin-notice">${escapeHtml(window.t('knowledge.recycle.notice_forever'))}</div>`;
         }
 
         items.forEach(item => {
-            const archivedDate = item.archived_datetime ? formatDate(item.archived_datetime) : 'Unknown';
-            const archivedBy = item.archived_by_name || 'Unknown';
+            const archivedDate = item.archived_datetime ? formatDate(item.archived_datetime) : window.t('knowledge.recycle.unknown');
+            const archivedBy = item.archived_by_name || window.t('knowledge.recycle.unknown');
             html += `
                 <div class="article-card recycle-bin-card">
                     <div class="article-card-title">${escapeHtml(item.title)}</div>
                     <div class="article-card-meta">
-                        By ${escapeHtml(item.author_name)} &middot; Archived ${archivedDate} by ${escapeHtml(archivedBy)}
+                        ${escapeHtml(window.t('knowledge.recycle.archived_by', { author: item.author_name, date: archivedDate, by: archivedBy }))}
                     </div>
                     <div class="recycle-bin-actions">
-                        <button class="btn btn-secondary btn-sm" onclick="viewArchivedArticle(${item.id})">View</button>
-                        <button class="btn btn-primary btn-sm" onclick="restoreArticle(${item.id})">Restore</button>
-                        <button class="btn btn-danger btn-sm" onclick="hardDeleteArticle(${item.id}, '${escapeHtml(item.title).replace(/'/g, "\\'")}')">Delete Permanently</button>
+                        <button class="btn btn-secondary btn-sm" onclick="viewArchivedArticle(${item.id})">${escapeHtml(window.t('knowledge.recycle.view'))}</button>
+                        <button class="btn btn-primary btn-sm" onclick="restoreArticle(${item.id})">${escapeHtml(window.t('knowledge.recycle.restore'))}</button>
+                        <button class="btn btn-danger btn-sm" onclick="hardDeleteArticle(${item.id}, '${escapeHtml(item.title).replace(/'/g, "\\'")}')">${escapeHtml(window.t('knowledge.recycle.delete_forever'))}</button>
                     </div>
                 </div>
             `;
@@ -584,7 +584,7 @@ async function loadRecycleBin() {
         articleList.innerHTML = html;
     } catch (error) {
         console.error('Error loading recycle bin:', error);
-        articleList.innerHTML = '<div class="empty-state">Failed to load recycle bin</div>';
+        articleList.innerHTML = '<div class="empty-state">' + escapeHtml(window.t('knowledge.recycle.failed_load')) + '</div>';
     }
 }
 
@@ -598,20 +598,20 @@ async function restoreArticle(id) {
         const data = await response.json();
 
         if (data.success) {
-            showToast('Article restored', 'success');
+            showToast(window.t('knowledge.toast.restored'), 'success');
             loadTags();
             await loadRecycleBin();
         } else {
-            showToast('Error restoring article: ' + data.error, 'error');
+            showToast(window.t('knowledge.toast.error_restoring', { message: data.error }), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showToast('Failed to restore article', 'error');
+        showToast(window.t('knowledge.toast.restore_failed'), 'error');
     }
 }
 
 async function hardDeleteArticle(id, title) {
-    if (!(await showConfirm({ title: 'Delete', message: `Permanently delete "${title}"? This cannot be undone.`, okLabel: 'Delete', okClass: 'danger' }))) return;
+    if (!(await showConfirm({ title: window.t('knowledge.confirm.delete_title'), message: window.t('knowledge.confirm.hard_delete_message', { title: title }), okLabel: window.t('knowledge.confirm.delete_ok'), okClass: 'danger' }))) return;
 
     try {
         const response = await fetch(API_BASE + 'knowledge_archive.php', {
@@ -622,15 +622,15 @@ async function hardDeleteArticle(id, title) {
         const data = await response.json();
 
         if (data.success) {
-            showToast('Article permanently deleted', 'success');
+            showToast(window.t('knowledge.toast.deleted_forever'), 'success');
             loadTags();
             await loadRecycleBin();
         } else {
-            showToast('Error deleting article: ' + data.error, 'error');
+            showToast(window.t('knowledge.toast.error_deleting', { message: data.error }), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showToast('Failed to delete article', 'error');
+        showToast(window.t('knowledge.toast.delete_failed'), 'error');
     }
 }
 
@@ -643,7 +643,7 @@ async function viewArchivedArticle(id) {
             const article = data.article;
             document.getElementById('archivedArticleTitle').textContent = article.title;
             document.getElementById('archivedArticleMeta').innerHTML =
-                `By ${escapeHtml(article.author_name)} &middot; Created ${formatDate(article.created_datetime)} &middot; Modified ${formatDate(article.modified_datetime)}` +
+                escapeHtml(window.t('knowledge.recycle.meta', { author: article.author_name, created: formatDate(article.created_datetime), modified: formatDate(article.modified_datetime) })) +
                 (article.tags && article.tags.length ? '<div style="margin-top: 8px;">' + article.tags.map(t => `<span class="article-tag">${escapeHtml(t.name)}</span>`).join(' ') + '</div>' : '');
             document.getElementById('archivedArticleBody').innerHTML = article.body;
             document.getElementById('archivedArticleModal').classList.add('active');
@@ -652,11 +652,11 @@ async function viewArchivedArticle(id) {
                 Prism.highlightAll();
             }
         } else {
-            showToast('Error loading article: ' + data.error, 'error');
+            showToast(window.t('knowledge.toast.error_loading', { message: data.error }), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showToast('Failed to load article', 'error');
+        showToast(window.t('knowledge.toast.load_failed'), 'error');
     }
 }
 
@@ -702,7 +702,7 @@ function showView(view) {
         const toggle = document.getElementById('recycleBinToggle');
         const header = document.getElementById('articleListHeader');
         if (toggle) toggle.classList.remove('active');
-        if (header) header.textContent = 'Knowledge Articles';
+        if (header) header.textContent = window.t('knowledge.list.heading');
     }
 }
 
@@ -748,7 +748,7 @@ function showTagSuggestions(query) {
     if (!exactMatch && query.length > 0) {
         html += `
             <div class="tag-suggestion new-tag" onclick="addTag('${escapeHtml(query)}'); document.getElementById('tagInput').value = '';">
-                Create "${escapeHtml(query)}"
+                ${escapeHtml(window.t('knowledge.editor.create_tag', { name: query }))}
             </div>
         `;
     }
@@ -808,7 +808,7 @@ function shareArticleLink() {
     const url = `${window.location.origin}${window.location.pathname}?article=${currentArticle.id}`;
 
     navigator.clipboard.writeText(url).then(() => {
-        showToast('Link copied to clipboard!', 'success');
+        showToast(window.t('knowledge.toast.link_copied'), 'success');
     }).catch(() => {
         // Fallback for older browsers
         const input = document.createElement('input');
@@ -817,7 +817,7 @@ function shareArticleLink() {
         input.select();
         document.execCommand('copy');
         document.body.removeChild(input);
-        showToast('Link copied to clipboard!', 'success');
+        showToast(window.t('knowledge.toast.link_copied'), 'success');
     });
 }
 
@@ -858,7 +858,9 @@ async function buildArticlePdf() {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(120, 120, 120);
-    const meta = `By ${currentArticle.author_name}  |  Created: ${formatDate(currentArticle.created_datetime)}  |  Modified: ${formatDate(currentArticle.modified_datetime)}  |  v${currentArticle.version || 1}`;
+    const meta = window.t('knowledge.detail.by', { name: currentArticle.author_name }) + '  |  ' +
+        window.t('knowledge.detail.created', { date: formatDate(currentArticle.created_datetime), version: currentArticle.version || 1 }) + '  |  ' +
+        window.t('knowledge.detail.modified', { date: formatDate(currentArticle.modified_datetime) });
     doc.text(meta, margin, y);
     y += 4;
 
@@ -1042,12 +1044,12 @@ async function sendShareEmail() {
     const includePdf = document.getElementById('shareIncludePdf').checked;
 
     if (!toEmail) {
-        showToast('Please enter a recipient email address', 'error');
+        showToast(window.t('knowledge.toast.need_recipient'), 'error');
         return;
     }
 
     if (!includeLink && !includePdf) {
-        showToast('Please select at least one option to include', 'error');
+        showToast(window.t('knowledge.toast.need_include'), 'error');
         return;
     }
 
@@ -1060,7 +1062,7 @@ async function sendShareEmail() {
             pdfBase64 = await blobToBase64(pdfBlob);
         } catch (error) {
             console.error('Error generating PDF:', error);
-            showToast('Error generating PDF. Please try again.', 'error');
+            showToast(window.t('knowledge.toast.pdf_error'), 'error');
             return;
         }
     }
@@ -1087,13 +1089,13 @@ async function sendShareEmail() {
 
         if (data.success) {
             closeShareEmailModal();
-            showToast('Email sent successfully!', 'success');
+            showToast(window.t('knowledge.toast.email_sent'), 'success');
         } else {
-            showToast('Error sending email: ' + data.error, 'error');
+            showToast(window.t('knowledge.toast.error_email', { message: data.error }), 'error');
         }
     } catch (error) {
         console.error('Error:', error);
-        showToast('Failed to send email. Please try again.', 'error');
+        showToast(window.t('knowledge.toast.email_failed'), 'error');
     }
 }
 
@@ -1192,7 +1194,7 @@ async function askAi() {
     // Add thinking indicator
     const thinking = document.createElement('div');
     thinking.className = 'ai-chat-thinking';
-    thinking.innerHTML = '<div class="dots"><span></span><span></span><span></span></div> Searching knowledge base...';
+    thinking.innerHTML = '<div class="dots"><span></span><span></span><span></span></div> ' + escapeHtml(window.t('knowledge.ai.searching'));
     messagesContainer.appendChild(thinking);
 
     // Scroll to bottom
@@ -1213,19 +1215,19 @@ async function askAi() {
             const assistantMsg = document.createElement('div');
             assistantMsg.className = 'ai-chat-message assistant';
             assistantMsg.innerHTML = '<div class="ai-chat-bubble">' + formatAiResponse(data.answer, data.articles || []) + '</div>' +
-                '<div class="ai-chat-meta">Searched ' + data.articles_searched + ' articles</div>';
+                '<div class="ai-chat-meta">' + escapeHtml(window.t('knowledge.ai.searched', { count: data.articles_searched })) + '</div>';
             messagesContainer.appendChild(assistantMsg);
         } else {
             const errorMsg = document.createElement('div');
             errorMsg.className = 'ai-chat-error';
-            errorMsg.textContent = data.error || 'Failed to get a response. Please check your API key in Settings.';
+            errorMsg.textContent = data.error || window.t('knowledge.ai.error_default');
             messagesContainer.appendChild(errorMsg);
         }
     } catch (error) {
         thinking.remove();
         const errorMsg = document.createElement('div');
         errorMsg.className = 'ai-chat-error';
-        errorMsg.textContent = 'Network error: ' + error.message;
+        errorMsg.textContent = window.t('knowledge.ai.error_network', { message: error.message });
         messagesContainer.appendChild(errorMsg);
     }
 

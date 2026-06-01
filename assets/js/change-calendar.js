@@ -258,7 +258,7 @@ function renderMonthView(container) {
 
         if (dayEvents.length > maxDisplay) {
             html += `<div class="more-events" onclick="event.stopPropagation(); setView('day'); currentDate = new Date('${dateStr}'); renderCalendar();">
-                     +${dayEvents.length - maxDisplay} more</div>`;
+                     ${window.t('change-management.calendar.more', { count: dayEvents.length - maxDisplay })}</div>`;
         }
 
         html += '</div></div>';
@@ -470,24 +470,24 @@ function showChangePopup(changeId, clickEvent) {
     html += '<div class="change-popup-details">';
 
     // Work window
-    html += `<div class="change-popup-row"><span class="change-popup-label">Work Window</span><span>${formatDatetimeRange(change.start_datetime, change.end_datetime)}</span></div>`;
+    html += `<div class="change-popup-row"><span class="change-popup-label">${window.t('change-management.calendar.work_window')}</span><span>${formatDatetimeRange(change.start_datetime, change.end_datetime)}</span></div>`;
 
     // Outage window (if set)
     if (change.outage_start_datetime) {
-        html += `<div class="change-popup-row"><span class="change-popup-label">Outage Window</span><span>${formatDatetimeRange(change.outage_start_datetime, change.outage_end_datetime)}</span></div>`;
+        html += `<div class="change-popup-row"><span class="change-popup-label">${window.t('change-management.calendar.outage_window')}</span><span>${formatDatetimeRange(change.outage_start_datetime, change.outage_end_datetime)}</span></div>`;
     }
 
     // Priority & Impact
-    html += `<div class="change-popup-row"><span class="change-popup-label">Priority</span><span>${escapeHtml(change.priority)}</span></div>`;
-    html += `<div class="change-popup-row"><span class="change-popup-label">Impact</span><span>${escapeHtml(change.impact)}</span></div>`;
+    html += `<div class="change-popup-row"><span class="change-popup-label">${window.t('change-management.calendar.priority')}</span><span>${escapeHtml(change.priority)}</span></div>`;
+    html += `<div class="change-popup-row"><span class="change-popup-label">${window.t('change-management.calendar.impact')}</span><span>${escapeHtml(change.impact)}</span></div>`;
 
     // Assigned to
     if (change.assigned_to_name) {
-        html += `<div class="change-popup-row"><span class="change-popup-label">Assigned To</span><span>${escapeHtml(change.assigned_to_name)}</span></div>`;
+        html += `<div class="change-popup-row"><span class="change-popup-label">${window.t('change-management.calendar.assigned_to')}</span><span>${escapeHtml(change.assigned_to_name)}</span></div>`;
     }
 
     html += '</div>';
-    html += '<div class="change-popup-actions"><button class="btn btn-primary btn-sm" onclick="openChange(' + change.id + ')">Open Change</button></div>';
+    html += '<div class="change-popup-actions"><button class="btn btn-primary btn-sm" onclick="openChange(' + change.id + ')">' + window.t('change-management.calendar.open_change') + '</button></div>';
 
     document.getElementById('changePopupContent').innerHTML = html;
 

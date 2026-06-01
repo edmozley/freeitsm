@@ -473,7 +473,7 @@ Currently encrypted in `target_mailboxes`:
 Contains `connectToDatabase()` which returns a PDO MySQL connection using the credentials from `db_config.php`. Also contains `getAnalystAllowedModules()` which loads module access permissions for an analyst.
 
 ### i18n (`includes/i18n.php`, `assets/js/i18n.js`, `lang/`)
-Native multi-language support with a `t('namespace.path.to.key')` call pattern in both PHP and JavaScript. Phase 1 ships the infrastructure plus a pilot conversion of the Process Mapper module.
+Native multi-language support with a `t('namespace.path.to.key')` call pattern in both PHP and JavaScript. The infrastructure ships with a growing set of fully-converted modules: **Tickets, Tasks, Process Mapper, Workflows, Knowledge, Change Management, Asset Management, Calendar, Service Status and CMDB** are each translated across all 20 supported locales (every user-facing string in their PHP pages and JavaScript). Remaining modules render in English until converted; conversion is mechanical (extract strings to `lang/en/<module>.php`, wire the page, then add the per-locale files).
 
 **Folder structure**: `lang/<locale>/<namespace>.php` returns a nested PHP array of translations. The first dot-separated segment of a `t()` key maps to the filename; everything after walks the nested array.
 
@@ -485,7 +485,7 @@ lang/
   fr/process-mapper.php     → t('process-mapper.toolbar.process') → "Étape"
 ```
 
-**Supported locales** (phase 1): `en`, `fr`, `de`, `es`, `pt-BR`, `nl`, `it`, `pl`. Adding a language is a code change &mdash; add to `I18n::SUPPORTED_LOCALES` and create the `lang/<code>/` folder. Locale codes follow BCP 47 (matches HTML `lang` attribute), with the hyphen form used for region-subtagged locales (`pt-BR`).
+**Supported locales** (20): `en`, `af`, `fr`, `de`, `es`, `pt-BR`, `nl`, `it`, `pl`, `ru`, `id`, `hi`, `bn`, `ta`, `te`, `mr`, `kn`, `ml`, `gu`, `pa`. Adding a language is a code change &mdash; add to `I18n::SUPPORTED_LOCALES` and create the `lang/<code>/` folder. Locale codes follow BCP 47 (matches HTML `lang` attribute), with the hyphen form used for region-subtagged locales (`pt-BR`).
 
 **Fallback is per key, not per file**. If `lang/de/tickets.php` has 80% of keys translated, you get those 80% in German and the missing 20% in English. Files that simply don't exist for a locale are treated as empty. Last-resort behaviour: return the key itself so unfilled strings are visible during development.
 

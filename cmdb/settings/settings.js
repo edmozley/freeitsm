@@ -57,22 +57,22 @@ function switchTab(tab) {
 
 async function loadClasses() {
     const tbody = document.getElementById('classesTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Loading…</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${escapeHtml(window.t('cmdb.settings.loading'))}</td></tr>`;
     try {
         const res = await fetch(API + 'get_classes.php');
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to load classes');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.classes_load_failed'));
         classes = data.classes;
         renderClasses();
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">Error: ${escapeHtml(err.message)}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${escapeHtml(window.t('cmdb.settings.error_prefix', { message: err.message }))}</td></tr>`;
     }
 }
 
 function renderClasses() {
     const tbody = document.getElementById('classesTableBody');
     if (!classes.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-row">No classes yet — click <strong>Add</strong> to create your first one (e.g. Server, Database, Application).</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${window.t('cmdb.settings.no_classes')}</td></tr>`;
         return;
     }
     tbody.innerHTML = classes.map(c => `
@@ -80,14 +80,14 @@ function renderClasses() {
             <td><strong>${escapeHtml(c.name)}</strong></td>
             <td><span class="key-hint">${escapeHtml(c.class_key)}</span></td>
             <td style="color: #6b7280;">${escapeHtml(c.description || '')}</td>
-            <td><span class="badge clickable" onclick="openPropsModal(${c.id})">${c.property_count} ${c.property_count === 1 ? 'property' : 'properties'}</span></td>
+            <td><span class="badge clickable" onclick="openPropsModal(${c.id})">${c.property_count} ${c.property_count === 1 ? escapeHtml(window.t('cmdb.settings.property')) : escapeHtml(window.t('cmdb.settings.properties'))}</span></td>
             <td>${c.display_order}</td>
-            <td><span class="badge ${c.is_active ? 'active' : 'inactive'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td><span class="badge ${c.is_active ? 'active' : 'inactive'}">${c.is_active ? escapeHtml(window.t('cmdb.settings.active')) : escapeHtml(window.t('cmdb.settings.inactive'))}</span></td>
             <td>
-                <button class="action-btn" title="Edit" onclick="openClassModal(${c.id})">
+                <button class="action-btn" title="${escapeHtml(window.t('cmdb.settings.edit'))}" onclick="openClassModal(${c.id})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button class="action-btn delete" title="Delete" onclick="deleteClass(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">
+                <button class="action-btn delete" title="${escapeHtml(window.t('cmdb.settings.delete'))}" onclick="deleteClass(${c.id}, '${escapeHtml(c.name).replace(/'/g, "\\'")}')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
                 </button>
             </td>
@@ -97,7 +97,7 @@ function renderClasses() {
 
 function openClassModal(id = null) {
     const cls = id ? classes.find(c => c.id === id) : null;
-    document.getElementById('classModalTitle').textContent = cls ? 'Edit class' : 'Add class';
+    document.getElementById('classModalTitle').textContent = cls ? window.t('cmdb.settings.class_modal_edit') : window.t('cmdb.settings.class_modal_add');
     document.getElementById('classId').value = cls ? cls.id : '';
     document.getElementById('className').value = cls ? cls.name : '';
     document.getElementById('classKey').value = cls ? cls.class_key : '';
@@ -122,24 +122,24 @@ async function saveClass(ev) {
     };
     try {
         const data = await postJson(API + 'save_class.php', payload);
-        if (!data.success) throw new Error(data.error || 'Save failed');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.save_failed'));
         closeClassModal();
-        showInlineToast(payload.id ? 'Class updated' : 'Class created');
+        showInlineToast(payload.id ? window.t('cmdb.settings.class_updated') : window.t('cmdb.settings.class_created'));
         loadClasses();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.settings.error_prefix', { message: err.message }), true);
     }
 }
 
 async function deleteClass(id, name) {
-    if (!(await showConfirm({ title: 'Delete', message: `Delete the class "${name}"?\n\nThis is only allowed when no objects exist for it. Property definitions are removed automatically.`, okLabel: 'Delete', okClass: 'danger' }))) return;
+    if (!(await showConfirm({ title: window.t('cmdb.settings.class_delete_title'), message: window.t('cmdb.settings.class_delete_confirm', { name }), okLabel: window.t('cmdb.settings.class_delete_ok'), okClass: 'danger' }))) return;
     try {
         const data = await postJson(API + 'delete_class.php', { id });
-        if (!data.success) throw new Error(data.error || 'Delete failed');
-        showInlineToast('Class deleted');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.delete_failed'));
+        showInlineToast(window.t('cmdb.settings.class_deleted'));
         loadClasses();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.settings.error_prefix', { message: err.message }), true);
     }
 }
 
@@ -179,22 +179,22 @@ function closePropsModal() {
 
 async function loadPropsForClass() {
     const tbody = document.getElementById('propsTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="empty-row">Loading…</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${escapeHtml(window.t('cmdb.settings.loading'))}</td></tr>`;
     try {
         const res = await fetch(API + 'get_class_properties.php?class_id=' + activeClassForProps.id);
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to load properties');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.props_load_failed'));
         propsForClass = data.properties;
         renderProps();
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">Error: ${escapeHtml(err.message)}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${escapeHtml(window.t('cmdb.settings.error_prefix', { message: err.message }))}</td></tr>`;
     }
 }
 
 function renderProps() {
     const tbody = document.getElementById('propsTableBody');
     if (!propsForClass.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty-row">No properties yet — click <strong>Add</strong>.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="7" class="empty-row">${window.t('cmdb.settings.no_properties')}</td></tr>`;
         return;
     }
     tbody.innerHTML = propsForClass.map(p => `
@@ -203,13 +203,13 @@ function renderProps() {
             <td><span class="key-hint">${escapeHtml(p.property_key)}</span></td>
             <td><span class="badge type">${escapeHtml(p.property_type)}</span></td>
             <td>${escapeHtml(p.target_class_name || '')}</td>
-            <td>${p.is_required ? '<span class="badge active">Required</span>' : ''}</td>
+            <td>${p.is_required ? `<span class="badge active">${escapeHtml(window.t('cmdb.settings.required_badge'))}</span>` : ''}</td>
             <td>${p.display_order}</td>
             <td>
-                <button class="action-btn" title="Edit" onclick="openPropertyModal(${p.id})">
+                <button class="action-btn" title="${escapeHtml(window.t('cmdb.settings.edit'))}" onclick="openPropertyModal(${p.id})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button class="action-btn delete" title="Delete" onclick="deleteProperty(${p.id}, '${escapeHtml(p.label).replace(/'/g, "\\'")}')">
+                <button class="action-btn delete" title="${escapeHtml(window.t('cmdb.settings.delete'))}" onclick="deleteProperty(${p.id}, '${escapeHtml(p.label).replace(/'/g, "\\'")}')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2L5 6"/></svg>
                 </button>
             </td>
@@ -219,7 +219,7 @@ function renderProps() {
 
 function openPropertyModal(id = null) {
     const prop = id ? propsForClass.find(p => p.id === id) : null;
-    document.getElementById('propertyModalTitle').textContent = prop ? 'Edit property' : 'Add property';
+    document.getElementById('propertyModalTitle').textContent = prop ? window.t('cmdb.settings.prop_modal_edit') : window.t('cmdb.settings.prop_modal_add');
     document.getElementById('propertyId').value = prop ? prop.id : '';
     document.getElementById('propertyLabel').value = prop ? prop.label : '';
     document.getElementById('propertyKey').value = prop ? prop.property_key : '';
@@ -230,7 +230,7 @@ function openPropertyModal(id = null) {
 
     // Populate the target class dropdown
     const tcSel = document.getElementById('propertyTargetClass');
-    tcSel.innerHTML = '<option value="">— Select —</option>' + classes.map(c =>
+    tcSel.innerHTML = `<option value="">${escapeHtml(window.t('cmdb.settings.prop_select'))}</option>` + classes.map(c =>
         `<option value="${c.id}" ${prop && prop.target_class_id === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
     ).join('');
 
@@ -290,34 +290,34 @@ async function saveProperty(ev) {
     };
 
     if (type === 'object_ref' && !payload.target_class_id) {
-        showInlineToast('Pick a target class for the reference', true);
+        showInlineToast(window.t('cmdb.settings.prop_pick_target'), true);
         return;
     }
     if (type === 'dropdown' && options.length === 0) {
-        showInlineToast('Add at least one dropdown option', true);
+        showInlineToast(window.t('cmdb.settings.prop_add_option'), true);
         return;
     }
 
     try {
         const data = await postJson(API + 'save_class_property.php', payload);
-        if (!data.success) throw new Error(data.error || 'Save failed');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.save_failed'));
         closePropertyModal();
-        showInlineToast(payload.id ? 'Property updated' : 'Property created');
+        showInlineToast(payload.id ? window.t('cmdb.settings.prop_updated') : window.t('cmdb.settings.prop_created'));
         loadPropsForClass();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.settings.error_prefix', { message: err.message }), true);
     }
 }
 
 async function deleteProperty(id, label) {
-    if (!(await showConfirm({ title: 'Delete', message: `Delete property "${label}"?\n\nOnly allowed when no objects have a value for it.`, okLabel: 'Delete', okClass: 'danger' }))) return;
+    if (!(await showConfirm({ title: window.t('cmdb.settings.prop_delete_title'), message: window.t('cmdb.settings.prop_delete_confirm', { label }), okLabel: window.t('cmdb.settings.prop_delete_ok'), okClass: 'danger' }))) return;
     try {
         const data = await postJson(API + 'delete_class_property.php', { id });
-        if (!data.success) throw new Error(data.error || 'Delete failed');
-        showInlineToast('Property deleted');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.delete_failed'));
+        showInlineToast(window.t('cmdb.settings.prop_deleted'));
         loadPropsForClass();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.settings.error_prefix', { message: err.message }), true);
     }
 }
 
@@ -325,22 +325,22 @@ async function deleteProperty(id, label) {
 
 async function loadRelTypes() {
     const tbody = document.getElementById('relTypesTableBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="empty-row">Loading…</td></tr>';
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-row">${escapeHtml(window.t('cmdb.settings.loading'))}</td></tr>`;
     try {
         const res = await fetch(API + 'get_relationship_types.php');
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to load');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.rel_types_load_failed'));
         relTypes = data.relationship_types;
         renderRelTypes();
     } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" class="empty-row">Error: ${escapeHtml(err.message)}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-row">${escapeHtml(window.t('cmdb.settings.error_prefix', { message: err.message }))}</td></tr>`;
     }
 }
 
 function renderRelTypes() {
     const tbody = document.getElementById('relTypesTableBody');
     if (!relTypes.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="empty-row">No relationship types yet — click <strong>Add</strong>.</td></tr>';
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-row">${window.t('cmdb.settings.no_rel_types')}</td></tr>`;
         return;
     }
     tbody.innerHTML = relTypes.map(r => `
@@ -349,12 +349,12 @@ function renderRelTypes() {
             <td>${escapeHtml(r.inverse_verb)}</td>
             <td style="color: #6b7280;">${escapeHtml(r.description || '')}</td>
             <td>${r.display_order}</td>
-            <td><span class="badge ${r.is_active ? 'active' : 'inactive'}">${r.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td><span class="badge ${r.is_active ? 'active' : 'inactive'}">${r.is_active ? escapeHtml(window.t('cmdb.settings.active')) : escapeHtml(window.t('cmdb.settings.inactive'))}</span></td>
             <td>
-                <button class="action-btn" title="Edit" onclick="openRelTypeModal(${r.id})">
+                <button class="action-btn" title="${escapeHtml(window.t('cmdb.settings.edit'))}" onclick="openRelTypeModal(${r.id})">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                 </button>
-                <button class="action-btn delete" title="Delete" onclick="deleteRelType(${r.id}, '${escapeHtml(r.verb).replace(/'/g, "\\'")}')">
+                <button class="action-btn delete" title="${escapeHtml(window.t('cmdb.settings.delete'))}" onclick="deleteRelType(${r.id}, '${escapeHtml(r.verb).replace(/'/g, "\\'")}')">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2L5 6"/></svg>
                 </button>
             </td>
@@ -364,7 +364,7 @@ function renderRelTypes() {
 
 function openRelTypeModal(id = null) {
     const r = id ? relTypes.find(x => x.id === id) : null;
-    document.getElementById('relTypeModalTitle').textContent = r ? 'Edit relationship type' : 'Add relationship type';
+    document.getElementById('relTypeModalTitle').textContent = r ? window.t('cmdb.settings.rel_type_modal_edit') : window.t('cmdb.settings.rel_type_modal_add');
     document.getElementById('relTypeId').value = r ? r.id : '';
     document.getElementById('relTypeVerb').value = r ? r.verb : '';
     document.getElementById('relTypeInverseVerb').value = r ? r.inverse_verb : '';
@@ -389,24 +389,24 @@ async function saveRelType(ev) {
     };
     try {
         const data = await postJson(API + 'save_relationship_type.php', payload);
-        if (!data.success) throw new Error(data.error || 'Save failed');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.save_failed'));
         closeRelTypeModal();
-        showInlineToast(payload.id ? 'Updated' : 'Created');
+        showInlineToast(payload.id ? window.t('cmdb.settings.rel_type_updated') : window.t('cmdb.settings.rel_type_created'));
         loadRelTypes();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.settings.error_prefix', { message: err.message }), true);
     }
 }
 
 async function deleteRelType(id, verb) {
-    if (!(await showConfirm({ title: 'Delete', message: `Delete relationship type "${verb}"?\n\nOnly allowed when no relationships currently use it.`, okLabel: 'Delete', okClass: 'danger' }))) return;
+    if (!(await showConfirm({ title: window.t('cmdb.settings.rel_type_delete_title'), message: window.t('cmdb.settings.rel_type_delete_confirm', { verb }), okLabel: window.t('cmdb.settings.rel_type_delete_ok'), okClass: 'danger' }))) return;
     try {
         const data = await postJson(API + 'delete_relationship_type.php', { id });
-        if (!data.success) throw new Error(data.error || 'Delete failed');
-        showInlineToast('Deleted');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.delete_failed'));
+        showInlineToast(window.t('cmdb.settings.rel_type_deleted'));
         loadRelTypes();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.settings.error_prefix', { message: err.message }), true);
     }
 }
 
@@ -416,7 +416,7 @@ async function loadAiSettings() {
     try {
         const res = await fetch(API + 'get_ai_settings.php');
         const data = await res.json();
-        if (!data.success) throw new Error(data.error || 'Failed to load');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.ai_load_failed'));
         document.getElementById('aiApiKey').value = data.api_key_masked || '';
         document.getElementById('aiApiKey').placeholder = data.has_api_key ? '' : 'sk-ant-...';
         document.getElementById('aiModel').value = data.model || 'claude-haiku-4-5-20251001';
@@ -425,7 +425,7 @@ async function loadAiSettings() {
         r.style.display = 'none';
         r.className = 'test-result';
     } catch (err) {
-        showInlineToast('Error loading AI settings: ' + err.message, true);
+        showInlineToast(window.t('cmdb.settings.ai_load_error', { message: err.message }), true);
     }
 }
 
@@ -438,11 +438,11 @@ async function saveAiSettings(ev) {
     };
     try {
         const data = await postJson(API + 'save_ai_settings.php', payload);
-        if (!data.success) throw new Error(data.error || 'Save failed');
-        showInlineToast('AI settings saved');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.settings.save_failed'));
+        showInlineToast(window.t('cmdb.settings.ai_saved'));
         loadAiSettings();
     } catch (err) {
-        showInlineToast('Error: ' + err.message, true);
+        showInlineToast(window.t('cmdb.settings.error_prefix', { message: err.message }), true);
     }
 }
 
@@ -450,20 +450,20 @@ async function testAiKey() {
     const r = document.getElementById('aiTestResult');
     r.className = 'test-result';
     r.style.display = 'block';
-    r.textContent = 'Testing…';
+    r.textContent = window.t('cmdb.settings.ai_testing');
     try {
         const res = await fetch(API + 'test_ai_key.php', { method: 'POST' });
         const data = await res.json();
         if (data.success) {
             r.className = 'test-result success';
-            r.textContent = data.message || 'Connection OK.';
+            r.textContent = data.message || window.t('cmdb.settings.ai_connection_ok');
         } else {
             r.className = 'test-result error';
-            r.textContent = 'Failed: ' + (data.error || 'unknown error');
+            r.textContent = window.t('cmdb.settings.ai_test_failed', { error: data.error || window.t('cmdb.settings.ai_unknown_error') });
         }
     } catch (err) {
         r.className = 'test-result error';
-        r.textContent = 'Network error: ' + err.message;
+        r.textContent = window.t('cmdb.settings.ai_network_error', { message: err.message });
     }
 }
 
@@ -493,15 +493,15 @@ function setAiStage(stage) {
     const cancelBtn = document.getElementById('aiSuggestSecondaryBtn');
     const actions = document.getElementById('aiSuggestActions');
     if (stage === 'questions') {
-        btn.textContent = 'Generate suggestions';
+        btn.textContent = window.t('cmdb.ai_suggest.generate');
         btn.disabled = false;
-        cancelBtn.textContent = 'Cancel';
+        cancelBtn.textContent = window.t('cmdb.ai_suggest.cancel');
         cancelBtn.style.display = '';
         actions.style.display = '';
     } else if (stage === 'suggestions') {
-        btn.textContent = 'Add';
+        btn.textContent = window.t('cmdb.ai_suggest.add');
         btn.disabled = false;
-        cancelBtn.textContent = 'Cancel';
+        cancelBtn.textContent = window.t('cmdb.ai_suggest.cancel');
         cancelBtn.style.display = '';
         actions.style.display = '';
     } else if (stage === 'loading_questions' || stage === 'loading_suggestions') {
@@ -510,7 +510,7 @@ function setAiStage(stage) {
         actions.style.display = '';
     } else if (stage === 'result') {
         // Result stage: only an OK button. Modal stays put until clicked.
-        btn.textContent = 'OK';
+        btn.textContent = window.t('cmdb.ai_suggest.ok');
         btn.disabled = false;
         cancelBtn.style.display = 'none';
         actions.style.display = '';
@@ -532,9 +532,9 @@ async function openAiSuggestModal() {
 
     try {
         const data = await postJson(API + 'ai_suggest_questions.php', { class_id: activeClassForProps.id });
-        if (!data.success) throw new Error(data.error || 'Failed to fetch questions');
+        if (!data.success) throw new Error(data.error || window.t('cmdb.ai_suggest.questions_failed'));
         aiSuggestQuestions = data.questions || [];
-        if (aiSuggestQuestions.length === 0) throw new Error('AI returned no questions — try again.');
+        if (aiSuggestQuestions.length === 0) throw new Error(window.t('cmdb.ai_suggest.no_questions'));
         renderAiQuestions();
         setAiStage('questions');
     } catch (err) {
@@ -553,8 +553,8 @@ function renderAiQuestions() {
     list.innerHTML = aiSuggestQuestions.map((q, i) => `
         <div class="ai-question">
             <label for="aiQ_${i}">${escapeHtml(q.question)}</label>
-            ${q.examples ? `<div class="examples">e.g. ${escapeHtml(q.examples)}</div>` : ''}
-            <input type="text" id="aiQ_${i}" placeholder="Your answer">
+            ${q.examples ? `<div class="examples">${escapeHtml(window.t('cmdb.ai_suggest.example_prefix', { examples: q.examples }))}</div>` : ''}
+            <input type="text" id="aiQ_${i}" placeholder="${escapeHtml(window.t('cmdb.ai_suggest.answer_placeholder'))}">
         </div>
     `).join('');
 }
@@ -576,9 +576,9 @@ async function aiPrimaryAction() {
                 class_id: activeClassForProps.id,
                 answers: aiSuggestAnswers
             });
-            if (!data.success) throw new Error(data.error || 'Failed to fetch suggestions');
+            if (!data.success) throw new Error(data.error || window.t('cmdb.ai_suggest.suggestions_failed'));
             aiSuggestSuggestions = data.properties || [];
-            if (aiSuggestSuggestions.length === 0) throw new Error('AI returned no usable suggestions.');
+            if (aiSuggestSuggestions.length === 0) throw new Error(window.t('cmdb.ai_suggest.no_suggestions'));
             renderAiSuggestions();
             setAiStage('suggestions');
         } catch (err) {
@@ -600,10 +600,10 @@ function renderAiSuggestions() {
     const list = document.getElementById('aiSuggestionsList');
     list.innerHTML = aiSuggestSuggestions.map((p, i) => {
         const meta = [];
-        meta.push(`type: <strong>${escapeHtml(p.property_type)}</strong>`);
-        if (p.is_required) meta.push('<span style="color: #be185d; font-weight: 500;">required</span>');
-        if (p.property_type === 'dropdown' && p.options) meta.push(`${p.options.length} options`);
-        if (p.property_type === 'object_ref' && p.target_class_hint) meta.push(`refers to ~ <em>${escapeHtml(p.target_class_hint)}</em>`);
+        meta.push(`${escapeHtml(window.t('cmdb.ai_suggest.type'))} <strong>${escapeHtml(p.property_type)}</strong>`);
+        if (p.is_required) meta.push(`<span style="color: #be185d; font-weight: 500;">${escapeHtml(window.t('cmdb.ai_suggest.required'))}</span>`);
+        if (p.property_type === 'dropdown' && p.options) meta.push(escapeHtml(window.t('cmdb.ai_suggest.options_count', { count: p.options.length })));
+        if (p.property_type === 'object_ref' && p.target_class_hint) meta.push(`${escapeHtml(window.t('cmdb.ai_suggest.refers_to'))} <em>${escapeHtml(p.target_class_hint)}</em>`);
         return `
             <label class="ai-suggestion" for="aiSug_${i}">
                 <input type="checkbox" id="aiSug_${i}" data-idx="${i}" checked>
@@ -624,12 +624,12 @@ async function applyAiSuggestions() {
     const checked = Array.from(document.querySelectorAll('#aiSuggestionsList input[type="checkbox"]:checked'))
         .map(cb => parseInt(cb.dataset.idx, 10));
     if (checked.length === 0) {
-        showInlineToast('Select at least one property to add', true);
+        showInlineToast(window.t('cmdb.ai_suggest.select_one'), true);
         return;
     }
 
     document.getElementById('aiSuggestPrimaryBtn').disabled = true;
-    document.getElementById('aiSuggestPrimaryBtn').textContent = 'Adding…';
+    document.getElementById('aiSuggestPrimaryBtn').textContent = window.t('cmdb.ai_suggest.adding');
 
     const added = [];
     const created = []; // {name, id} — classes auto-created during this run
@@ -647,7 +647,7 @@ async function applyAiSuggestions() {
         if (s.property_type === 'object_ref') {
             const hint = (s.target_class_hint || '').trim();
             if (!hint) {
-                errors.push({ label: s.label, error: 'AI did not provide a target class hint' });
+                errors.push({ label: s.label, error: window.t('cmdb.ai_suggest.no_target_hint') });
                 continue;
             }
             const key = hint.toLowerCase();
@@ -661,7 +661,7 @@ async function applyAiSuggestions() {
                         display_order: 0,
                         is_active: true
                     });
-                    if (!createRes.success) throw new Error(createRes.error || 'Failed to create class');
+                    if (!createRes.success) throw new Error(createRes.error || window.t('cmdb.ai_suggest.create_class_failed'));
                     targetClassId = createRes.id;
                     targetClassMap[key] = targetClassId;
                     created.push({ name: hint, id: targetClassId });
@@ -678,7 +678,7 @@ async function applyAiSuggestions() {
                         object_count: 0
                     });
                 } catch (err) {
-                    errors.push({ label: s.label, error: 'Could not create target class "' + hint + '": ' + err.message });
+                    errors.push({ label: s.label, error: window.t('cmdb.ai_suggest.create_target_failed', { name: hint, message: err.message }) });
                     continue;
                 }
             }
@@ -698,7 +698,7 @@ async function applyAiSuggestions() {
             };
             const data = await postJson(API + 'save_class_property.php', payload);
             if (data.success) added.push(s.label);
-            else errors.push({ label: s.label, error: data.error || 'failed' });
+            else errors.push({ label: s.label, error: data.error || window.t('cmdb.ai_suggest.failed') });
         } catch (err) {
             errors.push({ label: s.label, error: err.message });
         }
@@ -722,19 +722,28 @@ function renderAiResult(added, created, errors) {
     summary.style.color = tone.color;
 
     const summaryParts = [];
-    summaryParts.push(`<strong>${tone.icon} Added ${added.length} ${added.length === 1 ? 'property' : 'properties'}.</strong>`);
+    summaryParts.push(`<strong>${tone.icon} ${escapeHtml(window.t('cmdb.ai_suggest.added_summary', {
+        count: added.length,
+        word: added.length === 1 ? window.t('cmdb.ai_suggest.property') : window.t('cmdb.ai_suggest.properties')
+    }))}</strong>`);
     if (created.length > 0) {
-        summaryParts.push(`Auto-created ${created.length} ${created.length === 1 ? 'class' : 'classes'} so the object references could link properly.`);
+        summaryParts.push(escapeHtml(window.t('cmdb.ai_suggest.created_summary', {
+            count: created.length,
+            word: created.length === 1 ? window.t('cmdb.ai_suggest.class') : window.t('cmdb.ai_suggest.classes')
+        })));
     }
     if (hasErrors) {
-        summaryParts.push(`${errors.length} ${errors.length === 1 ? 'item' : 'items'} couldn't be added — see below.`);
+        summaryParts.push(escapeHtml(window.t('cmdb.ai_suggest.errors_summary', {
+            count: errors.length,
+            word: errors.length === 1 ? window.t('cmdb.ai_suggest.item') : window.t('cmdb.ai_suggest.items')
+        })));
     }
     summary.innerHTML = summaryParts.join(' ');
 
     let html = '';
     if (added.length > 0) {
         html += `<div style="margin-bottom: 16px;">
-            <div style="font-weight: 600; color: #166534; margin-bottom: 6px; font-size: 13px;">Properties added to <em>${escapeHtml(activeClassForProps.name)}</em></div>
+            <div style="font-weight: 600; color: #166534; margin-bottom: 6px; font-size: 13px;">${escapeHtml(window.t('cmdb.ai_suggest.added_heading'))} <em>${escapeHtml(activeClassForProps.name)}</em></div>
             <ul style="margin: 0; padding-left: 20px; color: #1f2937; font-size: 13px;">
                 ${added.map(l => `<li>${escapeHtml(l)}</li>`).join('')}
             </ul>
@@ -742,18 +751,18 @@ function renderAiResult(added, created, errors) {
     }
     if (created.length > 0) {
         html += `<div style="margin-bottom: 16px; padding: 12px; background: #fdf4ff; border: 1px solid #f3e8ff; border-radius: 6px;">
-            <div style="font-weight: 600; color: #6b21a8; margin-bottom: 6px; font-size: 13px;">Classes auto-created for object references</div>
+            <div style="font-weight: 600; color: #6b21a8; margin-bottom: 6px; font-size: 13px;">${escapeHtml(window.t('cmdb.ai_suggest.created_heading'))}</div>
             <ul style="margin: 0 0 8px 0; padding-left: 20px; color: #1f2937; font-size: 13px;">
-                ${created.map(c => `<li><strong>${escapeHtml(c.name)}</strong> — empty (no properties yet)</li>`).join('')}
+                ${created.map(c => `<li><strong>${escapeHtml(c.name)}</strong> — ${escapeHtml(window.t('cmdb.ai_suggest.created_empty'))}</li>`).join('')}
             </ul>
             <div style="color: #6b21a8; font-size: 12px;">
-                These new classes have no properties of their own yet. Once you close this, open them from the Classes tab and run <strong>✨ Suggest with AI</strong> on each to flesh them out.
+                ${window.t('cmdb.ai_suggest.created_note')}
             </div>
         </div>`;
     }
     if (hasErrors) {
         html += `<div style="margin-bottom: 8px;">
-            <div style="font-weight: 600; color: #b91c1c; margin-bottom: 6px; font-size: 13px;">Failed</div>
+            <div style="font-weight: 600; color: #b91c1c; margin-bottom: 6px; font-size: 13px;">${escapeHtml(window.t('cmdb.ai_suggest.failed_heading'))}</div>
             <ul style="margin: 0; padding-left: 20px; color: #1f2937; font-size: 13px;">
                 ${errors.map(e => `<li><strong>${escapeHtml(e.label)}</strong> — ${escapeHtml(e.error)}</li>`).join('')}
             </ul>

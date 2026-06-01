@@ -5,16 +5,21 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'dashboard';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'service-status'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Service Status</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('service-status.title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .status-layout {
@@ -254,61 +259,61 @@ $path_prefix = '../';
     <div class="status-layout">
         <!-- Service Board -->
         <div class="section-title">
-            Services
+            <?php echo htmlspecialchars(t('service-status.board.services')); ?>
             <span class="count" id="serviceCount"></span>
         </div>
         <div class="service-grid" id="serviceGrid">
-            <div class="empty-state">Loading...</div>
+            <div class="empty-state"><?php echo htmlspecialchars(t('service-status.board.loading')); ?></div>
         </div>
 
         <!-- Incidents -->
         <div class="incidents-section">
             <div class="section-title">
-                Incidents
-                <button class="new-btn" onclick="openIncidentModal()">New</button>
+                <?php echo htmlspecialchars(t('service-status.board.incidents')); ?>
+                <button class="new-btn" onclick="openIncidentModal()"><?php echo htmlspecialchars(t('service-status.board.new')); ?></button>
             </div>
             <table class="incident-table" id="incidentTable" style="display: none;">
                 <thead>
                     <tr>
-                        <th>Title</th>
-                        <th>Status</th>
-                        <th>Affected Services</th>
-                        <th>Updated</th>
+                        <th><?php echo htmlspecialchars(t('service-status.board.col_title')); ?></th>
+                        <th><?php echo htmlspecialchars(t('service-status.board.col_status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('service-status.board.col_affected')); ?></th>
+                        <th><?php echo htmlspecialchars(t('service-status.board.col_updated')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="incidentList"></tbody>
             </table>
-            <div class="empty-state" id="incidentEmpty" style="display: none;">No incidents to show.</div>
+            <div class="empty-state" id="incidentEmpty" style="display: none;"><?php echo htmlspecialchars(t('service-status.board.no_incidents')); ?></div>
         </div>
     </div>
 
     <!-- Incident Modal -->
     <div class="modal" id="incidentModal">
         <div class="modal-content">
-            <div class="modal-header" id="incidentModalTitle">New Incident</div>
+            <div class="modal-header" id="incidentModalTitle"><?php echo htmlspecialchars(t('service-status.modal.new_incident')); ?></div>
             <form id="incidentForm" autocomplete="off">
                 <input type="hidden" id="incidentId">
                 <div class="form-group">
-                    <label for="incidentTitle">Title</label>
-                    <input type="text" id="incidentTitle" required placeholder="Brief description of the incident">
+                    <label for="incidentTitle"><?php echo htmlspecialchars(t('service-status.modal.title')); ?></label>
+                    <input type="text" id="incidentTitle" required placeholder="<?php echo htmlspecialchars(t('service-status.modal.title_placeholder')); ?>">
                 </div>
                 <div class="form-group">
-                    <label for="incidentStatus">Status</label>
+                    <label for="incidentStatus"><?php echo htmlspecialchars(t('service-status.modal.status')); ?></label>
                     <select id="incidentStatus"></select>
                 </div>
                 <div class="form-group">
-                    <label for="incidentComment">Comment</label>
-                    <textarea id="incidentComment" placeholder="Details about the incident..."></textarea>
+                    <label for="incidentComment"><?php echo htmlspecialchars(t('service-status.modal.comment')); ?></label>
+                    <textarea id="incidentComment" placeholder="<?php echo htmlspecialchars(t('service-status.modal.comment_placeholder')); ?>"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Affected Services</label>
+                    <label><?php echo htmlspecialchars(t('service-status.modal.affected_services')); ?></label>
                     <div class="affected-services" id="affectedServices"></div>
-                    <button type="button" class="add-svc-btn" onclick="addServiceRow()">+ Add Service</button>
+                    <button type="button" class="add-svc-btn" onclick="addServiceRow()"><?php echo htmlspecialchars(t('service-status.modal.add_service')); ?></button>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-danger" id="deleteIncidentBtn" onclick="deleteIncident()" style="display: none; margin-right: auto;">Delete</button>
-                    <button type="button" class="btn btn-secondary" onclick="closeIncidentModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-danger" id="deleteIncidentBtn" onclick="deleteIncident()" style="display: none; margin-right: auto;"><?php echo htmlspecialchars(t('service-status.modal.delete')); ?></button>
+                    <button type="button" class="btn btn-secondary" onclick="closeIncidentModal()"><?php echo htmlspecialchars(t('service-status.modal.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('service-status.modal.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -360,10 +365,10 @@ $path_prefix = '../';
 
         function renderServiceGrid(services) {
             const grid = document.getElementById('serviceGrid');
-            document.getElementById('serviceCount').textContent = services.length + ' services';
+            document.getElementById('serviceCount').textContent = window.t('service-status.board.service_count', { count: services.length });
 
             if (services.length === 0) {
-                grid.innerHTML = '<div class="empty-state">No services configured. Go to Settings to add services.</div>';
+                grid.innerHTML = '<div class="empty-state">' + escapeHtml(window.t('service-status.board.no_services')) + '</div>';
                 return;
             }
 
@@ -410,7 +415,7 @@ $path_prefix = '../';
                     <tr class="${isResolved ? 'resolved' : ''}">
                         <td><span class="incident-title" onclick="editIncident(${inc.id})">${escapeHtml(inc.title)}</span></td>
                         <td><span class="incident-status" ${statusStyle}>${escapeHtml(inc.status)}</span></td>
-                        <td><div class="incident-services-list">${svcs || '<span style="color:#999">None</span>'}</div></td>
+                        <td><div class="incident-services-list">${svcs || `<span style="color:#999">${escapeHtml(window.t('service-status.board.none'))}</span>`}</div></td>
                         <td><span class="incident-date">${dateStr}</span></td>
                     </tr>
                 `;
@@ -430,7 +435,7 @@ $path_prefix = '../';
         // --- Incident Modal ---
 
         function openIncidentModal() {
-            document.getElementById('incidentModalTitle').textContent = 'New Incident';
+            document.getElementById('incidentModalTitle').textContent = window.t('service-status.modal.new_incident');
             document.getElementById('incidentId').value = '';
             document.getElementById('incidentTitle').value = '';
             const defaultSts = incidentStatuses.find(s => s.is_default) || incidentStatuses[0];
@@ -446,7 +451,7 @@ $path_prefix = '../';
             const inc = dashboardData.incidents.find(i => i.id == id);
             if (!inc) return;
 
-            document.getElementById('incidentModalTitle').textContent = 'Edit Incident';
+            document.getElementById('incidentModalTitle').textContent = window.t('service-status.modal.edit_incident');
             document.getElementById('incidentId').value = inc.id;
             document.getElementById('incidentTitle').value = inc.title;
             document.getElementById('incidentStatus').value = inc.status;
@@ -524,13 +529,13 @@ $path_prefix = '../';
                 const data = await response.json();
                 if (data.success) {
                     closeIncidentModal();
-                    showToast('Incident saved', 'success');
+                    showToast(window.t('service-status.toast.incident_saved'), 'success');
                     loadDashboard();
                 } else {
-                    showToast(data.error || 'Failed to save', 'error');
+                    showToast(data.error || window.t('service-status.toast.save_failed'), 'error');
                 }
             } catch (error) {
-                showToast('Failed to save incident', 'error');
+                showToast(window.t('service-status.toast.save_incident_failed'), 'error');
             }
         });
 
@@ -538,9 +543,9 @@ $path_prefix = '../';
             const id = document.getElementById('incidentId').value;
             if (!id) return;
             const ok = await showConfirm({
-                title: 'Delete incident',
-                message: 'Delete this incident?',
-                okLabel: 'Delete',
+                title: window.t('service-status.confirm.delete_incident_title'),
+                message: window.t('service-status.confirm.delete_incident_message'),
+                okLabel: window.t('service-status.confirm.delete_label'),
                 okClass: 'danger'
             });
             if (!ok) return;
@@ -554,13 +559,13 @@ $path_prefix = '../';
                 const data = await response.json();
                 if (data.success) {
                     closeIncidentModal();
-                    showToast('Incident deleted', 'success');
+                    showToast(window.t('service-status.toast.incident_deleted'), 'success');
                     loadDashboard();
                 } else {
-                    showToast(data.error || 'Failed to delete', 'error');
+                    showToast(data.error || window.t('service-status.toast.delete_failed'), 'error');
                 }
             } catch (error) {
-                showToast('Failed to delete incident', 'error');
+                showToast(window.t('service-status.toast.delete_incident_failed'), 'error');
             }
         }
 

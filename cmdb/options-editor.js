@@ -42,15 +42,15 @@
         const hasColour = !!colour;
         return `
             <div class="cmdb-opt-row" data-idx="${index}">
-                <input type="text" class="cmdb-opt-val" value="${escapeHtmlAttr(value)}" placeholder="Option value" maxlength="255">
-                <label class="cmdb-opt-colour-wrap" title="Click to set colour; clear to fall back to plain text">
+                <input type="text" class="cmdb-opt-val" value="${escapeHtmlAttr(value)}" placeholder="${escapeHtmlAttr(window.t('cmdb.options_editor.value_placeholder'))}" maxlength="255">
+                <label class="cmdb-opt-colour-wrap" title="${escapeHtmlAttr(window.t('cmdb.options_editor.colour_title'))}">
                     <input type="color" class="cmdb-opt-colour" value="${colourValue}" data-has-colour="${hasColour ? '1' : '0'}">
                     <span class="cmdb-opt-colour-swatch" style="background:${hasColour ? colourValue : 'transparent'}; border-color:${hasColour ? colourValue : '#d1d5db'};"></span>
                 </label>
-                <button type="button" class="cmdb-opt-clear-colour" title="Remove colour">×</button>
-                <button type="button" class="cmdb-opt-up" title="Move up">↑</button>
-                <button type="button" class="cmdb-opt-down" title="Move down">↓</button>
-                <button type="button" class="cmdb-opt-del" title="Delete option">🗑</button>
+                <button type="button" class="cmdb-opt-clear-colour" title="${escapeHtmlAttr(window.t('cmdb.options_editor.remove_colour'))}">×</button>
+                <button type="button" class="cmdb-opt-up" title="${escapeHtmlAttr(window.t('cmdb.options_editor.move_up'))}">↑</button>
+                <button type="button" class="cmdb-opt-down" title="${escapeHtmlAttr(window.t('cmdb.options_editor.move_down'))}">↓</button>
+                <button type="button" class="cmdb-opt-del" title="${escapeHtmlAttr(window.t('cmdb.options_editor.delete_option'))}">🗑</button>
             </div>`;
     }
 
@@ -180,7 +180,7 @@
         if (!container) return;
         const opts = normalizeInitial(initialOptions);
         const listHtml = `<div class="cmdb-opt-list">${opts.map((o, i) => renderRow(o.value, o.colour, i)).join('')}</div>
-            <button type="button" class="cmdb-opt-add">+ Add option</button>`;
+            <button type="button" class="cmdb-opt-add">${escapeHtmlAttr(window.t('cmdb.options_editor.add_option'))}</button>`;
         container.innerHTML = listHtml;
 
         const list = container.querySelector('.cmdb-opt-list');

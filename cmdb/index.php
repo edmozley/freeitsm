@@ -6,16 +6,21 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'browse';
+$translationNamespaces = ['common', 'cmdb'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreeITSM - CMDB</title>
+    <title>FreeITSM - <?php echo htmlspecialchars(t('cmdb.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <style>
         body { overflow: hidden; height: 100vh; background: #f5f5f5; }
         .browse-container { display: flex; height: calc(100vh - 60px); }
@@ -227,24 +232,24 @@ $current_page = 'browse';
 
     <div class="browse-container">
         <aside class="browse-sidebar">
-            <div class="sidebar-header"><h2>Classes</h2></div>
+            <div class="sidebar-header"><h2><?php echo htmlspecialchars(t('cmdb.list.classes')); ?></h2></div>
             <div class="class-list" id="classList">
-                <div style="padding: 16px; color: #9ca3af; font-size: 13px;">Loading…</div>
+                <div style="padding: 16px; color: #9ca3af; font-size: 13px;"><?php echo htmlspecialchars(t('cmdb.list.loading')); ?></div>
             </div>
         </aside>
 
         <main class="browse-main">
             <div class="main-header">
-                <h2 id="mainTitle">Select a class</h2>
+                <h2 id="mainTitle"><?php echo htmlspecialchars(t('cmdb.list.select_class')); ?></h2>
                 <div class="actions">
-                    <input type="text" id="searchInput" placeholder="Filter by name…" oninput="onSearchInput(event)">
-                    <button class="add-btn" id="newObjectBtn" onclick="openNewObjectModal()" disabled>+ New</button>
+                    <input type="text" id="searchInput" placeholder="<?php echo htmlspecialchars(t('cmdb.list.filter_placeholder')); ?>" oninput="onSearchInput(event)">
+                    <button class="add-btn" id="newObjectBtn" onclick="openNewObjectModal()" disabled><?php echo htmlspecialchars(t('cmdb.list.new')); ?></button>
                 </div>
             </div>
             <div class="object-list" id="objectList">
                 <div class="empty-state">
-                    <h3>Pick a class on the left to see its objects.</h3>
-                    <p>If you don't have any classes yet, head to <a href="settings/" style="color: #be185d;">Settings → Classes</a> first.</p>
+                    <h3><?php echo htmlspecialchars(t('cmdb.list.pick_class_heading')); ?></h3>
+                    <p><?php echo str_replace('{link}', '<a href="settings/" style="color: #be185d;">' . htmlspecialchars(t('cmdb.list.pick_class_link')) . '</a>', htmlspecialchars(t('cmdb.list.pick_class_hint'))); ?></p>
                 </div>
             </div>
         </main>
@@ -253,12 +258,12 @@ $current_page = 'browse';
     <!-- New Object Modal -->
     <div class="modal" id="newObjectModal">
         <div class="modal-content">
-            <div class="modal-header">New <span id="newObjectClassName"></span></div>
+            <div class="modal-header"><?php echo htmlspecialchars(t('cmdb.new_object.heading')); ?> <span id="newObjectClassName"></span></div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="newObjectName">Name *</label>
-                    <input type="text" id="newObjectName" placeholder="e.g. DBPROD01" maxlength="255">
-                    <small>The unique label for this object (you can edit it later).</small>
+                    <label for="newObjectName"><?php echo htmlspecialchars(t('cmdb.new_object.name_label')); ?></label>
+                    <input type="text" id="newObjectName" placeholder="<?php echo htmlspecialchars(t('cmdb.new_object.name_placeholder')); ?>" maxlength="255">
+                    <small><?php echo htmlspecialchars(t('cmdb.new_object.name_help')); ?></small>
                 </div>
 
                 <!-- Required-property fields injected by JS when the class has any.
@@ -269,14 +274,14 @@ $current_page = 'browse';
                 <div class="form-group" style="margin-top: 14px;">
                     <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
                         <input type="checkbox" id="newObjectIsPlanned" style="width: auto; margin: 0;">
-                        <span><strong>Planned</strong> &mdash; this object doesn't physically exist yet (e.g. a future architecture state)</span>
+                        <span><strong><?php echo htmlspecialchars(t('cmdb.new_object.planned_label')); ?></strong> &mdash; <?php echo htmlspecialchars(t('cmdb.new_object.planned_desc')); ?></span>
                     </label>
-                    <small style="margin-top: 4px; color: #888;">Planned objects show with a dashed border and a <em>PLANNED</em> pill across the CMDB. Toggle this off when the object goes live.</small>
+                    <small style="margin-top: 4px; color: #888;"><?php echo htmlspecialchars(t('cmdb.new_object.planned_help')); ?></small>
                 </div>
             </div>
             <div class="modal-actions">
-                <button type="button" class="btn btn-secondary" onclick="closeNewObjectModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="createObject()">Create &amp; open</button>
+                <button type="button" class="btn btn-secondary" onclick="closeNewObjectModal()"><?php echo htmlspecialchars(t('cmdb.new_object.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" onclick="createObject()"><?php echo htmlspecialchars(t('cmdb.new_object.create')); ?></button>
             </div>
         </div>
     </div>

@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -12,13 +14,14 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'approvals';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'change-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Change Approvals</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.approvals')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/change-management.css">
     <style>
@@ -184,34 +187,36 @@ $path_prefix = '../';
             margin: 0;
         }
     </style>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
 
     <div class="approvals-container">
         <div class="approvals-sidebar">
-            <h3>Filter</h3>
+            <h3><?php echo htmlspecialchars(t('change-management.approvals.filter')); ?></h3>
             <div class="approval-filter active" data-filter="all" onclick="setFilter('all')">
-                <span>All</span>
+                <span><?php echo htmlspecialchars(t('change-management.approvals.all')); ?></span>
                 <span class="filter-count" id="countAll">0</span>
             </div>
             <div class="approval-filter" data-filter="assigned" onclick="setFilter('assigned')">
-                <span>Assigned to me</span>
+                <span><?php echo htmlspecialchars(t('change-management.approvals.assigned')); ?></span>
                 <span class="filter-count" id="countAssigned">0</span>
             </div>
             <div class="approval-filter" data-filter="requested" onclick="setFilter('requested')">
-                <span>Requested by me</span>
+                <span><?php echo htmlspecialchars(t('change-management.approvals.requested')); ?></span>
                 <span class="filter-count" id="countRequested">0</span>
             </div>
             <div class="approval-filter" data-filter="cab" onclick="setFilter('cab')">
-                <span>My CAB reviews</span>
+                <span><?php echo htmlspecialchars(t('change-management.approvals.cab')); ?></span>
                 <span class="filter-count" id="countCab">0</span>
             </div>
         </div>
 
         <div class="approvals-main">
             <div class="approvals-header">
-                <h2 id="approvalsTitle">Pending Approvals</h2>
+                <h2 id="approvalsTitle"><?php echo htmlspecialchars(t('change-management.approvals.heading')); ?></h2>
             </div>
             <div id="approvalsList">
                 <div class="loading"><div class="spinner"></div></div>
@@ -242,7 +247,7 @@ $path_prefix = '../';
 
                 if (!data.success) {
                     document.getElementById('approvalsList').innerHTML =
-                        '<div class="approval-empty"><p>Error: ' + (data.error || 'Unknown error') + '</p></div>';
+                        '<div class="approval-empty"><p>' + window.t('change-management.approvals.error', { message: data.error || window.t('change-management.approvals.unknown_error') }) + '</p></div>';
                     return;
                 }
 
@@ -268,8 +273,8 @@ $path_prefix = '../';
                             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                             <polyline points="22 4 12 14.01 9 11.01"></polyline>
                         </svg>
-                        <h3>No pending approvals</h3>
-                        <p>There are no changes awaiting approval in this view.</p>
+                        <h3>${window.t('change-management.approvals.empty_heading')}</h3>
+                        <p>${window.t('change-management.approvals.empty_text')}</p>
                     </div>`;
                 return;
             }
@@ -282,7 +287,7 @@ $path_prefix = '../';
 
                 let cabBadge = '';
                 if (parseInt(c.cab_required) && c.cab_progress) {
-                    cabBadge = `<span class="cab-progress-small">CAB: ${c.cab_progress.required_approved}/${c.cab_progress.required_total}</span>`;
+                    cabBadge = `<span class="cab-progress-small">${window.t('change-management.approvals.cab_progress', { approved: c.cab_progress.required_approved, total: c.cab_progress.required_total })}</span>`;
                 }
 
                 return `
@@ -297,10 +302,10 @@ $path_prefix = '../';
                         </div>
                         <div class="approval-card-title">${escapeHtml(c.title)}</div>
                         <div class="approval-card-meta">
-                            ${c.requester_name ? `<span><span class="meta-label">Requester:</span> ${escapeHtml(c.requester_name)}</span>` : ''}
-                            ${c.approver_name ? `<span><span class="meta-label">Approver:</span> ${escapeHtml(c.approver_name)}</span>` : ''}
-                            ${c.work_start_datetime ? `<span><span class="meta-label">Work Start:</span> ${formatDate(c.work_start_datetime)}</span>` : ''}
-                            ${date ? `<span><span class="meta-label">Submitted:</span> ${date}</span>` : ''}
+                            ${c.requester_name ? `<span><span class="meta-label">${window.t('change-management.approvals.requester')}</span> ${escapeHtml(c.requester_name)}</span>` : ''}
+                            ${c.approver_name ? `<span><span class="meta-label">${window.t('change-management.approvals.approver')}</span> ${escapeHtml(c.approver_name)}</span>` : ''}
+                            ${c.work_start_datetime ? `<span><span class="meta-label">${window.t('change-management.approvals.work_start')}</span> ${formatDate(c.work_start_datetime)}</span>` : ''}
+                            ${date ? `<span><span class="meta-label">${window.t('change-management.approvals.submitted')}</span> ${date}</span>` : ''}
                         </div>
                     </div>
                 `;

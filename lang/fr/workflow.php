@@ -1,0 +1,140 @@
+<?php
+/**
+ * Français (fr) — Workflows module strings.
+ * Missing keys fall back to lang/en/workflow.php per-key.
+ */
+return [
+    'title' => 'Workflows',
+
+    'nav' => [
+        'workflows' => 'Workflows',
+        'settings'  => 'Paramètres',
+        'help'      => 'Aide',
+    ],
+
+    'settings_tabs' => [
+        'ai' => 'IA',
+    ],
+
+    'ai_settings' => [
+        'title'                   => 'Intégration de l\'IA',
+        'intro'                   => 'Configurez le fournisseur d\'IA qui alimente le co-auteur de workflows. Chaque module possède sa propre clé afin que la facturation et l\'accès soient granulaires. La clé API est chiffrée au repos. Utilisez Tester pour vérifier votre clé et votre modèle avant d\'enregistrer.',
+        'provider_label'          => 'Fournisseur',
+        'model_label'             => 'Modèle',
+        'model_hint'              => 'Choisissez une suggestion ou collez l\'identifiant de n\'importe quel modèle pris en charge par le fournisseur sélectionné.',
+        'key_label'               => 'API key',
+        'key_placeholder_empty'   => '(aucune clé enregistrée — collez-en une nouvelle pour la définir)',
+        'key_placeholder_stored'  => 'Enregistrée — laissez inchangée pour la conserver',
+        'key_hint'                => 'Chiffrée au repos. Laissez vide ou inchangée pour conserver la clé existante.',
+        'verify_ssl_label'        => 'Vérifier le SSL',
+        'verify_ssl_hint'         => 'À désactiver uniquement pour les tests dans des environnements à certificats auto-signés (p. ex. derrière un proxy d\'inspection).',
+        'ssl_warning_title'       => 'Avertissement',
+        'ssl_warning_body'        => 'La vérification SSL est désactivée. FreeITSM acceptera n\'importe quel certificat TLS du fournisseur d\'IA sans le contrôler. Toute personne ayant accès à votre réseau pourrait se faire passer pour le fournisseur, intercepter le trafic et voler votre API key — ainsi que chaque requête et réponse qui suit. Ne laissez ceci désactivé que dans des environnements de test à certificats auto-signés — jamais en production.',
+        'test_btn'                => 'Tester',
+        'testing'                 => 'Test en cours…',
+    ],
+
+    'list' => [
+        'page_title'      => 'Workflows',
+        'intro'           => 'Règles d\'automatisation qui écoutent les événements d\'autres modules et y réagissent. Chaque règle est un déclencheur, des conditions facultatives et une ou plusieurs actions.',
+        'add_btn'         => 'Nouveau',
+        'no_workflows'    => 'Aucun workflow pour l\'instant — cliquez sur « Nouveau » pour créer votre première automatisation.',
+        'col_name'        => 'Nom',
+        'col_trigger'     => 'Déclencheur',
+        'col_actions'     => 'Actions',
+        'col_last_run'    => 'Dernière exécution',
+        'col_status'      => 'Statut',
+        'col_row_actions' => 'Actions',
+        'never_run'       => 'Jamais',
+        'active'          => 'Actif',
+        'inactive'        => 'Inactif',
+    ],
+
+    'editor' => [
+        'new_title'       => 'Nouveau workflow',
+        'edit_title'      => 'Modifier le workflow',
+        'name_label'      => 'Nom',
+        'name_placeholder'=> 'p. ex. alerte ticket P1',
+        'description_label' => 'Description',
+        'description_placeholder' => 'Facultatif — expliquez ce que fait ce workflow et pourquoi',
+        'trigger_label'   => 'Déclencheur',
+        'trigger_hint'    => 'L\'événement qui déclenche ce workflow.',
+        'conditions_label'=> 'Conditions',
+        'conditions_hint' => 'Facultatif. Toutes les conditions doivent correspondre pour que les actions s\'exécutent. Laissez vide pour s\'exécuter à chaque déclenchement.',
+        'actions_label'   => 'Actions',
+        'actions_hint'    => 'Exécutées dans l\'ordre, de haut en bas. Au moins une action est requise.',
+        'active_label'    => 'Actif — s\'exécute lorsque le déclencheur se produit',
+        'add_condition'   => 'Ajouter une condition',
+        'add_action'      => 'Ajouter une action',
+        'remove'          => 'Supprimer',
+        'test_fire'       => 'Tester le déclenchement',
+        'test_fire_hint'  => 'Exécutez ce workflow une fois avec une charge utile synthétique afin de vérifier que les actions fonctionnent. Les vrais déclencheurs s\'activeront une fois câblés dans les commits suivants.',
+        'no_conditions'   => 'Aucune condition — s\'exécute à chaque événement.',
+        'no_actions'      => 'Aucune action pour l\'instant — ajoutez-en au moins une.',
+        'condition_field' => 'Champ',
+        'condition_op'    => 'Opérateur',
+        'condition_value' => 'Valeur',
+        'action_type'     => 'Action',
+        'action_args'     => 'Arguments (JSON)',
+        'back'            => 'Retour',
+    ],
+
+    'op' => [
+        'equals'      => 'est égal à',
+        'not_equals'  => 'n\'est pas égal à',
+        'in'          => 'est l\'un de',
+        'not_in'      => 'n\'est pas l\'un de',
+        'contains'    => 'contient',
+        'not_contains'=> 'ne contient pas',
+        'gt'          => 'supérieur à',
+        'lt'          => 'inférieur à',
+        'is_empty'    => 'est vide',
+        'is_not_empty'=> 'n\'est pas vide',
+    ],
+
+    'status' => [
+        'success' => 'Réussite',
+        'failed'  => 'Échec',
+        'skipped' => 'Ignoré (les conditions ne correspondaient pas)',
+        'running' => 'En cours',
+        'aborted' => 'Interrompu (protection contre les boucles)',
+    ],
+
+    'toast' => [
+        'saved'         => 'Workflow enregistré.',
+        'deleted'       => 'Workflow supprimé.',
+        'delete_confirm'=> 'Supprimer ce workflow ?',
+        'fire_started'  => 'Déclenchement de test démarré — voir le journal d\'exécution.',
+        'fire_done'     => 'Déclenchement de test terminé : %s.',
+        'fire_failed'   => 'Échec du déclenchement de test : %s',
+        'name_required' => 'Le nom est requis.',
+        'actions_required' => 'Au moins une action est requise.',
+        'saved_no_actions' => 'Enregistré — mais ce workflow n\'a aucune action pour l\'instant, il ne fera donc rien tant que vous n\'en aurez pas ajouté une.',
+        'ai_applied'      => 'Proposition de l\'IA appliquée au canevas. Ajustez puis enregistrez.',
+        'ai_failed'       => 'Échec du co-auteur IA : %s',
+        'saved_settings'  => 'Paramètres enregistrés.',
+    ],
+
+    'ai' => [
+        'btn'              => 'Co-auteur IA',
+        'modal_title'      => 'Co-auteur IA',
+        'intro'            => 'Décrivez le workflow souhaité et l\'IA en construira la trame sur le canevas. Vous pouvez continuer — dites « ajoute maintenant une condition pour… » et elle itère sur ce qui existe déjà.',
+        'prompt_label'     => 'Que doit faire ce workflow ?',
+        'prompt_placeholder' => 'p. ex. Lorsqu\'un ticket P1 du service Finance est créé, enregistre un message indiquant « Ticket P1 finance — alerter l\'équipe »',
+        'generate'         => 'Générer',
+        'thinking'         => 'Réflexion…',
+        'apply'            => 'Appliquer au canevas',
+        'discard'          => 'Abandonner',
+        'close'            => 'Fermer',
+        'iterate_hint'     => 'Astuce : lorsqu\'un workflow se trouve sur le canevas, l\'IA itère dessus. Essayez « fais en sorte qu\'il ne corresponde qu\'à Finance, pas à tous les services » ou « ajoute une action pour enregistrer aussi l\'identifiant du ticket ».',
+        'explanation_label' => 'Ce que j\'ai construit',
+        'preview_label'    => 'Workflow proposé',
+        'warnings_label'   => 'Remarques',
+        'only_log_message' => 'Seule l\'action log_message est implémentée à ce jour ; l\'IA s\'appuiera dessus comme espace réservé pour les actions non implémentées (p. ex. « envoyer un e-mail » → log_message documentant l\'intention).',
+    ],
+
+    'help' => [
+        'page_title' => 'Guide des workflows',
+        'intro'      => 'Les workflows automatisent les tâches que vous effectuez manuellement après l\'arrivée d\'un ticket : étiquetage, escalade, attribution, notification, diffusion vers d\'autres systèmes. Un workflow écoute un événement, le filtre éventuellement avec des conditions, puis exécute une ou plusieurs actions dans l\'ordre.',
+    ],
+];

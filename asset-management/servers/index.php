@@ -4,17 +4,22 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'servers';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'asset-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Servers</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('asset-management.nav.servers')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <style>
         /* Override .main-container's display: flex so .servers-content
            behaves as a normal block (fills the full width) rather than a
@@ -552,7 +557,7 @@ $path_prefix = '../../';
                     </div>
                     <div class="summary-info">
                         <span class="summary-value" id="totalVMs">-</span>
-                        <span class="summary-label">Total VMs</span>
+                        <span class="summary-label"><?php echo htmlspecialchars(t('asset-management.servers.total_vms')); ?></span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -564,7 +569,7 @@ $path_prefix = '../../';
                     </div>
                     <div class="summary-info">
                         <span class="summary-value" id="activeVMs">-</span>
-                        <span class="summary-label">Active</span>
+                        <span class="summary-label"><?php echo htmlspecialchars(t('asset-management.servers.active')); ?></span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -577,7 +582,7 @@ $path_prefix = '../../';
                     </div>
                     <div class="summary-info">
                         <span class="summary-value" id="offlineVMs">-</span>
-                        <span class="summary-label">Offline</span>
+                        <span class="summary-label"><?php echo htmlspecialchars(t('asset-management.servers.offline')); ?></span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -597,7 +602,7 @@ $path_prefix = '../../';
                     </div>
                     <div class="summary-info">
                         <span class="summary-value" id="totalCPU">-</span>
-                        <span class="summary-label">Total vCPUs</span>
+                        <span class="summary-label"><?php echo htmlspecialchars(t('asset-management.servers.total_vcpus')); ?></span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -615,7 +620,7 @@ $path_prefix = '../../';
                     </div>
                     <div class="summary-info">
                         <span class="summary-value" id="totalMemory">-</span>
-                        <span class="summary-label">Total Memory</span>
+                        <span class="summary-label"><?php echo htmlspecialchars(t('asset-management.servers.total_memory')); ?></span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -628,7 +633,7 @@ $path_prefix = '../../';
                     </div>
                     <div class="summary-info">
                         <span class="summary-value" id="totalDisk">-</span>
-                        <span class="summary-label">Total Storage</span>
+                        <span class="summary-label"><?php echo htmlspecialchars(t('asset-management.servers.total_storage')); ?></span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -641,7 +646,7 @@ $path_prefix = '../../';
                     </div>
                     <div class="summary-info">
                         <span class="summary-value" id="hostCount">-</span>
-                        <span class="summary-label">ESXi Hosts</span>
+                        <span class="summary-label"><?php echo htmlspecialchars(t('asset-management.servers.esxi_hosts')); ?></span>
                     </div>
                 </div>
                 <div class="summary-card">
@@ -659,7 +664,7 @@ $path_prefix = '../../';
                     </div>
                     <div class="summary-info">
                         <span class="summary-value" id="clusterCount">-</span>
-                        <span class="summary-label">Clusters</span>
+                        <span class="summary-label"><?php echo htmlspecialchars(t('asset-management.servers.clusters')); ?></span>
                     </div>
                 </div>
             </div>
@@ -669,11 +674,11 @@ $path_prefix = '../../';
 
             <!-- Toolbar -->
             <div class="servers-toolbar">
-                <input type="text" class="search-box" id="searchBox" placeholder="Search by name, IP, host or cluster...">
+                <input type="text" class="search-box" id="searchBox" placeholder="<?php echo htmlspecialchars(t('asset-management.servers.search_placeholder')); ?>">
                 <div class="filter-chips">
-                    <span class="filter-chip active" data-filter="all" onclick="setFilter('all')">All</span>
-                    <span class="filter-chip" data-filter="active" onclick="setFilter('active')">Active</span>
-                    <span class="filter-chip" data-filter="offline" onclick="setFilter('offline')">Offline</span>
+                    <span class="filter-chip active" data-filter="all" onclick="setFilter('all')"><?php echo htmlspecialchars(t('asset-management.servers.filter_all')); ?></span>
+                    <span class="filter-chip" data-filter="active" onclick="setFilter('active')"><?php echo htmlspecialchars(t('asset-management.servers.active')); ?></span>
+                    <span class="filter-chip" data-filter="offline" onclick="setFilter('offline')"><?php echo htmlspecialchars(t('asset-management.servers.offline')); ?></span>
                 </div>
                 <div class="toolbar-right">
                     <span class="sync-info" id="syncInfo"></span>
@@ -683,7 +688,7 @@ $path_prefix = '../../';
                             <polyline points="1 20 1 14 7 14"></polyline>
                             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
                         </svg>
-                        Sync vCenter
+                        <?php echo htmlspecialchars(t('asset-management.servers.sync_vcenter')); ?>
                     </button>
                 </div>
             </div>
@@ -693,19 +698,19 @@ $path_prefix = '../../';
                 <table class="servers-table" id="serversTable">
                     <thead>
                         <tr>
-                            <th onclick="sortTable('name')">Name <span class="sort-arrow">&#9650;</span></th>
-                            <th onclick="sortTable('power_state')">Status <span class="sort-arrow">&#9650;</span></th>
-                            <th onclick="sortTable('num_cpu')">vCPU <span class="sort-arrow">&#9650;</span></th>
-                            <th onclick="sortTable('memory_gb')">Memory <span class="sort-arrow">&#9650;</span></th>
-                            <th onclick="sortTable('hard_disk_size_gb')">Storage <span class="sort-arrow">&#9650;</span></th>
-                            <th onclick="sortTable('ip_address')">IP Address <span class="sort-arrow">&#9650;</span></th>
-                            <th onclick="sortTable('host')">Host <span class="sort-arrow">&#9650;</span></th>
-                            <th onclick="sortTable('cluster')">Cluster <span class="sort-arrow">&#9650;</span></th>
-                            <th onclick="sortTable('guest_os')">Guest OS <span class="sort-arrow">&#9650;</span></th>
+                            <th onclick="sortTable('name')"><?php echo htmlspecialchars(t('asset-management.servers.col_name')); ?> <span class="sort-arrow">&#9650;</span></th>
+                            <th onclick="sortTable('power_state')"><?php echo htmlspecialchars(t('asset-management.servers.col_status')); ?> <span class="sort-arrow">&#9650;</span></th>
+                            <th onclick="sortTable('num_cpu')"><?php echo htmlspecialchars(t('asset-management.servers.col_vcpu')); ?> <span class="sort-arrow">&#9650;</span></th>
+                            <th onclick="sortTable('memory_gb')"><?php echo htmlspecialchars(t('asset-management.servers.col_memory')); ?> <span class="sort-arrow">&#9650;</span></th>
+                            <th onclick="sortTable('hard_disk_size_gb')"><?php echo htmlspecialchars(t('asset-management.servers.col_storage')); ?> <span class="sort-arrow">&#9650;</span></th>
+                            <th onclick="sortTable('ip_address')"><?php echo htmlspecialchars(t('asset-management.servers.col_ip')); ?> <span class="sort-arrow">&#9650;</span></th>
+                            <th onclick="sortTable('host')"><?php echo htmlspecialchars(t('asset-management.servers.col_host')); ?> <span class="sort-arrow">&#9650;</span></th>
+                            <th onclick="sortTable('cluster')"><?php echo htmlspecialchars(t('asset-management.servers.col_cluster')); ?> <span class="sort-arrow">&#9650;</span></th>
+                            <th onclick="sortTable('guest_os')"><?php echo htmlspecialchars(t('asset-management.servers.col_guest_os')); ?> <span class="sort-arrow">&#9650;</span></th>
                         </tr>
                     </thead>
                     <tbody id="serversBody">
-                        <tr><td colspan="9" style="text-align: center; padding: 40px; color: #888;">Loading...</td></tr>
+                        <tr><td colspan="9" style="text-align: center; padding: 40px; color: #888;"><?php echo htmlspecialchars(t('asset-management.common.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -750,11 +755,11 @@ $path_prefix = '../../';
                     updateSummary(data.summary);
                     applyFilters();
                 } else {
-                    showEmptyState('Error loading servers: ' + data.error);
+                    showEmptyState(window.t('asset-management.servers.load_error', { error: data.error }));
                 }
             } catch (error) {
                 console.error('Error loading servers:', error);
-                showEmptyState('Failed to load server data');
+                showEmptyState(window.t('asset-management.servers.load_failed'));
             }
         }
 
@@ -769,7 +774,7 @@ $path_prefix = '../../';
             document.getElementById('clusterCount').textContent = summary.cluster_count;
 
             if (summary.last_synced) {
-                document.getElementById('syncInfo').textContent = 'Last synced: ' + summary.last_synced;
+                document.getElementById('syncInfo').textContent = window.t('asset-management.servers.last_synced', { date: summary.last_synced });
             }
         }
 
@@ -856,12 +861,12 @@ $path_prefix = '../../';
                                     <line x1="6" y1="6" x2="6.01" y2="6"></line>
                                     <line x1="6" y1="18" x2="6.01" y2="18"></line>
                                 </svg>
-                                <h3>No servers synced yet</h3>
-                                <p>Click "Sync vCenter" to import your virtual machine inventory</p>
+                                <h3>${window.t('asset-management.servers.empty_heading')}</h3>
+                                <p>${window.t('asset-management.servers.empty_body')}</p>
                             </div>
                         </td></tr>`;
                 } else {
-                    tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 30px; color: #888;">No servers match your filters</td></tr>';
+                    tbody.innerHTML = `<tr><td colspan="9" style="text-align: center; padding: 30px; color: #888;">${window.t('asset-management.servers.no_match')}</td></tr>`;
                 }
                 return;
             }
@@ -872,7 +877,7 @@ $path_prefix = '../../';
                     <td>
                         <span class="status-badge ${s.power_state}">
                             <span class="status-dot ${s.power_state}"></span>
-                            ${s.power_state === 'active' ? 'Active' : 'Offline'}
+                            ${s.power_state === 'active' ? window.t('asset-management.servers.active') : window.t('asset-management.servers.offline')}
                         </span>
                     </td>
                     <td>${s.num_cpu || '-'}</td>
@@ -920,12 +925,12 @@ $path_prefix = '../../';
                     msgEl.className = 'sync-message success';
                     loadServers(); // Refresh the table
                 } else {
-                    msgEl.textContent = 'Sync failed: ' + data.error;
+                    msgEl.textContent = window.t('asset-management.servers.sync_failed', { error: data.error });
                     msgEl.className = 'sync-message error';
                 }
             } catch (error) {
                 console.error('Sync error:', error);
-                msgEl.textContent = 'Sync failed: Could not connect to server';
+                msgEl.textContent = window.t('asset-management.servers.sync_no_connect');
                 msgEl.className = 'sync-message error';
             }
 
@@ -966,17 +971,17 @@ $path_prefix = '../../';
 
             // Overview section
             html += `<div class="detail-section">
-                <h3>Overview</h3>
+                <h3>${window.t('asset-management.servers.overview')}</h3>
                 <div class="detail-grid">
-                    <div class="detail-item"><span class="label">VM ID</span><span class="value">${escapeHtml(s.vm_id)}</span></div>
-                    <div class="detail-item"><span class="label">Guest OS</span><span class="value">${escapeHtml(s.guest_os || '-')}</span></div>
-                    <div class="detail-item"><span class="label">vCPUs</span><span class="value">${s.num_cpu || '-'}</span></div>
-                    <div class="detail-item"><span class="label">Memory</span><span class="value">${s.memory_gb ? parseFloat(s.memory_gb).toFixed(0) + ' GB' : '-'}</span></div>
-                    <div class="detail-item"><span class="label">Storage</span><span class="value">${s.hard_disk_size_gb ? formatSize(parseFloat(s.hard_disk_size_gb)) : '-'}</span></div>
-                    <div class="detail-item"><span class="label">IP Address</span><span class="value">${escapeHtml(s.ip_address || '-')}</span></div>
-                    <div class="detail-item"><span class="label">ESXi Host</span><span class="value">${escapeHtml(s.host || '-')}</span></div>
-                    <div class="detail-item"><span class="label">Cluster</span><span class="value">${escapeHtml(s.cluster || '-')}</span></div>
-                    <div class="detail-item"><span class="label">Last Synced</span><span class="value">${escapeHtml(s.last_synced || '-')}</span></div>
+                    <div class="detail-item"><span class="label">${window.t('asset-management.servers.vm_id')}</span><span class="value">${escapeHtml(s.vm_id)}</span></div>
+                    <div class="detail-item"><span class="label">${window.t('asset-management.servers.col_guest_os')}</span><span class="value">${escapeHtml(s.guest_os || '-')}</span></div>
+                    <div class="detail-item"><span class="label">${window.t('asset-management.servers.vcpus')}</span><span class="value">${s.num_cpu || '-'}</span></div>
+                    <div class="detail-item"><span class="label">${window.t('asset-management.servers.col_memory')}</span><span class="value">${s.memory_gb ? parseFloat(s.memory_gb).toFixed(0) + ' GB' : '-'}</span></div>
+                    <div class="detail-item"><span class="label">${window.t('asset-management.servers.col_storage')}</span><span class="value">${s.hard_disk_size_gb ? formatSize(parseFloat(s.hard_disk_size_gb)) : '-'}</span></div>
+                    <div class="detail-item"><span class="label">${window.t('asset-management.servers.col_ip')}</span><span class="value">${escapeHtml(s.ip_address || '-')}</span></div>
+                    <div class="detail-item"><span class="label">${window.t('asset-management.servers.esxi_host')}</span><span class="value">${escapeHtml(s.host || '-')}</span></div>
+                    <div class="detail-item"><span class="label">${window.t('asset-management.servers.col_cluster')}</span><span class="value">${escapeHtml(s.cluster || '-')}</span></div>
+                    <div class="detail-item"><span class="label">${window.t('asset-management.servers.last_synced_label')}</span><span class="value">${escapeHtml(s.last_synced || '-')}</span></div>
                 </div>
             </div>`;
 
@@ -985,13 +990,13 @@ $path_prefix = '../../';
                 if (raw.guest_identity) {
                     const gi = raw.guest_identity;
                     html += `<div class="detail-section">
-                        <h3>Guest Identity (VMware Tools)</h3>
+                        <h3>${window.t('asset-management.servers.guest_identity')}</h3>
                         <div class="detail-grid">
-                            ${detailItem('Full Name', gi.full_name?.default_message)}
-                            ${detailItem('Host Name', gi.host_name)}
-                            ${detailItem('IP Address', gi.ip_address)}
-                            ${detailItem('OS Family', gi.family)}
-                            ${detailItem('Tools Version', gi.tools_version)}
+                            ${detailItem(window.t('asset-management.servers.full_name'), gi.full_name?.default_message)}
+                            ${detailItem(window.t('asset-management.servers.host_name'), gi.host_name)}
+                            ${detailItem(window.t('asset-management.servers.col_ip'), gi.ip_address)}
+                            ${detailItem(window.t('asset-management.servers.os_family'), gi.family)}
+                            ${detailItem(window.t('asset-management.servers.tools_version'), gi.tools_version)}
                         </div>
                     </div>`;
                 }
@@ -999,7 +1004,7 @@ $path_prefix = '../../';
                 // Disks from detail
                 const detail = raw.vm_detail;
                 if (detail?.disks) {
-                    html += `<div class="detail-section"><h3>Disks</h3><table class="detail-disks-table"><thead><tr><th>Disk</th><th>Label</th><th>Capacity</th><th>Type</th><th>Backing</th></tr></thead><tbody>`;
+                    html += `<div class="detail-section"><h3>${window.t('asset-management.servers.disks')}</h3><table class="detail-disks-table"><thead><tr><th>${window.t('asset-management.servers.disk')}</th><th>${window.t('asset-management.servers.label')}</th><th>${window.t('asset-management.servers.capacity')}</th><th>${window.t('asset-management.servers.type')}</th><th>${window.t('asset-management.servers.backing')}</th></tr></thead><tbody>`;
                     for (const [key, disk] of Object.entries(detail.disks)) {
                         const d = disk.value || disk;
                         const cap = d.capacity ? formatSize(d.capacity / (1024*1024*1024)) : '-';
@@ -1013,7 +1018,7 @@ $path_prefix = '../../';
 
                 // NICs from detail
                 if (detail?.nics) {
-                    html += `<div class="detail-section"><h3>Network Adapters</h3><table class="detail-nics-table"><thead><tr><th>NIC</th><th>Label</th><th>Type</th><th>MAC Address</th><th>State</th><th>Network</th></tr></thead><tbody>`;
+                    html += `<div class="detail-section"><h3>${window.t('asset-management.servers.network_adapters')}</h3><table class="detail-nics-table"><thead><tr><th>${window.t('asset-management.servers.nic')}</th><th>${window.t('asset-management.servers.label')}</th><th>${window.t('asset-management.servers.type')}</th><th>${window.t('asset-management.servers.mac_address')}</th><th>${window.t('asset-management.servers.state')}</th><th>${window.t('asset-management.servers.network')}</th></tr></thead><tbody>`;
                     for (const [key, nic] of Object.entries(detail.nics)) {
                         const n = nic.value || nic;
                         html += `<tr><td>${escapeHtml(key)}</td><td>${escapeHtml(n.label || '-')}</td><td>${escapeHtml(n.type || '-')}</td><td style="font-family:monospace">${escapeHtml(n.mac_address || '-')}</td><td>${escapeHtml(n.state || '-')}</td><td>${escapeHtml(n.backing?.network_name || n.backing?.network || '-')}</td></tr>`;
@@ -1023,10 +1028,10 @@ $path_prefix = '../../';
 
                 // Guest networking interfaces
                 if (raw.guest_networking && Array.isArray(raw.guest_networking)) {
-                    html += `<div class="detail-section"><h3>Guest Network Interfaces</h3><table class="detail-nics-table"><thead><tr><th>NIC</th><th>MAC Address</th><th>IP Addresses</th></tr></thead><tbody>`;
+                    html += `<div class="detail-section"><h3>${window.t('asset-management.servers.guest_network_interfaces')}</h3><table class="detail-nics-table"><thead><tr><th>${window.t('asset-management.servers.nic')}</th><th>${window.t('asset-management.servers.mac_address')}</th><th>${window.t('asset-management.servers.ip_addresses')}</th></tr></thead><tbody>`;
                     raw.guest_networking.forEach((iface, i) => {
                         const ips = (iface.ip?.ip_addresses || []).map(a => a.ip_address).join(', ') || '-';
-                        html += `<tr><td>NIC ${i}</td><td style="font-family:monospace">${escapeHtml(iface.mac_address || '-')}</td><td style="font-family:monospace">${escapeHtml(ips)}</td></tr>`;
+                        html += `<tr><td>${window.t('asset-management.servers.nic')} ${i}</td><td style="font-family:monospace">${escapeHtml(iface.mac_address || '-')}</td><td style="font-family:monospace">${escapeHtml(ips)}</td></tr>`;
                     });
                     html += '</tbody></table></div>';
                 }
@@ -1036,7 +1041,7 @@ $path_prefix = '../../';
                     const fs = raw.guest_local_filesystem;
                     const entries = Array.isArray(fs) ? fs : Object.entries(fs).map(([k,v]) => ({key: k, ...(v.value || v)}));
                     if (entries.length > 0) {
-                        html += `<div class="detail-section"><h3>Filesystems</h3><table class="detail-disks-table"><thead><tr><th>Drive</th><th>Capacity</th><th>Free Space</th></tr></thead><tbody>`;
+                        html += `<div class="detail-section"><h3>${window.t('asset-management.servers.filesystems')}</h3><table class="detail-disks-table"><thead><tr><th>${window.t('asset-management.servers.drive')}</th><th>${window.t('asset-management.servers.capacity')}</th><th>${window.t('asset-management.servers.free_space')}</th></tr></thead><tbody>`;
                         entries.forEach(f => {
                             const key = f.key || '';
                             const cap = f.capacity ? formatSize(f.capacity / (1024*1024*1024)) : '-';
@@ -1050,11 +1055,11 @@ $path_prefix = '../../';
                 // Hardware detail
                 if (detail?.hardware) {
                     html += `<div class="detail-section">
-                        <h3>Hardware</h3>
+                        <h3>${window.t('asset-management.servers.hardware')}</h3>
                         <div class="detail-grid">
-                            ${detailItem('Hardware Version', detail.hardware.version)}
-                            ${detailItem('Upgrade Policy', detail.hardware.upgrade_policy)}
-                            ${detailItem('Upgrade Status', detail.hardware.upgrade_status)}
+                            ${detailItem(window.t('asset-management.servers.hardware_version'), detail.hardware.version)}
+                            ${detailItem(window.t('asset-management.servers.upgrade_policy'), detail.hardware.upgrade_policy)}
+                            ${detailItem(window.t('asset-management.servers.upgrade_status'), detail.hardware.upgrade_status)}
                         </div>
                     </div>`;
                 }
@@ -1062,22 +1067,22 @@ $path_prefix = '../../';
                 // Boot config
                 if (detail?.boot) {
                     html += `<div class="detail-section">
-                        <h3>Boot Configuration</h3>
+                        <h3>${window.t('asset-management.servers.boot_configuration')}</h3>
                         <div class="detail-grid">
-                            ${detailItem('Boot Type', detail.boot.type)}
-                            ${detailItem('EFI Legacy Boot', detail.boot.efi_legacy_boot)}
-                            ${detailItem('Network Protocol', detail.boot.network_protocol)}
-                            ${detailItem('Boot Delay', detail.boot.delay ? detail.boot.delay + 'ms' : null)}
-                            ${detailItem('Enter Setup', detail.boot.enter_setup_mode)}
-                            ${detailItem('Retry', detail.boot.retry)}
-                            ${detailItem('Retry Delay', detail.boot.retry_delay ? detail.boot.retry_delay + 'ms' : null)}
+                            ${detailItem(window.t('asset-management.servers.boot_type'), detail.boot.type)}
+                            ${detailItem(window.t('asset-management.servers.efi_legacy_boot'), detail.boot.efi_legacy_boot)}
+                            ${detailItem(window.t('asset-management.servers.network_protocol'), detail.boot.network_protocol)}
+                            ${detailItem(window.t('asset-management.servers.boot_delay'), detail.boot.delay ? detail.boot.delay + 'ms' : null)}
+                            ${detailItem(window.t('asset-management.servers.enter_setup'), detail.boot.enter_setup_mode)}
+                            ${detailItem(window.t('asset-management.servers.retry'), detail.boot.retry)}
+                            ${detailItem(window.t('asset-management.servers.retry_delay'), detail.boot.retry_delay ? detail.boot.retry_delay + 'ms' : null)}
                         </div>
                     </div>`;
                 }
 
                 // Raw JSON toggle
                 html += `<div class="detail-section raw-section">
-                    <button class="raw-toggle" onclick="toggleRawJson()">Show Raw JSON</button>
+                    <button class="raw-toggle" onclick="toggleRawJson()">${window.t('asset-management.servers.show_raw_json')}</button>
                     <div class="raw-json" id="rawJsonBlock">${syntaxHighlight(JSON.stringify(raw, null, 2))}</div>
                 </div>`;
             }

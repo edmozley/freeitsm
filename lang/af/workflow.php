@@ -1,0 +1,140 @@
+<?php
+/**
+ * Afrikaans (af) — Workflows module strings.
+ * Missing keys fall back to lang/en/workflow.php per-key.
+ */
+return [
+    'title' => 'Werkvloeie',
+
+    'nav' => [
+        'workflows' => 'Werkvloeie',
+        'settings'  => 'Instellings',
+        'help'      => 'Hulp',
+    ],
+
+    'settings_tabs' => [
+        'ai' => 'KI',
+    ],
+
+    'ai_settings' => [
+        'title'                   => 'KI-integrasie',
+        'intro'                   => 'Stel die KI-verskaffer op wat die werkvloei-mede-outeur aandryf. Elke module het sy eie sleutel sodat fakturering en toegang fyn beheer kan word. Die API key word in rus geënkripteer. Gebruik Toets om jou sleutel + model te verifieer voordat jy stoor.',
+        'provider_label'          => 'Verskaffer',
+        'model_label'             => 'Model',
+        'model_hint'              => 'Kies \'n voorstel of plak enige model-id wat deur die gekose verskaffer ondersteun word.',
+        'key_label'               => 'API key',
+        'key_placeholder_empty'   => '(geen sleutel gestoor nie — plak \'n vars een om te stel)',
+        'key_placeholder_stored'  => 'Gestoor — laat onveranderd om te behou',
+        'key_hint'                => 'In rus geënkripteer. Laat leeg of onveranderd om die bestaande sleutel te behou.',
+        'verify_ssl_label'        => 'Verifieer SSL',
+        'verify_ssl_hint'         => 'Deaktiveer slegs vir toetsing teen omgewings met self-ondertekende sertifikate (bv. agter \'n inspekterende proksi).',
+        'ssl_warning_title'       => 'Waarskuwing',
+        'ssl_warning_body'        => 'SSL-verifikasie is afgeskakel. FreeITSM sal enige TLS-sertifikaat van die KI-verskaffer aanvaar sonder om dit te kontroleer. Enigeen met toegang tot jou netwerk kan voorgee dat hulle die verskaffer is, die verkeer onderskep, en jou API key steel — saam met elke prompt en antwoord wat volg. Laat dit net af in toetsomgewings met self-ondertekende sertifikate — nooit in produksie nie.',
+        'test_btn'                => 'Toets',
+        'testing'                 => 'Toets tans…',
+    ],
+
+    'list' => [
+        'page_title'      => 'Werkvloeie',
+        'intro'           => 'Outomatiseringsreëls wat luister vir gebeure van ander modules en daarop reageer. Elke reël is \'n sneller, opsionele voorwaardes, en een of meer aksies.',
+        'add_btn'         => 'Nuut',
+        'no_workflows'    => 'Nog geen werkvloeie nie — klik "Nuut" om jou eerste outomatisering te skep.',
+        'col_name'        => 'Naam',
+        'col_trigger'     => 'Sneller',
+        'col_actions'     => 'Aksies',
+        'col_last_run'    => 'Laaste lopie',
+        'col_status'      => 'Status',
+        'col_row_actions' => 'Aksies',
+        'never_run'       => 'Nooit',
+        'active'          => 'Aktief',
+        'inactive'        => 'Onaktief',
+    ],
+
+    'editor' => [
+        'new_title'       => 'Nuwe werkvloei',
+        'edit_title'      => 'Wysig werkvloei',
+        'name_label'      => 'Naam',
+        'name_placeholder'=> 'bv. P1-kaartjie-waarskuwing',
+        'description_label' => 'Beskrywing',
+        'description_placeholder' => 'Opsioneel — verduidelik wat hierdie werkvloei doen en hoekom',
+        'trigger_label'   => 'Sneller',
+        'trigger_hint'    => 'Die gebeurtenis wat hierdie werkvloei afvuur.',
+        'conditions_label'=> 'Voorwaardes',
+        'conditions_hint' => 'Opsioneel. Alle voorwaardes moet ooreenstem voordat die aksies loop. Laat leeg om by elke snellergebeurtenis te loop.',
+        'actions_label'   => 'Aksies',
+        'actions_hint'    => 'Loop hierdie in volgorde, bo na onder. Ten minste een aksie word vereis.',
+        'active_label'    => 'Aktief — loop wanneer die sneller afvuur',
+        'add_condition'   => 'Voeg voorwaarde by',
+        'add_action'      => 'Voeg aksie by',
+        'remove'          => 'Verwyder',
+        'test_fire'       => 'Toetsvuur',
+        'test_fire_hint'  => 'Loop hierdie werkvloei een keer met \'n sintetiese loonvrag sodat jy kan verifieer dat die aksies werk. Werklike snellers sal afvuur wanneer hulle in latere commits ingeskakel word.',
+        'no_conditions'   => 'Geen voorwaardes — loop by elke gebeurtenis.',
+        'no_actions'      => 'Nog geen aksies nie — voeg ten minste een by.',
+        'condition_field' => 'Veld',
+        'condition_op'    => 'Operateur',
+        'condition_value' => 'Waarde',
+        'action_type'     => 'Aksie',
+        'action_args'     => 'Argumente (JSON)',
+        'back'            => 'Terug',
+    ],
+
+    'op' => [
+        'equals'      => 'is gelyk aan',
+        'not_equals'  => 'is nie gelyk aan nie',
+        'in'          => 'is een van',
+        'not_in'      => 'is nie een van nie',
+        'contains'    => 'bevat',
+        'not_contains'=> 'bevat nie',
+        'gt'          => 'groter as',
+        'lt'          => 'kleiner as',
+        'is_empty'    => 'is leeg',
+        'is_not_empty'=> 'is nie leeg nie',
+    ],
+
+    'status' => [
+        'success' => 'Suksesvol',
+        'failed'  => 'Misluk',
+        'skipped' => 'Oorgeslaan (voorwaardes het nie ooreengestem nie)',
+        'running' => 'Loop tans',
+        'aborted' => 'Gestaak (lusbeskerming)',
+    ],
+
+    'toast' => [
+        'saved'         => 'Werkvloei gestoor.',
+        'deleted'       => 'Werkvloei verwyder.',
+        'delete_confirm'=> 'Verwyder hierdie werkvloei?',
+        'fire_started'  => 'Toetsvuur begin — sien die Uitvoeringslogboek.',
+        'fire_done'     => 'Toetsvuur voltooi: %s.',
+        'fire_failed'   => 'Toetsvuur het misluk: %s',
+        'name_required' => 'Naam word vereis.',
+        'actions_required' => 'Ten minste een aksie word vereis.',
+        'saved_no_actions' => 'Gestoor — maar hierdie werkvloei het nog geen aksies nie, so dit sal niks doen totdat jy een byvoeg nie.',
+        'ai_applied'      => 'KI-voorstel op die doek toegepas. Verstel en stoor dan.',
+        'ai_failed'       => 'KI-mede-outeur het misluk: %s',
+        'saved_settings'  => 'Instellings gestoor.',
+    ],
+
+    'ai' => [
+        'btn'              => 'KI-mede-outeur',
+        'modal_title'      => 'KI-mede-outeur',
+        'intro'            => 'Beskryf die werkvloei wat jy wil hê en die KI sal dit op die doek opstel. Jy kan aanhou — sê "voeg nou \'n voorwaarde by vir…" en dit verbeter op wat reeds daar is.',
+        'prompt_label'     => 'Wat moet hierdie werkvloei doen?',
+        'prompt_placeholder' => 'bv. Wanneer \'n P1-kaartjie van Finansies geskep word, log \'n boodskap wat sê "P1-finansiekaartjie — waarsku span"',
+        'generate'         => 'Genereer',
+        'thinking'         => 'Dink tans…',
+        'apply'            => 'Pas op doek toe',
+        'discard'          => 'Verwerp',
+        'close'            => 'Maak toe',
+        'iterate_hint'     => 'Wenk: wanneer jy \'n werkvloei op die doek het, verbeter die KI daarop. Probeer "laat dit net Finansies pas, nie alle departemente nie" of "voeg \'n aksie by om ook die kaartjie-id te log".',
+        'explanation_label' => 'Wat ek gebou het',
+        'preview_label'    => 'Voorgestelde werkvloei',
+        'warnings_label'   => 'Notas',
+        'only_log_message' => 'Slegs die log_message-aksie is vandag geïmplementeer; die KI sal daarop steun as \'n plekhouer vir ongeïmplementeerde aksies (bv. "stuur e-pos" → log_message wat die bedoeling dokumenteer).',
+    ],
+
+    'help' => [
+        'page_title' => 'Werkvloeigids',
+        'intro'      => 'Werkvloeie outomatiseer die dinge wat jy jouself handmatig vind doen nadat \'n kaartjie aankom: etikettering, eskalering, toewysing, kennisgewing, uitwaaiering na ander stelsels. \'n Werkvloei luister vir \'n gebeurtenis, filter opsioneel met voorwaardes, en loop dan een of meer aksies in volgorde.',
+    ],
+];

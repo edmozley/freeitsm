@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -12,13 +14,16 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'help';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'service-status'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Service Status Guide</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('service-status.help.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .ss-help-container {
@@ -430,30 +435,30 @@ $path_prefix = '../';
     <div class="ss-help-container">
         <!-- Left pane navigation -->
         <div class="ss-help-sidebar">
-            <h3>Guide</h3>
+            <h3><?php echo htmlspecialchars(t('service-status.help.guide')); ?></h3>
             <a href="#overview" class="ss-help-nav-link active" data-section="overview">
                 <span class="ss-help-nav-num">1</span>
-                Overview
+                <?php echo htmlspecialchars(t('service-status.help.nav_overview')); ?>
             </a>
             <a href="#status-dashboard" class="ss-help-nav-link" data-section="status-dashboard">
                 <span class="ss-help-nav-num">2</span>
-                The status dashboard
+                <?php echo htmlspecialchars(t('service-status.help.nav_dashboard')); ?>
             </a>
             <a href="#managing-services" class="ss-help-nav-link" data-section="managing-services">
                 <span class="ss-help-nav-num">3</span>
-                Managing services
+                <?php echo htmlspecialchars(t('service-status.help.nav_services')); ?>
             </a>
             <a href="#incident-history" class="ss-help-nav-link" data-section="incident-history">
                 <span class="ss-help-nav-num">4</span>
-                Incident history
+                <?php echo htmlspecialchars(t('service-status.help.nav_history')); ?>
             </a>
             <a href="#settings" class="ss-help-nav-link" data-section="settings">
                 <span class="ss-help-nav-num">5</span>
-                Settings
+                <?php echo htmlspecialchars(t('service-status.help.nav_settings')); ?>
             </a>
             <a href="#tips" class="ss-help-nav-link" data-section="tips">
                 <span class="ss-help-nav-num">6</span>
-                Quick tips
+                <?php echo htmlspecialchars(t('service-status.help.nav_tips')); ?>
             </a>
         </div>
 
@@ -461,8 +466,8 @@ $path_prefix = '../';
         <div class="ss-help-main" id="helpMain">
             <!-- Hero banner -->
             <div class="ss-help-hero">
-                <h2>Service status guide</h2>
-                <p>Monitor your IT services, communicate incidents, and keep stakeholders informed in real time.</p>
+                <h2><?php echo htmlspecialchars(t('service-status.help.hero_title')); ?></h2>
+                <p><?php echo htmlspecialchars(t('service-status.help.hero_sub')); ?></p>
             </div>
 
             <div class="ss-help-content">
@@ -472,8 +477,8 @@ $path_prefix = '../';
                     <div class="ss-help-section-header">
                         <span class="ss-help-section-num">1</span>
                         <div>
-                            <h3>Overview</h3>
-                            <p>The Service Status module gives you a centralised view of the health of every IT service your organisation relies on. When something goes wrong, you can record incidents, update affected services, and keep users informed throughout the resolution process.</p>
+                            <h3><?php echo htmlspecialchars(t('service-status.help.overview_heading')); ?></h3>
+                            <p><?php echo htmlspecialchars(t('service-status.help.overview_intro')); ?></p>
                         </div>
                     </div>
                     <div class="ss-help-features-grid">
@@ -481,29 +486,29 @@ $path_prefix = '../';
                             <div class="ss-help-feature-icon emerald">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
                             </div>
-                            <h4>Status dashboard</h4>
-                            <p>See the current health of every service at a glance. Colour-coded badges show whether each service is operational, degraded, under maintenance, or experiencing an outage.</p>
+                            <h4><?php echo htmlspecialchars(t('service-status.help.feature_dashboard_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('service-status.help.feature_dashboard_desc')); ?></p>
                         </div>
                         <div class="ss-help-feature-card">
                             <div class="ss-help-feature-icon orange">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
                             </div>
-                            <h4>Incident tracking</h4>
-                            <p>Record incidents with titles, status updates, and comments. Link affected services to each incident so everyone knows exactly what is impacted and why.</p>
+                            <h4><?php echo htmlspecialchars(t('service-status.help.feature_incident_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('service-status.help.feature_incident_desc')); ?></p>
                         </div>
                         <div class="ss-help-feature-card">
                             <div class="ss-help-feature-icon blue">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             </div>
-                            <h4>Service management</h4>
-                            <p>Configure your service catalogue in settings. Add services with names, descriptions, and display order. Activate or deactivate services as your infrastructure evolves.</p>
+                            <h4><?php echo htmlspecialchars(t('service-status.help.feature_management_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('service-status.help.feature_management_desc')); ?></p>
                         </div>
                         <div class="ss-help-feature-card">
                             <div class="ss-help-feature-icon red">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
                             </div>
-                            <h4>Communication</h4>
-                            <p>Keep stakeholders informed with real-time status updates. Each incident carries a status and comment trail so users can follow the resolution progress without chasing the service desk.</p>
+                            <h4><?php echo htmlspecialchars(t('service-status.help.feature_comms_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('service-status.help.feature_comms_desc')); ?></p>
                         </div>
                     </div>
                 </div>
@@ -512,183 +517,183 @@ $path_prefix = '../';
                 <div class="ss-help-section" id="status-dashboard">
                     <div class="ss-help-section-header">
                         <span class="ss-help-section-num">2</span>
-                        <h3>The status dashboard</h3>
+                        <h3><?php echo htmlspecialchars(t('service-status.help.dashboard_heading')); ?></h3>
                     </div>
-                    <p>The dashboard is the first thing you see when you open the Service Status module. It displays a grid of service cards, each showing the service name, a short description, and a colour-coded impact badge reflecting its current worst status. Below the grid sits the incidents table listing all recent and active incidents.</p>
-                    <p>Each service card automatically reflects the most severe impact level assigned to it from any active (unresolved) incident. When all incidents affecting a service are resolved, it returns to <strong>Operational</strong>.</p>
+                    <p><?php echo htmlspecialchars(t('service-status.help.dashboard_p1')); ?></p>
+                    <p><?php echo t('service-status.help.dashboard_p2_html'); ?></p>
 
-                    <p style="margin-top: 18px; margin-bottom: 10px; font-weight: 600; color: #333;">Status levels</p>
+                    <p style="margin-top: 18px; margin-bottom: 10px; font-weight: 600; color: #333;"><?php echo htmlspecialchars(t('service-status.help.status_levels')); ?></p>
                     <div class="ss-help-status-grid">
                         <div class="ss-help-status-card">
                             <div class="ss-help-status-dot operational"></div>
                             <div>
-                                <strong>Operational</strong>
-                                <span>The service is running normally with no known issues. This is the default state for all healthy services.</span>
+                                <strong><?php echo htmlspecialchars(t('service-status.help.level_operational_name')); ?></strong>
+                                <span><?php echo htmlspecialchars(t('service-status.help.level_operational_desc')); ?></span>
                             </div>
                         </div>
                         <div class="ss-help-status-card">
                             <div class="ss-help-status-dot degraded"></div>
                             <div>
-                                <strong>Degraded Performance</strong>
-                                <span>The service is available but running slower than expected or with reduced functionality. Users may notice delays.</span>
+                                <strong><?php echo htmlspecialchars(t('service-status.help.level_degraded_name')); ?></strong>
+                                <span><?php echo htmlspecialchars(t('service-status.help.level_degraded_desc')); ?></span>
                             </div>
                         </div>
                         <div class="ss-help-status-card">
                             <div class="ss-help-status-dot maintenance"></div>
                             <div>
-                                <strong>Under Maintenance</strong>
-                                <span>Planned downtime or maintenance window. The service may be temporarily unavailable while work is carried out.</span>
+                                <strong><?php echo htmlspecialchars(t('service-status.help.level_maintenance_name')); ?></strong>
+                                <span><?php echo htmlspecialchars(t('service-status.help.level_maintenance_desc')); ?></span>
                             </div>
                         </div>
                         <div class="ss-help-status-card">
                             <div class="ss-help-status-dot major-outage"></div>
                             <div>
-                                <strong>Major Outage</strong>
-                                <span>The service is completely unavailable. This is the most severe status and should trigger immediate investigation.</span>
+                                <strong><?php echo htmlspecialchars(t('service-status.help.level_outage_name')); ?></strong>
+                                <span><?php echo htmlspecialchars(t('service-status.help.level_outage_desc')); ?></span>
                             </div>
                         </div>
                     </div>
-                    <p class="ss-help-tip">Impact levels are hierarchical. If a service is linked to multiple active incidents, the dashboard shows the worst impact. For example, one incident marking a service as Degraded and another marking it as Major Outage will result in Major Outage being displayed.</p>
+                    <p class="ss-help-tip"><?php echo htmlspecialchars(t('service-status.help.dashboard_tip')); ?></p>
                 </div>
 
                 <!-- Section 3: Managing Services (highlighted) -->
                 <div class="ss-help-section ss-help-section-highlight" id="managing-services">
                     <div class="ss-help-section-header">
                         <span class="ss-help-section-num highlight">3</span>
-                        <h3>Managing services &amp; recording incidents</h3>
+                        <h3><?php echo t('service-status.help.services_heading_html'); ?></h3>
                     </div>
-                    <p class="ss-help-intro">Services are the building blocks of your status page. Each one represents an IT service, system, or infrastructure component that your users depend on. When something goes wrong, you create an incident and link it to the affected services.</p>
+                    <p class="ss-help-intro"><?php echo htmlspecialchars(t('service-status.help.services_intro')); ?></p>
 
-                    <p style="font-weight: 600; color: #333; margin-bottom: 10px;">Adding a new incident</p>
+                    <p style="font-weight: 600; color: #333; margin-bottom: 10px;"><?php echo htmlspecialchars(t('service-status.help.add_incident_heading')); ?></p>
                     <div class="ss-help-steps">
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">1</div>
                             <div>
-                                <strong>Click "New"</strong> on the dashboard to open the incident form.
+                                <?php echo t('service-status.help.add_incident_step1_html'); ?>
                             </div>
                         </div>
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">2</div>
                             <div>
-                                <strong>Enter a title</strong> &mdash; a brief, clear description of the issue. For example: "Email delivery delays" or "VPN gateway unreachable".
+                                <?php echo t('service-status.help.add_incident_step2_html'); ?>
                             </div>
                         </div>
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">3</div>
                             <div>
-                                <strong>Set the status</strong> &mdash; choose Investigating, Identified, 3rd Party, Monitoring, or Resolved. Start with Investigating and update as you learn more.
+                                <?php echo t('service-status.help.add_incident_step3_html'); ?>
                             </div>
                         </div>
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">4</div>
                             <div>
-                                <strong>Add a comment</strong> &mdash; describe what is known so far, what actions are being taken, and any workarounds available to users.
+                                <?php echo t('service-status.help.add_incident_step4_html'); ?>
                             </div>
                         </div>
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">5</div>
                             <div>
-                                <strong>Link affected services</strong> &mdash; add one or more services and choose the impact level for each (Major Outage, Partial Outage, Degraded, Maintenance, Operational, or No Disruption).
+                                <?php echo t('service-status.help.add_incident_step5_html'); ?>
                             </div>
                         </div>
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">6</div>
                             <div>
-                                <strong>Save</strong> &mdash; the incident appears in the table and affected service cards update immediately on the dashboard.
+                                <?php echo t('service-status.help.add_incident_step6_html'); ?>
                             </div>
                         </div>
                     </div>
 
-                    <p style="font-weight: 600; color: #333; margin: 20px 0 10px;">Incident status workflow</p>
+                    <p style="font-weight: 600; color: #333; margin: 20px 0 10px;"><?php echo htmlspecialchars(t('service-status.help.workflow_heading')); ?></p>
                     <div class="ss-help-flow">
-                        <div class="ss-help-flow-step investigating">Investigating</div>
+                        <div class="ss-help-flow-step investigating"><?php echo htmlspecialchars(t('service-status.help.workflow_investigating')); ?></div>
                         <div class="ss-help-flow-arrow">&rarr;</div>
-                        <div class="ss-help-flow-step identified">Identified</div>
+                        <div class="ss-help-flow-step identified"><?php echo htmlspecialchars(t('service-status.help.workflow_identified')); ?></div>
                         <div class="ss-help-flow-arrow">&rarr;</div>
-                        <div class="ss-help-flow-step monitoring">Monitoring</div>
+                        <div class="ss-help-flow-step monitoring"><?php echo htmlspecialchars(t('service-status.help.workflow_monitoring')); ?></div>
                         <div class="ss-help-flow-arrow">&rarr;</div>
-                        <div class="ss-help-flow-step resolved">Resolved</div>
+                        <div class="ss-help-flow-step resolved"><?php echo htmlspecialchars(t('service-status.help.workflow_resolved')); ?></div>
                     </div>
-                    <p style="font-size: 13px; color: #555; text-align: center; margin-top: 4px;">Use <strong>3rd Party</strong> when the root cause lies with an external vendor or provider.</p>
+                    <p style="font-size: 13px; color: #555; text-align: center; margin-top: 4px;"><?php echo t('service-status.help.workflow_note_html'); ?></p>
 
-                    <p class="ss-help-tip">You can edit any incident by clicking its title in the table. Update the status, add new comments, or change affected services as the situation evolves. Keeping incidents updated is key to transparent communication.</p>
+                    <p class="ss-help-tip"><?php echo htmlspecialchars(t('service-status.help.services_tip')); ?></p>
                 </div>
 
                 <!-- Section 4: Incident History -->
                 <div class="ss-help-section" id="incident-history">
                     <div class="ss-help-section-header">
                         <span class="ss-help-section-num">4</span>
-                        <h3>Incident history</h3>
+                        <h3><?php echo htmlspecialchars(t('service-status.help.history_heading')); ?></h3>
                     </div>
-                    <p>The incidents table on the dashboard shows both active and resolved incidents, giving you a complete timeline of service health. Each row displays the incident title, current status, affected services with their impact levels, and the last updated timestamp.</p>
+                    <p><?php echo htmlspecialchars(t('service-status.help.history_p1')); ?></p>
                     <div class="ss-help-fields">
-                        <div><strong>Title</strong> &mdash; a clickable link that opens the incident for editing. Use clear, descriptive titles so the history is easy to scan.</div>
-                        <div><strong>Status</strong> &mdash; colour-coded badge showing the current investigation phase (Investigating, Identified, 3rd Party, Monitoring, or Resolved).</div>
-                        <div><strong>Affected services</strong> &mdash; tagged badges showing each linked service with its impact level colour. At a glance you can see what is impacted and how severely.</div>
-                        <div><strong>Updated</strong> &mdash; the timestamp of the most recent change. Resolved incidents are styled with muted text so active incidents stand out visually.</div>
+                        <div><?php echo t('service-status.help.history_field_title_html'); ?></div>
+                        <div><?php echo t('service-status.help.history_field_status_html'); ?></div>
+                        <div><?php echo t('service-status.help.history_field_affected_html'); ?></div>
+                        <div><?php echo t('service-status.help.history_field_updated_html'); ?></div>
                     </div>
-                    <p>Resolved incidents remain visible in the table as a historical record. This makes it easy to spot recurring issues, review how past incidents were handled, and identify patterns that might point to underlying problems.</p>
-                    <p class="ss-help-tip">Regularly reviewing your incident history helps you identify services that are frequently disrupted. If the same service appears in multiple incidents, it may be time to investigate the root cause more deeply or plan an infrastructure upgrade.</p>
+                    <p><?php echo htmlspecialchars(t('service-status.help.history_p2')); ?></p>
+                    <p class="ss-help-tip"><?php echo htmlspecialchars(t('service-status.help.history_tip')); ?></p>
                 </div>
 
                 <!-- Section 5: Settings -->
                 <div class="ss-help-section" id="settings">
                     <div class="ss-help-section-header">
                         <span class="ss-help-section-num">5</span>
-                        <h3>Settings</h3>
+                        <h3><?php echo htmlspecialchars(t('service-status.help.settings_heading')); ?></h3>
                     </div>
-                    <p>The Settings page is where you build and maintain your service catalogue. Every service that appears on the status dashboard must first be configured here.</p>
+                    <p><?php echo htmlspecialchars(t('service-status.help.settings_p1')); ?></p>
                     <div class="ss-help-steps">
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">1</div>
                             <div>
-                                <strong>Add a service</strong> &mdash; click "Add" and provide a name (e.g. "Email", "VPN", "ERP System") and an optional description explaining what the service does.
+                                <?php echo t('service-status.help.settings_step1_html'); ?>
                             </div>
                         </div>
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">2</div>
                             <div>
-                                <strong>Set the display order</strong> &mdash; the order number controls where the service appears on the dashboard grid. Lower numbers appear first, so put your most critical services at the top.
+                                <?php echo t('service-status.help.settings_step2_html'); ?>
                             </div>
                         </div>
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">3</div>
                             <div>
-                                <strong>Toggle active/inactive</strong> &mdash; deactivating a service removes it from the dashboard without deleting it. This is useful for decommissioned services or seasonal systems.
+                                <?php echo t('service-status.help.settings_step3_html'); ?>
                             </div>
                         </div>
                         <div class="ss-help-step-item">
                             <div class="ss-help-step-num">4</div>
                             <div>
-                                <strong>Edit or delete</strong> &mdash; use the action buttons on each row to update service details or remove a service entirely. Editing is always preferred over deleting so that historical incident links remain intact.
+                                <?php echo t('service-status.help.settings_step4_html'); ?>
                             </div>
                         </div>
                     </div>
-                    <p class="ss-help-tip">Think of your service catalogue as the foundation of your status page. Spend time getting the names and descriptions right &mdash; these are what your users and stakeholders will see when they check the health of your IT environment.</p>
+                    <p class="ss-help-tip"><?php echo htmlspecialchars(t('service-status.help.settings_tip')); ?></p>
                 </div>
 
                 <!-- Section 6: Quick Tips -->
                 <div class="ss-help-section" id="tips">
                     <div class="ss-help-section-header">
                         <span class="ss-help-section-num">6</span>
-                        <h3>Quick tips</h3>
+                        <h3><?php echo htmlspecialchars(t('service-status.help.tips_heading')); ?></h3>
                     </div>
                     <div class="ss-help-tips-grid">
                         <div class="ss-help-tip-card">
                             <div class="ss-help-tip-icon">&#128226;</div>
-                            <div><strong>Communicate early</strong><br>Post an incident as soon as you know something is wrong, even if you don't have all the details yet. Acknowledging an issue quickly builds trust with your users.</div>
+                            <div><strong><?php echo htmlspecialchars(t('service-status.help.tip_communicate_title')); ?></strong><br><?php echo htmlspecialchars(t('service-status.help.tip_communicate_desc')); ?></div>
                         </div>
                         <div class="ss-help-tip-card">
                             <div class="ss-help-tip-icon">&#128260;</div>
-                            <div><strong>Update frequently</strong><br>Regular status updates &mdash; even if nothing has changed &mdash; show users that the issue is being actively worked on. Silence breeds frustration and support tickets.</div>
+                            <div><strong><?php echo htmlspecialchars(t('service-status.help.tip_update_title')); ?></strong><br><?php echo t('service-status.help.tip_update_desc'); ?></div>
                         </div>
                         <div class="ss-help-tip-card">
                             <div class="ss-help-tip-icon">&#128200;</div>
-                            <div><strong>Review patterns</strong><br>Check your incident history regularly. If the same service keeps appearing, it might point to a deeper infrastructure issue worth addressing proactively.</div>
+                            <div><strong><?php echo htmlspecialchars(t('service-status.help.tip_review_title')); ?></strong><br><?php echo htmlspecialchars(t('service-status.help.tip_review_desc')); ?></div>
                         </div>
                         <div class="ss-help-tip-card">
                             <div class="ss-help-tip-icon">&#128736;</div>
-                            <div><strong>Plan maintenance</strong><br>Use the Maintenance impact level for planned work. Creating an incident in advance lets users know about scheduled downtime before it happens.</div>
+                            <div><strong><?php echo htmlspecialchars(t('service-status.help.tip_maintenance_title')); ?></strong><br><?php echo htmlspecialchars(t('service-status.help.tip_maintenance_desc')); ?></div>
                         </div>
                     </div>
                 </div>

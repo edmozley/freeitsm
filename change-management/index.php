@@ -4,18 +4,23 @@
  */
 session_start();
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'changes';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'change-management'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Change Management</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=4">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="<?php echo BASE_URL; ?>assets/js/i18n.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/tinymce/tinymce.min.js"></script>
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
@@ -25,22 +30,22 @@ $path_prefix = '../';
         <!-- Sidebar with search and status filters -->
         <div class="changes-sidebar">
             <div class="sidebar-section">
-                <button class="search-btn" onclick="openSearchModal()">Search</button>
+                <button class="search-btn" onclick="openSearchModal()"><?php echo htmlspecialchars(t('change-management.sidebar.search')); ?></button>
             </div>
             <div class="sidebar-section">
-                <h3>Status</h3>
+                <h3><?php echo htmlspecialchars(t('change-management.sidebar.status')); ?></h3>
                 <div class="status-filter-list" id="statusFilterList">
                     <!-- The "All" row stays in HTML (special — doesn't map to a row in change_statuses).
                          Real statuses are appended by JS from get_change_statuses.php so adding /
                          renaming / deactivating one in Settings reflects here automatically. -->
                     <div class="status-filter active" data-status="all" onclick="filterByStatus('all')">
-                        <span>All</span>
+                        <span><?php echo htmlspecialchars(t('change-management.sidebar.all')); ?></span>
                         <span class="filter-count" id="countAll">0</span>
                     </div>
                 </div>
             </div>
             <div class="sidebar-section">
-                <a class="btn btn-primary btn-full" href="new/">+ New change</a>
+                <a class="btn btn-primary btn-full" href="new/"><?php echo htmlspecialchars(t('change-management.sidebar.new_change')); ?></a>
             </div>
         </div>
 
@@ -49,7 +54,7 @@ $path_prefix = '../';
             <!-- Change list view -->
             <div id="changeListView">
                 <div class="change-list-header">
-                    <h2>Changes</h2>
+                    <h2><?php echo htmlspecialchars(t('change-management.list.heading')); ?></h2>
                     <div class="change-count" id="changeCount"></div>
                 </div>
                 <div class="change-list" id="changeList">
@@ -68,7 +73,7 @@ $path_prefix = '../';
                  body.cm-editor-open to switch changes-main into this mode. -->
             <div id="changeEditorView" style="display: none;">
                 <div class="editor-header">
-                    <h2 id="editorTitle">New change</h2>
+                    <h2 id="editorTitle"><?php echo htmlspecialchars(t('change-management.editor.new')); ?></h2>
                 </div>
                 <div class="editor-form">
                     <input type="hidden" id="editChangeId" value="">
@@ -87,29 +92,29 @@ $path_prefix = '../';
                     -->
 
                     <div class="cm-form-section" data-section-id="1" data-section-key="general">
-                        <h3 class="form-section-title">General information</h3>
+                        <h3 class="form-section-title"><?php echo htmlspecialchars(t('change-management.editor.section_general')); ?></h3>
 
                         <div class="cm-field-wrap" data-field-key="title">
                             <div class="form-group">
-                                <label class="form-label">Title *</label>
-                                <input type="text" class="form-input" id="changeTitle" placeholder="Enter change title...">
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.title_label')); ?></label>
+                                <input type="text" class="form-input" id="changeTitle" placeholder="<?php echo htmlspecialchars(t('change-management.editor.title_placeholder')); ?>">
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="change_type">
                             <div class="form-group">
-                                <label class="form-label">Change type</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.change_type')); ?></label>
                                 <select class="form-input" id="changeType">
-                                    <option value="Standard">Standard</option>
-                                    <option value="Normal" selected>Normal</option>
-                                    <option value="Emergency">Emergency</option>
+                                    <option value="Standard"><?php echo htmlspecialchars(t('change-management.editor.type_standard')); ?></option>
+                                    <option value="Normal" selected><?php echo htmlspecialchars(t('change-management.editor.type_normal')); ?></option>
+                                    <option value="Emergency"><?php echo htmlspecialchars(t('change-management.editor.type_emergency')); ?></option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="status">
                             <div class="form-group">
-                                <label class="form-label">Status</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.status')); ?></label>
                                 <!-- Options populated from change_statuses (active rows only) on page load. -->
                                 <select class="form-input" id="changeStatus"></select>
                             </div>
@@ -117,61 +122,61 @@ $path_prefix = '../';
 
                         <div class="cm-field-wrap" data-field-key="priority">
                             <div class="form-group">
-                                <label class="form-label">Priority</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.priority')); ?></label>
                                 <select class="form-input" id="changePriority">
-                                    <option value="Low">Low</option>
-                                    <option value="Medium" selected>Medium</option>
-                                    <option value="High">High</option>
-                                    <option value="Critical">Critical</option>
+                                    <option value="Low"><?php echo htmlspecialchars(t('change-management.editor.priority_low')); ?></option>
+                                    <option value="Medium" selected><?php echo htmlspecialchars(t('change-management.editor.priority_medium')); ?></option>
+                                    <option value="High"><?php echo htmlspecialchars(t('change-management.editor.priority_high')); ?></option>
+                                    <option value="Critical"><?php echo htmlspecialchars(t('change-management.editor.priority_critical')); ?></option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="impact">
                             <div class="form-group">
-                                <label class="form-label">Impact</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.impact')); ?></label>
                                 <select class="form-input" id="changeImpact">
-                                    <option value="Low">Low</option>
-                                    <option value="Medium" selected>Medium</option>
-                                    <option value="High">High</option>
+                                    <option value="Low"><?php echo htmlspecialchars(t('change-management.editor.impact_low')); ?></option>
+                                    <option value="Medium" selected><?php echo htmlspecialchars(t('change-management.editor.impact_medium')); ?></option>
+                                    <option value="High"><?php echo htmlspecialchars(t('change-management.editor.impact_high')); ?></option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="category">
                             <div class="form-group">
-                                <label class="form-label">Category</label>
-                                <input type="text" class="form-input" id="changeCategory" placeholder="e.g. Network, Server, Software...">
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.category')); ?></label>
+                                <input type="text" class="form-input" id="changeCategory" placeholder="<?php echo htmlspecialchars(t('change-management.editor.category_placeholder')); ?>">
                             </div>
                         </div>
                     </div>
 
                     <div class="cm-form-section" data-section-id="2" data-section-key="people">
-                        <h3 class="form-section-title">People</h3>
+                        <h3 class="form-section-title"><?php echo htmlspecialchars(t('change-management.editor.section_people')); ?></h3>
 
                         <div class="cm-field-wrap" data-field-key="requester">
                             <div class="form-group">
-                                <label class="form-label">Requester</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.requester')); ?></label>
                                 <select class="form-input" id="changeRequester">
-                                    <option value="">-- Select --</option>
+                                    <option value=""><?php echo htmlspecialchars(t('change-management.editor.select')); ?></option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="assigned_to">
                             <div class="form-group">
-                                <label class="form-label">Assigned to</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.assigned_to')); ?></label>
                                 <select class="form-input" id="changeAssignedTo">
-                                    <option value="">-- Select --</option>
+                                    <option value=""><?php echo htmlspecialchars(t('change-management.editor.select')); ?></option>
                                 </select>
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="approver">
                             <div class="form-group">
-                                <label class="form-label">Approver</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.approver')); ?></label>
                                 <select class="form-input" id="changeApprover">
-                                    <option value="">-- Select --</option>
+                                    <option value=""><?php echo htmlspecialchars(t('change-management.editor.select')); ?></option>
                                 </select>
                             </div>
                         </div>
@@ -181,25 +186,25 @@ $path_prefix = '../';
                         <div class="cm-field-wrap" data-field-key="cab">
                             <div class="form-group">
                                 <label class="form-label" style="display: flex; align-items: center; gap: 10px;">
-                                    <input type="checkbox" id="cabRequired" onchange="toggleCabConfig()"> Require CAB review
+                                    <input type="checkbox" id="cabRequired" onchange="toggleCabConfig()"> <?php echo htmlspecialchars(t('change-management.editor.require_cab')); ?>
                                 </label>
                             </div>
                             <div id="cabConfigSection" style="display: none;">
                                 <div class="form-group">
-                                    <label class="form-label">Approval type</label>
+                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.approval_type')); ?></label>
                                     <select class="form-input" id="cabApprovalType">
-                                        <option value="all">All must approve</option>
-                                        <option value="majority">Majority</option>
+                                        <option value="all"><?php echo htmlspecialchars(t('change-management.editor.approval_all')); ?></option>
+                                        <option value="majority"><?php echo htmlspecialchars(t('change-management.editor.approval_majority')); ?></option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">CAB members</label>
+                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.cab_members')); ?></label>
                                     <div class="cab-member-picker">
                                         <div style="display: flex; gap: 8px;">
                                             <select class="form-input" id="cabMemberSelect" style="flex: 1;">
-                                                <option value="">-- Select analyst --</option>
+                                                <option value=""><?php echo htmlspecialchars(t('change-management.editor.select_analyst')); ?></option>
                                             </select>
-                                            <button type="button" class="btn btn-secondary" onclick="addCabMember()">Add</button>
+                                            <button type="button" class="btn btn-secondary" onclick="addCabMember()"><?php echo htmlspecialchars(t('change-management.editor.add')); ?></button>
                                         </div>
                                         <div class="cab-members-list" id="cabMembersList"></div>
                                     </div>
@@ -209,66 +214,66 @@ $path_prefix = '../';
                     </div>
 
                     <div class="cm-form-section" data-section-id="3" data-section-key="schedule">
-                        <h3 class="form-section-title">Schedule</h3>
+                        <h3 class="form-section-title"><?php echo htmlspecialchars(t('change-management.editor.section_schedule')); ?></h3>
 
                         <div class="cm-field-wrap" data-field-key="work_start">
                             <div class="form-group">
-                                <label class="form-label">Work start</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.work_start')); ?></label>
                                 <input type="datetime-local" class="form-input" id="changeWorkStart">
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="work_end">
                             <div class="form-group">
-                                <label class="form-label">Work end</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.work_end')); ?></label>
                                 <input type="datetime-local" class="form-input" id="changeWorkEnd">
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="outage_start">
                             <div class="form-group">
-                                <label class="form-label">Outage start (optional)</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.outage_start')); ?></label>
                                 <input type="datetime-local" class="form-input" id="changeOutageStart">
                             </div>
                         </div>
 
                         <div class="cm-field-wrap" data-field-key="outage_end">
                             <div class="form-group">
-                                <label class="form-label">Outage end (optional)</label>
+                                <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.outage_end')); ?></label>
                                 <input type="datetime-local" class="form-input" id="changeOutageEnd">
                             </div>
                         </div>
                     </div>
 
                     <div class="cm-form-section" data-section-id="4" data-section-key="details">
-                        <h3 class="form-section-title">Details</h3>
+                        <h3 class="form-section-title"><?php echo htmlspecialchars(t('change-management.editor.section_details')); ?></h3>
 
                         <div class="cm-field-wrap" data-field-key="risk">
                             <div class="form-row risk-scoring-row">
                                 <div class="form-group">
-                                    <label class="form-label">Risk likelihood</label>
+                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.risk_likelihood')); ?></label>
                                     <select class="form-input" id="riskLikelihood" onchange="updateRiskScore()">
-                                        <option value="">Not assessed</option>
-                                        <option value="1">1 - Very low</option>
-                                        <option value="2">2 - Low</option>
-                                        <option value="3">3 - Medium</option>
-                                        <option value="4">4 - High</option>
-                                        <option value="5">5 - Very high</option>
+                                        <option value=""><?php echo htmlspecialchars(t('change-management.editor.not_assessed')); ?></option>
+                                        <option value="1"><?php echo htmlspecialchars(t('change-management.editor.rl_1')); ?></option>
+                                        <option value="2"><?php echo htmlspecialchars(t('change-management.editor.rl_2')); ?></option>
+                                        <option value="3"><?php echo htmlspecialchars(t('change-management.editor.rl_3')); ?></option>
+                                        <option value="4"><?php echo htmlspecialchars(t('change-management.editor.rl_4')); ?></option>
+                                        <option value="5"><?php echo htmlspecialchars(t('change-management.editor.rl_5')); ?></option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Risk impact</label>
+                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.risk_impact')); ?></label>
                                     <select class="form-input" id="riskImpactScore" onchange="updateRiskScore()">
-                                        <option value="">Not assessed</option>
-                                        <option value="1">1 - Very low</option>
-                                        <option value="2">2 - Low</option>
-                                        <option value="3">3 - Medium</option>
-                                        <option value="4">4 - High</option>
-                                        <option value="5">5 - Very high</option>
+                                        <option value=""><?php echo htmlspecialchars(t('change-management.editor.not_assessed')); ?></option>
+                                        <option value="1"><?php echo htmlspecialchars(t('change-management.editor.rl_1')); ?></option>
+                                        <option value="2"><?php echo htmlspecialchars(t('change-management.editor.rl_2')); ?></option>
+                                        <option value="3"><?php echo htmlspecialchars(t('change-management.editor.rl_3')); ?></option>
+                                        <option value="4"><?php echo htmlspecialchars(t('change-management.editor.rl_4')); ?></option>
+                                        <option value="5"><?php echo htmlspecialchars(t('change-management.editor.rl_5')); ?></option>
                                     </select>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Risk score</label>
+                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.risk_score')); ?></label>
                                     <div class="risk-score-display" id="riskScoreDisplay">-</div>
                                 </div>
                             </div>
@@ -286,12 +291,12 @@ $path_prefix = '../';
                         -->
                         <div class="cm-rich-text-widget" id="cmRichTextWidget">
                             <div class="rich-text-tabs" id="richTextTabs">
-                                <button class="rich-text-tab active" data-field-key="description" onclick="switchTab('description')">Description</button>
-                                <button class="rich-text-tab" data-field-key="reason" onclick="switchTab('reason')">Reason for change</button>
-                                <button class="rich-text-tab" data-field-key="risk" onclick="switchTab('risk')">Risk evaluation</button>
-                                <button class="rich-text-tab" data-field-key="testplan" onclick="switchTab('testplan')">Test plan</button>
-                                <button class="rich-text-tab" data-field-key="rollback" onclick="switchTab('rollback')">Rollback plan</button>
-                                <button class="rich-text-tab" data-field-key="pir" onclick="switchTab('pir')">Post-implementation review</button>
+                                <button class="rich-text-tab active" data-field-key="description" onclick="switchTab('description')"><?php echo htmlspecialchars(t('change-management.editor.tab_description')); ?></button>
+                                <button class="rich-text-tab" data-field-key="reason" onclick="switchTab('reason')"><?php echo htmlspecialchars(t('change-management.editor.tab_reason')); ?></button>
+                                <button class="rich-text-tab" data-field-key="risk" onclick="switchTab('risk')"><?php echo htmlspecialchars(t('change-management.editor.tab_risk')); ?></button>
+                                <button class="rich-text-tab" data-field-key="testplan" onclick="switchTab('testplan')"><?php echo htmlspecialchars(t('change-management.editor.tab_testplan')); ?></button>
+                                <button class="rich-text-tab" data-field-key="rollback" onclick="switchTab('rollback')"><?php echo htmlspecialchars(t('change-management.editor.tab_rollback')); ?></button>
+                                <button class="rich-text-tab" data-field-key="pir" onclick="switchTab('pir')"><?php echo htmlspecialchars(t('change-management.editor.tab_pir')); ?></button>
                             </div>
 
                             <div class="rich-text-panel active" id="panel-description" data-field-key="description">
@@ -322,48 +327,48 @@ $path_prefix = '../';
                             <div class="pir-structured" id="pirStructuredFields" style="display: none;">
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label class="form-label">Was successful?</label>
+                                        <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.was_successful')); ?></label>
                                         <div style="display: flex; gap: 15px; margin-top: 5px;">
                                             <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                                <input type="radio" name="pirWasSuccessful" value="1"> Yes
+                                                <input type="radio" name="pirWasSuccessful" value="1"> <?php echo htmlspecialchars(t('change-management.editor.yes')); ?>
                                             </label>
                                             <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                                                <input type="radio" name="pirWasSuccessful" value="0"> No
+                                                <input type="radio" name="pirWasSuccessful" value="0"> <?php echo htmlspecialchars(t('change-management.editor.no')); ?>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="form-row">
                                     <div class="form-group">
-                                        <label class="form-label">Actual start</label>
+                                        <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.actual_start')); ?></label>
                                         <input type="datetime-local" class="form-input" id="pirActualStart">
                                     </div>
                                     <div class="form-group">
-                                        <label class="form-label">Actual end</label>
+                                        <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.actual_end')); ?></label>
                                         <input type="datetime-local" class="form-input" id="pirActualEnd">
                                     </div>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Lessons learned</label>
-                                    <textarea class="form-input" id="pirLessonsLearned" rows="3" placeholder="What went well? What could be improved?"></textarea>
+                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.lessons')); ?></label>
+                                    <textarea class="form-input" id="pirLessonsLearned" rows="3" placeholder="<?php echo htmlspecialchars(t('change-management.editor.lessons_placeholder')); ?>"></textarea>
                                 </div>
                                 <div class="form-group">
-                                    <label class="form-label">Follow-up actions</label>
-                                    <textarea class="form-input" id="pirFollowUp" rows="3" placeholder="Any actions arising from this change?"></textarea>
+                                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.editor.follow_up')); ?></label>
+                                    <textarea class="form-input" id="pirFollowUp" rows="3" placeholder="<?php echo htmlspecialchars(t('change-management.editor.follow_up_placeholder')); ?>"></textarea>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <div class="cm-form-section" data-section-id="5" data-section-key="attachments">
-                        <h3 class="form-section-title">Attachments</h3>
+                        <h3 class="form-section-title"><?php echo htmlspecialchars(t('change-management.editor.section_attachments')); ?></h3>
 
                         <div class="cm-field-wrap" data-field-key="attachments">
                             <div class="attachment-list" id="editorAttachmentList"></div>
 
                             <div class="file-upload-area" id="fileUploadArea">
                                 <div class="upload-icon">&#128206;</div>
-                                <p>Drag and drop files here, or click to browse</p>
+                                <p><?php echo htmlspecialchars(t('change-management.editor.upload_prompt')); ?></p>
                                 <input type="file" id="fileInput" multiple style="display:none;">
                             </div>
                         </div>
@@ -372,8 +377,8 @@ $path_prefix = '../';
                     <div class="editor-actions"></div>
                 </div>
                 <div class="editor-footer">
-                    <button class="btn btn-secondary" onclick="cancelEdit()">Cancel</button>
-                    <button class="btn btn-primary" onclick="saveChange()">Save</button>
+                    <button class="btn btn-secondary" onclick="cancelEdit()"><?php echo htmlspecialchars(t('change-management.editor.cancel')); ?></button>
+                    <button class="btn btn-primary" onclick="saveChange()"><?php echo htmlspecialchars(t('change-management.editor.save')); ?></button>
                 </div>
             </div>
         </div>
@@ -383,26 +388,26 @@ $path_prefix = '../';
     <!-- Search Modal (Draggable) -->
     <div class="search-modal" id="searchModal">
         <div class="search-modal-header" id="searchModalHeader">
-            <span>Search Changes</span>
+            <span><?php echo htmlspecialchars(t('change-management.search.heading')); ?></span>
             <button class="search-modal-close" onclick="closeSearchModal()">&times;</button>
         </div>
         <div class="search-modal-body">
             <div class="search-form">
                 <div class="search-field">
-                    <label>Change Number</label>
-                    <input type="text" id="searchChangeNumber" placeholder="e.g., CHG-0001 or 1">
+                    <label><?php echo htmlspecialchars(t('change-management.search.change_number')); ?></label>
+                    <input type="text" id="searchChangeNumber" placeholder="<?php echo htmlspecialchars(t('change-management.search.change_number_placeholder')); ?>">
                 </div>
                 <div class="search-field">
-                    <label>Title</label>
-                    <input type="text" id="searchChangeTitle" placeholder="Search in title...">
+                    <label><?php echo htmlspecialchars(t('change-management.search.title')); ?></label>
+                    <input type="text" id="searchChangeTitle" placeholder="<?php echo htmlspecialchars(t('change-management.search.title_placeholder')); ?>">
                 </div>
                 <div class="search-actions">
-                    <button class="btn btn-primary" onclick="performSearch()">Search</button>
-                    <button class="btn btn-secondary" onclick="clearSearch()">Clear</button>
+                    <button class="btn btn-primary" onclick="performSearch()"><?php echo htmlspecialchars(t('change-management.search.go')); ?></button>
+                    <button class="btn btn-secondary" onclick="clearSearch()"><?php echo htmlspecialchars(t('change-management.search.clear')); ?></button>
                 </div>
             </div>
             <div class="search-results" id="searchResults">
-                <div class="search-results-empty">Enter search criteria above</div>
+                <div class="search-results-empty"><?php echo htmlspecialchars(t('change-management.search.empty')); ?></div>
             </div>
         </div>
     </div>
@@ -414,32 +419,32 @@ $path_prefix = '../';
     <div class="modal" id="shareEmailModal">
         <div class="modal-content" style="max-width: 500px;">
             <div class="modal-header">
-                <h3>Share Change via Email</h3>
+                <h3><?php echo htmlspecialchars(t('change-management.share_modal.heading')); ?></h3>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label class="form-label">Recipient Email *</label>
-                    <input type="email" class="form-input" id="shareEmailTo" placeholder="recipient@example.com">
+                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.share_modal.recipient')); ?></label>
+                    <input type="email" class="form-input" id="shareEmailTo" placeholder="<?php echo htmlspecialchars(t('change-management.share_modal.recipient_placeholder')); ?>">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Message (optional)</label>
-                    <textarea class="form-input" id="shareEmailMessage" rows="3" placeholder="Add a personal message..."></textarea>
+                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.share_modal.message')); ?></label>
+                    <textarea class="form-input" id="shareEmailMessage" rows="3" placeholder="<?php echo htmlspecialchars(t('change-management.share_modal.message_placeholder')); ?>"></textarea>
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Include:</label>
+                    <label class="form-label"><?php echo htmlspecialchars(t('change-management.share_modal.include')); ?></label>
                     <div style="display: flex; gap: 20px; margin-top: 8px;">
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="checkbox" id="shareIncludeLink" checked> Link to change
+                            <input type="checkbox" id="shareIncludeLink" checked> <?php echo htmlspecialchars(t('change-management.share_modal.include_link')); ?>
                         </label>
                         <label style="display: flex; align-items: center; gap: 6px; cursor: pointer;">
-                            <input type="checkbox" id="shareIncludePdf" checked> PDF attachment
+                            <input type="checkbox" id="shareIncludePdf" checked> <?php echo htmlspecialchars(t('change-management.share_modal.include_pdf')); ?>
                         </label>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeShareEmailModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="sendShareEmail()">Send</button>
+                <button class="btn btn-secondary" onclick="closeShareEmailModal()"><?php echo htmlspecialchars(t('change-management.share_modal.cancel')); ?></button>
+                <button class="btn btn-primary" onclick="sendShareEmail()"><?php echo htmlspecialchars(t('change-management.share_modal.send')); ?></button>
             </div>
         </div>
     </div>

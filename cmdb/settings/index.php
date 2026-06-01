@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../../login.php');
@@ -13,14 +15,17 @@ if (!isset($_SESSION['analyst_id'])) {
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = 'settings';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'cmdb'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreeITSM - CMDB settings</title>
+    <title>FreeITSM - <?php echo htmlspecialchars(t('cmdb.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <style>
         body { background: #f5f5f5; --accent: #be185d; }
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; margin: 24px 0; padding: 0 20px; }
@@ -192,34 +197,34 @@ $path_prefix = '../../';
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="classes" onclick="switchTab('classes')">Classes</button>
-            <button class="tab" data-tab="relationship-types" onclick="switchTab('relationship-types')">Relationship types</button>
-            <button class="tab" data-tab="ai" onclick="switchTab('ai')">AI integration</button>
+            <button class="tab active" data-tab="classes" onclick="switchTab('classes')"><?php echo htmlspecialchars(t('cmdb.settings.tab_classes')); ?></button>
+            <button class="tab" data-tab="relationship-types" onclick="switchTab('relationship-types')"><?php echo htmlspecialchars(t('cmdb.settings.tab_rel_types')); ?></button>
+            <button class="tab" data-tab="ai" onclick="switchTab('ai')"><?php echo htmlspecialchars(t('cmdb.settings.tab_ai')); ?></button>
         </div>
 
         <!-- Classes Tab -->
         <div class="tab-content active" id="classes-tab">
             <div class="section-header">
-                <h2>Classes</h2>
-                <button class="add-btn" onclick="openClassModal()">Add</button>
+                <h2><?php echo htmlspecialchars(t('cmdb.settings.classes_heading')); ?></h2>
+                <button class="add-btn" onclick="openClassModal()"><?php echo htmlspecialchars(t('cmdb.settings.add')); ?></button>
             </div>
             <p style="color: #6b7280; font-size: 13px; margin-bottom: 16px; max-width: 720px;">
-                A <strong>class</strong> is a type of thing in your estate (e.g. Server, Database, Application). Each class has its own user-defined properties. Click <strong>Properties</strong> on any row to manage its property definitions.
+                <?php echo t('cmdb.settings.classes_intro'); ?>
             </p>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Key</th>
-                        <th>Description</th>
-                        <th>Properties</th>
-                        <th>Order</th>
-                        <th>Active</th>
-                        <th style="width: 130px;">Actions</th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_key')); ?></th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_properties')); ?></th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_active')); ?></th>
+                        <th style="width: 130px;"><?php echo htmlspecialchars(t('cmdb.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="classesTableBody">
-                    <tr><td colspan="7" class="empty-row">Loading…</td></tr>
+                    <tr><td colspan="7" class="empty-row"><?php echo htmlspecialchars(t('cmdb.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -227,25 +232,25 @@ $path_prefix = '../../';
         <!-- Relationship Types Tab -->
         <div class="tab-content" id="relationship-types-tab">
             <div class="section-header">
-                <h2>Relationship types</h2>
-                <button class="add-btn" onclick="openRelTypeModal()">Add</button>
+                <h2><?php echo htmlspecialchars(t('cmdb.settings.rel_types_heading')); ?></h2>
+                <button class="add-btn" onclick="openRelTypeModal()"><?php echo htmlspecialchars(t('cmdb.settings.add')); ?></button>
             </div>
             <p style="color: #6b7280; font-size: 13px; margin-bottom: 16px; max-width: 720px;">
-                Named verbs that link any two objects (separate from the parent/child hierarchy). Each verb has an <strong>inverse</strong> shown when viewing the other side of the link — e.g. <em>"depends on"</em> ↔ <em>"is depended on by"</em>.
+                <?php echo t('cmdb.settings.rel_types_intro'); ?>
             </p>
             <table>
                 <thead>
                     <tr>
-                        <th>Verb</th>
-                        <th>Inverse verb</th>
-                        <th>Description</th>
-                        <th>Order</th>
-                        <th>Active</th>
-                        <th style="width: 130px;">Actions</th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_verb')); ?></th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_inverse_verb')); ?></th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('cmdb.settings.col_active')); ?></th>
+                        <th style="width: 130px;"><?php echo htmlspecialchars(t('cmdb.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="relTypesTableBody">
-                    <tr><td colspan="6" class="empty-row">Loading…</td></tr>
+                    <tr><td colspan="6" class="empty-row"><?php echo htmlspecialchars(t('cmdb.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -253,48 +258,48 @@ $path_prefix = '../../';
         <!-- AI Integration Tab -->
         <div class="tab-content" id="ai-tab">
             <div class="section-header">
-                <h2>AI integration</h2>
+                <h2><?php echo htmlspecialchars(t('cmdb.settings.ai_heading')); ?></h2>
             </div>
             <p style="color: #555; font-size: 14px;">
-                Powers the v1 CMDB AI features: <strong>object summaries</strong> at the top of every detail page, <strong>property suggestions</strong> when creating a new class, and <strong>relationship suggestions</strong> on the object detail view.
+                <?php echo t('cmdb.settings.ai_intro1'); ?>
             </p>
             <p style="color: #555; font-size: 14px;">
-                Uses its own Anthropic API key (separate from RFP AI / Knowledge AI / Reply Cleanup) so usage shows as a discrete line on the Anthropic billing dashboard.
+                <?php echo htmlspecialchars(t('cmdb.settings.ai_intro2')); ?>
             </p>
 
             <form id="aiForm" onsubmit="saveAiSettings(event)">
                 <div class="ai-form-grid">
                     <div class="ai-col-left">
                         <div class="form-group">
-                            <label for="aiApiKey">Anthropic API key</label>
+                            <label for="aiApiKey"><?php echo htmlspecialchars(t('cmdb.settings.ai_api_key')); ?></label>
                             <input type="password" id="aiApiKey" autocomplete="off" placeholder="sk-ant-...">
-                            <small>Encrypted at rest. Leave the masked value untouched to keep the existing key.</small>
+                            <small><?php echo htmlspecialchars(t('cmdb.settings.ai_api_key_help')); ?></small>
                         </div>
 
                         <div class="form-group">
-                            <label for="aiModel">Model</label>
+                            <label for="aiModel"><?php echo htmlspecialchars(t('cmdb.settings.ai_model')); ?></label>
                             <select id="aiModel">
-                                <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (recommended — fast and cheap)</option>
-                                <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
-                                <option value="claude-opus-4-7">Claude Opus 4.7</option>
+                                <option value="claude-haiku-4-5-20251001"><?php echo htmlspecialchars(t('cmdb.settings.ai_model_haiku')); ?></option>
+                                <option value="claude-sonnet-4-6"><?php echo htmlspecialchars(t('cmdb.settings.ai_model_sonnet')); ?></option>
+                                <option value="claude-opus-4-7"><?php echo htmlspecialchars(t('cmdb.settings.ai_model_opus')); ?></option>
                             </select>
-                            <small>Haiku handles summaries and suggestions comfortably.</small>
+                            <small><?php echo htmlspecialchars(t('cmdb.settings.ai_model_help')); ?></small>
                         </div>
                     </div>
 
                     <div class="ai-col-right">
                         <div class="form-group">
-                            <label for="aiCustomInstructions">Custom instructions <span style="color: #999; font-weight: normal;">(optional)</span></label>
+                            <label for="aiCustomInstructions"><?php echo htmlspecialchars(t('cmdb.settings.ai_custom')); ?> <span style="color: #999; font-weight: normal;"><?php echo htmlspecialchars(t('cmdb.settings.ai_custom_optional')); ?></span></label>
                             <textarea id="aiCustomInstructions" maxlength="4000"
-                                      placeholder="e.g. Use British English spellings.&#10;Refer to the company as 'BillCorp'.&#10;When suggesting properties, prefer ITIL terminology."></textarea>
-                            <small>Appended to every CMDB AI prompt. Use plain English — labels and verbs in the CMDB are sent to the model verbatim.</small>
+                                      placeholder="<?php echo htmlspecialchars(t('cmdb.settings.ai_custom_placeholder')); ?>"></textarea>
+                            <small><?php echo htmlspecialchars(t('cmdb.settings.ai_custom_help')); ?></small>
                         </div>
                     </div>
                 </div>
 
                 <div style="display: flex; gap: 12px; margin-top: 24px;">
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <button type="button" class="btn btn-test" onclick="testAiKey()">Test connection</button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('cmdb.settings.ai_save')); ?></button>
+                    <button type="button" class="btn btn-test" onclick="testAiKey()"><?php echo htmlspecialchars(t('cmdb.settings.ai_test')); ?></button>
                 </div>
 
                 <div id="aiTestResult" class="test-result"></div>
@@ -305,27 +310,27 @@ $path_prefix = '../../';
     <!-- Class Add/Edit Modal -->
     <div class="modal" id="classModal">
         <div class="modal-content">
-            <div class="modal-header" id="classModalTitle">Add class</div>
+            <div class="modal-header" id="classModalTitle"><?php echo htmlspecialchars(t('cmdb.settings.class_modal_add')); ?></div>
             <div class="modal-body">
                 <form id="classForm" onsubmit="saveClass(event)">
                     <input type="hidden" id="classId">
                     <div class="form-group">
-                        <label for="className">Name *</label>
-                        <input type="text" id="className" required maxlength="150" placeholder="e.g. Database">
-                        <small>What an analyst sees in lists and forms. Edit freely later.</small>
+                        <label for="className"><?php echo htmlspecialchars(t('cmdb.settings.class_name')); ?></label>
+                        <input type="text" id="className" required maxlength="150" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.class_name_placeholder')); ?>">
+                        <small><?php echo htmlspecialchars(t('cmdb.settings.class_name_help')); ?></small>
                     </div>
                     <div class="form-group">
-                        <label for="classDescription">Description</label>
-                        <textarea id="classDescription" rows="2" maxlength="500" placeholder="Short description of what this class represents"></textarea>
+                        <label for="classDescription"><?php echo htmlspecialchars(t('cmdb.settings.class_description')); ?></label>
+                        <textarea id="classDescription" rows="2" maxlength="500" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.class_description_placeholder')); ?>"></textarea>
                     </div>
                     <div class="form-group">
-                        <label for="classKey">Key</label>
-                        <input type="text" id="classKey" maxlength="100" placeholder="auto-generated from Name">
-                        <small class="key-hint">Immutable identifier used in storage and AI prompts. Auto-generated from Name; edit only if you have a strong reason.</small>
+                        <label for="classKey"><?php echo htmlspecialchars(t('cmdb.settings.class_key')); ?></label>
+                        <input type="text" id="classKey" maxlength="100" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.class_key_placeholder')); ?>">
+                        <small class="key-hint"><?php echo htmlspecialchars(t('cmdb.settings.class_key_help')); ?></small>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="classDisplayOrder">Display order</label>
+                            <label for="classDisplayOrder"><?php echo htmlspecialchars(t('cmdb.settings.class_display_order')); ?></label>
                             <input type="number" id="classDisplayOrder" value="0">
                         </div>
                         <div class="form-group">
@@ -335,15 +340,15 @@ $path_prefix = '../../';
                                     <input type="checkbox" id="classIsActive" checked>
                                     <span class="toggle-slider"></span>
                                 </span>
-                                Active
+                                <?php echo htmlspecialchars(t('cmdb.settings.class_active')); ?>
                             </label>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeClassModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveClass()">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="closeClassModal()"><?php echo htmlspecialchars(t('cmdb.settings.class_cancel')); ?></button>
+                <button type="button" class="btn btn-primary" onclick="saveClass()"><?php echo htmlspecialchars(t('cmdb.settings.class_save')); ?></button>
             </div>
         </div>
     </div>
@@ -352,38 +357,38 @@ $path_prefix = '../../';
     <div class="modal" id="propsModal">
         <div class="modal-content wide">
             <div class="modal-header">
-                Properties — <span id="propsModalClassName"></span>
+                <?php echo htmlspecialchars(t('cmdb.settings.props_modal_title')); ?> <span id="propsModalClassName"></span>
             </div>
             <div class="modal-body">
                 <div class="section-header">
-                    <h2 style="font-size: 14px;">Properties for this class</h2>
+                    <h2 style="font-size: 14px;"><?php echo htmlspecialchars(t('cmdb.settings.props_heading')); ?></h2>
                     <div style="display: flex; gap: 8px;">
-                        <button class="btn-ai" onclick="openAiSuggestModal()" title="Ask AI to suggest properties based on a few questions about your environment">
+                        <button class="btn-ai" onclick="openAiSuggestModal()" title="<?php echo htmlspecialchars(t('cmdb.settings.suggest_ai_title')); ?>">
                             <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: -2px; margin-right: 4px;"><path d="M12 3l1.9 5.8L20 10l-5 4.5L16.5 21 12 17.8 7.5 21 9 14.5 4 10l6.1-1.2z"/></svg>
-                            Suggest with AI
+                            <?php echo htmlspecialchars(t('cmdb.settings.suggest_ai')); ?>
                         </button>
-                        <button class="add-btn" onclick="openPropertyModal()">Add</button>
+                        <button class="add-btn" onclick="openPropertyModal()"><?php echo htmlspecialchars(t('cmdb.settings.add')); ?></button>
                     </div>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Label</th>
-                            <th>Key</th>
-                            <th>Type</th>
-                            <th>Target class</th>
-                            <th>Required</th>
-                            <th>Order</th>
-                            <th style="width: 130px;">Actions</th>
+                            <th><?php echo htmlspecialchars(t('cmdb.settings.col_label')); ?></th>
+                            <th><?php echo htmlspecialchars(t('cmdb.settings.col_key')); ?></th>
+                            <th><?php echo htmlspecialchars(t('cmdb.settings.col_type')); ?></th>
+                            <th><?php echo htmlspecialchars(t('cmdb.settings.col_target_class')); ?></th>
+                            <th><?php echo htmlspecialchars(t('cmdb.settings.col_required')); ?></th>
+                            <th><?php echo htmlspecialchars(t('cmdb.settings.col_order')); ?></th>
+                            <th style="width: 130px;"><?php echo htmlspecialchars(t('cmdb.settings.col_actions')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="propsTableBody">
-                        <tr><td colspan="7" class="empty-row">Loading…</td></tr>
+                        <tr><td colspan="7" class="empty-row"><?php echo htmlspecialchars(t('cmdb.settings.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closePropsModal()">Done</button>
+                <button type="button" class="btn btn-secondary" onclick="closePropsModal()"><?php echo htmlspecialchars(t('cmdb.settings.props_done')); ?></button>
             </div>
         </div>
     </div>
@@ -391,59 +396,59 @@ $path_prefix = '../../';
     <!-- Property Add/Edit Modal -->
     <div class="modal" id="propertyModal">
         <div class="modal-content">
-            <div class="modal-header" id="propertyModalTitle">Add property</div>
+            <div class="modal-header" id="propertyModalTitle"><?php echo htmlspecialchars(t('cmdb.settings.prop_modal_add')); ?></div>
             <div class="modal-body">
                 <form id="propertyForm" onsubmit="saveProperty(event)">
                     <input type="hidden" id="propertyId">
                     <div class="form-group">
-                        <label for="propertyLabel">Label *</label>
-                        <input type="text" id="propertyLabel" required maxlength="150" placeholder="e.g. Owner">
-                        <small>What an analyst sees on the object form. Edit freely later.</small>
+                        <label for="propertyLabel"><?php echo htmlspecialchars(t('cmdb.settings.prop_label')); ?></label>
+                        <input type="text" id="propertyLabel" required maxlength="150" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.prop_label_placeholder')); ?>">
+                        <small><?php echo htmlspecialchars(t('cmdb.settings.prop_label_help')); ?></small>
                     </div>
                     <div class="form-group">
-                        <label for="propertyKey">Key</label>
-                        <input type="text" id="propertyKey" maxlength="100" placeholder="auto-generated from Label">
-                        <small class="key-hint">Immutable identifier. Auto-generated; edit only if you have a strong reason.</small>
+                        <label for="propertyKey"><?php echo htmlspecialchars(t('cmdb.settings.prop_key')); ?></label>
+                        <input type="text" id="propertyKey" maxlength="100" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.prop_key_placeholder')); ?>">
+                        <small class="key-hint"><?php echo htmlspecialchars(t('cmdb.settings.prop_key_help')); ?></small>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="propertyType">Type *</label>
+                            <label for="propertyType"><?php echo htmlspecialchars(t('cmdb.settings.prop_type')); ?></label>
                             <select id="propertyType" required onchange="onPropertyTypeChange()">
-                                <option value="text">Text</option>
-                                <option value="number">Number</option>
-                                <option value="date">Date</option>
-                                <option value="boolean">Yes/No</option>
-                                <option value="dropdown">Dropdown</option>
-                                <option value="object_ref">Object Reference</option>
+                                <option value="text"><?php echo htmlspecialchars(t('cmdb.settings.prop_type_text')); ?></option>
+                                <option value="number"><?php echo htmlspecialchars(t('cmdb.settings.prop_type_number')); ?></option>
+                                <option value="date"><?php echo htmlspecialchars(t('cmdb.settings.prop_type_date')); ?></option>
+                                <option value="boolean"><?php echo htmlspecialchars(t('cmdb.settings.prop_type_boolean')); ?></option>
+                                <option value="dropdown"><?php echo htmlspecialchars(t('cmdb.settings.prop_type_dropdown')); ?></option>
+                                <option value="object_ref"><?php echo htmlspecialchars(t('cmdb.settings.prop_type_object_ref')); ?></option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="propertyDisplayOrder">Display order</label>
+                            <label for="propertyDisplayOrder"><?php echo htmlspecialchars(t('cmdb.settings.prop_display_order')); ?></label>
                             <input type="number" id="propertyDisplayOrder" value="0">
                         </div>
                     </div>
                     <div class="form-group" id="targetClassGroup" style="display: none;">
-                        <label for="propertyTargetClass">Target class *</label>
+                        <label for="propertyTargetClass"><?php echo htmlspecialchars(t('cmdb.settings.prop_target_class')); ?></label>
                         <select id="propertyTargetClass">
-                            <option value="">— Select —</option>
+                            <option value=""><?php echo htmlspecialchars(t('cmdb.settings.prop_select')); ?></option>
                         </select>
-                        <small>The class of objects this property can point at.</small>
+                        <small><?php echo htmlspecialchars(t('cmdb.settings.prop_target_class_help')); ?></small>
                     </div>
                     <div class="form-group" id="dropdownOptionsGroup" style="display: none;">
-                        <label>Dropdown options</label>
+                        <label><?php echo htmlspecialchars(t('cmdb.settings.prop_options')); ?></label>
                         <div id="propertyOptionsContainer"></div>
-                        <small>One row per allowed value. The optional colour swatch drives a coloured pill on the object detail page; leave it grey for plain text.</small>
+                        <small><?php echo htmlspecialchars(t('cmdb.settings.prop_options_help')); ?></small>
                     </div>
                     <div class="form-group">
                         <label class="form-check">
-                            <input type="checkbox" id="propertyIsRequired"> Required
+                            <input type="checkbox" id="propertyIsRequired"> <?php echo htmlspecialchars(t('cmdb.settings.prop_required')); ?>
                         </label>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closePropertyModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveProperty()">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="closePropertyModal()"><?php echo htmlspecialchars(t('cmdb.settings.prop_cancel')); ?></button>
+                <button type="button" class="btn btn-primary" onclick="saveProperty()"><?php echo htmlspecialchars(t('cmdb.settings.prop_save')); ?></button>
             </div>
         </div>
     </div>
@@ -451,27 +456,27 @@ $path_prefix = '../../';
     <!-- Relationship Type Add/Edit Modal -->
     <div class="modal" id="relTypeModal">
         <div class="modal-content">
-            <div class="modal-header" id="relTypeModalTitle">Add relationship type</div>
+            <div class="modal-header" id="relTypeModalTitle"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_modal_add')); ?></div>
             <div class="modal-body">
                 <form id="relTypeForm" onsubmit="saveRelType(event)">
                     <input type="hidden" id="relTypeId">
                     <div class="form-group">
-                        <label for="relTypeVerb">Verb *</label>
-                        <input type="text" id="relTypeVerb" required maxlength="100" placeholder="e.g. depends on">
-                        <small>How A relates to B. Use plain English (read by AI features).</small>
+                        <label for="relTypeVerb"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_verb')); ?></label>
+                        <input type="text" id="relTypeVerb" required maxlength="100" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.rel_type_verb_placeholder')); ?>">
+                        <small><?php echo htmlspecialchars(t('cmdb.settings.rel_type_verb_help')); ?></small>
                     </div>
                     <div class="form-group">
-                        <label for="relTypeInverseVerb">Inverse verb *</label>
-                        <input type="text" id="relTypeInverseVerb" required maxlength="100" placeholder="e.g. is depended on by">
-                        <small>The reciprocal — what B sees when looking back at A.</small>
+                        <label for="relTypeInverseVerb"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_inverse')); ?></label>
+                        <input type="text" id="relTypeInverseVerb" required maxlength="100" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.rel_type_inverse_placeholder')); ?>">
+                        <small><?php echo htmlspecialchars(t('cmdb.settings.rel_type_inverse_help')); ?></small>
                     </div>
                     <div class="form-group">
-                        <label for="relTypeDescription">Description</label>
-                        <textarea id="relTypeDescription" rows="2" maxlength="500" placeholder="Short description"></textarea>
+                        <label for="relTypeDescription"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_description')); ?></label>
+                        <textarea id="relTypeDescription" rows="2" maxlength="500" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.rel_type_description_placeholder')); ?>"></textarea>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="relTypeDisplayOrder">Display order</label>
+                            <label for="relTypeDisplayOrder"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_display_order')); ?></label>
                             <input type="number" id="relTypeDisplayOrder" value="0">
                         </div>
                         <div class="form-group">
@@ -481,15 +486,15 @@ $path_prefix = '../../';
                                     <input type="checkbox" id="relTypeIsActive" checked>
                                     <span class="toggle-slider"></span>
                                 </span>
-                                Active
+                                <?php echo htmlspecialchars(t('cmdb.settings.rel_type_active')); ?>
                             </label>
                         </div>
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeRelTypeModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" onclick="saveRelType()">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="closeRelTypeModal()"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_cancel')); ?></button>
+                <button type="button" class="btn btn-primary" onclick="saveRelType()"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_save')); ?></button>
             </div>
         </div>
     </div>
@@ -500,14 +505,14 @@ $path_prefix = '../../';
             <div class="modal-header">
                 <span style="display: inline-flex; align-items: center; gap: 6px;">
                     <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#be185d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.8L20 10l-5 4.5L16.5 21 12 17.8 7.5 21 9 14.5 4 10l6.1-1.2z"/></svg>
-                    AI suggest properties — <span id="aiSuggestClassName"></span>
+                    <?php echo htmlspecialchars(t('cmdb.ai_suggest.heading')); ?> <span id="aiSuggestClassName"></span>
                 </span>
             </div>
             <div class="modal-body">
                 <!-- Stage 0: loading questions -->
                 <div class="ai-stage" id="aiStageLoadingQuestions">
                     <div class="ai-loading">
-                        Asking AI for clarifying questions about your environment
+                        <?php echo htmlspecialchars(t('cmdb.ai_suggest.loading_questions')); ?>
                         <div style="margin-top: 10px;">
                             <span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span>
                         </div>
@@ -517,7 +522,7 @@ $path_prefix = '../../';
                 <!-- Stage 1: questions form -->
                 <div class="ai-stage" id="aiStageQuestions">
                     <p style="color: #4b5563; font-size: 13px; margin-bottom: 16px;">
-                        Different organisations run very different stacks. Answer these short questions about <strong id="aiQClassName"></strong> in <em>your</em> environment, and the AI will tailor its property suggestions accordingly. Skip any you're not sure about.
+                        <?php echo t('cmdb.ai_suggest.questions_intro'); ?>
                     </p>
                     <div id="aiQuestionsList"></div>
                 </div>
@@ -525,7 +530,7 @@ $path_prefix = '../../';
                 <!-- Stage 2: loading suggestions -->
                 <div class="ai-stage" id="aiStageLoadingSuggestions">
                     <div class="ai-loading">
-                        Generating property suggestions based on your answers
+                        <?php echo htmlspecialchars(t('cmdb.ai_suggest.loading_suggestions')); ?>
                         <div style="margin-top: 10px;">
                             <span class="spinner-dot"></span><span class="spinner-dot"></span><span class="spinner-dot"></span>
                         </div>
@@ -535,7 +540,7 @@ $path_prefix = '../../';
                 <!-- Stage 3: suggestions list -->
                 <div class="ai-stage" id="aiStageSuggestions">
                     <p style="color: #4b5563; font-size: 13px; margin-bottom: 16px;">
-                        Untick anything you don't want. Selected properties will be added to <strong id="aiSClassName"></strong> when you click <strong>Add</strong>.
+                        <?php echo t('cmdb.ai_suggest.suggestions_intro'); ?>
                     </p>
                     <div id="aiSuggestionsList"></div>
                 </div>
@@ -550,13 +555,13 @@ $path_prefix = '../../';
                 <div class="ai-stage" id="aiStageError">
                     <div style="padding: 30px; text-align: center;">
                         <p style="color: #b91c1c; font-size: 14px; margin-bottom: 12px;" id="aiErrorMessage"></p>
-                        <button class="btn btn-secondary" onclick="closeAiSuggestModal()">Close</button>
+                        <button class="btn btn-secondary" onclick="closeAiSuggestModal()"><?php echo htmlspecialchars(t('cmdb.ai_suggest.close')); ?></button>
                     </div>
                 </div>
             </div>
             <div class="modal-footer" id="aiSuggestActions">
-                <button type="button" class="btn btn-secondary" id="aiSuggestSecondaryBtn" onclick="closeAiSuggestModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" id="aiSuggestPrimaryBtn" onclick="aiPrimaryAction()">Continue</button>
+                <button type="button" class="btn btn-secondary" id="aiSuggestSecondaryBtn" onclick="closeAiSuggestModal()"><?php echo htmlspecialchars(t('cmdb.ai_suggest.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="aiSuggestPrimaryBtn" onclick="aiPrimaryAction()"><?php echo htmlspecialchars(t('cmdb.ai_suggest.continue')); ?></button>
             </div>
         </div>
     </div>

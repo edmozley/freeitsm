@@ -1,0 +1,140 @@
+<?php
+/**
+ * Español (es) — Workflows module strings.
+ * Missing keys fall back to lang/en/workflow.php per-key.
+ */
+return [
+    'title' => 'Flujos de trabajo',
+
+    'nav' => [
+        'workflows' => 'Flujos de trabajo',
+        'settings'  => 'Configuración',
+        'help'      => 'Ayuda',
+    ],
+
+    'settings_tabs' => [
+        'ai' => 'IA',
+    ],
+
+    'ai_settings' => [
+        'title'                   => 'Integración de IA',
+        'intro'                   => 'Configura el proveedor de IA que impulsa el coautor de flujos de trabajo. Cada módulo tiene su propia clave para que la facturación y el acceso puedan ser granulares. La API key se cifra en reposo. Usa Probar para verificar tu clave y modelo antes de guardar.',
+        'provider_label'          => 'Proveedor',
+        'model_label'             => 'Modelo',
+        'model_hint'              => 'Elige una sugerencia o pega cualquier id de modelo compatible con el proveedor elegido.',
+        'key_label'               => 'API key',
+        'key_placeholder_empty'   => '(no hay clave almacenada — pega una nueva para establecerla)',
+        'key_placeholder_stored'  => 'Almacenada — déjala sin cambios para conservarla',
+        'key_hint'                => 'Cifrada en reposo. Déjala en blanco o sin cambios para conservar la clave existente.',
+        'verify_ssl_label'        => 'Verificar SSL',
+        'verify_ssl_hint'         => 'Desactívalo solo para pruebas en entornos con certificados autofirmados (p. ej. detrás de un proxy de inspección).',
+        'ssl_warning_title'       => 'Advertencia',
+        'ssl_warning_body'        => 'La verificación SSL está desactivada. FreeITSM aceptará cualquier certificado TLS del proveedor de IA sin comprobarlo. Cualquiera con acceso a tu red podría hacerse pasar por el proveedor, interceptar el tráfico y robar tu API key, junto con cada prompt y respuesta que le sigan. Deja esto desactivado solo en entornos de prueba con certificados autofirmados, nunca en producción.',
+        'test_btn'                => 'Probar',
+        'testing'                 => 'Probando…',
+    ],
+
+    'list' => [
+        'page_title'      => 'Flujos de trabajo',
+        'intro'           => 'Reglas de automatización que escuchan eventos de otros módulos y actúan sobre ellos. Cada regla es un desencadenador, condiciones opcionales y una o más acciones.',
+        'add_btn'         => 'Nuevo',
+        'no_workflows'    => 'Aún no hay flujos de trabajo — haz clic en "Nuevo" para crear tu primera automatización.',
+        'col_name'        => 'Nombre',
+        'col_trigger'     => 'Desencadenador',
+        'col_actions'     => 'Acciones',
+        'col_last_run'    => 'Última ejecución',
+        'col_status'      => 'Estado',
+        'col_row_actions' => 'Acciones',
+        'never_run'       => 'Nunca',
+        'active'          => 'Activo',
+        'inactive'        => 'Inactivo',
+    ],
+
+    'editor' => [
+        'new_title'       => 'Nuevo flujo de trabajo',
+        'edit_title'      => 'Editar flujo de trabajo',
+        'name_label'      => 'Nombre',
+        'name_placeholder'=> 'p. ej. alerta de ticket P1',
+        'description_label' => 'Descripción',
+        'description_placeholder' => 'Opcional — explica qué hace este flujo de trabajo y por qué',
+        'trigger_label'   => 'Desencadenador',
+        'trigger_hint'    => 'El evento que dispara este flujo de trabajo.',
+        'conditions_label'=> 'Condiciones',
+        'conditions_hint' => 'Opcional. Todas las condiciones deben cumplirse para que se ejecuten las acciones. Déjalo vacío para ejecutar en cada evento desencadenante.',
+        'actions_label'   => 'Acciones',
+        'actions_hint'    => 'Se ejecutan en orden, de arriba abajo. Se requiere al menos una acción.',
+        'active_label'    => 'Activo — ejecutar cuando se dispare el desencadenador',
+        'add_condition'   => 'Añadir condición',
+        'add_action'      => 'Añadir acción',
+        'remove'          => 'Eliminar',
+        'test_fire'       => 'Disparo de prueba',
+        'test_fire_hint'  => 'Ejecuta este flujo de trabajo una vez con datos sintéticos para que puedas verificar que las acciones funcionan. Los desencadenadores reales se dispararán cuando se conecten en commits posteriores.',
+        'no_conditions'   => 'Sin condiciones — se ejecuta en cada evento.',
+        'no_actions'      => 'Aún no hay acciones — añade al menos una.',
+        'condition_field' => 'Campo',
+        'condition_op'    => 'Operador',
+        'condition_value' => 'Valor',
+        'action_type'     => 'Acción',
+        'action_args'     => 'Argumentos (JSON)',
+        'back'            => 'Atrás',
+    ],
+
+    'op' => [
+        'equals'      => 'es igual a',
+        'not_equals'  => 'no es igual a',
+        'in'          => 'es uno de',
+        'not_in'      => 'no es uno de',
+        'contains'    => 'contiene',
+        'not_contains'=> 'no contiene',
+        'gt'          => 'mayor que',
+        'lt'          => 'menor que',
+        'is_empty'    => 'está vacío',
+        'is_not_empty'=> 'no está vacío',
+    ],
+
+    'status' => [
+        'success' => 'Correcto',
+        'failed'  => 'Fallido',
+        'skipped' => 'Omitido (las condiciones no coincidieron)',
+        'running' => 'En ejecución',
+        'aborted' => 'Abortado (protección contra bucles)',
+    ],
+
+    'toast' => [
+        'saved'         => 'Flujo de trabajo guardado.',
+        'deleted'       => 'Flujo de trabajo eliminado.',
+        'delete_confirm'=> '¿Eliminar este flujo de trabajo?',
+        'fire_started'  => 'Disparo de prueba iniciado — consulta el registro de ejecución.',
+        'fire_done'     => 'Disparo de prueba completado: %s.',
+        'fire_failed'   => 'El disparo de prueba falló: %s',
+        'name_required' => 'El nombre es obligatorio.',
+        'actions_required' => 'Se requiere al menos una acción.',
+        'saved_no_actions' => 'Guardado — pero este flujo de trabajo aún no tiene acciones, así que no hará nada hasta que añadas una.',
+        'ai_applied'      => 'Propuesta de IA aplicada al lienzo. Ajústala y guarda.',
+        'ai_failed'       => 'El coautor de IA falló: %s',
+        'saved_settings'  => 'Configuración guardada.',
+    ],
+
+    'ai' => [
+        'btn'              => 'Coautor de IA',
+        'modal_title'      => 'Coautor de IA',
+        'intro'            => 'Describe el flujo de trabajo que quieres y la IA lo construirá en el lienzo. Puedes seguir — di "ahora añade una condición para…" e iterará sobre lo que hay.',
+        'prompt_label'     => '¿Qué debería hacer este flujo de trabajo?',
+        'prompt_placeholder' => 'p. ej. Cuando se cree un ticket P1 de Finanzas, registra un mensaje que diga "Ticket P1 de finanzas — alertar al equipo"',
+        'generate'         => 'Generar',
+        'thinking'         => 'Pensando…',
+        'apply'            => 'Aplicar al lienzo',
+        'discard'          => 'Descartar',
+        'close'            => 'Cerrar',
+        'iterate_hint'     => 'Consejo: cuando tengas un flujo de trabajo en el lienzo, la IA itera sobre él. Prueba "haz que solo coincida con Finanzas, no con todos los departamentos" o "añade una acción para registrar también el id del ticket".',
+        'explanation_label' => 'Lo que construí',
+        'preview_label'    => 'Flujo de trabajo propuesto',
+        'warnings_label'   => 'Notas',
+        'only_log_message' => 'Hoy solo está implementada la acción log_message; la IA se apoyará en ella como marcador de posición para acciones no implementadas (p. ej. "enviar correo" → log_message documentando la intención).',
+    ],
+
+    'help' => [
+        'page_title' => 'Guía de flujos de trabajo',
+        'intro'      => 'Los flujos de trabajo automatizan las cosas que sueles hacer manualmente después de que llega un ticket: etiquetar, escalar, asignar, notificar, distribuir a otros sistemas. Un flujo de trabajo escucha un evento, opcionalmente filtra con condiciones y luego ejecuta una o más acciones en orden.',
+    ],
+];
