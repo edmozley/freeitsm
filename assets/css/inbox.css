@@ -1313,7 +1313,7 @@ body.ticket-popout .ticket-toolbar {
     display: flex;
     opacity: 0;
     visibility: hidden;
-    transition: opacity 0.2s ease, visibility 0.2s ease;
+    transition: opacity 0.28s ease, visibility 0.28s ease;
 }
 
 .modal.active {
@@ -1329,12 +1329,14 @@ body.ticket-popout .ticket-toolbar {
     max-height: 90vh;
     display: flex;
     flex-direction: column;
-    transform: scale(0.95) translateY(-10px);
+    transform: scale(0.90) translateY(-24px);
     /* Strong ease-out curve — the built-in CSS `ease` is too weak and
        feels sluggish; this cubic-bezier gives the entrance an
-       intentional, snappy settle. Modals stay centred (origin: center)
-       because they aren't anchored to a trigger. */
-    transition: transform 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+       intentional, snappy settle. ~280ms + a larger scale/slide travel
+       so the grow-into-place is clearly visible (still under the skill's
+       300ms ceiling). Modals stay centred (origin: center) because they
+       aren't anchored to a trigger. */
+    transition: transform 0.28s cubic-bezier(0.23, 1, 0.32, 1);
 }
 
 .modal.active .modal-content {
