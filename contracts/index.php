@@ -130,7 +130,9 @@ $path_prefix = '../';
         .section-card table tr:last-child td { border-bottom: none; }
         .section-card table tr:hover { background: #fafafa; }
 
-        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        /* Canonical pill shape (matches .status-badge in inbox.css); the
+           active/expired/expiring colours are contract-lifecycle specific. */
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 500; }
         .status-badge.active { background: #d4edda; color: #155724; }
         .status-badge.expired { background: #f8d7da; color: #721c24; }
         .status-badge.expiring { background: #fff3cd; color: #856404; }

@@ -145,7 +145,7 @@ if (!$contract_id) {
         }
 
         .status-badge {
-            display: inline-block; padding: 4px 12px; border-radius: 12px;
+            display: inline-block; padding: 4px 8px; border-radius: 3px;
             font-size: 13px; font-weight: 500;
         }
         .status-badge.active { background: #d4edda; color: #155724; }

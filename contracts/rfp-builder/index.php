@@ -78,7 +78,7 @@ $path_prefix = '../../';
         .rfp-name-link:hover { color: #f59e0b; }
 
         .status-badge {
-            display: inline-block; padding: 3px 10px; border-radius: 12px;
+            display: inline-block; padding: 4px 8px; border-radius: 3px;
             font-size: 12px; font-weight: 500; text-transform: capitalize;
         }
         .status-badge.draft        { background: #e5e7eb; color: #374151; }

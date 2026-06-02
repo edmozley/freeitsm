@@ -137,7 +137,7 @@ $path_prefix = '../../';
         .action-btn.delete:hover { background: #fdf3f3; border-color: #d13438; color: #a00; }
         .action-btn svg { width: 16px; height: 16px; }
 
-        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
+        .status-badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 500; }
         .status-badge.active { background: #d4edda; color: #155724; }
         .status-badge.inactive { background: #f8d7da; color: #721c24; }
 
