@@ -3454,7 +3454,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <td>${EVENT_LABELS[tpl.event_trigger] || tpl.event_trigger}</td>
                     <td>${escapeHtml(tpl.subject_template)}</td>
                     <td>${tpl.display_order}</td>
-                    <td><span class="status-badge ${tpl.is_active == 1 ? 'active' : 'inactive'}">${tpl.is_active == 1 ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge status-${tpl.is_active == 1 ? 'active' : 'inactive'}">${tpl.is_active == 1 ? 'Active' : 'Inactive'}</span></td>
                     <td>
                         <button class="action-btn" onclick="editTemplate(${tpl.id})" title="${t('common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
@@ -3574,7 +3574,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <td>${s.start_time ? s.start_time.substring(0, 5) : ''}</td>
                     <td>${s.end_time ? s.end_time.substring(0, 5) : ''}</td>
                     <td>${s.display_order}</td>
-                    <td><span class="status-badge ${s.is_active == 1 ? 'active' : 'inactive'}">${s.is_active == 1 ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge status-${s.is_active == 1 ? 'active' : 'inactive'}">${s.is_active == 1 ? 'Active' : 'Inactive'}</span></td>
                     <td>
                         <button class="action-btn" onclick="editRotaShift(${s.id})" title="${t('common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
