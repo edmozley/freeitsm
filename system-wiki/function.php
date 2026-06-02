@@ -4,16 +4,22 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'browse';
 $path_prefix = '../';
+
+$translationNamespaces = ['common', 'system-wiki'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Function Detail</title>
+    <title><?php echo htmlspecialchars(t('system-wiki.function.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .wiki-detail {
@@ -135,7 +141,7 @@ $path_prefix = '../';
 
     <div class="wiki-detail">
         <div class="detail-content" id="content">
-            <div style="text-align:center;padding:60px;color:#aaa;">Loading function details...</div>
+            <div style="text-align:center;padding:60px;color:#aaa;"><?php echo htmlspecialchars(t('system-wiki.function.loading')); ?></div>
         </div>
     </div>
 
@@ -147,7 +153,7 @@ $path_prefix = '../';
 
         async function loadFunctionDetail() {
             if (!funcId) {
-                document.getElementById('content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">No function ID specified.</div>';
+                document.getElementById('content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">' + esc(window.t('system-wiki.function.no_id')) + '</div>';
                 return;
             }
 
@@ -156,7 +162,7 @@ $path_prefix = '../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    document.getElementById('content').innerHTML = '<div style="text-align:center;padding:60px;color:#c62828;">Error: ' + esc(data.error) + '</div>';
+                    document.getElementById('content').innerHTML = '<div style="text-align:center;padding:60px;color:#c62828;">' + esc(window.t('system-wiki.function.error_prefix')) + esc(data.error) + '</div>';
                     return;
                 }
 
@@ -165,30 +171,30 @@ $path_prefix = '../';
 
                 let visHtml = '';
                 if (fn.visibility) visHtml += `<span class="visibility-badge">${esc(fn.visibility)}</span> `;
-                if (fn.is_static == 1) visHtml += `<span class="visibility-badge">static</span> `;
+                if (fn.is_static == 1) visHtml += `<span class="visibility-badge">${esc(window.t('system-wiki.function.static'))}</span> `;
 
                 let html = `
                     <div class="breadcrumb">
-                        <a href="./">Wiki</a> <span>/</span>
+                        <a href="./">${esc(window.t('system-wiki.function.wiki'))}</a> <span>/</span>
                         <a href="file.php?id=${fn.file_id}">${esc(fn.file_name)}</a> <span>/</span>
                         ${esc(fn.function_name)}()
                     </div>
                     <div class="func-header">
                         <div class="func-name">${visHtml}function ${esc(fn.function_name)}(${esc(fn.parameters || '')})</div>
                         <div class="func-meta">
-                            <div>Defined in: <a href="file.php?id=${fn.file_id}">${esc(fn.file_path)}</a></div>
-                            <div>Line: <strong>${fn.line_number}</strong></div>
+                            <div>${esc(window.t('system-wiki.function.defined_in'))} <a href="file.php?id=${fn.file_id}">${esc(fn.file_path)}</a></div>
+                            <div>${esc(window.t('system-wiki.function.line'))} <strong>${fn.line_number}</strong></div>
                         </div>
-                        ${fn.parameters ? `<div class="func-params">Parameters: ${esc(fn.parameters)}</div>` : ''}
+                        ${fn.parameters ? `<div class="func-params">${esc(window.t('system-wiki.function.parameters'))} ${esc(fn.parameters)}</div>` : ''}
                         ${fn.description ? `<div class="func-desc">${esc(fn.description)}</div>` : ''}
                     </div>
 
                     <div class="section">
-                        <div class="section-header">Called By <span class="section-count">${data.callers.length}</span></div>
+                        <div class="section-header">${esc(window.t('system-wiki.function.called_by'))} <span class="section-count">${data.callers.length}</span></div>
                         ${data.callers.length === 0
-                            ? '<div class="empty-section">No callers found (or only called within the same file)</div>'
+                            ? '<div class="empty-section">' + esc(window.t('system-wiki.function.no_callers')) + '</div>'
                             : `<table class="caller-table">
-                                <thead><tr><th>File</th><th>Line</th></tr></thead>
+                                <thead><tr><th>${esc(window.t('system-wiki.function.col_file'))}</th><th>${esc(window.t('system-wiki.function.col_line'))}</th></tr></thead>
                                 <tbody>${data.callers.map(c => `
                                     <tr>
                                         <td><a href="file.php?id=${c.file_id}">${esc(c.file_path)}</a></td>

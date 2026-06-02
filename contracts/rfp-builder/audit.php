@@ -11,16 +11,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix  = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - AI audit trail</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.audit.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
@@ -135,70 +140,70 @@ $path_prefix  = '../../';
 
     <div class="page-wrap">
         <div class="breadcrumb">
-            <a href="../">Contracts</a><span class="sep">›</span>
-            <a href="./">RFP Builder</a><span class="sep">›</span>
+            <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span class="sep">›</span>
+            <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span class="sep">›</span>
             <a id="bcRfp" href="#">-</a><span class="sep">›</span>
-            <span>Audit trail</span>
+            <span><?php echo htmlspecialchars(t('contracts.rfp.audit.audit_trail')); ?></span>
         </div>
 
         <div class="page-header">
-            <h1>AI audit trail</h1>
+            <h1><?php echo htmlspecialchars(t('contracts.rfp.audit.heading')); ?></h1>
             <div class="page-actions">
-                <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
+                <a id="backLink" href="#" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.rfp.suppliers.overview')); ?></a>
             </div>
         </div>
 
         <div class="stats-strip" id="statsStrip" style="display:none;">
             <div class="stat-card runs">
                 <div class="stat-value" id="statRuns">0</div>
-                <div class="stat-label">AI runs</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.view.stat_runs')); ?></div>
             </div>
             <div class="stat-card ok">
                 <div class="stat-value" id="statOk">0</div>
-                <div class="stat-label">Successful</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.view.stat_successful')); ?></div>
             </div>
             <div class="stat-card err">
                 <div class="stat-value" id="statErr">0</div>
-                <div class="stat-label">Errors</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.view.stat_errors')); ?></div>
             </div>
             <div class="stat-card tin">
                 <div class="stat-value" id="statTin">0</div>
-                <div class="stat-label">Total input tokens</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.audit.total_input_tokens')); ?></div>
             </div>
             <div class="stat-card tout">
                 <div class="stat-value" id="statTout">0</div>
-                <div class="stat-label">Total output tokens</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.audit.total_output_tokens')); ?></div>
             </div>
             <div class="stat-card cache">
                 <div class="stat-value" id="statCache">0</div>
-                <div class="stat-label">Cached input</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.view.stat_cached_input')); ?></div>
             </div>
         </div>
 
         <div class="filter-card" id="filterCard" style="display:none;">
             <div class="field">
-                <label for="fAction">Action</label>
+                <label for="fAction"><?php echo htmlspecialchars(t('contracts.rfp.view.col_action')); ?></label>
                 <select id="fAction" onchange="applyFilters()">
-                    <option value="">All</option>
+                    <option value=""><?php echo htmlspecialchars(t('contracts.rfp.audit.all')); ?></option>
                 </select>
             </div>
             <div class="field">
-                <label for="fStatus">Status</label>
+                <label for="fStatus"><?php echo htmlspecialchars(t('contracts.detail.status')); ?></label>
                 <select id="fStatus" onchange="applyFilters()">
-                    <option value="">All</option>
-                    <option value="success">success</option>
-                    <option value="error">error</option>
+                    <option value=""><?php echo htmlspecialchars(t('contracts.rfp.audit.all')); ?></option>
+                    <option value="success"><?php echo htmlspecialchars(t('contracts.rfp.audit.success')); ?></option>
+                    <option value="error"><?php echo htmlspecialchars(t('contracts.rfp.audit.error')); ?></option>
                 </select>
             </div>
             <div class="field">
-                <label for="fTarget">Target contains</label>
-                <input type="text" id="fTarget" oninput="applyFilters()" placeholder="filename or title">
+                <label for="fTarget"><?php echo htmlspecialchars(t('contracts.rfp.audit.target_contains')); ?></label>
+                <input type="text" id="fTarget" oninput="applyFilters()" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.audit.target_ph')); ?>">
             </div>
-            <span class="clear-link" onclick="clearFilters()">Clear filters</span>
+            <span class="clear-link" onclick="clearFilters()"><?php echo htmlspecialchars(t('contracts.rfp.extracted.clear_filters')); ?></span>
             <span class="row-count" id="rowCount"></span>
         </div>
 
-        <div id="loadingEl" class="empty-state">Loading…</div>
+        <div id="loadingEl" class="empty-state"><?php echo htmlspecialchars(t('common.loading')); ?></div>
         <div id="contentEl" style="display:none;"></div>
         <div id="errorEl" class="empty-state" style="display:none; color:#d13438;"></div>
     </div>
@@ -210,7 +215,7 @@ $path_prefix  = '../../';
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId) {
-                showError('No RFP id supplied. <a href="./">Back to list</a>.');
+                showError(window.t('contracts.rfp.view.no_id') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.');
                 return;
             }
             document.getElementById('backLink').href = 'view.php?id=' + encodeURIComponent(rfpId);
@@ -224,8 +229,8 @@ $path_prefix  = '../../';
                     // limit=0 → server treats as "give me everything" (clamped to 2000)
                     fetch(API_BASE + 'get_processing_log.php?rfp_id=' + encodeURIComponent(rfpId) + '&limit=0').then(r => r.json())
                 ]);
-                if (!rfpRes.success) throw new Error(rfpRes.error || 'Failed to load RFP');
-                if (!logRes.success) throw new Error(logRes.error || 'Failed to load audit log');
+                if (!rfpRes.success) throw new Error(rfpRes.error || window.t('contracts.rfp.suppliers.load_rfp_failed'));
+                if (!logRes.success) throw new Error(logRes.error || window.t('contracts.rfp.audit.load_failed'));
 
                 const bc = document.getElementById('bcRfp');
                 bc.textContent = rfpRes.rfp.name;
@@ -262,7 +267,7 @@ $path_prefix  = '../../';
             const seen = new Set();
             entries.forEach(e => seen.add(e.action));
             const sorted = [...seen].sort();
-            sel.innerHTML = '<option value="">All</option>' +
+            sel.innerHTML = '<option value="">' + escapeHtml(window.t('contracts.rfp.audit.all')) + '</option>' +
                 sorted.map(a => `<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join('');
         }
 
@@ -280,7 +285,7 @@ $path_prefix  = '../../';
                 return true;
             });
             document.getElementById('rowCount').textContent =
-                filtered.length + ' of ' + allEntries.length + ' rows';
+                window.t('contracts.rfp.audit.rows_count', { shown: filtered.length, total: allEntries.length });
             renderTable(filtered);
         }
 
@@ -295,7 +300,7 @@ $path_prefix  = '../../';
             const contentEl = document.getElementById('contentEl');
             contentEl.style.display = 'block';
             if (entries.length === 0) {
-                contentEl.innerHTML = '<div class="audit-card"><div class="empty-state">No entries match the current filters.</div></div>';
+                contentEl.innerHTML = '<div class="audit-card"><div class="empty-state">' + escapeHtml(window.t('contracts.rfp.audit.no_match')) + '</div></div>';
                 return;
             }
             contentEl.innerHTML = `
@@ -303,15 +308,15 @@ $path_prefix  = '../../';
                     <table class="audit-table">
                         <thead>
                             <tr>
-                                <th>When</th>
-                                <th>Action</th>
-                                <th>Target</th>
-                                <th>Status</th>
-                                <th class="num">In</th>
-                                <th class="num">Out</th>
-                                <th class="num">Cached</th>
-                                <th class="num">Time</th>
-                                <th>Model</th>
+                                <th>${escapeHtml(window.t('contracts.rfp.view.col_when'))}</th>
+                                <th>${escapeHtml(window.t('contracts.rfp.view.col_action'))}</th>
+                                <th>${escapeHtml(window.t('contracts.rfp.view.col_target'))}</th>
+                                <th>${escapeHtml(window.t('contracts.detail.status'))}</th>
+                                <th class="num">${escapeHtml(window.t('contracts.rfp.view.col_in'))}</th>
+                                <th class="num">${escapeHtml(window.t('contracts.rfp.view.col_out'))}</th>
+                                <th class="num">${escapeHtml(window.t('contracts.rfp.view.col_cached'))}</th>
+                                <th class="num">${escapeHtml(window.t('contracts.rfp.view.col_time'))}</th>
+                                <th>${escapeHtml(window.t('contracts.rfp.audit.col_model'))}</th>
                             </tr>
                         </thead>
                         <tbody>

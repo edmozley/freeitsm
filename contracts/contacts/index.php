@@ -4,16 +4,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'contacts';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Contacts</title>
+    <title><?php echo htmlspecialchars(t('contracts.contacts.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         /* Sidebar layout - matches contracts dashboard */
@@ -163,16 +168,16 @@ $path_prefix = '../../';
         <!-- Left Sidebar -->
         <div class="contracts-sidebar">
             <div class="sidebar-section">
-                <h3>Overview</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.overview')); ?></h3>
                 <div class="sidebar-total">
-                    <span>All contacts</span>
+                    <span><?php echo htmlspecialchars(t('contracts.contacts.all_contacts')); ?></span>
                     <span class="stat-value" id="sideTotal">-</span>
                 </div>
                 <div id="overviewBreakdown"></div>
             </div>
 
             <div class="sidebar-section">
-                <a href="#" class="sidebar-add-btn" onclick="openModal(); return false;">+ Add contact</a>
+                <a href="#" class="sidebar-add-btn" onclick="openModal(); return false;">+ <?php echo htmlspecialchars(t('contracts.contacts.add_contact')); ?></a>
             </div>
         </div>
 
@@ -180,22 +185,22 @@ $path_prefix = '../../';
         <div class="contracts-main">
             <div class="section-card">
                 <div class="section-header">
-                    <h2>Contacts</h2>
+                    <h2><?php echo htmlspecialchars(t('contracts.nav.contacts')); ?></h2>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Job title</th>
-                            <th>Email</th>
-                            <th>Mobile</th>
-                            <th>Supplier</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th><?php echo htmlspecialchars(t('contracts.contacts.col_name')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.contacts.col_job_title')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.contacts.col_email')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.contacts.col_mobile')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.detail.supplier')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.detail.status')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.list.col_actions')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="contactsList">
-                        <tr><td colspan="7" class="empty-state">Loading...</td></tr>
+                        <tr><td colspan="7" class="empty-state"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -204,42 +209,42 @@ $path_prefix = '../../';
 
     <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Add contact</div>
+            <div class="modal-header" id="modalTitle"><?php echo htmlspecialchars(t('contracts.contacts.add_contact')); ?></div>
             <div class="modal-body">
             <form id="editForm">
                 <input type="hidden" id="itemId">
                 <div class="form-group">
-                    <label for="firstName">First name</label>
+                    <label for="firstName"><?php echo htmlspecialchars(t('contracts.contacts.first_name')); ?></label>
                     <input type="text" id="firstName" required>
                 </div>
                 <div class="form-group">
-                    <label for="surname">Surname</label>
+                    <label for="surname"><?php echo htmlspecialchars(t('contracts.contacts.surname')); ?></label>
                     <input type="text" id="surname" required>
                 </div>
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email"><?php echo htmlspecialchars(t('contracts.contacts.col_email')); ?></label>
                     <input type="email" id="email">
                 </div>
                 <div class="form-group">
-                    <label for="jobTitle">Job title</label>
+                    <label for="jobTitle"><?php echo htmlspecialchars(t('contracts.contacts.col_job_title')); ?></label>
                     <input type="text" id="jobTitle">
                 </div>
                 <div class="form-group">
-                    <label for="mobile">Mobile</label>
+                    <label for="mobile"><?php echo htmlspecialchars(t('contracts.contacts.col_mobile')); ?></label>
                     <input type="text" id="mobile">
                 </div>
                 <div class="form-group">
-                    <label for="directDial">Direct dial</label>
+                    <label for="directDial"><?php echo htmlspecialchars(t('contracts.contacts.direct_dial')); ?></label>
                     <input type="text" id="directDial">
                 </div>
                 <div class="form-group">
-                    <label for="switchboard">Switchboard</label>
+                    <label for="switchboard"><?php echo htmlspecialchars(t('contracts.contacts.switchboard')); ?></label>
                     <input type="text" id="switchboard">
                 </div>
                 <div class="form-group">
-                    <label for="supplierId">Supplier</label>
+                    <label for="supplierId"><?php echo htmlspecialchars(t('contracts.detail.supplier')); ?></label>
                     <select id="supplierId">
-                        <option value="">-- None --</option>
+                        <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.none')); ?> --</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -248,14 +253,14 @@ $path_prefix = '../../';
                             <input type="checkbox" id="itemActive" checked>
                             <span class="toggle-slider"></span>
                         </span>
-                        Active
+                        <?php echo htmlspecialchars(t('contracts.status.active')); ?>
                     </label>
                 </div>
             </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="submit" form="editForm" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="submit" form="editForm" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -277,7 +282,7 @@ $path_prefix = '../../';
                 if (data.success) {
                     suppliers = data.suppliers;
                     const select = document.getElementById('supplierId');
-                    select.innerHTML = '<option value="">-- None --</option>' +
+                    select.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.none')) + ' --</option>' +
                         suppliers.filter(s => s.is_active).map(s =>
                             `<option value="${s.id}">${escapeHtml(s.legal_name)}</option>`
                         ).join('');
@@ -317,27 +322,34 @@ $path_prefix = '../../';
 
             const container = document.getElementById('overviewBreakdown');
             if (supplierOrder.length === 0) {
-                container.innerHTML = '<div style="font-size:13px;color:#999;padding:8px 12px;">No contacts yet</div>';
+                container.innerHTML = '<div style="font-size:13px;color:#999;padding:8px 12px;">' + escapeHtml(window.t('contracts.contacts.no_contacts_yet')) + '</div>';
                 return;
             }
+
+            const labelFor = (key) => {
+                if (key === 'No supplier') return window.t('contracts.list.no_supplier');
+                if (key === 'Active') return window.t('contracts.status.active');
+                if (key === 'Inactive') return window.t('contracts.status.inactive');
+                return key;
+            };
 
             container.innerHTML = supplierOrder.map(supplierName => {
                 const statuses = groups[supplierName];
                 const statusOrder = ['Active', 'Inactive'].filter(s => statuses[s]);
                 const rows = statusOrder.map(statusName =>
                     `<div class="sidebar-stat">
-                        <span>${escapeHtml(statusName)}</span>
+                        <span>${escapeHtml(labelFor(statusName))}</span>
                         <span class="stat-value">${statuses[statusName]}</span>
                     </div>`
                 ).join('');
-                return `<h4>${escapeHtml(supplierName)}</h4>${rows}`;
+                return `<h4>${escapeHtml(labelFor(supplierName))}</h4>${rows}`;
             }).join('');
         }
 
         function renderContacts() {
             const tbody = document.getElementById('contactsList');
             if (contacts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No contacts yet. Click "+ Add contact" to create one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">' + escapeHtml(window.t('contracts.contacts.empty')) + '</td></tr>';
                 return;
             }
             tbody.innerHTML = contacts.map(c => `
@@ -347,12 +359,12 @@ $path_prefix = '../../';
                     <td>${c.email ? `<a href="mailto:${escapeHtml(c.email)}">${escapeHtml(c.email)}</a>` : '-'}</td>
                     <td>${escapeHtml(c.mobile || '-')}</td>
                     <td>${c.supplier_id ? `<a href="../suppliers/view/?id=${c.supplier_id}">${escapeHtml(c.supplier_name)}</a>` : '-'}</td>
-                    <td><span class="status-badge ${c.is_active ? 'active' : 'inactive'}">${c.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge ${c.is_active ? 'active' : 'inactive'}">${c.is_active ? escapeHtml(window.t('contracts.status.active')) : escapeHtml(window.t('contracts.status.inactive'))}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editContact(${c.id})" title="Edit">
+                        <button class="action-btn" onclick="editContact(${c.id})" title="${escapeHtml(window.t('common.edit'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteContact(${c.id}, '${escapeHtml(c.first_name + ' ' + c.surname).replace(/'/g, "\\'")}')" title="Delete">
+                        <button class="action-btn delete" onclick="deleteContact(${c.id}, '${escapeHtml(c.first_name + ' ' + c.surname).replace(/'/g, "\\'")}')" title="${escapeHtml(window.t('common.delete'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>
@@ -361,7 +373,7 @@ $path_prefix = '../../';
         }
 
         function openModal(contact = null) {
-            document.getElementById('modalTitle').textContent = contact ? 'Edit contact' : 'Add contact';
+            document.getElementById('modalTitle').textContent = contact ? window.t('contracts.contacts.edit_contact') : window.t('contracts.contacts.add_contact');
             document.getElementById('itemId').value = contact ? contact.id : '';
             document.getElementById('firstName').value = contact ? contact.first_name : '';
             document.getElementById('surname').value = contact ? contact.surname : '';
@@ -383,16 +395,16 @@ $path_prefix = '../../';
         }
 
         async function deleteContact(id, name) {
-            if (!(await showConfirm({ title: 'Delete', message: 'Delete contact "' + name + '"?', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.contacts.delete_confirm', { name: name }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const response = await fetch(API_BASE + 'delete_contact.php', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ id })
                 });
                 const data = await response.json();
-                if (data.success) { showToast('Contact deleted', 'success'); loadContacts(); }
-                else showToast('Error: ' + data.error, 'error');
-            } catch (error) { showToast('Failed to delete contact', 'error'); }
+                if (data.success) { showToast(window.t('contracts.contacts.toast_deleted'), 'success'); loadContacts(); }
+                else showToast(window.t('contracts.settings.error_prefix') + ' ' + data.error, 'error');
+            } catch (error) { showToast(window.t('contracts.contacts.toast_delete_failed'), 'error'); }
         }
 
         document.getElementById('editForm').addEventListener('submit', async function(e) {
@@ -416,9 +428,9 @@ $path_prefix = '../../';
                     body: JSON.stringify(payload)
                 });
                 const data = await response.json();
-                if (data.success) { closeModal(); showToast('Contact saved', 'success'); loadContacts(); }
-                else showToast('Error: ' + data.error, 'error');
-            } catch (error) { showToast('Failed to save contact', 'error'); }
+                if (data.success) { closeModal(); showToast(window.t('contracts.contacts.toast_saved'), 'success'); loadContacts(); }
+                else showToast(window.t('contracts.settings.error_prefix') + ' ' + data.error, 'error');
+            } catch (error) { showToast(window.t('contracts.contacts.toast_save_failed'), 'error'); }
         });
 
         let modalMouseDownTarget = null;

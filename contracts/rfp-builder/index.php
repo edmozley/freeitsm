@@ -5,16 +5,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - RFP Builder</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.list.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .rfp-layout { display: flex; height: calc(100vh - 48px); background: #f5f5f5; }
@@ -166,64 +171,64 @@ $path_prefix = '../../';
     <div class="rfp-layout">
         <div class="rfp-sidebar">
             <div class="sidebar-section">
-                <h3>Overview</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.overview')); ?></h3>
                 <div class="sidebar-stat">
-                    <span>RFPs</span>
+                    <span><?php echo htmlspecialchars(t('contracts.rfp.list.rfps')); ?></span>
                     <span class="stat-value" id="sideTotal">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Draft</span>
+                    <span><?php echo htmlspecialchars(t('contracts.rfp.status.draft')); ?></span>
                     <span class="stat-value" id="sideDraft">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>In progress</span>
+                    <span><?php echo htmlspecialchars(t('contracts.rfp.list.in_progress')); ?></span>
                     <span class="stat-value" id="sideInProgress">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Closed</span>
+                    <span><?php echo htmlspecialchars(t('contracts.rfp.status.closed')); ?></span>
                     <span class="stat-value" id="sideClosed">-</span>
                 </div>
             </div>
 
             <div class="sidebar-section">
-                <h3>Quick Links</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.quick_links')); ?></h3>
                 <div class="sidebar-links">
                     <a href="../" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        Back to Contracts
+                        <?php echo htmlspecialchars(t('contracts.rfp.list.back_to_contracts')); ?>
                     </a>
                     <a href="help.php" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                        Help &amp; user guide
+                        <?php echo htmlspecialchars(t('contracts.rfp.list.help_user_guide')); ?>
                     </a>
                 </div>
             </div>
 
             <div class="sidebar-section">
-                <button class="sidebar-add-btn" onclick="openCreateModal()">+ New RFP</button>
+                <button class="sidebar-add-btn" onclick="openCreateModal()">+ <?php echo htmlspecialchars(t('contracts.rfp.list.new_rfp')); ?></button>
             </div>
         </div>
 
         <div class="rfp-main">
             <div class="section-card">
                 <div class="section-header">
-                    <h2>RFPs</h2>
+                    <h2><?php echo htmlspecialchars(t('contracts.rfp.list.rfps')); ?></h2>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th>Docs</th>
-                            <th>Reqs</th>
-                            <th>Suppliers</th>
-                            <th>Created</th>
-                            <th>Updated</th>
-                            <th>Actions</th>
+                            <th><?php echo htmlspecialchars(t('contracts.rfp.list.col_name')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.detail.status')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.rfp.list.col_docs')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.rfp.list.col_reqs')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.detail.created')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.rfp.list.col_updated')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.list.col_actions')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="rfpList">
-                        <tr><td colspan="8" class="empty-state">Loading...</td></tr>
+                        <tr><td colspan="8" class="empty-state"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -234,35 +239,35 @@ $path_prefix = '../../';
     <div class="modal-overlay" id="rfpModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3 id="rfpModalTitle">New RFP</h3>
+                <h3 id="rfpModalTitle"><?php echo htmlspecialchars(t('contracts.rfp.list.new_rfp')); ?></h3>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="rfpId">
                 <div class="form-row">
-                    <label for="rfpName">Name <span style="color:#ef4444;">*</span></label>
-                    <input type="text" id="rfpName" placeholder="e.g. New ITSM platform 2026" maxlength="200">
+                    <label for="rfpName"><?php echo htmlspecialchars(t('contracts.rfp.list.col_name')); ?> <span style="color:#ef4444;">*</span></label>
+                    <input type="text" id="rfpName" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.list.name_ph')); ?>" maxlength="200">
                 </div>
                 <div class="form-row">
-                    <label for="rfpStatus">Status</label>
+                    <label for="rfpStatus"><?php echo htmlspecialchars(t('contracts.detail.status')); ?></label>
                     <select id="rfpStatus">
-                        <option value="draft">Draft</option>
-                        <option value="collecting">Collecting requirements</option>
-                        <option value="consolidating">Consolidating</option>
-                        <option value="generating">Generating RFP</option>
-                        <option value="scoring">Scoring suppliers</option>
-                        <option value="closed">Closed</option>
-                        <option value="abandoned">Abandoned</option>
+                        <option value="draft"><?php echo htmlspecialchars(t('contracts.rfp.status.draft')); ?></option>
+                        <option value="collecting"><?php echo htmlspecialchars(t('contracts.rfp.status.collecting')); ?></option>
+                        <option value="consolidating"><?php echo htmlspecialchars(t('contracts.rfp.status.consolidating')); ?></option>
+                        <option value="generating"><?php echo htmlspecialchars(t('contracts.rfp.status.generating')); ?></option>
+                        <option value="scoring"><?php echo htmlspecialchars(t('contracts.rfp.status.scoring')); ?></option>
+                        <option value="closed"><?php echo htmlspecialchars(t('contracts.rfp.status.closed')); ?></option>
+                        <option value="abandoned"><?php echo htmlspecialchars(t('contracts.rfp.status.abandoned')); ?></option>
                     </select>
                 </div>
                 <div class="form-row">
-                    <label for="rfpStyleGuide">Style guide override</label>
-                    <textarea id="rfpStyleGuide" placeholder="Optional. Leave blank to use the system default."></textarea>
-                    <div class="form-help">Appended to AI prompts to control writing style of the generated RFP. Plain text, one rule per line.</div>
+                    <label for="rfpStyleGuide"><?php echo htmlspecialchars(t('contracts.rfp.list.style_guide_override')); ?></label>
+                    <textarea id="rfpStyleGuide" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.list.style_guide_ph')); ?>"></textarea>
+                    <div class="form-help"><?php echo htmlspecialchars(t('contracts.rfp.list.style_guide_help')); ?></div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button class="btn btn-primary" id="rfpSaveBtn" onclick="saveRfp()">Save</button>
+                <button class="btn btn-secondary" onclick="closeModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="rfpSaveBtn" onclick="saveRfp()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -304,29 +309,35 @@ $path_prefix = '../../';
             document.getElementById('sideClosed').textContent = closed;
         }
 
+        function rfpStatusLabel(status) {
+            const key = 'contracts.rfp.status.' + status;
+            const label = window.t(key);
+            return label === key ? status : label;
+        }
+
         function renderRfps(rfps) {
             const tbody = document.getElementById('rfpList');
             if (rfps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No RFPs yet. Click "+ New RFP" to create one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">' + escapeHtml(window.t('contracts.rfp.list.empty')) + '</td></tr>';
                 return;
             }
             tbody.innerHTML = rfps.map(r => `
                 <tr>
                     <td><a href="view.php?id=${r.id}" class="rfp-name-link">${escapeHtml(r.name)}</a></td>
-                    <td><span class="status-badge ${r.status}">${escapeHtml(r.status)}</span></td>
+                    <td><span class="status-badge ${r.status}">${escapeHtml(rfpStatusLabel(r.status))}</span></td>
                     <td><span class="pill-stat">${r.document_count}</span></td>
                     <td><span class="pill-stat">${r.consolidated_count}</span></td>
                     <td><span class="pill-stat">${r.supplier_count}</span></td>
                     <td>${formatDate(r.created_datetime)}</td>
                     <td>${formatDate(r.updated_datetime)}</td>
                     <td>
-                        <a href="view.php?id=${r.id}" class="action-btn" title="Open">
+                        <a href="view.php?id=${r.id}" class="action-btn" title="${escapeHtml(window.t('common.open'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </a>
-                        <button class="action-btn" title="Edit" onclick='openEditModal(${JSON.stringify(r)})'>
+                        <button class="action-btn" title="${escapeHtml(window.t('common.edit'))}" onclick='openEditModal(${JSON.stringify(r)})'>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="action-btn danger" title="Delete" onclick="deleteRfp(${r.id}, ${JSON.stringify(r.name)})">
+                        <button class="action-btn danger" title="${escapeHtml(window.t('common.delete'))}" onclick="deleteRfp(${r.id}, ${JSON.stringify(r.name)})">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>
@@ -335,7 +346,7 @@ $path_prefix = '../../';
         }
 
         function openCreateModal() {
-            document.getElementById('rfpModalTitle').textContent = 'New RFP';
+            document.getElementById('rfpModalTitle').textContent = window.t('contracts.rfp.list.new_rfp');
             document.getElementById('rfpId').value = '';
             document.getElementById('rfpName').value = '';
             document.getElementById('rfpStatus').value = 'draft';
@@ -351,7 +362,7 @@ $path_prefix = '../../';
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error || 'Failed to load');
                 const full = data.rfp;
-                document.getElementById('rfpModalTitle').textContent = 'Edit RFP';
+                document.getElementById('rfpModalTitle').textContent = window.t('contracts.rfp.list.edit_rfp');
                 document.getElementById('rfpId').value = full.id;
                 document.getElementById('rfpName').value = full.name;
                 document.getElementById('rfpStatus').value = full.status;
@@ -359,7 +370,7 @@ $path_prefix = '../../';
                 document.getElementById('rfpModal').classList.add('active');
                 setTimeout(() => document.getElementById('rfpName').focus(), 50);
             } catch (err) {
-                showToast('Could not load RFP: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.load_one_failed') + ' ' + err.message, 'error');
             }
         }
 
@@ -369,7 +380,7 @@ $path_prefix = '../../';
 
         async function saveRfp() {
             const name = document.getElementById('rfpName').value.trim();
-            if (!name) { showToast('Name is required', 'error'); return; }
+            if (!name) { showToast(window.t('contracts.rfp.list.name_required'), 'error'); return; }
             const payload = {
                 id: document.getElementById('rfpId').value || null,
                 name,
@@ -377,7 +388,7 @@ $path_prefix = '../../';
                 style_guide: document.getElementById('rfpStyleGuide').value
             };
             const btn = document.getElementById('rfpSaveBtn');
-            btn.disabled = true; btn.textContent = 'Saving...';
+            btn.disabled = true; btn.textContent = window.t('common.saving');
             try {
                 const res = await fetch(API_BASE + 'save_rfp.php', {
                     method: 'POST',
@@ -385,19 +396,19 @@ $path_prefix = '../../';
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Save failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.list.save_failed_short'));
                 closeModal();
-                showToast('RFP saved', 'success');
+                showToast(window.t('contracts.rfp.list.toast_saved'), 'success');
                 loadRfps();
             } catch (err) {
-                showToast('Save failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.save_failed') + ' ' + err.message, 'error');
             } finally {
-                btn.disabled = false; btn.textContent = 'Save';
+                btn.disabled = false; btn.textContent = window.t('common.save');
             }
         }
 
         async function deleteRfp(id, name) {
-            if (!(await showConfirm({ title: 'Delete', message: `Delete RFP "${name}"?\n\nThis will permanently remove all documents, requirements, scores, and history for this RFP.`, okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.rfp.list.delete_confirm', { name: name }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const res = await fetch(API_BASE + 'delete_rfp.php', {
                     method: 'POST',
@@ -405,11 +416,11 @@ $path_prefix = '../../';
                     body: JSON.stringify({id})
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Delete failed');
-                showToast('RFP deleted', 'success');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.list.delete_failed_short'));
+                showToast(window.t('contracts.rfp.list.toast_deleted'), 'success');
                 loadRfps();
             } catch (err) {
-                showToast('Delete failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.delete_failed') + ' ' + err.message, 'error');
             }
         }
 

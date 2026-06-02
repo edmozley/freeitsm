@@ -4,16 +4,22 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'browse';
 $path_prefix = '../';
+
+$translationNamespaces = ['common', 'system-wiki'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - System Wiki</title>
+    <title><?php echo htmlspecialchars(t('system-wiki.index.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .wiki-container {
@@ -217,32 +223,32 @@ $path_prefix = '../';
     <?php include 'includes/header.php'; ?>
 
     <div class="stats-bar" id="statsBar">
-        <span style="color:#aaa;font-size:13px;">Loading stats...</span>
+        <span style="color:#aaa;font-size:13px;"><?php echo htmlspecialchars(t('system-wiki.index.loading_stats')); ?></span>
     </div>
 
     <div class="wiki-container">
         <div class="wiki-sidebar" id="sidebar">
-            <div class="sidebar-title">Folders</div>
-            <div id="folderTree"><span style="padding:16px;color:#aaa;font-size:13px;display:block;">Loading...</span></div>
+            <div class="sidebar-title"><?php echo htmlspecialchars(t('system-wiki.index.folders')); ?></div>
+            <div id="folderTree"><span style="padding:16px;color:#aaa;font-size:13px;display:block;"><?php echo htmlspecialchars(t('system-wiki.index.loading')); ?></span></div>
         </div>
         <div class="wiki-main">
             <div class="file-list-header">
-                <span id="listTitle">All Files</span>
+                <span id="listTitle"><?php echo htmlspecialchars(t('system-wiki.index.all_files')); ?></span>
                 <span class="file-list-count" id="listCount"></span>
             </div>
             <div class="file-list">
                 <table class="file-table">
                     <thead>
                         <tr>
-                            <th>File</th>
-                            <th>Type</th>
-                            <th>Lines</th>
-                            <th>Functions</th>
-                            <th>Description</th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.index.col_file')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.index.col_type')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.index.col_lines')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.index.col_functions')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.index.col_description')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="fileTableBody">
-                        <tr><td colspan="5" class="no-data">Loading...</td></tr>
+                        <tr><td colspan="5" class="no-data"><?php echo htmlspecialchars(t('system-wiki.index.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -266,7 +272,7 @@ $path_prefix = '../';
                 const bar = document.getElementById('statsBar');
 
                 if (!data.success || !data.stats) {
-                    bar.innerHTML = '<span style="color:#888;font-size:13px;">No scan data. Run the scanner first.</span>';
+                    bar.innerHTML = '<span style="color:#888;font-size:13px;">' + esc(window.t('system-wiki.index.no_scan_data')) + '</span>';
                     return;
                 }
 
@@ -274,21 +280,21 @@ $path_prefix = '../';
                 let scanInfo = '';
                 if (s.last_scan) {
                     const d = new Date(s.last_scan);
-                    scanInfo = `Last scan: ${d.toLocaleDateString()} ${d.toLocaleTimeString()} (${s.scan_duration_seconds}s)`;
+                    scanInfo = window.t('system-wiki.index.last_scan', { date: d.toLocaleDateString(), time: d.toLocaleTimeString(), duration: s.scan_duration_seconds });
                 }
 
                 bar.innerHTML = `
-                    <div class="stat-chip"><strong>${s.total_files}</strong> files</div>
-                    <div class="stat-chip"><strong>${s.php_files}</strong> PHP</div>
-                    <div class="stat-chip"><strong>${s.js_files}</strong> JS</div>
-                    <div class="stat-chip"><strong>${s.total_functions}</strong> functions</div>
-                    <div class="stat-chip"><strong>${s.total_tables}</strong> tables</div>
-                    <div class="stat-chip"><strong>${s.total_folders}</strong> folders</div>
+                    <div class="stat-chip"><strong>${s.total_files}</strong> ${esc(window.t('system-wiki.index.stat_files'))}</div>
+                    <div class="stat-chip"><strong>${s.php_files}</strong> ${esc(window.t('system-wiki.index.stat_php'))}</div>
+                    <div class="stat-chip"><strong>${s.js_files}</strong> ${esc(window.t('system-wiki.index.stat_js'))}</div>
+                    <div class="stat-chip"><strong>${s.total_functions}</strong> ${esc(window.t('system-wiki.index.stat_functions'))}</div>
+                    <div class="stat-chip"><strong>${s.total_tables}</strong> ${esc(window.t('system-wiki.index.stat_tables'))}</div>
+                    <div class="stat-chip"><strong>${s.total_folders}</strong> ${esc(window.t('system-wiki.index.stat_folders'))}</div>
                     <div class="search-box">
-                        <input type="text" id="searchInput" placeholder="Search files, functions..." onkeydown="if(event.key==='Enter') doSearch()">
-                        <button onclick="doSearch()">Search</button>
+                        <input type="text" id="searchInput" placeholder="${esc(window.t('system-wiki.index.search_placeholder'))}" onkeydown="if(event.key==='Enter') doSearch()">
+                        <button onclick="doSearch()">${esc(window.t('system-wiki.index.search_btn'))}</button>
                     </div>
-                    <div class="stat-chip scan-info">${scanInfo}</div>
+                    <div class="stat-chip scan-info">${esc(scanInfo)}</div>
                 `;
             } catch (e) { console.error(e); }
         }
@@ -355,7 +361,7 @@ $path_prefix = '../';
             }
 
             currentFolder = path;
-            document.getElementById('listTitle').textContent = path || 'Root Files';
+            document.getElementById('listTitle').textContent = path || window.t('system-wiki.index.root_files');
             loadFiles(path);
         }
 
@@ -371,12 +377,12 @@ $path_prefix = '../';
                 const tbody = document.getElementById('fileTableBody');
 
                 if (!data.success || !data.files.length) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="no-data"><h3>No files found</h3>Run the scanner to populate the wiki.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" class="no-data"><h3>' + esc(window.t('system-wiki.index.no_files_title')) + '</h3>' + esc(window.t('system-wiki.index.no_files_body')) + '</td></tr>';
                     document.getElementById('listCount').textContent = '';
                     return;
                 }
 
-                document.getElementById('listCount').textContent = data.files.length + ' files';
+                document.getElementById('listCount').textContent = window.t('system-wiki.index.files_count', { n: data.files.length });
 
                 tbody.innerHTML = data.files.map(f => `
                     <tr onclick="window.location.href='file.php?id=${f.id}'">

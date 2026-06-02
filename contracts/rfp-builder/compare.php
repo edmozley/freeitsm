@@ -11,16 +11,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix  = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Compare</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.compare.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/chart.min.js"></script>
     <style>
@@ -159,21 +164,21 @@ $path_prefix  = '../../';
 
     <div class="page-wrap">
         <div class="breadcrumb">
-            <a href="../">Contracts</a><span class="sep">›</span>
-            <a href="./">RFP Builder</a><span class="sep">›</span>
+            <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span class="sep">›</span>
+            <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span class="sep">›</span>
             <a id="bcRfp" href="#">-</a><span class="sep">›</span>
-            <span>Compare</span>
+            <span><?php echo htmlspecialchars(t('contracts.rfp.compare.compare')); ?></span>
         </div>
 
         <div class="page-header">
-            <h1>Compare suppliers</h1>
+            <h1><?php echo htmlspecialchars(t('contracts.rfp.compare.heading')); ?></h1>
             <div class="page-actions">
-                <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
-                <a id="suppliersLink" href="#" class="btn btn-secondary">Suppliers</a>
+                <a id="backLink" href="#" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.rfp.suppliers.overview')); ?></a>
+                <a id="suppliersLink" href="#" class="btn btn-secondary"><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></a>
             </div>
         </div>
 
-        <div id="loadingEl" class="loading">Loading…</div>
+        <div id="loadingEl" class="loading"><?php echo htmlspecialchars(t('common.loading')); ?></div>
         <div id="contentEl" style="display:none;"></div>
         <div id="errorEl" class="error-state" style="display:none;"></div>
     </div>
@@ -200,7 +205,7 @@ $path_prefix  = '../../';
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId) {
-                showError('No RFP id supplied. <a href="./">Back to list</a>.');
+                showError(window.t('contracts.rfp.view.no_id') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.');
                 return;
             }
             document.getElementById('backLink').href     = 'view.php?id=' + encodeURIComponent(rfpId);
@@ -214,8 +219,8 @@ $path_prefix  = '../../';
                     fetch(API_BASE + 'get_rfp.php?id=' + encodeURIComponent(rfpId)).then(r => r.json()),
                     fetch(API_BASE + 'get_compare_data.php?rfp_id=' + encodeURIComponent(rfpId)).then(r => r.json())
                 ]);
-                if (!rfpRes.success)  throw new Error(rfpRes.error  || 'Failed to load RFP');
-                if (!dataRes.success) throw new Error(dataRes.error || 'Failed to load compare data');
+                if (!rfpRes.success)  throw new Error(rfpRes.error  || window.t('contracts.rfp.suppliers.load_rfp_failed'));
+                if (!dataRes.success) throw new Error(dataRes.error || window.t('contracts.rfp.compare.load_failed'));
 
                 const bc = document.getElementById('bcRfp');
                 bc.textContent = rfpRes.rfp.name;
@@ -238,8 +243,8 @@ $path_prefix  = '../../';
             if (suppliers.length === 0) {
                 contentEl.innerHTML = `
                     <div class="empty-card">
-                        <p><strong>No suppliers added yet.</strong></p>
-                        <p>Add at least one supplier from the <a href="suppliers.php?id=${encodeURIComponent(rfpId)}">Suppliers page</a>, then score them to see comparisons here.</p>
+                        <p><strong>${escapeHtml(window.t('contracts.rfp.suppliers.empty_title'))}</strong></p>
+                        <p>${window.t('contracts.rfp.compare.empty_no_suppliers', { url: 'suppliers.php?id=' + encodeURIComponent(rfpId) })}</p>
                     </div>
                 `;
                 return;
@@ -249,8 +254,8 @@ $path_prefix  = '../../';
             if (!anyScored) {
                 contentEl.innerHTML = `
                     <div class="empty-card">
-                        <p><strong>No scores yet.</strong></p>
-                        <p>Score at least one supplier from the <a href="suppliers.php?id=${encodeURIComponent(rfpId)}">Suppliers page</a> to start comparing.</p>
+                        <p><strong>${escapeHtml(window.t('contracts.rfp.compare.no_scores_title'))}</strong></p>
+                        <p>${window.t('contracts.rfp.compare.empty_no_scores', { url: 'suppliers.php?id=' + encodeURIComponent(rfpId) })}</p>
                     </div>
                 `;
                 return;
@@ -289,7 +294,7 @@ $path_prefix  = '../../';
             // Only assign rank ribbons to scored suppliers, top 3.
             const rank = scored ? (idx + 1) : null;
             const rankClass = rank && rank <= 3 ? ('rank-' + rank) : '';
-            const rankLabel = scored ? (rank === 1 ? '1st' : rank === 2 ? '2nd' : rank === 3 ? '3rd' : '#' + rank) : 'Not scored';
+            const rankLabel = scored ? (rank === 1 ? window.t('contracts.rfp.compare.rank_1') : rank === 2 ? window.t('contracts.rfp.compare.rank_2') : rank === 3 ? window.t('contracts.rfp.compare.rank_3') : '#' + rank) : window.t('contracts.rfp.compare.not_scored');
             const styleAccent = colour ? ('style="border-top-color:' + colour.border + ';"') : '';
 
             return `
@@ -301,8 +306,8 @@ $path_prefix  = '../../';
                         <span class="out-of">${scored ? '/ 5' : ''}</span>
                     </div>
                     <div class="meta">
-                        <span>${s.scored_req_count} / ${s.total_req_count} reqs</span>
-                        <span>${s.analyst_count} analyst${s.analyst_count === 1 ? '' : 's'}</span>
+                        <span>${escapeHtml(window.t('contracts.rfp.compare.reqs_count', { scored: s.scored_req_count, total: s.total_req_count }))}</span>
+                        <span>${escapeHtml(s.analyst_count === 1 ? window.t('contracts.rfp.compare.analyst_count_one', { n: s.analyst_count }) : window.t('contracts.rfp.compare.analyst_count_other', { n: s.analyst_count }))}</span>
                     </div>
                 </div>
             `;
@@ -311,7 +316,7 @@ $path_prefix  = '../../';
         function renderRadarSection() {
             return `
                 <div class="section-card">
-                    <div class="section-card-header"><h2>Per-category radar</h2></div>
+                    <div class="section-card-header"><h2>${escapeHtml(window.t('contracts.rfp.compare.per_category_radar'))}</h2></div>
                     <div class="section-card-body">
                         <div class="radar-wrap"><canvas id="radarCanvas"></canvas></div>
                     </div>
@@ -323,9 +328,9 @@ $path_prefix  = '../../';
             if (scored.length < 2) {
                 return `
                     <div class="section-card">
-                        <div class="section-card-header"><h2>Category winners</h2></div>
+                        <div class="section-card-header"><h2>${escapeHtml(window.t('contracts.rfp.compare.category_winners'))}</h2></div>
                         <div class="section-card-body" style="color:#999;font-size:13px;text-align:center;padding:24px;">
-                            Score at least two suppliers to see category winners.
+                            ${escapeHtml(window.t('contracts.rfp.compare.need_two'))}
                         </div>
                     </div>
                 `;
@@ -334,7 +339,7 @@ $path_prefix  = '../../';
             const cats = pageData.categories.slice();
             // Append an "Uncategorised" pseudo-row if any supplier has data there.
             if (pageData.has_orphan_category) {
-                cats.push({ id: 0, name: 'Uncategorised' });
+                cats.push({ id: 0, name: window.t('contracts.rfp.compare.uncategorised') });
             }
 
             const headers = scored.map(s =>
@@ -378,7 +383,7 @@ $path_prefix  = '../../';
                 if (numeric.length === 0) {
                     winnerCol = '<td class="score-cell empty">—</td>';
                 } else if (winnerSet.size > 1) {
-                    winnerCol = '<td class="winner-col tied">Tied</td>';
+                    winnerCol = '<td class="winner-col tied">' + escapeHtml(window.t('contracts.rfp.compare.tied')) + '</td>';
                 } else {
                     const winnerIdx = [...winnerSet][0];
                     const winName = scored[winnerIdx].display_name;
@@ -398,14 +403,14 @@ $path_prefix  = '../../';
 
             return `
                 <div class="section-card">
-                    <div class="section-card-header"><h2>Category winners</h2></div>
+                    <div class="section-card-header"><h2>${escapeHtml(window.t('contracts.rfp.compare.category_winners'))}</h2></div>
                     <div class="section-card-body" style="padding:0;">
                         <table class="winners-table">
                             <thead>
                                 <tr>
-                                    <th>Category</th>
+                                    <th>${escapeHtml(window.t('contracts.rfp.compare.col_category'))}</th>
                                     ${headers}
-                                    <th>Winner</th>
+                                    <th>${escapeHtml(window.t('contracts.rfp.compare.col_winner'))}</th>
                                 </tr>
                             </thead>
                             <tbody>

@@ -4,16 +4,22 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'tables';
 $path_prefix = '../';
+
+$translationNamespaces = ['common', 'system-wiki'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Database Tables</title>
+    <title><?php echo htmlspecialchars(t('system-wiki.tables.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .wiki-tables {
@@ -89,25 +95,25 @@ $path_prefix = '../';
 
     <div class="wiki-tables">
         <div class="tables-content">
-            <div class="page-title">Database Tables</div>
-            <div class="page-subtitle" id="subtitle">Loading...</div>
+            <div class="page-title"><?php echo htmlspecialchars(t('system-wiki.tables.heading')); ?></div>
+            <div class="page-subtitle" id="subtitle"><?php echo htmlspecialchars(t('system-wiki.tables.loading')); ?></div>
 
             <div class="tables-card">
                 <table class="tables-table">
                     <thead>
                         <tr>
-                            <th>Table Name</th>
-                            <th>Files</th>
-                            <th>Total Refs</th>
-                            <th>SELECT</th>
-                            <th>INSERT</th>
-                            <th>UPDATE</th>
-                            <th>DELETE</th>
-                            <th>JOIN</th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.tables.col_name')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.tables.col_files')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.tables.col_total')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.tables.col_select')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.tables.col_insert')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.tables.col_update')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.tables.col_delete')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.tables.col_join')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="tableBody">
-                        <tr><td colspan="8" class="no-data">Loading...</td></tr>
+                        <tr><td colspan="8" class="no-data"><?php echo htmlspecialchars(t('system-wiki.tables.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -126,12 +132,12 @@ $path_prefix = '../';
                 const tbody = document.getElementById('tableBody');
 
                 if (!data.success || !data.tables.length) {
-                    tbody.innerHTML = '<tr><td colspan="8" class="no-data">No table references found. Run the scanner first.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" class="no-data">' + esc(window.t('system-wiki.tables.no_refs')) + '</td></tr>';
                     document.getElementById('subtitle').textContent = '';
                     return;
                 }
 
-                document.getElementById('subtitle').textContent = data.tables.length + ' database tables discovered across the codebase';
+                document.getElementById('subtitle').textContent = window.t('system-wiki.tables.discovered', { n: data.tables.length });
 
                 tbody.innerHTML = data.tables.map(t => `
                     <tr>

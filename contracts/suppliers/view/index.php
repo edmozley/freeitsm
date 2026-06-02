@@ -4,16 +4,21 @@
  */
 session_start();
 require_once '../../../config.php';
+require_once __DIR__ . '/../../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'suppliers';
 $path_prefix = '../../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - View Supplier</title>
+    <title><?php echo htmlspecialchars(t('contracts.suppliers.view_page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../../assets/css/inbox.css">
     <style>
         /* Sidebar layout - matches suppliers list */
@@ -194,16 +199,16 @@ $path_prefix = '../../../';
         <!-- Left Sidebar -->
         <div class="contracts-sidebar">
             <div class="sidebar-section">
-                <h3>Overview</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.overview')); ?></h3>
                 <div class="sidebar-total">
-                    <span>All suppliers</span>
+                    <span><?php echo htmlspecialchars(t('contracts.suppliers.all_suppliers')); ?></span>
                     <span class="stat-value" id="sideTotal">-</span>
                 </div>
                 <div id="overviewBreakdown"></div>
             </div>
 
             <div class="sidebar-section">
-                <a href="../" class="sidebar-add-btn" style="background:#fff;color:#333;border:1px solid #ddd;">← Back to list</a>
+                <a href="../" class="sidebar-add-btn" style="background:#fff;color:#333;border:1px solid #ddd;">← <?php echo htmlspecialchars(t('contracts.suppliers.back_to_list')); ?></a>
             </div>
         </div>
 
@@ -211,19 +216,19 @@ $path_prefix = '../../../';
         <div class="contracts-main">
             <div class="section-card" id="viewCard">
                 <div class="section-header">
-                    <h2 id="supplierTitle">Loading...</h2>
+                    <h2 id="supplierTitle"><?php echo htmlspecialchars(t('common.loading')); ?></h2>
                     <div class="header-actions">
-                        <a href="../" class="back-link" title="Back to suppliers">
+                        <a href="../" class="back-link" title="<?php echo htmlspecialchars(t('contracts.suppliers.back_to_suppliers')); ?>">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                            Back
+                            <?php echo htmlspecialchars(t('contracts.detail.back')); ?>
                         </a>
-                        <button class="action-btn" id="editBtn" onclick="openModal(currentSupplier)" title="Edit" style="display:none;">
+                        <button class="action-btn" id="editBtn" onclick="openModal(currentSupplier)" title="<?php echo htmlspecialchars(t('common.edit')); ?>" style="display:none;">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
                     </div>
                 </div>
                 <div class="view-body" id="viewBody">
-                    <div class="empty-state">Loading...</div>
+                    <div class="empty-state"><?php echo htmlspecialchars(t('common.loading')); ?></div>
                 </div>
             </div>
         </div>
@@ -232,79 +237,79 @@ $path_prefix = '../../../';
     <!-- Edit Modal (same as suppliers list) -->
     <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Edit supplier</div>
+            <div class="modal-header" id="modalTitle"><?php echo htmlspecialchars(t('contracts.suppliers.edit_supplier')); ?></div>
             <div class="modal-body">
             <form id="editForm">
                 <input type="hidden" id="itemId">
                 <div class="form-grid">
                     <div class="form-group full-width">
-                        <label for="legalName">Legal name</label>
+                        <label for="legalName"><?php echo htmlspecialchars(t('contracts.suppliers.legal_name')); ?></label>
                         <input type="text" id="legalName" required>
                     </div>
                     <div class="form-group full-width">
-                        <label for="tradingName">Trading name</label>
-                        <input type="text" id="tradingName" placeholder="If different from legal name">
+                        <label for="tradingName"><?php echo htmlspecialchars(t('contracts.suppliers.trading_name')); ?></label>
+                        <input type="text" id="tradingName" placeholder="<?php echo htmlspecialchars(t('contracts.suppliers.trading_name_ph')); ?>">
                     </div>
                     <div class="form-group">
-                        <label for="regNumber">Reg number</label>
+                        <label for="regNumber"><?php echo htmlspecialchars(t('contracts.suppliers.reg_number')); ?></label>
                         <input type="text" id="regNumber">
                     </div>
                     <div class="form-group">
-                        <label for="vatNumber">VAT/Tax number</label>
+                        <label for="vatNumber"><?php echo htmlspecialchars(t('contracts.suppliers.vat_number')); ?></label>
                         <input type="text" id="vatNumber">
                     </div>
                     <div class="form-group">
-                        <label for="supplierTypeId">Supplier type</label>
+                        <label for="supplierTypeId"><?php echo htmlspecialchars(t('contracts.suppliers.supplier_type')); ?></label>
                         <select id="supplierTypeId">
-                            <option value="">-- None --</option>
+                            <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.none')); ?> --</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="supplierStatusId">Status</label>
+                        <label for="supplierStatusId"><?php echo htmlspecialchars(t('contracts.detail.status')); ?></label>
                         <select id="supplierStatusId">
-                            <option value="">-- None --</option>
+                            <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.none')); ?> --</option>
                         </select>
                     </div>
 
-                    <div class="form-section">Address</div>
+                    <div class="form-section"><?php echo htmlspecialchars(t('contracts.suppliers.section_address')); ?></div>
                     <div class="form-group full-width">
-                        <label for="addressLine1">Address line 1</label>
+                        <label for="addressLine1"><?php echo htmlspecialchars(t('contracts.suppliers.address_line_1')); ?></label>
                         <input type="text" id="addressLine1">
                     </div>
                     <div class="form-group full-width">
-                        <label for="addressLine2">Address line 2</label>
+                        <label for="addressLine2"><?php echo htmlspecialchars(t('contracts.suppliers.address_line_2')); ?></label>
                         <input type="text" id="addressLine2">
                     </div>
                     <div class="form-group">
-                        <label for="city">City</label>
+                        <label for="city"><?php echo htmlspecialchars(t('contracts.suppliers.city')); ?></label>
                         <input type="text" id="city">
                     </div>
                     <div class="form-group">
-                        <label for="county">County</label>
+                        <label for="county"><?php echo htmlspecialchars(t('contracts.suppliers.county')); ?></label>
                         <input type="text" id="county">
                     </div>
                     <div class="form-group">
-                        <label for="postcode">Postcode</label>
+                        <label for="postcode"><?php echo htmlspecialchars(t('contracts.suppliers.postcode')); ?></label>
                         <input type="text" id="postcode">
                     </div>
                     <div class="form-group">
-                        <label for="country">Country</label>
+                        <label for="country"><?php echo htmlspecialchars(t('contracts.suppliers.country')); ?></label>
                         <input type="text" id="country">
                     </div>
 
-                    <div class="form-section">Questionnaire</div>
+                    <div class="form-section"><?php echo htmlspecialchars(t('contracts.suppliers.section_questionnaire')); ?></div>
                     <div class="form-group">
-                        <label for="questionnaireDateIssued">Date issued</label>
+                        <label for="questionnaireDateIssued"><?php echo htmlspecialchars(t('contracts.suppliers.date_issued')); ?></label>
                         <input type="date" id="questionnaireDateIssued">
                     </div>
                     <div class="form-group">
-                        <label for="questionnaireDateReceived">Date received</label>
+                        <label for="questionnaireDateReceived"><?php echo htmlspecialchars(t('contracts.suppliers.date_received')); ?></label>
                         <input type="date" id="questionnaireDateReceived">
                     </div>
 
-                    <div class="form-section">Other</div>
+                    <div class="form-section"><?php echo htmlspecialchars(t('contracts.suppliers.section_other')); ?></div>
                     <div class="form-group full-width">
-                        <label for="comments">Comments</label>
+                        <label for="comments"><?php echo htmlspecialchars(t('contracts.suppliers.comments')); ?></label>
                         <textarea id="comments"></textarea>
                     </div>
                     <div class="form-group full-width">
@@ -313,15 +318,15 @@ $path_prefix = '../../../';
                                 <input type="checkbox" id="itemActive" checked>
                                 <span class="toggle-slider"></span>
                             </span>
-                            Active
+                            <?php echo htmlspecialchars(t('contracts.status.active')); ?>
                         </label>
                     </div>
                 </div>
             </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                <button type="submit" form="editForm" class="btn btn-primary">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="closeModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="submit" form="editForm" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -336,8 +341,8 @@ $path_prefix = '../../../';
 
         document.addEventListener('DOMContentLoaded', function() {
             if (!supplierId) {
-                document.getElementById('supplierTitle').textContent = 'Supplier not specified';
-                document.getElementById('viewBody').innerHTML = '<div class="empty-state">No supplier id in URL. <a href="../">Back to suppliers</a>.</div>';
+                document.getElementById('supplierTitle').textContent = window.t('contracts.suppliers.not_specified');
+                document.getElementById('viewBody').innerHTML = '<div class="empty-state">' + window.t('contracts.suppliers.no_id_in_url') + ' <a href="../">' + escapeHtml(window.t('contracts.suppliers.back_to_suppliers')) + '</a>.</div>';
                 return;
             }
             loadSupplierTypes();
@@ -352,7 +357,7 @@ $path_prefix = '../../../';
                 if (data.success) {
                     supplierTypes = data.supplier_types;
                     const select = document.getElementById('supplierTypeId');
-                    select.innerHTML = '<option value="">-- None --</option>' +
+                    select.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.none')) + ' --</option>' +
                         supplierTypes.filter(t => t.is_active).map(t =>
                             `<option value="${t.id}">${escapeHtml(t.name)}</option>`
                         ).join('');
@@ -367,7 +372,7 @@ $path_prefix = '../../../';
                 if (data.success) {
                     supplierStatuses = data.supplier_statuses;
                     const select = document.getElementById('supplierStatusId');
-                    select.innerHTML = '<option value="">-- None --</option>' +
+                    select.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.none')) + ' --</option>' +
                         supplierStatuses.filter(s => s.is_active).map(s =>
                             `<option value="${s.id}">${escapeHtml(s.name)}</option>`
                         ).join('');
@@ -386,11 +391,11 @@ $path_prefix = '../../../';
                     renderView();
                 } else {
                     document.getElementById('viewBody').innerHTML =
-                        '<div class="empty-state" style="color:#d13438;">Error: ' + escapeHtml(data.error) + '</div>';
+                        '<div class="empty-state" style="color:#d13438;">' + escapeHtml(window.t('contracts.settings.error_prefix')) + ' ' + escapeHtml(data.error) + '</div>';
                 }
             } catch (e) {
                 document.getElementById('viewBody').innerHTML =
-                    '<div class="empty-state" style="color:#d13438;">Failed to load supplier</div>';
+                    '<div class="empty-state" style="color:#d13438;">' + escapeHtml(window.t('contracts.suppliers.view_load_failed')) + '</div>';
             }
         }
 
@@ -413,9 +418,15 @@ $path_prefix = '../../../';
 
             const container = document.getElementById('overviewBreakdown');
             if (typeOrder.length === 0) {
-                container.innerHTML = '<div style="font-size:13px;color:#999;padding:8px 12px;">No suppliers yet</div>';
+                container.innerHTML = '<div style="font-size:13px;color:#999;padding:8px 12px;">' + escapeHtml(window.t('contracts.suppliers.no_suppliers_yet')) + '</div>';
                 return;
             }
+
+            const labelFor = (key) => {
+                if (key === 'Uncategorised') return window.t('contracts.suppliers.uncategorised');
+                if (key === 'No status') return window.t('contracts.suppliers.no_status');
+                return key;
+            };
 
             container.innerHTML = typeOrder.map(typeName => {
                 const statuses = groups[typeName];
@@ -426,19 +437,19 @@ $path_prefix = '../../../';
                 });
                 const rows = statusOrder.map(statusName =>
                     `<div class="sidebar-stat">
-                        <span>${escapeHtml(statusName)}</span>
+                        <span>${escapeHtml(labelFor(statusName))}</span>
                         <span class="stat-value">${statuses[statusName]}</span>
                     </div>`
                 ).join('');
-                return `<h4>${escapeHtml(typeName)}</h4>${rows}`;
+                return `<h4>${escapeHtml(labelFor(typeName))}</h4>${rows}`;
             }).join('');
         }
 
         function renderView() {
             if (!currentSupplier) {
-                document.getElementById('supplierTitle').textContent = 'Supplier not found';
+                document.getElementById('supplierTitle').textContent = window.t('contracts.suppliers.not_found');
                 document.getElementById('viewBody').innerHTML =
-                    '<div class="empty-state">No supplier with id ' + supplierId + '. <a href="../">Back to suppliers</a>.</div>';
+                    '<div class="empty-state">' + window.t('contracts.suppliers.no_supplier_with_id', { id: supplierId }) + ' <a href="../">' + escapeHtml(window.t('contracts.suppliers.back_to_suppliers')) + '</a>.</div>';
                 document.getElementById('editBtn').style.display = 'none';
                 return;
             }
@@ -448,79 +459,79 @@ $path_prefix = '../../../';
             document.getElementById('editBtn').style.display = '';
 
             const statusBadge = s.is_active
-                ? '<span class="status-badge active">Active</span>'
-                : '<span class="status-badge inactive">Inactive</span>';
+                ? '<span class="status-badge active">' + escapeHtml(window.t('contracts.status.active')) + '</span>'
+                : '<span class="status-badge inactive">' + escapeHtml(window.t('contracts.status.inactive')) + '</span>';
 
             document.getElementById('viewBody').innerHTML = `
                 <div class="view-grid">
                     <div class="view-field full-width">
-                        <label>Legal name</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.legal_name'))}</label>
                         ${val(s.legal_name)}
                     </div>
                     <div class="view-field full-width">
-                        <label>Trading name</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.trading_name'))}</label>
                         ${val(s.trading_name)}
                     </div>
                     <div class="view-field">
-                        <label>Reg number</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.reg_number'))}</label>
                         ${val(s.reg_number)}
                     </div>
                     <div class="view-field">
-                        <label>VAT/Tax number</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.vat_number'))}</label>
                         ${val(s.vat_number)}
                     </div>
                     <div class="view-field">
-                        <label>Supplier type</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.supplier_type'))}</label>
                         ${val(s.supplier_type_name)}
                     </div>
                     <div class="view-field">
-                        <label>Status</label>
+                        <label>${escapeHtml(window.t('contracts.detail.status'))}</label>
                         ${val(s.supplier_status_name)}
                     </div>
 
-                    <div class="view-section">Address</div>
+                    <div class="view-section">${escapeHtml(window.t('contracts.suppliers.section_address'))}</div>
                     <div class="view-field full-width">
-                        <label>Address line 1</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.address_line_1'))}</label>
                         ${val(s.address_line_1)}
                     </div>
                     <div class="view-field full-width">
-                        <label>Address line 2</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.address_line_2'))}</label>
                         ${val(s.address_line_2)}
                     </div>
                     <div class="view-field">
-                        <label>City</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.city'))}</label>
                         ${val(s.city)}
                     </div>
                     <div class="view-field">
-                        <label>County</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.county'))}</label>
                         ${val(s.county)}
                     </div>
                     <div class="view-field">
-                        <label>Postcode</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.postcode'))}</label>
                         ${val(s.postcode)}
                     </div>
                     <div class="view-field">
-                        <label>Country</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.country'))}</label>
                         ${val(s.country)}
                     </div>
 
-                    <div class="view-section">Questionnaire</div>
+                    <div class="view-section">${escapeHtml(window.t('contracts.suppliers.section_questionnaire'))}</div>
                     <div class="view-field">
-                        <label>Date issued</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.date_issued'))}</label>
                         ${val(formatDate(s.questionnaire_date_issued))}
                     </div>
                     <div class="view-field">
-                        <label>Date received</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.date_received'))}</label>
                         ${val(formatDate(s.questionnaire_date_received))}
                     </div>
 
-                    <div class="view-section">Other</div>
+                    <div class="view-section">${escapeHtml(window.t('contracts.suppliers.section_other'))}</div>
                     <div class="view-field full-width">
-                        <label>Comments</label>
+                        <label>${escapeHtml(window.t('contracts.suppliers.comments'))}</label>
                         ${s.comments ? `<div class="view-value multiline">${escapeHtml(s.comments)}</div>` : `<div class="view-value empty">—</div>`}
                     </div>
                     <div class="view-field full-width">
-                        <label>Active</label>
+                        <label>${escapeHtml(window.t('contracts.detail.active'))}</label>
                         <div class="view-value">${statusBadge}</div>
                     </div>
                 </div>
@@ -544,7 +555,7 @@ $path_prefix = '../../../';
         // Edit modal
         function openModal(supplier) {
             if (!supplier) return;
-            document.getElementById('modalTitle').textContent = 'Edit supplier';
+            document.getElementById('modalTitle').textContent = window.t('contracts.suppliers.edit_supplier');
             document.getElementById('itemId').value = supplier.id;
             document.getElementById('legalName').value = supplier.legal_name || '';
             document.getElementById('tradingName').value = supplier.trading_name || '';
@@ -597,12 +608,12 @@ $path_prefix = '../../../';
                 const data = await response.json();
                 if (data.success) {
                     closeModal();
-                    showToast('Supplier saved', 'success');
+                    showToast(window.t('contracts.suppliers.toast_saved'), 'success');
                     loadSuppliers();
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('contracts.settings.error_prefix') + ' ' + data.error, 'error');
                 }
-            } catch (e) { showToast('Failed to save supplier', 'error'); }
+            } catch (e) { showToast(window.t('contracts.suppliers.toast_save_failed'), 'error'); }
         });
 
         let modalMouseDownTarget = null;

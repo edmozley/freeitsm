@@ -16,16 +16,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix  = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Scoring</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.scoring.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/chart.min.js"></script>
     <style>
@@ -292,29 +297,29 @@ $path_prefix  = '../../';
 
     <div class="page-wrap">
         <div class="breadcrumb">
-            <a href="../">Contracts</a><span class="sep">›</span>
-            <a href="./">RFP Builder</a><span class="sep">›</span>
+            <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span class="sep">›</span>
+            <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span class="sep">›</span>
             <a id="bcRfp" href="#">-</a><span class="sep">›</span>
-            <a id="bcSuppliers" href="#">Suppliers</a><span class="sep">›</span>
-            <span>Scoring</span>
+            <a id="bcSuppliers" href="#"><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></a><span class="sep">›</span>
+            <span><?php echo htmlspecialchars(t('contracts.rfp.scoring.title')); ?></span>
         </div>
 
         <div class="page-header">
-            <h1>Scoring</h1>
+            <h1><?php echo htmlspecialchars(t('contracts.rfp.scoring.title')); ?></h1>
             <div class="page-actions">
-                <a id="suppliersLink" href="#" class="btn btn-secondary">&larr; Suppliers</a>
+                <a id="suppliersLink" href="#" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></a>
             </div>
         </div>
 
-        <div id="loadingEl" class="loading">Loading…</div>
+        <div id="loadingEl" class="loading"><?php echo htmlspecialchars(t('common.loading')); ?></div>
         <div id="contentEl" class="scoring-layout" style="display:none;">
             <aside class="scoring-sidebar">
                 <div class="sidebar-section">
-                    <h3>Suppliers</h3>
+                    <h3><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></h3>
                     <div id="sbSuppliers"></div>
                 </div>
                 <div class="sidebar-section">
-                    <h3>Score by category</h3>
+                    <h3><?php echo htmlspecialchars(t('contracts.rfp.scoring.score_by_category')); ?></h3>
                     <div id="sbCategories"></div>
                 </div>
             </aside>
@@ -325,23 +330,23 @@ $path_prefix  = '../../';
 
     <div id="averagesBar" class="averages-bar" style="display:none;">
         <div class="ab-block">
-            <span class="ab-label">My overall</span>
+            <span class="ab-label"><?php echo htmlspecialchars(t('contracts.rfp.scoring.my_overall')); ?></span>
             <span class="ab-value" id="abMyOverall">—</span>
         </div>
         <div class="ab-block">
-            <span class="ab-label">Scored</span>
+            <span class="ab-label"><?php echo htmlspecialchars(t('contracts.rfp.scoring.scored')); ?></span>
             <span class="ab-value" id="abScoredCount">— / —</span>
         </div>
         <div class="ab-block" id="abTeamBlock" style="display:none;">
-            <span class="ab-label">Team avg (incl. me)</span>
+            <span class="ab-label"><?php echo htmlspecialchars(t('contracts.rfp.scoring.team_avg')); ?></span>
             <span class="ab-value" id="abTeamOverall">—</span>
         </div>
         <div class="ab-grow"></div>
         <div class="ab-block" style="text-align:right;">
-            <span class="ab-label">Autosaved</span>
+            <span class="ab-label"><?php echo htmlspecialchars(t('contracts.rfp.scoring.autosaved')); ?></span>
             <span class="ab-value" id="abLastSaved" style="font-size:13px;">—</span>
         </div>
-        <button class="ab-spider" onclick="openSpiderModal()" title="Show category radar">
+        <button class="ab-spider" onclick="openSpiderModal()" title="<?php echo htmlspecialchars(t('contracts.rfp.scoring.show_radar')); ?>">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                 <polygon points="12 3 21 9 19 19 5 19 3 9 12 3"/>
                 <polygon points="12 7 17.5 10.5 16.5 16 7.5 16 6.5 10.5 12 7"/>
@@ -351,7 +356,7 @@ $path_prefix  = '../../';
                 <line x1="3"  y1="9"  x2="19" y2="19"/>
                 <line x1="21" y1="9"  x2="5"  y2="19"/>
             </svg>
-            Spider
+            <?php echo htmlspecialchars(t('contracts.rfp.scoring.spider')); ?>
         </button>
     </div>
 
@@ -359,16 +364,16 @@ $path_prefix  = '../../';
     <div id="spiderModal" class="spider-backdrop" style="display:none;">
         <div class="spider-modal">
             <div class="spider-header">
-                <h3 id="spiderTitle">Score by category</h3>
+                <h3 id="spiderTitle"><?php echo htmlspecialchars(t('contracts.rfp.scoring.score_by_category')); ?></h3>
             </div>
             <div class="spider-body">
                 <canvas id="spiderCanvas"></canvas>
                 <div id="spiderEmpty" class="spider-empty" style="display:none;">
-                    No scores yet — score a few requirements and the chart will fill in.
+                    <?php echo htmlspecialchars(t('contracts.rfp.scoring.spider_empty')); ?>
                 </div>
             </div>
             <div class="spider-footer">
-                <button class="btn btn-secondary" onclick="closeSpiderModal()">Close</button>
+                <button class="btn btn-secondary" onclick="closeSpiderModal()"><?php echo htmlspecialchars(t('common.close')); ?></button>
             </div>
         </div>
     </div>
@@ -385,7 +390,7 @@ $path_prefix  = '../../';
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId || !supplierId) {
-                showError('Missing rfp or supplier id. <a href="./">Back to list</a>.');
+                showError(window.t('contracts.rfp.scoring.missing_ids') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.');
                 return;
             }
             document.getElementById('suppliersLink').href = 'suppliers.php?id=' + encodeURIComponent(rfpId);
@@ -400,9 +405,9 @@ $path_prefix  = '../../';
                     fetch(API_BASE + 'get_scores.php?rfp_id=' + encodeURIComponent(rfpId) + '&supplier_id=' + encodeURIComponent(supplierId)).then(r => r.json()),
                     fetch(API_BASE + 'get_invited_suppliers.php?rfp_id=' + encodeURIComponent(rfpId)).then(r => r.json())
                 ]);
-                if (!rfpRes.success)    throw new Error(rfpRes.error    || 'Failed to load RFP');
-                if (!scoresRes.success) throw new Error(scoresRes.error || 'Failed to load scores');
-                if (!invRes.success)    throw new Error(invRes.error    || 'Failed to load suppliers');
+                if (!rfpRes.success)    throw new Error(rfpRes.error    || window.t('contracts.rfp.suppliers.load_rfp_failed'));
+                if (!scoresRes.success) throw new Error(scoresRes.error || window.t('contracts.rfp.scoring.load_scores_failed'));
+                if (!invRes.success)    throw new Error(invRes.error    || window.t('contracts.rfp.suppliers.load_suppliers_failed'));
 
                 const bc = document.getElementById('bcRfp');
                 bc.textContent = rfpRes.rfp.name;
@@ -446,7 +451,7 @@ $path_prefix  = '../../';
             // scrolls the main pane to that category.
             const reqsByCat = groupReqsByCategory();
             const cats = pageData.categories.concat(
-                reqsByCat.has(0) ? [{ id: 0, name: 'Uncategorised' }] : []
+                reqsByCat.has(0) ? [{ id: 0, name: window.t('contracts.rfp.scoring.uncategorised') }] : []
             );
 
             const sb = document.getElementById('sbCategories');
@@ -482,18 +487,18 @@ $path_prefix  = '../../';
                     <div class="name">
                         <div class="display">${escapeHtml(sup.display_name)}</div>
                         ${sup.legal_name && sup.legal_name !== sup.display_name
-                            ? `<div class="legal">Legal: ${escapeHtml(sup.legal_name)}</div>`
+                            ? `<div class="legal">${escapeHtml(window.t('contracts.rfp.suppliers.legal_prefix'))} ${escapeHtml(sup.legal_name)}</div>`
                             : ''}
                     </div>
                     <div class="summary">
                         <div class="sm-block">
                             <strong>${agg.scorer_count}</strong>
-                            <div>analyst${agg.scorer_count === 1 ? '' : 's'} scoring</div>
+                            <div>${escapeHtml(agg.scorer_count === 1 ? window.t('contracts.rfp.scoring.analyst_scoring_one') : window.t('contracts.rfp.scoring.analyst_scoring_other'))}</div>
                         </div>
                         ${agg.avg_score !== null ? `
                             <div class="sm-block">
                                 <strong>${agg.avg_score.toFixed(2)}</strong>
-                                <div>team average</div>
+                                <div>${escapeHtml(window.t('contracts.rfp.scoring.team_average'))}</div>
                             </div>
                         ` : ''}
                     </div>
@@ -509,7 +514,7 @@ $path_prefix  = '../../';
             });
             const orphans = reqsByCat.get(0) || [];
             if (orphans.length) {
-                blocks.push(renderCategoryBlock({ id: 0, name: 'Uncategorised' }, orphans));
+                blocks.push(renderCategoryBlock({ id: 0, name: window.t('contracts.rfp.scoring.uncategorised') }, orphans));
             }
 
             main.innerHTML = banner + blocks.join('');
@@ -543,7 +548,7 @@ $path_prefix  = '../../';
             const others  = r.others;
 
             const othersTag = others
-                ? `<span class="others-tag">${others.scorer_count} other${others.scorer_count === 1 ? '' : 's'} avg ${others.avg_score.toFixed(2)}</span>`
+                ? `<span class="others-tag">${escapeHtml(others.scorer_count === 1 ? window.t('contracts.rfp.scoring.others_tag_one', { avg: others.avg_score.toFixed(2) }) : window.t('contracts.rfp.scoring.others_tag_other', { n: others.scorer_count, avg: others.avg_score.toFixed(2) }))}</span>`
                 : '';
 
             const scoreBoxes = [0,1,2,3,4,5].map(n => {
@@ -555,20 +560,20 @@ $path_prefix  = '../../';
                 <div class="req-row" data-req-id="${r.id}" data-cat-id="${r.category_id || 0}">
                     <div class="req-text">
                         <div class="pills">
-                            <span class="pill type-${escapeHtml(r.requirement_type)}">${escapeHtml(r.requirement_type.replace('_', ' '))}</span>
-                            <span class="pill prio-${escapeHtml(r.priority)}">${escapeHtml(r.priority)}</span>
+                            <span class="pill type-${escapeHtml(r.requirement_type)}">${escapeHtml(reqTypeLabel(r.requirement_type))}</span>
+                            <span class="pill prio-${escapeHtml(r.priority)}">${escapeHtml(priorityLabel(r.priority))}</span>
                         </div>
                         ${escapeHtml(r.requirement_text)}
                         ${othersTag}
                     </div>
                     <div class="score-row">
-                        <span class="score-label">Score</span>
+                        <span class="score-label">${escapeHtml(window.t('contracts.rfp.scoring.score'))}</span>
                         <div class="score-boxes" id="boxes-${r.id}">${scoreBoxes}</div>
                         <span class="save-status" id="ss-${r.id}"></span>
                     </div>
                     <div class="notes-block">
-                        <label>Notes</label>
-                        <textarea rows="3" oninput="onNotesChange(${r.id}, this)" placeholder="Why this score, evidence, caveats…">${escapeHtml(myNotes)}</textarea>
+                        <label>${escapeHtml(window.t('contracts.rfp.scoring.notes'))}</label>
+                        <textarea rows="3" oninput="onNotesChange(${r.id}, this)" placeholder="${escapeHtml(window.t('contracts.rfp.scoring.notes_ph'))}">${escapeHtml(myNotes)}</textarea>
                     </div>
                 </div>
             `;
@@ -602,7 +607,7 @@ $path_prefix  = '../../';
             const key = reqId + '-notes';
             const statusEl = document.getElementById('ss-' + reqId);
             if (statusEl) {
-                statusEl.textContent = 'saving…';
+                statusEl.textContent = window.t('contracts.rfp.suppliers.saving');
                 statusEl.className = 'save-status saving';
             }
             clearTimeout(noteSaveTimers[key]);
@@ -614,7 +619,7 @@ $path_prefix  = '../../';
         async function saveScore(reqId, score, notes) {
             const statusEl = document.getElementById('ss-' + reqId);
             if (statusEl) {
-                statusEl.textContent = 'saving…';
+                statusEl.textContent = window.t('contracts.rfp.suppliers.saving');
                 statusEl.className = 'save-status saving';
             }
             try {
@@ -630,12 +635,13 @@ $path_prefix  = '../../';
                     })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Save failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.suppliers.save_failed_short'));
                 if (statusEl) {
-                    statusEl.textContent = 'saved';
+                    const savedLabel = window.t('contracts.rfp.suppliers.saved');
+                    statusEl.textContent = savedLabel;
                     statusEl.className = 'save-status saved';
                     setTimeout(() => {
-                        if (statusEl.textContent === 'saved') statusEl.textContent = '';
+                        if (statusEl.textContent === savedLabel) statusEl.textContent = '';
                     }, 1500);
                 }
                 // Update local data
@@ -650,7 +656,7 @@ $path_prefix  = '../../';
                 document.getElementById('abLastSaved').textContent = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
             } catch (err) {
                 if (statusEl) {
-                    statusEl.textContent = 'error';
+                    statusEl.textContent = window.t('contracts.rfp.scoring.error');
                     statusEl.className = 'save-status error';
                     statusEl.title = err.message;
                 }
@@ -713,7 +719,7 @@ $path_prefix  = '../../';
         function openSpiderModal() {
             document.getElementById('spiderModal').style.display = 'flex';
             document.getElementById('spiderTitle').textContent =
-                'Score by category — ' + (pageData.supplier.display_name || '');
+                window.t('contracts.rfp.scoring.spider_title', { name: pageData.supplier.display_name || '' });
             // Defer so the modal has its size before Chart.js measures
             setTimeout(renderSpider, 30);
         }
@@ -765,7 +771,7 @@ $path_prefix  = '../../';
             if (spiderChart) { spiderChart.destroy(); spiderChart = null; }
 
             const datasets = [{
-                label: 'My scores',
+                label: window.t('contracts.rfp.scoring.my_scores'),
                 data: myData,
                 backgroundColor: 'rgba(245, 158, 11, 0.25)',
                 borderColor: '#f59e0b',
@@ -775,7 +781,7 @@ $path_prefix  = '../../';
             }];
             if (anyOthers) {
                 datasets.push({
-                    label: 'Other analysts (avg)',
+                    label: window.t('contracts.rfp.scoring.other_analysts'),
                     data: othersData,
                     backgroundColor: 'rgba(139, 92, 246, 0.15)',
                     borderColor: '#8b5cf6',
@@ -823,6 +829,17 @@ $path_prefix  = '../../';
             return String(str)
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function reqTypeLabel(t) {
+            const key = 'contracts.rfp.req_type.' + t;
+            const label = window.t(key);
+            return label === key ? t.replace('_', ' ') : label;
+        }
+        function priorityLabel(p) {
+            const key = 'contracts.rfp.req_priority.' + p;
+            const label = window.t(key);
+            return label === key ? p : label;
         }
     </script>
 </body>

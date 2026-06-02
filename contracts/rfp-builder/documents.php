@@ -5,16 +5,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - RFP Documents</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.documents.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
@@ -169,67 +174,66 @@ $path_prefix = '../../';
 
     <div class="page-wrap">
         <div class="breadcrumb">
-            <a href="../">Contracts</a><span>›</span>
-            <a href="./">RFP Builder</a><span>›</span>
-            <a href="view.php" id="bcRfp">RFP</a><span>›</span>
-            <span>Documents</span>
+            <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span>›</span>
+            <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span>›</span>
+            <a href="view.php" id="bcRfp"><?php echo htmlspecialchars(t('contracts.rfp.documents.rfp')); ?></a><span>›</span>
+            <span><?php echo htmlspecialchars(t('contracts.rfp.documents.documents')); ?></span>
         </div>
 
         <div class="page-header">
-            <h1>Source documents — <span id="rfpName" style="color:#f59e0b;">Loading...</span></h1>
+            <h1><?php echo htmlspecialchars(t('contracts.rfp.documents.heading')); ?> — <span id="rfpName" style="color:#f59e0b;"><?php echo htmlspecialchars(t('common.loading')); ?></span></h1>
             <div class="page-actions">
-                <a href="view.php" id="backLink" class="btn btn-secondary">&larr; RFP overview</a>
+                <a href="view.php" id="backLink" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.rfp.documents.rfp_overview')); ?></a>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">Upload a new document</div>
+            <div class="card-header"><?php echo htmlspecialchars(t('contracts.rfp.documents.upload_new')); ?></div>
             <div class="card-body">
                 <div id="noDeptsAlert" class="alert-info" style="display:none;">
-                    <strong>No active departments yet.</strong> Add at least one department in
-                    <a href="../settings/" target="_blank">Contracts settings → RFP Departments</a>
-                    so you can tag uploaded documents with their source.
+                    <strong><?php echo htmlspecialchars(t('contracts.rfp.documents.no_depts_title')); ?></strong> <?php echo htmlspecialchars(t('contracts.rfp.documents.no_depts_body_1')); ?>
+                    <a href="../settings/" target="_blank"><?php echo htmlspecialchars(t('contracts.rfp.documents.no_depts_link')); ?></a>
+                    <?php echo htmlspecialchars(t('contracts.rfp.documents.no_depts_body_2')); ?>
                 </div>
                 <form id="uploadForm" class="upload-form" autocomplete="off">
                     <div class="field">
-                        <label for="fileInput">.docx file</label>
+                        <label for="fileInput"><?php echo htmlspecialchars(t('contracts.rfp.documents.docx_file')); ?></label>
                         <input type="file" id="fileInput" accept=".docx" required>
                     </div>
                     <div class="field">
-                        <label for="deptSelect">Department</label>
+                        <label for="deptSelect"><?php echo htmlspecialchars(t('contracts.rfp.documents.department')); ?></label>
                         <select id="deptSelect">
-                            <option value="">— Unassigned —</option>
+                            <option value="">— <?php echo htmlspecialchars(t('contracts.rfp.documents.unassigned')); ?> —</option>
                         </select>
                     </div>
                     <div class="field">
                         <label>&nbsp;</label>
-                        <button type="submit" id="uploadBtn" class="btn btn-primary">Upload</button>
+                        <button type="submit" id="uploadBtn" class="btn btn-primary"><?php echo htmlspecialchars(t('contracts.rfp.documents.upload')); ?></button>
                     </div>
                 </form>
                 <div id="uploadStatus" class="upload-status"></div>
                 <div class="upload-help">
-                    Max 20 MB. Only .docx files are supported. Text is extracted automatically on upload —
-                    you can view the extracted plain text from each row below.
+                    <?php echo htmlspecialchars(t('contracts.rfp.documents.upload_help')); ?>
                 </div>
             </div>
         </div>
 
         <div class="card">
-            <div class="card-header">Uploaded documents</div>
+            <div class="card-header"><?php echo htmlspecialchars(t('contracts.rfp.documents.uploaded_documents')); ?></div>
             <table>
                 <thead>
                     <tr>
-                        <th>Filename</th>
-                        <th>Department</th>
-                        <th>Status</th>
-                        <th>Size</th>
-                        <th>Reqs</th>
-                        <th>Uploaded</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('contracts.rfp.documents.col_filename')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.rfp.documents.department')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.detail.status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.rfp.documents.col_size')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.rfp.list.col_reqs')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.rfp.documents.col_uploaded')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.list.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="docsList">
-                    <tr><td colspan="7" class="empty-state">Loading...</td></tr>
+                    <tr><td colspan="7" class="empty-state"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -240,15 +244,15 @@ $path_prefix = '../../';
         <div class="modal-card">
             <div class="modal-header">
                 <div>
-                    <h3 id="modalTitle">Extracted text</h3>
+                    <h3 id="modalTitle"><?php echo htmlspecialchars(t('contracts.rfp.documents.extracted_text')); ?></h3>
                     <div class="modal-meta" id="modalMeta">-</div>
                 </div>
             </div>
             <div class="modal-body">
-                <pre id="modalText">Loading...</pre>
+                <pre id="modalText"><?php echo htmlspecialchars(t('common.loading')); ?></pre>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeTextModal()">Close</button>
+                <button class="btn btn-secondary" onclick="closeTextModal()"><?php echo htmlspecialchars(t('common.close')); ?></button>
             </div>
         </div>
     </div>
@@ -259,9 +263,9 @@ $path_prefix = '../../';
 
         document.addEventListener('DOMContentLoaded', async () => {
             if (!rfpId) {
-                document.getElementById('rfpName').textContent = 'No RFP selected';
+                document.getElementById('rfpName').textContent = window.t('contracts.rfp.documents.no_rfp_selected');
                 document.getElementById('docsList').innerHTML =
-                    '<tr><td colspan="6" class="empty-state">No RFP id supplied. <a href="./">Back to list</a>.</td></tr>';
+                    '<tr><td colspan="6" class="empty-state">' + window.t('contracts.rfp.view.no_id') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.</td></tr>';
                 return;
             }
             // Wire up the back link with the RFP id
@@ -278,9 +282,9 @@ $path_prefix = '../../';
                 if (!data.success) throw new Error(data.error);
                 document.getElementById('rfpName').textContent = data.rfp.name;
                 document.getElementById('bcRfp').textContent = data.rfp.name;
-                document.title = 'Service Desk - Documents — ' + data.rfp.name;
+                document.title = window.t('contracts.rfp.documents.title_with_name', { name: data.rfp.name });
             } catch (err) {
-                document.getElementById('rfpName').textContent = '(could not load RFP)';
+                document.getElementById('rfpName').textContent = window.t('contracts.rfp.documents.could_not_load');
             }
         }
 
@@ -292,7 +296,7 @@ $path_prefix = '../../';
                 const active = data.rfp_departments.filter(d => d.is_active);
                 const sel = document.getElementById('deptSelect');
                 // Keep the unassigned default option, append active depts
-                sel.innerHTML = '<option value="">— Unassigned —</option>' +
+                sel.innerHTML = '<option value="">— ' + escapeHtml(window.t('contracts.rfp.documents.unassigned')) + ' —</option>' +
                     active.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
                 document.getElementById('noDeptsAlert').style.display = active.length === 0 ? 'block' : 'none';
             } catch (err) {
@@ -315,37 +319,37 @@ $path_prefix = '../../';
         function renderDocs(docs) {
             const tbody = document.getElementById('docsList');
             if (docs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No documents yet. Upload a .docx above to get started.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">' + escapeHtml(window.t('contracts.rfp.documents.empty')) + '</td></tr>';
                 return;
             }
             tbody.innerHTML = docs.map(d => {
                 const deptBadge = d.department_name
                     ? `<span class="dept-badge" style="background:${escapeHtml(d.department_colour || '#6c757d')};">${escapeHtml(d.department_name)}</span>`
-                    : `<span class="dept-badge empty">Unassigned</span>`;
-                const sizeText = d.has_text ? formatNumber(d.char_count) + ' chars' : '—';
+                    : `<span class="dept-badge empty">${escapeHtml(window.t('contracts.rfp.documents.unassigned'))}</span>`;
+                const sizeText = d.has_text ? window.t('contracts.rfp.documents.chars', { n: formatNumber(d.char_count) }) : '—';
                 const reqsCell = d.extracted_count > 0
                     ? `<span style="display:inline-block; min-width:24px; padding:2px 8px; background:#d1fae5; color:#065f46; border-radius:10px; text-align:center; font-size:12px; font-weight:600;">${d.extracted_count}</span>`
                     : `<span style="color:#bbb;">—</span>`;
-                const extractTitle = d.extracted_count > 0 ? 'Re-extract requirements with AI' : 'Extract requirements with AI';
+                const extractTitle = d.extracted_count > 0 ? window.t('contracts.rfp.documents.reextract_title') : window.t('contracts.rfp.documents.extract_title');
                 return `
                     <tr>
                         <td><span class="filename">${escapeHtml(d.original_filename)}</span></td>
                         <td>${deptBadge}</td>
-                        <td><span class="doc-status ${d.status}">${escapeHtml(d.status)}</span></td>
+                        <td><span class="doc-status ${d.status}">${escapeHtml(docStatusLabel(d.status))}</span></td>
                         <td>${sizeText}</td>
                         <td>${reqsCell}</td>
                         <td>${formatDateTime(d.uploaded_datetime)}</td>
                         <td>
-                            <button class="action-btn" title="View extracted text" onclick="viewText(${d.id})" ${d.has_text ? '' : 'disabled'}>
+                            <button class="action-btn" title="${escapeHtml(window.t('contracts.rfp.documents.view_text'))}" onclick="viewText(${d.id})" ${d.has_text ? '' : 'disabled'}>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             </button>
-                            <button class="action-btn" title="${extractTitle}" onclick="extractRequirements(${d.id}, this)" ${d.has_text ? '' : 'disabled'}>
+                            <button class="action-btn" title="${escapeHtml(extractTitle)}" data-reextract="${d.extracted_count > 0 ? '1' : '0'}" onclick="extractRequirements(${d.id}, this)" ${d.has_text ? '' : 'disabled'}>
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"></path><path d="M12 18v3"></path><path d="M5.6 5.6l2.1 2.1"></path><path d="M16.3 16.3l2.1 2.1"></path><path d="M3 12h3"></path><path d="M18 12h3"></path><path d="M5.6 18.4l2.1-2.1"></path><path d="M16.3 7.7l2.1-2.1"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             </button>
-                            <button class="action-btn" title="Re-run text extraction" onclick="reExtract(${d.id}, this)">
+                            <button class="action-btn" title="${escapeHtml(window.t('contracts.rfp.documents.rerun_extraction'))}" onclick="reExtract(${d.id}, this)">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10"></path><path d="M20.49 15a9 9 0 0 1-14.85 3.36L1 14"></path></svg>
                             </button>
-                            <button class="action-btn danger" title="Delete" onclick="deleteDoc(${d.id}, ${JSON.stringify(d.original_filename)})">
+                            <button class="action-btn danger" title="${escapeHtml(window.t('common.delete'))}" onclick="deleteDoc(${d.id}, ${JSON.stringify(d.original_filename)})">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path></svg>
                             </button>
                         </td>
@@ -355,19 +359,19 @@ $path_prefix = '../../';
         }
 
         async function extractRequirements(id, btn) {
-            const wasExtracted = btn.title.startsWith('Re-extract');
+            const wasExtracted = btn.dataset.reextract === '1';
             if (wasExtracted) {
                 const ok = await showConfirm({
-                    title: 'Re-extract requirements',
-                    message: 'Re-running will discard the current extracted requirements for this document and replace them. Continue?',
-                    okLabel: 'Continue',
+                    title: window.t('contracts.rfp.documents.reextract_confirm_title'),
+                    message: window.t('contracts.rfp.documents.reextract_confirm_msg'),
+                    okLabel: window.t('contracts.rfp.documents.continue'),
                     okClass: 'primary'
                 });
                 if (!ok) return;
             }
 
             btn.disabled = true;
-            setStatus('Extracting requirements with AI... this can take 10-30 seconds per document.', 'busy');
+            setStatus(window.t('contracts.rfp.documents.extracting'), 'busy');
             try {
                 const res = await fetch(API_BASE + 'extract_requirements.php', {
                     method: 'POST',
@@ -377,15 +381,15 @@ $path_prefix = '../../';
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error);
                 const cacheNote = (data.cache_read || data.cache_write)
-                    ? ` · cache: ${data.cache_read || 0} read / ${data.cache_write || 0} written`
+                    ? ' · ' + window.t('contracts.rfp.documents.cache_note', { read: data.cache_read || 0, written: data.cache_write || 0 })
                     : '';
                 setStatus(
-                    `Extracted ${data.count} requirements in ${(data.duration_ms / 1000).toFixed(1)}s — ${data.tokens_in} in / ${data.tokens_out} out tokens${cacheNote}.`,
+                    window.t('contracts.rfp.documents.extract_result', { count: data.count, secs: (data.duration_ms / 1000).toFixed(1), in: data.tokens_in, out: data.tokens_out }) + cacheNote + '.',
                     'success'
                 );
                 await loadDocuments();
             } catch (err) {
-                setStatus('Extraction failed: ' + err.message, 'error');
+                setStatus(window.t('contracts.rfp.documents.extract_failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -400,7 +404,7 @@ $path_prefix = '../../';
 
             const f = fileInput.files[0];
             if (!f) {
-                setStatus('Pick a .docx file first.', 'error');
+                setStatus(window.t('contracts.rfp.documents.pick_file'), 'error');
                 return;
             }
 
@@ -409,29 +413,29 @@ $path_prefix = '../../';
             fd.append('department_id', deptSel.value);
             fd.append('file', f);
 
-            btn.disabled = true; btn.textContent = 'Uploading...';
-            setStatus('Uploading and extracting text...', 'busy');
+            btn.disabled = true; btn.textContent = window.t('contracts.rfp.documents.uploading');
+            setStatus(window.t('contracts.rfp.documents.uploading_extracting'), 'busy');
 
             try {
                 const res = await fetch(API_BASE + 'upload_document.php', { method: 'POST', body: fd });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Upload failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.documents.upload_failed_short'));
 
                 if (data.status === 'extracted') {
-                    setStatus(`Uploaded — extracted ${data.word_count} words.`, 'success');
+                    setStatus(window.t('contracts.rfp.documents.uploaded_words', { n: data.word_count }), 'success');
                 } else if (data.status === 'error') {
-                    setStatus(`Uploaded, but text extraction failed: ${data.extraction_error}. You can re-extract from the row.`, 'error');
+                    setStatus(window.t('contracts.rfp.documents.uploaded_extract_failed', { error: data.extraction_error }), 'error');
                 } else {
-                    setStatus('Uploaded.', 'success');
+                    setStatus(window.t('contracts.rfp.documents.uploaded'), 'success');
                 }
 
                 fileInput.value = '';
                 deptSel.value = '';
                 await loadDocuments();
             } catch (err) {
-                setStatus('Upload failed: ' + err.message, 'error');
+                setStatus(window.t('contracts.rfp.documents.upload_failed') + ' ' + err.message, 'error');
             } finally {
-                btn.disabled = false; btn.textContent = 'Upload';
+                btn.disabled = false; btn.textContent = window.t('contracts.rfp.documents.upload');
             }
         });
 
@@ -443,9 +447,9 @@ $path_prefix = '../../';
 
         async function viewText(id) {
             const overlay = document.getElementById('textModal');
-            document.getElementById('modalTitle').textContent = 'Extracted text';
-            document.getElementById('modalMeta').textContent = 'Loading...';
-            document.getElementById('modalText').textContent = 'Loading...';
+            document.getElementById('modalTitle').textContent = window.t('contracts.rfp.documents.extracted_text');
+            document.getElementById('modalMeta').textContent = window.t('common.loading');
+            document.getElementById('modalText').textContent = window.t('common.loading');
             overlay.classList.add('active');
             try {
                 const res = await fetch(API_BASE + 'get_document_text.php?id=' + id);
@@ -454,10 +458,10 @@ $path_prefix = '../../';
                 const d = data.document;
                 document.getElementById('modalTitle').textContent = d.original_filename;
                 document.getElementById('modalMeta').textContent =
-                    `${formatNumber(d.word_count)} words · ${formatNumber(d.char_count)} chars · status: ${d.status}`;
-                document.getElementById('modalText').textContent = d.raw_text || '(no text extracted)';
+                    window.t('contracts.rfp.documents.modal_meta', { words: formatNumber(d.word_count), chars: formatNumber(d.char_count), status: docStatusLabel(d.status) });
+                document.getElementById('modalText').textContent = d.raw_text || window.t('contracts.rfp.documents.no_text_extracted');
             } catch (err) {
-                document.getElementById('modalText').textContent = 'Failed to load: ' + err.message;
+                document.getElementById('modalText').textContent = window.t('contracts.rfp.documents.failed_to_load') + ' ' + err.message;
             }
         }
 
@@ -477,14 +481,14 @@ $path_prefix = '../../';
                 if (!data.success) throw new Error(data.error);
                 await loadDocuments();
             } catch (err) {
-                showToast('Re-extract failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.documents.reextract_failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
         }
 
         async function deleteDoc(id, name) {
-            if (!(await showConfirm({ title: 'Delete', message: `Delete "${name}"?\n\nAny extracted requirements from this document will be removed too.`, okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.rfp.documents.delete_confirm', { name: name }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const res = await fetch(API_BASE + 'delete_document.php', {
                     method: 'POST',
@@ -495,7 +499,7 @@ $path_prefix = '../../';
                 if (!data.success) throw new Error(data.error);
                 await loadDocuments();
             } catch (err) {
-                showToast('Delete failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.delete_failed') + ' ' + err.message, 'error');
             }
         }
 
@@ -506,6 +510,11 @@ $path_prefix = '../../';
             return d.toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
         }
         function formatNumber(n) { return Number(n).toLocaleString('en-GB'); }
+        function docStatusLabel(s) {
+            const key = 'contracts.rfp.documents.status_' + s;
+            const label = window.t(key);
+            return label === key ? s : label;
+        }
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
             return String(str)

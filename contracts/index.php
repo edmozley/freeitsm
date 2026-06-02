@@ -4,16 +4,21 @@
  */
 session_start();
 require_once '../config.php';
+require_once __DIR__ . '/../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'dashboard';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Contracts</title>
+    <title><?php echo htmlspecialchars(t('contracts.title_full')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         /* Sidebar layout */
@@ -174,58 +179,58 @@ $path_prefix = '../';
             <div class="sidebar-section">
                 <button class="sidebar-search-btn" onclick="openSearchModal()">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    Search...
+                    <?php echo htmlspecialchars(t('contracts.list.search_placeholder_short')); ?>
                 </button>
             </div>
 
             <div class="sidebar-section">
-                <h3>Overview</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.overview')); ?></h3>
                 <div class="sidebar-stat">
-                    <span>Contracts</span>
+                    <span><?php echo htmlspecialchars(t('contracts.nav.contracts')); ?></span>
                     <span class="stat-value" id="sideContracts">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Active</span>
+                    <span><?php echo htmlspecialchars(t('contracts.status.active')); ?></span>
                     <span class="stat-value" id="sideActive">-</span>
                 </div>
                 <div class="sidebar-stat warning">
-                    <span>Expiring (90d)</span>
+                    <span><?php echo htmlspecialchars(t('contracts.list.expiring_90d')); ?></span>
                     <span class="stat-value" id="sideExpiring">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Suppliers</span>
+                    <span><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></span>
                     <span class="stat-value" id="sideSuppliers">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Contacts</span>
+                    <span><?php echo htmlspecialchars(t('contracts.nav.contacts')); ?></span>
                     <span class="stat-value" id="sideContacts">-</span>
                 </div>
             </div>
 
             <div class="sidebar-section">
-                <h3>Quick links</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.quick_links')); ?></h3>
                 <div class="sidebar-links">
                     <a href="suppliers/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                        Suppliers
+                        <?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?>
                     </a>
                     <a href="contacts/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        Contacts
+                        <?php echo htmlspecialchars(t('contracts.nav.contacts')); ?>
                     </a>
                     <a href="rfp-builder/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 13h6"></path><path d="M9 17h6"></path></svg>
-                        RFP Builder
+                        <?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?>
                     </a>
                     <a href="settings/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                        Settings
+                        <?php echo htmlspecialchars(t('contracts.nav.settings')); ?>
                     </a>
                 </div>
             </div>
 
             <div class="sidebar-section">
-                <a href="edit.php" class="sidebar-add-btn">+ New contract</a>
+                <a href="edit.php" class="sidebar-add-btn">+ <?php echo htmlspecialchars(t('contracts.list.new_contract')); ?></a>
             </div>
         </div>
 
@@ -233,22 +238,22 @@ $path_prefix = '../';
         <div class="contracts-main">
             <div class="section-card">
                 <div class="section-header">
-                    <h2>Contracts</h2>
+                    <h2><?php echo htmlspecialchars(t('contracts.nav.contracts')); ?></h2>
                 </div>
                 <table>
                     <thead>
                         <tr>
-                            <th>Contract #</th>
-                            <th>Title</th>
-                            <th>Supplier</th>
-                            <th>Owner</th>
-                            <th>End date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th><?php echo htmlspecialchars(t('contracts.list.col_number')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.list.col_title')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.list.col_supplier')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.list.col_owner')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.list.col_end_date')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.list.col_status')); ?></th>
+                            <th><?php echo htmlspecialchars(t('contracts.list.col_actions')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="contractsList">
-                        <tr><td colspan="7" class="empty-state">Loading...</td></tr>
+                        <tr><td colspan="7" class="empty-state"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -258,12 +263,12 @@ $path_prefix = '../';
     <!-- Search Modal -->
     <div class="search-modal" id="searchModal">
         <div class="search-modal-header">
-            <span>Search contracts</span>
+            <span><?php echo htmlspecialchars(t('contracts.list.search_title')); ?></span>
             <button class="search-modal-close" onclick="closeSearchModal()">&times;</button>
         </div>
         <div class="search-modal-body">
             <div class="search-field">
-                <input type="text" id="searchInput" placeholder="Search contracts, suppliers, contacts..." oninput="debounceSearch()">
+                <input type="text" id="searchInput" placeholder="<?php echo htmlspecialchars(t('contracts.list.search_placeholder')); ?>" oninput="debounceSearch()">
             </div>
             <div id="searchResults" style="margin-top: 16px;"></div>
         </div>
@@ -302,18 +307,18 @@ $path_prefix = '../';
                     renderContracts(data.contracts);
                 } else {
                     document.getElementById('contractsList').innerHTML =
-                        '<tr><td colspan="7" class="empty-state" style="color:#d13438;">Error: ' + escapeHtml(data.error) + '</td></tr>';
+                        '<tr><td colspan="7" class="empty-state" style="color:#d13438;">' + escapeHtml(window.t('contracts.list.error_prefix')) + ' ' + escapeHtml(data.error) + '</td></tr>';
                 }
             } catch (error) {
                 document.getElementById('contractsList').innerHTML =
-                    '<tr><td colspan="7" class="empty-state" style="color:#d13438;">Failed to load contracts</td></tr>';
+                    '<tr><td colspan="7" class="empty-state" style="color:#d13438;">' + escapeHtml(window.t('contracts.list.load_failed')) + '</td></tr>';
             }
         }
 
         function renderContracts(contracts) {
             const tbody = document.getElementById('contractsList');
             if (contracts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">No contracts yet. Click "+ New contract" to create one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" class="empty-state">' + escapeHtml(window.t('contracts.list.empty')) + '</td></tr>';
                 return;
             }
             tbody.innerHTML = contracts.map(c => {
@@ -327,10 +332,10 @@ $path_prefix = '../';
                         <td>${formatDate(c.contract_end)}</td>
                         <td><span class="status-badge ${status.class}">${status.label}</span></td>
                         <td>
-                            <a href="view.php?id=${c.id}" class="action-btn" title="View">
+                            <a href="view.php?id=${c.id}" class="action-btn" title="${escapeHtml(window.t('contracts.actions.view'))}">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             </a>
-                            <a href="edit.php?id=${c.id}" class="action-btn" title="Edit">
+                            <a href="edit.php?id=${c.id}" class="action-btn" title="${escapeHtml(window.t('contracts.actions.edit'))}">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             </a>
                         </td>
@@ -340,18 +345,18 @@ $path_prefix = '../';
         }
 
         function getContractStatus(c) {
-            if (!c.is_active) return { class: 'expired', label: 'Inactive' };
+            if (!c.is_active) return { class: 'expired', label: window.t('contracts.status.inactive') };
             if (c.contract_end) {
                 const end = new Date(c.contract_end);
                 const today = new Date(); today.setHours(0,0,0,0);
                 const daysLeft = Math.ceil((end - today) / (1000*60*60*24));
-                if (daysLeft < 0) return { class: 'expired', label: 'Expired' };
+                if (daysLeft < 0) return { class: 'expired', label: window.t('contracts.status.expired') };
                 if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
-                if (daysLeft <= 90) return { class: 'expiring', label: 'Expiring' };
-                return { class: 'active', label: 'Active' };
+                if (daysLeft <= 90) return { class: 'expiring', label: window.t('contracts.status.expiring') };
+                return { class: 'active', label: window.t('contracts.status.active') };
             }
             if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
-            return { class: 'active', label: 'Active' };
+            return { class: 'active', label: window.t('contracts.status.active') };
         }
 
         // Search
@@ -376,11 +381,11 @@ $path_prefix = '../';
             const resultsDiv = document.getElementById('searchResults');
 
             if (query.length < 2) {
-                resultsDiv.innerHTML = '<div class="search-results-empty">Type at least 2 characters to search</div>';
+                resultsDiv.innerHTML = '<div class="search-results-empty">' + escapeHtml(window.t('contracts.list.search_min_chars')) + '</div>';
                 return;
             }
 
-            resultsDiv.innerHTML = '<div class="search-results-empty">Searching...</div>';
+            resultsDiv.innerHTML = '<div class="search-results-empty">' + escapeHtml(window.t('contracts.list.searching')) + '</div>';
 
             try {
                 const [contractsRes, suppliersRes, contactsRes] = await Promise.all([
@@ -400,7 +405,7 @@ $path_prefix = '../';
                         results.push({
                             type: 'contract',
                             title: c.contract_number + ' — ' + c.title,
-                            meta: [c.supplier_name, c.owner_name].filter(Boolean).join(' | ') || 'No supplier',
+                            meta: [c.supplier_name, c.owner_name].filter(Boolean).join(' | ') || window.t('contracts.list.no_supplier'),
                             url: 'view.php?id=' + c.id
                         });
                     });
@@ -416,7 +421,7 @@ $path_prefix = '../';
                         results.push({
                             type: 'supplier',
                             title: s.legal_name + (s.trading_name ? ' (t/a ' + s.trading_name + ')' : ''),
-                            meta: [s.supplier_type_name, s.city].filter(Boolean).join(' | ') || 'Supplier',
+                            meta: [s.supplier_type_name, s.city].filter(Boolean).join(' | ') || window.t('contracts.search.type_supplier'),
                             url: 'suppliers/'
                         });
                     });
@@ -432,24 +437,28 @@ $path_prefix = '../';
                         results.push({
                             type: 'contact',
                             title: c.first_name + ' ' + c.surname + (c.job_title ? ' — ' + c.job_title : ''),
-                            meta: [c.supplier_name, c.email].filter(Boolean).join(' | ') || 'Contact',
+                            meta: [c.supplier_name, c.email].filter(Boolean).join(' | ') || window.t('contracts.search.type_contact'),
                             url: 'contacts/'
                         });
                     });
                 }
 
                 if (results.length === 0) {
-                    resultsDiv.innerHTML = '<div class="search-results-empty">No results found</div>';
+                    resultsDiv.innerHTML = '<div class="search-results-empty">' + escapeHtml(window.t('contracts.list.no_results')) + '</div>';
                     return;
                 }
 
+                const countLabel = results.length === 1
+                    ? window.t('contracts.list.result_count_one', { n: results.length })
+                    : window.t('contracts.list.result_count_other', { n: results.length });
+
                 resultsDiv.innerHTML =
-                    '<div class="search-results-count">' + results.length + ' result' + (results.length !== 1 ? 's' : '') + '</div>' +
+                    '<div class="search-results-count">' + escapeHtml(countLabel) + '</div>' +
                     '<div class="search-results">' +
                     results.map(r => `
                         <div class="search-result-item" onclick="window.location.href='${r.url}'">
                             <div>
-                                <span class="search-result-type ${r.type}">${r.type}</span>
+                                <span class="search-result-type ${r.type}">${escapeHtml(window.t('contracts.search.type_' + r.type))}</span>
                                 <span class="search-result-title">${escapeHtml(r.title)}</span>
                             </div>
                             <div class="search-result-meta">${escapeHtml(r.meta)}</div>
@@ -458,7 +467,7 @@ $path_prefix = '../';
                     '</div>';
 
             } catch (error) {
-                resultsDiv.innerHTML = '<div class="search-results-empty" style="color:#d13438;">Search failed</div>';
+                resultsDiv.innerHTML = '<div class="search-results-empty" style="color:#d13438;">' + escapeHtml(window.t('contracts.list.search_failed')) + '</div>';
             }
         }
 

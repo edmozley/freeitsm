@@ -7,16 +7,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix  = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Extracted requirements</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.extracted.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
@@ -193,58 +198,58 @@ $path_prefix  = '../../';
 
     <div class="page-wrap">
         <div class="breadcrumb">
-            <a href="../">Contracts</a><span class="sep">›</span>
-            <a href="./">RFP Builder</a><span class="sep">›</span>
-            <a href="view.php" id="bcRfp">RFP</a><span class="sep">›</span>
-            <span>Extracted requirements</span>
+            <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span class="sep">›</span>
+            <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span class="sep">›</span>
+            <a href="view.php" id="bcRfp"><?php echo htmlspecialchars(t('contracts.rfp.documents.rfp')); ?></a><span class="sep">›</span>
+            <span><?php echo htmlspecialchars(t('contracts.rfp.extracted.heading')); ?></span>
         </div>
 
         <div class="page-header">
-            <h1>Extracted requirements — <span id="rfpName" style="color:#f59e0b;">Loading...</span></h1>
+            <h1><?php echo htmlspecialchars(t('contracts.rfp.extracted.heading')); ?> — <span id="rfpName" style="color:#f59e0b;"><?php echo htmlspecialchars(t('common.loading')); ?></span></h1>
             <div class="page-actions">
-                <a href="view.php" id="backLink" class="btn btn-secondary">&larr; RFP overview</a>
-                <a href="documents.php" id="docsLink" class="btn btn-secondary">Documents</a>
+                <a href="view.php" id="backLink" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.rfp.documents.rfp_overview')); ?></a>
+                <a href="documents.php" id="docsLink" class="btn btn-secondary"><?php echo htmlspecialchars(t('contracts.rfp.documents.documents')); ?></a>
             </div>
         </div>
 
         <div class="stats-strip">
             <div class="stat-card total">
                 <div class="stat-value" id="statTotal">0</div>
-                <div class="stat-label">Total</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.extracted.total')); ?></div>
             </div>
             <div class="stat-card requirement">
                 <div class="stat-value" id="statRequirement">0</div>
-                <div class="stat-label">Requirements</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.extracted.requirements')); ?></div>
             </div>
             <div class="stat-card pain_point">
                 <div class="stat-value" id="statPainPoint">0</div>
-                <div class="stat-label">Pain points</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.extracted.pain_points')); ?></div>
             </div>
             <div class="stat-card challenge">
                 <div class="stat-value" id="statChallenge">0</div>
-                <div class="stat-label">Challenges</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.extracted.challenges')); ?></div>
             </div>
         </div>
 
         <div class="card">
             <div class="filter-bar">
                 <div class="field">
-                    <label for="filterDept">Department</label>
+                    <label for="filterDept"><?php echo htmlspecialchars(t('contracts.rfp.documents.department')); ?></label>
                     <select id="filterDept" onchange="onFilterChange()">
-                        <option value="">All departments</option>
+                        <option value=""><?php echo htmlspecialchars(t('contracts.rfp.extracted.all_departments')); ?></option>
                     </select>
                 </div>
                 <div class="field">
-                    <label for="filterType">Type</label>
+                    <label for="filterType"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type')); ?></label>
                     <select id="filterType" onchange="onFilterChange()">
-                        <option value="">All types</option>
-                        <option value="requirement">Requirements</option>
-                        <option value="pain_point">Pain points</option>
-                        <option value="challenge">Challenges</option>
+                        <option value=""><?php echo htmlspecialchars(t('contracts.rfp.extracted.all_types')); ?></option>
+                        <option value="requirement"><?php echo htmlspecialchars(t('contracts.rfp.extracted.requirements')); ?></option>
+                        <option value="pain_point"><?php echo htmlspecialchars(t('contracts.rfp.extracted.pain_points')); ?></option>
+                        <option value="challenge"><?php echo htmlspecialchars(t('contracts.rfp.extracted.challenges')); ?></option>
                     </select>
                 </div>
                 <div class="filter-spacer"></div>
-                <a class="clear-link" id="clearLink" onclick="clearFilters()">Clear filters</a>
+                <a class="clear-link" id="clearLink" onclick="clearFilters()"><?php echo htmlspecialchars(t('contracts.rfp.extracted.clear_filters')); ?></a>
             </div>
         </div>
 
@@ -252,15 +257,15 @@ $path_prefix  = '../../';
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 140px;">Department</th>
-                        <th style="width: 120px;">Type</th>
-                        <th>Requirement</th>
-                        <th style="width: 80px;">Conf.</th>
-                        <th style="width: 100px;">Actions</th>
+                        <th style="width: 140px;"><?php echo htmlspecialchars(t('contracts.rfp.documents.department')); ?></th>
+                        <th style="width: 120px;"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.rfp.extracted.requirement')); ?></th>
+                        <th style="width: 80px;"><?php echo htmlspecialchars(t('contracts.rfp.extracted.conf')); ?></th>
+                        <th style="width: 100px;"><?php echo htmlspecialchars(t('contracts.list.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="reqList">
-                    <tr><td colspan="5" class="empty-state">Loading...</td></tr>
+                    <tr><td colspan="5" class="empty-state"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -270,7 +275,7 @@ $path_prefix  = '../../';
     <div class="modal-overlay" id="editModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3>Edit requirement</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.rfp.extracted.edit_requirement')); ?></h3>
             </div>
             <div class="modal-body">
                 <input type="hidden" id="editId">
@@ -278,25 +283,25 @@ $path_prefix  = '../../';
                     <div class="meta-row" id="editMeta"></div>
                 </div>
                 <div class="form-row">
-                    <label for="editText">Requirement text</label>
+                    <label for="editText"><?php echo htmlspecialchars(t('contracts.rfp.extracted.requirement_text')); ?></label>
                     <textarea id="editText" rows="4"></textarea>
                 </div>
                 <div class="form-row">
-                    <label for="editType">Type</label>
+                    <label for="editType"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type')); ?></label>
                     <select id="editType">
-                        <option value="requirement">Requirement</option>
-                        <option value="pain_point">Pain point</option>
-                        <option value="challenge">Challenge</option>
+                        <option value="requirement"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type_requirement')); ?></option>
+                        <option value="pain_point"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type_pain_point')); ?></option>
+                        <option value="challenge"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type_challenge')); ?></option>
                     </select>
                 </div>
                 <div class="form-row">
-                    <label for="editQuote">Source quote (verbatim from the source document)</label>
-                    <textarea id="editQuote" rows="3" placeholder="Optional"></textarea>
+                    <label for="editQuote"><?php echo htmlspecialchars(t('contracts.rfp.extracted.source_quote_label')); ?></label>
+                    <textarea id="editQuote" rows="3" placeholder="<?php echo htmlspecialchars(t('common.optional')); ?>"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                <button class="btn btn-primary" id="editSaveBtn" onclick="saveEdit()">Save</button>
+                <button class="btn btn-secondary" onclick="closeEditModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="editSaveBtn" onclick="saveEdit()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -308,9 +313,9 @@ $path_prefix  = '../../';
 
         document.addEventListener('DOMContentLoaded', async () => {
             if (!rfpId) {
-                document.getElementById('rfpName').textContent = 'No RFP selected';
+                document.getElementById('rfpName').textContent = window.t('contracts.rfp.documents.no_rfp_selected');
                 document.getElementById('reqList').innerHTML =
-                    '<tr><td colspan="5" class="empty-state">No RFP id supplied. <a href="./">Back to list</a>.</td></tr>';
+                    '<tr><td colspan="5" class="empty-state">' + window.t('contracts.rfp.view.no_id') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.</td></tr>';
                 return;
             }
             document.getElementById('backLink').href = 'view.php?id=' + rfpId;
@@ -327,9 +332,9 @@ $path_prefix  = '../../';
                 if (!data.success) throw new Error(data.error);
                 document.getElementById('rfpName').textContent = data.rfp.name;
                 document.getElementById('bcRfp').textContent = data.rfp.name;
-                document.title = 'Extracted requirements — ' + data.rfp.name;
+                document.title = window.t('contracts.rfp.extracted.title_with_name', { name: data.rfp.name });
             } catch (err) {
-                document.getElementById('rfpName').textContent = '(could not load)';
+                document.getElementById('rfpName').textContent = window.t('contracts.rfp.extracted.could_not_load');
             }
         }
 
@@ -364,7 +369,7 @@ $path_prefix  = '../../';
         function renderDepartmentFilter(depts) {
             const sel = document.getElementById('filterDept');
             const current = sel.value;
-            sel.innerHTML = '<option value="">All departments</option>'
+            sel.innerHTML = '<option value="">' + escapeHtml(window.t('contracts.rfp.extracted.all_departments')) + '</option>'
                 + depts.map(d => `<option value="${d.id}">${escapeHtml(d.name)}</option>`).join('');
             sel.value = current;
         }
@@ -374,18 +379,18 @@ $path_prefix  = '../../';
             if (rows.length === 0) {
                 const hasFilters = document.getElementById('filterDept').value || document.getElementById('filterType').value;
                 tbody.innerHTML = `<tr><td colspan="5" class="empty-state">${hasFilters
-                    ? 'No requirements match the current filters.'
-                    : 'No requirements extracted yet. Run AI extraction from the <a href="documents.php?id=' + rfpId + '" style="color:#f59e0b;">Documents</a> page.'}</td></tr>`;
+                    ? escapeHtml(window.t('contracts.rfp.extracted.no_match'))
+                    : window.t('contracts.rfp.extracted.empty', { url: 'documents.php?id=' + rfpId })}</td></tr>`;
                 return;
             }
             tbody.innerHTML = rows.map(r => {
                 const dept = r.department_name
                     ? `<span class="dept-badge" style="background:${escapeHtml(r.department_colour || '#6c757d')};">${escapeHtml(r.department_name)}</span>`
-                    : `<span class="dept-badge empty">Unassigned</span>`;
+                    : `<span class="dept-badge empty">${escapeHtml(window.t('contracts.rfp.documents.unassigned'))}</span>`;
                 const conf = r.ai_confidence !== null
                     ? `<span class="conf-pill ${confClass(r.ai_confidence)}">${Math.round(r.ai_confidence * 100)}%</span>`
                     : `<span class="conf-pill conf-none">—</span>`;
-                const typeLabel = (r.requirement_type || '').replace('_', ' ');
+                const typeLabel = reqTypeLabel(r.requirement_type);
                 return `
                     <tr>
                         <td>${dept}</td>
@@ -393,14 +398,14 @@ $path_prefix  = '../../';
                         <td>
                             <div class="req-text">${escapeHtml(r.requirement_text)}</div>
                             ${r.source_quote ? `<div class="req-quote">${escapeHtml(r.source_quote)}</div>` : ''}
-                            <div class="req-doc">${escapeHtml(r.original_filename || '(no source)')}</div>
+                            <div class="req-doc">${escapeHtml(r.original_filename || window.t('contracts.rfp.extracted.no_source'))}</div>
                         </td>
                         <td>${conf}</td>
                         <td>
-                            <button class="action-btn" title="Edit" onclick="openEdit(${r.id})">
+                            <button class="action-btn" title="${escapeHtml(window.t('common.edit'))}" onclick="openEdit(${r.id})">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                             </button>
-                            <button class="action-btn danger" title="Delete" onclick="deleteReq(${r.id})">
+                            <button class="action-btn danger" title="${escapeHtml(window.t('common.delete'))}" onclick="deleteReq(${r.id})">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path></svg>
                             </button>
                         </td>
@@ -433,9 +438,9 @@ $path_prefix  = '../../';
             const meta = document.getElementById('editMeta');
             const conf = r.ai_confidence !== null ? Math.round(r.ai_confidence * 100) + '%' : '—';
             meta.innerHTML = `
-                <div class="meta-item"><span>Department:</span><strong>${escapeHtml(r.department_name || 'Unassigned')}</strong></div>
-                <div class="meta-item"><span>Document:</span><strong>${escapeHtml(r.original_filename || '(none)')}</strong></div>
-                <div class="meta-item"><span>AI confidence:</span><strong>${conf}</strong></div>
+                <div class="meta-item"><span>${escapeHtml(window.t('contracts.rfp.extracted.meta_department'))}</span><strong>${escapeHtml(r.department_name || window.t('contracts.rfp.documents.unassigned'))}</strong></div>
+                <div class="meta-item"><span>${escapeHtml(window.t('contracts.rfp.extracted.meta_document'))}</span><strong>${escapeHtml(r.original_filename || window.t('contracts.rfp.extracted.none_paren'))}</strong></div>
+                <div class="meta-item"><span>${escapeHtml(window.t('contracts.rfp.extracted.meta_confidence'))}</span><strong>${conf}</strong></div>
             `;
             document.getElementById('editModal').classList.add('active');
             setTimeout(() => document.getElementById('editText').focus(), 50);
@@ -452,9 +457,9 @@ $path_prefix  = '../../';
                 requirement_type: document.getElementById('editType').value,
                 source_quote: document.getElementById('editQuote').value,
             };
-            if (!payload.requirement_text.trim()) { showToast('Requirement text cannot be empty.', 'error'); return; }
+            if (!payload.requirement_text.trim()) { showToast(window.t('contracts.rfp.extracted.text_empty'), 'error'); return; }
             const btn = document.getElementById('editSaveBtn');
-            btn.disabled = true; btn.textContent = 'Saving...';
+            btn.disabled = true; btn.textContent = window.t('common.saving');
             try {
                 const res = await fetch(API_BASE + 'save_extracted.php', {
                     method: 'POST',
@@ -466,9 +471,9 @@ $path_prefix  = '../../';
                 closeEditModal();
                 await loadRequirements();
             } catch (err) {
-                showToast('Save failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.save_failed') + ' ' + err.message, 'error');
             } finally {
-                btn.disabled = false; btn.textContent = 'Save';
+                btn.disabled = false; btn.textContent = window.t('common.save');
             }
         }
 
@@ -476,7 +481,7 @@ $path_prefix  = '../../';
             const r = allReqs.find(x => x.id === id);
             const text = r ? r.requirement_text : '';
             const preview = text.length > 80 ? text.substring(0, 77) + '...' : text;
-            if (!(await showConfirm({ title: 'Delete', message: 'Delete this requirement?\n\n"' + preview + '"', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.rfp.extracted.delete_confirm', { preview: preview }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const res = await fetch(API_BASE + 'delete_extracted.php', {
                     method: 'POST',
@@ -487,8 +492,14 @@ $path_prefix  = '../../';
                 if (!data.success) throw new Error(data.error);
                 await loadRequirements();
             } catch (err) {
-                showToast('Delete failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.delete_failed') + ' ' + err.message, 'error');
             }
+        }
+
+        function reqTypeLabel(t) {
+            const key = 'contracts.rfp.req_type.' + t;
+            const label = window.t(key);
+            return label === key ? (t || '').replace('_', ' ') : label;
         }
 
         function escapeHtml(str) {

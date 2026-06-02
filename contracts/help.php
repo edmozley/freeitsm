@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once __DIR__ . '/../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -12,13 +14,16 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'help';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Contracts Guide</title>
+    <title><?php echo htmlspecialchars(t('contracts.help.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .ct-help-container {
@@ -461,34 +466,34 @@ $path_prefix = '../';
     <div class="ct-help-container">
         <!-- Left pane navigation -->
         <div class="ct-help-sidebar">
-            <h3>Guide</h3>
+            <h3><?php echo htmlspecialchars(t('contracts.help.guide')); ?></h3>
             <a href="#overview" class="ct-help-nav-link active" data-section="overview">
                 <span class="ct-help-nav-num">1</span>
-                Overview
+                <?php echo htmlspecialchars(t('contracts.help.nav_overview')); ?>
             </a>
             <a href="#managing-contracts" class="ct-help-nav-link" data-section="managing-contracts">
                 <span class="ct-help-nav-num">2</span>
-                Managing contracts
+                <?php echo htmlspecialchars(t('contracts.help.nav_managing')); ?>
             </a>
             <a href="#contract-terms" class="ct-help-nav-link" data-section="contract-terms">
                 <span class="ct-help-nav-num">3</span>
-                Contract terms
+                <?php echo htmlspecialchars(t('contracts.help.nav_terms')); ?>
             </a>
             <a href="#suppliers" class="ct-help-nav-link" data-section="suppliers">
                 <span class="ct-help-nav-num">4</span>
-                Suppliers
+                <?php echo htmlspecialchars(t('contracts.help.nav_suppliers')); ?>
             </a>
             <a href="#contacts" class="ct-help-nav-link" data-section="contacts">
                 <span class="ct-help-nav-num">5</span>
-                Contacts
+                <?php echo htmlspecialchars(t('contracts.help.nav_contacts')); ?>
             </a>
             <a href="#settings" class="ct-help-nav-link" data-section="settings">
                 <span class="ct-help-nav-num">6</span>
-                Settings
+                <?php echo htmlspecialchars(t('contracts.help.nav_settings')); ?>
             </a>
             <a href="#tips" class="ct-help-nav-link" data-section="tips">
                 <span class="ct-help-nav-num">7</span>
-                Quick tips
+                <?php echo htmlspecialchars(t('contracts.help.nav_tips')); ?>
             </a>
         </div>
 
@@ -496,8 +501,8 @@ $path_prefix = '../';
         <div class="ct-help-main" id="helpMain">
             <!-- Hero banner -->
             <div class="ct-help-hero">
-                <h2>Contracts management guide</h2>
-                <p>Track contracts, manage suppliers, and stay on top of renewals &mdash; all in one place.</p>
+                <h2><?php echo htmlspecialchars(t('contracts.help.hero_title')); ?></h2>
+                <p><?php echo t('contracts.help.hero_subtitle'); ?></p>
             </div>
 
             <div class="ct-help-content">
@@ -507,8 +512,8 @@ $path_prefix = '../';
                     <div class="ct-help-section-header">
                         <span class="ct-help-section-num">1</span>
                         <div>
-                            <h3>Overview</h3>
-                            <p>The Contracts module gives you complete visibility over your supplier agreements, from initial creation through to renewal or expiry. Track financial commitments, store contract terms in rich text tabs, manage supplier relationships, and never miss a renewal date again.</p>
+                            <h3><?php echo htmlspecialchars(t('contracts.help.nav_overview')); ?></h3>
+                            <p><?php echo t('contracts.help.overview_intro'); ?></p>
                         </div>
                     </div>
                     <div class="ct-help-features-grid">
@@ -516,29 +521,29 @@ $path_prefix = '../';
                             <div class="ct-help-feature-icon amber">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                             </div>
-                            <h4>Contracts</h4>
-                            <p>Create, view, and edit contracts with full lifecycle tracking. Record start dates, end dates, values, payment schedules, and link to suppliers. Upload supporting documents directly to each contract.</p>
+                            <h4><?php echo htmlspecialchars(t('contracts.nav.contracts')); ?></h4>
+                            <p><?php echo t('contracts.help.feature_contracts'); ?></p>
                         </div>
                         <div class="ct-help-feature-card">
                             <div class="ct-help-feature-icon blue">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
                             </div>
-                            <h4>Suppliers</h4>
-                            <p>Maintain a directory of every supplier your organisation works with. Record legal and trading names, company registration numbers, addresses, and categorise them by type and status.</p>
+                            <h4><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></h4>
+                            <p><?php echo t('contracts.help.feature_suppliers'); ?></p>
                         </div>
                         <div class="ct-help-feature-card">
                             <div class="ct-help-feature-icon green">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                             </div>
-                            <h4>Contacts</h4>
-                            <p>Keep track of the people behind your suppliers. Store names, job titles, email addresses, and phone numbers. Link each contact to their supplier for quick reference.</p>
+                            <h4><?php echo htmlspecialchars(t('contracts.nav.contacts')); ?></h4>
+                            <p><?php echo t('contracts.help.feature_contacts'); ?></p>
                         </div>
                         <div class="ct-help-feature-card">
                             <div class="ct-help-feature-icon purple">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             </div>
-                            <h4>Settings</h4>
-                            <p>Configure the dropdown options that drive the module &mdash; supplier types, supplier statuses, contract statuses, payment schedules, and custom contract term tabs.</p>
+                            <h4><?php echo htmlspecialchars(t('contracts.nav.settings')); ?></h4>
+                            <p><?php echo t('contracts.help.feature_settings'); ?></p>
                         </div>
                     </div>
                 </div>
@@ -547,265 +552,233 @@ $path_prefix = '../';
                 <div class="ct-help-section" id="managing-contracts">
                     <div class="ct-help-section-header">
                         <span class="ct-help-section-num">2</span>
-                        <h3>Managing contracts</h3>
+                        <h3><?php echo htmlspecialchars(t('contracts.help.nav_managing')); ?></h3>
                     </div>
-                    <p>Contracts are the core of this module. Each contract record captures everything you need to know about a supplier agreement &mdash; who it's with, how long it runs, what it costs, and what documents support it.</p>
+                    <p><?php echo t('contracts.help.managing_intro'); ?></p>
                     <div class="ct-help-steps">
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">1</div>
-                            <div>
-                                <strong>Create a contract</strong> &mdash; from the contracts dashboard, click the Add button. Fill in the contract name, select a supplier, and set the status.
-                            </div>
+                            <div><?php echo t('contracts.help.managing_step1'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">2</div>
-                            <div>
-                                <strong>Set the dates</strong> &mdash; enter the start date, end date, and review date. The review date acts as your early warning so you have time to renegotiate or renew before the contract expires.
-                            </div>
+                            <div><?php echo t('contracts.help.managing_step2'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">3</div>
-                            <div>
-                                <strong>Record the financials</strong> &mdash; enter the total contract value and select the payment schedule (monthly, quarterly, annually, or a custom schedule configured in settings).
-                            </div>
+                            <div><?php echo t('contracts.help.managing_step3'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">4</div>
-                            <div>
-                                <strong>Add contract terms</strong> &mdash; use the rich text tabs to write out SLAs, KPIs, special conditions, or any other terms. Each tab uses the TinyMCE editor for full formatting.
-                            </div>
+                            <div><?php echo t('contracts.help.managing_step4'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">5</div>
-                            <div>
-                                <strong>Upload documents</strong> &mdash; attach signed copies, schedules, amendments, or any other supporting files directly to the contract record.
-                            </div>
+                            <div><?php echo t('contracts.help.managing_step5'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">6</div>
-                            <div>
-                                <strong>Save</strong> and the contract appears on your dashboard. You can return to edit it at any time or update the status as it moves through its lifecycle.
-                            </div>
+                            <div><?php echo t('contracts.help.managing_step6'); ?></div>
                         </div>
                     </div>
-                    <p>The contracts dashboard gives you an at-a-glance view of all active, expiring, and expired contracts. The sidebar shows summary statistics &mdash; total contracts, those expiring soon, and quick links to create new records or jump to suppliers.</p>
-                    <p class="ct-help-tip">Use the review date field to set reminders well before a contract's end date. This gives your procurement or legal team enough lead time to negotiate renewals on favourable terms.</p>
+                    <p><?php echo t('contracts.help.managing_dashboard'); ?></p>
+                    <p class="ct-help-tip"><?php echo t('contracts.help.managing_tip'); ?></p>
                 </div>
 
                 <!-- Section 3: Contract Terms (highlighted) -->
                 <div class="ct-help-section ct-help-section-highlight" id="contract-terms">
                     <div class="ct-help-section-header">
                         <span class="ct-help-section-num highlight">3</span>
-                        <h3>Contract terms &mdash; rich text tabs</h3>
+                        <h3><?php echo t('contracts.help.terms_title'); ?></h3>
                     </div>
-                    <p class="ct-help-intro">Every contract can have multiple term tabs, each containing rich formatted text. This is where you capture the substance of the agreement &mdash; service levels, performance indicators, obligations, and special conditions.</p>
+                    <p class="ct-help-intro"><?php echo t('contracts.help.terms_intro'); ?></p>
 
                     <div class="ct-help-tabs-demo">
-                        <div class="ct-help-tab-demo active">SLA</div>
-                        <div class="ct-help-tab-demo">KPIs</div>
-                        <div class="ct-help-tab-demo">Special terms</div>
-                        <div class="ct-help-tab-demo">Obligations</div>
+                        <div class="ct-help-tab-demo active"><?php echo htmlspecialchars(t('contracts.help.terms_demo_sla')); ?></div>
+                        <div class="ct-help-tab-demo"><?php echo htmlspecialchars(t('contracts.help.terms_demo_kpis')); ?></div>
+                        <div class="ct-help-tab-demo"><?php echo htmlspecialchars(t('contracts.help.terms_demo_special')); ?></div>
+                        <div class="ct-help-tab-demo"><?php echo htmlspecialchars(t('contracts.help.terms_demo_obligations')); ?></div>
                     </div>
                     <div class="ct-help-tab-body">
-                        Each tab opens a TinyMCE rich text editor where you can write formatted content with headings, bullet lists, tables, links, and more. The content is saved per tab, so you can organise complex contracts into logical sections.
+                        <?php echo t('contracts.help.terms_demo_body'); ?>
                     </div>
 
                     <div class="ct-help-steps">
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">1</div>
-                            <div>
-                                <strong>Default tabs</strong> &mdash; new contracts start with the term tabs defined in Settings. Common examples include SLA, KPIs, and Special Terms.
-                            </div>
+                            <div><?php echo t('contracts.help.terms_step1'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">2</div>
-                            <div>
-                                <strong>Write your terms</strong> &mdash; click a tab to open the editor. Use the toolbar to format text, create tables for SLA metrics, or add numbered lists for obligations.
-                            </div>
+                            <div><?php echo t('contracts.help.terms_step2'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">3</div>
-                            <div>
-                                <strong>Add custom tabs</strong> &mdash; need a section for Penalties, Insurance, or Data Processing? Go to Settings and add new term tab types. They will appear on all new contracts.
-                            </div>
+                            <div><?php echo t('contracts.help.terms_step3'); ?></div>
                         </div>
                     </div>
 
-                    <p class="ct-help-tip">Term tabs are configured globally in Settings &gt; Contract Term Tabs. Adding a new tab type makes it available across all contracts, helping maintain a consistent structure for your agreements.</p>
+                    <p class="ct-help-tip"><?php echo t('contracts.help.terms_tip'); ?></p>
                 </div>
 
                 <!-- Section 4: Suppliers -->
                 <div class="ct-help-section" id="suppliers">
                     <div class="ct-help-section-header">
                         <span class="ct-help-section-num">4</span>
-                        <h3>Suppliers</h3>
+                        <h3><?php echo htmlspecialchars(t('contracts.help.nav_suppliers')); ?></h3>
                     </div>
-                    <p>The Suppliers section is your central directory for every organisation you do business with. Whether it's a software vendor, a facilities management company, or a consultancy firm, each supplier gets a comprehensive record.</p>
+                    <p><?php echo t('contracts.help.suppliers_intro'); ?></p>
 
                     <div class="ct-help-data-grid">
                         <div class="ct-help-data-card">
-                            <strong>Legal name</strong>
-                            <span>The official registered company name as it appears on legal documents</span>
+                            <strong><?php echo htmlspecialchars(t('contracts.help.suppliers_legal_name')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('contracts.help.suppliers_legal_name_desc')); ?></span>
                         </div>
                         <div class="ct-help-data-card">
-                            <strong>Trading name</strong>
-                            <span>The name the supplier commonly trades under, if different from the legal name</span>
+                            <strong><?php echo htmlspecialchars(t('contracts.help.suppliers_trading_name')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('contracts.help.suppliers_trading_name_desc')); ?></span>
                         </div>
                         <div class="ct-help-data-card">
-                            <strong>Registration number</strong>
-                            <span>Company registration or incorporation number for due diligence and compliance</span>
+                            <strong><?php echo htmlspecialchars(t('contracts.help.suppliers_reg_number')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('contracts.help.suppliers_reg_number_desc')); ?></span>
                         </div>
                         <div class="ct-help-data-card">
-                            <strong>Address</strong>
-                            <span>Full registered address including street, city, county, postcode, and country</span>
+                            <strong><?php echo htmlspecialchars(t('contracts.help.suppliers_address')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('contracts.help.suppliers_address_desc')); ?></span>
                         </div>
                         <div class="ct-help-data-card">
-                            <strong>Supplier type</strong>
-                            <span>Categorise suppliers (e.g. Software, Hardware, Consultancy, Facilities) using configurable types</span>
+                            <strong><?php echo htmlspecialchars(t('contracts.help.suppliers_type')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('contracts.help.suppliers_type_desc')); ?></span>
                         </div>
                         <div class="ct-help-data-card">
-                            <strong>Status</strong>
-                            <span>Track whether a supplier is Active, Inactive, Under Review, or any custom status you define</span>
+                            <strong><?php echo htmlspecialchars(t('contracts.detail.status')); ?></strong>
+                            <span><?php echo htmlspecialchars(t('contracts.help.suppliers_status_desc')); ?></span>
                         </div>
                     </div>
 
                     <div class="ct-help-steps">
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">1</div>
-                            <div>
-                                <strong>Add a supplier</strong> &mdash; navigate to the Suppliers page and click Add. Fill in the legal name, trading name, and registration details.
-                            </div>
+                            <div><?php echo t('contracts.help.suppliers_step1'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">2</div>
-                            <div>
-                                <strong>Enter the address</strong> &mdash; record the supplier's registered address. This is important for legal correspondence and contract documentation.
-                            </div>
+                            <div><?php echo t('contracts.help.suppliers_step2'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">3</div>
-                            <div>
-                                <strong>Set type and status</strong> &mdash; categorise the supplier using the type dropdown and mark their current status. Both are configurable in Settings.
-                            </div>
+                            <div><?php echo t('contracts.help.suppliers_step3'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">4</div>
-                            <div>
-                                <strong>Track questionnaires</strong> &mdash; record whether due diligence questionnaires have been sent and returned. This helps with supplier onboarding and compliance.
-                            </div>
+                            <div><?php echo t('contracts.help.suppliers_step4'); ?></div>
                         </div>
                     </div>
 
-                    <p class="ct-help-tip">Keep supplier records up to date, especially registration numbers and addresses. These details are often needed for audit and compliance purposes, and outdated information can cause delays in procurement.</p>
+                    <p class="ct-help-tip"><?php echo t('contracts.help.suppliers_tip'); ?></p>
                 </div>
 
                 <!-- Section 5: Contacts -->
                 <div class="ct-help-section" id="contacts">
                     <div class="ct-help-section-header">
                         <span class="ct-help-section-num">5</span>
-                        <h3>Contacts</h3>
+                        <h3><?php echo htmlspecialchars(t('contracts.help.nav_contacts')); ?></h3>
                     </div>
-                    <p>Contacts represent the individual people at your supplier organisations. Knowing who to call, email, or escalate to is essential when managing ongoing supplier relationships, especially when issues arise or contracts need renewing.</p>
+                    <p><?php echo t('contracts.help.contacts_intro'); ?></p>
 
                     <div class="ct-help-fields">
-                        <div><strong>Name</strong> &mdash; the contact's full name, used as the primary identifier in the contacts list</div>
-                        <div><strong>Job title</strong> &mdash; their role at the supplier organisation (e.g. Account Manager, Technical Lead, Sales Director)</div>
-                        <div><strong>Email</strong> &mdash; their business email address for correspondence</div>
-                        <div><strong>Mobile</strong> &mdash; a direct phone number for urgent or time-sensitive communication</div>
-                        <div><strong>Supplier</strong> &mdash; which supplier this contact belongs to, selected from your supplier directory</div>
-                        <div><strong>Status</strong> &mdash; Active or Inactive, so you can keep historical records without cluttering your active contact list</div>
+                        <div><?php echo t('contracts.help.contacts_field_name'); ?></div>
+                        <div><?php echo t('contracts.help.contacts_field_job'); ?></div>
+                        <div><?php echo t('contracts.help.contacts_field_email'); ?></div>
+                        <div><?php echo t('contracts.help.contacts_field_mobile'); ?></div>
+                        <div><?php echo t('contracts.help.contacts_field_supplier'); ?></div>
+                        <div><?php echo t('contracts.help.contacts_field_status'); ?></div>
                     </div>
 
                     <div class="ct-help-steps">
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">1</div>
-                            <div>
-                                <strong>Add a contact</strong> &mdash; go to the Contacts page and click Add. Enter the person's name, job title, and contact details.
-                            </div>
+                            <div><?php echo t('contracts.help.contacts_step1'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">2</div>
-                            <div>
-                                <strong>Link to a supplier</strong> &mdash; select the supplier this contact works for. This creates the relationship so you can see all contacts for a given supplier.
-                            </div>
+                            <div><?php echo t('contracts.help.contacts_step2'); ?></div>
                         </div>
                         <div class="ct-help-step-item">
                             <div class="ct-help-step-num">3</div>
-                            <div>
-                                <strong>Manage over time</strong> &mdash; when contacts leave or change roles, update their record or set them to Inactive rather than deleting. This preserves the audit trail and historical context.
-                            </div>
+                            <div><?php echo t('contracts.help.contacts_step3'); ?></div>
                         </div>
                     </div>
 
-                    <p class="ct-help-tip">Record multiple contacts per supplier wherever possible. Having a backup contact means you are not left without a point of contact if your primary person is unavailable or leaves the organisation.</p>
+                    <p class="ct-help-tip"><?php echo t('contracts.help.contacts_tip'); ?></p>
                 </div>
 
                 <!-- Section 6: Settings -->
                 <div class="ct-help-section" id="settings">
                     <div class="ct-help-section-header">
                         <span class="ct-help-section-num">6</span>
-                        <h3>Settings</h3>
+                        <h3><?php echo htmlspecialchars(t('contracts.help.nav_settings')); ?></h3>
                     </div>
-                    <p>The Settings page lets you configure the dropdown lists and options used throughout the Contracts module. Everything is organised into tabs, and each setting type can be added, edited, or deactivated independently.</p>
+                    <p><?php echo t('contracts.help.settings_intro'); ?></p>
 
                     <div class="ct-help-config-grid">
                         <div class="ct-help-config-card">
-                            <h4><span class="config-dot amber"></span> Supplier Types</h4>
-                            <p>Define the categories used to classify suppliers. Examples: Software Vendor, Hardware Supplier, Consultancy, Managed Service Provider, Facilities. These appear in the type dropdown when creating or editing a supplier.</p>
+                            <h4><span class="config-dot amber"></span> <?php echo htmlspecialchars(t('contracts.help.settings_supplier_types')); ?></h4>
+                            <p><?php echo t('contracts.help.settings_supplier_types_desc'); ?></p>
                         </div>
                         <div class="ct-help-config-card">
-                            <h4><span class="config-dot green"></span> Supplier Statuses</h4>
-                            <p>Control the lifecycle states for suppliers. Typical values include Active, Inactive, Under Review, and Onboarding. Use these to track which suppliers are currently approved for use.</p>
+                            <h4><span class="config-dot green"></span> <?php echo htmlspecialchars(t('contracts.help.settings_supplier_statuses')); ?></h4>
+                            <p><?php echo t('contracts.help.settings_supplier_statuses_desc'); ?></p>
                         </div>
                         <div class="ct-help-config-card">
-                            <h4><span class="config-dot blue"></span> Contract Statuses</h4>
-                            <p>Define the stages a contract moves through. Common statuses: Draft, Active, Expiring, Expired, Renewed, Terminated. These drive the status badges shown on the contracts dashboard.</p>
+                            <h4><span class="config-dot blue"></span> <?php echo htmlspecialchars(t('contracts.help.settings_contract_statuses')); ?></h4>
+                            <p><?php echo t('contracts.help.settings_contract_statuses_desc'); ?></p>
                         </div>
                         <div class="ct-help-config-card">
-                            <h4><span class="config-dot purple"></span> Payment Schedules</h4>
-                            <p>Set up the payment frequency options available when recording a contract's financial terms. Standard options include Monthly, Quarterly, Annually, and One-off, but you can add any schedule that fits your needs.</p>
+                            <h4><span class="config-dot purple"></span> <?php echo htmlspecialchars(t('contracts.help.settings_payment_schedules')); ?></h4>
+                            <p><?php echo t('contracts.help.settings_payment_schedules_desc'); ?></p>
                         </div>
                         <div class="ct-help-config-card">
-                            <h4><span class="config-dot red"></span> Contract Term Tabs</h4>
-                            <p>Configure the rich text tabs that appear on every contract. Add tabs for SLAs, KPIs, Special Terms, Penalties, Data Processing, or any other section you need. Each tab gets its own TinyMCE editor on the contract form.</p>
+                            <h4><span class="config-dot red"></span> <?php echo htmlspecialchars(t('contracts.help.settings_term_tabs')); ?></h4>
+                            <p><?php echo t('contracts.help.settings_term_tabs_desc'); ?></p>
                         </div>
                     </div>
 
-                    <p>Each settings tab shows a list of existing items with their name, status, and action buttons. You can add new items, edit existing ones, or toggle them between active and inactive. Inactive items are hidden from dropdown menus but preserved in the database for historical records.</p>
+                    <p><?php echo t('contracts.help.settings_list_desc'); ?></p>
 
-                    <p class="ct-help-tip">Take time to set up your settings before creating contracts and suppliers. Well-defined categories and statuses make filtering, reporting, and auditing much easier down the line.</p>
+                    <p class="ct-help-tip"><?php echo t('contracts.help.settings_tip'); ?></p>
                 </div>
 
                 <!-- Section 7: Quick Tips -->
                 <div class="ct-help-section" id="tips">
                     <div class="ct-help-section-header">
                         <span class="ct-help-section-num">7</span>
-                        <h3>Quick tips</h3>
+                        <h3><?php echo htmlspecialchars(t('contracts.help.nav_tips')); ?></h3>
                     </div>
                     <div class="ct-help-tips-grid">
                         <div class="ct-help-tip-card">
                             <div class="ct-help-tip-icon">&#128197;</div>
-                            <div><strong>Review dates</strong><br>Always set a review date at least 60&ndash;90 days before the contract end date. This gives you enough time to evaluate the supplier's performance, negotiate better terms, or find an alternative if needed.</div>
+                            <div><?php echo t('contracts.help.tip_review_dates'); ?></div>
                         </div>
                         <div class="ct-help-tip-card">
                             <div class="ct-help-tip-icon">&#128200;</div>
-                            <div><strong>Track the money</strong><br>Record the contract value and payment schedule for every agreement, even low-value ones. This builds a complete picture of your supplier spend and helps with budgeting and forecasting.</div>
+                            <div><?php echo t('contracts.help.tip_track_money'); ?></div>
                         </div>
                         <div class="ct-help-tip-card">
                             <div class="ct-help-tip-icon">&#128101;</div>
-                            <div><strong>Supplier relationships</strong><br>Link contacts to suppliers and keep records current. When a key contact leaves, update the record immediately so your team always knows who to reach out to.</div>
+                            <div><?php echo t('contracts.help.tip_relationships'); ?></div>
                         </div>
                         <div class="ct-help-tip-card">
                             <div class="ct-help-tip-icon">&#128196;</div>
-                            <div><strong>Upload everything</strong><br>Attach signed contracts, amendments, and correspondence as documents. Having everything in one place saves time when you need to check terms or resolve disputes.</div>
+                            <div><?php echo t('contracts.help.tip_upload'); ?></div>
                         </div>
                         <div class="ct-help-tip-card">
                             <div class="ct-help-tip-icon">&#128295;</div>
-                            <div><strong>Use term tabs</strong><br>Break complex contracts into structured tabs &mdash; SLAs in one, KPIs in another, special conditions in a third. This makes it easy to find specific clauses without scrolling through a single long document.</div>
+                            <div><?php echo t('contracts.help.tip_term_tabs'); ?></div>
                         </div>
                         <div class="ct-help-tip-card">
                             <div class="ct-help-tip-icon">&#9889;</div>
-                            <div><strong>Keep statuses current</strong><br>Update contract and supplier statuses as things change. An expired contract should be marked as such, and a supplier under review should reflect that state. Accurate statuses make the dashboard reliable.</div>
+                            <div><?php echo t('contracts.help.tip_statuses'); ?></div>
                         </div>
                     </div>
                 </div>

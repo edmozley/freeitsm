@@ -4,17 +4,22 @@
  */
 session_start();
 require_once '../config.php';
+require_once __DIR__ . '/../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'dashboard';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'contracts'];
 $contract_id = $_GET['id'] ?? null;
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - <?php echo $contract_id ? 'Edit' : 'Add'; ?> contract</title>
+    <title><?php echo htmlspecialchars($contract_id ? t('contracts.edit.page_title_edit') : t('contracts.edit.page_title_add')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
     <style>
@@ -179,51 +184,51 @@ $contract_id = $_GET['id'] ?? null;
         <!-- Left Sidebar -->
         <div class="contracts-sidebar">
             <div class="sidebar-section">
-                <h3>Overview</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.overview')); ?></h3>
                 <div class="sidebar-stat">
-                    <span>Contracts</span>
+                    <span><?php echo htmlspecialchars(t('contracts.nav.contracts')); ?></span>
                     <span class="stat-value" id="sideContracts">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Active</span>
+                    <span><?php echo htmlspecialchars(t('contracts.status.active')); ?></span>
                     <span class="stat-value" id="sideActive">-</span>
                 </div>
                 <div class="sidebar-stat warning">
-                    <span>Expiring (90d)</span>
+                    <span><?php echo htmlspecialchars(t('contracts.list.expiring_90d')); ?></span>
                     <span class="stat-value" id="sideExpiring">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Suppliers</span>
+                    <span><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></span>
                     <span class="stat-value" id="sideSuppliers">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Contacts</span>
+                    <span><?php echo htmlspecialchars(t('contracts.nav.contacts')); ?></span>
                     <span class="stat-value" id="sideContacts">-</span>
                 </div>
             </div>
 
             <div class="sidebar-section">
-                <h3>Quick links</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.quick_links')); ?></h3>
                 <div class="sidebar-links">
                     <a href="index.php" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                        Contracts
+                        <?php echo htmlspecialchars(t('contracts.nav.contracts')); ?>
                     </a>
                     <a href="suppliers/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                        Suppliers
+                        <?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?>
                     </a>
                     <a href="contacts/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        Contacts
+                        <?php echo htmlspecialchars(t('contracts.nav.contacts')); ?>
                     </a>
                     <a href="rfp-builder/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 13h6"></path><path d="M9 17h6"></path></svg>
-                        RFP Builder
+                        <?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?>
                     </a>
                     <a href="settings/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                        Settings
+                        <?php echo htmlspecialchars(t('contracts.nav.settings')); ?>
                     </a>
                 </div>
             </div>
@@ -233,111 +238,111 @@ $contract_id = $_GET['id'] ?? null;
         <div class="contracts-main">
         <div class="form-card">
             <div class="form-card-header">
-                <h2 id="pageTitle"><?php echo $contract_id ? 'Edit contract' : 'Add contract'; ?></h2>
+                <h2 id="pageTitle"><?php echo htmlspecialchars($contract_id ? t('contracts.edit.heading_edit') : t('contracts.edit.heading_add')); ?></h2>
             </div>
             <div class="form-card-body">
                 <form id="contractForm" autocomplete="off">
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="contractNumber">Contract number *</label>
-                            <input type="text" id="contractNumber" required placeholder="e.g. CON-001">
+                            <label for="contractNumber"><?php echo htmlspecialchars(t('contracts.edit.contract_number')); ?> *</label>
+                            <input type="text" id="contractNumber" required placeholder="<?php echo htmlspecialchars(t('contracts.edit.contract_number_ph')); ?>">
                         </div>
                         <div class="form-group">
-                            <label for="contractStatusId">Status</label>
+                            <label for="contractStatusId"><?php echo htmlspecialchars(t('contracts.detail.status')); ?></label>
                             <select id="contractStatusId">
-                                <option value="">-- None --</option>
+                                <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.none')); ?> --</option>
                             </select>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="title">Title *</label>
-                        <input type="text" id="title" required placeholder="e.g. Annual Support Agreement">
+                        <label for="title"><?php echo htmlspecialchars(t('contracts.detail.title_label')); ?> *</label>
+                        <input type="text" id="title" required placeholder="<?php echo htmlspecialchars(t('contracts.edit.title_ph')); ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="description">Description</label>
-                        <textarea id="description" placeholder="Contract description..."></textarea>
+                        <label for="description"><?php echo htmlspecialchars(t('contracts.detail.description')); ?></label>
+                        <textarea id="description" placeholder="<?php echo htmlspecialchars(t('contracts.edit.description_ph')); ?>"></textarea>
                     </div>
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="supplierId">Supplier</label>
+                            <label for="supplierId"><?php echo htmlspecialchars(t('contracts.detail.supplier')); ?></label>
                             <select id="supplierId">
-                                <option value="">-- Select supplier --</option>
+                                <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.select_supplier')); ?> --</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="ownerId">Contract owner</label>
+                            <label for="ownerId"><?php echo htmlspecialchars(t('contracts.detail.owner')); ?></label>
                             <select id="ownerId">
-                                <option value="">-- Select owner --</option>
+                                <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.select_owner')); ?> --</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="form-section">Dates</div>
+                    <div class="form-section"><?php echo htmlspecialchars(t('contracts.detail.section_dates')); ?></div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="contractStart">Start date</label>
+                            <label for="contractStart"><?php echo htmlspecialchars(t('contracts.detail.start_date')); ?></label>
                             <input type="date" id="contractStart">
                         </div>
                         <div class="form-group">
-                            <label for="contractEnd">End date</label>
+                            <label for="contractEnd"><?php echo htmlspecialchars(t('contracts.detail.end_date')); ?></label>
                             <input type="date" id="contractEnd">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="noticePeriod">Notice period (days)</label>
-                            <input type="number" id="noticePeriod" min="0" placeholder="e.g. 90">
+                            <label for="noticePeriod"><?php echo htmlspecialchars(t('contracts.edit.notice_period_days')); ?></label>
+                            <input type="number" id="noticePeriod" min="0" placeholder="<?php echo htmlspecialchars(t('contracts.edit.notice_period_ph')); ?>">
                         </div>
                         <div class="form-group">
-                            <label for="noticeDate">Notice date</label>
+                            <label for="noticeDate"><?php echo htmlspecialchars(t('contracts.detail.notice_date')); ?></label>
                             <input type="date" id="noticeDate">
                         </div>
                     </div>
 
-                    <div class="form-section">Financial</div>
+                    <div class="form-section"><?php echo htmlspecialchars(t('contracts.detail.section_financial')); ?></div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="contractValue">Contract value</label>
-                            <input type="number" id="contractValue" step="0.01" min="0" placeholder="e.g. 10000.00">
+                            <label for="contractValue"><?php echo htmlspecialchars(t('contracts.detail.contract_value')); ?></label>
+                            <input type="number" id="contractValue" step="0.01" min="0" placeholder="<?php echo htmlspecialchars(t('contracts.edit.contract_value_ph')); ?>">
                         </div>
                         <div class="form-group">
-                            <label for="currency">Currency</label>
+                            <label for="currency"><?php echo htmlspecialchars(t('contracts.edit.currency')); ?></label>
                             <select id="currency">
-                                <option value="">-- None --</option>
+                                <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.none')); ?> --</option>
                             </select>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="paymentScheduleId">Payment schedule</label>
+                            <label for="paymentScheduleId"><?php echo htmlspecialchars(t('contracts.detail.payment_schedule')); ?></label>
                             <select id="paymentScheduleId">
-                                <option value="">-- None --</option>
+                                <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.none')); ?> --</option>
                             </select>
                         </div>
                         <div class="form-group">
-                            <label for="costCentre">Cost centre</label>
+                            <label for="costCentre"><?php echo htmlspecialchars(t('contracts.detail.cost_centre')); ?></label>
                             <input type="text" id="costCentre">
                         </div>
                     </div>
 
-                    <div class="form-section">Documents</div>
+                    <div class="form-section"><?php echo htmlspecialchars(t('contracts.edit.section_documents')); ?></div>
                     <div class="form-group">
-                        <label for="dmsLink">DMS link (contract)</label>
+                        <label for="dmsLink"><?php echo htmlspecialchars(t('contracts.edit.dms_link_contract')); ?></label>
                         <input type="url" id="dmsLink" placeholder="https://...">
                     </div>
 
-                    <div class="form-section">Terms &amp; data protection</div>
+                    <div class="form-section"><?php echo htmlspecialchars(t('contracts.detail.section_terms')); ?></div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="termsStatus">Terms</label>
+                            <label for="termsStatus"><?php echo htmlspecialchars(t('contracts.detail.terms')); ?></label>
                             <select id="termsStatus">
-                                <option value="">-- None --</option>
-                                <option value="received">Received</option>
-                                <option value="reviewed">Reviewed</option>
-                                <option value="agreed">Agreed</option>
+                                <option value="">-- <?php echo htmlspecialchars(t('contracts.edit.none')); ?> --</option>
+                                <option value="received"><?php echo htmlspecialchars(t('contracts.terms_status.received')); ?></option>
+                                <option value="reviewed"><?php echo htmlspecialchars(t('contracts.terms_status.reviewed')); ?></option>
+                                <option value="agreed"><?php echo htmlspecialchars(t('contracts.terms_status.agreed')); ?></option>
                             </select>
                         </div>
                         <div></div>
@@ -348,41 +353,41 @@ $contract_id = $_GET['id'] ?? null;
                                 <input type="checkbox" id="personalDataTransferred">
                                 <span class="toggle-slider"></span>
                             </span>
-                            Personal data transferred
+                            <?php echo htmlspecialchars(t('contracts.detail.personal_data_transferred')); ?>
                         </label>
                         <label class="toggle-row">
                             <span class="toggle-switch">
                                 <input type="checkbox" id="dpiaRequired">
                                 <span class="toggle-slider"></span>
                             </span>
-                            DPIA required
+                            <?php echo htmlspecialchars(t('contracts.detail.dpia_required')); ?>
                         </label>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="dpiaCompletedDate">DPIA completed date</label>
+                            <label for="dpiaCompletedDate"><?php echo htmlspecialchars(t('contracts.detail.dpia_completed_date')); ?></label>
                             <input type="date" id="dpiaCompletedDate">
                         </div>
                         <div class="form-group">
-                            <label for="dpiaDmsLink">DMS link (DPIA)</label>
+                            <label for="dpiaDmsLink"><?php echo htmlspecialchars(t('contracts.edit.dms_link_dpia')); ?></label>
                             <input type="url" id="dpiaDmsLink" placeholder="https://...">
                         </div>
                     </div>
 
-                    <div class="form-section" style="margin-top: 20px;">Contract terms detail</div>
+                    <div class="form-section" style="margin-top: 20px;"><?php echo htmlspecialchars(t('contracts.detail.terms_detail')); ?></div>
                     <div id="contractTermsSection" style="display: none;">
                         <div class="terms-tabs" id="termsTabs"></div>
                         <div id="termsPanels"></div>
                     </div>
                     <div id="contractTermsEmpty" class="terms-empty">
-                        No contract terms tabs configured. <a href="settings/">Configure in settings</a>.
+                        <?php echo htmlspecialchars(t('contracts.edit.no_term_tabs')); ?> <a href="settings/"><?php echo htmlspecialchars(t('contracts.edit.configure_in_settings')); ?></a>.
                     </div>
                 </form>
             </div>
         </div>
         <div class="form-actions">
-            <button type="submit" form="contractForm" class="btn btn-primary" id="saveBtn">Save</button>
-            <a href="index.php" class="btn btn-secondary">Cancel</a>
+            <button type="submit" form="contractForm" class="btn btn-primary" id="saveBtn"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            <a href="index.php" class="btn btn-secondary"><?php echo htmlspecialchars(t('common.cancel')); ?></a>
         </div>
         </div>
     </div>
@@ -451,7 +456,7 @@ $contract_id = $_GET['id'] ?? null;
 
         function populateCurrencies() {
             const select = document.getElementById('currency');
-            select.innerHTML = '<option value="">-- None --</option>' +
+            select.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.none')) + ' --</option>' +
                 currencies.map(c => `<option value="${c.code}">${c.name}</option>`).join('');
         }
 
@@ -461,7 +466,7 @@ $contract_id = $_GET['id'] ?? null;
                 const data = await response.json();
                 if (data.success) {
                     const select = document.getElementById('supplierId');
-                    select.innerHTML = '<option value="">-- Select supplier --</option>' +
+                    select.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.select_supplier')) + ' --</option>' +
                         data.suppliers.filter(s => s.is_active).map(s =>
                             `<option value="${s.id}">${escapeHtml(s.legal_name)}</option>`
                         ).join('');
@@ -475,7 +480,7 @@ $contract_id = $_GET['id'] ?? null;
                 const data = await response.json();
                 if (data.success) {
                     const select = document.getElementById('ownerId');
-                    select.innerHTML = '<option value="">-- Select owner --</option>' +
+                    select.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.select_owner')) + ' --</option>' +
                         data.analysts.filter(a => a.is_active).map(a =>
                             `<option value="${a.id}">${escapeHtml(a.full_name)}</option>`
                         ).join('');
@@ -489,7 +494,7 @@ $contract_id = $_GET['id'] ?? null;
                 const data = await response.json();
                 if (data.success) {
                     const select = document.getElementById('contractStatusId');
-                    select.innerHTML = '<option value="">-- None --</option>' +
+                    select.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.none')) + ' --</option>' +
                         data.contract_statuses.filter(s => s.is_active).map(s =>
                             `<option value="${s.id}">${escapeHtml(s.name)}</option>`
                         ).join('');
@@ -503,7 +508,7 @@ $contract_id = $_GET['id'] ?? null;
                 const data = await response.json();
                 if (data.success) {
                     const select = document.getElementById('paymentScheduleId');
-                    select.innerHTML = '<option value="">-- None --</option>' +
+                    select.innerHTML = '<option value="">-- ' + escapeHtml(window.t('contracts.edit.none')) + ' --</option>' +
                         data.payment_schedules.filter(p => p.is_active).map(p =>
                             `<option value="${p.id}">${escapeHtml(p.name)}</option>`
                         ).join('');
@@ -545,7 +550,7 @@ $contract_id = $_GET['id'] ?? null;
             e.preventDefault();
             const saveBtn = document.getElementById('saveBtn');
             saveBtn.disabled = true;
-            saveBtn.textContent = 'Saving...';
+            saveBtn.textContent = window.t('common.saving');
 
             const payload = {
                 contract_number: document.getElementById('contractNumber').value.trim(),
@@ -596,19 +601,19 @@ $contract_id = $_GET['id'] ?? null;
                     }
 
                     if (contractId) {
-                        showToast('Contract saved', 'success');
+                        showToast(window.t('contracts.edit.toast_saved'), 'success');
                     } else {
                         window.location.href = 'view.php?id=' + savedId;
                     }
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('contracts.detail.error_prefix') + ' ' + data.error, 'error');
                 }
             } catch (error) {
-                showToast('Failed to save contract', 'error');
+                showToast(window.t('contracts.edit.toast_save_failed'), 'error');
             }
 
             saveBtn.disabled = false;
-            saveBtn.textContent = 'Save';
+            saveBtn.textContent = window.t('common.save');
         });
 
         function escapeHtml(text) {

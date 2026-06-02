@@ -8,16 +8,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix  = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Consolidated requirements</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.consolidate.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
@@ -438,60 +443,60 @@ $path_prefix  = '../../';
 
     <div class="page-wrap">
         <div class="breadcrumb">
-            <a href="../">Contracts</a><span class="sep">›</span>
-            <a href="./">RFP Builder</a><span class="sep">›</span>
+            <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span class="sep">›</span>
+            <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span class="sep">›</span>
             <a id="bcRfp" href="#">-</a><span class="sep">›</span>
-            <span>Consolidated</span>
+            <span><?php echo htmlspecialchars(t('contracts.rfp.consolidate.consolidated')); ?></span>
         </div>
 
         <div class="page-header">
-            <h1>Consolidated requirements</h1>
+            <h1><?php echo htmlspecialchars(t('contracts.rfp.consolidate.heading')); ?></h1>
             <div class="page-actions">
-                <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
-                <a id="coverageLink" href="#" class="btn btn-secondary" style="display:none;">Coverage map</a>
-                <button id="addBtn" class="btn btn-secondary" onclick="openAddModal()" style="display:none;">+ Add custom</button>
-                <button id="runBtn" class="btn btn-primary" onclick="runConsolidation()">Run consolidation</button>
-                <button id="lockBtn" class="btn btn-primary" onclick="toggleLock()" style="display:none;">Lock for generation</button>
+                <a id="backLink" href="#" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.rfp.suppliers.overview')); ?></a>
+                <a id="coverageLink" href="#" class="btn btn-secondary" style="display:none;"><?php echo htmlspecialchars(t('contracts.rfp.coverage.heading')); ?></a>
+                <button id="addBtn" class="btn btn-secondary" onclick="openAddModal()" style="display:none;">+ <?php echo htmlspecialchars(t('contracts.rfp.consolidate.add_custom')); ?></button>
+                <button id="runBtn" class="btn btn-primary" onclick="runConsolidation()"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.run')); ?></button>
+                <button id="lockBtn" class="btn btn-primary" onclick="toggleLock()" style="display:none;"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.lock_for_generation')); ?></button>
             </div>
         </div>
 
         <div id="lockedBanner" style="display:none;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
-            <strong>Locked for generation.</strong> Editing is disabled. Phase 4 (section generation) will use these requirements as-is. Click <em>Unlock</em> to make changes.
+            <?php echo t('contracts.rfp.consolidate.locked_banner'); ?>
         </div>
 
         <div id="streamModal" class="modal-backdrop" style="display:none;">
             <div class="stream-modal">
                 <div class="stream-modal-header">
                     <div id="streamSpinner" class="spinner"></div>
-                    <h3 id="streamTitle">Running consolidation</h3>
+                    <h3 id="streamTitle"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.running')); ?></h3>
                 </div>
-                <div id="streamPhase" class="stream-phase">Starting…</div>
+                <div id="streamPhase" class="stream-phase"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.starting')); ?></div>
                 <div class="progress-tracker">
                     <div id="ptaskCats" class="ptask">
                         <div class="pico">1</div>
-                        <div class="plabel">Categorising</div>
+                        <div class="plabel"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.task_categorising')); ?></div>
                         <div class="pcount" id="pcountCats">—</div>
                     </div>
                     <div id="ptaskCons" class="ptask">
                         <div class="pico">2</div>
-                        <div class="plabel">Consolidating requirements</div>
+                        <div class="plabel"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.task_consolidating')); ?></div>
                         <div class="pcount" id="pcountCons">—</div>
                     </div>
                     <div id="ptaskConf" class="ptask">
                         <div class="pico">3</div>
-                        <div class="plabel">Detecting conflicts</div>
+                        <div class="plabel"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.task_conflicts')); ?></div>
                         <div class="pcount" id="pcountConf">—</div>
                     </div>
                 </div>
                 <div id="streamBody" class="stream-body"></div>
                 <div class="stream-meta">
-                    <span class="meta-item">Tokens in: <strong id="streamTokensIn">0</strong></span>
-                    <span class="meta-item">Tokens out: <strong id="streamTokensOut">0</strong></span>
-                    <span class="meta-item">Cached: <strong id="streamCacheRead">0</strong></span>
-                    <span class="meta-item">Elapsed: <strong id="streamElapsed">0s</strong></span>
+                    <span class="meta-item"><?php echo htmlspecialchars(t('contracts.rfp.document.tokens_in')); ?>: <strong id="streamTokensIn">0</strong></span>
+                    <span class="meta-item"><?php echo htmlspecialchars(t('contracts.rfp.document.tokens_out')); ?>: <strong id="streamTokensOut">0</strong></span>
+                    <span class="meta-item"><?php echo htmlspecialchars(t('contracts.rfp.document.cached')); ?>: <strong id="streamCacheRead">0</strong></span>
+                    <span class="meta-item"><?php echo htmlspecialchars(t('contracts.rfp.document.elapsed')); ?>: <strong id="streamElapsed">0s</strong></span>
                 </div>
                 <div class="stream-modal-footer">
-                    <button id="streamCloseBtn" class="btn btn-secondary" onclick="closeStreamModal()" disabled>Close</button>
+                    <button id="streamCloseBtn" class="btn btn-secondary" onclick="closeStreamModal()" disabled><?php echo htmlspecialchars(t('common.close')); ?></button>
                 </div>
             </div>
         </div>
@@ -499,23 +504,23 @@ $path_prefix  = '../../';
         <div class="stats-strip" id="statsStrip" style="display:none;">
             <div class="stat-card cats">
                 <div class="stat-value" id="statCats">0</div>
-                <div class="stat-label">Categories</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.view.stat_categories')); ?></div>
             </div>
             <div class="stat-card cons">
                 <div class="stat-value" id="statCons">0</div>
-                <div class="stat-label">Consolidated</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.view.stat_consolidated')); ?></div>
             </div>
             <div class="stat-card conf">
                 <div class="stat-value" id="statConf">0</div>
-                <div class="stat-label">Open conflicts</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.view.stat_open_conflicts')); ?></div>
             </div>
             <div class="stat-card linked">
                 <div class="stat-value" id="statLinked">0</div>
-                <div class="stat-label">Source items linked</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.stat_linked')); ?></div>
             </div>
         </div>
 
-        <div id="loadingEl" class="loading">Loading…</div>
+        <div id="loadingEl" class="loading"><?php echo htmlspecialchars(t('common.loading')); ?></div>
         <div id="contentEl" style="display:none;"></div>
         <div id="errorEl" class="error-state" style="display:none;"></div>
     </div>
@@ -524,52 +529,52 @@ $path_prefix  = '../../';
     <div id="mergeBar" class="merge-bar">
         <span class="merge-count" id="mergeCount">0 selected</span>
         <span class="spacer"></span>
-        <button class="btn btn-secondary" onclick="clearSelection()">Cancel</button>
-        <button class="btn btn-primary" onclick="openMergeModal()">Merge</button>
+        <button class="btn btn-secondary" onclick="clearSelection()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+        <button class="btn btn-primary" onclick="openMergeModal()"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.merge')); ?></button>
     </div>
 
     <!-- Edit / Add modal (shared form, mode flag controls behaviour) -->
     <div id="editModal" class="modal-backdrop" style="display:none;">
         <div class="edit-modal">
             <div class="edit-modal-header">
-                <span id="editModalTitle">Edit requirement</span>
+                <span id="editModalTitle"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.edit_requirement')); ?></span>
             </div>
             <div class="edit-modal-body">
                 <div class="form-row">
-                    <label for="editText">Requirement text</label>
+                    <label for="editText"><?php echo htmlspecialchars(t('contracts.rfp.extracted.requirement_text')); ?></label>
                     <textarea id="editText" rows="4"></textarea>
                 </div>
                 <div class="form-row-grid">
                     <div class="form-row">
-                        <label for="editType">Type</label>
+                        <label for="editType"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type')); ?></label>
                         <select id="editType">
-                            <option value="requirement">Requirement</option>
-                            <option value="pain_point">Pain point</option>
-                            <option value="challenge">Challenge</option>
+                            <option value="requirement"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type_requirement')); ?></option>
+                            <option value="pain_point"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type_pain_point')); ?></option>
+                            <option value="challenge"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type_challenge')); ?></option>
                         </select>
                     </div>
                     <div class="form-row">
-                        <label for="editPriority">Priority</label>
+                        <label for="editPriority"><?php echo htmlspecialchars(t('contracts.detail.field_priority')); ?></label>
                         <select id="editPriority">
-                            <option value="critical">Critical</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
+                            <option value="critical"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.prio_critical')); ?></option>
+                            <option value="high"><?php echo htmlspecialchars(t('contracts.priority.high')); ?></option>
+                            <option value="medium"><?php echo htmlspecialchars(t('contracts.priority.medium')); ?></option>
+                            <option value="low"><?php echo htmlspecialchars(t('contracts.priority.low')); ?></option>
                         </select>
                     </div>
                     <div class="form-row">
-                        <label for="editCategory">Category</label>
+                        <label for="editCategory"><?php echo htmlspecialchars(t('contracts.rfp.compare.col_category')); ?></label>
                         <select id="editCategory"></select>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label for="editRationale">Rationale (optional)</label>
-                    <textarea id="editRationale" rows="2" placeholder="Why this requirement is here, why it merged with its sources, etc."></textarea>
+                    <label for="editRationale"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.rationale_optional')); ?></label>
+                    <textarea id="editRationale" rows="2" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.consolidate.rationale_ph')); ?>"></textarea>
                 </div>
             </div>
             <div class="edit-modal-footer">
-                <button class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
-                <button class="btn btn-primary" id="editSaveBtn" onclick="saveEdit()">Save</button>
+                <button class="btn btn-secondary" onclick="closeEditModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="editSaveBtn" onclick="saveEdit()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -578,29 +583,29 @@ $path_prefix  = '../../';
     <div id="splitModal" class="modal-backdrop" style="display:none;">
         <div class="edit-modal wide">
             <div class="edit-modal-header">
-                <span>Split requirement</span>
+                <span><?php echo htmlspecialchars(t('contracts.rfp.consolidate.split_requirement')); ?></span>
             </div>
             <div class="edit-modal-body">
                 <div class="form-row">
-                    <label>Original requirement (will be replaced)</label>
+                    <label><?php echo htmlspecialchars(t('contracts.rfp.consolidate.split_original')); ?></label>
                     <div id="splitOriginalText" style="padding:10px 12px;background:#f3f4f6;border-radius:6px;font-size:13px;color:#555;line-height:1.5;"></div>
                 </div>
 
                 <div class="form-row">
-                    <label>Assign each source to a new row</label>
-                    <div class="form-help">Each source must go to one of the new rows below. Source items dropped here will not appear on any new row.</div>
+                    <label><?php echo htmlspecialchars(t('contracts.rfp.consolidate.split_assign')); ?></label>
+                    <div class="form-help"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.split_assign_help')); ?></div>
                     <div id="splitSourceList" class="source-pick-list" style="margin-top:6px;"></div>
                 </div>
 
                 <div class="form-row">
-                    <label>New rows</label>
+                    <label><?php echo htmlspecialchars(t('contracts.rfp.consolidate.split_new_rows')); ?></label>
                     <div id="splitRowsContainer"></div>
-                    <button class="btn btn-secondary" onclick="addSplitRow()" style="align-self:flex-start;">+ Add another row</button>
+                    <button class="btn btn-secondary" onclick="addSplitRow()" style="align-self:flex-start;">+ <?php echo htmlspecialchars(t('contracts.rfp.consolidate.add_another_row')); ?></button>
                 </div>
             </div>
             <div class="edit-modal-footer">
-                <button class="btn btn-secondary" onclick="closeSplitModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveSplit()">Split</button>
+                <button class="btn btn-secondary" onclick="closeSplitModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" onclick="saveSplit()"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.split')); ?></button>
             </div>
         </div>
     </div>
@@ -609,18 +614,18 @@ $path_prefix  = '../../';
     <div id="resolveModal" class="modal-backdrop" style="display:none;">
         <div class="edit-modal">
             <div class="edit-modal-header">
-                <span id="resolveModalTitle">Resolve conflict</span>
+                <span id="resolveModalTitle"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve_conflict')); ?></span>
             </div>
             <div class="edit-modal-body">
                 <div id="resolveContext" style="margin-bottom:14px;font-size:13px;color:#555;"></div>
                 <div class="form-row">
-                    <label for="resolveNotes">Notes (optional, captured to audit trail)</label>
-                    <textarea id="resolveNotes" rows="3" placeholder="Why this resolution? Helpful for stakeholders reviewing the decision later."></textarea>
+                    <label for="resolveNotes"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve_notes')); ?></label>
+                    <textarea id="resolveNotes" rows="3" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve_notes_ph')); ?>"></textarea>
                 </div>
             </div>
             <div class="edit-modal-footer">
-                <button class="btn btn-secondary" onclick="closeResolveModal()">Cancel</button>
-                <button class="btn btn-primary" id="resolveConfirmBtn" onclick="saveResolve()">Resolve</button>
+                <button class="btn btn-secondary" onclick="closeResolveModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="resolveConfirmBtn" onclick="saveResolve()"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve')); ?></button>
             </div>
         </div>
     </div>
@@ -629,46 +634,46 @@ $path_prefix  = '../../';
     <div id="mergeModal" class="modal-backdrop" style="display:none;">
         <div class="edit-modal">
             <div class="edit-modal-header">
-                <span>Merge selected requirements</span>
+                <span><?php echo htmlspecialchars(t('contracts.rfp.consolidate.merge_selected')); ?></span>
             </div>
             <div class="edit-modal-body">
                 <div id="mergeSummary" class="merge-summary"></div>
 
                 <div class="form-row">
-                    <label for="mergeText">Merged requirement text</label>
+                    <label for="mergeText"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.merged_text')); ?></label>
                     <textarea id="mergeText" rows="4"></textarea>
                 </div>
                 <div class="form-row-grid">
                     <div class="form-row">
-                        <label for="mergeType">Type</label>
+                        <label for="mergeType"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type')); ?></label>
                         <select id="mergeType">
-                            <option value="requirement">Requirement</option>
-                            <option value="pain_point">Pain point</option>
-                            <option value="challenge">Challenge</option>
+                            <option value="requirement"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type_requirement')); ?></option>
+                            <option value="pain_point"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type_pain_point')); ?></option>
+                            <option value="challenge"><?php echo htmlspecialchars(t('contracts.rfp.extracted.type_challenge')); ?></option>
                         </select>
                     </div>
                     <div class="form-row">
-                        <label for="mergePriority">Priority</label>
+                        <label for="mergePriority"><?php echo htmlspecialchars(t('contracts.detail.field_priority')); ?></label>
                         <select id="mergePriority">
-                            <option value="critical">Critical</option>
-                            <option value="high">High</option>
-                            <option value="medium">Medium</option>
-                            <option value="low">Low</option>
+                            <option value="critical"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.prio_critical')); ?></option>
+                            <option value="high"><?php echo htmlspecialchars(t('contracts.priority.high')); ?></option>
+                            <option value="medium"><?php echo htmlspecialchars(t('contracts.priority.medium')); ?></option>
+                            <option value="low"><?php echo htmlspecialchars(t('contracts.priority.low')); ?></option>
                         </select>
                     </div>
                     <div class="form-row">
-                        <label for="mergeCategory">Category</label>
+                        <label for="mergeCategory"><?php echo htmlspecialchars(t('contracts.rfp.compare.col_category')); ?></label>
                         <select id="mergeCategory"></select>
                     </div>
                 </div>
                 <div class="form-row">
-                    <label for="mergeRationale">Rationale (optional)</label>
+                    <label for="mergeRationale"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.rationale_optional')); ?></label>
                     <textarea id="mergeRationale" rows="2"></textarea>
                 </div>
             </div>
             <div class="edit-modal-footer">
-                <button class="btn btn-secondary" onclick="closeMergeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="saveMerge()">Merge</button>
+                <button class="btn btn-secondary" onclick="closeMergeModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" onclick="saveMerge()"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.merge')); ?></button>
             </div>
         </div>
     </div>
@@ -685,7 +690,7 @@ $path_prefix  = '../../';
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId) {
-                showError('No RFP id supplied. <a href="./">Back to list</a>.');
+                showError(window.t('contracts.rfp.view.no_id') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.');
                 return;
             }
             document.getElementById('backLink').href = 'view.php?id=' + encodeURIComponent(rfpId);
@@ -698,8 +703,8 @@ $path_prefix  = '../../';
                     fetch(API_BASE + 'get_rfp.php?id=' + encodeURIComponent(rfpId)).then(r => r.json()),
                     fetch(API_BASE + 'get_consolidated.php?rfp_id=' + encodeURIComponent(rfpId)).then(r => r.json())
                 ]);
-                if (!rfpRes.success) throw new Error(rfpRes.error || 'Failed to load RFP');
-                if (!conRes.success) throw new Error(conRes.error || 'Failed to load consolidated');
+                if (!rfpRes.success) throw new Error(rfpRes.error || window.t('contracts.rfp.suppliers.load_rfp_failed'));
+                if (!conRes.success) throw new Error(conRes.error || window.t('contracts.rfp.consolidate.load_failed'));
                 rfpName = rfpRes.rfp.name;
                 const bc = document.getElementById('bcRfp');
                 bc.textContent = rfpName;
@@ -760,7 +765,7 @@ $path_prefix  = '../../';
             document.getElementById('statsStrip').style.display = 'grid';
 
             const runBtn = document.getElementById('runBtn');
-            runBtn.textContent = data.consolidated.length > 0 ? 'Re-run consolidation' : 'Run consolidation';
+            runBtn.textContent = data.consolidated.length > 0 ? window.t('contracts.rfp.consolidate.rerun') : window.t('contracts.rfp.consolidate.run');
 
             const contentEl = document.getElementById('contentEl');
             contentEl.style.display = 'block';
@@ -768,9 +773,9 @@ $path_prefix  = '../../';
             if (data.consolidated.length === 0) {
                 contentEl.innerHTML = `
                     <div class="empty-card">
-                        <p><strong>No consolidation yet.</strong></p>
-                        <p>Click <em>Run consolidation</em> to have the AI deduplicate, categorise and detect conflicts across every extracted requirement.</p>
-                        <p class="hint">Typical run: 60-120 seconds, ~£0.50-2 in tokens.</p>
+                        <p><strong>${escapeHtml(window.t('contracts.rfp.consolidate.empty_title'))}</strong></p>
+                        <p>${window.t('contracts.rfp.consolidate.empty_body')}</p>
+                        <p class="hint">${escapeHtml(window.t('contracts.rfp.consolidate.empty_hint'))}</p>
                     </div>
                 `;
                 return;
@@ -785,7 +790,7 @@ $path_prefix  = '../../';
             const orphans = consByCat.get(0) || [];
             if (orphans.length > 0) {
                 catBlocks.push(renderCategoryBlock(
-                    { id: 0, name: 'Uncategorised', description: 'AI did not assign a category to these requirements.' },
+                    { id: 0, name: window.t('contracts.rfp.compare.uncategorised'), description: window.t('contracts.rfp.consolidate.orphan_desc') },
                     orphans
                 ));
             }
@@ -812,7 +817,7 @@ $path_prefix  = '../../';
                     <div class="category-header">
                         <h2>
                             ${escapeHtml(cat.name)}
-                            <span class="req-count">${reqs.length} req${reqs.length === 1 ? '' : 's'}</span>
+                            <span class="req-count">${escapeHtml(reqs.length === 1 ? window.t('contracts.rfp.document.req_count_one', { n: reqs.length }) : window.t('contracts.rfp.document.req_count_other', { n: reqs.length }))}</span>
                         </h2>
                         ${cat.description ? `<div class="category-desc">${escapeHtml(cat.description)}</div>` : ''}
                     </div>
@@ -829,34 +834,34 @@ $path_prefix  = '../../';
                 <div class="req-row" data-id="${r.id}" id="row-${r.id}">
                     <div class="req-row-top">
                         ${locked ? '' : `<input type="checkbox" class="req-select" data-id="${r.id}" onchange="onSelectRow(${r.id}, this.checked)">`}
-                        <span class="pill type-${escapeHtml(r.requirement_type)}">${escapeHtml(r.requirement_type.replace('_', ' '))}</span>
-                        <span class="pill prio-${escapeHtml(r.priority)}">${escapeHtml(r.priority)}</span>
+                        <span class="pill type-${escapeHtml(r.requirement_type)}">${escapeHtml(reqTypeLabel(r.requirement_type))}</span>
+                        <span class="pill prio-${escapeHtml(r.priority)}">${escapeHtml(priorityLabel(r.priority))}</span>
                         <div class="req-row-text">
                             ${escapeHtml(r.requirement_text)}
                             ${r.ai_rationale ? `<div class="req-row-rationale">${escapeHtml(r.ai_rationale)}</div>` : ''}
                         </div>
                         ${locked ? '' : `
                             <div class="req-row-actions">
-                                <button class="icon-btn" onclick="openEditModal(${r.id})">Edit</button>
-                                ${canSplit ? `<button class="icon-btn" onclick="openSplitModal(${r.id})">Split</button>` : ''}
-                                <button class="icon-btn danger" onclick="deleteRow(${r.id})">Delete</button>
+                                <button class="icon-btn" onclick="openEditModal(${r.id})">${escapeHtml(window.t('common.edit'))}</button>
+                                ${canSplit ? `<button class="icon-btn" onclick="openSplitModal(${r.id})">${escapeHtml(window.t('contracts.rfp.consolidate.split'))}</button>` : ''}
+                                <button class="icon-btn danger" onclick="deleteRow(${r.id})">${escapeHtml(window.t('common.delete'))}</button>
                             </div>
                         `}
                     </div>
                     <div class="source-toggle">
                         <button class="btn-link" onclick="toggleSources(${r.id})">
-                            <span id="srcLabel-${r.id}">Show sources (${sources.length})</span>
+                            <span id="srcLabel-${r.id}">${escapeHtml(window.t('contracts.rfp.consolidate.show_sources', { n: sources.length }))}</span>
                         </button>
                     </div>
                     <div id="srcList-${r.id}" class="source-list">
                         ${sources.map(s => `
                             <div class="source-item">
                                 <span class="source-dept" style="${s.department_colour ? 'background:' + escapeHtml(s.department_colour) + '20; color:' + escapeHtml(s.department_colour) : ''}">
-                                    ${escapeHtml(s.department_name || 'Unassigned')}
+                                    ${escapeHtml(s.department_name || window.t('contracts.rfp.documents.unassigned'))}
                                 </span>
                                 <span style="color:#555;">${escapeHtml(s.requirement_text)}</span>
                                 ${s.source_quote ? `<div class="source-quote">"${escapeHtml(s.source_quote)}"</div>` : ''}
-                                <div class="source-doc">${escapeHtml(s.document_filename || '')} · extracted #${s.extracted_id}</div>
+                                <div class="source-doc">${escapeHtml(s.document_filename || '')} · ${escapeHtml(window.t('contracts.rfp.consolidate.extracted_n', { n: s.extracted_id }))}</div>
                             </div>
                         `).join('')}
                     </div>
@@ -871,12 +876,12 @@ $path_prefix  = '../../';
             return `
                 <div class="conflicts-card">
                     <div class="conflicts-header">
-                        <h2>Flagged conflicts (${open.length} open${resolved.length ? ' · ' + resolved.length + ' resolved' : ''})</h2>
+                        <h2>${escapeHtml(window.t('contracts.rfp.consolidate.flagged_conflicts_prefix') + ' (' + window.t('contracts.rfp.consolidate.n_open', { n: open.length }) + (resolved.length ? ' · ' + window.t('contracts.rfp.consolidate.n_resolved', { n: resolved.length }) : '') + ')')}</h2>
                     </div>
                     ${open.map(c => renderConflictRow(c, false)).join('')}
                     ${resolved.length ? `
                         <div class="resolved-section">
-                            <div class="resolved-section-label">Resolved</div>
+                            <div class="resolved-section-label">${escapeHtml(window.t('contracts.rfp.consolidate.resolved'))}</div>
                             ${resolved.map(c => renderConflictRow(c, true)).join('')}
                         </div>
                     ` : ''}
@@ -887,13 +892,13 @@ $path_prefix  = '../../';
         function renderConflictRow(c, isResolved) {
             const aMissing = !c.a_text;
             const bMissing = !c.b_text;
-            const aText = aMissing ? '<em>(deleted)</em>' : escapeHtml(c.a_text);
-            const bText = bMissing ? '<em>(deleted)</em>' : escapeHtml(c.b_text);
+            const aText = aMissing ? '<em>' + escapeHtml(window.t('contracts.rfp.consolidate.deleted')) + '</em>' : escapeHtml(c.a_text);
+            const bText = bMissing ? '<em>' + escapeHtml(window.t('contracts.rfp.consolidate.deleted')) + '</em>' : escapeHtml(c.b_text);
 
             const resolutionBlock = isResolved ? `
                 <div class="conflict-resolution resolved">
-                    <span class="resolution-badge ${escapeHtml(c.resolution)}">${escapeHtml(c.resolution.replace('_', ' '))}</span>
-                    ${c.resolved_by_name ? 'by ' + escapeHtml(c.resolved_by_name) : ''}
+                    <span class="resolution-badge ${escapeHtml(c.resolution)}">${escapeHtml(resolutionLabel(c.resolution))}</span>
+                    ${c.resolved_by_name ? escapeHtml(window.t('contracts.rfp.consolidate.by_prefix')) + ' ' + escapeHtml(c.resolved_by_name) : ''}
                     ${c.resolved_datetime ? ' · ' + escapeHtml(formatDateTime(c.resolved_datetime)) : ''}
                 </div>
                 ${c.resolution_notes ? `<div class="conflict-resolution-notes">${escapeHtml(c.resolution_notes)}</div>` : ''}
@@ -905,15 +910,15 @@ $path_prefix  = '../../';
             if (!locked) {
                 actions = isResolved
                     ? `<div class="conflict-actions">
-                           <button class="btn-resolve reopen" onclick="reopenConflict(${c.id})">Re-open</button>
+                           <button class="btn-resolve reopen" onclick="reopenConflict(${c.id})">${escapeHtml(window.t('contracts.rfp.consolidate.reopen'))}</button>
                        </div>`
                     : `<div class="conflict-actions">
                            ${aMissing || bMissing ? '' : `
-                               <button class="btn-resolve choose-a" onclick="openResolveModal(${c.id}, 'chose_a')">Choose A</button>
-                               <button class="btn-resolve choose-b" onclick="openResolveModal(${c.id}, 'chose_b')">Choose B</button>
-                               <button class="btn-resolve merge"    onclick="mergeFromConflict(${c.id}, ${c.consolidated_id_a}, ${c.consolidated_id_b})">Merge into one</button>
+                               <button class="btn-resolve choose-a" onclick="openResolveModal(${c.id}, 'chose_a')">${escapeHtml(window.t('contracts.rfp.consolidate.choose_a'))}</button>
+                               <button class="btn-resolve choose-b" onclick="openResolveModal(${c.id}, 'chose_b')">${escapeHtml(window.t('contracts.rfp.consolidate.choose_b'))}</button>
+                               <button class="btn-resolve merge"    onclick="mergeFromConflict(${c.id}, ${c.consolidated_id_a}, ${c.consolidated_id_b})">${escapeHtml(window.t('contracts.rfp.consolidate.merge_into_one'))}</button>
                            `}
-                           <button class="btn-resolve dismiss" onclick="openResolveModal(${c.id}, 'dismissed')">Dismiss</button>
+                           <button class="btn-resolve dismiss" onclick="openResolveModal(${c.id}, 'dismissed')">${escapeHtml(window.t('contracts.rfp.consolidate.dismiss'))}</button>
                        </div>`;
             }
 
@@ -921,15 +926,15 @@ $path_prefix  = '../../';
                 <div class="conflict-row ${isResolved ? 'resolved-row' : ''}" data-conflict-id="${c.id}">
                     <div class="conflict-pair">
                         <div class="conflict-side">
-                            <div class="side-label">Side A · ${escapeHtml(c.a_priority || '')}</div>
+                            <div class="side-label">${escapeHtml(window.t('contracts.rfp.consolidate.side_a'))} · ${escapeHtml(c.a_priority || '')}</div>
                             <div class="side-text">${aText}</div>
                         </div>
                         <div class="conflict-side">
-                            <div class="side-label">Side B · ${escapeHtml(c.b_priority || '')}</div>
+                            <div class="side-label">${escapeHtml(window.t('contracts.rfp.consolidate.side_b'))} · ${escapeHtml(c.b_priority || '')}</div>
                             <div class="side-text">${bText}</div>
                         </div>
                     </div>
-                    ${c.ai_explanation ? `<div class="conflict-explanation"><strong>Why this conflicts:</strong> ${escapeHtml(c.ai_explanation)}</div>` : ''}
+                    ${c.ai_explanation ? `<div class="conflict-explanation"><strong>${escapeHtml(window.t('contracts.rfp.consolidate.why_conflicts'))}</strong> ${escapeHtml(c.ai_explanation)}</div>` : ''}
                     ${resolutionBlock}
                     ${actions}
                 </div>
@@ -948,7 +953,7 @@ $path_prefix  = '../../';
             const label = document.getElementById('srcLabel-' + consId);
             const isOpen = list.classList.toggle('open');
             const count = list.querySelectorAll('.source-item').length;
-            label.textContent = (isOpen ? 'Hide' : 'Show') + ' sources (' + count + ')';
+            label.textContent = isOpen ? window.t('contracts.rfp.consolidate.hide_sources', { n: count }) : window.t('contracts.rfp.consolidate.show_sources', { n: count });
         }
 
         let activeStream = null;
@@ -957,7 +962,7 @@ $path_prefix  = '../../';
         let streamAccumulated = '';
 
         async function runConsolidation() {
-            if (!(await showConfirm({ title: 'Run AI consolidation', message: 'Run AI consolidation now?\n\nThis takes 60-180 seconds and replaces any existing consolidation, categories and conflicts for this RFP.\n\nYou can watch the AI work live in the modal that opens.', okLabel: 'Run', okClass: 'primary' }))) return;
+            if (!(await showConfirm({ title: window.t('contracts.rfp.consolidate.run_ai_title'), message: window.t('contracts.rfp.consolidate.run_ai_msg'), okLabel: window.t('contracts.rfp.consolidate.run_label'), okClass: 'primary' }))) return;
             openStreamModal();
 
             // EventSource is the simplest browser API for SSE — connection
@@ -997,7 +1002,7 @@ $path_prefix  = '../../';
                 // Two ways this fires: (a) explicit `event: error` from the
                 // server with a JSON message, or (b) connection-level
                 // failures where e.data is undefined. Handle both.
-                let msg = 'Connection error';
+                let msg = window.t('contracts.rfp.document.connection_error');
                 if (e.data) {
                     try { msg = (JSON.parse(e.data).error) || msg; } catch (_) { msg = e.data; }
                 }
@@ -1013,11 +1018,11 @@ $path_prefix  = '../../';
             document.getElementById('streamCacheRead').textContent = '0';
             document.getElementById('streamElapsed').textContent   = '0s';
             const phase = document.getElementById('streamPhase');
-            phase.textContent = 'Starting…';
+            phase.textContent = window.t('contracts.rfp.consolidate.starting');
             phase.className = 'stream-phase';
             document.getElementById('streamSpinner').classList.remove('done');
             document.getElementById('streamCloseBtn').disabled = true;
-            document.getElementById('streamTitle').textContent = 'Running consolidation';
+            document.getElementById('streamTitle').textContent = window.t('contracts.rfp.consolidate.running');
             document.getElementById('runBtn').disabled = true;
             // Reset tracker
             streamAccumulated = '';
@@ -1058,9 +1063,11 @@ $path_prefix  = '../../';
             if (count === null || count === undefined) {
                 cnt.textContent = state === 'pending' ? '—' : '0';
             } else {
-                const noun = key === 'Cats' ? 'category' : (key === 'Cons' ? 'req' : 'conflict');
-                const plural = count === 1 ? noun : noun.replace(/y$/, 'ie') + 's';
-                cnt.textContent = count + ' ' + plural;
+                let label;
+                if (key === 'Cats') label = count === 1 ? window.t('contracts.rfp.consolidate.count_category_one', { n: count }) : window.t('contracts.rfp.consolidate.count_category_other', { n: count });
+                else if (key === 'Cons') label = count === 1 ? window.t('contracts.rfp.consolidate.count_req_one', { n: count }) : window.t('contracts.rfp.consolidate.count_req_other', { n: count });
+                else label = count === 1 ? window.t('contracts.rfp.consolidate.count_conflict_one', { n: count }) : window.t('contracts.rfp.consolidate.count_conflict_other', { n: count });
+                cnt.textContent = label;
             }
         }
 
@@ -1094,7 +1101,7 @@ $path_prefix  = '../../';
             if (activeStream) { activeStream.close(); activeStream = null; }
             if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
             document.getElementById('streamSpinner').classList.add('done');
-            document.getElementById('streamTitle').textContent = 'Consolidation complete';
+            document.getElementById('streamTitle').textContent = window.t('contracts.rfp.consolidate.complete');
             // Mark all three tasks done with their final committed counts
             // (these come from the server, which match the actual DB state
             // — slightly more authoritative than the live stream parsing).
@@ -1102,10 +1109,10 @@ $path_prefix  = '../../';
             setPTask('Cons', 'done', data.counts.consolidated);
             setPTask('Conf', 'done', data.counts.conflicts);
             setPhase(
-                data.counts.categories + ' categories · ' +
-                data.counts.consolidated + ' consolidated · ' +
-                data.counts.conflicts + ' conflicts · ' +
-                (data.counts.orphan_extracted > 0 ? data.counts.orphan_extracted + ' orphans · ' : '') +
+                window.t('contracts.rfp.consolidate.summary_categories', { n: data.counts.categories }) + ' · ' +
+                window.t('contracts.rfp.consolidate.summary_consolidated', { n: data.counts.consolidated }) + ' · ' +
+                window.t('contracts.rfp.consolidate.summary_conflicts', { n: data.counts.conflicts }) + ' · ' +
+                (data.counts.orphan_extracted > 0 ? window.t('contracts.rfp.consolidate.summary_orphans', { n: data.counts.orphan_extracted }) + ' · ' : '') +
                 (data.duration_ms / 1000).toFixed(1) + 's',
                 true
             );
@@ -1119,8 +1126,8 @@ $path_prefix  = '../../';
             if (activeStream) { activeStream.close(); activeStream = null; }
             if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
             document.getElementById('streamSpinner').classList.add('done');
-            document.getElementById('streamTitle').textContent = 'Consolidation failed';
-            setPhase('Error: ' + msg, 'error');
+            document.getElementById('streamTitle').textContent = window.t('contracts.rfp.consolidate.failed');
+            setPhase(window.t('contracts.rfp.document.error_prefix') + ' ' + msg, 'error');
             document.getElementById('streamCloseBtn').disabled = false;
         }
 
@@ -1145,7 +1152,7 @@ $path_prefix  = '../../';
             banner.style.display  = locked ? '' : 'none';
             // Lock button only after we have rows to lock.
             lockBtn.style.display = rowCount > 0 ? '' : 'none';
-            lockBtn.textContent   = locked ? 'Unlock' : 'Lock for generation';
+            lockBtn.textContent   = locked ? window.t('contracts.rfp.consolidate.unlock') : window.t('contracts.rfp.consolidate.lock_for_generation');
             lockBtn.classList.toggle('btn-secondary', locked);
             lockBtn.classList.toggle('btn-primary',   !locked);
             // Re-running consolidation while locked would wipe everything,
@@ -1158,9 +1165,9 @@ $path_prefix  = '../../';
             const isLocked = pageData.consolidated.length > 0 && pageData.consolidated.every(r => r.is_locked);
             const wantLock = !isLocked;
             const msg = wantLock
-                ? 'Lock all ' + pageData.consolidated.length + ' consolidated requirements for Phase 4 generation?\n\nAll editing tools will be disabled until you unlock again.'
-                : 'Unlock the consolidated requirements for editing?\n\nIf Phase 4 generation has already used these, regenerated sections will reflect any changes you make.';
-            if (!(await showConfirm({ title: 'Confirm', message: msg, okLabel: 'OK', okClass: 'primary' }))) return;
+                ? window.t('contracts.rfp.consolidate.lock_confirm', { n: pageData.consolidated.length })
+                : window.t('contracts.rfp.consolidate.unlock_confirm');
+            if (!(await showConfirm({ title: window.t('contracts.rfp.document.confirm'), message: msg, okLabel: window.t('common.ok'), okClass: 'primary' }))) return;
 
             const btn = document.getElementById('lockBtn');
             btn.disabled = true;
@@ -1171,10 +1178,10 @@ $path_prefix  = '../../';
                     body: JSON.stringify({ rfp_id: parseInt(rfpId, 10), lock: wantLock })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Lock failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.consolidate.lock_failed_short'));
                 loadAll();
             } catch (err) {
-                showToast('Failed: ' + err.message, 'error');
+                showToast(window.t('common.failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -1201,7 +1208,7 @@ $path_prefix  = '../../';
             const count = selectedIds.size;
             if (count >= 2) {
                 bar.classList.add('active');
-                document.getElementById('mergeCount').textContent = count + ' selected for merge';
+                document.getElementById('mergeCount').textContent = window.t('contracts.rfp.consolidate.selected_for_merge', { n: count });
             } else {
                 bar.classList.remove('active');
             }
@@ -1214,7 +1221,7 @@ $path_prefix  = '../../';
         }
 
         function populateCategoryDropdown(selectEl, selectedId) {
-            const opts = ['<option value="">(Uncategorised)</option>']
+            const opts = ['<option value="">' + escapeHtml(window.t('contracts.rfp.consolidate.uncategorised_option')) + '</option>']
                 .concat(pageData.categories.map(c =>
                     '<option value="' + c.id + '"' + (c.id === selectedId ? ' selected' : '') + '>' +
                     escapeHtml(c.name) + '</option>'
@@ -1232,7 +1239,7 @@ $path_prefix  = '../../';
             if (!r) return;
             editMode = 'edit';
             editingId = id;
-            document.getElementById('editModalTitle').textContent = 'Edit requirement';
+            document.getElementById('editModalTitle').textContent = window.t('contracts.rfp.consolidate.edit_requirement');
             document.getElementById('editText').value      = r.requirement_text || '';
             document.getElementById('editType').value      = r.requirement_type || 'requirement';
             document.getElementById('editPriority').value  = r.priority || 'medium';
@@ -1244,7 +1251,7 @@ $path_prefix  = '../../';
         function openAddModal() {
             editMode = 'add';
             editingId = null;
-            document.getElementById('editModalTitle').textContent = 'Add custom requirement';
+            document.getElementById('editModalTitle').textContent = window.t('contracts.rfp.consolidate.add_custom_requirement');
             document.getElementById('editText').value      = '';
             document.getElementById('editType').value      = 'requirement';
             document.getElementById('editPriority').value  = 'medium';
@@ -1265,7 +1272,7 @@ $path_prefix  = '../../';
                 category_id:      document.getElementById('editCategory').value || null,
                 ai_rationale:     document.getElementById('editRationale').value.trim()
             };
-            if (!payload.requirement_text) { showToast('Requirement text is required.', 'error'); return; }
+            if (!payload.requirement_text) { showToast(window.t('contracts.rfp.consolidate.text_required'), 'error'); return; }
 
             const btn = document.getElementById('editSaveBtn');
             btn.disabled = true;
@@ -1284,11 +1291,11 @@ $path_prefix  = '../../';
                     body
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Save failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.suppliers.save_failed_short'));
                 closeEditModal();
                 loadAll();
             } catch (err) {
-                showToast('Save failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.save_failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -1299,7 +1306,7 @@ $path_prefix  = '../../';
         async function deleteRow(id) {
             const r = findCons(id);
             if (!r) return;
-            if (!(await showConfirm({ title: 'Delete', message: 'Delete this consolidated requirement?\n\n"' + r.requirement_text.slice(0, 120) + '"\n\nThe linked source items remain untouched.', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.rfp.consolidate.delete_confirm', { preview: r.requirement_text.slice(0, 120) }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const res = await fetch(API_BASE + 'delete_consolidated.php', {
                     method: 'POST',
@@ -1307,11 +1314,11 @@ $path_prefix  = '../../';
                     body: JSON.stringify({ id })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Delete failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.list.delete_failed_short'));
                 selectedIds.delete(id);
                 loadAll();
             } catch (err) {
-                showToast('Delete failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.delete_failed') + ' ' + err.message, 'error');
             }
         }
 
@@ -1335,10 +1342,10 @@ $path_prefix  = '../../';
                 <div class="source-pick-row" data-extracted-id="${s.extracted_id}">
                     <div class="source-pick-info">
                         <div class="source-text">${escapeHtml(s.requirement_text)}</div>
-                        <div class="source-meta">${escapeHtml(s.department_name || 'Unassigned')} · ${escapeHtml(s.document_filename || '')} · extracted #${s.extracted_id}</div>
+                        <div class="source-meta">${escapeHtml(s.department_name || window.t('contracts.rfp.documents.unassigned'))} · ${escapeHtml(s.document_filename || '')} · ${escapeHtml(window.t('contracts.rfp.consolidate.extracted_n', { n: s.extracted_id }))}</div>
                     </div>
                     <select data-source-target>
-                        <option value="">(Drop)</option>
+                        <option value="">${escapeHtml(window.t('contracts.rfp.consolidate.drop_option'))}</option>
                     </select>
                 </div>
             `).join('');
@@ -1370,31 +1377,31 @@ $path_prefix  = '../../';
             div.className = 'split-row-card';
             div.dataset.splitRow = num;
             div.innerHTML = `
-                <span class="split-row-num">Row ${num}</span>
-                <button class="split-row-remove" type="button" title="Remove this row" onclick="removeSplitRow(${num})">&times;</button>
+                <span class="split-row-num">${escapeHtml(window.t('contracts.rfp.consolidate.row_n', { n: num }))}</span>
+                <button class="split-row-remove" type="button" title="${escapeHtml(window.t('contracts.rfp.consolidate.remove_row'))}" onclick="removeSplitRow(${num})">&times;</button>
                 <div class="form-row">
-                    <textarea data-split-text placeholder="Requirement text"></textarea>
+                    <textarea data-split-text placeholder="${escapeHtml(window.t('contracts.rfp.extracted.requirement_text'))}"></textarea>
                 </div>
                 <div class="form-row-grid">
                     <div class="form-row">
-                        <label>Type</label>
+                        <label>${escapeHtml(window.t('contracts.rfp.extracted.type'))}</label>
                         <select data-split-type>
-                            <option value="requirement">Requirement</option>
-                            <option value="pain_point">Pain point</option>
-                            <option value="challenge">Challenge</option>
+                            <option value="requirement">${escapeHtml(window.t('contracts.rfp.extracted.type_requirement'))}</option>
+                            <option value="pain_point">${escapeHtml(window.t('contracts.rfp.extracted.type_pain_point'))}</option>
+                            <option value="challenge">${escapeHtml(window.t('contracts.rfp.extracted.type_challenge'))}</option>
                         </select>
                     </div>
                     <div class="form-row">
-                        <label>Priority</label>
+                        <label>${escapeHtml(window.t('contracts.detail.field_priority'))}</label>
                         <select data-split-priority>
-                            <option value="critical">Critical</option>
-                            <option value="high">High</option>
-                            <option value="medium" selected>Medium</option>
-                            <option value="low">Low</option>
+                            <option value="critical">${escapeHtml(window.t('contracts.rfp.consolidate.prio_critical'))}</option>
+                            <option value="high">${escapeHtml(window.t('contracts.priority.high'))}</option>
+                            <option value="medium" selected>${escapeHtml(window.t('contracts.priority.medium'))}</option>
+                            <option value="low">${escapeHtml(window.t('contracts.priority.low'))}</option>
                         </select>
                     </div>
                     <div class="form-row">
-                        <label>Category</label>
+                        <label>${escapeHtml(window.t('contracts.rfp.compare.col_category'))}</label>
                         <select data-split-category></select>
                     </div>
                 </div>
@@ -1418,7 +1425,7 @@ $path_prefix  = '../../';
             if (!card) return;
             // Don't allow fewer than 2 rows
             if (document.querySelectorAll('.split-row-card').length <= 2) {
-                showToast('A split needs at least 2 rows. Cancel the split if you only want one.', 'error');
+                showToast(window.t('contracts.rfp.consolidate.split_min_rows'), 'error');
                 return;
             }
             card.remove();
@@ -1432,7 +1439,7 @@ $path_prefix  = '../../';
             cards.forEach((card, i) => {
                 const num = i + 1;
                 card.dataset.splitRow = num;
-                card.querySelector('.split-row-num').textContent = 'Row ' + num;
+                card.querySelector('.split-row-num').textContent = window.t('contracts.rfp.consolidate.row_n', { n: num });
                 card.querySelector('.split-row-remove').setAttribute('onclick', 'removeSplitRow(' + num + ')');
             });
             splitRowCount = cards.length;
@@ -1440,8 +1447,8 @@ $path_prefix  = '../../';
 
         function refreshSplitSourceOptions() {
             const cards = document.querySelectorAll('.split-row-card');
-            const opts = ['<option value="">(Drop)</option>']
-                .concat(Array.from(cards).map((_, i) => '<option value="' + (i + 1) + '">Row ' + (i + 1) + '</option>'));
+            const opts = ['<option value="">' + escapeHtml(window.t('contracts.rfp.consolidate.drop_option')) + '</option>']
+                .concat(Array.from(cards).map((_, i) => '<option value="' + (i + 1) + '">' + escapeHtml(window.t('contracts.rfp.consolidate.row_n', { n: (i + 1) })) + '</option>'));
             document.querySelectorAll('#splitSourceList select[data-source-target]').forEach(sel => {
                 const prev = sel.value;
                 sel.innerHTML = opts.join('');
@@ -1471,7 +1478,7 @@ $path_prefix  = '../../';
             });
 
             if (newRows.some(r => !r.requirement_text)) {
-                showToast('Every new row needs a requirement text.', 'error');
+                showToast(window.t('contracts.rfp.consolidate.every_row_text'), 'error');
                 return;
             }
 
@@ -1482,11 +1489,11 @@ $path_prefix  = '../../';
                     body: JSON.stringify({ id: splittingId, new_rows: newRows })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Split failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.consolidate.split_failed_short'));
                 closeSplitModal();
                 loadAll();
             } catch (err) {
-                showToast('Split failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.consolidate.split_failed') + ' ' + err.message, 'error');
             }
         }
 
@@ -1495,7 +1502,7 @@ $path_prefix  = '../../';
         function openMergeModal() {
             const ids = Array.from(selectedIds);
             if (ids.length < 2) {
-                showToast('Select at least 2 requirements to merge.', 'error');
+                showToast(window.t('contracts.rfp.consolidate.select_two'), 'error');
                 return;
             }
             const rows = ids.map(findCons).filter(Boolean);
@@ -1511,7 +1518,7 @@ $path_prefix  = '../../';
             document.getElementById('mergeRationale').value = '';
 
             document.getElementById('mergeSummary').innerHTML =
-                '<strong>Merging ' + rows.length + ' rows.</strong> Source items from all rows will be unioned onto the merged row. Conflicts attached to the merged-away rows will be removed (re-detect on next consolidation if needed).' +
+                '<strong>' + escapeHtml(window.t('contracts.rfp.consolidate.merging_n', { n: rows.length })) + '</strong> ' + escapeHtml(window.t('contracts.rfp.consolidate.merging_help')) +
                 '<ul>' + rows.map(r => '<li>' + escapeHtml(r.requirement_text.slice(0, 140)) + (r.requirement_text.length > 140 ? '…' : '') + '</li>').join('') + '</ul>';
 
             document.getElementById('mergeModal').style.display = 'flex';
@@ -1535,7 +1542,7 @@ $path_prefix  = '../../';
                 }
             };
             if (!payload.merged.requirement_text) {
-                showToast('Merged requirement text is required.', 'error');
+                showToast(window.t('contracts.rfp.consolidate.merged_text_required'), 'error');
                 return;
             }
 
@@ -1546,12 +1553,12 @@ $path_prefix  = '../../';
                     body: JSON.stringify(payload)
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Merge failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.consolidate.merge_failed_short'));
                 closeMergeModal();
                 clearSelection();
                 loadAll();
             } catch (err) {
-                showToast('Merge failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.consolidate.merge_failed') + ' ' + err.message, 'error');
             }
         }
 
@@ -1567,24 +1574,24 @@ $path_prefix  = '../../';
             resolvingResolution = resolution;
 
             const titles = {
-                chose_a:   'Choose Side A',
-                chose_b:   'Choose Side B',
-                dismissed: 'Dismiss conflict'
+                chose_a:   window.t('contracts.rfp.consolidate.choose_side_a'),
+                chose_b:   window.t('contracts.rfp.consolidate.choose_side_b'),
+                dismissed: window.t('contracts.rfp.consolidate.dismiss_conflict')
             };
-            document.getElementById('resolveModalTitle').textContent = titles[resolution] || 'Resolve conflict';
+            document.getElementById('resolveModalTitle').textContent = titles[resolution] || window.t('contracts.rfp.consolidate.resolve_conflict');
 
-            const aText = conflict.a_text || '(deleted)';
-            const bText = conflict.b_text || '(deleted)';
+            const aText = conflict.a_text || window.t('contracts.rfp.consolidate.deleted');
+            const bText = conflict.b_text || window.t('contracts.rfp.consolidate.deleted');
             let context;
             if (resolution === 'chose_a') {
-                context = '<strong>Going with Side A:</strong> ' + escapeHtml(aText) +
-                          '<br><br><span style="color:#888;">Side B will remain in the consolidated list — delete or edit it manually if you want it gone.</span>';
+                context = '<strong>' + escapeHtml(window.t('contracts.rfp.consolidate.going_a')) + '</strong> ' + escapeHtml(aText) +
+                          '<br><br><span style="color:#888;">' + escapeHtml(window.t('contracts.rfp.consolidate.side_b_remains')) + '</span>';
             } else if (resolution === 'chose_b') {
-                context = '<strong>Going with Side B:</strong> ' + escapeHtml(bText) +
-                          '<br><br><span style="color:#888;">Side A will remain in the consolidated list — delete or edit it manually if you want it gone.</span>';
+                context = '<strong>' + escapeHtml(window.t('contracts.rfp.consolidate.going_b')) + '</strong> ' + escapeHtml(bText) +
+                          '<br><br><span style="color:#888;">' + escapeHtml(window.t('contracts.rfp.consolidate.side_a_remains')) + '</span>';
             } else {
-                context = '<strong>Dismissing as not a real conflict.</strong><br><br>' +
-                          '<span style="color:#888;">Both sides remain in the consolidated list. The conflict will move to the resolved section.</span>';
+                context = '<strong>' + escapeHtml(window.t('contracts.rfp.consolidate.dismissing')) + '</strong><br><br>' +
+                          '<span style="color:#888;">' + escapeHtml(window.t('contracts.rfp.consolidate.dismissing_note')) + '</span>';
             }
             document.getElementById('resolveContext').innerHTML = context;
             document.getElementById('resolveNotes').value = '';
@@ -1609,18 +1616,18 @@ $path_prefix  = '../../';
                     })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Resolve failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.consolidate.resolve_failed_short'));
                 closeResolveModal();
                 loadAll();
             } catch (err) {
-                showToast('Resolve failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.consolidate.resolve_failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
         }
 
         async function reopenConflict(conflictId) {
-            if (!(await showConfirm({ title: 'Confirm', message: 'Re-open this conflict? Its current resolution and notes will be cleared.', okLabel: 'OK', okClass: 'primary' }))) return;
+            if (!(await showConfirm({ title: window.t('contracts.rfp.document.confirm'), message: window.t('contracts.rfp.consolidate.reopen_confirm'), okLabel: window.t('common.ok'), okClass: 'primary' }))) return;
             try {
                 const res = await fetch(API_BASE + 'resolve_conflict.php', {
                     method: 'POST',
@@ -1628,10 +1635,10 @@ $path_prefix  = '../../';
                     body: JSON.stringify({ id: conflictId, resolution: 'open' })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Re-open failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.consolidate.reopen_failed_short'));
                 loadAll();
             } catch (err) {
-                showToast('Re-open failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.consolidate.reopen_failed') + ' ' + err.message, 'error');
             }
         }
 
@@ -1664,6 +1671,22 @@ $path_prefix  = '../../';
             return String(str)
                 .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        function reqTypeLabel(t) {
+            const key = 'contracts.rfp.req_type.' + t;
+            const label = window.t(key);
+            return label === key ? (t || '').replace('_', ' ') : label;
+        }
+        function priorityLabel(p) {
+            const key = 'contracts.rfp.req_priority.' + p;
+            const label = window.t(key);
+            return label === key ? p : label;
+        }
+        function resolutionLabel(res) {
+            const key = 'contracts.rfp.consolidate.resolution_' + res;
+            const label = window.t(key);
+            return label === key ? (res || '').replace('_', ' ') : label;
         }
     </script>
 </body>

@@ -10,16 +10,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix  = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Suppliers</title>
+    <title><?php echo htmlspecialchars(t('contracts.suppliers.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
@@ -166,21 +171,21 @@ $path_prefix  = '../../';
 
     <div class="page-wrap">
         <div class="breadcrumb">
-            <a href="../">Contracts</a><span class="sep">›</span>
-            <a href="./">RFP Builder</a><span class="sep">›</span>
+            <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span class="sep">›</span>
+            <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span class="sep">›</span>
             <a id="bcRfp" href="#">-</a><span class="sep">›</span>
-            <span>Suppliers</span>
+            <span><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></span>
         </div>
 
         <div class="page-header">
-            <h1>Suppliers</h1>
+            <h1><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></h1>
             <div class="page-actions">
-                <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
-                <button id="inviteBtn" class="btn btn-primary" onclick="openInviteModal()">+ Add supplier</button>
+                <a id="backLink" href="#" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.rfp.suppliers.overview')); ?></a>
+                <button id="inviteBtn" class="btn btn-primary" onclick="openInviteModal()">+ <?php echo htmlspecialchars(t('contracts.rfp.suppliers.add_supplier')); ?></button>
             </div>
         </div>
 
-        <div id="loadingEl" class="loading">Loading…</div>
+        <div id="loadingEl" class="loading"><?php echo htmlspecialchars(t('common.loading')); ?></div>
         <div id="contentEl" style="display:none;"></div>
         <div id="errorEl" class="error-state" style="display:none;"></div>
     </div>
@@ -189,68 +194,68 @@ $path_prefix  = '../../';
     <div id="inviteModal" class="modal-backdrop" style="display:none;">
         <div class="modal-shell">
             <div class="modal-header">
-                <h3>Add supplier</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.rfp.suppliers.add_supplier')); ?></h3>
             </div>
             <div class="modal-tabs">
-                <button class="modal-tab active" id="tabExisting" onclick="setInviteTab('existing')">Pick existing</button>
-                <button class="modal-tab" id="tabNew" onclick="setInviteTab('new')">Create prospective</button>
+                <button class="modal-tab active" id="tabExisting" onclick="setInviteTab('existing')"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.tab_existing')); ?></button>
+                <button class="modal-tab" id="tabNew" onclick="setInviteTab('new')"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.tab_new')); ?></button>
             </div>
             <div class="modal-body">
                 <!-- Existing supplier picker -->
                 <div id="existingPane">
                     <div class="form-row">
-                        <label for="pickSupplier">Supplier</label>
+                        <label for="pickSupplier"><?php echo htmlspecialchars(t('contracts.detail.supplier')); ?></label>
                         <select id="pickSupplier">
-                            <option value="">— Select a supplier —</option>
+                            <option value="">— <?php echo htmlspecialchars(t('contracts.rfp.suppliers.select_supplier')); ?> —</option>
                         </select>
-                        <div class="help">Pulled from your existing suppliers list. Suppliers already invited to this RFP are hidden.</div>
+                        <div class="help"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.picker_help')); ?></div>
                     </div>
                     <div class="form-row-grid">
                         <div class="form-row">
-                            <label for="pickDemoDate">Demo date (optional)</label>
+                            <label for="pickDemoDate"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.demo_date_optional')); ?></label>
                             <input type="date" id="pickDemoDate">
                         </div>
                     </div>
                     <div class="form-row">
-                        <label for="pickNotes">Notes (optional)</label>
-                        <textarea id="pickNotes" rows="3" placeholder="Anything specific to this RFP — pricing approach, key contact, etc."></textarea>
+                        <label for="pickNotes"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.notes_optional')); ?></label>
+                        <textarea id="pickNotes" rows="3" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.suppliers.pick_notes_ph')); ?>"></textarea>
                     </div>
                 </div>
 
                 <!-- Create prospective supplier -->
                 <div id="newPane" style="display:none;">
                     <div class="form-row">
-                        <label for="newLegalName">Supplier name</label>
-                        <input type="text" id="newLegalName" placeholder="e.g. ServiceNow Limited" maxlength="255">
-                        <div class="help">The legal name as you'd write it on a contract. Required.</div>
+                        <label for="newLegalName"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.supplier_name')); ?></label>
+                        <input type="text" id="newLegalName" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.suppliers.legal_name_ph')); ?>" maxlength="255">
+                        <div class="help"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.legal_name_help')); ?></div>
                     </div>
                     <div class="form-row">
-                        <label for="newTradingName">Trading name (optional)</label>
-                        <input type="text" id="newTradingName" placeholder="e.g. ServiceNow" maxlength="255">
+                        <label for="newTradingName"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.trading_name_optional')); ?></label>
+                        <input type="text" id="newTradingName" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.suppliers.trading_name_ph')); ?>" maxlength="255">
                     </div>
                     <div class="form-row">
-                        <label for="newComments">Comments (optional)</label>
-                        <textarea id="newComments" rows="2" placeholder="Anything you know about them — referrer, prior conversations, etc."></textarea>
+                        <label for="newComments"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.comments_optional')); ?></label>
+                        <textarea id="newComments" rows="2" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.suppliers.comments_ph')); ?>"></textarea>
                     </div>
                     <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
                     <div class="form-row-grid">
                         <div class="form-row">
-                            <label for="newDemoDate">Demo date (optional)</label>
+                            <label for="newDemoDate"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.demo_date_optional')); ?></label>
                             <input type="date" id="newDemoDate">
                         </div>
                     </div>
                     <div class="form-row">
-                        <label for="newNotes">RFP notes (optional)</label>
+                        <label for="newNotes"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.rfp_notes_optional')); ?></label>
                         <textarea id="newNotes" rows="2"></textarea>
                     </div>
                     <div class="help" style="background:#fef3c7;border:1px solid #fde68a;border-radius:6px;padding:8px 12px;color:#92400e;font-size:12px;">
-                        This creates a new entry in the suppliers list (status: Prospective if that lookup exists) and adds them to this RFP. You can flesh out the supplier record later from the Suppliers module.
+                        <?php echo htmlspecialchars(t('contracts.rfp.suppliers.prospective_help')); ?>
                     </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeInviteModal()">Cancel</button>
-                <button class="btn btn-primary" id="inviteSaveBtn" onclick="saveInvite()">Add</button>
+                <button class="btn btn-secondary" onclick="closeInviteModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="inviteSaveBtn" onclick="saveInvite()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
         </div>
     </div>
@@ -264,7 +269,7 @@ $path_prefix  = '../../';
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId) {
-                showError('No RFP id supplied. <a href="./">Back to list</a>.');
+                showError(window.t('contracts.rfp.view.no_id') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.');
                 return;
             }
             document.getElementById('backLink').href = 'view.php?id=' + encodeURIComponent(rfpId);
@@ -277,8 +282,8 @@ $path_prefix  = '../../';
                     fetch(API_BASE + 'get_rfp.php?id=' + encodeURIComponent(rfpId)).then(r => r.json()),
                     fetch(API_BASE + 'get_invited_suppliers.php?rfp_id=' + encodeURIComponent(rfpId)).then(r => r.json())
                 ]);
-                if (!rfpRes.success) throw new Error(rfpRes.error || 'Failed to load RFP');
-                if (!invRes.success) throw new Error(invRes.error || 'Failed to load suppliers');
+                if (!rfpRes.success) throw new Error(rfpRes.error || window.t('contracts.rfp.suppliers.load_rfp_failed'));
+                if (!invRes.success) throw new Error(invRes.error || window.t('contracts.rfp.suppliers.load_suppliers_failed'));
 
                 const bc = document.getElementById('bcRfp');
                 bc.textContent = rfpRes.rfp.name;
@@ -298,8 +303,8 @@ $path_prefix  = '../../';
             if (!rows || rows.length === 0) {
                 contentEl.innerHTML = `
                     <div class="empty-card">
-                        <p><strong>No suppliers added yet.</strong></p>
-                        <p>Click <em>+ Add supplier</em> to add one from your existing suppliers list, or create a new prospective supplier inline.</p>
+                        <p><strong>${escapeHtml(window.t('contracts.rfp.suppliers.empty_title'))}</strong></p>
+                        <p>${window.t('contracts.rfp.suppliers.empty_body')}</p>
                     </div>
                 `;
                 return;
@@ -313,14 +318,14 @@ $path_prefix  = '../../';
         function renderSupplierRow(r) {
             const display    = r.display_name || r.legal_name;
             const tradingExtra = (r.trading_name && r.trading_name !== r.legal_name)
-                ? '<div class="trading">Legal: ' + escapeHtml(r.legal_name) + '</div>'
+                ? '<div class="trading">' + escapeHtml(window.t('contracts.rfp.suppliers.legal_prefix')) + ' ' + escapeHtml(r.legal_name) + '</div>'
                 : '';
             const statusKey = (r.status_name || '').toLowerCase();
             const statusPill = r.status_name
                 ? '<span class="status-pill ' + escapeHtml(statusKey) + '">' + escapeHtml(r.status_name) + '</span>'
                 : '';
             const invited = r.invited_datetime
-                ? '<div class="invited-at">Added ' + escapeHtml(formatDate(r.invited_datetime)) + '</div>'
+                ? '<div class="invited-at">' + escapeHtml(window.t('contracts.rfp.suppliers.added_prefix')) + ' ' + escapeHtml(formatDate(r.invited_datetime)) + '</div>'
                 : '';
 
             return `
@@ -334,18 +339,18 @@ $path_prefix  = '../../';
                         ${invited}
                     </div>
                     <div class="supplier-field">
-                        <label>Demo date</label>
+                        <label>${escapeHtml(window.t('contracts.rfp.suppliers.demo_date'))}</label>
                         <input type="date" value="${r.demo_date ? escapeHtml(r.demo_date) : ''}" onchange="onFieldChange(${r.id}, 'demo_date', this.value)">
                         <div class="save-status" id="ss-${r.id}-demo_date"></div>
                     </div>
                     <div class="supplier-field">
-                        <label>Notes</label>
+                        <label>${escapeHtml(window.t('contracts.rfp.suppliers.notes'))}</label>
                         <textarea rows="2" oninput="onFieldChange(${r.id}, 'notes', this.value)" placeholder="…">${escapeHtml(r.notes || '')}</textarea>
                         <div class="save-status" id="ss-${r.id}-notes"></div>
                     </div>
                     <div class="supplier-actions">
-                        <a class="btn btn-primary" href="scoring.php?id=${encodeURIComponent(rfpId)}&supplier=${r.supplier_id}">Score</a>
-                        <button class="btn btn-danger" onclick="removeInvitation(${r.id})">Remove</button>
+                        <a class="btn btn-primary" href="scoring.php?id=${encodeURIComponent(rfpId)}&supplier=${r.supplier_id}">${escapeHtml(window.t('contracts.rfp.suppliers.score'))}</a>
+                        <button class="btn btn-danger" onclick="removeInvitation(${r.id})">${escapeHtml(window.t('contracts.rfp.suppliers.remove'))}</button>
                     </div>
                 </div>
             `;
@@ -357,7 +362,7 @@ $path_prefix  = '../../';
             const key = invitationId + '-' + field;
             const statusEl = document.getElementById('ss-' + invitationId + '-' + field);
             if (statusEl) {
-                statusEl.textContent = 'saving…';
+                statusEl.textContent = window.t('contracts.rfp.suppliers.saving');
                 statusEl.className = 'save-status saving';
             }
             clearTimeout(saveTimers[key]);
@@ -386,17 +391,18 @@ $path_prefix  = '../../';
                     })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Save failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.suppliers.save_failed_short'));
                 if (statusEl) {
-                    statusEl.textContent = 'saved';
+                    const savedLabel = window.t('contracts.rfp.suppliers.saved');
+                    statusEl.textContent = savedLabel;
                     statusEl.className = 'save-status saved';
                     setTimeout(() => {
-                        if (statusEl.textContent === 'saved') statusEl.textContent = '';
+                        if (statusEl.textContent === savedLabel) statusEl.textContent = '';
                     }, 1500);
                 }
             } catch (err) {
                 if (statusEl) {
-                    statusEl.textContent = 'error: ' + err.message;
+                    statusEl.textContent = window.t('contracts.rfp.suppliers.error_prefix') + ' ' + err.message;
                     statusEl.className = 'save-status error';
                 }
             }
@@ -405,7 +411,7 @@ $path_prefix  = '../../';
         // ─── Remove ────────────────────────────────────────────────
 
         async function removeInvitation(invitationId) {
-            if (!(await showConfirm({ title: 'Delete', message: 'Remove this supplier from the RFP?\n\nAny scores already entered for them will be deleted. The supplier record itself stays in your main suppliers list.', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.rfp.suppliers.remove_confirm'), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const res = await fetch(API_BASE + 'remove_invited_supplier.php', {
                     method: 'POST',
@@ -413,10 +419,10 @@ $path_prefix  = '../../';
                     body: JSON.stringify({ id: invitationId })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Remove failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.suppliers.remove_failed_short'));
                 loadAll();
             } catch (err) {
-                showToast('Remove failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.suppliers.remove_failed') + ' ' + err.message, 'error');
             }
         }
 
@@ -434,7 +440,7 @@ $path_prefix  = '../../';
                 const res = await fetch(API_BASE + 'get_available_suppliers.php?rfp_id=' + encodeURIComponent(rfpId));
                 const data = await res.json();
                 const sel = document.getElementById('pickSupplier');
-                sel.innerHTML = '<option value="">— Select a supplier —</option>' +
+                sel.innerHTML = '<option value="">— ' + escapeHtml(window.t('contracts.rfp.suppliers.select_supplier')) + ' —</option>' +
                     (data.success ? data.suppliers.map(s =>
                         '<option value="' + s.id + '">' + escapeHtml(s.display_name) +
                         (s.status_name ? ' (' + escapeHtml(s.status_name) + ')' : '') +
@@ -466,7 +472,7 @@ $path_prefix  = '../../';
                 let url, body;
                 if (inviteTab === 'existing') {
                     const supplierId = parseInt(document.getElementById('pickSupplier').value, 10);
-                    if (!supplierId) throw new Error('Pick a supplier first');
+                    if (!supplierId) throw new Error(window.t('contracts.rfp.suppliers.pick_first'));
                     url  = API_BASE + 'invite_supplier.php';
                     body = {
                         rfp_id: parseInt(rfpId, 10),
@@ -476,7 +482,7 @@ $path_prefix  = '../../';
                     };
                 } else {
                     const legalName = document.getElementById('newLegalName').value.trim();
-                    if (!legalName) throw new Error('Supplier name is required');
+                    if (!legalName) throw new Error(window.t('contracts.rfp.suppliers.name_required'));
                     url  = API_BASE + 'create_prospective_supplier.php';
                     body = {
                         rfp_id: parseInt(rfpId, 10),
@@ -493,11 +499,11 @@ $path_prefix  = '../../';
                     body: JSON.stringify(body)
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Invite failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.suppliers.invite_failed_short'));
                 closeInviteModal();
                 loadAll();
             } catch (err) {
-                showToast('Invite failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.suppliers.invite_failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }

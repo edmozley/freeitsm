@@ -8,13 +8,16 @@
 session_start();
 $_SESSION['setup_access'] = true;
 
+require_once __DIR__ . '/../includes/i18n.php';
+I18n::initFromSession();
+
 $checks = [];
 $dbConnected = false;
 
 // 1. Check config.php exists
 $configPath = __DIR__ . '/../config.php';
 if (file_exists($configPath)) {
-    $checks[] = ['name' => 'config.php', 'status' => 'pass', 'detail' => 'Found'];
+    $checks[] = ['name' => t('setup.checks.config'), 'status' => 'pass', 'detail' => t('setup.detail.found')];
 
     // Extract $db_config_path by reading config.php as text (don't include it yet — require_once would fatal)
     $db_config_path = null;
@@ -26,16 +29,16 @@ if (file_exists($configPath)) {
     // 2. Check db_config.php exists
     if ($db_config_path) {
         if (file_exists($db_config_path)) {
-            $checks[] = ['name' => 'db_config.php', 'status' => 'pass', 'detail' => $db_config_path];
+            $checks[] = ['name' => t('setup.checks.db_config'), 'status' => 'pass', 'detail' => $db_config_path];
 
             // Safe to include config.php now (require_once inside it will succeed)
             require_once $configPath;
             require_once __DIR__ . '/../includes/functions.php';
         } else {
-            $checks[] = ['name' => 'db_config.php', 'status' => 'fail', 'detail' => "Not found at: $db_config_path"];
+            $checks[] = ['name' => t('setup.checks.db_config'), 'status' => 'fail', 'detail' => t('setup.detail.db_config_not_found', ['path' => $db_config_path])];
         }
     } else {
-        $checks[] = ['name' => 'db_config.php', 'status' => 'fail', 'detail' => '$db_config_path variable not set in config.php'];
+        $checks[] = ['name' => t('setup.checks.db_config'), 'status' => 'fail', 'detail' => t('setup.detail.db_config_path_unset')];
     }
 
     // 3. Database connection
@@ -45,13 +48,13 @@ if (file_exists($configPath)) {
             $dbConnected = true;
             // Identify which driver connected
             $driverInfo = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
-            $checks[] = ['name' => 'Database connection', 'status' => 'pass', 'detail' => "Connected (driver: $driverInfo)"];
+            $checks[] = ['name' => t('setup.checks.db_connection'), 'status' => 'pass', 'detail' => t('setup.detail.db_connected', ['driver' => $driverInfo])];
 
         } catch (Exception $e) {
-            $checks[] = ['name' => 'Database connection', 'status' => 'fail', 'detail' => $e->getMessage()];
+            $checks[] = ['name' => t('setup.checks.db_connection'), 'status' => 'fail', 'detail' => $e->getMessage()];
         }
     } else {
-        $checks[] = ['name' => 'Database connection', 'status' => 'fail', 'detail' => 'Database constants not defined — check db_config.php'];
+        $checks[] = ['name' => t('setup.checks.db_connection'), 'status' => 'fail', 'detail' => t('setup.detail.db_constants_undefined')];
     }
 
     // 4. Encryption key
@@ -61,43 +64,43 @@ if (file_exists($configPath)) {
     }
     if (defined('ENCRYPTION_KEY_PATH')) {
         if (file_exists(ENCRYPTION_KEY_PATH)) {
-            $checks[] = ['name' => 'Encryption key', 'status' => 'pass', 'detail' => ENCRYPTION_KEY_PATH];
+            $checks[] = ['name' => t('setup.checks.encryption_key'), 'status' => 'pass', 'detail' => ENCRYPTION_KEY_PATH];
         } else {
-            $checks[] = ['name' => 'Encryption key', 'status' => 'warn', 'detail' => 'Not found at: ' . ENCRYPTION_KEY_PATH . ' — needed for encrypting sensitive settings'];
+            $checks[] = ['name' => t('setup.checks.encryption_key'), 'status' => 'warn', 'detail' => t('setup.detail.encryption_key_missing', ['path' => ENCRYPTION_KEY_PATH])];
         }
     } else {
-        $checks[] = ['name' => 'Encryption key', 'status' => 'warn', 'detail' => 'ENCRYPTION_KEY_PATH not defined in includes/encryption.php'];
+        $checks[] = ['name' => t('setup.checks.encryption_key'), 'status' => 'warn', 'detail' => t('setup.detail.encryption_key_undefined')];
     }
 
     // 5. SSL verify peer
     if (defined('SSL_VERIFY_PEER')) {
         if (SSL_VERIFY_PEER) {
-            $checks[] = ['name' => 'SSL verify peer', 'status' => 'pass', 'detail' => 'Enabled'];
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_enabled')];
         } else {
-            $checks[] = ['name' => 'SSL verify peer', 'status' => 'warn', 'detail' => 'Disabled — enable for production (set SSL_VERIFY_PEER to true in config.php)'];
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_disabled')];
         }
     } else {
-        $checks[] = ['name' => 'SSL verify peer', 'status' => 'warn', 'detail' => 'SSL_VERIFY_PEER not defined in config.php'];
+        $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_undefined')];
     }
 
     // 5. Display errors
     if (ini_get('display_errors') && ini_get('display_errors') !== 'Off') {
-        $checks[] = ['name' => 'Display errors', 'status' => 'warn', 'detail' => 'Enabled — disable for production (set display_errors to 0 in config.php)'];
+        $checks[] = ['name' => t('setup.checks.display_errors'), 'status' => 'warn', 'detail' => t('setup.detail.display_errors_enabled')];
     } else {
-        $checks[] = ['name' => 'Display errors', 'status' => 'pass', 'detail' => 'Disabled'];
+        $checks[] = ['name' => t('setup.checks.display_errors'), 'status' => 'pass', 'detail' => t('setup.detail.display_errors_disabled')];
     }
 
 } else {
-    $checks[] = ['name' => 'config.php', 'status' => 'fail', 'detail' => 'Not found — copy config.php to the application root'];
+    $checks[] = ['name' => t('setup.checks.config'), 'status' => 'fail', 'detail' => t('setup.detail.config_not_found')];
 }
 
 // 6. PHP version
 $phpVersion = phpversion();
 $phpMajorMinor = (float)$phpVersion;
 if ($phpMajorMinor >= 7.4) {
-    $checks[] = ['name' => 'PHP version', 'status' => 'pass', 'detail' => $phpVersion];
+    $checks[] = ['name' => t('setup.checks.php_version'), 'status' => 'pass', 'detail' => t('setup.detail.php_version_ok', ['version' => $phpVersion])];
 } else {
-    $checks[] = ['name' => 'PHP version', 'status' => 'fail', 'detail' => "$phpVersion — PHP 7.4 or higher is required"];
+    $checks[] = ['name' => t('setup.checks.php_version'), 'status' => 'fail', 'detail' => t('setup.detail.php_version_too_low', ['version' => $phpVersion])];
 }
 
 // 7. PHP extensions (always check, regardless of config)
@@ -105,15 +108,15 @@ $requiredExtensions = ['pdo', 'curl', 'openssl', 'mbstring'];
 $mysqlLoaded = extension_loaded('pdo_mysql');
 foreach ($requiredExtensions as $ext) {
     if (extension_loaded($ext)) {
-        $checks[] = ['name' => "PHP extension: $ext", 'status' => 'pass', 'detail' => 'Loaded'];
+        $checks[] = ['name' => t('setup.checks.php_extension', ['ext' => $ext]), 'status' => 'pass', 'detail' => t('setup.detail.extension_loaded')];
     } else {
-        $checks[] = ['name' => "PHP extension: $ext", 'status' => 'fail', 'detail' => 'Not loaded — enable in php.ini'];
+        $checks[] = ['name' => t('setup.checks.php_extension', ['ext' => $ext]), 'status' => 'fail', 'detail' => t('setup.detail.extension_not_loaded')];
     }
 }
 if ($mysqlLoaded) {
-    $checks[] = ['name' => 'PHP extension: pdo_mysql', 'status' => 'pass', 'detail' => 'Loaded'];
+    $checks[] = ['name' => t('setup.checks.php_extension', ['ext' => 'pdo_mysql']), 'status' => 'pass', 'detail' => t('setup.detail.extension_loaded')];
 } else {
-    $checks[] = ['name' => 'PHP extension: pdo_mysql', 'status' => 'fail', 'detail' => 'Not loaded — enable pdo_mysql in php.ini'];
+    $checks[] = ['name' => t('setup.checks.php_extension', ['ext' => 'pdo_mysql']), 'status' => 'fail', 'detail' => t('setup.detail.pdo_mysql_not_loaded')];
 }
 
 // Count results
@@ -121,13 +124,17 @@ $passCount = count(array_filter($checks, fn($c) => $c['status'] === 'pass'));
 $warnCount = count(array_filter($checks, fn($c) => $c['status'] === 'warn'));
 $failCount = count(array_filter($checks, fn($c) => $c['status'] === 'fail'));
 $totalCount = count($checks);
+
+$translationNamespaces = ['common', 'setup'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreeITSM Setup</title>
+    <title><?php echo htmlspecialchars(t('setup.title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -304,16 +311,16 @@ $totalCount = count($checks);
     <div class="setup-container">
         <div class="setup-header">
             <img src="../assets/images/CompanyLogo.png" alt="FreeITSM">
-            <h1>Setup Verification</h1>
+            <h1><?= htmlspecialchars(t('setup.heading')) ?></h1>
         </div>
 
         <div class="summary">
-            <span class="summary-badge summary-pass"><?= $passCount ?> passed</span>
+            <span class="summary-badge summary-pass"><?= htmlspecialchars(t('setup.summary.passed', ['n' => $passCount])) ?></span>
             <?php if ($warnCount > 0): ?>
-                <span class="summary-badge summary-warn"><?= $warnCount ?> warning<?= $warnCount > 1 ? 's' : '' ?></span>
+                <span class="summary-badge summary-warn"><?= htmlspecialchars(t($warnCount > 1 ? 'setup.summary.warnings' : 'setup.summary.warning', ['n' => $warnCount])) ?></span>
             <?php endif; ?>
             <?php if ($failCount > 0): ?>
-                <span class="summary-badge summary-fail"><?= $failCount ?> failed</span>
+                <span class="summary-badge summary-fail"><?= htmlspecialchars(t('setup.summary.failed', ['n' => $failCount])) ?></span>
             <?php endif; ?>
         </div>
 
@@ -333,29 +340,29 @@ $totalCount = count($checks);
 
         <?php if ($dbConnected): ?>
         <div class="admin-section" id="dbVerifySection">
-            <h2>Database Verify</h2>
-            <p>Check and auto-create any missing tables or columns in the database.</p>
-            <button type="button" class="admin-btn" id="dbVerifyBtn" onclick="runDbVerify()">Run</button>
+            <h2><?= htmlspecialchars(t('setup.db_verify.heading')) ?></h2>
+            <p><?= htmlspecialchars(t('setup.db_verify.intro')) ?></p>
+            <button type="button" class="admin-btn" id="dbVerifyBtn" onclick="runDbVerify()"><?= htmlspecialchars(t('setup.db_verify.run')) ?></button>
             <div id="dbVerifyResult" style="margin-top: 12px; display: none;"></div>
         </div>
         <?php endif; ?>
 
         <?php if ($dbConnected): ?>
         <div class="admin-section">
-            <h2>Default Login</h2>
-            <p>A default admin account is created when you run Database Verify.</p>
+            <h2><?= htmlspecialchars(t('setup.login.heading')) ?></h2>
+            <p><?= htmlspecialchars(t('setup.login.intro')) ?></p>
             <div class="credentials">
-                Username: <strong>admin</strong><br>
-                Password: <strong>freeitsm</strong>
+                <?= htmlspecialchars(t('setup.login.username')) ?> <strong>admin</strong><br>
+                <?= htmlspecialchars(t('setup.login.password')) ?> <strong>freeitsm</strong>
             </div>
         </div>
         <?php endif; ?>
 
         <div class="footer-warning">
-            Once your system is in production, delete the <strong>/setup</strong> folder for security.
+            <?= t('setup.footer.warning', ['folder' => '<strong>/setup</strong>']) ?>
         </div>
 
-        <div class="php-version">FreeITSM Setup Verification</div>
+        <div class="php-version"><?= htmlspecialchars(t('setup.footer.signature')) ?></div>
     </div>
 
     <script>
@@ -363,7 +370,7 @@ $totalCount = count($checks);
         const btn = document.getElementById('dbVerifyBtn');
         const result = document.getElementById('dbVerifyResult');
         btn.disabled = true;
-        btn.textContent = 'Running...';
+        btn.textContent = window.t('setup.js.running');
         result.style.display = 'none';
 
         try {
@@ -379,11 +386,11 @@ $totalCount = count($checks);
                     else if (r.status === 'error') errors++;
                     else ok++;
                 });
-                html += '<strong>' + data.total_tables + ' tables checked:</strong> ';
-                html += ok + ' OK';
-                if (created) html += ', ' + created + ' created';
-                if (updated) html += ', ' + updated + ' updated';
-                if (errors) html += ', <span style="color:#dc3545">' + errors + ' errors</span>';
+                html += '<strong>' + window.t('setup.js.tables_checked', { n: data.total_tables }) + '</strong> ';
+                html += window.t('setup.js.ok', { n: ok });
+                if (created) html += ', ' + window.t('setup.js.created', { n: created });
+                if (updated) html += ', ' + window.t('setup.js.updated', { n: updated });
+                if (errors) html += ', <span style="color:#dc3545">' + window.t('setup.js.errors', { n: errors }) + '</span>';
 
                 // Show details for non-ok tables
                 const changed = data.results.filter(r => r.status !== 'ok');
@@ -399,16 +406,16 @@ $totalCount = count($checks);
                 result.innerHTML = html;
                 result.style.display = 'block';
             } else {
-                result.innerHTML = '<div style="color:#dc3545;font-size:13px;">' + (data.error || 'Unknown error') + '</div>';
+                result.innerHTML = '<div style="color:#dc3545;font-size:13px;">' + (data.error || window.t('setup.js.unknown_error')) + '</div>';
                 result.style.display = 'block';
             }
         } catch (e) {
-            result.innerHTML = '<div style="color:#dc3545;font-size:13px;">Failed to run DB verify: ' + e.message + '</div>';
+            result.innerHTML = '<div style="color:#dc3545;font-size:13px;">' + window.t('setup.js.verify_failed', { error: e.message }) + '</div>';
             result.style.display = 'block';
         }
 
         btn.disabled = false;
-        btn.textContent = 'Run';
+        btn.textContent = window.t('setup.js.run');
     }
     </script>
 </body>

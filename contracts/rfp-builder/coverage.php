@@ -14,16 +14,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix  = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Coverage map</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.coverage.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
@@ -148,21 +153,21 @@ $path_prefix  = '../../';
 
     <div class="page-wrap">
         <div class="breadcrumb">
-            <a href="../">Contracts</a><span class="sep">›</span>
-            <a href="./">RFP Builder</a><span class="sep">›</span>
+            <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span class="sep">›</span>
+            <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span class="sep">›</span>
             <a id="bcRfp" href="#">-</a><span class="sep">›</span>
-            <span>Coverage map</span>
+            <span><?php echo htmlspecialchars(t('contracts.rfp.coverage.heading')); ?></span>
         </div>
 
         <div class="page-header">
-            <h1>Coverage map</h1>
+            <h1><?php echo htmlspecialchars(t('contracts.rfp.coverage.heading')); ?></h1>
             <div class="page-actions">
-                <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
-                <a id="consolidateLink" href="#" class="btn btn-secondary">Consolidated requirements</a>
+                <a id="backLink" href="#" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.rfp.suppliers.overview')); ?></a>
+                <a id="consolidateLink" href="#" class="btn btn-secondary"><?php echo htmlspecialchars(t('contracts.rfp.coverage.consolidated_requirements')); ?></a>
             </div>
         </div>
 
-        <div id="loadingEl" class="loading">Loading…</div>
+        <div id="loadingEl" class="loading"><?php echo htmlspecialchars(t('common.loading')); ?></div>
         <div id="contentEl" style="display:none;"></div>
         <div id="errorEl" class="error-state" style="display:none;"></div>
     </div>
@@ -174,7 +179,7 @@ $path_prefix  = '../../';
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId) {
-                showError('No RFP id supplied. <a href="./">Back to list</a>.');
+                showError(window.t('contracts.rfp.view.no_id') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.');
                 return;
             }
             document.getElementById('backLink').href        = 'view.php?id=' + encodeURIComponent(rfpId);
@@ -188,8 +193,8 @@ $path_prefix  = '../../';
                     fetch(API_BASE + 'get_rfp.php?id=' + encodeURIComponent(rfpId)).then(r => r.json()),
                     fetch(API_BASE + 'get_coverage.php?rfp_id=' + encodeURIComponent(rfpId)).then(r => r.json())
                 ]);
-                if (!rfpRes.success)  throw new Error(rfpRes.error  || 'Failed to load RFP');
-                if (!dataRes.success) throw new Error(dataRes.error || 'Failed to load coverage');
+                if (!rfpRes.success)  throw new Error(rfpRes.error  || window.t('contracts.rfp.suppliers.load_rfp_failed'));
+                if (!dataRes.success) throw new Error(dataRes.error || window.t('contracts.rfp.coverage.load_failed'));
 
                 const bc = document.getElementById('bcRfp');
                 bc.textContent = rfpRes.rfp.name;
@@ -214,9 +219,9 @@ $path_prefix  = '../../';
             if (categories.length === 0 || departments.length === 0) {
                 contentEl.innerHTML = `
                     <div class="empty-card">
-                        <p><strong>Not enough data to draw a coverage map.</strong></p>
-                        <p>Run the consolidation pass first — coverage needs categories on one axis and contributing departments on the other.</p>
-                        <p><a href="consolidate.php?id=${encodeURIComponent(rfpId)}">Open consolidation</a></p>
+                        <p><strong>${escapeHtml(window.t('contracts.rfp.coverage.empty_title'))}</strong></p>
+                        <p>${escapeHtml(window.t('contracts.rfp.coverage.empty_body'))}</p>
+                        <p><a href="consolidate.php?id=${encodeURIComponent(rfpId)}">${escapeHtml(window.t('contracts.rfp.document.open_consolidation'))}</a></p>
                     </div>
                 `;
                 return;
@@ -229,19 +234,19 @@ $path_prefix  = '../../';
                 <div class="stats-strip">
                     <div class="stat-card total">
                         <div class="stat-value">${pageData.total_consolidated}</div>
-                        <div class="stat-label">Consolidated requirements</div>
+                        <div class="stat-label">${escapeHtml(window.t('contracts.rfp.coverage.stat_consolidated'))}</div>
                     </div>
                     <div class="stat-card multi">
                         <div class="stat-value">${breakdown.multi_source || 0}</div>
-                        <div class="stat-label">Multi-dept categories</div>
+                        <div class="stat-label">${escapeHtml(window.t('contracts.rfp.coverage.stat_multi'))}</div>
                     </div>
                     <div class="stat-card single">
                         <div class="stat-value">${breakdown.single_source || 0}</div>
-                        <div class="stat-label">Single-source categories</div>
+                        <div class="stat-label">${escapeHtml(window.t('contracts.rfp.coverage.stat_single'))}</div>
                     </div>
                     <div class="stat-card unsupported">
                         <div class="stat-value">${breakdown.unsupported || 0}</div>
-                        <div class="stat-label">No dept linkage</div>
+                        <div class="stat-label">${escapeHtml(window.t('contracts.rfp.coverage.stat_no_linkage'))}</div>
                     </div>
                 </div>
             `;
@@ -249,7 +254,7 @@ $path_prefix  = '../../';
             // Build the table
             const cats = categories.slice();
             if (pageData.has_orphan_category) {
-                cats.push({ id: 0, name: 'Uncategorised', description: null, sort_order: 9999 });
+                cats.push({ id: 0, name: window.t('contracts.rfp.compare.uncategorised'), description: null, sort_order: 9999 });
             }
 
             // Header row
@@ -292,7 +297,7 @@ $path_prefix  = '../../';
                     <tr>
                         <td class="col-cat">
                             ${escapeHtml(c.name)}
-                            <div class="cat-meta">${rowSum} dept-hit${rowSum === 1 ? '' : 's'} · ${catCount} consolidated</div>
+                            <div class="cat-meta">${escapeHtml(rowSum === 1 ? window.t('contracts.rfp.coverage.dept_hit_one', { n: rowSum, count: catCount }) : window.t('contracts.rfp.coverage.dept_hit_other', { n: rowSum, count: catCount }))}</div>
                         </td>
                         ${cells}
                         <td class="row-total">${rowSum}</td>
@@ -309,7 +314,7 @@ $path_prefix  = '../../';
                 s + (pageData.department_totals[d.id] || 0), 0);
             const totalsRow = `
                 <tr class="totals-row">
-                    <td class="col-cat">Total per dept</td>
+                    <td class="col-cat">${escapeHtml(window.t('contracts.rfp.coverage.total_per_dept'))}</td>
                     ${deptTotalCells}
                     <td class="row-total">${grandTotalDeptHits}</td>
                 </tr>
@@ -321,9 +326,9 @@ $path_prefix  = '../../';
                         <table class="heatmap">
                             <thead>
                                 <tr>
-                                    <th class="col-cat">Category</th>
+                                    <th class="col-cat">${escapeHtml(window.t('contracts.rfp.compare.col_category'))}</th>
                                     ${headerCells}
-                                    <th class="col-total">Row total</th>
+                                    <th class="col-total">${escapeHtml(window.t('contracts.rfp.coverage.row_total'))}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -335,14 +340,14 @@ $path_prefix  = '../../';
                     <div class="coverage-help">
                         <div>
                             <span class="legend-swatch" style="background:rgba(245,158,11,0.15);"></span>
-                            Lighter = fewer reqs in this dept-category cell
+                            ${escapeHtml(window.t('contracts.rfp.coverage.legend_lighter'))}
                         </div>
                         <div>
                             <span class="legend-swatch" style="background:rgba(245,158,11,0.80);"></span>
-                            Darker = more reqs (shading is row-relative — each category compares against itself)
+                            ${escapeHtml(window.t('contracts.rfp.coverage.legend_darker'))}
                         </div>
                         <div style="color:#888;">
-                            One consolidated requirement counts in every department it has a source from.
+                            ${escapeHtml(window.t('contracts.rfp.coverage.legend_note'))}
                         </div>
                     </div>
                 </div>

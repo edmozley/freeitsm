@@ -4,16 +4,22 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'tables';
 $path_prefix = '../';
+
+$translationNamespaces = ['common', 'system-wiki'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Table References</title>
+    <title><?php echo htmlspecialchars(t('system-wiki.table.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .wiki-detail {
@@ -102,7 +108,7 @@ $path_prefix = '../';
 
     <div class="wiki-detail">
         <div class="detail-content" id="content">
-            <div style="text-align:center;padding:60px;color:#aaa;">Loading table references...</div>
+            <div style="text-align:center;padding:60px;color:#aaa;"><?php echo htmlspecialchars(t('system-wiki.table.loading')); ?></div>
         </div>
     </div>
 
@@ -114,7 +120,7 @@ $path_prefix = '../';
 
         async function loadTableRefs() {
             if (!tableName) {
-                document.getElementById('content').innerHTML = '<div class="no-data">No table name specified.</div>';
+                document.getElementById('content').innerHTML = '<div class="no-data">' + esc(window.t('system-wiki.table.no_name')) + '</div>';
                 return;
             }
 
@@ -123,7 +129,7 @@ $path_prefix = '../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    document.getElementById('content').innerHTML = '<div class="no-data">Error: ' + esc(data.error) + '</div>';
+                    document.getElementById('content').innerHTML = '<div class="no-data">' + esc(window.t('system-wiki.table.error_prefix')) + esc(data.error) + '</div>';
                     return;
                 }
 
@@ -141,13 +147,13 @@ $path_prefix = '../';
 
                 let html = `
                     <div class="breadcrumb">
-                        <a href="./">Wiki</a> <span>/</span>
-                        <a href="tables.php">Tables</a> <span>/</span>
+                        <a href="./">${esc(window.t('system-wiki.table.wiki'))}</a> <span>/</span>
+                        <a href="tables.php">${esc(window.t('system-wiki.table.tables'))}</a> <span>/</span>
                         ${esc(tableName)}
                     </div>
                     <div class="table-header">
                         <div class="table-name">${esc(tableName)}</div>
-                        <div class="table-meta">${refs.length} references across ${uniqueFiles} files</div>
+                        <div class="table-meta">${esc(window.t('system-wiki.table.refs_across_files', { refs: refs.length, files: uniqueFiles }))}</div>
                     </div>
                 `;
 
@@ -158,7 +164,7 @@ $path_prefix = '../';
                         <div class="ref-group">
                             <div class="ref-group-header">
                                 <span class="ref-badge ${type}">${type}</span>
-                                ${groups[type].length} references
+                                ${groups[type].length} ${esc(window.t('system-wiki.table.references'))}
                             </div>
                             <table class="ref-table">
                                 ${groups[type].map(r => `
@@ -173,7 +179,7 @@ $path_prefix = '../';
                 }
 
                 if (refs.length === 0) {
-                    html += '<div class="no-data">No references found for this table.</div>';
+                    html += '<div class="no-data">' + esc(window.t('system-wiki.table.no_references')) + '</div>';
                 }
 
                 container.innerHTML = html;

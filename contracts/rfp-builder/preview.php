@@ -10,6 +10,8 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     http_response_code(401);
@@ -57,10 +59,10 @@ $categories = $catStmt->fetchAll(PDO::FETCH_ASSOC);
 $today = date('j F Y');
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
-    <title>Preview · <?= htmlspecialchars($rfp['name'], ENT_QUOTES) ?></title>
+    <title><?= htmlspecialchars(t('contracts.rfp.preview.title_prefix') . ' · ' . $rfp['name'], ENT_QUOTES) ?></title>
     <style>
         * { box-sizing: border-box; }
         body {
@@ -188,17 +190,17 @@ $today = date('j F Y');
 </head>
 <body>
     <div class="pv-toolbar">
-        <a href="document.php?id=<?= (int)$rfpId ?>">&larr; Back to document</a>
+        <a href="document.php?id=<?= (int)$rfpId ?>">&larr; <?= htmlspecialchars(t('contracts.rfp.preview.back_to_document')) ?></a>
         <div class="pv-title"><?= htmlspecialchars($rfp['name'], ENT_QUOTES) ?></div>
-        <span class="pv-print-hint">Use Ctrl+P / Cmd+P to print or save as PDF</span>
-        <button onclick="window.print()">Print / PDF</button>
+        <span class="pv-print-hint"><?= htmlspecialchars(t('contracts.rfp.preview.print_hint')) ?></span>
+        <button onclick="window.print()"><?= htmlspecialchars(t('contracts.rfp.preview.print_pdf')) ?></button>
     </div>
 
     <div class="pv-page">
         <div class="pv-cover">
-            <div class="pv-label">Request for Proposal</div>
+            <div class="pv-label"><?= htmlspecialchars(t('contracts.rfp.preview.rfp_label')) ?></div>
             <h1><?= htmlspecialchars($rfp['name'], ENT_QUOTES) ?></h1>
-            <div class="pv-meta">Issued <?= htmlspecialchars($today) ?></div>
+            <div class="pv-meta"><?= htmlspecialchars(t('contracts.rfp.preview.issued', ['date' => $today])) ?></div>
         </div>
 
         <?php
@@ -219,7 +221,7 @@ $today = date('j F Y');
         ?>
         <?php if (!empty($tocItems)): ?>
             <div class="pv-toc">
-                <h2>Contents</h2>
+                <h2><?= htmlspecialchars(t('contracts.rfp.preview.contents')) ?></h2>
                 <ol>
                     <?php foreach ($tocItems as $t): ?>
                         <li><a href="#<?= htmlspecialchars($t['id'], ENT_QUOTES) ?>"><?= htmlspecialchars($t['title']) ?></a></li>
@@ -235,7 +237,7 @@ $today = date('j F Y');
             <?php if (!empty($f['section_content'])): ?>
                 <div class="pv-section-body"><?= $f['section_content'] /* trusted: AI-generated HTML stored in our own DB */ ?></div>
             <?php else: ?>
-                <div class="pv-empty-section">(Not yet drafted.)</div>
+                <div class="pv-empty-section"><?= htmlspecialchars(t('contracts.rfp.preview.not_drafted')) ?></div>
             <?php endif; ?>
         <?php endforeach; ?>
 
@@ -246,7 +248,7 @@ $today = date('j F Y');
             <?php if (!empty($c['section_content'])): ?>
                 <div class="pv-section-body"><?= $c['section_content'] /* trusted */ ?></div>
             <?php else: ?>
-                <div class="pv-empty-section">(Not yet generated.)</div>
+                <div class="pv-empty-section"><?= htmlspecialchars(t('contracts.rfp.preview.not_generated')) ?></div>
             <?php endif; ?>
         <?php endforeach; ?>
     </div>

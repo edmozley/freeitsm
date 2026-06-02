@@ -5,16 +5,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - RFP Builder</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.list.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .rfp-view-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
@@ -183,11 +188,11 @@ $path_prefix = '../../';
     <?php include '../includes/header.php'; ?>
 
     <div class="rfp-view-wrap" id="viewWrap">
-        <div class="loading" id="loadingEl">Loading...</div>
+        <div class="loading" id="loadingEl"><?php echo htmlspecialchars(t('common.loading')); ?></div>
         <div id="contentEl" style="display:none;">
             <div class="breadcrumb">
-                <a href="../">Contracts</a><span>›</span>
-                <a href="./">RFP Builder</a><span>›</span>
+                <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span>›</span>
+                <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span>›</span>
                 <span id="bcName">-</span>
             </div>
 
@@ -197,10 +202,10 @@ $path_prefix = '../../';
                     <span class="status-badge" id="rfpStatus">draft</span>
                 </h1>
                 <div class="rfp-actions">
-                    <a href="./" class="btn btn-secondary">&larr; Back</a>
-                    <a href="help.php" class="btn btn-secondary">Help</a>
-                    <button class="btn btn-secondary" onclick="editRfp()">Edit</button>
-                    <button class="btn btn-danger" onclick="deleteRfp()">Delete</button>
+                    <a href="./" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.detail.back')); ?></a>
+                    <a href="help.php" class="btn btn-secondary"><?php echo htmlspecialchars(t('contracts.nav.help')); ?></a>
+                    <button class="btn btn-secondary" onclick="editRfp()"><?php echo htmlspecialchars(t('common.edit')); ?></button>
+                    <button class="btn btn-danger" onclick="deleteRfp()"><?php echo htmlspecialchars(t('common.delete')); ?></button>
                 </div>
             </div>
 
@@ -210,7 +215,7 @@ $path_prefix = '../../';
 
             <div class="meta-card" id="aiActivityCard" style="display:none;">
                 <h2>
-                    AI activity
+                    <?php echo htmlspecialchars(t('contracts.rfp.view.ai_activity')); ?>
                     <span class="h2-extra" id="aiActivityLastRun"></span>
                 </h2>
                 <div class="ai-stats" id="aiStats"></div>
@@ -218,13 +223,13 @@ $path_prefix = '../../';
             </div>
 
             <div class="meta-card">
-                <h2>Details</h2>
-                <div class="meta-row"><div class="meta-label">Created by</div><div class="meta-value" id="metaCreatedBy">-</div></div>
-                <div class="meta-row"><div class="meta-label">Created</div><div class="meta-value" id="metaCreatedAt">-</div></div>
-                <div class="meta-row"><div class="meta-label">Last updated</div><div class="meta-value" id="metaUpdatedAt">-</div></div>
-                <div class="meta-row"><div class="meta-label">Linked contract</div><div class="meta-value" id="metaContract">-</div></div>
-                <div class="meta-row"><div class="meta-label">Chosen supplier</div><div class="meta-value" id="metaChosenSupplier">-</div></div>
-                <div class="meta-row"><div class="meta-label">Style guide override</div><div class="meta-value" id="metaStyleGuide">-</div></div>
+                <h2><?php echo htmlspecialchars(t('contracts.rfp.view.details')); ?></h2>
+                <div class="meta-row"><div class="meta-label"><?php echo htmlspecialchars(t('contracts.rfp.view.created_by')); ?></div><div class="meta-value" id="metaCreatedBy">-</div></div>
+                <div class="meta-row"><div class="meta-label"><?php echo htmlspecialchars(t('contracts.detail.created')); ?></div><div class="meta-value" id="metaCreatedAt">-</div></div>
+                <div class="meta-row"><div class="meta-label"><?php echo htmlspecialchars(t('contracts.rfp.view.last_updated')); ?></div><div class="meta-value" id="metaUpdatedAt">-</div></div>
+                <div class="meta-row"><div class="meta-label"><?php echo htmlspecialchars(t('contracts.rfp.view.linked_contract')); ?></div><div class="meta-value" id="metaContract">-</div></div>
+                <div class="meta-row"><div class="meta-label"><?php echo htmlspecialchars(t('contracts.rfp.view.chosen_supplier')); ?></div><div class="meta-value" id="metaChosenSupplier">-</div></div>
+                <div class="meta-row"><div class="meta-label"><?php echo htmlspecialchars(t('contracts.rfp.list.style_guide_override')); ?></div><div class="meta-value" id="metaStyleGuide">-</div></div>
             </div>
         </div>
         <div class="error-state" id="errorEl" style="display:none;"></div>
@@ -237,7 +242,7 @@ $path_prefix = '../../';
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId) {
-                showError('No RFP id supplied. <a href="./">Back to list</a>.');
+                showError(window.t('contracts.rfp.view.no_id') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.');
                 return;
             }
             loadRfp();
@@ -272,22 +277,22 @@ $path_prefix = '../../';
             document.getElementById('aiActivityCard').style.display = 'block';
 
             document.getElementById('aiActivityLastRun').innerHTML =
-                (totals.last_run ? 'Last run ' + escapeHtml(formatDateTime(totals.last_run)) + ' · ' : '') +
-                '<a href="audit.php?id=' + encodeURIComponent(rfpId) + '" style="color:#888;">View full audit trail</a>';
+                (totals.last_run ? escapeHtml(window.t('contracts.rfp.view.last_run', { when: formatDateTime(totals.last_run) })) + ' · ' : '') +
+                '<a href="audit.php?id=' + encodeURIComponent(rfpId) + '" style="color:#888;">' + escapeHtml(window.t('contracts.rfp.view.view_audit')) + '</a>';
 
             const cachePct = totals.tokens_in_recent > 0
                 ? Math.round((totals.cache_read_recent / totals.tokens_in_recent) * 100)
                 : 0;
 
             const stats = [
-                { num: totals.run_count,        label: 'AI runs' },
-                { num: totals.success_count,    label: 'Successful' },
-                { num: totals.error_count,      label: 'Errors', cls: totals.error_count > 0 ? 'error' : '' },
-                { num: formatTokens(totals.total_tokens_in),  label: 'Input tokens' },
-                { num: formatTokens(totals.total_tokens_out), label: 'Output tokens' },
+                { num: totals.run_count,        label: window.t('contracts.rfp.view.stat_runs') },
+                { num: totals.success_count,    label: window.t('contracts.rfp.view.stat_successful') },
+                { num: totals.error_count,      label: window.t('contracts.rfp.view.stat_errors'), cls: totals.error_count > 0 ? 'error' : '' },
+                { num: formatTokens(totals.total_tokens_in),  label: window.t('contracts.rfp.view.stat_input_tokens') },
+                { num: formatTokens(totals.total_tokens_out), label: window.t('contracts.rfp.view.stat_output_tokens') },
                 {
                     num: formatTokens(totals.cache_read_recent),
-                    label: 'Cached input' + (cachePct > 0 ? ' (' + cachePct + '%)' : ''),
+                    label: window.t('contracts.rfp.view.stat_cached_input') + (cachePct > 0 ? ' (' + cachePct + '%)' : ''),
                     cls: 'cached'
                 }
             ];
@@ -300,21 +305,21 @@ $path_prefix = '../../';
 
             const logEl = document.getElementById('aiLog');
             if (!entries.length) {
-                logEl.innerHTML = '<div class="ai-empty">No AI activity yet.</div>';
+                logEl.innerHTML = '<div class="ai-empty">' + escapeHtml(window.t('contracts.rfp.view.no_ai_activity')) + '</div>';
                 return;
             }
             logEl.innerHTML = `
                 <table class="ai-log-table">
                     <thead>
                         <tr>
-                            <th>When</th>
-                            <th>Action</th>
-                            <th>Target</th>
-                            <th>Status</th>
-                            <th class="num">In</th>
-                            <th class="num">Out</th>
-                            <th class="num">Cached</th>
-                            <th class="num">Time</th>
+                            <th>${escapeHtml(window.t('contracts.rfp.view.col_when'))}</th>
+                            <th>${escapeHtml(window.t('contracts.rfp.view.col_action'))}</th>
+                            <th>${escapeHtml(window.t('contracts.rfp.view.col_target'))}</th>
+                            <th>${escapeHtml(window.t('contracts.detail.status'))}</th>
+                            <th class="num">${escapeHtml(window.t('contracts.rfp.view.col_in'))}</th>
+                            <th class="num">${escapeHtml(window.t('contracts.rfp.view.col_out'))}</th>
+                            <th class="num">${escapeHtml(window.t('contracts.rfp.view.col_cached'))}</th>
+                            <th class="num">${escapeHtml(window.t('contracts.rfp.view.col_time'))}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -360,6 +365,12 @@ $path_prefix = '../../';
             return s.length > n ? s.slice(0, n) + '…' : s;
         }
 
+        function rfpStatusLabel(status) {
+            const key = 'contracts.rfp.status.' + status;
+            const label = window.t(key);
+            return label === key ? status : label;
+        }
+
         function render(r) {
             document.getElementById('loadingEl').style.display = 'none';
             document.getElementById('contentEl').style.display = 'block';
@@ -367,90 +378,78 @@ $path_prefix = '../../';
             document.getElementById('bcName').textContent = r.name;
             document.getElementById('rfpName').textContent = r.name;
             const statusEl = document.getElementById('rfpStatus');
-            statusEl.textContent = r.status;
+            statusEl.textContent = rfpStatusLabel(r.status);
             statusEl.className = 'status-badge ' + r.status;
 
             document.getElementById('metaCreatedBy').textContent = r.created_by_name || '-';
             document.getElementById('metaCreatedAt').textContent = formatDateTime(r.created_datetime);
             document.getElementById('metaUpdatedAt').textContent = formatDateTime(r.updated_datetime);
-            document.getElementById('metaContract').textContent = r.contract_title || 'Not linked';
-            document.getElementById('metaChosenSupplier').textContent = r.chosen_supplier_name || 'Not yet chosen';
-            document.getElementById('metaStyleGuide').textContent = r.style_guide ? 'Custom override set' : 'Using system default';
+            document.getElementById('metaContract').textContent = r.contract_title || window.t('contracts.rfp.view.not_linked');
+            document.getElementById('metaChosenSupplier').textContent = r.chosen_supplier_name || window.t('contracts.rfp.view.not_chosen');
+            document.getElementById('metaStyleGuide').textContent = r.style_guide ? window.t('contracts.rfp.view.custom_override') : window.t('contracts.rfp.view.using_default');
 
             renderPhases(r);
         }
 
         function renderPhases(r) {
+            const lockedReady = r.consolidated_count > 0 && r.locked_count === r.consolidated_count;
+            const lockCta = r.consolidated_count === 0
+                ? window.t('contracts.rfp.view.cta_run_consolidation')
+                : (r.locked_count !== r.consolidated_count ? window.t('contracts.rfp.view.cta_lock_first') : '');
             const phases = [
                 {
-                    num: 1, title: 'Source documents', phase: 1,
-                    desc: 'Upload .docx files from each contributing department.',
-                    stats: [{label: 'Documents', value: r.document_count}],
+                    num: 1, title: window.t('contracts.rfp.view.phase1_title'), phase: 1,
+                    desc: window.t('contracts.rfp.view.phase1_desc'),
+                    stats: [{label: window.t('contracts.rfp.view.stat_documents'), value: r.document_count}],
                     ready: true,
                     cta: '',
                     href: 'documents.php?id=' + r.id
                 },
                 {
-                    num: 2, title: 'Extracted requirements', phase: 2,
-                    desc: 'AI extracts each requirement, pain point and challenge from every uploaded document.',
-                    stats: [{label: 'Extracted', value: r.extracted_count}],
+                    num: 2, title: window.t('contracts.rfp.view.phase2_title'), phase: 2,
+                    desc: window.t('contracts.rfp.view.phase2_desc'),
+                    stats: [{label: window.t('contracts.rfp.view.stat_extracted'), value: r.extracted_count}],
                     ready: r.extracted_count > 0,
-                    cta: r.extracted_count > 0 ? '' : 'Run extraction from Documents first',
+                    cta: r.extracted_count > 0 ? '' : window.t('contracts.rfp.view.cta_run_extraction_docs'),
                     href: r.extracted_count > 0 ? 'extracted.php?id=' + r.id : null
                 },
                 {
-                    num: 3, title: 'Consolidate &amp; resolve conflicts', phase: 3,
-                    desc: 'AI deduplicates requirements across departments, suggests categories &amp; priorities, flags contradictions for you to resolve.',
+                    num: 3, title: window.t('contracts.rfp.view.phase3_title'), phase: 3,
+                    desc: window.t('contracts.rfp.view.phase3_desc'),
                     stats: [
-                        {label: 'Consolidated', value: r.consolidated_count},
-                        {label: 'Locked', value: r.locked_count},
-                        {label: 'Open conflicts', value: r.open_conflicts}
+                        {label: window.t('contracts.rfp.view.stat_consolidated'), value: r.consolidated_count},
+                        {label: window.t('contracts.rfp.view.stat_locked'), value: r.locked_count},
+                        {label: window.t('contracts.rfp.view.stat_open_conflicts'), value: r.open_conflicts}
                     ],
                     ready: r.extracted_count > 0,
-                    cta: r.extracted_count > 0 ? '' : 'Run extraction first',
+                    cta: r.extracted_count > 0 ? '' : window.t('contracts.rfp.view.cta_run_extraction'),
                     href: r.extracted_count > 0 ? 'consolidate.php?id=' + r.id : null
                 },
                 {
-                    num: 4, title: 'Generate RFP document', phase: 4,
-                    desc: 'AI writes a coherent RFP section per category, ready to send to suppliers.',
+                    num: 4, title: window.t('contracts.rfp.view.phase4_title'), phase: 4,
+                    desc: window.t('contracts.rfp.view.phase4_desc'),
                     stats: [
-                        {label: 'Categories', value: r.category_count},
-                        {label: 'Sections', value: r.section_count}
+                        {label: window.t('contracts.rfp.view.stat_categories'), value: r.category_count},
+                        {label: window.t('contracts.rfp.view.stat_sections'), value: r.section_count}
                     ],
-                    // Generation requires the consolidated set to be fully locked.
-                    // locked_count reaches consolidated_count when the user clicks
-                    // "Lock for generation" on the consolidate page.
-                    ready: r.consolidated_count > 0 && r.locked_count === r.consolidated_count,
-                    cta: r.consolidated_count === 0
-                        ? 'Run consolidation first'
-                        : (r.locked_count !== r.consolidated_count ? 'Lock consolidated requirements first' : ''),
-                    href: (r.consolidated_count > 0 && r.locked_count === r.consolidated_count)
-                        ? 'document.php?id=' + r.id
-                        : null
+                    ready: lockedReady,
+                    cta: lockCta,
+                    href: lockedReady ? 'document.php?id=' + r.id : null
                 },
                 {
-                    num: 5, title: 'Suppliers &amp; scoring', phase: 5,
-                    desc: 'Add the suppliers being evaluated, then score their responses requirement-by-requirement.',
-                    stats: [{label: 'Suppliers', value: r.supplier_count}],
-                    // Same gate as Phase 4 — scoring requires the consolidation
-                    // set to be locked. You can invite suppliers as soon as it's
-                    // locked, even before sections are generated.
-                    ready: r.consolidated_count > 0 && r.locked_count === r.consolidated_count,
-                    cta: r.consolidated_count === 0
-                        ? 'Run consolidation first'
-                        : (r.locked_count !== r.consolidated_count ? 'Lock consolidated requirements first' : ''),
-                    href: (r.consolidated_count > 0 && r.locked_count === r.consolidated_count)
-                        ? 'suppliers.php?id=' + r.id
-                        : null
+                    num: 5, title: window.t('contracts.rfp.view.phase5_title'), phase: 5,
+                    desc: window.t('contracts.rfp.view.phase5_desc'),
+                    stats: [{label: window.t('contracts.nav.suppliers'), value: r.supplier_count}],
+                    ready: lockedReady,
+                    cta: lockCta,
+                    href: lockedReady ? 'suppliers.php?id=' + r.id : null
                 },
                 {
-                    num: 6, title: 'Compare &amp; decide', phase: 6,
-                    desc: 'Cross-supplier radar &amp; category-winner table to drive the final decision.',
+                    num: 6, title: window.t('contracts.rfp.view.phase6_title'), phase: 6,
+                    desc: window.t('contracts.rfp.view.phase6_desc'),
                     stats: [],
-                    // Active as soon as suppliers exist; the page itself
-                    // shows an empty state until at least one is scored.
                     ready: r.supplier_count > 0,
-                    cta: r.supplier_count === 0 ? 'Add suppliers first' : '',
+                    cta: r.supplier_count === 0 ? window.t('contracts.rfp.view.cta_add_suppliers') : '',
                     href: r.supplier_count > 0 ? 'compare.php?id=' + r.id : null
                 }
             ];
@@ -470,7 +469,7 @@ $path_prefix = '../../';
                     ` : ''}
                     <div class="phase-tile-cta">
                         ${p.href
-                            ? `<a class="btn btn-primary" href="${p.href}">Open</a>`
+                            ? `<a class="btn btn-primary" href="${p.href}">${escapeHtml(window.t('common.open'))}</a>`
                             : `<div class="placeholder">${escapeHtml(p.cta)}</div>`}
                     </div>
                 </div>
@@ -484,7 +483,7 @@ $path_prefix = '../../';
         }
 
         async function deleteRfp() {
-            if (!(await showConfirm({ title: 'Delete', message: `Delete RFP "${currentRfp.name}"?\n\nThis will permanently remove all documents, requirements, scores, and history for this RFP.`, okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.rfp.list.delete_confirm', { name: currentRfp.name }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const res = await fetch(API_BASE + 'delete_rfp.php', {
                     method: 'POST',
@@ -492,10 +491,10 @@ $path_prefix = '../../';
                     body: JSON.stringify({id: currentRfp.id})
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Delete failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.list.delete_failed_short'));
                 window.location.href = './';
             } catch (err) {
-                showToast('Delete failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.delete_failed') + ' ' + err.message, 'error');
             }
         }
 

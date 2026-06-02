@@ -4,9 +4,12 @@
  */
 session_start();
 require_once '../config.php';
+require_once __DIR__ . '/../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'dashboard';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'contracts'];
 $contract_id = $_GET['id'] ?? null;
 
 if (!$contract_id) {
@@ -15,11 +18,13 @@ if (!$contract_id) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - View contract</title>
+    <title><?php echo htmlspecialchars(t('contracts.detail.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         /* Full-screen layout with sidebar - matches contracts dashboard */
@@ -267,64 +272,64 @@ if (!$contract_id) {
         <!-- Left Sidebar -->
         <div class="contracts-sidebar">
             <div class="sidebar-section">
-                <h3>Overview</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.overview')); ?></h3>
                 <div class="sidebar-stat">
-                    <span>Contracts</span>
+                    <span><?php echo htmlspecialchars(t('contracts.nav.contracts')); ?></span>
                     <span class="stat-value" id="sideContracts">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Active</span>
+                    <span><?php echo htmlspecialchars(t('contracts.status.active')); ?></span>
                     <span class="stat-value" id="sideActive">-</span>
                 </div>
                 <div class="sidebar-stat warning">
-                    <span>Expiring (90d)</span>
+                    <span><?php echo htmlspecialchars(t('contracts.list.expiring_90d')); ?></span>
                     <span class="stat-value" id="sideExpiring">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Suppliers</span>
+                    <span><?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?></span>
                     <span class="stat-value" id="sideSuppliers">-</span>
                 </div>
                 <div class="sidebar-stat">
-                    <span>Contacts</span>
+                    <span><?php echo htmlspecialchars(t('contracts.nav.contacts')); ?></span>
                     <span class="stat-value" id="sideContacts">-</span>
                 </div>
             </div>
 
             <div class="sidebar-section">
-                <h3>Quick links</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.list.quick_links')); ?></h3>
                 <div class="sidebar-links">
                     <a href="index.php" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                        Contracts
+                        <?php echo htmlspecialchars(t('contracts.nav.contracts')); ?>
                     </a>
                     <a href="suppliers/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-                        Suppliers
+                        <?php echo htmlspecialchars(t('contracts.nav.suppliers')); ?>
                     </a>
                     <a href="contacts/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                        Contacts
+                        <?php echo htmlspecialchars(t('contracts.nav.contacts')); ?>
                     </a>
                     <a href="rfp-builder/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><path d="M9 13h6"></path><path d="M9 17h6"></path></svg>
-                        RFP Builder
+                        <?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?>
                     </a>
                     <a href="settings/" class="sidebar-link">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                        Settings
+                        <?php echo htmlspecialchars(t('contracts.nav.settings')); ?>
                     </a>
                 </div>
             </div>
 
             <div class="sidebar-section">
-                <a href="edit.php" class="sidebar-add-btn">+ New contract</a>
+                <a href="edit.php" class="sidebar-add-btn">+ <?php echo htmlspecialchars(t('contracts.list.new_contract')); ?></a>
             </div>
         </div>
 
         <!-- Main Content -->
         <div class="contracts-main">
             <div class="contract-card" id="contractCard">
-                <div class="loading">Loading contract...</div>
+                <div class="loading"><?php echo htmlspecialchars(t('contracts.detail.loading')); ?></div>
             </div>
         </div>
     </div>
@@ -369,11 +374,11 @@ if (!$contract_id) {
                     loadRelatedItems();
                 } else {
                     document.getElementById('contractCard').innerHTML =
-                        '<div class="loading" style="color:#d13438;">Error: ' + escapeHtml(data.error) + '</div>';
+                        '<div class="loading" style="color:#d13438;">' + escapeHtml(window.t('contracts.detail.error_prefix')) + ' ' + escapeHtml(data.error) + '</div>';
                 }
             } catch (error) {
                 document.getElementById('contractCard').innerHTML =
-                    '<div class="loading" style="color:#d13438;">Failed to load contract</div>';
+                    '<div class="loading" style="color:#d13438;">' + escapeHtml(window.t('contracts.detail.load_failed')) + '</div>';
             }
         }
 
@@ -385,132 +390,132 @@ if (!$contract_id) {
                 <div class="contract-card-header">
                     <h2>${escapeHtml(c.contract_number)} — ${escapeHtml(c.title)}</h2>
                     <div class="actions">
-                        <a href="index.php" class="btn btn-back">Back</a>
-                        <button type="button" class="btn btn-create-task" onclick="openTaskModal()">Task</button>
-                        <button type="button" class="btn btn-create-event" onclick="openEventModal()">Calendar</button>
-                        <a href="edit.php?id=${c.id}" class="btn btn-edit-contract">Edit</a>
+                        <a href="index.php" class="btn btn-back">${escapeHtml(window.t('contracts.detail.back'))}</a>
+                        <button type="button" class="btn btn-create-task" onclick="openTaskModal()">${escapeHtml(window.t('contracts.detail.task'))}</button>
+                        <button type="button" class="btn btn-create-event" onclick="openEventModal()">${escapeHtml(window.t('contracts.detail.calendar'))}</button>
+                        <a href="edit.php?id=${c.id}" class="btn btn-edit-contract">${escapeHtml(window.t('contracts.actions.edit'))}</a>
                     </div>
                 </div>
                 <div class="contract-details">
                     <div class="detail-group">
-                        <label>Contract number</label>
+                        <label>${escapeHtml(window.t('contracts.detail.contract_number'))}</label>
                         <div class="value">${escapeHtml(c.contract_number)}</div>
                     </div>
                     <div class="detail-group">
-                        <label>Status</label>
+                        <label>${escapeHtml(window.t('contracts.detail.status'))}</label>
                         <div class="value"><span class="status-badge ${status.class}">${status.label}</span></div>
                     </div>
                     <div class="detail-group full-width">
-                        <label>Title</label>
+                        <label>${escapeHtml(window.t('contracts.detail.title_label'))}</label>
                         <div class="value">${escapeHtml(c.title)}</div>
                     </div>
                     ${c.description ? `<div class="detail-group full-width">
-                        <label>Description</label>
+                        <label>${escapeHtml(window.t('contracts.detail.description'))}</label>
                         <div class="value">${escapeHtml(c.description)}</div>
                     </div>` : ''}
                     <div class="detail-group">
-                        <label>Supplier</label>
+                        <label>${escapeHtml(window.t('contracts.detail.supplier'))}</label>
                         <div class="value">${escapeHtml(c.supplier_name || '-')}${c.supplier_trading_name ? ' <span style="color:#888;">(t/a ' + escapeHtml(c.supplier_trading_name) + ')</span>' : ''}</div>
                     </div>
                     <div class="detail-group">
-                        <label>Contract owner</label>
+                        <label>${escapeHtml(window.t('contracts.detail.owner'))}</label>
                         <div class="value">${escapeHtml(c.owner_name || '-')}</div>
                     </div>
 
-                    <div class="section-divider"><h3>Dates</h3></div>
+                    <div class="section-divider"><h3>${escapeHtml(window.t('contracts.detail.section_dates'))}</h3></div>
                     <div class="detail-group">
-                        <label>Start date</label>
+                        <label>${escapeHtml(window.t('contracts.detail.start_date'))}</label>
                         <div class="value">${formatDate(c.contract_start)}</div>
                     </div>
                     <div class="detail-group">
-                        <label>End date</label>
+                        <label>${escapeHtml(window.t('contracts.detail.end_date'))}</label>
                         <div class="value">${formatDate(c.contract_end)}</div>
                     </div>
                     <div class="detail-group">
-                        <label>Notice period</label>
-                        <div class="value">${c.notice_period_days ? c.notice_period_days + ' days' : '-'}</div>
+                        <label>${escapeHtml(window.t('contracts.detail.notice_period'))}</label>
+                        <div class="value">${c.notice_period_days ? window.t('contracts.detail.days', { n: c.notice_period_days }) : '-'}</div>
                     </div>
                     <div class="detail-group">
-                        <label>Notice date</label>
+                        <label>${escapeHtml(window.t('contracts.detail.notice_date'))}</label>
                         <div class="value">${formatDate(c.notice_date)}</div>
                     </div>
 
-                    <div class="section-divider"><h3>Financial</h3></div>
+                    <div class="section-divider"><h3>${escapeHtml(window.t('contracts.detail.section_financial'))}</h3></div>
                     <div class="detail-group">
-                        <label>Contract value</label>
+                        <label>${escapeHtml(window.t('contracts.detail.contract_value'))}</label>
                         <div class="value">${contractValue}</div>
                     </div>
                     <div class="detail-group">
-                        <label>Payment schedule</label>
+                        <label>${escapeHtml(window.t('contracts.detail.payment_schedule'))}</label>
                         <div class="value">${escapeHtml(c.payment_schedule_name || '-')}</div>
                     </div>
                     <div class="detail-group">
-                        <label>Cost centre</label>
+                        <label>${escapeHtml(window.t('contracts.detail.cost_centre'))}</label>
                         <div class="value">${escapeHtml(c.cost_centre || '-')}</div>
                     </div>
                     <div class="detail-group">
-                        <label>DMS link</label>
+                        <label>${escapeHtml(window.t('contracts.detail.dms_link'))}</label>
                         <div class="value dms-link">${c.dms_link ? '<a href="' + escapeHtml(c.dms_link) + '" target="_blank">' + escapeHtml(c.dms_link) + '</a>' : '-'}</div>
                     </div>
 
-                    <div class="section-divider"><h3>Terms & data protection</h3></div>
+                    <div class="section-divider"><h3>${escapeHtml(window.t('contracts.detail.section_terms'))}</h3></div>
                     <div class="detail-group">
-                        <label>Terms</label>
+                        <label>${escapeHtml(window.t('contracts.detail.terms'))}</label>
                         <div class="value">${escapeHtml(formatTermsStatus(c.terms_status))}</div>
                     </div>
                     <div class="detail-group">
-                        <label>Personal data transferred</label>
+                        <label>${escapeHtml(window.t('contracts.detail.personal_data_transferred'))}</label>
                         <div class="value">${formatBool(c.personal_data_transferred)}</div>
                     </div>
                     <div class="detail-group">
-                        <label>DPIA required</label>
+                        <label>${escapeHtml(window.t('contracts.detail.dpia_required'))}</label>
                         <div class="value">${formatBool(c.dpia_required)}</div>
                     </div>
                     <div class="detail-group">
-                        <label>DPIA completed date</label>
+                        <label>${escapeHtml(window.t('contracts.detail.dpia_completed_date'))}</label>
                         <div class="value">${formatDate(c.dpia_completed_date)}</div>
                     </div>
                     ${c.dpia_dms_link ? `<div class="detail-group full-width">
-                        <label>DPIA DMS link</label>
+                        <label>${escapeHtml(window.t('contracts.detail.dpia_dms_link'))}</label>
                         <div class="value dms-link"><a href="${escapeHtml(c.dpia_dms_link)}" target="_blank">${escapeHtml(c.dpia_dms_link)}</a></div>
                     </div>` : ''}
 
-                    <div class="section-divider"><h3>System</h3></div>
+                    <div class="section-divider"><h3>${escapeHtml(window.t('contracts.detail.section_system'))}</h3></div>
                     <div class="detail-group">
-                        <label>Created</label>
+                        <label>${escapeHtml(window.t('contracts.detail.created'))}</label>
                         <div class="value">${formatDate(c.created_datetime)}</div>
                     </div>
                     <div class="detail-group">
-                        <label>Active</label>
-                        <div class="value">${c.is_active ? '<span class="bool-yes">Yes</span>' : '<span class="bool-no">No</span>'}</div>
+                        <label>${escapeHtml(window.t('contracts.detail.active'))}</label>
+                        <div class="value">${c.is_active ? '<span class="bool-yes">' + escapeHtml(window.t('common.yes')) + '</span>' : '<span class="bool-no">' + escapeHtml(window.t('common.no')) + '</span>'}</div>
                     </div>
                 </div>
                 <div class="related-list">
                     <div class="related-section" id="relatedTasksSection">
-                        <h3>Related tasks</h3>
-                        <div id="relatedTasksList" class="related-empty">Loading...</div>
+                        <h3>${escapeHtml(window.t('contracts.detail.related_tasks'))}</h3>
+                        <div id="relatedTasksList" class="related-empty">${escapeHtml(window.t('common.loading'))}</div>
                     </div>
                     <div class="related-section" id="relatedEventsSection">
-                        <h3>Related calendar events</h3>
-                        <div id="relatedEventsList" class="related-empty">Loading...</div>
+                        <h3>${escapeHtml(window.t('contracts.detail.related_events'))}</h3>
+                        <div id="relatedEventsList" class="related-empty">${escapeHtml(window.t('common.loading'))}</div>
                     </div>
                 </div>
             `;
         }
 
         function getContractStatus(c) {
-            if (!c.is_active) return { class: 'expired', label: 'Inactive' };
+            if (!c.is_active) return { class: 'expired', label: window.t('contracts.status.inactive') };
             if (c.contract_end) {
                 const end = new Date(c.contract_end);
                 const today = new Date(); today.setHours(0,0,0,0);
                 const daysLeft = Math.ceil((end - today) / (1000*60*60*24));
-                if (daysLeft < 0) return { class: 'expired', label: 'Expired' };
+                if (daysLeft < 0) return { class: 'expired', label: window.t('contracts.status.expired') };
                 if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
-                if (daysLeft <= 90) return { class: 'expiring', label: 'Expiring' };
-                return { class: 'active', label: 'Active' };
+                if (daysLeft <= 90) return { class: 'expiring', label: window.t('contracts.status.expiring') };
+                return { class: 'active', label: window.t('contracts.status.active') };
             }
             if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
-            return { class: 'active', label: 'Active' };
+            return { class: 'active', label: window.t('contracts.status.active') };
         }
 
         function formatDate(dateStr) {
@@ -521,12 +526,16 @@ if (!$contract_id) {
 
         function formatBool(val) {
             if (val === null || val === undefined || val === '') return '<span class="bool-no">-</span>';
-            return val == 1 ? '<span class="bool-yes">Yes</span>' : '<span class="bool-no">No</span>';
+            return val == 1 ? '<span class="bool-yes">' + escapeHtml(window.t('common.yes')) + '</span>' : '<span class="bool-no">' + escapeHtml(window.t('common.no')) + '</span>';
         }
 
         function formatTermsStatus(val) {
             if (!val) return '-';
-            const labels = { received: 'Received', reviewed: 'Reviewed', agreed: 'Agreed' };
+            const labels = {
+                received: window.t('contracts.terms_status.received'),
+                reviewed: window.t('contracts.terms_status.reviewed'),
+                agreed: window.t('contracts.terms_status.agreed')
+            };
             return labels[val] || val;
         }
 
@@ -565,11 +574,11 @@ if (!$contract_id) {
                 ).join('');
 
                 const tabPanels = activeTabs.map((tab, i) =>
-                    `<div class="terms-view-panel ${i === 0 ? 'active' : ''}" id="viewTermPanel_${tab.id}"><div class="rich-content">${valueMap[tab.id] || '<span style="color:#999;">No content</span>'}</div></div>`
+                    `<div class="terms-view-panel ${i === 0 ? 'active' : ''}" id="viewTermPanel_${tab.id}"><div class="rich-content">${valueMap[tab.id] || '<span style="color:#999;">' + escapeHtml(window.t('contracts.detail.no_content')) + '</span>'}</div></div>`
                 ).join('');
 
                 const termsHtml = `
-                    <div class="section-divider"><h3>Contract terms detail</h3></div>
+                    <div class="section-divider"><h3>${escapeHtml(window.t('contracts.detail.terms_detail'))}</h3></div>
                     <div class="detail-group full-width">
                         <div class="terms-view-tabs">${tabButtons}</div>
                         ${tabPanels}
@@ -605,12 +614,12 @@ if (!$contract_id) {
                 const resp = await fetch(TASKS_API + 'list.php?filter=contract&contract_id=' + contractId);
                 const data = await resp.json();
                 if (!data.success) {
-                    list.innerHTML = '<div class="related-empty">Failed to load tasks</div>';
+                    list.innerHTML = '<div class="related-empty">' + escapeHtml(window.t('contracts.detail.tasks_load_failed')) + '</div>';
                     return;
                 }
                 if (!data.tasks.length) {
                     list.className = '';
-                    list.innerHTML = '<div class="related-empty">No related tasks</div>';
+                    list.innerHTML = '<div class="related-empty">' + escapeHtml(window.t('contracts.detail.no_related_tasks')) + '</div>';
                     return;
                 }
                 list.className = '';
@@ -620,13 +629,13 @@ if (!$contract_id) {
                         <a href="../tasks/index.php?task=${t.id}">${escapeHtml(t.title)}</a>
                         <span class="related-pill ${statusClass}">${escapeHtml(t.status || '')}</span>
                         <span class="meta">
-                            ${t.analyst_name ? escapeHtml(t.analyst_name) : (t.team_name ? escapeHtml(t.team_name) : 'Unassigned')}
-                            ${t.due_date ? '<span class="meta-sep">•</span>Due ' + formatDate(t.due_date) : ''}
+                            ${t.analyst_name ? escapeHtml(t.analyst_name) : (t.team_name ? escapeHtml(t.team_name) : escapeHtml(window.t('contracts.detail.unassigned')))}
+                            ${t.due_date ? '<span class="meta-sep">•</span>' + escapeHtml(window.t('contracts.detail.due_prefix')) + ' ' + formatDate(t.due_date) : ''}
                         </span>
                     </div>`;
                 }).join('');
             } catch (e) {
-                list.innerHTML = '<div class="related-empty">Failed to load tasks</div>';
+                list.innerHTML = '<div class="related-empty">' + escapeHtml(window.t('contracts.detail.tasks_load_failed')) + '</div>';
             }
         }
 
@@ -636,12 +645,12 @@ if (!$contract_id) {
                 const resp = await fetch(CALENDAR_API + 'get_events.php?contract_id=' + contractId);
                 const data = await resp.json();
                 if (!data.success) {
-                    list.innerHTML = '<div class="related-empty">Failed to load events</div>';
+                    list.innerHTML = '<div class="related-empty">' + escapeHtml(window.t('contracts.detail.events_load_failed')) + '</div>';
                     return;
                 }
                 if (!data.events.length) {
                     list.className = '';
-                    list.innerHTML = '<div class="related-empty">No related events</div>';
+                    list.innerHTML = '<div class="related-empty">' + escapeHtml(window.t('contracts.detail.no_related_events')) + '</div>';
                     return;
                 }
                 list.className = '';
@@ -656,7 +665,7 @@ if (!$contract_id) {
                     </div>`;
                 }).join('');
             } catch (err) {
-                list.innerHTML = '<div class="related-empty">Failed to load events</div>';
+                list.innerHTML = '<div class="related-empty">' + escapeHtml(window.t('contracts.detail.events_load_failed')) + '</div>';
             }
         }
 
@@ -681,29 +690,29 @@ if (!$contract_id) {
                     if (aData.success) analystOptions = aData.analysts;
                     if (tData.success) teamOptions = tData.teams;
                 } catch (e) {
-                    showToast('Failed to load assignee list', 'error');
+                    showToast(window.t('contracts.detail.toast_assignee_load_failed'), 'error');
                     return;
                 }
             }
 
             const c = currentContract;
-            const titleDefault = `Contract: ${c.contract_number} — ${c.title}`;
+            const titleDefault = window.t('contracts.detail.task_title_default', { number: c.contract_number, title: c.title });
             const dueDefault = c.notice_date || c.contract_end || '';
             // Default assignee = contract owner if present
             const assigneeDefault = c.contract_owner_id || '';
 
             document.getElementById('taskTitle').value = titleDefault;
-            document.getElementById('taskDescription').value = `Linked to contract ${c.contract_number} — ${c.title}` + (c.supplier_name ? ` (Supplier: ${c.supplier_name})` : '');
+            document.getElementById('taskDescription').value = window.t('contracts.detail.linked_description', { number: c.contract_number, title: c.title }) + (c.supplier_name ? ' ' + window.t('contracts.detail.supplier_suffix', { supplier: c.supplier_name }) : '');
             document.getElementById('taskDueDate').value = dueDefault ? dueDefault.substring(0, 10) : '';
             document.getElementById('taskPriority').value = 'Medium';
             document.getElementById('taskStatus').value = 'To Do';
 
             const analystSel = document.getElementById('taskAnalyst');
-            analystSel.innerHTML = '<option value="">Unassigned</option>' +
+            analystSel.innerHTML = '<option value="">' + escapeHtml(window.t('contracts.detail.unassigned')) + '</option>' +
                 analystOptions.map(a => `<option value="${a.id}" ${a.id == assigneeDefault ? 'selected' : ''}>${escapeHtml(a.name)}</option>`).join('');
 
             const teamSel = document.getElementById('taskTeam');
-            teamSel.innerHTML = '<option value="">No team</option>' +
+            teamSel.innerHTML = '<option value="">' + escapeHtml(window.t('contracts.detail.no_team')) + '</option>' +
                 teamOptions.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
 
             document.getElementById('taskModal').classList.add('active');
@@ -717,7 +726,7 @@ if (!$contract_id) {
             const btn = document.getElementById('taskSaveBtn');
             const title = document.getElementById('taskTitle').value.trim();
             if (!title) {
-                showToast('Title is required', 'error');
+                showToast(window.t('contracts.detail.toast_title_required'), 'error');
                 return;
             }
             btn.disabled = true;
@@ -738,14 +747,14 @@ if (!$contract_id) {
                 });
                 const data = await resp.json();
                 if (data.success) {
-                    showToast('Task created', 'success');
+                    showToast(window.t('contracts.detail.toast_task_created'), 'success');
                     closeTaskModal();
                     loadRelatedTasks();
                 } else {
-                    showToast('Error: ' + (data.error || 'Failed to save'), 'error');
+                    showToast(window.t('contracts.detail.error_prefix') + ' ' + (data.error || window.t('contracts.detail.save_failed')), 'error');
                 }
             } catch (e) {
-                showToast('Failed to save task', 'error');
+                showToast(window.t('contracts.detail.toast_task_save_failed'), 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -758,7 +767,7 @@ if (!$contract_id) {
                     const data = await resp.json();
                     if (data.success) categoryOptions = data.categories;
                 } catch (e) {
-                    showToast('Failed to load categories', 'error');
+                    showToast(window.t('contracts.detail.toast_categories_load_failed'), 'error');
                     return;
                 }
             }
@@ -768,13 +777,13 @@ if (!$contract_id) {
             const titleDefault = `${c.contract_number} — ${c.title}`;
 
             document.getElementById('eventTitle').value = titleDefault;
-            document.getElementById('eventDescription').value = `Linked to contract ${c.contract_number} — ${c.title}` + (c.supplier_name ? ` (Supplier: ${c.supplier_name})` : '');
+            document.getElementById('eventDescription').value = window.t('contracts.detail.linked_description', { number: c.contract_number, title: c.title }) + (c.supplier_name ? ' ' + window.t('contracts.detail.supplier_suffix', { supplier: c.supplier_name }) : '');
             document.getElementById('eventStart').value = dateDefault ? dateDefault.substring(0, 10) : '';
             document.getElementById('eventAllDay').checked = true;
             document.getElementById('eventLocation').value = '';
 
             const catSel = document.getElementById('eventCategory');
-            catSel.innerHTML = '<option value="">No category</option>' +
+            catSel.innerHTML = '<option value="">' + escapeHtml(window.t('contracts.detail.no_category')) + '</option>' +
                 categoryOptions.map(cat => `<option value="${cat.id}">${escapeHtml(cat.name)}</option>`).join('');
 
             updateEventStartType();
@@ -795,11 +804,11 @@ if (!$contract_id) {
             const title = document.getElementById('eventTitle').value.trim();
             const start = document.getElementById('eventStart').value;
             if (!title) {
-                showToast('Title is required', 'error');
+                showToast(window.t('contracts.detail.toast_title_required'), 'error');
                 return;
             }
             if (!start) {
-                showToast('Start date is required', 'error');
+                showToast(window.t('contracts.detail.toast_start_required'), 'error');
                 return;
             }
             const allDay = document.getElementById('eventAllDay').checked;
@@ -824,14 +833,14 @@ if (!$contract_id) {
                 });
                 const data = await resp.json();
                 if (data.success) {
-                    showToast('Event added to calendar', 'success');
+                    showToast(window.t('contracts.detail.toast_event_added'), 'success');
                     closeEventModal();
                     loadRelatedEvents();
                 } else {
-                    showToast('Error: ' + (data.error || 'Failed to save'), 'error');
+                    showToast(window.t('contracts.detail.error_prefix') + ' ' + (data.error || window.t('contracts.detail.save_failed')), 'error');
                 }
             } catch (e) {
-                showToast('Failed to save event', 'error');
+                showToast(window.t('contracts.detail.toast_event_save_failed'), 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -842,55 +851,55 @@ if (!$contract_id) {
     <div class="cv-modal-overlay" id="taskModal">
         <div class="cv-modal">
             <div class="cv-modal-header">
-                <h3>New task for this contract</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.detail.task_modal_title')); ?></h3>
             </div>
             <div class="cv-modal-body">
                 <div class="form-group">
-                    <label>Title</label>
+                    <label><?php echo htmlspecialchars(t('contracts.detail.field_title')); ?></label>
                     <input type="text" id="taskTitle" />
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
+                    <label><?php echo htmlspecialchars(t('contracts.detail.field_description')); ?></label>
                     <textarea id="taskDescription"></textarea>
                 </div>
                 <div class="cv-modal-row">
                     <div class="form-group">
-                        <label>Assignee</label>
+                        <label><?php echo htmlspecialchars(t('contracts.detail.field_assignee')); ?></label>
                         <select id="taskAnalyst"></select>
                     </div>
                     <div class="form-group">
-                        <label>Team</label>
+                        <label><?php echo htmlspecialchars(t('contracts.detail.field_team')); ?></label>
                         <select id="taskTeam"></select>
                     </div>
                 </div>
                 <div class="cv-modal-row">
                     <div class="form-group">
-                        <label>Due date</label>
+                        <label><?php echo htmlspecialchars(t('contracts.detail.field_due_date')); ?></label>
                         <input type="date" id="taskDueDate" />
                     </div>
                     <div class="form-group">
-                        <label>Priority</label>
+                        <label><?php echo htmlspecialchars(t('contracts.detail.field_priority')); ?></label>
                         <select id="taskPriority">
-                            <option value="Low">Low</option>
-                            <option value="Medium" selected>Medium</option>
-                            <option value="High">High</option>
-                            <option value="Urgent">Urgent</option>
+                            <option value="Low"><?php echo htmlspecialchars(t('contracts.priority.low')); ?></option>
+                            <option value="Medium" selected><?php echo htmlspecialchars(t('contracts.priority.medium')); ?></option>
+                            <option value="High"><?php echo htmlspecialchars(t('contracts.priority.high')); ?></option>
+                            <option value="Urgent"><?php echo htmlspecialchars(t('contracts.priority.urgent')); ?></option>
                         </select>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Status</label>
+                    <label><?php echo htmlspecialchars(t('contracts.detail.status')); ?></label>
                     <select id="taskStatus">
-                        <option value="To Do" selected>To Do</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Blocked">Blocked</option>
-                        <option value="Done">Done</option>
+                        <option value="To Do" selected><?php echo htmlspecialchars(t('contracts.task_status.todo')); ?></option>
+                        <option value="In Progress"><?php echo htmlspecialchars(t('contracts.task_status.in_progress')); ?></option>
+                        <option value="Blocked"><?php echo htmlspecialchars(t('contracts.task_status.blocked')); ?></option>
+                        <option value="Done"><?php echo htmlspecialchars(t('contracts.task_status.done')); ?></option>
                     </select>
                 </div>
             </div>
             <div class="cv-modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeTaskModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" id="taskSaveBtn" onclick="saveTask()">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="closeTaskModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="taskSaveBtn" onclick="saveTask()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -899,39 +908,39 @@ if (!$contract_id) {
     <div class="cv-modal-overlay" id="eventModal">
         <div class="cv-modal">
             <div class="cv-modal-header">
-                <h3>Add to calendar</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.detail.event_modal_title')); ?></h3>
             </div>
             <div class="cv-modal-body">
                 <div class="form-group">
-                    <label>Title</label>
+                    <label><?php echo htmlspecialchars(t('contracts.detail.field_title')); ?></label>
                     <input type="text" id="eventTitle" />
                 </div>
                 <div class="form-group">
-                    <label>Description</label>
+                    <label><?php echo htmlspecialchars(t('contracts.detail.field_description')); ?></label>
                     <textarea id="eventDescription"></textarea>
                 </div>
                 <div class="form-group checkbox-row">
                     <input type="checkbox" id="eventAllDay" checked onchange="updateEventStartType()" />
-                    <label for="eventAllDay">All day</label>
+                    <label for="eventAllDay"><?php echo htmlspecialchars(t('contracts.detail.field_all_day')); ?></label>
                 </div>
                 <div class="cv-modal-row">
                     <div class="form-group">
-                        <label>Start</label>
+                        <label><?php echo htmlspecialchars(t('contracts.detail.field_start')); ?></label>
                         <input type="date" id="eventStart" />
                     </div>
                     <div class="form-group">
-                        <label>Category</label>
+                        <label><?php echo htmlspecialchars(t('contracts.detail.field_category')); ?></label>
                         <select id="eventCategory"></select>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Location</label>
+                    <label><?php echo htmlspecialchars(t('contracts.detail.field_location')); ?></label>
                     <input type="text" id="eventLocation" />
                 </div>
             </div>
             <div class="cv-modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeEventModal()">Cancel</button>
-                <button type="button" class="btn btn-primary" id="eventSaveBtn" onclick="saveEvent()">Save</button>
+                <button type="button" class="btn btn-secondary" onclick="closeEventModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="button" class="btn btn-primary" id="eventSaveBtn" onclick="saveEvent()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>

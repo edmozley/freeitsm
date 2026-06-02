@@ -13,16 +13,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'rfp-builder';
 $path_prefix  = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - RFP Document</title>
+    <title><?php echo htmlspecialchars(t('contracts.rfp.document.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/tinymce/tinymce.min.js"></script>
     <style>
@@ -377,18 +382,18 @@ $path_prefix  = '../../';
 
     <div class="page-wrap">
         <div class="breadcrumb">
-            <a href="../">Contracts</a><span class="sep">›</span>
-            <a href="./">RFP Builder</a><span class="sep">›</span>
+            <a href="../"><?php echo htmlspecialchars(t('contracts.title')); ?></a><span class="sep">›</span>
+            <a href="./"><?php echo htmlspecialchars(t('contracts.nav.rfp_builder')); ?></a><span class="sep">›</span>
             <a id="bcRfp" href="#">-</a><span class="sep">›</span>
-            <span>Generated document</span>
+            <span><?php echo htmlspecialchars(t('contracts.rfp.document.heading')); ?></span>
         </div>
 
         <div class="page-header">
-            <h1>Generated document</h1>
+            <h1><?php echo htmlspecialchars(t('contracts.rfp.document.heading')); ?></h1>
             <div class="page-actions">
-                <a id="backLink" href="#" class="btn btn-secondary">&larr; Overview</a>
-                <a id="previewLink" class="btn btn-secondary" target="_blank" style="display:none;">Preview document</a>
-                <button id="generateAllBtn" class="btn btn-primary" onclick="generateAll(false)" style="display:none;">Generate all</button>
+                <a id="backLink" href="#" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.rfp.suppliers.overview')); ?></a>
+                <a id="previewLink" class="btn btn-secondary" target="_blank" style="display:none;"><?php echo htmlspecialchars(t('contracts.rfp.document.preview_document')); ?></a>
+                <button id="generateAllBtn" class="btn btn-primary" onclick="generateAll(false)" style="display:none;"><?php echo htmlspecialchars(t('contracts.rfp.document.generate_all')); ?></button>
             </div>
         </div>
 
@@ -400,23 +405,23 @@ $path_prefix  = '../../';
         <div class="stats-strip" id="statsStrip" style="display:none;">
             <div class="stat-card cats">
                 <div class="stat-value" id="statCats">0</div>
-                <div class="stat-label">Categories</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.view.stat_categories')); ?></div>
             </div>
             <div class="stat-card gen">
                 <div class="stat-value" id="statGen">0</div>
-                <div class="stat-label">Generated</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.document.generated')); ?></div>
             </div>
             <div class="stat-card pending">
                 <div class="stat-value" id="statPending">0</div>
-                <div class="stat-label">Pending</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.document.pending')); ?></div>
             </div>
             <div class="stat-card edited">
                 <div class="stat-value" id="statEdited">0</div>
-                <div class="stat-label">Manually edited</div>
+                <div class="stat-label"><?php echo htmlspecialchars(t('contracts.rfp.document.manually_edited')); ?></div>
             </div>
         </div>
 
-        <div id="loadingEl" class="loading">Loading…</div>
+        <div id="loadingEl" class="loading"><?php echo htmlspecialchars(t('common.loading')); ?></div>
         <div id="contentEl" style="display:none;"></div>
         <div id="errorEl" class="error-state" style="display:none;"></div>
     </div>
@@ -425,18 +430,18 @@ $path_prefix  = '../../';
     <div id="contextModal" class="modal-backdrop" style="display:none;">
         <div class="modal-edit-shell">
             <div class="modal-edit-header">
-                <h3>Procurement context</h3>
+                <h3><?php echo htmlspecialchars(t('contracts.rfp.document.procurement_context')); ?></h3>
             </div>
             <div class="modal-edit-body">
                 <div class="form-row">
-                    <label for="ctxField">Optional context note</label>
-                    <div class="help">A short paragraph telling the AI why the organisation is procuring this — e.g. replacing a legacy system, scaling up, compliance change. Used to ground the introduction. Two or three sentences is plenty.</div>
-                    <textarea id="ctxField" rows="6" placeholder="Example: We are replacing our existing on-premise ITSM tool, which has reached end of life and no longer supports the integrations needed by our hybrid workforce. Driven by the move to cloud-first under the IT strategy refresh."></textarea>
+                    <label for="ctxField"><?php echo htmlspecialchars(t('contracts.rfp.document.context_label')); ?></label>
+                    <div class="help"><?php echo htmlspecialchars(t('contracts.rfp.document.context_help')); ?></div>
+                    <textarea id="ctxField" rows="6" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.document.context_ph')); ?>"></textarea>
                 </div>
             </div>
             <div class="modal-edit-footer">
-                <button class="btn btn-secondary" onclick="closeContextModal()">Cancel</button>
-                <button class="btn btn-primary" id="ctxSaveBtn" onclick="saveContext()">Save</button>
+                <button class="btn btn-secondary" onclick="closeContextModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="ctxSaveBtn" onclick="saveContext()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -445,18 +450,18 @@ $path_prefix  = '../../';
     <div id="framingEditModal" class="modal-backdrop" style="display:none;">
         <div class="modal-edit-shell">
             <div class="modal-edit-header">
-                <h3 id="framingEditTitle">Edit framing section</h3>
+                <h3 id="framingEditTitle"><?php echo htmlspecialchars(t('contracts.rfp.document.edit_framing')); ?></h3>
             </div>
             <div class="modal-edit-body">
                 <div class="form-row">
-                    <label>Content</label>
-                    <div class="help">WYSIWYG editor — what you see is what the document will show. Saving marks the section "manually edited" so it won't be overwritten by Generate-all unless you re-generate it explicitly.</div>
+                    <label><?php echo htmlspecialchars(t('contracts.rfp.document.content')); ?></label>
+                    <div class="help"><?php echo htmlspecialchars(t('contracts.rfp.document.framing_edit_help')); ?></div>
                     <textarea id="framingEditField"></textarea>
                 </div>
             </div>
             <div class="modal-edit-footer">
-                <button class="btn btn-secondary" onclick="closeFramingEdit()">Cancel</button>
-                <button class="btn btn-primary" id="framingEditSaveBtn" onclick="saveFramingEdit()">Save</button>
+                <button class="btn btn-secondary" onclick="closeFramingEdit()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="framingEditSaveBtn" onclick="saveFramingEdit()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -465,18 +470,18 @@ $path_prefix  = '../../';
     <div id="sectionEditModal" class="modal-backdrop" style="display:none;">
         <div class="modal-edit-shell">
             <div class="modal-edit-header">
-                <h3 id="sectionEditTitle">Edit section</h3>
+                <h3 id="sectionEditTitle"><?php echo htmlspecialchars(t('contracts.rfp.document.edit_section')); ?></h3>
             </div>
             <div class="modal-edit-body">
                 <div class="form-row">
-                    <label>Section content</label>
-                    <div class="help">Edit the AI-generated HTML directly. Saving creates a new version (the prior version is kept in history) and marks the section "manually edited".</div>
+                    <label><?php echo htmlspecialchars(t('contracts.rfp.document.section_content')); ?></label>
+                    <div class="help"><?php echo htmlspecialchars(t('contracts.rfp.document.section_edit_help')); ?></div>
                     <textarea id="sectionEditField"></textarea>
                 </div>
             </div>
             <div class="modal-edit-footer">
-                <button class="btn btn-secondary" onclick="closeSectionEdit()">Cancel</button>
-                <button class="btn btn-primary" id="sectionEditSaveBtn" onclick="saveSectionEdit()">Save</button>
+                <button class="btn btn-secondary" onclick="closeSectionEdit()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="sectionEditSaveBtn" onclick="saveSectionEdit()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -485,13 +490,13 @@ $path_prefix  = '../../';
     <div id="historyModal" class="modal-backdrop" style="display:none;">
         <div class="modal-history-shell">
             <div class="modal-edit-header">
-                <h3 id="historyTitle">Version history</h3>
+                <h3 id="historyTitle"><?php echo htmlspecialchars(t('contracts.rfp.document.version_history')); ?></h3>
             </div>
             <div class="modal-edit-body" id="historyBody">
-                <div class="loading" style="padding:40px 0;">Loading…</div>
+                <div class="loading" style="padding:40px 0;"><?php echo htmlspecialchars(t('common.loading')); ?></div>
             </div>
             <div class="modal-edit-footer">
-                <button class="btn btn-secondary" onclick="closeHistoryModal()">Close</button>
+                <button class="btn btn-secondary" onclick="closeHistoryModal()"><?php echo htmlspecialchars(t('common.close')); ?></button>
             </div>
         </div>
     </div>
@@ -501,22 +506,22 @@ $path_prefix  = '../../';
         <div class="batch-modal">
             <div class="batch-modal-header">
                 <div id="batchSpinner" class="spinner"></div>
-                <h3 id="batchTitle">Generating sections…</h3>
+                <h3 id="batchTitle"><?php echo htmlspecialchars(t('contracts.rfp.document.generating_sections')); ?></h3>
             </div>
             <div class="batch-summary">
-                <span>Done: <strong id="batchDone">0</strong> / <strong id="batchTotal">0</strong></span>
-                <span>Tokens in: <strong id="batchTokensIn">0</strong></span>
-                <span>Tokens out: <strong id="batchTokensOut">0</strong></span>
-                <span>Cached: <strong id="batchCacheRead">0</strong></span>
-                <span>Elapsed: <strong id="batchElapsed">0s</strong></span>
+                <span><?php echo htmlspecialchars(t('contracts.rfp.document.done')); ?>: <strong id="batchDone">0</strong> / <strong id="batchTotal">0</strong></span>
+                <span><?php echo htmlspecialchars(t('contracts.rfp.document.tokens_in')); ?>: <strong id="batchTokensIn">0</strong></span>
+                <span><?php echo htmlspecialchars(t('contracts.rfp.document.tokens_out')); ?>: <strong id="batchTokensOut">0</strong></span>
+                <span><?php echo htmlspecialchars(t('contracts.rfp.document.cached')); ?>: <strong id="batchCacheRead">0</strong></span>
+                <span><?php echo htmlspecialchars(t('contracts.rfp.document.elapsed')); ?>: <strong id="batchElapsed">0s</strong></span>
             </div>
             <div class="batch-tasks" id="batchTasks"></div>
-            <div class="batch-stream-label">Live output (current section)</div>
+            <div class="batch-stream-label"><?php echo htmlspecialchars(t('contracts.rfp.document.live_output')); ?></div>
             <div class="batch-stream" id="batchStream"></div>
             <div class="batch-modal-footer">
-                <button id="batchCancelBtn" class="btn btn-secondary" onclick="cancelBatch()">Stop after current</button>
+                <button id="batchCancelBtn" class="btn btn-secondary" onclick="cancelBatch()"><?php echo htmlspecialchars(t('contracts.rfp.document.stop_after_current')); ?></button>
                 <div class="right-actions">
-                    <button id="batchCloseBtn" class="btn btn-primary" onclick="closeBatchModal()" disabled>Close</button>
+                    <button id="batchCloseBtn" class="btn btn-primary" onclick="closeBatchModal()" disabled><?php echo htmlspecialchars(t('common.close')); ?></button>
                 </div>
             </div>
         </div>
@@ -530,14 +535,14 @@ $path_prefix  = '../../';
         // Framing has a fixed list of three section keys, each with a
         // user-facing label. Order matters in the document.
         const FRAMING_KEYS = [
-            { key: 'introduction',          label: 'Introduction' },
-            { key: 'scope',                 label: 'Scope' },
-            { key: 'response_instructions', label: 'Response instructions' }
+            { key: 'introduction',          label: window.t('contracts.rfp.document.framing_introduction') },
+            { key: 'scope',                 label: window.t('contracts.rfp.document.framing_scope') },
+            { key: 'response_instructions', label: window.t('contracts.rfp.document.framing_response_instructions') }
         ];
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId) {
-                showError('No RFP id supplied. <a href="./">Back to list</a>.');
+                showError(window.t('contracts.rfp.view.no_id') + ' <a href="./">' + window.t('contracts.rfp.view.back_to_list') + '</a>.');
                 return;
             }
             document.getElementById('backLink').href = 'view.php?id=' + encodeURIComponent(rfpId);
@@ -550,8 +555,8 @@ $path_prefix  = '../../';
                     fetch(API_BASE + 'get_rfp.php?id=' + encodeURIComponent(rfpId)).then(r => r.json()),
                     fetch(API_BASE + 'get_sections.php?rfp_id=' + encodeURIComponent(rfpId)).then(r => r.json())
                 ]);
-                if (!rfpRes.success) throw new Error(rfpRes.error || 'Failed to load RFP');
-                if (!secRes.success) throw new Error(secRes.error || 'Failed to load sections');
+                if (!rfpRes.success) throw new Error(rfpRes.error || window.t('contracts.rfp.suppliers.load_rfp_failed'));
+                if (!secRes.success) throw new Error(secRes.error || window.t('contracts.rfp.document.load_sections_failed'));
 
                 const bc = document.getElementById('bcRfp');
                 bc.textContent = rfpRes.rfp.name;
@@ -593,22 +598,22 @@ $path_prefix  = '../../';
             if (cats.length === 0) {
                 banner.style.display = 'flex';
                 document.getElementById('gateMsg').innerHTML =
-                    '<strong>No categories yet.</strong> Run consolidation on this RFP first to produce a category structure.';
+                    window.t('contracts.rfp.document.gate_no_categories');
                 generateBtn.style.display = 'none';
                 previewLink.style.display = 'none';
             } else if (!data.lock.all_locked) {
                 banner.style.display = 'flex';
                 document.getElementById('gateMsg').innerHTML =
-                    '<strong>Consolidated requirements are not locked.</strong> Section generation is gated on a fully-locked consolidation set so the inputs do not drift mid-generation. ' +
-                    '<a href="consolidate.php?id=' + encodeURIComponent(rfpId) + '" style="color:#92400e;text-decoration:underline;">Open consolidation</a> to lock.';
+                    window.t('contracts.rfp.document.gate_not_locked') + ' ' +
+                    '<a href="consolidate.php?id=' + encodeURIComponent(rfpId) + '" style="color:#92400e;text-decoration:underline;">' + window.t('contracts.rfp.document.open_consolidation') + '</a> ' + window.t('contracts.rfp.document.to_lock');
                 generateBtn.style.display = 'none';
                 previewLink.style.display = 'none';
             } else {
                 banner.style.display = 'none';
                 generateBtn.style.display = '';
                 generateBtn.textContent = totalGenerated === 0
-                    ? 'Generate all'
-                    : (totalPending > 0 ? 'Generate pending' : 'Re-generate all');
+                    ? window.t('contracts.rfp.document.generate_all')
+                    : (totalPending > 0 ? window.t('contracts.rfp.document.generate_pending') : window.t('contracts.rfp.document.regenerate_all'));
                 previewLink.style.display = totalGenerated > 0 ? '' : 'none';
                 previewLink.href = 'preview.php?id=' + encodeURIComponent(rfpId);
             }
@@ -631,22 +636,22 @@ $path_prefix  = '../../';
                 const f = framingByKey.get(spec.key);
                 const hasContent = !!f && !!f.section_content;
                 const editedBadge = (f && f.is_manually_edited)
-                    ? '<span class="badge edited">manually edited</span>'
+                    ? '<span class="badge edited">' + escapeHtml(window.t('contracts.rfp.document.badge_edited')) + '</span>'
                     : '';
                 const stateBadge = hasContent
-                    ? '<span class="badge fresh">drafted</span>'
-                    : '<span class="badge empty">not yet drafted</span>';
+                    ? '<span class="badge fresh">' + escapeHtml(window.t('contracts.rfp.document.badge_drafted')) + '</span>'
+                    : '<span class="badge empty">' + escapeHtml(window.t('contracts.rfp.document.badge_not_drafted')) + '</span>';
                 const generatedAt = f && f.generated_datetime
-                    ? '<span>generated ' + escapeHtml(formatDateTime(f.generated_datetime)) + '</span>'
+                    ? '<span>' + escapeHtml(window.t('contracts.rfp.document.generated_prefix', { when: formatDateTime(f.generated_datetime) })) + '</span>'
                     : '';
                 const actions = allLocked ? `
-                    <button class="btn btn-secondary" onclick="generateFraming('${spec.key}', ${hasContent ? 'true' : 'false'})">${hasContent ? 'Re-generate' : 'Generate'}</button>
-                    ${hasContent ? `<button class="btn btn-secondary" onclick="restyleFraming('${spec.key}')">Restyle</button>` : ''}
-                    ${hasContent ? `<button class="btn btn-secondary" onclick="openFramingEdit(${f.id})">Edit</button>` : ''}
+                    <button class="btn btn-secondary" onclick="generateFraming('${spec.key}', ${hasContent ? 'true' : 'false'})">${hasContent ? escapeHtml(window.t('contracts.rfp.document.regenerate')) : escapeHtml(window.t('contracts.rfp.document.generate'))}</button>
+                    ${hasContent ? `<button class="btn btn-secondary" onclick="restyleFraming('${spec.key}')">${escapeHtml(window.t('contracts.rfp.document.restyle'))}</button>` : ''}
+                    ${hasContent ? `<button class="btn btn-secondary" onclick="openFramingEdit(${f.id})">${escapeHtml(window.t('common.edit'))}</button>` : ''}
                 ` : '';
                 const body = hasContent
                     ? `<div class="framing-card-body">${f.section_content}</div>`
-                    : '<div class="framing-card-body empty">' + escapeHtml(spec.label) + ' has not been drafted yet.</div>';
+                    : '<div class="framing-card-body empty">' + escapeHtml(window.t('contracts.rfp.document.framing_not_drafted', { name: spec.label })) + '</div>';
 
                 return `
                     <div class="framing-card" data-key="${spec.key}">
@@ -667,21 +672,21 @@ $path_prefix  = '../../';
             const ctx = contextNote && contextNote.trim() !== '' ? contextNote.trim() : '';
             const ctxBlock = `
                 <div class="framing-context-block">
-                    <div class="ctx-label">Procurement context (used by the AI when drafting framing)</div>
+                    <div class="ctx-label">${escapeHtml(window.t('contracts.rfp.document.ctx_label'))}</div>
                     ${ctx
                         ? '<div>' + escapeHtml(ctx) + '</div>'
-                        : '<div class="ctx-empty">None set. The AI will infer context from the categories alone — better intros come from a short note here.</div>'}
+                        : '<div class="ctx-empty">' + escapeHtml(window.t('contracts.rfp.document.ctx_empty')) + '</div>'}
                 </div>
             `;
 
             const headerActions = allLocked
-                ? `<button class="btn btn-secondary" onclick="openContextModal()">Set context</button>`
+                ? `<button class="btn btn-secondary" onclick="openContextModal()">${escapeHtml(window.t('contracts.rfp.document.set_context'))}</button>`
                 : '';
 
             return `
                 <div class="framing-panel">
                     <div class="framing-panel-header">
-                        <h2>Document framing</h2>
+                        <h2>${escapeHtml(window.t('contracts.rfp.document.document_framing'))}</h2>
                         <div class="header-actions">${headerActions}</div>
                     </div>
                     ${ctxBlock}
@@ -693,26 +698,26 @@ $path_prefix  = '../../';
         function renderCategoryCard(c) {
             const hasSection = c.section_id !== null;
             const editedBadge = c.is_manually_edited
-                ? '<span class="badge edited">manually edited</span>'
+                ? '<span class="badge edited">' + escapeHtml(window.t('contracts.rfp.document.badge_edited')) + '</span>'
                 : '';
             const versionBadge = hasSection
                 ? '<span class="badge fresh">v' + c.version + '</span>'
-                : '<span class="badge empty">not generated</span>';
-            const reqBadge = '<span class="badge">' + c.req_count + ' req' + (c.req_count === 1 ? '' : 's') + '</span>';
+                : '<span class="badge empty">' + escapeHtml(window.t('contracts.rfp.document.badge_not_generated')) + '</span>';
+            const reqBadge = '<span class="badge">' + escapeHtml(c.req_count === 1 ? window.t('contracts.rfp.document.req_count_one', { n: c.req_count }) : window.t('contracts.rfp.document.req_count_other', { n: c.req_count })) + '</span>';
             const generatedAt = c.generated_datetime ? formatDateTime(c.generated_datetime) : '';
 
             const canGenerate = pageData.lock.all_locked && c.req_count > 0;
 
             const actions = canGenerate ? `
-                <button class="btn btn-secondary" onclick="generateOne(${c.id}, ${hasSection})">${hasSection ? 'Re-generate' : 'Generate'}</button>
-                ${hasSection ? `<button class="btn btn-secondary" onclick="restyleSection(${c.section_id})">Restyle</button>` : ''}
-                ${hasSection ? `<button class="btn btn-secondary" onclick="openSectionEdit(${c.section_id})">Edit</button>` : ''}
-                ${hasSection && c.version > 1 ? `<button class="btn btn-secondary" onclick="openHistoryModal(${c.section_id})">History</button>` : ''}
+                <button class="btn btn-secondary" onclick="generateOne(${c.id}, ${hasSection})">${hasSection ? escapeHtml(window.t('contracts.rfp.document.regenerate')) : escapeHtml(window.t('contracts.rfp.document.generate'))}</button>
+                ${hasSection ? `<button class="btn btn-secondary" onclick="restyleSection(${c.section_id})">${escapeHtml(window.t('contracts.rfp.document.restyle'))}</button>` : ''}
+                ${hasSection ? `<button class="btn btn-secondary" onclick="openSectionEdit(${c.section_id})">${escapeHtml(window.t('common.edit'))}</button>` : ''}
+                ${hasSection && c.version > 1 ? `<button class="btn btn-secondary" onclick="openHistoryModal(${c.section_id})">${escapeHtml(window.t('contracts.rfp.document.history'))}</button>` : ''}
             ` : '';
 
             const body = hasSection
                 ? `<div class="section-body">${c.section_content || ''}</div>`
-                : `<div class="section-empty">Section not yet generated.${c.req_count === 0 ? ' (No consolidated requirements assigned to this category.)' : ''}</div>`;
+                : `<div class="section-empty">${escapeHtml(window.t('contracts.rfp.document.section_not_generated'))}${c.req_count === 0 ? ' ' + escapeHtml(window.t('contracts.rfp.document.no_reqs_assigned')) : ''}</div>`;
 
             return `
                 <div class="category-card">
@@ -724,7 +729,7 @@ $path_prefix  = '../../';
                                 ${reqBadge}
                                 ${versionBadge}
                                 ${editedBadge}
-                                ${generatedAt ? '<span>generated ' + escapeHtml(generatedAt) + '</span>' : ''}
+                                ${generatedAt ? '<span>' + escapeHtml(window.t('contracts.rfp.document.generated_prefix', { when: generatedAt })) + '</span>' : ''}
                             </div>
                         </div>
                         <div class="cat-actions">${actions}</div>
@@ -754,7 +759,7 @@ $path_prefix  = '../../';
 
         function generateOne(categoryId, force) {
             const cat = pageData.categories.find(c => c.id === categoryId);
-            startBatch([{ kind: 'category', action: 'generate', id: categoryId, label: cat ? cat.name : 'Category #' + categoryId }], !!force);
+            startBatch([{ kind: 'category', action: 'generate', id: categoryId, label: cat ? cat.name : window.t('contracts.rfp.document.category_n', { n: categoryId }) }], !!force);
         }
 
         function generateFraming(sectionKey, exists) {
@@ -768,20 +773,20 @@ $path_prefix  = '../../';
 
         async function restyleSection(sectionId) {
             const cat = pageData.categories.find(c => c.section_id === sectionId);
-            if (!(await showConfirm({ title: 'Restyle section', message: 'Restyle "' + (cat ? cat.name : 'this section') + '"?\n\nThe AI will apply the style guide to the existing content without changing what it says. The current version will be snapshotted into history first.', okLabel: 'Restyle', okClass: 'primary' }))) return;
+            if (!(await showConfirm({ title: window.t('contracts.rfp.document.restyle_section'), message: window.t('contracts.rfp.document.restyle_section_msg', { name: (cat ? cat.name : window.t('contracts.rfp.document.this_section')) }), okLabel: window.t('contracts.rfp.document.restyle'), okClass: 'primary' }))) return;
             startBatch([{
                 kind: 'category', action: 'restyle',
                 id: sectionId, // for restyle action this is section_id, not category_id
-                label: (cat ? cat.name : 'Section #' + sectionId)
+                label: (cat ? cat.name : window.t('contracts.rfp.document.section_n', { n: sectionId }))
             }], false);
         }
 
         async function restyleFraming(sectionKey) {
             const spec = FRAMING_KEYS.find(s => s.key === sectionKey);
             const ok = await showConfirm({
-                title: 'Restyle',
-                message: 'Restyle the ' + (spec ? spec.label.toLowerCase() : sectionKey) + '?\n\nThe AI will apply the style guide to the existing content without changing what it says.',
-                okLabel: 'Restyle',
+                title: window.t('contracts.rfp.document.restyle'),
+                message: window.t('contracts.rfp.document.restyle_framing_msg', { name: (spec ? spec.label.toLowerCase() : sectionKey) }),
+                okLabel: window.t('contracts.rfp.document.restyle'),
                 okClass: 'primary'
             });
             if (!ok) return;
@@ -800,10 +805,10 @@ $path_prefix  = '../../';
                 .filter(c => c.req_count > 0)
                 .forEach(c => queue.push({ kind: 'category', action: 'generate', id: c.id, label: c.name }));
             if (queue.length === 0) {
-                showToast('Nothing to generate yet — run consolidation first.', 'error');
+                showToast(window.t('contracts.rfp.document.nothing_to_generate'), 'error');
                 return;
             }
-            if (!(await showConfirm({ title: 'Generate sections', message: 'Generate ' + queue.length + ' sections?\n\n• ' + FRAMING_KEYS.length + ' framing sections (introduction, scope, response instructions)\n• ' + (queue.length - FRAMING_KEYS.length) + ' category sections\n\nEach takes 30-90 seconds. Already-generated sections whose inputs have not changed will be skipped automatically.', okLabel: 'Generate', okClass: 'primary' }))) return;
+            if (!(await showConfirm({ title: window.t('contracts.rfp.document.generate_sections'), message: window.t('contracts.rfp.document.generate_confirm', { total: queue.length, framing: FRAMING_KEYS.length, cats: (queue.length - FRAMING_KEYS.length) }), okLabel: window.t('contracts.rfp.document.generate'), okClass: 'primary' }))) return;
             startBatch(queue, !!forceAll);
         }
 
@@ -824,9 +829,9 @@ $path_prefix  = '../../';
             tasksEl.innerHTML = queue.map((item, i) => {
                 const tid = taskIdFor(item);
                 const action = item.action || 'generate';
-                const framingTag = item.kind === 'framing' ? '<em style="color:#0369a1;">Framing — </em>' : '';
+                const framingTag = item.kind === 'framing' ? '<em style="color:#0369a1;">' + escapeHtml(window.t('contracts.rfp.document.tag_framing')) + ' </em>' : '';
                 const actionTag  = action === 'restyle'
-                    ? '<em style="color:#7c3aed;">Restyle — </em>'
+                    ? '<em style="color:#7c3aed;">' + escapeHtml(window.t('contracts.rfp.document.tag_restyle')) + ' </em>'
                     : '';
                 return `
                     <div class="batch-task" id="${tid}">
@@ -895,7 +900,7 @@ $path_prefix  = '../../';
             batchActiveStream.addEventListener('skipped', (e) => {
                 taskEl.classList.remove('active');
                 taskEl.classList.add('skip');
-                document.getElementById(tid + '-count').textContent = 'skipped (unchanged)';
+                document.getElementById(tid + '-count').textContent = window.t('contracts.rfp.document.skipped_unchanged');
                 advanceBatch();
             });
 
@@ -916,13 +921,13 @@ $path_prefix  = '../../';
             });
 
             batchActiveStream.addEventListener('error', (e) => {
-                let msg = 'Connection error';
+                let msg = window.t('contracts.rfp.document.connection_error');
                 if (e.data) {
                     try { msg = JSON.parse(e.data).error || msg; } catch (_) { msg = e.data; }
                 }
                 taskEl.classList.remove('active');
                 taskEl.classList.add('error');
-                document.getElementById(tid + '-count').textContent = 'error: ' + msg.slice(0, 80);
+                document.getElementById(tid + '-count').textContent = window.t('contracts.rfp.document.error_prefix') + ' ' + msg.slice(0, 80);
                 advanceBatch();
             });
         }
@@ -939,7 +944,7 @@ $path_prefix  = '../../';
         function cancelBatch() {
             batchCancelRequested = true;
             document.getElementById('batchCancelBtn').disabled = true;
-            document.getElementById('batchCancelBtn').textContent = 'Stopping…';
+            document.getElementById('batchCancelBtn').textContent = window.t('contracts.rfp.document.stopping');
         }
 
         function finishBatch() {
@@ -947,8 +952,8 @@ $path_prefix  = '../../';
             if (batchElapsedTimer) { clearInterval(batchElapsedTimer); batchElapsedTimer = null; }
             document.getElementById('batchSpinner').classList.add('done');
             document.getElementById('batchTitle').textContent =
-                batchCancelRequested ? 'Stopped — ' + batchDone + ' / ' + batchTotal + ' sections done'
-                                     : 'Generated ' + batchDone + ' / ' + batchTotal + ' sections';
+                batchCancelRequested ? window.t('contracts.rfp.document.batch_stopped', { done: batchDone, total: batchTotal })
+                                     : window.t('contracts.rfp.document.batch_generated', { done: batchDone, total: batchTotal });
             document.getElementById('batchCloseBtn').disabled = false;
             document.getElementById('batchCancelBtn').disabled = true;
             // Refresh page data so closing the modal reveals the populated sections.
@@ -970,7 +975,7 @@ $path_prefix  = '../../';
         function openBatchModal() {
             document.getElementById('batchModal').style.display = 'flex';
             document.getElementById('batchSpinner').classList.remove('done');
-            document.getElementById('batchTitle').textContent = 'Generating sections…';
+            document.getElementById('batchTitle').textContent = window.t('contracts.rfp.document.generating_sections');
             document.getElementById('batchTokensIn').textContent  = '0';
             document.getElementById('batchTokensOut').textContent = '0';
             document.getElementById('batchCacheRead').textContent = '0';
@@ -979,7 +984,7 @@ $path_prefix  = '../../';
             document.getElementById('batchStream').textContent    = '';
             document.getElementById('batchCloseBtn').disabled     = true;
             document.getElementById('batchCancelBtn').disabled    = false;
-            document.getElementById('batchCancelBtn').textContent = 'Stop after current';
+            document.getElementById('batchCancelBtn').textContent = window.t('contracts.rfp.document.stop_after_current');
             document.getElementById('generateAllBtn').disabled    = true;
         }
 
@@ -1024,11 +1029,11 @@ $path_prefix  = '../../';
                     })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Save failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.suppliers.save_failed_short'));
                 closeContextModal();
                 loadAll();
             } catch (err) {
-                showToast('Save failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.save_failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -1089,7 +1094,7 @@ $path_prefix  = '../../';
             const f = (pageData.framing || []).find(x => x.id === framingId);
             if (!f) return;
             editingFramingId = framingId;
-            document.getElementById('framingEditTitle').textContent = 'Edit ' + (f.section_title || 'framing section');
+            document.getElementById('framingEditTitle').textContent = window.t('contracts.rfp.document.edit_prefix', { name: (f.section_title || window.t('contracts.rfp.document.framing_section')) });
             document.getElementById('framingEditModal').style.display = 'flex';
             // initTinyOn returns a promise, but we don't need to await —
             // the editor populates itself on init.
@@ -1112,11 +1117,11 @@ $path_prefix  = '../../';
                     })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Save failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.suppliers.save_failed_short'));
                 closeFramingEdit();
                 loadAll();
             } catch (err) {
-                showToast('Save failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.save_failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -1130,7 +1135,7 @@ $path_prefix  = '../../';
             const cat = pageData.categories.find(c => c.section_id === sectionId);
             if (!cat) return;
             editingSectionId = sectionId;
-            document.getElementById('sectionEditTitle').textContent = 'Edit "' + cat.name + '" section';
+            document.getElementById('sectionEditTitle').textContent = window.t('contracts.rfp.document.edit_section_named', { name: cat.name });
             document.getElementById('sectionEditModal').style.display = 'flex';
             initTinyOn('sectionEditField', cat.section_content || '');
         }
@@ -1151,11 +1156,11 @@ $path_prefix  = '../../';
                     })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Save failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.suppliers.save_failed_short'));
                 closeSectionEdit();
                 loadAll();
             } catch (err) {
-                showToast('Save failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.list.save_failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -1168,11 +1173,11 @@ $path_prefix  = '../../';
         async function openHistoryModal(sectionId) {
             historySectionId = sectionId;
             document.getElementById('historyModal').style.display = 'flex';
-            document.getElementById('historyBody').innerHTML = '<div class="loading" style="padding:40px 0;">Loading…</div>';
+            document.getElementById('historyBody').innerHTML = '<div class="loading" style="padding:40px 0;">' + escapeHtml(window.t('common.loading')) + '</div>';
             try {
                 const res = await fetch(API_BASE + 'get_section_history.php?section_id=' + encodeURIComponent(sectionId));
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Load failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.document.load_failed'));
                 renderHistory(data);
             } catch (err) {
                 document.getElementById('historyBody').innerHTML =
@@ -1189,20 +1194,20 @@ $path_prefix  = '../../';
             const hist = data.history || [];
 
             document.getElementById('historyTitle').textContent =
-                'Version history — ' + (cur.category_name || 'Section');
+                window.t('contracts.rfp.document.history_title', { name: (cur.category_name || window.t('contracts.rfp.document.section_word')) });
 
             const currentRow = `
                 <div class="history-row current open" data-h="current">
                     <div class="history-row-header" onclick="toggleHistoryRow(this)">
                         <span class="ver-pill">v${cur.version}</span>
                         <div class="ver-meta">
-                            <strong>Current</strong>
-                            ${cur.is_manually_edited ? '<span class="edited-tag">manually edited</span>' : ''}
+                            <strong>${escapeHtml(window.t('contracts.rfp.document.current'))}</strong>
+                            ${cur.is_manually_edited ? '<span class="edited-tag">' + escapeHtml(window.t('contracts.rfp.document.badge_edited')) + '</span>' : ''}
                             · ${escapeHtml(formatDateTime(cur.edited_datetime || cur.generated_datetime))}
                         </div>
                         <div class="ver-actions"></div>
                     </div>
-                    <div class="history-row-body">${cur.section_content || '<em>(empty)</em>'}</div>
+                    <div class="history-row-body">${cur.section_content || '<em>' + escapeHtml(window.t('contracts.rfp.document.empty_paren')) + '</em>'}</div>
                 </div>
             `;
 
@@ -1211,19 +1216,19 @@ $path_prefix  = '../../';
                     <div class="history-row-header" onclick="toggleHistoryRow(this)">
                         <span class="ver-pill">v${h.version}</span>
                         <div class="ver-meta">
-                            ${h.is_manually_edited ? '<span class="edited-tag">manually edited</span>' : 'AI-generated'}
+                            ${h.is_manually_edited ? '<span class="edited-tag">' + escapeHtml(window.t('contracts.rfp.document.badge_edited')) + '</span>' : escapeHtml(window.t('contracts.rfp.document.ai_generated'))}
                             · ${escapeHtml(formatDateTime(h.created_datetime))}
                         </div>
                         <div class="ver-actions">
-                            <button class="btn btn-secondary" onclick="event.stopPropagation(); restoreVersion(${h.id});">Restore</button>
+                            <button class="btn btn-secondary" onclick="event.stopPropagation(); restoreVersion(${h.id});">${escapeHtml(window.t('contracts.rfp.document.restore'))}</button>
                         </div>
                     </div>
-                    <div class="history-row-body">${h.section_content || '<em>(empty)</em>'}</div>
+                    <div class="history-row-body">${h.section_content || '<em>' + escapeHtml(window.t('contracts.rfp.document.empty_paren')) + '</em>'}</div>
                 </div>
             `).join('');
 
             const empty = hist.length === 0
-                ? '<div class="history-list-empty">No earlier versions yet — every save and re-generation will appear here.</div>'
+                ? '<div class="history-list-empty">' + escapeHtml(window.t('contracts.rfp.document.no_earlier_versions')) + '</div>'
                 : '';
 
             document.getElementById('historyBody').innerHTML = currentRow + histRows + empty;
@@ -1234,7 +1239,7 @@ $path_prefix  = '../../';
         }
 
         async function restoreVersion(historyId) {
-            if (!(await showConfirm({ title: 'Confirm', message: 'Restore this earlier version?\n\nThe current version will be snapshotted into history first, so this is reversible.', okLabel: 'OK', okClass: 'primary' }))) return;
+            if (!(await showConfirm({ title: window.t('contracts.rfp.document.confirm'), message: window.t('contracts.rfp.document.restore_confirm'), okLabel: window.t('common.ok'), okClass: 'primary' }))) return;
             try {
                 const res = await fetch(API_BASE + 'restore_section_version.php', {
                     method: 'POST',
@@ -1242,11 +1247,11 @@ $path_prefix  = '../../';
                     body: JSON.stringify({ section_id: historySectionId, history_id: historyId })
                 });
                 const data = await res.json();
-                if (!data.success) throw new Error(data.error || 'Restore failed');
+                if (!data.success) throw new Error(data.error || window.t('contracts.rfp.document.restore_failed_short'));
                 closeHistoryModal();
                 loadAll();
             } catch (err) {
-                showToast('Restore failed: ' + err.message, 'error');
+                showToast(window.t('contracts.rfp.document.restore_failed') + ' ' + err.message, 'error');
             }
         }
 

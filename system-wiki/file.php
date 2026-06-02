@@ -4,16 +4,22 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'browse';
 $path_prefix = '../';
+
+$translationNamespaces = ['common', 'system-wiki'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - File Detail</title>
+    <title><?php echo htmlspecialchars(t('system-wiki.file.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .wiki-detail {
@@ -183,7 +189,7 @@ $path_prefix = '../';
 
     <div class="wiki-detail">
         <div class="detail-content" id="content">
-            <div style="text-align:center;padding:60px;color:#aaa;">Loading file details...</div>
+            <div style="text-align:center;padding:60px;color:#aaa;"><?php echo htmlspecialchars(t('system-wiki.file.loading')); ?></div>
         </div>
     </div>
 
@@ -195,7 +201,7 @@ $path_prefix = '../';
 
         async function loadFileDetail() {
             if (!fileId) {
-                document.getElementById('content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">No file ID specified.</div>';
+                document.getElementById('content').innerHTML = '<div style="text-align:center;padding:60px;color:#888;">' + esc(window.t('system-wiki.file.no_id')) + '</div>';
                 return;
             }
 
@@ -204,7 +210,7 @@ $path_prefix = '../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    document.getElementById('content').innerHTML = '<div style="text-align:center;padding:60px;color:#c62828;">Error: ' + esc(data.error) + '</div>';
+                    document.getElementById('content').innerHTML = '<div style="text-align:center;padding:60px;color:#c62828;">' + esc(window.t('system-wiki.file.error_prefix')) + esc(data.error) + '</div>';
                     return;
                 }
 
@@ -220,7 +226,7 @@ $path_prefix = '../';
 
             // Breadcrumb
             const parts = f.folder_path ? f.folder_path.split('/') : [];
-            let breadcrumb = '<a href="./">Wiki</a>';
+            let breadcrumb = `<a href="./">${esc(window.t('system-wiki.file.wiki'))}</a>`;
             let cumPath = '';
             for (const p of parts) {
                 cumPath += (cumPath ? '/' : '') + p;
@@ -232,7 +238,7 @@ $path_prefix = '../';
             const sizeKb = (f.file_size_bytes / 1024).toFixed(1);
 
             // Last modified
-            const modified = f.last_modified ? new Date(f.last_modified).toLocaleDateString() : 'Unknown';
+            const modified = f.last_modified ? new Date(f.last_modified).toLocaleDateString() : window.t('system-wiki.file.unknown');
 
             let html = `
                 <div class="breadcrumb">${breadcrumb}</div>
@@ -243,39 +249,39 @@ $path_prefix = '../';
                     </div>
                     <div class="file-path">${esc(f.file_path)}</div>
                     <div class="file-meta">
-                        <div class="meta-item"><strong>${parseInt(f.line_count).toLocaleString()}</strong> lines</div>
-                        <div class="meta-item"><strong>${sizeKb}</strong> KB</div>
-                        <div class="meta-item">Modified: <strong>${modified}</strong></div>
+                        <div class="meta-item"><strong>${parseInt(f.line_count).toLocaleString()}</strong> ${esc(window.t('system-wiki.file.lines'))}</div>
+                        <div class="meta-item"><strong>${sizeKb}</strong> ${esc(window.t('system-wiki.file.kb'))}</div>
+                        <div class="meta-item">${esc(window.t('system-wiki.file.modified'))} <strong>${esc(modified)}</strong></div>
                     </div>
                     ${f.description ? `<div class="file-description">${esc(f.description)}</div>` : ''}
                 </div>
             `;
 
             // Functions section
-            html += renderSection('Functions', data.functions, fn => `
+            html += renderSection(window.t('system-wiki.file.sec_functions'), data.functions, fn => `
                 <tr>
                     <td><a href="function.php?id=${fn.id}">${esc(fn.function_name)}</a></td>
                     <td class="line-ref">L${fn.line_number}</td>
                     <td><code>${esc(fn.parameters || '')}</code></td>
-                    <td>${fn.visibility ? esc(fn.visibility) : ''} ${fn.is_static == 1 ? 'static' : ''}</td>
+                    <td>${fn.visibility ? esc(fn.visibility) : ''} ${fn.is_static == 1 ? esc(window.t('system-wiki.file.static')) : ''}</td>
                     <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(fn.description || '')}</td>
                 </tr>
-            `, '<th>Name</th><th>Line</th><th>Parameters</th><th>Scope</th><th>Description</th>');
+            `, `<th>${esc(window.t('system-wiki.file.col_name'))}</th><th>${esc(window.t('system-wiki.file.col_line'))}</th><th>${esc(window.t('system-wiki.file.col_parameters'))}</th><th>${esc(window.t('system-wiki.file.col_scope'))}</th><th>${esc(window.t('system-wiki.file.col_description'))}</th>`);
 
             // Classes section
             if (data.classes.length > 0) {
-                html += renderSection('Classes', data.classes, cls => `
+                html += renderSection(window.t('system-wiki.file.sec_classes'), data.classes, cls => `
                     <tr>
                         <td><strong>${esc(cls.class_name)}</strong></td>
                         <td class="line-ref">L${cls.line_number}</td>
-                        <td>${cls.extends_class ? 'extends ' + esc(cls.extends_class) : ''}</td>
+                        <td>${cls.extends_class ? esc(window.t('system-wiki.file.extends')) + ' ' + esc(cls.extends_class) : ''}</td>
                         <td>${esc(cls.description || '')}</td>
                     </tr>
-                `, '<th>Name</th><th>Line</th><th>Extends</th><th>Description</th>');
+                `, `<th>${esc(window.t('system-wiki.file.col_name'))}</th><th>${esc(window.t('system-wiki.file.col_line'))}</th><th>${esc(window.t('system-wiki.file.col_extends'))}</th><th>${esc(window.t('system-wiki.file.col_description'))}</th>`);
             }
 
             // Dependencies section
-            html += renderSection('Dependencies (this file uses)', data.dependencies, dep => `
+            html += renderSection(window.t('system-wiki.file.sec_dependencies'), data.dependencies, dep => `
                 <tr>
                     <td><span class="dep-badge ${dep.dependency_type}">${dep.dependency_type}</span></td>
                     <td>${dep.resolved_file_id
@@ -283,34 +289,34 @@ $path_prefix = '../';
                         : `<span style="color:#aaa">${esc(dep.target_path)}</span>`}</td>
                     <td class="line-ref">L${dep.line_number || ''}</td>
                 </tr>
-            `, '<th>Type</th><th>Target</th><th>Line</th>');
+            `, `<th>${esc(window.t('system-wiki.file.col_type'))}</th><th>${esc(window.t('system-wiki.file.col_target'))}</th><th>${esc(window.t('system-wiki.file.col_line'))}</th>`);
 
             // Dependents section
-            html += renderSection('Dependents (files that use this)', data.dependents, dep => `
+            html += renderSection(window.t('system-wiki.file.sec_dependents'), data.dependents, dep => `
                 <tr>
                     <td><span class="dep-badge ${dep.dependency_type}">${dep.dependency_type}</span></td>
                     <td><a href="file.php?id=${dep.source_file_id}">${esc(dep.source_file_path)}</a></td>
                     <td class="line-ref">L${dep.line_number || ''}</td>
                 </tr>
-            `, '<th>Type</th><th>Source File</th><th>Line</th>');
+            `, `<th>${esc(window.t('system-wiki.file.col_type'))}</th><th>${esc(window.t('system-wiki.file.col_source_file'))}</th><th>${esc(window.t('system-wiki.file.col_line'))}</th>`);
 
             // DB References section
-            html += renderSection('Database Tables', data.db_references, ref => `
+            html += renderSection(window.t('system-wiki.file.sec_db_tables'), data.db_references, ref => `
                 <tr>
                     <td><span class="ref-badge ${ref.reference_type}">${ref.reference_type}</span></td>
                     <td><a href="table.php?name=${encodeURIComponent(ref.table_name)}">${esc(ref.table_name)}</a></td>
                     <td class="line-ref">L${ref.line_number || ''}</td>
                 </tr>
-            `, '<th>Operation</th><th>Table</th><th>Line</th>');
+            `, `<th>${esc(window.t('system-wiki.file.col_operation'))}</th><th>${esc(window.t('system-wiki.file.col_table'))}</th><th>${esc(window.t('system-wiki.file.col_line'))}</th>`);
 
             // Session Variables section
-            html += renderSection('Session Variables', data.session_vars, sv => `
+            html += renderSection(window.t('system-wiki.file.sec_session_vars'), data.session_vars, sv => `
                 <tr>
                     <td><span class="access-badge ${sv.access_type}">${sv.access_type}</span></td>
                     <td><code>$_SESSION['${esc(sv.variable_name)}']</code></td>
                     <td class="line-ref">L${sv.line_number || ''}</td>
                 </tr>
-            `, '<th>Access</th><th>Variable</th><th>Line</th>');
+            `, `<th>${esc(window.t('system-wiki.file.col_access'))}</th><th>${esc(window.t('system-wiki.file.col_variable'))}</th><th>${esc(window.t('system-wiki.file.col_line'))}</th>`);
 
             container.innerHTML = html;
         }
@@ -324,7 +330,7 @@ $path_prefix = '../';
                     </div>
                     <div class="section-body${count === 0 ? ' collapsed' : ''}">
                         ${count === 0
-                            ? '<div class="empty-section">None found</div>'
+                            ? '<div class="empty-section">' + esc(window.t('system-wiki.file.none_found')) + '</div>'
                             : `<table class="detail-table"><thead><tr>${headerHtml}</tr></thead><tbody>${items.map(rowFn).join('')}</tbody></table>`
                         }
                     </div>

@@ -4,16 +4,21 @@
  */
 session_start();
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'settings';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Contract settings</title>
+    <title><?php echo htmlspecialchars(t('contracts.settings.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
@@ -76,34 +81,34 @@ $path_prefix = '../../';
 
     <div class="container">
         <div class="tabs">
-            <button class="tab active" data-tab="supplier-types" onclick="switchTab('supplier-types')">Supplier types</button>
-            <button class="tab" data-tab="supplier-statuses" onclick="switchTab('supplier-statuses')">Supplier statuses</button>
-            <button class="tab" data-tab="contract-statuses" onclick="switchTab('contract-statuses')">Contract statuses</button>
-            <button class="tab" data-tab="payment-schedules" onclick="switchTab('payment-schedules')">Payment schedules</button>
-            <button class="tab" data-tab="contract-term-tabs" onclick="switchTab('contract-term-tabs')">Contract terms</button>
-            <button class="tab" data-tab="rfp-departments" onclick="switchTab('rfp-departments')">RFP departments</button>
-            <button class="tab" data-tab="rfp-ai" onclick="switchTab('rfp-ai')">RFP AI</button>
-            <button class="tab" data-tab="left-panel" onclick="switchTab('left-panel')">Left panel</button>
+            <button class="tab active" data-tab="supplier-types" onclick="switchTab('supplier-types')"><?php echo htmlspecialchars(t('contracts.settings.tab_supplier_types')); ?></button>
+            <button class="tab" data-tab="supplier-statuses" onclick="switchTab('supplier-statuses')"><?php echo htmlspecialchars(t('contracts.settings.tab_supplier_statuses')); ?></button>
+            <button class="tab" data-tab="contract-statuses" onclick="switchTab('contract-statuses')"><?php echo htmlspecialchars(t('contracts.settings.tab_contract_statuses')); ?></button>
+            <button class="tab" data-tab="payment-schedules" onclick="switchTab('payment-schedules')"><?php echo htmlspecialchars(t('contracts.settings.tab_payment_schedules')); ?></button>
+            <button class="tab" data-tab="contract-term-tabs" onclick="switchTab('contract-term-tabs')"><?php echo htmlspecialchars(t('contracts.settings.tab_contract_terms')); ?></button>
+            <button class="tab" data-tab="rfp-departments" onclick="switchTab('rfp-departments')"><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_departments')); ?></button>
+            <button class="tab" data-tab="rfp-ai" onclick="switchTab('rfp-ai')"><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_ai')); ?></button>
+            <button class="tab" data-tab="left-panel" onclick="switchTab('left-panel')"><?php echo htmlspecialchars(t('contracts.settings.tab_left_panel')); ?></button>
         </div>
 
         <!-- Supplier types Tab -->
         <div class="tab-content active" id="supplier-types-tab">
             <div class="section-header">
-                <h2>Supplier types</h2>
-                <button class="add-btn" onclick="openAddModal('supplier-type')">Add</button>
+                <h2><?php echo htmlspecialchars(t('contracts.settings.tab_supplier_types')); ?></h2>
+                <button class="add-btn" onclick="openAddModal('supplier-type')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="supplier-types-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -111,21 +116,21 @@ $path_prefix = '../../';
         <!-- Supplier statuses Tab -->
         <div class="tab-content" id="supplier-statuses-tab">
             <div class="section-header">
-                <h2>Supplier statuses</h2>
-                <button class="add-btn" onclick="openAddModal('supplier-status')">Add</button>
+                <h2><?php echo htmlspecialchars(t('contracts.settings.tab_supplier_statuses')); ?></h2>
+                <button class="add-btn" onclick="openAddModal('supplier-status')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="supplier-statuses-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -133,21 +138,21 @@ $path_prefix = '../../';
         <!-- Contract statuses Tab -->
         <div class="tab-content" id="contract-statuses-tab">
             <div class="section-header">
-                <h2>Contract statuses</h2>
-                <button class="add-btn" onclick="openAddModal('contract-status')">Add</button>
+                <h2><?php echo htmlspecialchars(t('contracts.settings.tab_contract_statuses')); ?></h2>
+                <button class="add-btn" onclick="openAddModal('contract-status')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="contract-statuses-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -155,42 +160,42 @@ $path_prefix = '../../';
         <!-- Payment schedules Tab -->
         <div class="tab-content" id="payment-schedules-tab">
             <div class="section-header">
-                <h2>Payment schedules</h2>
-                <button class="add-btn" onclick="openAddModal('payment-schedule')">Add</button>
+                <h2><?php echo htmlspecialchars(t('contracts.settings.tab_payment_schedules')); ?></h2>
+                <button class="add-btn" onclick="openAddModal('payment-schedule')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="payment-schedules-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
         <!-- Contract terms Tab -->
         <div class="tab-content" id="contract-term-tabs-tab">
             <div class="section-header">
-                <h2>Contract terms</h2>
-                <button class="add-btn" onclick="openAddModal('contract-term-tab')">Add</button>
+                <h2><?php echo htmlspecialchars(t('contracts.settings.tab_contract_terms')); ?></h2>
+                <button class="add-btn" onclick="openAddModal('contract-term-tab')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Description</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_description')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="contract-term-tabs-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -198,24 +203,24 @@ $path_prefix = '../../';
         <!-- RFP departments Tab -->
         <div class="tab-content" id="rfp-departments-tab">
             <div class="section-header">
-                <h2>RFP departments</h2>
-                <button class="add-btn" onclick="openAddRfpDept()">Add</button>
+                <h2><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_departments')); ?></h2>
+                <button class="add-btn" onclick="openAddRfpDept()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <p style="color:#888; font-size:13px; margin: 0 0 16px 0;">
-                The internal departments that contribute requirements documents to RFPs (e.g. IT, Finance, HR). Used as a tag when uploading source documents.
+                <?php echo htmlspecialchars(t('contracts.settings.rfp_dept_intro')); ?>
             </p>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Colour</th>
-                        <th>Order</th>
-                        <th>Status</th>
-                        <th>Actions</th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_colour')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('contracts.settings.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="rfp-departments-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -223,16 +228,16 @@ $path_prefix = '../../';
         <!-- RFP AI Tab -->
         <div class="tab-content" id="rfp-ai-tab">
             <div class="section-header">
-                <h2>RFP AI</h2>
+                <h2><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_ai')); ?></h2>
             </div>
             <p style="color:#888; font-size:13px; margin: 0 0 20px 0; max-width: 720px;">
-                Configure the AI provider used by the RFP Builder for requirement extraction, consolidation, and document generation. The API key is encrypted at rest. Use <strong>Test</strong> to verify the key and model work before saving.
+                <?php echo t('contracts.settings.ai_intro'); ?>
             </p>
 
             <div style="max-width: 640px;">
                 <form id="aiSettingsForm" autocomplete="off">
                     <div class="form-group">
-                        <label for="aiProvider">Provider</label>
+                        <label for="aiProvider"><?php echo htmlspecialchars(t('contracts.settings.ai_provider')); ?></label>
                         <select id="aiProvider">
                             <option value="anthropic">Anthropic (Claude)</option>
                             <option value="openai">OpenAI (GPT)</option>
@@ -240,21 +245,21 @@ $path_prefix = '../../';
                     </div>
 
                     <div class="form-group">
-                        <label for="aiModel">Model</label>
-                        <input type="text" id="aiModel" list="aiModelOptions" placeholder="e.g. claude-sonnet-4-6">
+                        <label for="aiModel"><?php echo htmlspecialchars(t('contracts.settings.ai_model')); ?></label>
+                        <input type="text" id="aiModel" list="aiModelOptions" placeholder="<?php echo htmlspecialchars(t('contracts.settings.ai_model_ph')); ?>">
                         <datalist id="aiModelOptions"></datalist>
                         <div style="font-size:12px; color:#888; margin-top:4px;" id="aiModelHelp">
-                            Pick from the suggestions or paste a model id supported by the chosen provider.
+                            <?php echo htmlspecialchars(t('contracts.settings.ai_model_help')); ?>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="aiApiKey">API key</label>
-                        <input type="text" id="aiApiKey" autocomplete="off" placeholder="(no key stored — paste a fresh one to set)">
+                        <label for="aiApiKey"><?php echo htmlspecialchars(t('contracts.settings.ai_api_key')); ?></label>
+                        <input type="text" id="aiApiKey" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('contracts.settings.ai_api_key_ph_none')); ?>">
                         <div style="font-size:12px; color:#888; margin-top:4px;">
-                            Encrypted at rest. Leave blank or unchanged to keep the existing key.
-                            Anthropic keys: <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#f59e0b;">console.anthropic.com</a>.
-                            OpenAI keys: <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:#f59e0b;">platform.openai.com</a>.
+                            <?php echo t('contracts.settings.ai_api_key_help'); ?>
+                            <?php echo htmlspecialchars(t('contracts.settings.ai_anthropic_keys')); ?> <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#f59e0b;">console.anthropic.com</a>.
+                            <?php echo htmlspecialchars(t('contracts.settings.ai_openai_keys')); ?> <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:#f59e0b;">platform.openai.com</a>.
                         </div>
                     </div>
 
@@ -264,27 +269,27 @@ $path_prefix = '../../';
                                 <input type="checkbox" id="aiVerifySsl" checked onchange="updateAiSslWarning()">
                                 <span class="toggle-slider"></span>
                             </span>
-                            Verify SSL
+                            <?php echo htmlspecialchars(t('contracts.settings.ai_verify_ssl')); ?>
                         </label>
                         <div style="font-size:12px; color:#888; margin-top:4px;">
-                            Disable only for testing against environments with self-signed certificates (e.g. behind an inspecting proxy).
+                            <?php echo htmlspecialchars(t('contracts.settings.ai_verify_ssl_help')); ?>
                         </div>
                         <div id="aiVerifySslWarning" class="rfp-ai-ssl-warning" style="display:none;">
-                            <strong>Warning:</strong> SSL verification is turned off. FreeITSM will accept any TLS certificate from the AI provider without checking it. Anyone with access to your network (or your DNS, or a compromised certificate authority) could pose as the provider, intercept the traffic, and steal your API key &mdash; along with every prompt and response that follows. Only leave this off in test environments with self-signed certificates &mdash; never in production.
+                            <?php echo t('contracts.settings.ai_ssl_warning'); ?>
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="aiDefaultStyleGuide">Default style guide</label>
-                        <textarea id="aiDefaultStyleGuide" rows="6" placeholder="Optional. Used as the default style guide for any RFP that doesn't have its own override. Examples: tone of voice, British vs US English, sentence-case vs title-case headings, specific terminology preferences."></textarea>
+                        <label for="aiDefaultStyleGuide"><?php echo htmlspecialchars(t('contracts.settings.ai_style_guide')); ?></label>
+                        <textarea id="aiDefaultStyleGuide" rows="6" placeholder="<?php echo htmlspecialchars(t('contracts.settings.ai_style_guide_ph')); ?>"></textarea>
                         <div style="font-size:12px; color:#888; margin-top:4px;">
-                            Applied at every AI generation step that produces document text (Pass 3 section generation, Pass 4 restyle, framing-section generation). Each individual RFP can override this on its own settings.
+                            <?php echo htmlspecialchars(t('contracts.settings.ai_style_guide_help')); ?>
                         </div>
                     </div>
 
                     <div style="display:flex; gap:8px; align-items:center; margin-top: 20px;">
-                        <button type="submit" class="btn btn-primary">Save</button>
-                        <button type="button" class="btn" id="aiTestBtn" onclick="testAiConnection()" style="background:white; border:1px solid #ddd; color:#333;">Test</button>
+                        <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                        <button type="button" class="btn" id="aiTestBtn" onclick="testAiConnection()" style="background:white; border:1px solid #ddd; color:#333;"><?php echo htmlspecialchars(t('contracts.settings.ai_test')); ?></button>
                         <span id="aiTestStatus" style="font-size:13px; margin-left:8px;"></span>
                     </div>
                 </form>
@@ -294,25 +299,25 @@ $path_prefix = '../../';
         <!-- Left panel tab — per-analyst preference -->
         <div class="tab-content" id="left-panel-tab">
             <div class="section-header">
-                <h2>Left panel</h2>
+                <h2><?php echo htmlspecialchars(t('contracts.settings.tab_left_panel')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;">Choose how the sidebar on the main contracts pages behaves. Saved per analyst.</p>
+            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('contracts.settings.left_panel_intro')); ?></p>
 
             <form id="leftPanelForm" autocomplete="off" onsubmit="event.preventDefault();">
                 <div class="form-group">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;">Visibility</label>
+                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;"><?php echo htmlspecialchars(t('contracts.settings.left_panel_visibility')); ?></label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="contractsSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
-                        <strong>Always visible</strong>
+                        <strong><?php echo htmlspecialchars(t('contracts.settings.left_panel_always')); ?></strong>
                         <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
-                            The sidebar stays pinned open at 260px. Good when you want stats and quick links one click away.
+                            <?php echo htmlspecialchars(t('contracts.settings.left_panel_always_desc')); ?>
                         </span>
                     </label>
                     <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="contractsSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
-                        <strong>Show on hover</strong>
+                        <strong><?php echo htmlspecialchars(t('contracts.settings.left_panel_hover')); ?></strong>
                         <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
-                            Collapses to a thin 16px strip at the edge of the page; hovering over it slides the full sidebar back in. Frees space for the main content.
+                            <?php echo htmlspecialchars(t('contracts.settings.left_panel_hover_desc')); ?>
                         </span>
                     </label>
                 </div>
@@ -323,20 +328,20 @@ $path_prefix = '../../';
     <!-- Edit/Add Modal -->
     <div class="modal" id="editModal">
         <div class="modal-content">
-            <div class="modal-header" id="modalTitle">Add item</div>
+            <div class="modal-header" id="modalTitle"><?php echo htmlspecialchars(t('contracts.settings.modal_add_item')); ?></div>
             <form id="editForm" autocomplete="off">
                 <input type="hidden" id="itemId">
                 <input type="hidden" id="itemType">
                 <div class="form-group">
-                    <label for="itemName">Name</label>
+                    <label for="itemName"><?php echo htmlspecialchars(t('contracts.settings.col_name')); ?></label>
                     <input type="text" id="itemName" required>
                 </div>
                 <div class="form-group">
-                    <label for="itemDescription">Description</label>
+                    <label for="itemDescription"><?php echo htmlspecialchars(t('contracts.settings.col_description')); ?></label>
                     <textarea id="itemDescription"></textarea>
                 </div>
                 <div class="form-group">
-                    <label for="itemOrder">Display order</label>
+                    <label for="itemOrder"><?php echo htmlspecialchars(t('contracts.settings.display_order')); ?></label>
                     <input type="number" id="itemOrder" value="0" min="0">
                 </div>
                 <div class="form-group">
@@ -345,12 +350,12 @@ $path_prefix = '../../';
                             <input type="checkbox" id="itemActive" checked>
                             <span class="toggle-slider"></span>
                         </span>
-                        Active
+                        <?php echo htmlspecialchars(t('contracts.status.active')); ?>
                     </label>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -359,22 +364,22 @@ $path_prefix = '../../';
     <!-- RFP Department Modal -->
     <div class="modal" id="rfpDeptModal">
         <div class="modal-content">
-            <div class="modal-header" id="rfpDeptModalTitle">Add RFP department</div>
+            <div class="modal-header" id="rfpDeptModalTitle"><?php echo htmlspecialchars(t('contracts.settings.modal_add_rfp_dept')); ?></div>
             <form id="rfpDeptForm" autocomplete="off">
                 <input type="hidden" id="rfpDeptId">
                 <div class="form-group">
-                    <label for="rfpDeptName">Name</label>
-                    <input type="text" id="rfpDeptName" required maxlength="100" placeholder="e.g. IT">
+                    <label for="rfpDeptName"><?php echo htmlspecialchars(t('contracts.settings.col_name')); ?></label>
+                    <input type="text" id="rfpDeptName" required maxlength="100" placeholder="<?php echo htmlspecialchars(t('contracts.settings.rfp_dept_name_ph')); ?>">
                 </div>
                 <div class="form-group">
-                    <label for="rfpDeptColour">Colour</label>
+                    <label for="rfpDeptColour"><?php echo htmlspecialchars(t('contracts.settings.col_colour')); ?></label>
                     <div style="display:flex; align-items:center; gap:10px;">
                         <input type="color" id="rfpDeptColour" value="#6c757d" style="width:60px; height:36px; padding:0; cursor:pointer;">
                         <span id="rfpDeptColourHex" style="font-family:monospace; font-size:13px; color:#666;">#6c757d</span>
                     </div>
                 </div>
                 <div class="form-group">
-                    <label for="rfpDeptOrder">Display order</label>
+                    <label for="rfpDeptOrder"><?php echo htmlspecialchars(t('contracts.settings.display_order')); ?></label>
                     <input type="number" id="rfpDeptOrder" value="0" min="0">
                 </div>
                 <div class="form-group">
@@ -383,12 +388,12 @@ $path_prefix = '../../';
                             <input type="checkbox" id="rfpDeptActive" checked>
                             <span class="toggle-slider"></span>
                         </span>
-                        Active
+                        <?php echo htmlspecialchars(t('contracts.status.active')); ?>
                     </label>
                 </div>
                 <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeRfpDeptModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeRfpDeptModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
             </form>
         </div>
@@ -405,7 +410,7 @@ $path_prefix = '../../';
                 delete: API_BASE + 'delete_supplier_type.php',
                 key: 'supplier_types',
                 listId: 'supplier-types-list',
-                label: 'supplier type'
+                label: window.t('contracts.settings.label_supplier_type')
             },
             'supplier-status': {
                 get: API_BASE + 'get_supplier_statuses.php',
@@ -413,7 +418,7 @@ $path_prefix = '../../';
                 delete: API_BASE + 'delete_supplier_status.php',
                 key: 'supplier_statuses',
                 listId: 'supplier-statuses-list',
-                label: 'supplier status'
+                label: window.t('contracts.settings.label_supplier_status')
             },
             'contract-status': {
                 get: API_BASE + 'get_contract_statuses.php',
@@ -421,7 +426,7 @@ $path_prefix = '../../';
                 delete: API_BASE + 'delete_contract_status.php',
                 key: 'contract_statuses',
                 listId: 'contract-statuses-list',
-                label: 'contract status'
+                label: window.t('contracts.settings.label_contract_status')
             },
             'payment-schedule': {
                 get: API_BASE + 'get_payment_schedules.php',
@@ -429,7 +434,7 @@ $path_prefix = '../../';
                 delete: API_BASE + 'delete_payment_schedule.php',
                 key: 'payment_schedules',
                 listId: 'payment-schedules-list',
-                label: 'payment schedule'
+                label: window.t('contracts.settings.label_payment_schedule')
             },
             'contract-term-tab': {
                 get: API_BASE + 'get_contract_term_tabs.php',
@@ -437,7 +442,7 @@ $path_prefix = '../../';
                 delete: API_BASE + 'delete_contract_term_tab.php',
                 key: 'contract_term_tabs',
                 listId: 'contract-term-tabs-list',
-                label: 'contract term'
+                label: window.t('contracts.settings.label_contract_term')
             }
         };
 
@@ -467,18 +472,18 @@ $path_prefix = '../../';
                     renderRfpDepartments(rfpDepartments);
                 } else {
                     document.getElementById('rfp-departments-list').innerHTML =
-                        '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">Error: ' + escapeHtml(data.error) + '</td></tr>';
+                        '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">' + escapeHtml(window.t('contracts.settings.error_prefix')) + ' ' + escapeHtml(data.error) + '</td></tr>';
                 }
             } catch (error) {
                 document.getElementById('rfp-departments-list').innerHTML =
-                    '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">Failed to load RFP departments</td></tr>';
+                    '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">' + escapeHtml(window.t('contracts.settings.rfp_dept_load_failed')) + '</td></tr>';
             }
         }
 
         function renderRfpDepartments(items) {
             const tbody = document.getElementById('rfp-departments-list');
             if (items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">No departments yet. Click Add to create one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">' + escapeHtml(window.t('contracts.settings.rfp_dept_empty')) + '</td></tr>';
                 return;
             }
             tbody.innerHTML = items.map(item => `
@@ -491,15 +496,15 @@ $path_prefix = '../../';
                         </span>
                     </td>
                     <td>${item.sort_order}</td>
-                    <td><span class="status-badge status-${item.is_active ? 'active' : 'inactive'}">${item.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge status-${item.is_active ? 'active' : 'inactive'}">${item.is_active ? escapeHtml(window.t('contracts.status.active')) : escapeHtml(window.t('contracts.status.inactive'))}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editRfpDept(${item.id})" title="Edit">
+                        <button class="action-btn" onclick="editRfpDept(${item.id})" title="${escapeHtml(window.t('common.edit'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                             </svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteRfpDept(${item.id}, ${JSON.stringify(item.name)})" title="Delete">
+                        <button class="action-btn delete" onclick="deleteRfpDept(${item.id}, ${JSON.stringify(item.name)})" title="${escapeHtml(window.t('common.delete'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -511,7 +516,7 @@ $path_prefix = '../../';
         }
 
         function openAddRfpDept() {
-            document.getElementById('rfpDeptModalTitle').textContent = 'Add RFP department';
+            document.getElementById('rfpDeptModalTitle').textContent = window.t('contracts.settings.modal_add_rfp_dept');
             document.getElementById('rfpDeptId').value = '';
             document.getElementById('rfpDeptName').value = '';
             document.getElementById('rfpDeptColour').value = '#6c757d';
@@ -525,7 +530,7 @@ $path_prefix = '../../';
         function editRfpDept(id) {
             const item = rfpDepartments.find(d => d.id == id);
             if (!item) return;
-            document.getElementById('rfpDeptModalTitle').textContent = 'Edit RFP department';
+            document.getElementById('rfpDeptModalTitle').textContent = window.t('contracts.settings.modal_edit_rfp_dept');
             document.getElementById('rfpDeptId').value = item.id;
             document.getElementById('rfpDeptName').value = item.name;
             document.getElementById('rfpDeptColour').value = item.colour;
@@ -537,7 +542,7 @@ $path_prefix = '../../';
         }
 
         async function deleteRfpDept(id, name) {
-            if (!(await showConfirm({ title: 'Delete', message: 'Delete RFP department "' + name + '"? Any uploaded documents tagged with this department will have the tag cleared.', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.settings.rfp_dept_delete_confirm', { name: name }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const response = await fetch(RFP_DEPT_API + 'delete_rfp_department.php', {
                     method: 'POST',
@@ -546,13 +551,13 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showToast('Department deleted', 'success');
+                    showToast(window.t('contracts.settings.toast_dept_deleted'), 'success');
                     loadRfpDepartments();
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('contracts.settings.error_prefix') + ' ' + data.error, 'error');
                 }
             } catch (error) {
-                showToast('Failed to delete department', 'error');
+                showToast(window.t('contracts.settings.toast_dept_delete_failed'), 'error');
             }
         }
 
@@ -584,13 +589,13 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     closeRfpDeptModal();
-                    showToast('Department saved', 'success');
+                    showToast(window.t('contracts.settings.toast_dept_saved'), 'success');
                     loadRfpDepartments();
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('contracts.settings.error_prefix') + ' ' + data.error, 'error');
                 }
             } catch (error) {
-                showToast('Failed to save department', 'error');
+                showToast(window.t('contracts.settings.toast_dept_save_failed'), 'error');
             }
         });
 
@@ -631,7 +636,7 @@ $path_prefix = '../../';
             const opts = RFP_AI_MODEL_OPTIONS[provider] || [];
             list.innerHTML = opts.map(m => `<option value="${m.id}">${escapeHtml(m.label)}</option>`).join('');
             const helpEl = document.getElementById('aiModelHelp');
-            helpEl.textContent = 'Pick from the suggestions or paste a model id supported by the chosen provider.';
+            helpEl.textContent = window.t('contracts.settings.ai_model_help');
         }
 
         async function loadAiSettings() {
@@ -647,14 +652,14 @@ $path_prefix = '../../';
                 rfpAiOriginalKeyMask = s.rfp_ai_api_key || '';
                 document.getElementById('aiApiKey').value = rfpAiOriginalKeyMask;
                 document.getElementById('aiApiKey').placeholder = data.has_key
-                    ? 'Stored — leave unchanged to keep'
-                    : '(no key stored — paste a fresh one to set)';
+                    ? window.t('contracts.settings.ai_api_key_ph_stored')
+                    : window.t('contracts.settings.ai_api_key_ph_none');
                 // verify_ssl: default to true unless explicitly stored as "0"
                 document.getElementById('aiVerifySsl').checked = s.rfp_ai_verify_ssl !== '0';
                 updateAiSslWarning();
                 document.getElementById('aiDefaultStyleGuide').value = s.rfp_default_style_guide || '';
             } catch (err) {
-                setAiTestStatus('Could not load settings: ' + err.message, 'error');
+                setAiTestStatus(window.t('contracts.settings.ai_load_failed') + ' ' + err.message, 'error');
             }
         }
 
@@ -700,10 +705,10 @@ $path_prefix = '../../';
                 });
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error);
-                setAiTestStatus('Saved.', 'success');
+                setAiTestStatus(window.t('contracts.settings.ai_saved'), 'success');
                 await loadAiSettings();
             } catch (err) {
-                setAiTestStatus('Save failed: ' + err.message, 'error');
+                setAiTestStatus(window.t('contracts.settings.ai_save_failed') + ' ' + err.message, 'error');
             }
         });
 
@@ -716,11 +721,11 @@ $path_prefix = '../../';
                 verify_ssl: document.getElementById('aiVerifySsl').checked ? '1' : '0',
             };
             if (!payload.model) {
-                setAiTestStatus('Pick a model first', 'error');
+                setAiTestStatus(window.t('contracts.settings.ai_pick_model'), 'error');
                 return;
             }
             btn.disabled = true;
-            setAiTestStatus('Testing...', 'busy');
+            setAiTestStatus(window.t('contracts.settings.ai_testing'), 'busy');
             try {
                 const res = await fetch(RFP_AI_API + 'test_ai_connection.php', {
                     method: 'POST',
@@ -730,14 +735,14 @@ $path_prefix = '../../';
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error);
                 const tokens = (data.tokens_in != null && data.tokens_out != null)
-                    ? ` — ${data.tokens_in} in / ${data.tokens_out} out tokens`
+                    ? ` — ${window.t('contracts.settings.ai_tokens', { in: data.tokens_in, out: data.tokens_out })}`
                     : '';
                 setAiTestStatus(
-                    `OK — ${data.provider} · ${data.model} · ${data.latency_ms}ms${tokens}`,
+                    `${window.t('contracts.settings.ai_ok')} — ${data.provider} · ${data.model} · ${data.latency_ms}ms${tokens}`,
                     'success'
                 );
             } catch (err) {
-                setAiTestStatus('Failed: ' + err.message, 'error');
+                setAiTestStatus(window.t('contracts.settings.ai_test_failed') + ' ' + err.message, 'error');
             } finally {
                 btn.disabled = false;
             }
@@ -783,7 +788,7 @@ $path_prefix = '../../';
                     body: JSON.stringify({ key: SIDEBAR_MODE_KEY, value: value })
                 });
                 const d = await r.json();
-                if (d.success) showToast('Saved', 'success');
+                if (d.success) showToast(window.t('common.saved'), 'success');
             } catch (e) { /* no-op */ }
         }
 
@@ -797,12 +802,12 @@ $path_prefix = '../../';
                     renderItems(type, data[ep.key]);
                 } else {
                     document.getElementById(ep.listId).innerHTML =
-                        '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">Error: ' + escapeHtml(data.error) + '</td></tr>';
+                        '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">' + escapeHtml(window.t('contracts.settings.error_prefix')) + ' ' + escapeHtml(data.error) + '</td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading ' + type + ':', error);
                 document.getElementById(ep.listId).innerHTML =
-                    '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">Failed to load data</td></tr>';
+                    '<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">' + escapeHtml(window.t('contracts.settings.load_failed')) + '</td></tr>';
             }
         }
 
@@ -811,7 +816,7 @@ $path_prefix = '../../';
             const tbody = document.getElementById(ep.listId);
 
             if (items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">No items yet. Click Add to create one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">' + escapeHtml(window.t('contracts.settings.items_empty')) + '</td></tr>';
                 return;
             }
 
@@ -820,15 +825,15 @@ $path_prefix = '../../';
                     <td><strong>${escapeHtml(item.name)}</strong></td>
                     <td>${escapeHtml(item.description || '-')}</td>
                     <td>${item.display_order}</td>
-                    <td><span class="status-badge status-${item.is_active ? 'active' : 'inactive'}">${item.is_active ? 'Active' : 'Inactive'}</span></td>
+                    <td><span class="status-badge status-${item.is_active ? 'active' : 'inactive'}">${item.is_active ? escapeHtml(window.t('contracts.status.active')) : escapeHtml(window.t('contracts.status.inactive'))}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editItem('${type}', ${item.id})" title="Edit">
+                        <button class="action-btn" onclick="editItem('${type}', ${item.id})" title="${escapeHtml(window.t('common.edit'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                             </svg>
                         </button>
-                        <button class="action-btn delete" onclick="deleteItem('${type}', ${item.id}, '${escapeHtml(item.name)}')" title="Delete">
+                        <button class="action-btn delete" onclick="deleteItem('${type}', ${item.id}, '${escapeHtml(item.name)}')" title="${escapeHtml(window.t('common.delete'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -841,7 +846,7 @@ $path_prefix = '../../';
 
         function openAddModal(type) {
             const ep = endpoints[type];
-            document.getElementById('modalTitle').textContent = 'Add ' + ep.label;
+            document.getElementById('modalTitle').textContent = window.t('contracts.settings.modal_add', { label: ep.label });
             document.getElementById('itemId').value = '';
             document.getElementById('itemType').value = type;
             document.getElementById('itemName').value = '';
@@ -856,7 +861,7 @@ $path_prefix = '../../';
             const item = allItems[type].find(i => i.id == id);
             if (!item) return;
 
-            document.getElementById('modalTitle').textContent = 'Edit ' + ep.label;
+            document.getElementById('modalTitle').textContent = window.t('contracts.settings.modal_edit', { label: ep.label });
             document.getElementById('itemId').value = item.id;
             document.getElementById('itemType').value = type;
             document.getElementById('itemName').value = item.name;
@@ -868,7 +873,7 @@ $path_prefix = '../../';
 
         async function deleteItem(type, id, name) {
             const ep = endpoints[type];
-            if (!(await showConfirm({ title: 'Delete', message: 'Are you sure you want to delete "' + name + '"? Any records using this ' + ep.label.toLowerCase() + ' will have it cleared.', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('common.delete'), message: window.t('contracts.settings.item_delete_confirm', { name: name, label: ep.label.toLowerCase() }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
 
             try {
                 const response = await fetch(ep.delete, {
@@ -878,14 +883,14 @@ $path_prefix = '../../';
                 });
                 const data = await response.json();
                 if (data.success) {
-                    showToast('Deleted', 'success');
+                    showToast(window.t('contracts.settings.toast_deleted'), 'success');
                     loadItems(type);
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('contracts.settings.error_prefix') + ' ' + data.error, 'error');
                 }
             } catch (error) {
                 console.error('Error deleting:', error);
-                showToast('Failed to delete item', 'error');
+                showToast(window.t('contracts.settings.toast_delete_failed'), 'error');
             }
         }
 
@@ -916,14 +921,14 @@ $path_prefix = '../../';
                 const data = await response.json();
                 if (data.success) {
                     closeModal();
-                    showToast('Saved', 'success');
+                    showToast(window.t('common.saved'), 'success');
                     loadItems(type);
                 } else {
-                    showToast('Error: ' + data.error, 'error');
+                    showToast(window.t('contracts.settings.error_prefix') + ' ' + data.error, 'error');
                 }
             } catch (error) {
                 console.error('Error saving:', error);
-                showToast('Failed to save item', 'error');
+                showToast(window.t('contracts.settings.toast_save_failed'), 'error');
             }
         });
 

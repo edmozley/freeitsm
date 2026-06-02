@@ -4,16 +4,22 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'scan';
 $path_prefix = '../';
+
+$translationNamespaces = ['common', 'system-wiki'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Scan Management</title>
+    <title><?php echo htmlspecialchars(t('system-wiki.scan.page_title')); ?></title>
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .wiki-scan {
@@ -120,33 +126,32 @@ $path_prefix = '../';
 
     <div class="wiki-scan">
         <div class="scan-content">
-            <div class="page-title">Scan Management</div>
-            <div class="page-subtitle">Run the PowerShell scanner to catalogue the codebase</div>
+            <div class="page-title"><?php echo htmlspecialchars(t('system-wiki.scan.heading')); ?></div>
+            <div class="page-subtitle"><?php echo htmlspecialchars(t('system-wiki.scan.subtitle')); ?></div>
 
             <div class="scan-actions">
-                <button class="scan-btn" id="scanBtn" onclick="triggerScan()">Run Scan Now</button>
+                <button class="scan-btn" id="scanBtn" onclick="triggerScan()"><?php echo htmlspecialchars(t('system-wiki.scan.run_now')); ?></button>
                 <div class="scan-info">
-                    Scans the codebase and rebuilds the wiki database.<br>
-                    Or run manually: <code>powershell -File system-wiki\scanner\Scan-Codebase.ps1</code>
+                    <?php echo t('system-wiki.scan.info_html'); ?> <code>powershell -File system-wiki\scanner\Scan-Codebase.ps1</code>
                 </div>
             </div>
 
             <div class="history-card">
-                <div class="history-title">Scan History</div>
+                <div class="history-title"><?php echo htmlspecialchars(t('system-wiki.scan.history')); ?></div>
                 <table class="history-table">
                     <thead>
                         <tr>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Duration</th>
-                            <th>Files</th>
-                            <th>Functions</th>
-                            <th>Classes</th>
-                            <th>Scanned By</th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.scan.col_date')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.scan.col_status')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.scan.col_duration')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.scan.col_files')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.scan.col_functions')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.scan.col_classes')); ?></th>
+                            <th><?php echo htmlspecialchars(t('system-wiki.scan.col_scanned_by')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="historyBody">
-                        <tr><td colspan="7" class="no-data">Loading...</td></tr>
+                        <tr><td colspan="7" class="no-data"><?php echo htmlspecialchars(t('system-wiki.scan.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -165,7 +170,7 @@ $path_prefix = '../';
                 const tbody = document.getElementById('historyBody');
 
                 if (!data.success || !data.scans.length) {
-                    tbody.innerHTML = '<tr><td colspan="7" class="no-data">No scans yet. Click "Run Scan Now" or run the PowerShell script.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="7" class="no-data">' + esc(window.t('system-wiki.scan.no_scans')) + '</td></tr>';
                     return;
                 }
 
@@ -193,30 +198,30 @@ $path_prefix = '../';
         async function triggerScan() {
             const btn = document.getElementById('scanBtn');
             btn.disabled = true;
-            btn.textContent = 'Starting scan...';
+            btn.textContent = window.t('system-wiki.scan.starting');
 
             try {
                 const res = await fetch(API_BASE + 'trigger_scan.php', { method: 'POST' });
                 const data = await res.json();
 
                 if (data.success) {
-                    btn.textContent = 'Scan triggered!';
+                    btn.textContent = window.t('system-wiki.scan.triggered');
                     setTimeout(() => {
                         btn.disabled = false;
-                        btn.textContent = 'Run Scan Now';
+                        btn.textContent = window.t('system-wiki.scan.run_now');
                         loadHistory();
                     }, 3000);
                 } else {
-                    btn.textContent = 'Error: ' + data.error;
+                    btn.textContent = window.t('system-wiki.scan.error_prefix') + data.error;
                     setTimeout(() => {
                         btn.disabled = false;
-                        btn.textContent = 'Run Scan Now';
+                        btn.textContent = window.t('system-wiki.scan.run_now');
                     }, 3000);
                 }
             } catch (e) {
                 console.error(e);
                 btn.disabled = false;
-                btn.textContent = 'Run Scan Now';
+                btn.textContent = window.t('system-wiki.scan.run_now');
             }
         }
 
