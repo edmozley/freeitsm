@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 require_once 'includes/auth.php';
 
 $ticketId = (int)($_GET['id'] ?? 0);
@@ -11,13 +13,15 @@ if (!$ticketId) {
     header('Location: index.php');
     exit;
 }
+
+$translationNamespaces = ['common', 'self-service'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Self-Service Portal - Ticket Detail</title>
+    <title><?php echo htmlspecialchars(t('self-service.ticket.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         body { overflow: auto; height: auto; background: #f5f5f5; }
@@ -255,24 +259,26 @@ if (!$ticketId) {
     <div class="portal-header">
         <div class="portal-brand">
             <img src="../assets/images/CompanyLogo.png" alt="Logo">
-            <span>Self-Service Portal</span>
+            <span><?php echo htmlspecialchars(t('self-service.portal')); ?></span>
         </div>
         <nav class="portal-nav">
-            <a href="index.php">Dashboard</a>
-            <a href="new-ticket.php">New Ticket</a>
-            <a href="help.php">Help</a>
+            <a href="index.php"><?php echo htmlspecialchars(t('self-service.nav.dashboard')); ?></a>
+            <a href="new-ticket.php"><?php echo htmlspecialchars(t('self-service.nav.new_ticket')); ?></a>
+            <a href="help.php"><?php echo htmlspecialchars(t('self-service.nav.help')); ?></a>
         </nav>
         <?php include 'includes/user-menu.php'; ?>
     </div>
 
     <div class="portal-layout">
-        <a href="index.php" class="back-link">&lsaquo; Back to Dashboard</a>
+        <a href="index.php" class="back-link">&lsaquo; <?php echo htmlspecialchars(t('self-service.ticket.back')); ?></a>
 
         <div id="ticketContent">
-            <div class="loading-state">Loading ticket...</div>
+            <div class="loading-state"><?php echo htmlspecialchars(t('self-service.ticket.loading')); ?></div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <script>
         const TICKET_ID = <?php echo $ticketId; ?>;
 
@@ -286,13 +292,13 @@ if (!$ticketId) {
                 const data = await resp.json();
 
                 if (!data.success) {
-                    container.innerHTML = '<div class="error-state">' + escapeHtml(data.error || 'Failed to load ticket') + '</div>';
+                    container.innerHTML = '<div class="error-state">' + escapeHtml(data.error || window.t('self-service.ticket.load_failed')) + '</div>';
                     return;
                 }
 
                 renderTicket(data.ticket, data.thread, data.notes, data.recordings || []);
             } catch (err) {
-                container.innerHTML = '<div class="error-state">Failed to load ticket details</div>';
+                container.innerHTML = '<div class="error-state">' + escapeHtml(window.t('self-service.ticket.load_detail_failed')) + '</div>';
             }
         }
 
@@ -310,22 +316,22 @@ if (!$ticketId) {
                         <span class="status-badge" style="${statusStyle}">${escapeHtml(ticket.status)}</span>
                         <span class="priority-badge ${priorityClass}">${escapeHtml(ticket.priority || 'Normal')}</span>
                         ${ticket.department_name ? '<span class="ticket-meta-item">' + escapeHtml(ticket.department_name) + '</span>' : ''}
-                        <span class="ticket-meta-item">Created ${created}</span>
+                        <span class="ticket-meta-item">${escapeHtml(window.t('self-service.ticket.created', { date: created }))}</span>
                     </div>
                 </div>`;
 
             if (recordings && recordings.length) {
-                html += '<div class="recordings-section"><h2>Screen recordings</h2>';
+                html += '<div class="recordings-section"><h2>' + escapeHtml(window.t('self-service.ticket.screen_recordings')) + '</h2>';
                 recordings.forEach(r => {
                     const url = '../api/self-service/get_recording.php?id=' + r.id;
                     const sizeMb = (r.file_size / 1048576).toFixed(1);
                     const durLabel = r.duration_seconds ? formatDuration(r.duration_seconds) : '';
-                    const audioLabel = r.has_audio ? ' &middot; with audio' : '';
+                    const audioLabel = r.has_audio ? ' &middot; ' + escapeHtml(window.t('self-service.ticket.with_audio')) : '';
                     html +=
                         '<div class="recording-card">' +
                             '<video controls preload="metadata" src="' + url + '"></video>' +
                             '<div class="recording-meta">' +
-                                escapeHtml(r.original_filename || 'recording') +
+                                escapeHtml(r.original_filename || window.t('self-service.ticket.recording')) +
                                 ' &middot; ' + sizeMb + ' MB' +
                                 (durLabel ? ' &middot; ' + durLabel : '') +
                                 audioLabel +
@@ -338,7 +344,7 @@ if (!$ticketId) {
             html += `
                 <div class="thread-section">
                     <div class="thread-header">
-                        <h2>Conversation</h2>
+                        <h2>${escapeHtml(window.t('self-service.ticket.conversation'))}</h2>
                     </div>`;
 
             // Merge thread and notes into chronological order
@@ -348,18 +354,18 @@ if (!$ticketId) {
             items.sort((a, b) => new Date(a.date) - new Date(b.date));
 
             if (items.length === 0) {
-                html += '<div class="empty-state">No conversation yet</div>';
+                html += '<div class="empty-state">' + escapeHtml(window.t('self-service.ticket.no_conversation')) + '</div>';
             } else {
                 items.forEach(item => {
                     if (item.type === 'email') {
                         const e = item.data;
                         const dirClass = getDirectionClass(e.direction);
-                        const dirLabel = e.direction || 'Message';
+                        const dirLabel = e.direction || window.t('self-service.ticket.message');
                         html += `
                             <div class="thread-item">
                                 <div class="thread-item-header">
                                     <div>
-                                        <span class="thread-sender">${escapeHtml(e.from_name || 'Unknown')}</span>
+                                        <span class="thread-sender">${escapeHtml(e.from_name || window.t('self-service.ticket.unknown_sender'))}</span>
                                         <span class="thread-direction ${dirClass}">${escapeHtml(dirLabel)}</span>
                                     </div>
                                     <span class="thread-date">${formatDate(e.received_datetime)}</span>
@@ -372,8 +378,8 @@ if (!$ticketId) {
                             <div class="thread-item">
                                 <div class="thread-item-header">
                                     <div>
-                                        <span class="thread-sender">${escapeHtml(n.analyst_name || 'Support')}</span>
-                                        <span class="thread-direction direction-note">Note</span>
+                                        <span class="thread-sender">${escapeHtml(n.analyst_name || window.t('self-service.ticket.support'))}</span>
+                                        <span class="thread-direction direction-note">${escapeHtml(window.t('self-service.ticket.note'))}</span>
                                     </div>
                                     <span class="thread-date">${formatDate(n.created_datetime)}</span>
                                 </div>

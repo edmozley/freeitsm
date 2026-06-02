@@ -5,9 +5,12 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'sso';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 
 // The redirect URI the admin must register in their IdP. Built from the
 // deployment's BASE_URL so it's correct whatever path the app is served at.
@@ -15,11 +18,11 @@ $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' :
 $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 'api/auth/oidc_callback.php';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Single Sign-On</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.sso.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .sso-container { height: calc(100vh - 48px); overflow-y: auto; padding: 30px 20px; }
@@ -105,37 +108,37 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
     <?php include '../includes/header.php'; ?>
 
     <div class="sso-container">
-        <h1 class="page-title">Single sign-on</h1>
-        <p class="page-subtitle">Let users sign in through an external identity provider (OpenID Connect) such as Keycloak, Microsoft Entra, Okta or Google — alongside local accounts.</p>
+        <h1 class="page-title"><?php echo htmlspecialchars(t('system.sso.title')); ?></h1>
+        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.sso.subtitle')); ?></p>
 
         <!-- Global switches -->
         <div class="settings-card">
-            <h3>Global settings</h3>
-            <p class="card-desc">Master controls for sign-on across the whole system.</p>
+            <h3><?php echo htmlspecialchars(t('system.sso.global_heading')); ?></h3>
+            <p class="card-desc"><?php echo htmlspecialchars(t('system.sso.global_desc')); ?></p>
             <div class="setting-row">
                 <div class="setting-label">
-                    <strong>Enable single sign-on</strong>
-                    Show the configured provider buttons on the login page. Turn off to instantly fall back to local logins everywhere (break-glass).
+                    <strong><?php echo htmlspecialchars(t('system.sso.enable_sso')); ?></strong>
+                    <?php echo htmlspecialchars(t('system.sso.enable_sso_desc')); ?>
                 </div>
                 <label class="switch"><input type="checkbox" id="ssoEnabled"><span class="slider"></span></label>
             </div>
             <div class="setting-row">
                 <div class="setting-label">
-                    <strong>Allow local login</strong>
-                    Keep the username + password form available. Leave on so a misconfigured or down provider can never lock everyone out.
+                    <strong><?php echo htmlspecialchars(t('system.sso.allow_local')); ?></strong>
+                    <?php echo htmlspecialchars(t('system.sso.allow_local_desc')); ?>
                 </div>
                 <label class="switch"><input type="checkbox" id="localLoginEnabled"><span class="slider"></span></label>
             </div>
-            <div class="save-area"><button class="btn btn-primary" id="saveGlobalBtn">Save</button></div>
+            <div class="save-area"><button class="btn btn-primary" id="saveGlobalBtn"><?php echo htmlspecialchars(t('system.sso.save')); ?></button></div>
         </div>
 
         <!-- Redirect URI -->
         <div class="settings-card">
-            <h3>Redirect URI</h3>
-            <p class="card-desc">Register this exact URL in each identity provider as an allowed redirect / callback URL. It's where the provider sends users back after they sign in.</p>
+            <h3><?php echo htmlspecialchars(t('system.sso.redirect_heading')); ?></h3>
+            <p class="card-desc"><?php echo htmlspecialchars(t('system.sso.redirect_desc')); ?></p>
             <div class="redirect-uri-box">
                 <code id="redirectUri"><?php echo htmlspecialchars($redirectUri); ?></code>
-                <button class="btn btn-secondary" id="copyRedirectBtn">Copy</button>
+                <button class="btn btn-secondary" id="copyRedirectBtn"><?php echo htmlspecialchars(t('system.sso.copy')); ?></button>
             </div>
         </div>
 
@@ -143,17 +146,17 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         <div class="settings-card">
             <div class="providers-head">
                 <div>
-                    <h3 style="margin:0;">Identity providers</h3>
-                    <p class="card-desc" style="margin:4px 0 0;">Each provider is a separate IdP. Assign different users to different providers to run pilots in parallel.</p>
+                    <h3 style="margin:0;"><?php echo htmlspecialchars(t('system.sso.providers_heading')); ?></h3>
+                    <p class="card-desc" style="margin:4px 0 0;"><?php echo htmlspecialchars(t('system.sso.providers_desc')); ?></p>
                 </div>
-                <button class="add-btn" id="addProviderBtn">+ Add</button>
+                <button class="add-btn" id="addProviderBtn"><?php echo htmlspecialchars(t('system.sso.add')); ?></button>
             </div>
             <table class="providers">
                 <thead>
-                    <tr><th>Name</th><th>Issuer</th><th>Status</th><th>Auto-create</th><th style="text-align:right;">Actions</th></tr>
+                    <tr><th><?php echo htmlspecialchars(t('system.sso.col_name')); ?></th><th><?php echo htmlspecialchars(t('system.sso.col_issuer')); ?></th><th><?php echo htmlspecialchars(t('system.sso.col_status')); ?></th><th><?php echo htmlspecialchars(t('system.sso.col_auto_create')); ?></th><th style="text-align:right;"><?php echo htmlspecialchars(t('system.sso.col_actions')); ?></th></tr>
                 </thead>
                 <tbody id="providersBody">
-                    <tr class="empty-row"><td colspan="5">Loading…</td></tr>
+                    <tr class="empty-row"><td colspan="5"><?php echo htmlspecialchars(t('system.sso.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -162,63 +165,65 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
     <!-- Add/Edit modal -->
     <div class="sso-modal-overlay" id="providerModal">
         <div class="sso-modal">
-            <div class="sso-modal-header" id="modalTitle">Add provider</div>
+            <div class="sso-modal-header" id="modalTitle"><?php echo htmlspecialchars(t('system.sso.modal_add_title')); ?></div>
             <div class="sso-modal-body">
                 <input type="hidden" id="providerId">
                 <div class="form-field">
-                    <label>Display name</label>
-                    <div class="hint">Shown on the login button, e.g. "Sign in with Keycloak"</div>
-                    <input type="text" id="fDisplayName" placeholder="Sign in with Keycloak">
+                    <label><?php echo htmlspecialchars(t('system.sso.field_display_name')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_display_name_hint')); ?></div>
+                    <input type="text" id="fDisplayName" placeholder="<?php echo htmlspecialchars(t('system.sso.field_display_name_placeholder')); ?>">
                 </div>
                 <div class="form-field">
-                    <label>Issuer URL</label>
-                    <div class="hint">The provider's base URL. e.g. http://localhost:8080/realms/freeitsm</div>
+                    <label><?php echo htmlspecialchars(t('system.sso.field_issuer')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_issuer_hint')); ?></div>
                     <div class="issuer-row">
-                        <input type="text" id="fIssuerUrl" placeholder="https://your-idp/realms/your-realm">
-                        <button class="btn btn-test" id="testDiscoveryBtn" type="button">Test</button>
+                        <input type="text" id="fIssuerUrl" placeholder="<?php echo htmlspecialchars(t('system.sso.field_issuer_placeholder')); ?>">
+                        <button class="btn btn-test" id="testDiscoveryBtn" type="button"><?php echo htmlspecialchars(t('system.sso.test')); ?></button>
                     </div>
                     <div class="test-result" id="testResult"></div>
                 </div>
                 <div class="form-field">
-                    <label>Client ID</label>
-                    <div class="hint">The client/app identifier created in the provider, e.g. freeitsm-app</div>
+                    <label><?php echo htmlspecialchars(t('system.sso.field_client_id')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_client_id_hint')); ?></div>
                     <input type="text" id="fClientId" placeholder="freeitsm-app">
                 </div>
                 <div class="form-field">
-                    <label>Client secret</label>
-                    <div class="hint" id="secretHint">The client's secret from the provider. Stored encrypted.</div>
+                    <label><?php echo htmlspecialchars(t('system.sso.field_client_secret')); ?></label>
+                    <div class="hint" id="secretHint"><?php echo htmlspecialchars(t('system.sso.field_client_secret_hint')); ?></div>
                     <input type="password" id="fClientSecret" placeholder="" autocomplete="new-password">
                 </div>
                 <div class="form-field">
-                    <label>Scopes</label>
-                    <div class="hint">Space-separated OIDC scopes. Leave as default unless your provider needs more.</div>
+                    <label><?php echo htmlspecialchars(t('system.sso.field_scopes')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_scopes_hint')); ?></div>
                     <input type="text" id="fScopes" value="openid email profile">
                 </div>
                 <div class="checkbox-field">
                     <input type="checkbox" id="fEnabled" checked>
-                    <div class="cb-label"><strong>Enabled</strong><span>Show this provider's button on the login page</span></div>
+                    <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_enabled')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_enabled_desc')); ?></span></div>
                 </div>
                 <div class="checkbox-field">
                     <input type="checkbox" id="fAutoCreate">
-                    <div class="cb-label"><strong>Auto-create users on first login (JIT)</strong><span>Create an analyst automatically the first time someone signs in via this provider. Leave off for tightly controlled pilots where only pre-created users may enter.</span></div>
+                    <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_autocreate')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_autocreate_desc')); ?></span></div>
                 </div>
                 <div class="checkbox-field">
                     <input type="checkbox" id="fRequireVerified">
-                    <div class="cb-label"><strong>Require a verified-email claim</strong><span>Refuse sign-in unless the provider sends <code>email_verified: true</code>. Leave off for providers that omit the claim entirely (e.g. Okta's org server). An explicit <code>email_verified: false</code> is always refused regardless of this setting. Turn on only for IdPs where users can self-register with unverified addresses.</span></div>
+                    <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_verified')); ?></strong><span><?php echo t('system.sso.cb_verified_desc', ['claim' => '<code>email_verified: true</code>', 'claim_false' => '<code>email_verified: false</code>']); ?></span></div>
                 </div>
                 <div class="form-field" id="defaultModulesField">
-                    <label>Default module access for auto-created users</label>
-                    <div class="hint">Comma-separated module keys granted to JIT-created analysts (e.g. <code>tickets, knowledge</code>). <strong>Leave blank and they get full access to every module</strong> — set this for pilots so auto-created users aren't admins.</div>
-                    <input type="text" id="fDefaultModules" placeholder="tickets, knowledge">
+                    <label><?php echo htmlspecialchars(t('system.sso.field_default_modules')); ?></label>
+                    <div class="hint"><?php echo t('system.sso.field_default_modules_hint', ['example' => '<code>tickets, knowledge</code>', 'strong' => '<strong>' . htmlspecialchars(t('system.sso.field_default_modules_strong')) . '</strong>']); ?></div>
+                    <input type="text" id="fDefaultModules" placeholder="<?php echo htmlspecialchars(t('system.sso.field_default_modules_placeholder')); ?>">
                 </div>
             </div>
             <div class="sso-modal-footer">
-                <button class="btn btn-secondary" id="cancelModalBtn" type="button">Cancel</button>
-                <button class="btn btn-primary" id="saveProviderBtn" type="button">Save</button>
+                <button class="btn btn-secondary" id="cancelModalBtn" type="button"><?php echo htmlspecialchars(t('system.sso.cancel')); ?></button>
+                <button class="btn btn-primary" id="saveProviderBtn" type="button"><?php echo htmlspecialchars(t('system.sso.save')); ?></button>
             </div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script>
     const API = '<?php echo $path_prefix; ?>api/';
     let providers = [];
@@ -246,15 +251,15 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                 body: JSON.stringify({ settings })
             });
             const d = await r.json();
-            showToast(d.success ? 'Global settings saved' : ('Error: ' + d.error), d.success ? 'success' : 'error');
-        } catch (e) { showToast('Failed to save', 'error'); }
+            showToast(d.success ? window.t('system.sso.global_saved') : window.t('system.sso.error', { error: d.error }), d.success ? 'success' : 'error');
+        } catch (e) { showToast(window.t('system.sso.save_failed'), 'error'); }
         this.disabled = false;
     });
 
     // ---------- Redirect URI copy ----------
     document.getElementById('copyRedirectBtn').addEventListener('click', function () {
         const txt = document.getElementById('redirectUri').textContent;
-        navigator.clipboard.writeText(txt).then(() => showToast('Redirect URI copied', 'success'));
+        navigator.clipboard.writeText(txt).then(() => showToast(window.t('system.sso.redirect_copied'), 'success'));
     });
 
     // ---------- Providers list ----------
@@ -272,18 +277,18 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
     function renderProviders() {
         const body = document.getElementById('providersBody');
         if (!providers.length) {
-            body.innerHTML = '<tr class="empty-row"><td colspan="5">No providers yet. Click <strong>Add</strong> to configure one.</td></tr>';
+            body.innerHTML = '<tr class="empty-row"><td colspan="5">' + window.t('system.sso.no_providers', { add: '<strong>' + window.t('system.sso.add_strong') + '</strong>' }) + '</td></tr>';
             return;
         }
         body.innerHTML = providers.map(p => `
             <tr>
                 <td><strong>${esc(p.display_name)}</strong></td>
                 <td class="issuer-cell" title="${esc(p.issuer_url)}">${esc(p.issuer_url)}</td>
-                <td><span class="status-badge ${p.enabled ? 'on' : 'off'}">${p.enabled ? 'Enabled' : 'Disabled'}</span></td>
-                <td>${p.auto_create_users ? '<span class="badge-jit">JIT on</span>' : '<span style="color:#bbb;">Off</span>'}</td>
+                <td><span class="status-badge ${p.enabled ? 'on' : 'off'}">${p.enabled ? window.t('system.sso.enabled') : window.t('system.sso.disabled')}</span></td>
+                <td>${p.auto_create_users ? '<span class="badge-jit">' + window.t('system.sso.jit_on') + '</span>' : '<span style="color:#bbb;">' + window.t('system.sso.jit_off') + '</span>'}</td>
                 <td style="text-align:right;">
-                    <button class="table-action-btn" data-edit="${p.id}">Edit</button>
-                    <button class="table-action-btn danger" data-del="${p.id}">Delete</button>
+                    <button class="table-action-btn" data-edit="${p.id}">${window.t('system.sso.edit')}</button>
+                    <button class="table-action-btn danger" data-del="${p.id}">${window.t('system.sso.delete')}</button>
                 </td>
             </tr>`).join('');
     }
@@ -292,7 +297,7 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
     const modal = document.getElementById('providerModal');
     function openModal(p) {
         document.getElementById('testResult').className = 'test-result';
-        document.getElementById('modalTitle').textContent = p ? 'Edit provider' : 'Add provider';
+        document.getElementById('modalTitle').textContent = p ? window.t('system.sso.modal_edit_title') : window.t('system.sso.modal_add_title');
         document.getElementById('providerId').value = p ? p.id : '';
         document.getElementById('fDisplayName').value = p ? p.display_name : '';
         document.getElementById('fIssuerUrl').value = p ? p.issuer_url : '';
@@ -305,11 +310,11 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         const secret = document.getElementById('fClientSecret');
         secret.value = '';
         if (p && p.has_secret) {
-            secret.placeholder = '•••••••• (leave blank to keep current)';
-            document.getElementById('secretHint').textContent = 'A secret is already stored. Leave blank to keep it, or type a new one to replace it.';
+            secret.placeholder = window.t('system.sso.secret_stored_placeholder');
+            document.getElementById('secretHint').textContent = window.t('system.sso.secret_stored_hint');
         } else {
             secret.placeholder = '';
-            document.getElementById('secretHint').textContent = "The client's secret from the provider. Stored encrypted.";
+            document.getElementById('secretHint').textContent = window.t('system.sso.field_client_secret_hint');
         }
         modal.classList.add('open');
     }
@@ -330,7 +335,7 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
     document.getElementById('testDiscoveryBtn').addEventListener('click', async function () {
         const issuer = document.getElementById('fIssuerUrl').value.trim();
         const box = document.getElementById('testResult');
-        if (!issuer) { box.className = 'test-result err'; box.textContent = 'Enter an issuer URL first.'; return; }
+        if (!issuer) { box.className = 'test-result err'; box.textContent = window.t('system.sso.enter_issuer'); return; }
         this.disabled = true; box.className = 'test-result'; box.textContent = '';
         try {
             const r = await fetch(API + 'system/test_oidc_discovery.php', {
@@ -340,13 +345,13 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             const d = await r.json();
             if (d.success) {
                 box.className = 'test-result ok';
-                box.textContent = '✓ Discovery OK — issuer: ' + d.issuer;
+                box.textContent = window.t('system.sso.discovery_ok', { issuer: d.issuer });
             } else {
                 box.className = 'test-result err';
-                box.textContent = '✗ ' + d.error;
+                box.textContent = window.t('system.sso.discovery_err', { error: d.error });
             }
         } catch (e) {
-            box.className = 'test-result err'; box.textContent = '✗ Request failed';
+            box.className = 'test-result err'; box.textContent = window.t('system.sso.request_failed');
         }
         this.disabled = false;
     });
@@ -366,7 +371,7 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             default_modules: document.getElementById('fDefaultModules').value.trim()
         };
         if (!payload.display_name || !payload.issuer_url || !payload.client_id) {
-            showToast('Display name, issuer URL and client ID are required', 'error');
+            showToast(window.t('system.sso.required_fields'), 'error');
             return;
         }
         this.disabled = true;
@@ -377,20 +382,20 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             });
             const d = await r.json();
             if (d.success) {
-                showToast('Provider saved', 'success');
+                showToast(window.t('system.sso.provider_saved'), 'success');
                 closeModal();
                 loadProviders();
             } else {
-                showToast('Error: ' + d.error, 'error');
+                showToast(window.t('system.sso.error', { error: d.error }), 'error');
             }
-        } catch (e) { showToast('Failed to save', 'error'); }
+        } catch (e) { showToast(window.t('system.sso.save_failed'), 'error'); }
         this.disabled = false;
     });
 
     // ---------- Delete provider ----------
     async function deleteProvider(id) {
         const p = providers.find(x => x.id == id);
-        const msg = `Delete "${p ? p.display_name : 'this provider'}"? Users assigned to it will revert to local login.`;
+        const msg = window.t('system.sso.delete_confirm', { name: p ? p.display_name : window.t('system.sso.delete_this') });
         const ok = window.showConfirm ? await showConfirm(msg) : confirm(msg);
         if (!ok) return;
         try {
@@ -399,9 +404,9 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                 body: JSON.stringify({ id })
             });
             const d = await r.json();
-            if (d.success) { showToast('Provider deleted', 'success'); loadProviders(); }
-            else showToast('Error: ' + d.error, 'error');
-        } catch (e) { showToast('Failed to delete', 'error'); }
+            if (d.success) { showToast(window.t('system.sso.provider_deleted'), 'success'); loadProviders(); }
+            else showToast(window.t('system.sso.error', { error: d.error }), 'error');
+        } catch (e) { showToast(window.t('system.sso.delete_failed'), 'error'); }
     }
 
     loadGlobal();

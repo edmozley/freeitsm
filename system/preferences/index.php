@@ -10,6 +10,7 @@ I18n::initFromSession();
 
 $current_page = 'preferences';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 $locales = I18n::getSupportedLocales();
 $currentLocale = I18n::getLocale();
 
@@ -50,7 +51,7 @@ if (isset($_SESSION['analyst_id'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Preferences</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.preferences.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .prefs-container {
@@ -180,12 +181,12 @@ if (isset($_SESSION['analyst_id'])) {
 
     <div class="prefs-container">
         <div class="prefs-card">
-            <h2>Preferences</h2>
-            <p class="subtitle">Personal settings saved to your account &mdash; they follow you across browsers.</p>
+            <h2><?php echo htmlspecialchars(t('system.preferences.title')); ?></h2>
+            <p class="subtitle"><?php echo htmlspecialchars(t('system.preferences.subtitle')); ?></p>
 
             <div class="pref-section">
-                <h3>Interface language</h3>
-                <p>The language used across the FreeITSM UI. Translations fall back to English for any strings not yet covered in your chosen language. Reloads the page on change.</p>
+                <h3><?php echo htmlspecialchars(t('system.preferences.language_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.language_desc')); ?></p>
                 <select id="languageSelect" class="pref-language-select">
                     <?php foreach ($locales as $code => $native): ?>
                         <option value="<?php echo htmlspecialchars($code); ?>" <?php echo $code === $currentLocale ? 'selected' : ''; ?>>
@@ -193,53 +194,55 @@ if (isset($_SESSION['analyst_id'])) {
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <span class="pref-saving-hint" id="langSavingHint">Saving&hellip;</span>
+                <span class="pref-saving-hint" id="langSavingHint"><?php echo htmlspecialchars(t('system.preferences.saving')); ?></span>
             </div>
 
             <div class="pref-section">
-                <h3>Notification position</h3>
-                <p>Where toast notifications appear on the screen.</p>
+                <h3><?php echo htmlspecialchars(t('system.preferences.position_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.position_desc')); ?></p>
                 <div class="position-grid" id="toastPositionGrid"></div>
             </div>
 
             <div class="pref-section">
-                <h3>Notification animation</h3>
-                <p>How notifications enter and exit the screen.</p>
+                <h3><?php echo htmlspecialchars(t('system.preferences.animation_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.animation_desc')); ?></p>
                 <div class="anim-toggle" id="animToggle">
-                    <button class="anim-option" data-anim="slide">Slide</button>
-                    <button class="anim-option" data-anim="fade">Fade</button>
+                    <button class="anim-option" data-anim="slide"><?php echo htmlspecialchars(t('system.preferences.anim_slide')); ?></button>
+                    <button class="anim-option" data-anim="fade"><?php echo htmlspecialchars(t('system.preferences.anim_fade')); ?></button>
                 </div>
             </div>
 
             <div class="pref-section">
-                <h3>Knowledge sidebar</h3>
-                <p>How the article sidebar behaves on the Knowledge module pages. Also available on the Knowledge settings page.</p>
+                <h3><?php echo htmlspecialchars(t('system.preferences.kb_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.kb_desc')); ?></p>
                 <div class="anim-toggle" id="kbSidebarToggle">
-                    <button class="anim-option" data-mode="always">Always visible</button>
-                    <button class="anim-option" data-mode="hover">Show on hover</button>
+                    <button class="anim-option" data-mode="always"><?php echo htmlspecialchars(t('system.preferences.always_visible')); ?></button>
+                    <button class="anim-option" data-mode="hover"><?php echo htmlspecialchars(t('system.preferences.show_on_hover')); ?></button>
                 </div>
             </div>
 
             <div class="pref-section">
-                <h3>Process Mapper sidebar</h3>
-                <p>How the process list sidebar behaves on the Process Mapper module pages. Also available on the Process Mapper settings page.</p>
+                <h3><?php echo htmlspecialchars(t('system.preferences.pm_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.pm_desc')); ?></p>
                 <div class="anim-toggle" id="pmSidebarToggle">
-                    <button class="anim-option" data-mode="always">Always visible</button>
-                    <button class="anim-option" data-mode="hover">Show on hover</button>
+                    <button class="anim-option" data-mode="always"><?php echo htmlspecialchars(t('system.preferences.always_visible')); ?></button>
+                    <button class="anim-option" data-mode="hover"><?php echo htmlspecialchars(t('system.preferences.show_on_hover')); ?></button>
                 </div>
             </div>
 
             <div class="pref-section">
-                <h3>Morning checks bar fill</h3>
-                <p>Solid or gradient fill for the Morning Checks 30-day trend chart. Also available on the Morning Checks settings page.</p>
+                <h3><?php echo htmlspecialchars(t('system.preferences.mc_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.mc_desc')); ?></p>
                 <div class="anim-toggle" id="mcFillToggle">
-                    <button class="anim-option" data-fill="plain">Plain</button>
-                    <button class="anim-option" data-fill="gradient">Gradient</button>
+                    <button class="anim-option" data-fill="plain"><?php echo htmlspecialchars(t('system.preferences.fill_plain')); ?></button>
+                    <button class="anim-option" data-fill="gradient"><?php echo htmlspecialchars(t('system.preferences.fill_gradient')); ?></button>
                 </div>
             </div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script>
         // Initial preference values pre-fetched server-side. The page
         // hydrates UI controls from these instead of localStorage.
@@ -265,24 +268,24 @@ if (isset($_SESSION['analyst_id'])) {
                     if (key === 'toast_animation') window.TOAST_ANIMATION = value;
                     return true;
                 }
-                showToast((d && d.error) || 'Failed to save', 'error');
+                showToast((d && d.error) || window.t('system.preferences.save_failed'), 'error');
             } catch (e) {
-                showToast('Failed to save', 'error');
+                showToast(window.t('system.preferences.save_failed'), 'error');
             }
             return false;
         }
 
         // ===== Notification position (toast_position) =====
         const positions = [
-            { key: 'top-left',      label: 'Top left' },
-            { key: 'top-center',    label: 'Top centre' },
-            { key: 'top-right',     label: 'Top right' },
-            { key: 'middle-left',   label: 'Middle left' },
-            { key: 'middle-center', label: 'Middle centre' },
-            { key: 'middle-right',  label: 'Middle right' },
-            { key: 'bottom-left',   label: 'Bottom left' },
-            { key: 'bottom-center', label: 'Bottom centre' },
-            { key: 'bottom-right',  label: 'Bottom right' }
+            { key: 'top-left',      label: window.t('system.preferences.pos_top_left') },
+            { key: 'top-center',    label: window.t('system.preferences.pos_top_center') },
+            { key: 'top-right',     label: window.t('system.preferences.pos_top_right') },
+            { key: 'middle-left',   label: window.t('system.preferences.pos_middle_left') },
+            { key: 'middle-center', label: window.t('system.preferences.pos_middle_center') },
+            { key: 'middle-right',  label: window.t('system.preferences.pos_middle_right') },
+            { key: 'bottom-left',   label: window.t('system.preferences.pos_bottom_left') },
+            { key: 'bottom-center', label: window.t('system.preferences.pos_bottom_center') },
+            { key: 'bottom-right',  label: window.t('system.preferences.pos_bottom_right') }
         ];
         const grid = document.getElementById('toastPositionGrid');
         const currentPosition = INITIAL_PREFS.toast_position;
@@ -298,7 +301,7 @@ if (isset($_SESSION['analyst_id'])) {
                 grid.querySelectorAll('.position-cell').forEach(c => c.classList.remove('active'));
                 cell.classList.add('active');
                 const ok = await savePref('toast_position', pos.key);
-                if (ok) showToast('Notifications will appear here', 'info');
+                if (ok) showToast(window.t('system.preferences.pos_preview'), 'info');
             });
             grid.appendChild(cell);
         });
@@ -346,7 +349,7 @@ if (isset($_SESSION['analyst_id'])) {
         }
 
         wireToggle('animToggle',      'anim', 'toast_animation',            INITIAL_PREFS.toast_animation,
-                   v => showToast('Preview: ' + v + ' animation', 'info'));
+                   v => showToast(window.t('system.preferences.anim_preview', { anim: v }), 'info'));
         wireToggle('kbSidebarToggle', 'mode', 'knowledge_sidebar_mode',     INITIAL_PREFS.knowledge_sidebar_mode);
         wireToggle('pmSidebarToggle', 'mode', 'process_mapper_sidebar_mode',INITIAL_PREFS.process_mapper_sidebar_mode);
         wireToggle('mcFillToggle',    'fill', 'mc_chart_fill_style',        INITIAL_PREFS.mc_chart_fill_style);

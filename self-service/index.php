@@ -5,14 +5,18 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 require_once 'includes/auth.php';
+
+$translationNamespaces = ['common', 'self-service'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Self-Service Portal</title>
+    <title><?php echo htmlspecialchars(t('self-service.dashboard.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         body { overflow: auto; height: auto; background: #f5f5f5; }
@@ -293,20 +297,20 @@ require_once 'includes/auth.php';
     <div class="portal-header">
         <div class="portal-brand">
             <img src="../assets/images/CompanyLogo.png" alt="Logo">
-            <span>Self-Service Portal</span>
+            <span><?php echo htmlspecialchars(t('self-service.portal')); ?></span>
         </div>
         <nav class="portal-nav">
-            <a href="index.php" class="active">Dashboard</a>
-            <a href="new-ticket.php">New Ticket</a>
-            <a href="help.php">Help</a>
+            <a href="index.php" class="active"><?php echo htmlspecialchars(t('self-service.nav.dashboard')); ?></a>
+            <a href="new-ticket.php"><?php echo htmlspecialchars(t('self-service.nav.new_ticket')); ?></a>
+            <a href="help.php"><?php echo htmlspecialchars(t('self-service.nav.help')); ?></a>
         </nav>
         <?php include 'includes/user-menu.php'; ?>
     </div>
 
     <div class="portal-layout">
         <div class="welcome-section">
-            <h1>Welcome, <?php echo htmlspecialchars($ss_user_name); ?></h1>
-            <p>Here's an overview of your tickets and system status</p>
+            <h1><?php echo htmlspecialchars(t('self-service.dashboard.welcome', ['name' => $ss_user_name])); ?></h1>
+            <p><?php echo htmlspecialchars(t('self-service.dashboard.welcome_sub')); ?></p>
         </div>
 
         <!-- Summary Cards (rendered dynamically from active ticket_statuses) -->
@@ -317,25 +321,27 @@ require_once 'includes/auth.php';
             <!-- Recent Tickets -->
             <div class="portal-section">
                 <div class="section-header">
-                    <h2>Recent Tickets</h2>
+                    <h2><?php echo htmlspecialchars(t('self-service.dashboard.recent_tickets')); ?></h2>
                 </div>
                 <div id="ticketsContainer">
-                    <div class="loading-state">Loading tickets...</div>
+                    <div class="loading-state"><?php echo htmlspecialchars(t('self-service.dashboard.loading_tickets')); ?></div>
                 </div>
             </div>
 
             <!-- System Status -->
             <div class="portal-section">
                 <div class="section-header">
-                    <h2>System Status</h2>
+                    <h2><?php echo htmlspecialchars(t('self-service.dashboard.system_status')); ?></h2>
                 </div>
                 <div id="statusContainer">
-                    <div class="loading-state">Loading status...</div>
+                    <div class="loading-state"><?php echo htmlspecialchars(t('self-service.dashboard.loading_status')); ?></div>
                 </div>
             </div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <script>
         const API_BASE = '../api/self-service/';
 
@@ -392,7 +398,7 @@ require_once 'includes/auth.php';
 
             const totalCard = `
                 <div class="summary-card card-total">
-                    <div class="card-label">Total</div>
+                    <div class="card-label">${escapeHtml(window.t('self-service.dashboard.total'))}</div>
                     <div class="card-value">${(summary && summary.total) || 0}</div>
                 </div>
             `;
@@ -404,18 +410,18 @@ require_once 'includes/auth.php';
             const container = document.getElementById('ticketsContainer');
 
             if (!tickets || tickets.length === 0) {
-                container.innerHTML = '<div class="empty-state">No tickets yet. <a href="new-ticket.php">Create your first ticket</a></div>';
+                container.innerHTML = '<div class="empty-state">' + escapeHtml(window.t('self-service.dashboard.no_tickets')) + ' <a href="new-ticket.php">' + escapeHtml(window.t('self-service.dashboard.create_first')) + '</a></div>';
                 return;
             }
 
             let html = `<table class="ticket-table">
                 <thead>
                     <tr>
-                        <th>Ticket</th>
-                        <th>Subject</th>
-                        <th>Status</th>
-                        <th>Priority</th>
-                        <th>Updated</th>
+                        <th>${escapeHtml(window.t('self-service.dashboard.col_ticket'))}</th>
+                        <th>${escapeHtml(window.t('self-service.dashboard.col_subject'))}</th>
+                        <th>${escapeHtml(window.t('self-service.dashboard.col_status'))}</th>
+                        <th>${escapeHtml(window.t('self-service.dashboard.col_priority'))}</th>
+                        <th>${escapeHtml(window.t('self-service.dashboard.col_updated'))}</th>
                     </tr>
                 </thead>
                 <tbody>`;
@@ -442,7 +448,7 @@ require_once 'includes/auth.php';
             const container = document.getElementById('statusContainer');
 
             if (!services || services.length === 0) {
-                container.innerHTML = '<div class="empty-state">No services configured</div>';
+                container.innerHTML = '<div class="empty-state">' + escapeHtml(window.t('self-service.dashboard.no_services')) + '</div>';
                 return;
             }
 
@@ -455,7 +461,7 @@ require_once 'includes/auth.php';
                         <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                         <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
-                    All systems operational
+                    ${escapeHtml(window.t('self-service.dashboard.all_operational'))}
                 </div>`;
             }
 

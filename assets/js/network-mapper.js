@@ -336,7 +336,7 @@
             renderBrandHeaderFooter();
             setStatus(autosaveOn ? 'saved' : 'off');
         } catch (e) {
-            elTitle.textContent = 'Failed to load diagram';
+            elTitle.textContent = t('network-mapper.editor.load_failed');
             elStatus.textContent = e.message;
         }
     }
@@ -351,43 +351,48 @@
             classes.forEach(c => { classById[c.id] = c; });
             renderPalette();
         } catch (e) {
-            elPaletteBody.innerHTML = '<div class="nm-palette-empty">Failed to load classes: ' + escapeHtml(e.message) + '</div>';
+            elPaletteBody.innerHTML = '<div class="nm-palette-empty">' + escapeHtml(t('network-mapper.editor.palette_load_failed', { message: e.message })) + '</div>';
         }
     }
 
     function renderHeader() {
-        document.title = 'FreeITSM — ' + (diagram.title || 'Network Diagram');
-        elTitle.textContent = diagram.title || '(untitled)';
+        document.title = diagram.title
+            ? t('network-mapper.editor.browser_title_named', { title: diagram.title })
+            : t('network-mapper.editor.browser_title');
+        elTitle.textContent = diagram.title || t('network-mapper.editor.untitled');
 
-        const label = diagram.version_label || 'v?';
+        const label = diagram.version_label || t('network-mapper.editor.version_unknown');
         if (diagram.is_current) {
             elVersionPill.className = 'nm-version-pill';
-            elVersionPill.textContent = label + ' (current)';
+            elVersionPill.textContent = t('network-mapper.editor.pill_current', { label: label });
         } else {
             elVersionPill.className = 'nm-version-pill readonly';
-            elVersionPill.textContent = label + ' (read-only)';
+            elVersionPill.textContent = t('network-mapper.editor.pill_readonly', { label: label });
         }
         elVersionPill.style.display = '';
 
         elMetaRow.style.display = '';
-        elMetaAuthor.textContent  = diagram.author_name || 'Unknown';
+        elMetaAuthor.textContent  = diagram.author_name || t('network-mapper.editor.author_unknown');
         elMetaCreated.textContent = formatDate(diagram.created_datetime);
         elMetaUpdated.textContent = formatDate(diagram.updated_datetime);
     }
 
     function renderPalette() {
         if (!classes.length) {
-            elPaletteBody.innerHTML = '<div class="nm-palette-empty">No CMDB classes defined yet. <a href="../cmdb/settings/">Create one</a> to start dragging objects onto the diagram.</div>';
+            elPaletteBody.innerHTML = '<div class="nm-palette-empty">' + t('network-mapper.editor.palette_empty') + '</div>';
             return;
         }
         const html = classes.map(c => {
             const icon = window.nmRenderIcon ? window.nmRenderIcon(c.icon_key || 'box', 28) : '';
             const objCount = c.object_count || 0;
+            const countText = objCount === 1
+                ? t('network-mapper.editor.palette_object', { count: objCount })
+                : t('network-mapper.editor.palette_objects', { count: objCount });
             return `
-                <div class="nm-palette-tile" draggable="true" data-class-id="${c.id}" data-icon-key="${escapeAttr(c.icon_key || 'box')}" title="Drag onto the canvas (coming in chunk C)">
+                <div class="nm-palette-tile" draggable="true" data-class-id="${c.id}" data-icon-key="${escapeAttr(c.icon_key || 'box')}" title="${escapeAttr(t('network-mapper.editor.palette_tile_title'))}">
                     <div class="nm-palette-tile-icon">${icon}</div>
                     <div class="nm-palette-tile-name">${escapeHtml(c.name)}</div>
-                    <div class="nm-palette-tile-count">${objCount} object${objCount === 1 ? '' : 's'}</div>
+                    <div class="nm-palette-tile-count">${escapeHtml(countText)}</div>
                 </div>`;
         }).join('');
         elPaletteBody.innerHTML = html;
@@ -414,19 +419,19 @@
         }
         elReadonlyBanner.style.display = '';
         elSaveBtn.disabled = true;
-        elSaveBtn.title = 'This is a historical version — read-only';
+        elSaveBtn.title = t('network-mapper.editor.readonly_save_title');
         elAutosaveWrap.style.display = 'none';
         // Save-as-new-version on a non-leaf is refused by the backend (create_version
         // only forks from the leaf), so disable it here too.
         elSaveVersionBtn.disabled = true;
-        elSaveVersionBtn.title = 'Only the current version can be forked into a new version';
+        elSaveVersionBtn.title = t('network-mapper.editor.readonly_fork_title');
         // Centre is a destructive op (modifies node positions) so block it
         // on historical versions. Other read-only-gated UI either silently
         // bails or is hidden; this button is visible so disabling reads
         // more honestly than letting the user click into a no-op.
         if (elCentreBtn) {
             elCentreBtn.disabled = true;
-            elCentreBtn.title = 'Historical versions are read-only';
+            elCentreBtn.title = t('network-mapper.editor.readonly_generic_title');
         }
     }
 
@@ -501,7 +506,7 @@
             pickerHighlight = 0;
             renderPickerResults();
         } catch (e) {
-            elPickerResults.innerHTML = '<div class="nm-picker-empty">Failed: ' + escapeHtml(e.message) + '</div>';
+            elPickerResults.innerHTML = '<div class="nm-picker-empty">' + escapeHtml(t('network-mapper.picker.search_failed', { message: e.message })) + '</div>';
         }
     }
 
@@ -515,16 +520,16 @@
             const allInUse = pickerResults.length > 0;
             elPickerResults.innerHTML = '<div class="nm-picker-empty">' +
                 (allInUse
-                    ? 'Every object in this class is already on the diagram.'
-                    : 'No objects in this class yet. <a href="../cmdb/" target="_blank">Create one in CMDB →</a>') +
+                    ? escapeHtml(t('network-mapper.picker.all_in_use'))
+                    : t('network-mapper.picker.none_yet')) +
                 '</div>';
             return;
         }
         elPickerResults.innerHTML = available.map((r, i) => {
             const cls = pickerHighlight === i ? ' highlighted' : '';
-            const planned = r.is_planned ? '<span class="nm-picker-planned">PLANNED</span>' : '';
+            const planned = r.is_planned ? '<span class="nm-picker-planned">' + escapeHtml(t('network-mapper.picker.planned')) + '</span>' : '';
             const parent = r.parent_name
-                ? '<span class="nm-picker-parent">in ' + escapeHtml(r.parent_name) + '</span>'
+                ? '<span class="nm-picker-parent">' + escapeHtml(t('network-mapper.picker.in_parent', { parent: r.parent_name })) + '</span>'
                 : '';
             return '<div class="nm-picker-row' + cls + '" data-object-id="' + r.id + '">' +
                 '<span class="nm-picker-name">' + escapeHtml(r.name) + planned + '</span>' +
@@ -654,7 +659,7 @@
         el.innerHTML =
             handleHtml +
             '<div class="nm-node-icon" style="height:' + sizePx + 'px;">' + iconSvg + '</div>' +
-            (n.is_planned ? '<span class="nm-node-planned-pill">PLANNED</span>' : '') +
+            (n.is_planned ? '<span class="nm-node-planned-pill">' + escapeHtml(t('network-mapper.detail.planned_pill')) + '</span>' : '') +
             '<div class="nm-node-label" title="' + escapeAttr(n.name + ' (' + (n.class_name || '') + ')') + '">' +
                 escapeHtml(n.name) +
             '</div>';
@@ -958,7 +963,7 @@
         input.className = 'nm-connector-label-input';
         input.value = c.label || '';
         input.maxLength = 255;
-        input.placeholder = 'Label (Enter to save, Esc to cancel)';
+        input.placeholder = t('network-mapper.connector.label_ph');
         input.style.left = (mx - 80) + 'px';
         input.style.top  = (my - 14) + 'px';
 
@@ -1100,8 +1105,8 @@
         if (elNdIconChangeBtn) {
             elNdIconChangeBtn.disabled = !editable;
             elNdIconChangeBtn.title = editable
-                ? 'Pick a different icon for this node'
-                : 'Historical versions are read-only';
+                ? t('network-mapper.detail.icon_change_title')
+                : t('network-mapper.editor.readonly_generic_title');
         }
         if (elNdIconResetBtn) {
             elNdIconResetBtn.style.display = (editable && n.icon_override) ? '' : 'none';
@@ -1110,8 +1115,8 @@
         // "Add related objects" is a mutation; gate on the editable version
         elNdAddRelatedBtn.disabled = !editable;
         elNdAddRelatedBtn.title = !editable
-            ? 'Historical versions are read-only'
-            : 'Pull in CMDB neighbours of this object';
+            ? t('network-mapper.editor.readonly_generic_title')
+            : t('network-mapper.detail.add_related_title');
 
         // Kick off the CMDB properties fetch. Selection swaps mid-flight are
         // handled by stamping currentPropertiesObjectId — the resolver checks
@@ -1124,7 +1129,7 @@
         if (!elNdProperties) return;
         currentPropertiesObjectId = cmdbObjectId;
         elNdPropertiesSection.style.display = '';
-        elNdProperties.innerHTML = '<div class="nm-prop-loading">Loading properties&hellip;</div>';
+        elNdProperties.innerHTML = '<div class="nm-prop-loading">' + escapeHtml(t('network-mapper.detail.properties_loading')) + '</div>';
         try {
             const resp = await fetch(CMDB_API + 'get_object.php?id=' + cmdbObjectId, { credentials: 'same-origin' });
             const data = await resp.json();
@@ -1134,7 +1139,7 @@
             renderNodeProperties(data.object.properties || []);
         } catch (e) {
             if (currentPropertiesObjectId !== cmdbObjectId) return;
-            elNdProperties.innerHTML = '<div class="nm-prop-empty">Could not load properties: ' + escapeHtml(e.message) + '</div>';
+            elNdProperties.innerHTML = '<div class="nm-prop-empty">' + escapeHtml(t('network-mapper.detail.properties_load_failed', { message: e.message })) + '</div>';
         }
     }
 
@@ -1159,7 +1164,7 @@
         });
 
         if (!withValues.length) {
-            elNdProperties.innerHTML = '<div class="nm-prop-empty">No property values set on this object.</div>';
+            elNdProperties.innerHTML = '<div class="nm-prop-empty">' + escapeHtml(t('network-mapper.detail.properties_empty')) + '</div>';
             return;
         }
 
@@ -1175,7 +1180,7 @@
             case 'boolean': {
                 const yes = p.value === true;
                 const cls = yes ? 'bool-yes' : 'bool-no';
-                return '<span class="nm-prop-value ' + cls + '">' + (yes ? 'Yes' : 'No') + '</span>';
+                return '<span class="nm-prop-value ' + cls + '">' + escapeHtml(yes ? t('network-mapper.detail.bool_yes') : t('network-mapper.detail.bool_no')) + '</span>';
             }
             case 'date': {
                 // Dates come back as ISO strings (YYYY-MM-DD). Localised
@@ -1218,7 +1223,7 @@
                 if (!p.value_object) return '<span class="nm-prop-value">&mdash;</span>';
                 const ref = p.value_object;
                 const href = '../cmdb/object.php?id=' + ref.id;
-                return '<a class="nm-prop-ref" href="' + escapeAttr(href) + '" target="_blank" title="Open in CMDB">' +
+                return '<a class="nm-prop-ref" href="' + escapeAttr(href) + '" target="_blank" title="' + escapeAttr(t('network-mapper.detail.ref_open_title')) + '">' +
                     escapeHtml(ref.name) +
                     (ref.class_name ? '<span class="nm-prop-ref-class">' + escapeHtml(ref.class_name) + '</span>' : '') +
                 '</a>';
@@ -1271,16 +1276,16 @@
         // connectors would need a real id eventually anyway. Asking the user
         // to save first is the simplest contract.
         if (!src.id) {
-            if (window.showToast) showToast('Save the diagram first so this node has a stable id', 'info');
+            if (window.showToast) showToast(t('network-mapper.related.save_first'), 'info');
             return;
         }
         relatedSourceNode = src;
         relatedRows = [];
         relatedSelected.clear();
         elRmSourceName.textContent = src.name;
-        elRmResults.innerHTML = '<div class="nm-rm-loading">Loading related objects&hellip;</div>';
+        elRmResults.innerHTML = '<div class="nm-rm-loading">' + escapeHtml(t('network-mapper.related.loading')) + '</div>';
         elRmAddBtn.disabled = true;
-        elRmAddBtn.textContent = 'Add';
+        elRmAddBtn.textContent = t('network-mapper.related.add');
         elRelatedModal.classList.add('active');
         fetchRelatedRows(src.cmdb_object_id);
     }
@@ -1300,23 +1305,23 @@
             relatedRows = data.related || [];
             renderRelatedRows();
         } catch (e) {
-            elRmResults.innerHTML = '<div class="nm-rm-empty">Failed to load: ' + escapeHtml(e.message) + '</div>';
+            elRmResults.innerHTML = '<div class="nm-rm-empty">' + escapeHtml(t('network-mapper.related.load_failed', { message: e.message })) + '</div>';
         }
     }
 
     function renderRelatedRows() {
         if (!relatedRows.length) {
             elRmResults.innerHTML = '<div class="nm-rm-empty">' +
-                'No related objects in CMDB yet. Add relationships or object-ref properties on the source object in CMDB, then come back.' +
+                escapeHtml(t('network-mapper.related.empty')) +
                 '</div>';
             return;
         }
         // Group by kind so the modal reads naturally: "what this depends on",
         // "what depends on this", "what references this via a property"
         const groups = [
-            { kind: 'outgoing', label: 'This object &rarr; others', rows: [] },
-            { kind: 'incoming', label: 'Others &rarr; this object', rows: [] },
-            { kind: 'property', label: 'Referenced by properties', rows: [] }
+            { kind: 'outgoing', label: escapeHtml(t('network-mapper.related.group_outgoing')), rows: [] },
+            { kind: 'incoming', label: escapeHtml(t('network-mapper.related.group_incoming')), rows: [] },
+            { kind: 'property', label: escapeHtml(t('network-mapper.related.group_property')), rows: [] }
         ];
         const onCanvas = new Set(nodes.map(n => n.cmdb_object_id));
         relatedRows.forEach((r, idx) => {
@@ -1331,8 +1336,8 @@
             html += '<div class="nm-rm-group-header"><span>' + g.label + '</span><span class="nm-rm-group-count">' + g.rows.length + '</span></div>';
             g.rows.forEach(({ row, idx, onCanvas }) => {
                 const icon = window.nmRenderIcon ? window.nmRenderIcon(row.class_icon || 'box', 18) : '';
-                const planned = row.is_planned ? '<span class="nm-rm-planned-pill">PLANNED</span>' : '';
-                const onBoard = onCanvas ? '<span class="nm-rm-onboard">on canvas</span>' : '';
+                const planned = row.is_planned ? '<span class="nm-rm-planned-pill">' + escapeHtml(t('network-mapper.related.planned')) + '</span>' : '';
+                const onBoard = onCanvas ? '<span class="nm-rm-onboard">' + escapeHtml(t('network-mapper.related.on_canvas')) + '</span>' : '';
                 const disabled = onCanvas ? ' disabled' : '';
                 const checked = (!onCanvas && relatedSelected.has(idx)) ? ' checked' : '';
                 html +=
@@ -1372,7 +1377,11 @@
     function updateRelatedAddBtn() {
         const n = relatedSelected.size;
         elRmAddBtn.disabled = n === 0;
-        elRmAddBtn.textContent = n === 0 ? 'Add' : 'Add ' + n + ' object' + (n === 1 ? '' : 's');
+        elRmAddBtn.textContent = n === 0
+            ? t('network-mapper.related.add')
+            : (n === 1
+                ? t('network-mapper.related.add_one', { count: n })
+                : t('network-mapper.related.add_many', { count: n }));
     }
 
     function commitRelatedSelections() {
@@ -1472,12 +1481,16 @@
         renderNodes();
         if (window.showToast) {
             const placedMsg = newPlacements.length
-                ? newPlacements.length + ' object' + (newPlacements.length === 1 ? '' : 's') + ' added'
-                : 'No new objects placed';
+                ? (newPlacements.length === 1
+                    ? t('network-mapper.related.placed_one', { count: newPlacements.length })
+                    : t('network-mapper.related.placed_many', { count: newPlacements.length }))
+                : t('network-mapper.related.placed_none');
             const connMsg = connectorsAdded
-                ? connectorsAdded + ' connector' + (connectorsAdded === 1 ? '' : 's')
+                ? (connectorsAdded === 1
+                    ? t('network-mapper.related.connector_one', { count: connectorsAdded })
+                    : t('network-mapper.related.connector_many', { count: connectorsAdded }))
                 : '';
-            showToast(connMsg ? placedMsg + ' · ' + connMsg : placedMsg, 'success');
+            showToast(connMsg ? t('network-mapper.related.result_combined', { placed: placedMsg, connectors: connMsg }) : placedMsg, 'success');
         }
         markDirty();
     }
@@ -1523,11 +1536,11 @@
         if (!elStatus) return;
         const map = {
             idle:    { html: '', cls: '' },
-            unsaved: { html: autosaveOn ? 'Unsaved' : 'Unsaved changes', cls: 'nm-status-unsaved' },
-            saving:  { html: '<span class="nm-status-spinner"></span> Saving…', cls: 'nm-status-saving' },
-            saved:   { html: '<span class="nm-status-tick">✓</span> Saved', cls: 'nm-status-saved' },
-            failed:  { html: '<span class="nm-status-warn">⚠</span> Save failed — <a href="#" id="nmRetrySave">retry</a>', cls: 'nm-status-failed' },
-            off:     { html: 'Autosave off', cls: 'nm-status-off' }
+            unsaved: { html: escapeHtml(autosaveOn ? t('network-mapper.status.unsaved') : t('network-mapper.status.unsaved_changes')), cls: 'nm-status-unsaved' },
+            saving:  { html: '<span class="nm-status-spinner"></span> ' + escapeHtml(t('network-mapper.status.saving')), cls: 'nm-status-saving' },
+            saved:   { html: '<span class="nm-status-tick">✓</span> ' + escapeHtml(t('network-mapper.status.saved')), cls: 'nm-status-saved' },
+            failed:  { html: '<span class="nm-status-warn">⚠</span> ' + escapeHtml(t('network-mapper.status.save_failed')) + ' <a href="#" id="nmRetrySave">' + escapeHtml(t('network-mapper.status.retry')) + '</a>', cls: 'nm-status-failed' },
+            off:     { html: escapeHtml(t('network-mapper.status.autosave_off')), cls: 'nm-status-off' }
         };
         const s = map[state] || map.idle;
         elStatus.className = 'nm-status ' + s.cls;
@@ -1646,7 +1659,7 @@
         });
 
         if (!anyMatches) {
-            html = '<div class="nm-ip-empty">No icons match &ldquo;' + escapeHtml(iconPickerFilter) + '&rdquo;.</div>';
+            html = '<div class="nm-ip-empty">' + escapeHtml(t('network-mapper.iconpicker.no_match', { query: iconPickerFilter })) + '</div>';
         }
         elIpGrid.innerHTML = html;
         elIpGrid.querySelectorAll('.nm-ip-tile').forEach(tile => {
@@ -1692,7 +1705,7 @@
             closeVersionsDropdown();
             return;
         }
-        elVersionsDropdown.innerHTML = '<div class="nm-vd-loading">Loading version history&hellip;</div>';
+        elVersionsDropdown.innerHTML = '<div class="nm-vd-loading">' + escapeHtml(t('network-mapper.versions.loading')) + '</div>';
         elVersionsDropdown.style.display = '';
         fetchVersionList();
     }
@@ -1708,13 +1721,13 @@
             if (!data.success) throw new Error(data.error || 'Failed to load');
             renderVersionList(data.versions || []);
         } catch (e) {
-            elVersionsDropdown.innerHTML = '<div class="nm-vd-empty">Failed to load: ' + escapeHtml(e.message) + '</div>';
+            elVersionsDropdown.innerHTML = '<div class="nm-vd-empty">' + escapeHtml(t('network-mapper.versions.load_failed', { message: e.message })) + '</div>';
         }
     }
 
     function renderVersionList(versions) {
         if (!versions.length) {
-            elVersionsDropdown.innerHTML = '<div class="nm-vd-empty">No version history yet.</div>';
+            elVersionsDropdown.innerHTML = '<div class="nm-vd-empty">' + escapeHtml(t('network-mapper.versions.empty')) + '</div>';
             return;
         }
         // Latest version at the top reads more naturally for a history list —
@@ -1727,12 +1740,12 @@
             // Pill priority: viewing > current > readonly. Viewing wins when both
             // apply (you're on the current version) so the row clearly highlights.
             let pill;
-            if (isViewing && isCurrent) pill = '<span class="nm-vd-pill viewing">Viewing &middot; current</span>';
-            else if (isViewing)         pill = '<span class="nm-vd-pill viewing">Viewing</span>';
-            else if (isCurrent)         pill = '<span class="nm-vd-pill current">Current</span>';
-            else                        pill = '<span class="nm-vd-pill readonly">Read-only</span>';
+            if (isViewing && isCurrent) pill = '<span class="nm-vd-pill viewing">' + escapeHtml(t('network-mapper.versions.viewing_current')) + '</span>';
+            else if (isViewing)         pill = '<span class="nm-vd-pill viewing">' + escapeHtml(t('network-mapper.versions.viewing')) + '</span>';
+            else if (isCurrent)         pill = '<span class="nm-vd-pill current">' + escapeHtml(t('network-mapper.versions.current')) + '</span>';
+            else                        pill = '<span class="nm-vd-pill readonly">' + escapeHtml(t('network-mapper.versions.readonly')) + '</span>';
             const label = v.version_label || ('v?' + (v.id));
-            const meta = (v.author_name || 'Unknown') + ' &middot; ' + formatDate(v.updated_datetime || v.created_datetime);
+            const meta = escapeHtml(v.author_name || t('network-mapper.versions.author_unknown')) + ' &middot; ' + formatDate(v.updated_datetime || v.created_datetime);
             const rowCls = isViewing ? 'nm-vd-row active' : 'nm-vd-row';
             // Hard link rather than JS navigation so middle-click / Ctrl-click
             // opens in a new tab — useful when comparing two versions side-by-side
@@ -1777,10 +1790,10 @@
         const offRow =
             '<a class="nm-vd-row' + (!curSize ? ' active' : '') + '" href="#" data-size="" data-orient="">' +
                 '<div class="nm-vd-row-top">' +
-                    '<span class="nm-vd-label">Off</span>' +
-                    (!curSize ? '<span class="nm-vd-pill viewing">Current</span>' : '') +
+                    '<span class="nm-vd-label">' + escapeHtml(t('network-mapper.page.off')) + '</span>' +
+                    (!curSize ? '<span class="nm-vd-pill viewing">' + escapeHtml(t('network-mapper.page.current')) + '</span>' : '') +
                 '</div>' +
-                '<div class="nm-vd-row-meta">No page outline shown</div>' +
+                '<div class="nm-vd-row-meta">' + escapeHtml(t('network-mapper.page.off_meta')) + '</div>' +
             '</a>';
 
         let rows = offRow;
@@ -1792,11 +1805,14 @@
                 const dims = orient === 'portrait'
                     ? def.w + ' × ' + def.h + ' px'
                     : def.h + ' × ' + def.w + ' px';
+                const orientLabel = orient === 'portrait'
+                    ? t('network-mapper.page.orient_portrait')
+                    : t('network-mapper.page.orient_landscape');
                 rows +=
                     '<a class="nm-vd-row' + (isCur ? ' active' : '') + '" href="#" data-size="' + escapeAttr(size) + '" data-orient="' + orient + '">' +
                         '<div class="nm-vd-row-top">' +
-                            '<span class="nm-vd-label">' + escapeHtml(def.label) + ' ' + orient + '</span>' +
-                            (isCur ? '<span class="nm-vd-pill viewing">Current</span>' : '') +
+                            '<span class="nm-vd-label">' + escapeHtml(t('network-mapper.page.row_label', { label: def.label, orient: orientLabel })) + '</span>' +
+                            (isCur ? '<span class="nm-vd-pill viewing">' + escapeHtml(t('network-mapper.page.current')) + '</span>' : '') +
                         '</div>' +
                         '<div class="nm-vd-row-meta">' + escapeHtml(def.mm) + ' &middot; ' + dims + '</div>' +
                     '</a>';
@@ -1809,7 +1825,7 @@
             row.addEventListener('click', e => {
                 e.preventDefault();
                 if (!editable) {
-                    if (window.showToast) showToast('Historical versions are read-only', 'info');
+                    if (window.showToast) showToast(t('network-mapper.page.readonly'), 'info');
                     closePageDropdown();
                     return;
                 }
@@ -1843,12 +1859,12 @@
         const size = diagram && diagram.paper_size;
         const orient = diagram && diagram.paper_orientation;
         if (!size) {
-            elPageBtnLabel.textContent = 'Page: Off';
+            elPageBtnLabel.textContent = t('network-mapper.editor.page_off');
         } else {
             const def = PAPER_SIZES_PX[size];
             const lbl = def ? def.label : size;
             const shortOrient = (orient === 'portrait') ? 'P' : 'L';
-            elPageBtnLabel.textContent = 'Page: ' + lbl + ' ' + shortOrient;
+            elPageBtnLabel.textContent = t('network-mapper.editor.page_label', { label: lbl, orient: shortOrient });
         }
     }
 
@@ -1901,7 +1917,10 @@
         label.setAttribute('x', '8');
         label.setAttribute('y', '16');
         label.classList.add('nm-page-outline-label');
-        label.textContent = (def ? def.label : size) + ' ' + orient;
+        const orientLabel = orient === 'portrait'
+            ? t('network-mapper.page.orient_portrait')
+            : t('network-mapper.page.orient_landscape');
+        label.textContent = t('network-mapper.page.row_label', { label: (def ? def.label : size), orient: orientLabel });
         g.appendChild(label);
 
         // Place above <defs> but below connectors. defs is the first child
@@ -2037,7 +2056,7 @@
     function openBrandingModal() {
         if (!diagram) return;
         if (!diagram.is_current) {
-            if (window.showToast) showToast('Historical versions are read-only', 'info');
+            if (window.showToast) showToast(t('network-mapper.branding.readonly'), 'info');
             return;
         }
         const modal = document.getElementById('brandingModal');
@@ -2052,7 +2071,7 @@
             if (!input) return;
             input.value = (diagram[key] != null) ? diagram[key] : '';
             const fallback = (brandingDefaults && brandingDefaults[key] != null) ? brandingDefaults[key] : '';
-            input.placeholder = fallback || '(blank by default)';
+            input.placeholder = fallback || t('network-mapper.branding.blank_default');
         });
         modal.classList.add('active');
     }
@@ -2195,11 +2214,11 @@
             const wait = Math.max(0, MIN_SAVING_VISIBLE_MS - elapsed);
             setTimeout(() => {
                 setStatus('saved');
-                if (!isAutoSave && window.showToast) showToast('Saved', 'success');
+                if (!isAutoSave && window.showToast) showToast(t('network-mapper.toast.saved'), 'success');
             }, wait);
         } catch (e) {
             setStatus('failed');
-            if (!isAutoSave && window.showToast) showToast('Save failed: ' + e.message, 'error');
+            if (!isAutoSave && window.showToast) showToast(t('network-mapper.toast.save_failed', { message: e.message }), 'error');
         } finally {
             saveInFlight = false;
         }
@@ -2210,14 +2229,14 @@
     // =========================================================
     async function openNewVersionModal() {
         if (!diagram || !diagram.is_current) {
-            if (window.showToast) showToast('Only the current version can be forked', 'error');
+            if (window.showToast) showToast(t('network-mapper.newversion.only_current'), 'error');
             return;
         }
         // create_version.php clones from the *persisted* state, so any in-memory
         // edits would be silently dropped. Save first so the user gets what
         // they see — they don't need to think about persistence semantics.
         if (dirty) {
-            if (window.showToast) showToast('Saving pending changes first…', 'info');
+            if (window.showToast) showToast(t('network-mapper.newversion.saving_first'), 'info');
             await save(false);
             if (dirty) return; // save failed; bail and let the user retry
         }
@@ -2247,7 +2266,7 @@
         const description = document.getElementById('nvDescription').value.trim();
         const versionLabel = document.getElementById('nvVersionLabel').value.trim();
         if (!title) {
-            if (window.showToast) showToast('Title is required', 'error');
+            if (window.showToast) showToast(t('network-mapper.newversion.title_required'), 'error');
             return;
         }
         const btn = document.getElementById('nvCreateBtn');
@@ -2267,7 +2286,7 @@
             // Navigate to the new (leaf, editable) version
             window.location.href = 'diagram.php?id=' + data.id;
         } catch (e) {
-            if (window.showToast) showToast('Failed: ' + e.message, 'error');
+            if (window.showToast) showToast(t('network-mapper.newversion.create_failed', { message: e.message }), 'error');
             btn.disabled = false;
         }
     }
@@ -2370,7 +2389,7 @@
             contentH = maxY;
         }
         if (contentW <= 0 || contentH <= 0) {
-            if (window.showToast) showToast('Nothing to fit — set a page size or place some nodes', 'info');
+            if (window.showToast) showToast(t('network-mapper.toast.nothing_to_fit'), 'info');
             return;
         }
         const target = Math.min(viewW / contentW, viewH / contentH);
@@ -2456,11 +2475,11 @@
     function centreOnPage() {
         if (!diagram || !diagram.is_current) return;
         if (!nodes.length) {
-            if (window.showToast) showToast('Nothing to centre — place some nodes first', 'info');
+            if (window.showToast) showToast(t('network-mapper.toast.centre_no_nodes'), 'info');
             return;
         }
         if (!diagram.paper_size) {
-            if (window.showToast) showToast('Set a page size first (Page dropdown)', 'info');
+            if (window.showToast) showToast(t('network-mapper.toast.centre_no_page'), 'info');
             return;
         }
         const dims = pageDimensionsPx(diagram.paper_size, diagram.paper_orientation);
@@ -2481,7 +2500,7 @@
         const bboxH = maxY - minY;
 
         if (bboxW > dims.w || bboxH > dims.h) {
-            if (window.showToast) showToast('Diagram is too large to centre on this page size — try a larger paper or use Fit + zoom', 'info');
+            if (window.showToast) showToast(t('network-mapper.toast.centre_too_large'), 'info');
             return;
         }
 
@@ -2492,7 +2511,7 @@
         const deltaY = snap((dims.h - bboxH) / 2 - minY);
 
         if (deltaX === 0 && deltaY === 0) {
-            if (window.showToast) showToast('Diagram is already centred', 'info');
+            if (window.showToast) showToast(t('network-mapper.toast.centre_already'), 'info');
             return;
         }
 
@@ -2502,7 +2521,7 @@
         });
         renderNodes();   // re-renders nodes + calls renderConnectors() inside
         markDirty();
-        if (window.showToast) showToast('Diagram centred on page', 'success');
+        if (window.showToast) showToast(t('network-mapper.toast.centred'), 'success');
     }
 
     // =========================================================
@@ -2551,12 +2570,12 @@
     async function captureCanvas() {
         if (!diagram) return null;
         if (typeof html2canvas !== 'function') {
-            if (window.showToast) showToast('Export library failed to load — check your network and refresh', 'error');
+            if (window.showToast) showToast(t('network-mapper.toast.export_lib_failed'), 'error');
             return null;
         }
         const rect = computeExportRect();
         if (!rect) {
-            if (window.showToast) showToast('Nothing to export — place some nodes or set a page size first', 'info');
+            if (window.showToast) showToast(t('network-mapper.toast.nothing_to_export'), 'info');
             return null;
         }
 
@@ -2599,7 +2618,7 @@
             });
             return { canvas, rect };
         } catch (err) {
-            if (window.showToast) showToast('Export failed: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+            if (window.showToast) showToast(t('network-mapper.toast.export_failed', { message: (err && err.message ? err.message : t('network-mapper.toast.export_failed_unknown')) }), 'error');
             return null;
         } finally {
             if (elCanvasInner) elCanvasInner.classList.remove('is-exporting');
@@ -2627,14 +2646,14 @@
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        if (window.showToast) showToast('PNG exported', 'success');
+        if (window.showToast) showToast(t('network-mapper.toast.png_exported'), 'success');
     }
 
     async function exportPdf() {
         // jsPDF UMD exposes its constructor under window.jspdf.jsPDF
         const jsPDF = (window.jspdf && window.jspdf.jsPDF) || null;
         if (!jsPDF) {
-            if (window.showToast) showToast('PDF library failed to load — check your network and refresh', 'error');
+            if (window.showToast) showToast(t('network-mapper.toast.pdf_lib_failed'), 'error');
             return;
         }
         const result = await captureCanvas();
@@ -2655,7 +2674,7 @@
         const pageH = doc.internal.pageSize.getHeight();
         doc.addImage(result.canvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
         doc.save(exportFilename('pdf'));
-        if (window.showToast) showToast('PDF exported', 'success');
+        if (window.showToast) showToast(t('network-mapper.toast.pdf_exported'), 'success');
     }
 
     // =========================================================

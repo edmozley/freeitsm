@@ -8,13 +8,19 @@ if (isset($_SESSION['ss_user_id'])) {
     header('Location: index.php');
     exit;
 }
+
+require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
+
+$translationNamespaces = ['common', 'self-service'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Self-Service Portal - Register</title>
+    <title><?php echo htmlspecialchars(t('self-service.register.title')); ?></title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -129,8 +135,8 @@ if (isset($_SESSION['ss_user_id'])) {
     <div class="login-container">
         <div class="login-header">
             <img src="../assets/images/CompanyLogo.png" alt="Company Logo">
-            <h1>Create Account</h1>
-            <p>Register to access the self-service portal</p>
+            <h1><?php echo htmlspecialchars(t('self-service.register.heading')); ?></h1>
+            <p><?php echo htmlspecialchars(t('self-service.register.subtitle')); ?></p>
         </div>
 
         <div class="error-message" id="errorMsg"></div>
@@ -138,30 +144,32 @@ if (isset($_SESSION['ss_user_id'])) {
 
         <form id="registerForm" onsubmit="return handleRegister(event)">
             <div class="form-group">
-                <label for="email">Email</label>
+                <label for="email"><?php echo htmlspecialchars(t('self-service.register.email')); ?></label>
                 <input type="email" id="email" required autofocus autocomplete="email">
             </div>
             <div class="form-group">
-                <label for="displayName">Full Name</label>
+                <label for="displayName"><?php echo htmlspecialchars(t('self-service.register.full_name')); ?></label>
                 <input type="text" id="displayName" required autocomplete="name">
             </div>
             <div class="form-group">
-                <label for="password">Password</label>
+                <label for="password"><?php echo htmlspecialchars(t('self-service.register.password')); ?></label>
                 <input type="password" id="password" required minlength="8" autocomplete="new-password">
-                <div class="form-hint">Minimum 8 characters</div>
+                <div class="form-hint"><?php echo htmlspecialchars(t('self-service.register.password_hint')); ?></div>
             </div>
             <div class="form-group">
-                <label for="confirmPassword">Confirm Password</label>
+                <label for="confirmPassword"><?php echo htmlspecialchars(t('self-service.register.confirm_password')); ?></label>
                 <input type="password" id="confirmPassword" required minlength="8" autocomplete="new-password">
             </div>
-            <button type="submit" class="login-button" id="registerBtn">Register</button>
+            <button type="submit" class="login-button" id="registerBtn"><?php echo htmlspecialchars(t('self-service.register.submit')); ?></button>
         </form>
 
         <div class="login-links">
-            <a href="login.php">Already have an account? Sign in</a>
+            <a href="login.php"><?php echo htmlspecialchars(t('self-service.register.have_account')); ?></a>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <script>
     async function handleRegister(e) {
         e.preventDefault();
@@ -175,13 +183,13 @@ if (isset($_SESSION['ss_user_id'])) {
         const confirmPassword = document.getElementById('confirmPassword').value;
 
         if (password !== confirmPassword) {
-            errEl.textContent = 'Passwords do not match';
+            errEl.textContent = t('self-service.register.passwords_mismatch');
             errEl.style.display = 'block';
             return;
         }
 
         btn.disabled = true;
-        btn.textContent = 'Creating account...';
+        btn.textContent = t('self-service.register.creating');
 
         try {
             const resp = await fetch('../api/self-service/register.php', {
@@ -201,13 +209,13 @@ if (isset($_SESSION['ss_user_id'])) {
                 errEl.textContent = data.error;
                 errEl.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = 'Register';
+                btn.textContent = t('self-service.register.submit');
             }
         } catch (err) {
-            errEl.textContent = 'Registration failed. Please try again.';
+            errEl.textContent = t('self-service.register.register_failed');
             errEl.style.display = 'block';
             btn.disabled = false;
-            btn.textContent = 'Register';
+            btn.textContent = t('self-service.register.submit');
         }
     }
     </script>

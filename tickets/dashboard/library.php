@@ -5,16 +5,19 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'dashboard';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'tickets'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Ticket Widget Library</title>
+    <title><?php echo htmlspecialchars(t('tickets.dashboard.library.page_title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .dashboard-page {
@@ -235,15 +238,15 @@ $path_prefix = '../../';
         <div class="library-toolbar-left">
             <a href="./">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                Dashboard
+                <?php echo htmlspecialchars(t('tickets.dashboard.library.back_dashboard')); ?>
             </a>
-            <h2>Widget Library</h2>
+            <h2><?php echo htmlspecialchars(t('tickets.dashboard.library.heading')); ?></h2>
         </div>
         <div class="library-toolbar-right">
-            <input type="text" class="search-input" id="searchInput" placeholder="Search widgets..." oninput="filterWidgets()">
+            <input type="text" class="search-input" id="searchInput" placeholder="<?php echo htmlspecialchars(t('tickets.dashboard.library.search_placeholder')); ?>" oninput="filterWidgets()">
             <button class="btn btn-primary" onclick="showNewForm()">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                New
+                <?php echo htmlspecialchars(t('tickets.dashboard.library.new_btn')); ?>
             </button>
         </div>
     </div>
@@ -251,11 +254,11 @@ $path_prefix = '../../';
     <div class="library-container">
         <!-- Edit/New panel -->
         <div class="edit-panel" id="editPanel">
-            <h3 id="editPanelTitle">New Widget</h3>
+            <h3 id="editPanelTitle"><?php echo htmlspecialchars(t('tickets.dashboard.library.new_widget')); ?></h3>
             <?php require_once 'includes/widget_edit_form.php'; ?>
             <div class="edit-panel-actions">
-                <button class="btn btn-primary" onclick="handleSave()">Save</button>
-                <button class="btn" onclick="closeEditPanel()">Cancel</button>
+                <button class="btn btn-primary" onclick="handleSave()"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                <button class="btn" onclick="closeEditPanel()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
             </div>
         </div>
 
@@ -263,21 +266,23 @@ $path_prefix = '../../';
         <table class="widget-table" id="widgetTable">
             <thead>
                 <tr>
-                    <th>Widget</th>
-                    <th>Chart</th>
-                    <th>Property</th>
-                    <th>Series</th>
-                    <th>Filterable</th>
-                    <th>Actions</th>
+                    <th><?php echo htmlspecialchars(t('tickets.dashboard.library.col_widget')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.dashboard.library.col_chart')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.dashboard.library.col_property')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.dashboard.library.col_series')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.dashboard.library.col_filterable')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.dashboard.library.col_actions')); ?></th>
                 </tr>
             </thead>
             <tbody id="widgetTableBody"></tbody>
         </table>
-        <div class="no-results" id="noResults" style="display:none;">No widgets match your search</div>
+        <div class="no-results" id="noResults" style="display:none;"><?php echo htmlspecialchars(t('tickets.dashboard.library.no_results')); ?></div>
     </div>
 
     </div><!-- /.dashboard-page -->
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script src="../../assets/js/widget-editor.js"></script>
     <script>
         const API_BASE = '../../api/tickets/';
@@ -318,7 +323,7 @@ $path_prefix = '../../';
                 const seriesLabel = w.series_property ? WidgetEditor.SERIES_LABELS[w.series_property] || w.series_property : '';
                 const rangeLabel = w.date_range ? WidgetEditor.DATE_RANGE_LABELS[w.date_range] || w.date_range : '';
                 const deptCount = w.department_filter ? (typeof w.department_filter === 'string' ? JSON.parse(w.department_filter) : w.department_filter).length : 0;
-                const filterInfo = [rangeLabel, deptCount > 0 ? deptCount + ' dept' + (deptCount > 1 ? 's' : '') : ''].filter(Boolean).join(', ');
+                const filterInfo = [rangeLabel, deptCount > 0 ? window.t(deptCount > 1 ? 'tickets.dashboard.library.dept_many' : 'tickets.dashboard.library.dept_one', { count: deptCount }) : ''].filter(Boolean).join(', ');
                 return `<tr>
                     <td>
                         <div class="widget-title">${escapeHtml(w.title)}</div>
@@ -330,18 +335,18 @@ $path_prefix = '../../';
                         ${filterInfo ? `<div class="widget-desc">${escapeHtml(filterInfo)}</div>` : ''}
                     </td>
                     <td>${seriesLabel ? `<span class="series-badge">${escapeHtml(seriesLabel)}</span>` : '—'}</td>
-                    <td>${parseInt(w.is_status_filterable) ? 'Yes' : 'No'}</td>
+                    <td>${parseInt(w.is_status_filterable) ? escapeHtml(window.t('tickets.dashboard.library.yes')) : escapeHtml(window.t('tickets.dashboard.library.no'))}</td>
                     <td class="actions-cell">
-                        <button class="btn btn-sm btn-primary" onclick="addToDashboard(${w.id})" ${onDash ? 'disabled title="Already on dashboard"' : ''}>
-                            ${onDash ? 'Added' : 'Add'}
+                        <button class="btn btn-sm btn-primary" onclick="addToDashboard(${w.id})" ${onDash ? 'disabled title="' + escapeHtml(window.t('tickets.dashboard.library.already_on_dashboard')) + '"' : ''}>
+                            ${onDash ? escapeHtml(window.t('tickets.dashboard.library.added')) : escapeHtml(window.t('tickets.dashboard.library.add'))}
                         </button>
-                        <button class="btn btn-sm" onclick="editWidget(${w.id})" title="Edit">
+                        <button class="btn btn-sm" onclick="editWidget(${w.id})" title="${escapeHtml(window.t('tickets.dashboard.library.tooltip_edit'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                         </button>
-                        <button class="btn btn-sm" onclick="duplicateWidget(${w.id})" title="Duplicate">
+                        <button class="btn btn-sm" onclick="duplicateWidget(${w.id})" title="${escapeHtml(window.t('tickets.dashboard.library.tooltip_duplicate'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
                         </button>
-                        <button class="btn btn-sm btn-danger" onclick="deleteWidget(${w.id}, '${escapeHtml(w.title)}')" title="Delete">
+                        <button class="btn btn-sm btn-danger" onclick="deleteWidget(${w.id}, '${escapeHtml(w.title)}')" title="${escapeHtml(window.t('tickets.dashboard.library.tooltip_delete'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
                     </td>
@@ -355,7 +360,7 @@ $path_prefix = '../../';
 
         // Edit panel
         function showNewForm() {
-            document.getElementById('editPanelTitle').textContent = 'New Widget';
+            document.getElementById('editPanelTitle').textContent = window.t('tickets.dashboard.library.new_widget');
             WidgetEditor.resetForm();
             document.getElementById('editPanel').classList.add('active');
             document.getElementById('editTitle').focus();
@@ -365,7 +370,7 @@ $path_prefix = '../../';
             const w = allWidgets.find(w => parseInt(w.id) === id);
             if (!w) return;
 
-            document.getElementById('editPanelTitle').textContent = 'Edit Widget';
+            document.getElementById('editPanelTitle').textContent = window.t('tickets.dashboard.library.edit_widget');
             WidgetEditor.populateForm(w);
 
             document.getElementById('editPanel').classList.add('active');
@@ -394,7 +399,7 @@ $path_prefix = '../../';
 
             closeEditPanel();
             renderTable();
-            showToast(id ? 'Widget updated' : 'Widget created', 'success');
+            showToast(id ? window.t('tickets.dashboard.library.widget_updated') : window.t('tickets.dashboard.library.widget_created'), 'success');
         }
 
         async function duplicateWidget(id) {
@@ -406,7 +411,7 @@ $path_prefix = '../../';
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        title: w.title + ' (Copy)',
+                        title: window.t('tickets.dashboard.library.copy_suffix', { title: w.title }),
                         description: w.description || '',
                         chart_type: w.chart_type,
                         aggregate_property: w.aggregate_property,
@@ -420,20 +425,20 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to duplicate', 'error');
+                    showToast(data.error || window.t('tickets.dashboard.library.failed_duplicate'), 'error');
                     return;
                 }
 
                 allWidgets.push(data.widget);
                 renderTable();
-                showToast('Widget duplicated', 'success');
+                showToast(window.t('tickets.dashboard.library.widget_duplicated'), 'success');
             } catch (err) {
-                showToast('Failed to duplicate widget', 'error');
+                showToast(window.t('tickets.dashboard.library.failed_duplicate_widget'), 'error');
             }
         }
 
         async function deleteWidget(id, title) {
-            if (!(await showConfirm({ title: 'Delete', message: 'Delete "' + title + '"? This will also remove it from all analyst dashboards.', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: window.t('tickets.dashboard.library.delete_confirm_title'), message: window.t('tickets.dashboard.library.delete_confirm_msg', { title: title }), okLabel: window.t('common.delete'), okClass: 'danger' }))) return;
 
             try {
                 const res = await fetch(API_BASE + 'delete_ticket_dashboard_widget.php', {
@@ -444,16 +449,16 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to delete', 'error');
+                    showToast(data.error || window.t('tickets.dashboard.library.failed_delete'), 'error');
                     return;
                 }
 
                 allWidgets = allWidgets.filter(w => parseInt(w.id) !== id);
                 dashboardWidgetIds.delete(id);
                 renderTable();
-                showToast('Widget deleted', 'success');
+                showToast(window.t('tickets.dashboard.library.widget_deleted'), 'success');
             } catch (err) {
-                showToast('Failed to delete widget', 'error');
+                showToast(window.t('tickets.dashboard.library.failed_delete_widget'), 'error');
             }
         }
 
@@ -467,15 +472,15 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to add', 'error');
+                    showToast(data.error || window.t('tickets.dashboard.library.failed_add'), 'error');
                     return;
                 }
 
                 dashboardWidgetIds.add(widgetId);
                 renderTable();
-                showToast('Added to dashboard', 'success');
+                showToast(window.t('tickets.dashboard.library.added_to_dashboard'), 'success');
             } catch (err) {
-                showToast('Failed to add to dashboard', 'error');
+                showToast(window.t('tickets.dashboard.library.failed_add_dashboard'), 'error');
             }
         }
 

@@ -4,16 +4,19 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'system';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'system'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - System</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .system-landing {
@@ -91,16 +94,16 @@ $path_prefix = '../';
 
     <div class="main-container system-landing">
         <div class="landing-content">
-            <h2>System Administration</h2>
-            <p class="subtitle">Configure system-level settings and access controls</p>
+            <h2><?php echo htmlspecialchars(t('system.landing.heading')); ?></h2>
+            <p class="subtitle"><?php echo htmlspecialchars(t('system.landing.subtitle')); ?></p>
 
             <div class="system-cards">
                 <a href="encryption/" class="system-card">
                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                     </svg>
-                    <h3>Encryption</h3>
-                    <p>Generate and manage the encryption key used to protect sensitive data such as API keys and credentials.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.encryption_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.encryption_desc')); ?></p>
                 </a>
 
                 <a href="modules/" class="system-card">
@@ -110,8 +113,8 @@ $path_prefix = '../';
                         <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                         <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
-                    <h3>Module Access</h3>
-                    <p>Control which modules each analyst can access. Restrict visibility on the home screen and navigation menu.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.modules_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.modules_desc')); ?></p>
                 </a>
 
                 <a href="db-verify/" class="system-card">
@@ -120,8 +123,8 @@ $path_prefix = '../';
                         <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
                         <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
                     </svg>
-                    <h3>Database Verify</h3>
-                    <p>Check all tables and columns exist in the database. Automatically creates any that are missing.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.db_verify_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.db_verify_desc')); ?></p>
                 </a>
 
                 <a href="colours/" class="system-card">
@@ -132,8 +135,8 @@ $path_prefix = '../';
                         <circle cx="6.5" cy="12.5" r="2.5"></circle>
                         <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>
                     </svg>
-                    <h3>Colours</h3>
-                    <p>Customise the colour theme for each module. Changes apply to headers, icons, and the home screen.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.colours_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.colours_desc')); ?></p>
                 </a>
 
                 <a href="branding/" class="system-card">
@@ -143,8 +146,8 @@ $path_prefix = '../';
                         <path d="M2 2l7.586 7.586"></path>
                         <circle cx="11" cy="11" r="2"></circle>
                     </svg>
-                    <h3>Branding</h3>
-                    <p>Upload the organisation logo and set default header/footer text for diagrams and exported documents.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.branding_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.branding_desc')); ?></p>
                 </a>
 
                 <a href="security/" class="system-card">
@@ -152,8 +155,8 @@ $path_prefix = '../';
                         <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
                         <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
                     </svg>
-                    <h3>Security</h3>
-                    <p>Configure trusted device policies, password expiry, and account lockout settings.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.security_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.security_desc')); ?></p>
                 </a>
 
                 <a href="sso/" class="system-card">
@@ -161,8 +164,8 @@ $path_prefix = '../';
                         <path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path>
                         <line x1="8" y1="12" x2="16" y2="12"></line>
                     </svg>
-                    <h3>Single Sign-On</h3>
-                    <p>Connect external identity providers (OpenID Connect) such as Keycloak, Entra, Okta or Google so users can sign in with SSO.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.sso_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.sso_desc')); ?></p>
                 </a>
 
                 <a href="preferences/" class="system-card">
@@ -170,8 +173,8 @@ $path_prefix = '../';
                         <circle cx="12" cy="12" r="3"></circle>
                         <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
                     </svg>
-                    <h3>Preferences</h3>
-                    <p>Personal settings like notification position. These are saved per-browser and apply only to you.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.preferences_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.preferences_desc')); ?></p>
                 </a>
 
                 <a href="demo-data/" class="system-card">
@@ -180,8 +183,8 @@ $path_prefix = '../';
                         <polyline points="7 10 12 15 17 10"></polyline>
                         <line x1="12" y1="15" x2="12" y2="3"></line>
                     </svg>
-                    <h3>Demo Data</h3>
-                    <p>Import realistic sample data across all modules. Ideal for evaluation and testing on a fresh install.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.demo_data_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.demo_data_desc')); ?></p>
                 </a>
 
                 <a href="debug-tools/" class="system-card">
@@ -192,8 +195,8 @@ $path_prefix = '../';
                         <path d="M3 13h18"></path>
                         <path d="M9 17l2 2 4-4"></path>
                     </svg>
-                    <h3>Debug Tools</h3>
-                    <p>Library of diagnostics for troubleshooting failed flows. Run on request and send the output back to support.</p>
+                    <h3><?php echo htmlspecialchars(t('system.landing.debug_tools_title')); ?></h3>
+                    <p><?php echo htmlspecialchars(t('system.landing.debug_tools_desc')); ?></p>
                 </a>
             </div>
         </div>

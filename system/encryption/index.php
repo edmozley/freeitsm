@@ -5,16 +5,19 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'encryption';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Encryption</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.encryption.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .main-container {
@@ -276,10 +279,10 @@ $path_prefix = '../../';
 
     <div class="main-container">
         <div class="encryption-container">
-            <h1 class="page-title">Encryption</h1>
-            <p class="page-subtitle">Manage the encryption key used to protect sensitive data at rest</p>
+            <h1 class="page-title"><?php echo htmlspecialchars(t('system.encryption.title')); ?></h1>
+            <p class="page-subtitle"><?php echo htmlspecialchars(t('system.encryption.subtitle')); ?></p>
 
-            <div id="loading" class="loading-spinner">Checking encryption status...</div>
+            <div id="loading" class="loading-spinner"><?php echo htmlspecialchars(t('system.encryption.checking')); ?></div>
 
             <div id="content" style="display: none;">
                 <!-- Status card - populated by JS -->
@@ -287,38 +290,38 @@ $path_prefix = '../../';
 
                 <!-- Instructions -->
                 <div class="info-section">
-                    <h3>How Encryption Works</h3>
+                    <h3><?php echo htmlspecialchars(t('system.encryption.how_heading')); ?></h3>
                     <ul class="info-list">
                         <li>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                            FreeITSM uses <strong>AES-256-GCM</strong> authenticated encryption to protect sensitive data stored in the database, such as API keys, vCenter credentials, and mailbox connection details.
+                            <?php echo t('system.encryption.how_point1', ['strong' => '<strong>' . htmlspecialchars(t('system.encryption.how_point1_strong')) . '</strong>']); ?>
                         </li>
                         <li>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
-                            The encryption key is a 64-character hex string (256 bits) stored in a file <strong>outside the web root</strong> so it cannot be accessed via a browser.
+                            <?php echo t('system.encryption.how_point2', ['strong' => '<strong>' . htmlspecialchars(t('system.encryption.how_point2_strong')) . '</strong>']); ?>
                         </li>
                         <li>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                            Key file location: <code id="keyPathDisplay"><?php require_once $path_prefix . 'includes/encryption.php'; echo htmlspecialchars(ENCRYPTION_KEY_PATH); ?></code>
+                            <?php echo htmlspecialchars(t('system.encryption.how_point3')); ?> <code id="keyPathDisplay"><?php require_once $path_prefix . 'includes/encryption.php'; echo htmlspecialchars(ENCRYPTION_KEY_PATH); ?></code>
                         </li>
                         <li>
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                            Encrypted values in the database are prefixed with <code>ENC:</code> followed by the base64-encoded ciphertext. Unencrypted values are left as-is, allowing gradual migration.
+                            <?php echo t('system.encryption.how_point4', ['enc' => '<code>ENC:</code>']); ?>
                         </li>
                     </ul>
 
                     <div class="warning-box">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                        <p><strong>Back up your encryption key.</strong> If the key is lost, any data encrypted with it cannot be recovered. Store a copy somewhere safe outside this server.</p>
+                        <p><strong><?php echo htmlspecialchars(t('system.encryption.backup_strong')); ?></strong> <?php echo htmlspecialchars(t('system.encryption.backup_text')); ?></p>
                     </div>
                 </div>
 
                 <!-- What's encrypted -->
                 <div class="info-section">
-                    <h3>What's Encrypted</h3>
+                    <h3><?php echo htmlspecialchars(t('system.encryption.whats_heading')); ?></h3>
                     <div class="encrypted-grid">
                         <div class="encrypted-group">
-                            <h4>System Settings</h4>
+                            <h4><?php echo htmlspecialchars(t('system.encryption.group_settings')); ?></h4>
                             <ul>
                                 <li>vcenter_server</li>
                                 <li>vcenter_user</li>
@@ -328,7 +331,7 @@ $path_prefix = '../../';
                             </ul>
                         </div>
                         <div class="encrypted-group">
-                            <h4>Mailbox Connections</h4>
+                            <h4><?php echo htmlspecialchars(t('system.encryption.group_mailbox')); ?></h4>
                             <ul>
                                 <li>azure_tenant_id</li>
                                 <li>azure_client_id</li>
@@ -344,6 +347,8 @@ $path_prefix = '../../';
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script>
     let encryptionStatus = {};
 
@@ -358,7 +363,7 @@ $path_prefix = '../../';
                 showError(data.error);
             }
         } catch (e) {
-            showError('Failed to check encryption status');
+            showError(window.t('system.encryption.check_failed'));
         }
     }
 
@@ -375,10 +380,10 @@ $path_prefix = '../../';
                     <div class="status-icon ok">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                     </div>
-                    <span class="status-title">Encryption is configured</span>
+                    <span class="status-title">${window.t('system.encryption.status_ok_title')}</span>
                 </div>
                 <div class="status-detail">
-                    The encryption key is present and valid at <code>${escapeHtml(data.key_path)}</code>. Sensitive data is being encrypted at rest using AES-256-GCM.
+                    ${window.t('system.encryption.status_ok_detail', { path: '<code>' + escapeHtml(data.key_path) + '</code>' })}
                 </div>
             `;
         } else if (data.key_exists && !data.key_valid) {
@@ -388,15 +393,15 @@ $path_prefix = '../../';
                     <div class="status-icon warning">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
                     </div>
-                    <span class="status-title">Invalid encryption key</span>
+                    <span class="status-title">${window.t('system.encryption.status_invalid_title')}</span>
                 </div>
                 <div class="status-detail">
-                    A key file was found at <code>${escapeHtml(data.key_path)}</code> but it is not a valid 64-character hex string. The key must be exactly 64 hexadecimal characters (256 bits).
+                    ${window.t('system.encryption.status_invalid_detail', { path: '<code>' + escapeHtml(data.key_path) + '</code>' })}
                 </div>
                 <div class="action-area">
                     <button class="btn btn-primary" onclick="generateKey(true)">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        Generate Valid Key
+                        ${window.t('system.encryption.generate_valid')}
                     </button>
                 </div>
             `;
@@ -407,15 +412,15 @@ $path_prefix = '../../';
                     <div class="status-icon missing">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
                     </div>
-                    <span class="status-title">No encryption key found</span>
+                    <span class="status-title">${window.t('system.encryption.status_missing_title')}</span>
                 </div>
                 <div class="status-detail">
-                    No encryption key file exists at <code>${escapeHtml(data.key_path)}</code>. Sensitive data cannot be encrypted until a key is generated. Click the button below to generate one automatically.
+                    ${window.t('system.encryption.status_missing_detail', { path: '<code>' + escapeHtml(data.key_path) + '</code>' })}
                 </div>
                 <div class="action-area">
                     <button class="btn btn-primary" onclick="generateKey(false)" id="generateBtn">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-                        Generate Encryption Key
+                        ${window.t('system.encryption.generate')}
                     </button>
                 </div>
             `;
@@ -426,7 +431,7 @@ $path_prefix = '../../';
         const btn = event.target.closest('.btn');
         const origText = btn.innerHTML;
         btn.disabled = true;
-        btn.innerHTML = '<span>Generating...</span>';
+        btn.innerHTML = '<span>' + window.t('system.encryption.generating') + '</span>';
 
         try {
             const resp = await fetch('<?php echo $path_prefix; ?>api/system/generate_encryption_key.php', {
@@ -438,19 +443,19 @@ $path_prefix = '../../';
             if (data.success) {
                 checkStatus(); // Refresh the page status
             } else {
-                showToast('Error: ' + data.error, 'error');
+                showToast(window.t('system.encryption.error', { error: data.error }), 'error');
                 btn.disabled = false;
                 btn.innerHTML = origText;
             }
         } catch (e) {
-            showToast('Failed to generate key', 'error');
+            showToast(window.t('system.encryption.generate_failed'), 'error');
             btn.disabled = false;
             btn.innerHTML = origText;
         }
     }
 
     function showError(msg) {
-        document.getElementById('loading').innerHTML = 'Error: ' + escapeHtml(msg);
+        document.getElementById('loading').innerHTML = escapeHtml(window.t('system.encryption.error_prefix', { message: msg }));
     }
 
     function escapeHtml(str) {

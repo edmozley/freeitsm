@@ -5,9 +5,12 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'db-verify';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 
 // Auth check before any HTML output (prevents "headers already sent")
 if (!isset($_SESSION['analyst_id'])) {
@@ -16,11 +19,11 @@ if (!isset($_SESSION['analyst_id'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Database Verify</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.db_verify.heading')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .db-verify-container {
@@ -170,14 +173,14 @@ if (!isset($_SESSION['analyst_id'])) {
     <div class="db-verify-container">
         <div class="db-verify-header">
             <div>
-                <h2>Database Verification</h2>
-                <p>Check all tables and columns exist. Automatically creates any that are missing.</p>
+                <h2><?php echo htmlspecialchars(t('system.db_verify.heading')); ?></h2>
+                <p><?php echo htmlspecialchars(t('system.db_verify.intro')); ?></p>
             </div>
             <button class="verify-btn" id="verifyBtn" onclick="runVerification()">
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                     <polyline points="20 6 9 17 4 12"></polyline>
                 </svg>
-                Run Verification
+                <?php echo htmlspecialchars(t('system.db_verify.run')); ?>
             </button>
         </div>
 
@@ -189,19 +192,21 @@ if (!isset($_SESSION['analyst_id'])) {
                     <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
                     <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
                 </svg>
-                <p>Click "Run Verification" to check your database schema</p>
+                <p><?php echo htmlspecialchars(t('system.db_verify.placeholder')); ?></p>
             </div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script>
         async function runVerification() {
             const btn = document.getElementById('verifyBtn');
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner-inline"></span> Verifying...';
+            btn.innerHTML = '<span class="spinner-inline"></span> ' + window.t('system.db_verify.verifying');
 
             document.getElementById('summaryArea').innerHTML = '';
-            document.getElementById('resultsArea').innerHTML = '<div class="placeholder-msg"><p>Checking tables...</p></div>';
+            document.getElementById('resultsArea').innerHTML = '<div class="placeholder-msg"><p>' + window.t('system.db_verify.checking') + '</p></div>';
 
             try {
                 const response = await fetch('../../api/system/db_verify.php');
@@ -211,15 +216,15 @@ if (!isset($_SESSION['analyst_id'])) {
                     renderResults(data.results, data.total_tables);
                 } else {
                     document.getElementById('resultsArea').innerHTML =
-                        '<div class="placeholder-msg" style="color:#d13438;"><p>Error: ' + escapeHtml(data.error) + '</p></div>';
+                        '<div class="placeholder-msg" style="color:#d13438;"><p>' + escapeHtml(window.t('system.db_verify.error', { message: data.error })) + '</p></div>';
                 }
             } catch (error) {
                 document.getElementById('resultsArea').innerHTML =
-                    '<div class="placeholder-msg" style="color:#d13438;"><p>Failed to connect: ' + escapeHtml(error.message) + '</p></div>';
+                    '<div class="placeholder-msg" style="color:#d13438;"><p>' + escapeHtml(window.t('system.db_verify.connect_fail', { message: error.message })) + '</p></div>';
             }
 
             btn.disabled = false;
-            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> Run Verification';
+            btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg> ' + window.t('system.db_verify.run');
         }
 
         function renderResults(results, total) {
@@ -227,16 +232,16 @@ if (!isset($_SESSION['analyst_id'])) {
             results.forEach(r => counts[r.status] = (counts[r.status] || 0) + 1);
 
             let summaryHtml = '<div class="results-summary">';
-            summaryHtml += `<div class="summary-card summary-ok"><span class="count">${counts.ok}</span><span class="label">OK</span></div>`;
-            summaryHtml += `<div class="summary-card summary-created"><span class="count">${counts.created}</span><span class="label">Created</span></div>`;
-            summaryHtml += `<div class="summary-card summary-updated"><span class="count">${counts.updated}</span><span class="label">Updated</span></div>`;
-            summaryHtml += `<div class="summary-card summary-error"><span class="count">${counts.error}</span><span class="label">Errors</span></div>`;
+            summaryHtml += `<div class="summary-card summary-ok"><span class="count">${counts.ok}</span><span class="label">${window.t('system.db_verify.count_ok')}</span></div>`;
+            summaryHtml += `<div class="summary-card summary-created"><span class="count">${counts.created}</span><span class="label">${window.t('system.db_verify.count_created')}</span></div>`;
+            summaryHtml += `<div class="summary-card summary-updated"><span class="count">${counts.updated}</span><span class="label">${window.t('system.db_verify.count_updated')}</span></div>`;
+            summaryHtml += `<div class="summary-card summary-error"><span class="count">${counts.error}</span><span class="label">${window.t('system.db_verify.count_errors')}</span></div>`;
             summaryHtml += '</div>';
             document.getElementById('summaryArea').innerHTML = summaryHtml;
 
-            let tableHtml = '<table class="results-table"><thead><tr><th>Table</th><th>Status</th><th>Details</th></tr></thead><tbody>';
+            let tableHtml = '<table class="results-table"><thead><tr><th>' + window.t('system.db_verify.col_table') + '</th><th>' + window.t('system.db_verify.col_status') + '</th><th>' + window.t('system.db_verify.col_details') + '</th></tr></thead><tbody>';
             results.forEach(r => {
-                const statusLabel = r.status === 'ok' ? 'OK' : r.status.charAt(0).toUpperCase() + r.status.slice(1);
+                const statusLabel = r.status === 'ok' ? window.t('system.db_verify.status_ok') : r.status.charAt(0).toUpperCase() + r.status.slice(1);
                 const details = r.details.length > 0 ? r.details.join('; ') : '-';
                 tableHtml += `<tr>
                     <td><strong>${escapeHtml(r.table)}</strong></td>

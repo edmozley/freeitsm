@@ -5,16 +5,19 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'security';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Security</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.security.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .security-container {
@@ -140,91 +143,93 @@ $path_prefix = '../../';
     <?php include '../includes/header.php'; ?>
 
     <div class="security-container">
-        <h1 class="page-title">Security</h1>
-        <p class="page-subtitle">Configure authentication policies and account protection</p>
+        <h1 class="page-title"><?php echo htmlspecialchars(t('system.security.title')); ?></h1>
+        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.security.subtitle')); ?></p>
 
         <form id="securityForm">
             <!-- Trusted Device -->
             <div class="settings-card">
-                <h3>Trusted Device</h3>
-                <p class="card-desc">Allow users to skip OTP verification on trusted browsers. Users opt in individually via their avatar menu. Set to 0 to disable this feature entirely.</p>
+                <h3><?php echo htmlspecialchars(t('system.security.trusted_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.security.trusted_desc')); ?></p>
                 <div class="setting-row">
                     <div class="setting-label">
-                        <strong>Trust duration</strong>
-                        How long a device stays trusted after OTP verification
+                        <strong><?php echo htmlspecialchars(t('system.security.trust_duration')); ?></strong>
+                        <?php echo htmlspecialchars(t('system.security.trust_duration_hint')); ?>
                     </div>
                     <input type="number" class="setting-input" id="trustedDeviceDays" min="0" max="365" value="0">
-                    <span class="setting-unit">days</span>
+                    <span class="setting-unit"><?php echo htmlspecialchars(t('system.security.unit_days')); ?></span>
                 </div>
             </div>
 
             <!-- Password Policy -->
             <div class="settings-card">
-                <h3>Password Policy</h3>
-                <p class="card-desc">Require users to change their password periodically. When a password expires, the user is redirected to a mandatory password change screen on next login. Set to 0 to disable.</p>
+                <h3><?php echo htmlspecialchars(t('system.security.password_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.security.password_desc')); ?></p>
                 <div class="setting-row">
                     <div class="setting-label">
-                        <strong>Password expiry</strong>
-                        Maximum age of a password before it must be changed
+                        <strong><?php echo htmlspecialchars(t('system.security.password_expiry')); ?></strong>
+                        <?php echo htmlspecialchars(t('system.security.password_expiry_hint')); ?>
                     </div>
                     <input type="number" class="setting-input" id="passwordExpiryDays" min="0" max="365" value="0">
-                    <span class="setting-unit">days</span>
+                    <span class="setting-unit"><?php echo htmlspecialchars(t('system.security.unit_days')); ?></span>
                 </div>
             </div>
 
             <!-- Account Lockout -->
             <div class="settings-card">
-                <h3>Account Lockout</h3>
-                <p class="card-desc">Lock accounts after repeated failed login attempts to prevent brute-force attacks. Set max attempts to 0 to disable lockout.</p>
+                <h3><?php echo htmlspecialchars(t('system.security.lockout_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.security.lockout_desc')); ?></p>
                 <div class="setting-row">
                     <div class="setting-label">
-                        <strong>Max failed attempts</strong>
-                        Number of wrong passwords before the account is locked
+                        <strong><?php echo htmlspecialchars(t('system.security.max_attempts')); ?></strong>
+                        <?php echo htmlspecialchars(t('system.security.max_attempts_hint')); ?>
                     </div>
                     <input type="number" class="setting-input" id="maxFailedLogins" min="0" max="20" value="0">
-                    <span class="setting-unit">attempts</span>
+                    <span class="setting-unit"><?php echo htmlspecialchars(t('system.security.unit_attempts')); ?></span>
                 </div>
                 <div class="setting-row">
                     <div class="setting-label">
-                        <strong>Lockout duration</strong>
-                        How long the account stays locked (counter resets after unlock)
+                        <strong><?php echo htmlspecialchars(t('system.security.lockout_duration')); ?></strong>
+                        <?php echo htmlspecialchars(t('system.security.lockout_duration_hint')); ?>
                     </div>
                     <input type="number" class="setting-input" id="lockoutDuration" min="1" max="1440" value="30">
-                    <span class="setting-unit">minutes</span>
+                    <span class="setting-unit"><?php echo htmlspecialchars(t('system.security.unit_minutes')); ?></span>
                 </div>
             </div>
 
             <!-- IP Ban -->
             <div class="settings-card">
-                <h3>IP Ban</h3>
-                <p class="card-desc">Automatically ban IP addresses that repeatedly attempt logins against non-existent or locked accounts. Each ban lasts 24 hours. After each ban the threshold drops by 1 (down to the minimum), making repeat offenders harder to abuse. Set max attempts to 0 to disable.</p>
+                <h3><?php echo htmlspecialchars(t('system.security.ipban_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.security.ipban_desc')); ?></p>
                 <div class="setting-row">
                     <div class="setting-label">
-                        <strong>First ban threshold</strong>
-                        Failed attempts before the IP is banned the first time
+                        <strong><?php echo htmlspecialchars(t('system.security.first_ban')); ?></strong>
+                        <?php echo htmlspecialchars(t('system.security.first_ban_hint')); ?>
                     </div>
                     <input type="number" class="setting-input" id="maxIpAttempts" min="0" max="20" value="5">
-                    <span class="setting-unit">attempts</span>
+                    <span class="setting-unit"><?php echo htmlspecialchars(t('system.security.unit_attempts')); ?></span>
                 </div>
                 <div class="setting-row">
                     <div class="setting-label">
-                        <strong>Minimum threshold</strong>
-                        The threshold stops reducing once it reaches this floor
+                        <strong><?php echo htmlspecialchars(t('system.security.min_threshold')); ?></strong>
+                        <?php echo htmlspecialchars(t('system.security.min_threshold_hint')); ?>
                     </div>
                     <input type="number" class="setting-input" id="minIpAttempts" min="1" max="10" value="2">
-                    <span class="setting-unit">attempts</span>
+                    <span class="setting-unit"><?php echo htmlspecialchars(t('system.security.unit_attempts')); ?></span>
                 </div>
                 <div class="info-note">
-                    <strong>Example:</strong> With max 5 and min 2, the first ban triggers after 5 failed attempts, the second after 4, then 3, then 2. It stays at 2 for every subsequent ban. Only attempts against non-existent usernames or already-locked accounts count.
+                    <strong><?php echo htmlspecialchars(t('system.security.ipban_example_strong')); ?></strong> <?php echo htmlspecialchars(t('system.security.ipban_example_text')); ?>
                 </div>
             </div>
 
             <div class="save-area">
-                <button type="submit" class="btn btn-primary">Save</button>
+                <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('system.security.save')); ?></button>
             </div>
         </form>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script>
     const API_BASE = '<?php echo $path_prefix; ?>api/settings/';
 
@@ -268,12 +273,12 @@ $path_prefix = '../../';
             });
             const data = await resp.json();
             if (data.success) {
-                showToast('Security settings saved', 'success');
+                showToast(window.t('system.security.saved'), 'success');
             } else {
-                showToast('Error: ' + data.error, 'error');
+                showToast(window.t('system.security.error', { error: data.error }), 'error');
             }
         } catch (e) {
-            showToast('Failed to save settings', 'error');
+            showToast(window.t('system.security.save_failed'), 'error');
         }
 
         btn.disabled = false;

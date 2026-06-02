@@ -4,6 +4,8 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -13,13 +15,14 @@ if (!isset($_SESSION['analyst_id'])) {
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = 'settings';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'tickets'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Mailbox Activity</title>
+    <title><?php echo htmlspecialchars(t('tickets.activity.page_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .activity-container {
@@ -299,16 +302,16 @@ $path_prefix = '../';
         <!-- Sidebar -->
         <div class="activity-sidebar">
             <div class="sidebar-header">
-                <h3>Mailboxes</h3>
+                <h3><?php echo htmlspecialchars(t('tickets.activity.sidebar_title')); ?></h3>
                 <div class="search-box">
-                    <input type="text" id="mailboxSearch" placeholder="Filter mailboxes..." oninput="filterMailboxList()">
+                    <input type="text" id="mailboxSearch" placeholder="<?php echo htmlspecialchars(t('tickets.activity.filter_placeholder')); ?>" oninput="filterMailboxList()">
                 </div>
             </div>
             <div class="mailbox-list" id="mailboxList"></div>
             <div class="sidebar-footer">
                 <a href="settings/" class="back-link">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                    Back to Settings
+                    <?php echo htmlspecialchars(t('tickets.activity.back_to_settings')); ?>
                 </a>
             </div>
         </div>
@@ -316,9 +319,9 @@ $path_prefix = '../';
         <!-- Main content -->
         <div class="activity-main">
             <div class="activity-header">
-                <h2 id="activityTitle">All Activity</h2>
+                <h2 id="activityTitle"><?php echo htmlspecialchars(t('tickets.activity.all_activity')); ?></h2>
                 <div class="search-row">
-                    <input type="text" id="activitySearch" placeholder="Search by sender, name, or subject..." oninput="debounceSearch()">
+                    <input type="text" id="activitySearch" placeholder="<?php echo htmlspecialchars(t('tickets.activity.search_placeholder')); ?>" oninput="debounceSearch()">
                 </div>
             </div>
 
@@ -326,16 +329,16 @@ $path_prefix = '../';
                 <table>
                     <thead>
                         <tr>
-                            <th>Date/Time</th>
-                            <th>Mailbox</th>
-                            <th>From</th>
-                            <th>Subject</th>
-                            <th>Action</th>
-                            <th>Reason</th>
+                            <th><?php echo htmlspecialchars(t('tickets.activity.col_datetime')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.activity.col_mailbox')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.activity.col_from')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.activity.col_subject')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.activity.col_action')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.activity.col_reason')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="activityBody">
-                        <tr><td colspan="6" class="empty-state">Select a mailbox to view activity</td></tr>
+                        <tr><td colspan="6" class="empty-state"><?php echo htmlspecialchars(t('tickets.activity.select_mailbox')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -347,8 +350,8 @@ $path_prefix = '../';
 
             <div class="log-panel" id="logPanel" style="display: none;">
                 <div class="log-panel-header">
-                    <strong>Processing Log</strong>
-                    <button class="btn btn-secondary" style="padding: 3px 10px; font-size: 12px;" onclick="closeLogPanel()">Close</button>
+                    <strong><?php echo htmlspecialchars(t('tickets.activity.processing_log')); ?></strong>
+                    <button class="btn btn-secondary" style="padding: 3px 10px; font-size: 12px;" onclick="closeLogPanel()"><?php echo htmlspecialchars(t('common.close')); ?></button>
                 </div>
                 <div class="log-panel-body">
                     <pre id="logContent"></pre>
@@ -357,6 +360,8 @@ $path_prefix = '../';
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <script>
         const API_BASE = '../api/tickets/';
         let mailboxes = [];
@@ -410,7 +415,7 @@ $path_prefix = '../';
             );
 
             let html = `<div class="mailbox-item ${selectedMailboxId === null ? 'active' : ''}" onclick="selectMailbox(null)">
-                <span class="mailbox-name">All Mailboxes</span>
+                <span class="mailbox-name">${escapeHtml(window.t('tickets.activity.all_mailboxes'))}</span>
             </div>`;
 
             html += filtered.map(mb => {
@@ -435,10 +440,10 @@ $path_prefix = '../';
             closeLogPanel();
 
             if (id === null) {
-                document.getElementById('activityTitle').textContent = 'All Activity';
+                document.getElementById('activityTitle').textContent = window.t('tickets.activity.all_activity');
             } else {
                 const mb = mailboxes.find(m => m.id === id);
-                document.getElementById('activityTitle').textContent = mb ? mb.name : 'Activity';
+                document.getElementById('activityTitle').textContent = mb ? mb.name : window.t('tickets.activity.activity_fallback');
             }
 
             loadActivity();
@@ -459,7 +464,7 @@ $path_prefix = '../';
             }
 
             const tbody = document.getElementById('activityBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">Loading...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">' + escapeHtml(window.t('tickets.activity.loading')) + '</td></tr>';
 
             const search = document.getElementById('activitySearch').value;
 
@@ -476,7 +481,7 @@ $path_prefix = '../';
                 }
 
                 if (data.entries.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">No activity found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">' + escapeHtml(window.t('tickets.activity.no_activity')) + '</td></tr>';
                     document.getElementById('activityCount').textContent = '';
                     document.getElementById('activityPagination').innerHTML = '';
                     return;
@@ -492,8 +497,8 @@ $path_prefix = '../';
                 tbody.innerHTML = data.entries.map((e, idx) => {
                     const dt = new Date(e.created_datetime + 'Z').toLocaleString();
                     const badge = e.action === 'imported'
-                        ? '<span class="badge-imported">Imported</span>'
-                        : '<span class="badge-rejected">Rejected</span>';
+                        ? '<span class="badge-imported">' + escapeHtml(window.t('tickets.activity.badge_imported')) + '</span>'
+                        : '<span class="badge-rejected">' + escapeHtml(window.t('tickets.activity.badge_rejected')) + '</span>';
                     const from = escapeHtml(e.from_name ? e.from_name + ' <' + e.from_address + '>' : e.from_address);
                     return `<tr onclick="showLog(${idx})">
                         <td style="white-space: nowrap;">${dt}</td>
@@ -508,13 +513,13 @@ $path_prefix = '../';
                 renderPagination(data.total, data.per_page, currentPage);
 
             } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Failed to load activity</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">' + escapeHtml(window.t('tickets.activity.failed_load')) + '</td></tr>';
             }
         }
 
         async function loadAllActivity() {
             const tbody = document.getElementById('activityBody');
-            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">Loading...</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">' + escapeHtml(window.t('tickets.activity.loading')) + '</td></tr>';
 
             const search = document.getElementById('activitySearch').value;
 
@@ -542,7 +547,7 @@ $path_prefix = '../';
                 const entries = allEntries.slice(0, 100);
 
                 if (entries.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">No activity found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 30px; color: #999;">' + escapeHtml(window.t('tickets.activity.no_activity')) + '</td></tr>';
                     document.getElementById('activityCount').textContent = '';
                     document.getElementById('activityPagination').innerHTML = '';
                     return;
@@ -553,8 +558,8 @@ $path_prefix = '../';
                 tbody.innerHTML = entries.map((e, idx) => {
                     const dt = new Date(e.created_datetime + 'Z').toLocaleString();
                     const badge = e.action === 'imported'
-                        ? '<span class="badge-imported">Imported</span>'
-                        : '<span class="badge-rejected">Rejected</span>';
+                        ? '<span class="badge-imported">' + escapeHtml(window.t('tickets.activity.badge_imported')) + '</span>'
+                        : '<span class="badge-rejected">' + escapeHtml(window.t('tickets.activity.badge_rejected')) + '</span>';
                     const from = escapeHtml(e.from_name ? e.from_name + ' <' + e.from_address + '>' : e.from_address);
                     return `<tr onclick="showLog(${idx})">
                         <td style="white-space: nowrap;">${dt}</td>
@@ -566,17 +571,17 @@ $path_prefix = '../';
                     </tr>`;
                 }).join('');
 
-                document.getElementById('activityCount').textContent = 'Showing ' + entries.length + ' most recent entries';
+                document.getElementById('activityCount').textContent = window.t('tickets.activity.showing_recent', { count: entries.length });
                 document.getElementById('activityPagination').innerHTML = '';
 
             } catch (err) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">Failed to load activity</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: red;">' + escapeHtml(window.t('tickets.activity.failed_load')) + '</td></tr>';
             }
         }
 
         function renderPagination(total, perPage, page) {
             const totalPages = Math.ceil(total / perPage);
-            document.getElementById('activityCount').textContent = total + ' entries';
+            document.getElementById('activityCount').textContent = window.t('tickets.activity.entries_count', { count: total });
 
             if (totalPages <= 1) {
                 document.getElementById('activityPagination').innerHTML = '';
@@ -585,11 +590,11 @@ $path_prefix = '../';
 
             let html = '';
             if (page > 1) {
-                html += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-right: 4px;" onclick="goToPage(${page - 1})">Prev</button>`;
+                html += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-right: 4px;" onclick="goToPage(${page - 1})">${escapeHtml(window.t('tickets.activity.prev'))}</button>`;
             }
-            html += `<span style="margin: 0 8px;">Page ${page} of ${totalPages}</span>`;
+            html += `<span style="margin: 0 8px;">${escapeHtml(window.t('tickets.activity.page_of', { page: page, total: totalPages }))}</span>`;
             if (page < totalPages) {
-                html += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-left: 4px;" onclick="goToPage(${page + 1})">Next</button>`;
+                html += `<button class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px; margin-left: 4px;" onclick="goToPage(${page + 1})">${escapeHtml(window.t('tickets.activity.next'))}</button>`;
             }
             document.getElementById('activityPagination').innerHTML = html;
         }
@@ -611,7 +616,7 @@ $path_prefix = '../';
             });
 
             if (!logJson) {
-                content.textContent = 'No processing log available for this entry.';
+                content.textContent = window.t('tickets.activity.no_log');
             } else {
                 try {
                     const parsed = typeof logJson === 'string' ? JSON.parse(logJson) : logJson;

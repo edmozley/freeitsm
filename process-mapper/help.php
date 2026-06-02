@@ -15,14 +15,17 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'help';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'process-mapper'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Process Mapper Guide</title>
+    <title><?php echo htmlspecialchars(t('process-mapper.help.page_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <style>
         .pm-help-container {
             display: flex;
@@ -443,38 +446,38 @@ $path_prefix = '../';
     <div class="pm-help-container">
         <!-- Left pane navigation -->
         <div class="pm-help-sidebar">
-            <h3>Guide</h3>
+            <h3><?php echo htmlspecialchars(t('process-mapper.help.guide')); ?></h3>
             <a href="#overview" class="pm-help-nav-link active" data-section="overview">
                 <span class="pm-help-nav-num">1</span>
-                Overview
+                <?php echo t('process-mapper.help.nav_overview'); ?>
             </a>
             <a href="#creating" class="pm-help-nav-link" data-section="creating">
                 <span class="pm-help-nav-num">2</span>
-                Creating a process
+                <?php echo t('process-mapper.help.nav_creating'); ?>
             </a>
             <a href="#step-types" class="pm-help-nav-link" data-section="step-types">
                 <span class="pm-help-nav-num">3</span>
-                Step types
+                <?php echo t('process-mapper.help.nav_step_types'); ?>
             </a>
             <a href="#connectors" class="pm-help-nav-link" data-section="connectors">
                 <span class="pm-help-nav-num">4</span>
-                Connectors &amp; right-click
+                <?php echo t('process-mapper.help.nav_connectors'); ?>
             </a>
             <a href="#arranging" class="pm-help-nav-link" data-section="arranging">
                 <span class="pm-help-nav-num">5</span>
-                Arranging &amp; editing
+                <?php echo t('process-mapper.help.nav_arranging'); ?>
             </a>
             <a href="#saving" class="pm-help-nav-link" data-section="saving">
                 <span class="pm-help-nav-num">6</span>
-                Saving &amp; loading
+                <?php echo t('process-mapper.help.nav_saving'); ?>
             </a>
             <a href="#export" class="pm-help-nav-link" data-section="export">
                 <span class="pm-help-nav-num">7</span>
-                Exporting
+                <?php echo t('process-mapper.help.nav_export'); ?>
             </a>
             <a href="#tips" class="pm-help-nav-link" data-section="tips">
                 <span class="pm-help-nav-num">8</span>
-                Quick tips
+                <?php echo t('process-mapper.help.nav_tips'); ?>
             </a>
         </div>
 
@@ -482,8 +485,8 @@ $path_prefix = '../';
         <div class="pm-help-main" id="helpMain">
             <!-- Hero banner -->
             <div class="pm-help-hero">
-                <h2>Process Mapper guide</h2>
-                <p>Sketch out your team's processes as visual flowcharts &mdash; steps, decisions, and connectors on a snap-to-grid canvas.</p>
+                <h2><?php echo htmlspecialchars(t('process-mapper.help.hero_title')); ?></h2>
+                <p><?php echo t('process-mapper.help.hero_subtitle'); ?></p>
             </div>
 
             <div class="pm-help-content">
@@ -493,19 +496,19 @@ $path_prefix = '../';
                     <div class="pm-help-section-header">
                         <span class="pm-help-section-num">1</span>
                         <div>
-                            <h3>Overview</h3>
-                            <p>Process Mapper is a lightweight flowchart builder for documenting how things actually get done &mdash; incident triage, onboarding, change approval, escalation paths, anything you would normally sketch on a whiteboard. The canvas uses a dot grid with snap-to-grid placement so diagrams stay tidy without much effort, and every process is saved server-side so the whole team works from the same source of truth.</p>
+                            <h3><?php echo htmlspecialchars(t('process-mapper.help.overview_heading')); ?></h3>
+                            <p><?php echo t('process-mapper.help.overview_intro'); ?></p>
                         </div>
                     </div>
 
                     <div class="pm-help-flow">
-                        <div class="pm-help-flow-step create">Create a process</div>
+                        <div class="pm-help-flow-step create"><?php echo t('process-mapper.help.overview_flow_create'); ?></div>
                         <div class="pm-help-flow-arrow">&rarr;</div>
-                        <div class="pm-help-flow-step draw">Add steps</div>
+                        <div class="pm-help-flow-step draw"><?php echo t('process-mapper.help.overview_flow_draw'); ?></div>
                         <div class="pm-help-flow-arrow">&rarr;</div>
-                        <div class="pm-help-flow-step connect">Connect them</div>
+                        <div class="pm-help-flow-step connect"><?php echo t('process-mapper.help.overview_flow_connect'); ?></div>
                         <div class="pm-help-flow-arrow">&rarr;</div>
-                        <div class="pm-help-flow-step save">Save &amp; share</div>
+                        <div class="pm-help-flow-step save"><?php echo t('process-mapper.help.overview_flow_save'); ?></div>
                     </div>
 
                     <div class="pm-help-features-grid">
@@ -513,29 +516,29 @@ $path_prefix = '../';
                             <div class="pm-help-feature-icon indigo">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8" cy="8" r="1" fill="currentColor"/><circle cx="14" cy="8" r="1" fill="currentColor"/><circle cx="20" cy="8" r="1" fill="currentColor"/><circle cx="8" cy="14" r="1" fill="currentColor"/><circle cx="14" cy="14" r="1" fill="currentColor"/><circle cx="20" cy="14" r="1" fill="currentColor"/></svg>
                             </div>
-                            <h4>Snap-to-grid canvas</h4>
-                            <p>Steps snap to a 20-pixel dot grid as you drag them, so spacing stays even and lines run cleanly without manual nudging.</p>
+                            <h4><?php echo htmlspecialchars(t('process-mapper.help.overview_card1_title')); ?></h4>
+                            <p><?php echo t('process-mapper.help.overview_card1_desc'); ?></p>
                         </div>
                         <div class="pm-help-feature-card">
                             <div class="pm-help-feature-icon blue">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="6" height="12" rx="1"/><polygon points="12,4 18,12 12,20 6,12" transform="translate(2 0)"/><ellipse cx="20" cy="12" rx="3" ry="2"/></svg>
                             </div>
-                            <h4>Customisable step types</h4>
-                            <p>Four built-in types &mdash; Process, Decision, Terminal, Document &mdash; plus your own. Settings lets you add types with a name, a shape (twelve to choose from) and a colour; they then show up in the toolbar.</p>
+                            <h4><?php echo htmlspecialchars(t('process-mapper.help.overview_card2_title')); ?></h4>
+                            <p><?php echo t('process-mapper.help.overview_card2_desc'); ?></p>
                         </div>
                         <div class="pm-help-feature-card">
                             <div class="pm-help-feature-icon green">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="17" x2="15" y2="5"/><polyline points="10,5 15,5 15,10"/><circle cx="3" cy="17" r="2"/></svg>
                             </div>
-                            <h4>Labelled connectors</h4>
-                            <p>Draw arrows between steps from edge handles or via the Connect tool. Add inline labels like "Yes", "No", or "Approved" to clarify branches.</p>
+                            <h4><?php echo htmlspecialchars(t('process-mapper.help.overview_card3_title')); ?></h4>
+                            <p><?php echo t('process-mapper.help.overview_card3_desc'); ?></p>
                         </div>
                         <div class="pm-help-feature-card">
                             <div class="pm-help-feature-icon orange">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
                             </div>
-                            <h4>Saved &amp; searchable</h4>
-                            <p>Every process is saved to the server and listed in the sidebar with a search box, so the whole team can open the same diagram from any browser.</p>
+                            <h4><?php echo t('process-mapper.help.overview_card4_title'); ?></h4>
+                            <p><?php echo t('process-mapper.help.overview_card4_desc'); ?></p>
                         </div>
                     </div>
                 </div>
@@ -544,281 +547,281 @@ $path_prefix = '../';
                 <div class="pm-help-section pm-help-section-highlight" id="creating">
                     <div class="pm-help-section-header">
                         <span class="pm-help-section-num highlight">2</span>
-                        <h3>Creating a process</h3>
+                        <h3><?php echo htmlspecialchars(t('process-mapper.help.creating_heading')); ?></h3>
                     </div>
-                    <p class="pm-help-intro">A process is one diagram &mdash; usually a single workflow with a start, a few steps, maybe a decision or two, and an end. Start by creating an empty process from the sidebar, then build it up step by step on the canvas.</p>
+                    <p class="pm-help-intro"><?php echo t('process-mapper.help.creating_intro'); ?></p>
 
                     <div class="pm-help-steps">
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">1</div>
                             <div>
-                                <strong>Click "+ New Process"</strong> &mdash; the button at the top of the left sidebar creates a new, empty process and selects it. You will be prompted for a title; keep it short and recognisable, e.g. "Incident triage" or "New starter onboarding".
+                                <?php echo t('process-mapper.help.creating_step1'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">2</div>
                             <div>
-                                <strong>Add the first step</strong> &mdash; click any of the shape buttons in the toolbar (Process, Decision, Terminal, Document) to drop a new step on the canvas. Most processes start with a Terminal labelled "Start" or describing the trigger event.
+                                <?php echo t('process-mapper.help.creating_step2'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">3</div>
                             <div>
-                                <strong>Set its label</strong> &mdash; double-click the step to rename it inline, or single-click to open the slide-in detail panel on the right where you can change label, type, description, and colour.
+                                <?php echo t('process-mapper.help.creating_step3'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">4</div>
                             <div>
-                                <strong>Build out the rest</strong> &mdash; keep adding steps and connectors until the diagram tells the full story. Use Decision diamonds for any "yes/no" or branching points, and Document shapes for outputs like reports, certificates, or sign-offs.
+                                <?php echo t('process-mapper.help.creating_step4'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">5</div>
                             <div>
-                                <strong>Save</strong> &mdash; press <span class="pm-help-kbd">Ctrl</span>+<span class="pm-help-kbd">S</span> or click the Save button in the toolbar. The whole process is sent to the server in one go &mdash; steps, connectors, positions, and all.
+                                <?php echo t('process-mapper.help.creating_step5'); ?>
                             </div>
                         </div>
                     </div>
 
-                    <p class="pm-help-tip">If you have already imported the demo data, the sidebar comes pre-populated with six worked examples (incident triage, onboarding, change approval, major incident response, asset disposal, and password reset) that you can open and tweak as starting points.</p>
+                    <p class="pm-help-tip"><?php echo t('process-mapper.help.creating_tip'); ?></p>
                 </div>
 
                 <!-- Section 3: Step types -->
                 <div class="pm-help-section" id="step-types">
                     <div class="pm-help-section-header">
                         <span class="pm-help-section-num">3</span>
-                        <h3>Step types</h3>
+                        <h3><?php echo htmlspecialchars(t('process-mapper.help.step_types_heading')); ?></h3>
                     </div>
-                    <p>The toolbar is built from the step types defined in <strong>Settings</strong>. Four built-in types ship out of the box &mdash; each with its own conventional meaning in flowchart notation. Pick the one that matches what the step actually does; readers will pick up the structure of the diagram much faster when shapes are used consistently.</p>
+                    <p><?php echo t('process-mapper.help.step_types_intro'); ?></p>
 
                     <div class="pm-help-data-grid">
                         <div class="pm-help-data-card">
-                            <strong><svg class="pm-help-shape" viewBox="0 0 18 18"><rect x="1" y="3" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Process</strong>
-                            <span>A standard action or task &mdash; "Create AD account", "Send notification", "Run backup". The default shape for most steps. Rounded rectangle.</span>
+                            <strong><svg class="pm-help-shape" viewBox="0 0 18 18"><rect x="1" y="3" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><?php echo htmlspecialchars(t('process-mapper.help.step_types_process_name')); ?></strong>
+                            <span><?php echo t('process-mapper.help.step_types_process_desc'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong><svg class="pm-help-shape" viewBox="0 0 18 18"><polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Decision</strong>
-                            <span>A branching point with two or more outcomes &mdash; "Approved?", "Priority?", "MFA enrolled?". Use connector labels (Yes/No, P1/P2/P3) to mark each branch. Diamond.</span>
+                            <strong><svg class="pm-help-shape" viewBox="0 0 18 18"><polygon points="9,1 17,9 9,17 1,9" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><?php echo htmlspecialchars(t('process-mapper.help.step_types_decision_name')); ?></strong>
+                            <span><?php echo t('process-mapper.help.step_types_decision_desc'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong><svg class="pm-help-shape" viewBox="0 0 18 18"><ellipse cx="9" cy="9" rx="8" ry="5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Terminal</strong>
-                            <span>The start or end of a flow &mdash; "Ticket received", "Onboarding complete", "End". Every diagram should have at least one terminal at the start. Pill.</span>
+                            <strong><svg class="pm-help-shape" viewBox="0 0 18 18"><ellipse cx="9" cy="9" rx="8" ry="5" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><?php echo htmlspecialchars(t('process-mapper.help.step_types_terminal_name')); ?></strong>
+                            <span><?php echo t('process-mapper.help.step_types_terminal_desc'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong><svg class="pm-help-shape" viewBox="0 0 18 18"><path d="M2 2h14v12c-2.3 1.3-4.7 1.3-7 0s-4.7-1.3-7 0V2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Document</strong>
-                            <span>An artefact produced or consumed by the flow &mdash; "Post-incident review", "Destruction certificate", "Approval form". Wavy-bottomed rectangle.</span>
+                            <strong><svg class="pm-help-shape" viewBox="0 0 18 18"><path d="M2 2h14v12c-2.3 1.3-4.7 1.3-7 0s-4.7-1.3-7 0V2z" fill="none" stroke="currentColor" stroke-width="1.5"/></svg><?php echo htmlspecialchars(t('process-mapper.help.step_types_document_name')); ?></strong>
+                            <span><?php echo t('process-mapper.help.step_types_document_desc'); ?></span>
                         </div>
                     </div>
 
-                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: #333;">Adding your own types</h4>
-                    <p>Open <strong>Process Mapper &rarr; Settings</strong> to define additional types. Each type has a name (whatever you want to call it &mdash; "Database", "Manual step", "Wait"), a shape (twelve to choose from &mdash; rectangle, rounded, pill, circle, diamond, parallelogram, trapezoid, hexagon, document, cylinder, cloud, subroutine) and a default colour. Save it and the type shows up immediately as a button in the toolbar and as an option in the detail-panel Type dropdown. Drag the order arrows to control where it sits in the toolbar; untick <em>Active</em> to hide a type without deleting it. The four built-in types can be renamed and recoloured but not deleted.</p>
+                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: #333;"><?php echo htmlspecialchars(t('process-mapper.help.step_types_custom_heading')); ?></h4>
+                    <p><?php echo t('process-mapper.help.step_types_custom_body'); ?></p>
 
-                    <p class="pm-help-tip">The detail panel lets you change a step's type after it is placed, so you can re-shape an existing step (for example, promoting a Process box to a Decision diamond) without having to delete and recreate it.</p>
+                    <p class="pm-help-tip"><?php echo t('process-mapper.help.step_types_tip'); ?></p>
                 </div>
 
                 <!-- Section 4: Drawing connectors + the right-click menu -->
                 <div class="pm-help-section" id="connectors">
                     <div class="pm-help-section-header">
                         <span class="pm-help-section-num">4</span>
-                        <h3>Connectors &amp; the right-click menu</h3>
+                        <h3><?php echo t('process-mapper.help.connectors_heading'); ?></h3>
                     </div>
-                    <p>Connectors are the arrows between steps. Process Mapper offers a few ways to draw them, plus a rich right-click menu on each step that surfaces the quickest editing shortcuts &mdash; rename, connect, recolour, clipboard &mdash; without leaving the canvas.</p>
+                    <p><?php echo t('process-mapper.help.connectors_intro'); ?></p>
 
-                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: #333;">Drawing arrows</h4>
+                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: #333;"><?php echo htmlspecialchars(t('process-mapper.help.connectors_drawing_heading')); ?></h4>
                     <div class="pm-help-steps">
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">1</div>
                             <div>
-                                <strong>Drag from an edge handle</strong> &mdash; hover over any step and small handles appear on its top, bottom, left and right edges. Click and drag from a handle to the target step; release to drop the connector. Quickest way for one-off arrows.
+                                <?php echo t('process-mapper.help.connectors_draw_step1'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">2</div>
                             <div>
-                                <strong>Use the Connect tool</strong> &mdash; click the Connect button in the toolbar to enter connect mode. Click the source step, then the target step, and a connector is drawn between them. Click Connect again (or press <span class="pm-help-kbd">Esc</span>) to leave the mode.
+                                <?php echo t('process-mapper.help.connectors_draw_step2'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">3</div>
                             <div>
-                                <strong>Right-click &rarr; Connect to&hellip;</strong> &mdash; a click-to-connect mode: the cursor turns to a crosshair and a blue prompt appears at the bottom. The next click on any step pairs them up; a click on empty canvas or a lane background, a right-click, or pressing <span class="pm-help-kbd">Esc</span> cancels.
+                                <?php echo t('process-mapper.help.connectors_draw_step3'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">4</div>
                             <div>
-                                <strong>Add a label</strong> &mdash; double-click any connector to add or edit a short text label. Useful on Decision branches (Yes / No, Approved / Rejected, P1 / P2 / P3) and any time the meaning of an arrow is not obvious from context. You do not need to pick a specific edge on the target step &mdash; Process Mapper picks the closest edge automatically and re-routes whenever either end moves.
+                                <?php echo t('process-mapper.help.connectors_draw_step4'); ?>
                             </div>
                         </div>
                     </div>
 
-                    <h4 style="margin: 26px 0 8px; font-size: 15px; color: #333;">Right-click menu</h4>
-                    <p>Right-click any step for a menu grouped into four sections.</p>
+                    <h4 style="margin: 26px 0 8px; font-size: 15px; color: #333;"><?php echo htmlspecialchars(t('process-mapper.help.connectors_menu_heading')); ?></h4>
+                    <p><?php echo t('process-mapper.help.connectors_menu_intro'); ?></p>
                     <div class="pm-help-data-grid">
                         <div class="pm-help-data-card">
-                            <strong>Edit label · Add note · Link to URL&hellip;</strong>
-                            <span><em>Edit label</em> opens the inline rename (same as double-click). <em>Add note</em> drops a free-floating sticky-note annotation next to the step &mdash; drag it to position, double-click to type, resize via the corner. <em>Link to URL</em> prompts for a link target (<code>http(s)://</code> only); steps with a URL gain a small chain-link badge in their top-right corner that opens in a new tab on click.</span>
+                            <strong><?php echo t('process-mapper.help.connectors_menu_card1_title'); ?></strong>
+                            <span><?php echo t('process-mapper.help.connectors_menu_card1_body'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong>Create new&hellip; · Change to&hellip;</strong>
-                            <span><em>Create new&hellip;</em> drops a new step of the chosen type to the right, already connected &mdash; the fastest way to build a flow left-to-right (placement nudges down to dodge overlaps, and the new step inherits whichever lane / group it lands in). <em>Change to&hellip;</em> swaps the existing step's type, recolours to the new type's default, clears any gradient.</span>
+                            <strong><?php echo t('process-mapper.help.connectors_menu_card2_title'); ?></strong>
+                            <span><?php echo t('process-mapper.help.connectors_menu_card2_body'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong>Reverse connection&hellip; · Delete all connections</strong>
-                            <span><em>Reverse connection</em> opens a submenu listing every arrow into or out of the step with the direction arrow + the other end's name &mdash; pick one to flip its direction. <em>Delete all connections</em> wipes every arrow incident to the step (with confirm). Both are greyed when the step has no connectors.</span>
+                            <strong><?php echo t('process-mapper.help.connectors_menu_card3_title'); ?></strong>
+                            <span><?php echo t('process-mapper.help.connectors_menu_card3_body'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong>Cut · Copy · Paste · Duplicate</strong>
-                            <span><em>Cut</em> fades the source on the canvas and removes it only when you <em>Paste</em> &mdash; cut+paste behaves like a move. <em>Copy</em> keeps the clipboard live so you can paste repeatedly. Paste drops the new step at the right-click cursor position. <em>Duplicate</em> offsets a copy 40px down-right. <span class="pm-help-kbd">Esc</span> un-cuts a pending source.</span>
+                            <strong><?php echo t('process-mapper.help.connectors_menu_card4_title'); ?></strong>
+                            <span><?php echo t('process-mapper.help.connectors_menu_card4_body'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong>Copy formatting · Apply formatting</strong>
-                            <span>Just the &ldquo;paint job&rdquo; &mdash; <em>Copy formatting</em> stashes the right-clicked step's colour and gradient. Every other step's menu then shows <em>Apply formatting</em>, which paints those values onto the next step you right-click. Position, label, type and size aren't copied. Saves a lot of trips to the colour picker.</span>
+                            <strong><?php echo t('process-mapper.help.connectors_menu_card5_title'); ?></strong>
+                            <span><?php echo t('process-mapper.help.connectors_menu_card5_body'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong>Delete&hellip;</strong>
-                            <span>Red-highlighted destructive action at the bottom &mdash; asks for confirmation, then removes the step and every connector attached to it. (For multi-select bulk delete, use the <span class="pm-help-kbd">Delete</span> key instead.)</span>
+                            <strong><?php echo t('process-mapper.help.connectors_menu_card6_title'); ?></strong>
+                            <span><?php echo t('process-mapper.help.connectors_menu_card6_body'); ?></span>
                         </div>
                     </div>
 
-                    <p class="pm-help-tip">Connector routing is recomputed every time you drag a step, so arrows always run to the nearest edges. You never need to redraw an arrow just because you moved a box around.</p>
+                    <p class="pm-help-tip"><?php echo t('process-mapper.help.connectors_tip'); ?></p>
                 </div>
 
                 <!-- Section 5: Arranging & editing (highlighted) -->
                 <div class="pm-help-section pm-help-section-highlight" id="arranging">
                     <div class="pm-help-section-header">
                         <span class="pm-help-section-num highlight">5</span>
-                        <h3>Arranging &amp; editing</h3>
+                        <h3><?php echo t('process-mapper.help.arranging_heading'); ?></h3>
                     </div>
-                    <p class="pm-help-intro">Once the steps are in place, the canvas behaves like any other diagramming tool &mdash; drag, multi-select, nudge, recolour, delete. Everything snaps to the underlying 20-pixel grid so the diagram stays neat without any fiddling.</p>
+                    <p class="pm-help-intro"><?php echo t('process-mapper.help.arranging_intro'); ?></p>
 
                     <div class="pm-help-steps">
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">1</div>
                             <div>
-                                <strong>Drag to move</strong> &mdash; click and drag any step to reposition it. The step snaps to the dot grid on release. Connected arrows reroute automatically.
+                                <?php echo t('process-mapper.help.arranging_step1'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">2</div>
                             <div>
-                                <strong>Multi-select</strong> &mdash; <span class="pm-help-kbd">Ctrl</span>+click toggles individual steps in and out of the selection, or rubber-band by dragging across the canvas. Rubber-band works on the dot-grid background <em>and</em> over lane backgrounds, so it still works on processes that fill the canvas with swimlanes. Press <span class="pm-help-kbd">Ctrl</span>+<span class="pm-help-kbd">A</span> to select everything. Once a group of steps is selected, drag any one of them and the rest follow.
+                                <?php echo t('process-mapper.help.arranging_step2'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">3</div>
                             <div>
-                                <strong>Nudge with arrow keys</strong> &mdash; once steps are selected, use the arrow keys to nudge them one grid square at a time. Handy for fine adjustments after a rough drag.
+                                <?php echo t('process-mapper.help.arranging_step3'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">4</div>
                             <div>
-                                <strong>The detail panel</strong> &mdash; clicking a single step slides in a panel from the right with everything you can edit: label, type, description, link URL, colour, and exact x/y coordinates. Updates apply instantly as you type. The panel only opens on click-release (not on mousedown), so picking a step up to drag it doesn't flash the panel in.
+                                <?php echo t('process-mapper.help.arranging_step4'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">5</div>
                             <div>
-                                <strong>Delete</strong> &mdash; press <span class="pm-help-kbd">Delete</span> or <span class="pm-help-kbd">Backspace</span> to remove the current selection. Connectors attached to a deleted step are removed with it.
+                                <?php echo t('process-mapper.help.arranging_step5'); ?>
                             </div>
                         </div>
                     </div>
 
-                    <p class="pm-help-tip">Inline edit shortcut: double-click any step to rename it without opening the detail panel. Press <span class="pm-help-kbd">Enter</span> to commit or <span class="pm-help-kbd">Esc</span> to cancel.</p>
+                    <p class="pm-help-tip"><?php echo t('process-mapper.help.arranging_tip'); ?></p>
                 </div>
 
                 <!-- Section 6: Saving & loading -->
                 <div class="pm-help-section" id="saving">
                     <div class="pm-help-section-header">
                         <span class="pm-help-section-num">6</span>
-                        <h3>Saving &amp; loading</h3>
+                        <h3><?php echo t('process-mapper.help.saving_heading'); ?></h3>
                     </div>
-                    <p>Every process is stored on the server and accessible from the sidebar. Saving is a single round-trip that captures the whole diagram &mdash; steps, connectors, positions and labels &mdash; in one transaction.</p>
+                    <p><?php echo t('process-mapper.help.saving_intro'); ?></p>
 
                     <div class="pm-help-steps">
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">1</div>
                             <div>
-                                <strong>Save the current process</strong> &mdash; click the Save button in the toolbar or press <span class="pm-help-kbd">Ctrl</span>+<span class="pm-help-kbd">S</span>. The process reloads from the server after saving so any IDs assigned by the database are reflected in the canvas.
+                                <?php echo t('process-mapper.help.saving_step1'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">2</div>
                             <div>
-                                <strong>Switch processes</strong> &mdash; click any item in the sidebar to load it into the canvas. Use the search box at the top of the sidebar to filter the list when you have lots of processes.
+                                <?php echo t('process-mapper.help.saving_step2'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">3</div>
                             <div>
-                                <strong>Bookmarkable URLs</strong> &mdash; the address bar updates to <span class="pm-help-kbd">process-mapper/?id=N</span> whenever you open a process, so each diagram has a URL you can share or bookmark. Pasting a deep-link straight into the browser jumps to that diagram. The browser <strong>back / forward</strong> buttons navigate between processes you've opened in the current session.
+                                <?php echo t('process-mapper.help.saving_step3'); ?>
                             </div>
                         </div>
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">4</div>
                             <div>
-                                <strong>Delete a process</strong> &mdash; hover over a process in the sidebar and click the &times; that appears. You will be asked to confirm; the process and all its steps and connectors are removed permanently.
+                                <?php echo t('process-mapper.help.saving_step4'); ?>
                             </div>
                         </div>
                     </div>
 
-                    <p class="pm-help-tip">Save replaces all the steps and connectors for a process in one transaction, so the database always matches what is on screen. There is no partial-save state to worry about.</p>
+                    <p class="pm-help-tip"><?php echo t('process-mapper.help.saving_tip'); ?></p>
                 </div>
 
                 <!-- Section 7: Exporting -->
                 <div class="pm-help-section pm-help-section-highlight" id="export">
                     <div class="pm-help-section-header">
                         <span class="pm-help-section-num highlight">7</span>
-                        <h3>Exporting</h3>
+                        <h3><?php echo htmlspecialchars(t('process-mapper.help.export_heading')); ?></h3>
                     </div>
-                    <p class="pm-help-intro">Process Mapper can export the current diagram in three formats. Click <strong>Export</strong> on the toolbar and pick a format from the chooser.</p>
+                    <p class="pm-help-intro"><?php echo t('process-mapper.help.export_intro'); ?></p>
 
                     <div class="pm-help-data-grid">
                         <div class="pm-help-data-card">
-                            <strong>PNG image</strong>
-                            <span>Captures the canvas as a high-resolution (2&times;) PNG, ideal for slides, screenshots and embedding in tickets or change records. Edit-time chrome (edge handles, selection rings, dot grid) is hidden in the capture. File downloads as <em>process-title.png</em>.</span>
+                            <strong><?php echo htmlspecialchars(t('process-mapper.help.export_png_title')); ?></strong>
+                            <span><?php echo t('process-mapper.help.export_png_body'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong>PDF document</strong>
-                            <span>Same capture wrapped onto an A4 page; portrait or landscape is picked automatically from the diagram's aspect ratio, with a 24pt margin and proportional fit-to-page so big diagrams aren't stretched. Print-ready and easy to attach to a ticket or change.</span>
+                            <strong><?php echo htmlspecialchars(t('process-mapper.help.export_pdf_title')); ?></strong>
+                            <span><?php echo t('process-mapper.help.export_pdf_body'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong>Mermaid markup</strong>
-                            <span>Generates <a href="https://mermaid.js.org/" target="_blank">Mermaid</a> flowchart syntax ready to paste into GitHub/GitLab READMEs and wikis, Notion, Confluence, Obsidian, the Mermaid Live Editor, etc. Lanes become <code>subgraph</code> blocks; auto-layout takes over from your hand-placed positions. Lossy on visuals, faithful on structure.</span>
+                            <strong><?php echo htmlspecialchars(t('process-mapper.help.export_mermaid_title')); ?></strong>
+                            <span><?php echo t('process-mapper.help.export_mermaid_body'); ?></span>
                         </div>
                         <div class="pm-help-data-card">
-                            <strong>What gets captured?</strong>
-                            <span>The PNG/PDF capture extends to the bounding box of everything on the canvas plus a 40px margin &mdash; including steps that sit beyond the visible viewport. When swimlanes are present the capture starts at <em>x=0, y=0</em> so lane headers and the top of the first lane are always included.</span>
+                            <strong><?php echo htmlspecialchars(t('process-mapper.help.export_capture_title')); ?></strong>
+                            <span><?php echo t('process-mapper.help.export_capture_body'); ?></span>
                         </div>
                     </div>
 
-                    <p class="pm-help-tip">For Mermaid, the <strong>shape</strong> of each step decides the syntax (rectangle, rounded, pill, circle, diamond, hexagon, parallelogram, trapezoid, cylinder, subroutine), so custom step types you've added in Settings export cleanly via whichever shape they were built on.</p>
+                    <p class="pm-help-tip"><?php echo t('process-mapper.help.export_tip'); ?></p>
                 </div>
 
                 <!-- Section 8: Quick Tips -->
                 <div class="pm-help-section" id="tips">
                     <div class="pm-help-section-header">
                         <span class="pm-help-section-num">8</span>
-                        <h3>Quick tips</h3>
+                        <h3><?php echo htmlspecialchars(t('process-mapper.help.tips_heading')); ?></h3>
                     </div>
                     <div class="pm-help-tips-grid">
                         <div class="pm-help-tip-card">
                             <div class="pm-help-tip-icon">&#128200;</div>
-                            <div><strong>Use shapes consistently</strong><br>Reserve diamonds for actual decisions, ovals for entry/exit points, and documents for tangible artefacts. Mixing shapes makes diagrams harder to scan.</div>
+                            <div><?php echo t('process-mapper.help.tip1'); ?></div>
                         </div>
                         <div class="pm-help-tip-card">
                             <div class="pm-help-tip-icon">&#127919;</div>
-                            <div><strong>Label every Decision branch</strong><br>An unlabelled diamond with two outgoing arrows leaves the reader guessing. "Yes / No", "Approved / Rejected", "P1 / P2-3 / P4-5" &mdash; spell it out.</div>
+                            <div><?php echo t('process-mapper.help.tip2'); ?></div>
                         </div>
                         <div class="pm-help-tip-card">
                             <div class="pm-help-tip-icon">&#128229;</div>
-                            <div><strong>Left-to-right flows scan best</strong><br>People read left-to-right, top-to-bottom. Lay out the happy path along a horizontal axis and branch decisions vertically &mdash; the demo data follows this convention.</div>
+                            <div><?php echo t('process-mapper.help.tip3'); ?></div>
                         </div>
                         <div class="pm-help-tip-card">
                             <div class="pm-help-tip-icon">&#9997;</div>
-                            <div><strong>Turn on autosave</strong><br>The toolbar has an autosave toggle that debounces a save ~2 seconds after the last edit, with a live status pip beside it. If you prefer manual saves the shortcut is <span class="pm-help-kbd">Ctrl</span>+<span class="pm-help-kbd">S</span>.</div>
+                            <div><?php echo t('process-mapper.help.tip4'); ?></div>
                         </div>
                     </div>
                 </div>

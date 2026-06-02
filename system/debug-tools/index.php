@@ -13,9 +13,12 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'debug-tools';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ' . $path_prefix . 'login.php');
@@ -46,11 +49,11 @@ $diagnostics = [
 ];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Debug Tools</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.debug.heading')); ?></title>
     <link rel="stylesheet" href="<?php echo $path_prefix; ?>assets/css/inbox.css">
     <style>
         .debug-container {
@@ -236,8 +239,8 @@ $diagnostics = [
     <div class="main-container" style="display: block; background: #f5f7fa;">
         <div class="debug-container">
             <div class="debug-header">
-                <h2>Debug Tools</h2>
-                <p>Library of self-contained diagnostics. When something doesn't work, run the relevant tool and send the output back to support — each diagnostic captures enough environment and runtime detail to identify the cause without a back-and-forth.</p>
+                <h2><?php echo htmlspecialchars(t('system.debug.heading')); ?></h2>
+                <p><?php echo htmlspecialchars(t('system.debug.intro')); ?></p>
             </div>
 
             <div class="intro-card">
@@ -247,7 +250,7 @@ $diagnostics = [
                     <line x1="12" y1="8" x2="12.01" y2="8"></line>
                 </svg>
                 <div class="intro-text">
-                    <strong>How to use:</strong> Support will tell you which diagnostic to run (e.g. "run D001"). Click <strong>Run</strong>, wait for the output to appear, then click <strong>Copy</strong> and paste the entire report into your reply. Diagnostics are read-mostly — any that write to the database say so on the card.
+                    <strong><?php echo htmlspecialchars(t('system.debug.how_label')); ?></strong> <?php echo t('system.debug.how_text', ['run' => '<strong>' . htmlspecialchars(t('system.debug.run')) . '</strong>', 'copy' => '<strong>' . htmlspecialchars(t('system.debug.copy')) . '</strong>']); ?>
                 </div>
             </div>
 
@@ -262,7 +265,7 @@ $diagnostics = [
 
                         <p class="diag-when"><?php echo htmlspecialchars($d['when']); ?></p>
 
-                        <div class="diag-section-label">What it checks</div>
+                        <div class="diag-section-label"><?php echo htmlspecialchars(t('system.debug.checks_label')); ?></div>
                         <ul class="diag-checks">
                             <?php foreach ($d['checks'] as $c): ?>
                                 <li><?php echo htmlspecialchars($c); ?></li>
@@ -270,13 +273,13 @@ $diagnostics = [
                         </ul>
 
                         <div class="diag-meta">
-                            <span><strong>Runtime:</strong> <?php echo htmlspecialchars($d['duration']); ?></span>
-                            <span><strong>Side effects:</strong> <?php echo htmlspecialchars($d['persists']); ?></span>
+                            <span><strong><?php echo htmlspecialchars(t('system.debug.runtime_label')); ?></strong> <?php echo htmlspecialchars($d['duration']); ?></span>
+                            <span><strong><?php echo htmlspecialchars(t('system.debug.side_effects_label')); ?></strong> <?php echo htmlspecialchars($d['persists']); ?></span>
                         </div>
 
                         <div class="diag-actions">
-                            <button class="copy-btn">Copy</button>
-                            <button class="run-btn">Run</button>
+                            <button class="copy-btn"><?php echo htmlspecialchars(t('system.debug.copy')); ?></button>
+                            <button class="run-btn"><?php echo htmlspecialchars(t('system.debug.run')); ?></button>
                         </div>
 
                         <div class="output-panel"></div>
@@ -286,6 +289,8 @@ $diagnostics = [
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="<?php echo $path_prefix; ?>assets/js/i18n.js"></script>
     <script>
     document.querySelectorAll('.diag-card').forEach(card => {
         const runBtn  = card.querySelector('.run-btn');
@@ -296,9 +301,9 @@ $diagnostics = [
         runBtn.addEventListener('click', async () => {
             runBtn.disabled = true;
             const original = runBtn.innerHTML;
-            runBtn.innerHTML = '<span class="spinner-inline"></span> Running…';
+            runBtn.innerHTML = '<span class="spinner-inline"></span> ' + window.t('system.debug.running');
             panel.style.display = 'block';
-            panel.textContent = 'Running diagnostic…';
+            panel.textContent = window.t('system.debug.output_running');
             copyBtn.style.display = 'none';
 
             try {
@@ -311,7 +316,7 @@ $diagnostics = [
                 panel.textContent = text;
                 copyBtn.style.display = 'inline-block';
             } catch (e) {
-                panel.textContent = 'Failed to fetch diagnostic: ' + e.message;
+                panel.textContent = window.t('system.debug.fetch_failed', { message: e.message });
             } finally {
                 runBtn.disabled = false;
                 runBtn.innerHTML = original;
@@ -322,10 +327,10 @@ $diagnostics = [
             try {
                 await navigator.clipboard.writeText(panel.textContent);
                 copyBtn.classList.add('copied');
-                copyBtn.textContent = 'Copied';
+                copyBtn.textContent = window.t('system.debug.copied');
                 setTimeout(() => {
                     copyBtn.classList.remove('copied');
-                    copyBtn.textContent = 'Copy';
+                    copyBtn.textContent = window.t('system.debug.copy');
                 }, 1800);
             } catch (e) {
                 // Fallback: select the panel text so the user can Ctrl-C

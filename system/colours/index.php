@@ -6,16 +6,19 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'colours';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Module Colours</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.colours.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .colours-container {
@@ -167,16 +170,18 @@ $path_prefix = '../../';
     <?php include '../includes/header.php'; ?>
 
     <div class="colours-container">
-        <h1 class="page-title">Module Colours</h1>
-        <p class="page-subtitle">Customise the colour theme for each module across headers, icons, and the home screen</p>
+        <h1 class="page-title"><?php echo htmlspecialchars(t('system.colours.title')); ?></h1>
+        <p class="page-subtitle"><?php echo htmlspecialchars(t('system.colours.subtitle')); ?></p>
 
         <div id="moduleList"></div>
 
         <div class="save-area">
-            <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveColours()">Save</button>
+            <button type="button" class="btn btn-primary" id="saveBtn" onclick="saveColours()"><?php echo htmlspecialchars(t('system.colours.save')); ?></button>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script>
     const API_BASE = '<?php echo $path_prefix; ?>api/settings/';
 
@@ -206,20 +211,20 @@ $path_prefix = '../../';
                 </div>
                 <div class="module-name">${info.name}</div>
                 <div class="colour-field">
-                    <label>Primary</label>
+                    <label>${window.t('system.colours.primary')}</label>
                     <div class="colour-picker-wrap">
                         <input type="color" value="${colors[0]}" data-module="${key}" data-index="0" onchange="onColourChange(this)" oninput="onColourChange(this)">
                     </div>
                     <input type="text" class="colour-hex" value="${colors[0]}" data-module="${key}" data-index="0" onchange="onHexChange(this)">
                 </div>
                 <div class="colour-field">
-                    <label>Secondary</label>
+                    <label>${window.t('system.colours.secondary')}</label>
                     <div class="colour-picker-wrap">
                         <input type="color" value="${colors[1]}" data-module="${key}" data-index="1" onchange="onColourChange(this)" oninput="onColourChange(this)">
                     </div>
                     <input type="text" class="colour-hex" value="${colors[1]}" data-module="${key}" data-index="1" onchange="onHexChange(this)">
                 </div>
-                <button type="button" class="btn-reset" onclick="resetModule('${key}')">Reset</button>
+                <button type="button" class="btn-reset" onclick="resetModule('${key}')">${window.t('system.colours.reset')}</button>
             `;
             container.appendChild(row);
         }
@@ -297,12 +302,12 @@ $path_prefix = '../../';
             });
             const data = await resp.json();
             if (data.success) {
-                showToast('Module colours saved', 'success');
+                showToast(window.t('system.colours.saved'), 'success');
             } else {
-                showToast('Error: ' + data.error, 'error');
+                showToast(window.t('system.colours.error', { error: data.error }), 'error');
             }
         } catch (e) {
-            showToast('Failed to save colours', 'error');
+            showToast(window.t('system.colours.save_failed'), 'error');
         }
 
         btn.disabled = false;

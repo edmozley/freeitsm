@@ -5,16 +5,19 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'modules';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Module Access</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.modules.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .main-container {
@@ -278,20 +281,22 @@ $path_prefix = '../../';
 
     <div class="main-container">
         <div class="modules-container">
-            <h1 class="page-title">Module Access</h1>
-            <p class="page-subtitle">Control which modules each analyst can see on the home screen and in navigation</p>
+            <h1 class="page-title"><?php echo htmlspecialchars(t('system.modules.title')); ?></h1>
+            <p class="page-subtitle"><?php echo htmlspecialchars(t('system.modules.subtitle')); ?></p>
 
             <div class="info-banner">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                <p>By default all analysts have access to every module. Toggle <strong>All Access</strong> off to restrict an analyst to specific modules. The System module cannot be disabled.</p>
+                <p><?php echo t('system.modules.info_text', ['all_access' => '<strong>' . htmlspecialchars(t('system.modules.all_access_strong')) . '</strong>']); ?></p>
             </div>
 
-            <div id="loading" class="loading-spinner">Loading analysts...</div>
+            <div id="loading" class="loading-spinner"><?php echo htmlspecialchars(t('system.modules.loading')); ?></div>
 
             <div id="matrixCard" class="matrix-card" style="display: none;"></div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script>
     const MODULE_LABELS = {
         'tickets': 'Tickets',
@@ -330,7 +335,7 @@ $path_prefix = '../../';
 
             renderMatrix();
         } catch (e) {
-            showToast('Failed to load data', 'error');
+            showToast(window.t('system.modules.load_failed'), 'error');
         }
     }
 
@@ -343,15 +348,15 @@ $path_prefix = '../../';
             card.innerHTML = `
                 <div class="empty-state">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle></svg>
-                    <h3>No analysts found</h3>
-                    <p>Add analysts in the Tickets module settings first.</p>
+                    <h3>${window.t('system.modules.empty_heading')}</h3>
+                    <p>${window.t('system.modules.empty_text')}</p>
                 </div>
             `;
             return;
         }
 
         // Build header
-        let headerHtml = '<th>Analyst</th><th>All Access</th>';
+        let headerHtml = '<th>' + window.t('system.modules.col_analyst') + '</th><th>' + window.t('system.modules.col_all_access') + '</th>';
         availableModules.forEach(m => {
             headerHtml += `<th>${escapeHtml(MODULE_LABELS[m] || m)}</th>`;
         });
@@ -475,7 +480,7 @@ $path_prefix = '../../';
                     showToast(data.error, 'error');
                 }
             } catch (e) {
-                showToast('Failed to save', 'error');
+                showToast(window.t('system.modules.save_failed'), 'error');
             }
         }, 300);
     }

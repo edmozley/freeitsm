@@ -9,16 +9,19 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'branding';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Branding</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.branding.title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .branding-container {
@@ -231,33 +234,33 @@ $path_prefix = '../../';
         <form id="brandingForm" enctype="multipart/form-data">
             <!-- Logo -->
             <div class="settings-card">
-                <h3>Company Logo</h3>
-                <p class="card-desc">Used as the <code>{{logo}}</code> token in any header/footer slot. PNG, JPG, or SVG, max 2&nbsp;MB. SVG is recommended for crisp print and export.</p>
+                <h3><?php echo htmlspecialchars(t('system.branding.logo_heading')); ?></h3>
+                <p class="card-desc"><?php echo t('system.branding.logo_desc', ['code' => '<code>{{logo}}</code>']); ?></p>
                 <div class="logo-row">
                     <div class="logo-preview" id="logoPreview">
-                        <span class="no-logo">No logo</span>
+                        <span class="no-logo"><?php echo htmlspecialchars(t('system.branding.no_logo')); ?></span>
                     </div>
                     <div class="logo-controls">
                         <div class="file-row">
                             <input type="file" id="logoFile" name="logo" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml">
-                            <button type="button" class="btn btn-link" id="removeLogoBtn" style="display:none;">Remove</button>
+                            <button type="button" class="btn btn-link" id="removeLogoBtn" style="display:none;"><?php echo htmlspecialchars(t('system.branding.remove')); ?></button>
                         </div>
-                        <div class="logo-hint">Pick a file to replace the current logo. The new image is saved when you press Save.</div>
+                        <div class="logo-hint"><?php echo htmlspecialchars(t('system.branding.logo_hint')); ?></div>
                     </div>
                 </div>
             </div>
 
             <!-- Header slots -->
             <div class="settings-card">
-                <h3>Header</h3>
-                <p class="card-desc">Three slots rendered along the top of the page. Leave a slot blank to omit it.</p>
+                <h3><?php echo htmlspecialchars(t('system.branding.header_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.branding.header_desc')); ?></p>
                 <div class="slot-grid">
                     <div></div>
-                    <div class="col-head">Left</div>
-                    <div class="col-head">Centre</div>
-                    <div class="col-head">Right</div>
+                    <div class="col-head"><?php echo htmlspecialchars(t('system.branding.col_left')); ?></div>
+                    <div class="col-head"><?php echo htmlspecialchars(t('system.branding.col_centre')); ?></div>
+                    <div class="col-head"><?php echo htmlspecialchars(t('system.branding.col_right')); ?></div>
 
-                    <div class="row-label">Header</div>
+                    <div class="row-label"><?php echo htmlspecialchars(t('system.branding.row_header')); ?></div>
                     <input type="text" class="slot-input" id="headerLeft" maxlength="200">
                     <input type="text" class="slot-input" id="headerCenter" maxlength="200">
                     <input type="text" class="slot-input" id="headerRight" maxlength="200">
@@ -266,38 +269,40 @@ $path_prefix = '../../';
 
             <!-- Footer slots -->
             <div class="settings-card">
-                <h3>Footer</h3>
-                <p class="card-desc">Three slots rendered along the bottom of the page.</p>
+                <h3><?php echo htmlspecialchars(t('system.branding.footer_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.branding.footer_desc')); ?></p>
                 <div class="slot-grid">
                     <div></div>
-                    <div class="col-head">Left</div>
-                    <div class="col-head">Centre</div>
-                    <div class="col-head">Right</div>
+                    <div class="col-head"><?php echo htmlspecialchars(t('system.branding.col_left')); ?></div>
+                    <div class="col-head"><?php echo htmlspecialchars(t('system.branding.col_centre')); ?></div>
+                    <div class="col-head"><?php echo htmlspecialchars(t('system.branding.col_right')); ?></div>
 
-                    <div class="row-label">Footer</div>
+                    <div class="row-label"><?php echo htmlspecialchars(t('system.branding.row_footer')); ?></div>
                     <input type="text" class="slot-input" id="footerLeft" maxlength="200">
                     <input type="text" class="slot-input" id="footerCenter" maxlength="200">
                     <input type="text" class="slot-input" id="footerRight" maxlength="200">
                 </div>
 
                 <div class="info-note">
-                    <strong>Available tokens</strong> — these are replaced when the header/footer renders on a diagram or export:<br>
-                    <code>{{logo}}</code> the company logo image
-                    &nbsp;·&nbsp; <code>{{title}}</code> the diagram or document title
-                    &nbsp;·&nbsp; <code>{{author}}</code> the author's name
-                    &nbsp;·&nbsp; <code>{{version}}</code> the version label
-                    &nbsp;·&nbsp; <code>{{modified}}</code> the last-modified date<br>
-                    Mix tokens with plain text — e.g. <code>Author: {{author}}</code> renders as <em>Author: Ed Mozley</em>.
+                    <strong><?php echo htmlspecialchars(t('system.branding.tokens_heading')); ?></strong> — <?php echo htmlspecialchars(t('system.branding.tokens_intro')); ?><br>
+                    <code>{{logo}}</code> <?php echo htmlspecialchars(t('system.branding.token_logo')); ?>
+                    &nbsp;·&nbsp; <code>{{title}}</code> <?php echo htmlspecialchars(t('system.branding.token_title')); ?>
+                    &nbsp;·&nbsp; <code>{{author}}</code> <?php echo htmlspecialchars(t('system.branding.token_author')); ?>
+                    &nbsp;·&nbsp; <code>{{version}}</code> <?php echo htmlspecialchars(t('system.branding.token_version')); ?>
+                    &nbsp;·&nbsp; <code>{{modified}}</code> <?php echo htmlspecialchars(t('system.branding.token_modified')); ?><br>
+                    <?php echo htmlspecialchars(t('system.branding.tokens_example_prefix')); ?> <code>Author: {{author}}</code> <?php echo htmlspecialchars(t('system.branding.tokens_example_suffix')); ?> <em><?php echo htmlspecialchars(t('system.branding.tokens_example_render')); ?></em>.
                 </div>
             </div>
 
             <div class="save-area">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <button type="button" class="btn btn-secondary" id="resetBtn">Reset to defaults</button>
+                <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('system.branding.save')); ?></button>
+                <button type="button" class="btn btn-secondary" id="resetBtn"><?php echo htmlspecialchars(t('system.branding.reset_defaults')); ?></button>
             </div>
         </form>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script>
     const API_BASE = '<?php echo $path_prefix; ?>api/system/';
     const PATH_PREFIX = '<?php echo $path_prefix; ?>';
@@ -321,7 +326,7 @@ $path_prefix = '../../';
             const resp = await fetch(API_BASE + 'get_branding.php');
             const data = await resp.json();
             if (!data.success) {
-                showToast('Failed to load branding: ' + data.error, 'error');
+                showToast(window.t('system.branding.load_failed', { error: data.error }), 'error');
                 return;
             }
             const b = data.branding;
@@ -335,7 +340,7 @@ $path_prefix = '../../';
             currentLogoPath = b.logo_path || null;
             renderLogoPreview();
         } catch (e) {
-            showToast('Failed to load branding settings', 'error');
+            showToast(window.t('system.branding.load_failed_generic'), 'error');
         }
     }
 
@@ -358,7 +363,7 @@ $path_prefix = '../../';
         const f = this.files[0];
         if (!f) return;
         if (f.size > 2 * 1024 * 1024) {
-            showToast('Logo too large (max 2 MB)', 'error');
+            showToast(window.t('system.branding.logo_too_large'), 'error');
             this.value = '';
             return;
         }
@@ -380,7 +385,7 @@ $path_prefix = '../../';
         document.getElementById('footerLeft').value   = DEFAULTS.footer_left;
         document.getElementById('footerCenter').value = DEFAULTS.footer_center;
         document.getElementById('footerRight').value  = DEFAULTS.footer_right;
-        showToast('Slots reset to defaults — press Save to apply', 'info');
+        showToast(window.t('system.branding.reset_hint'), 'info');
     });
 
     document.getElementById('brandingForm').addEventListener('submit', async function(e) {
@@ -410,16 +415,16 @@ $path_prefix = '../../';
             });
             const data = await resp.json();
             if (data.success) {
-                showToast('Branding saved', 'success');
+                showToast(window.t('system.branding.saved'), 'success');
                 // Re-fetch so the preview reflects whatever's actually on disk now
                 pendingRemoveLogo = false;
                 logoInput.value = '';
                 await loadBranding();
             } else {
-                showToast('Error: ' + data.error, 'error');
+                showToast(window.t('system.branding.error', { error: data.error }), 'error');
             }
         } catch (err) {
-            showToast('Failed to save branding', 'error');
+            showToast(window.t('system.branding.save_failed'), 'error');
         }
         btn.disabled = false;
     });

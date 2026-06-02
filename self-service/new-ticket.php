@@ -4,14 +4,18 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 require_once 'includes/auth.php';
+
+$translationNamespaces = ['common', 'self-service'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Self-Service Portal - New Ticket</title>
+    <title><?php echo htmlspecialchars(t('self-service.new_ticket.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         body { overflow: auto; height: auto; background: #f5f5f5; }
@@ -322,18 +326,18 @@ require_once 'includes/auth.php';
     <div class="portal-header">
         <div class="portal-brand">
             <img src="../assets/images/CompanyLogo.png" alt="Logo">
-            <span>Self-Service Portal</span>
+            <span><?php echo htmlspecialchars(t('self-service.portal')); ?></span>
         </div>
         <nav class="portal-nav">
-            <a href="index.php">Dashboard</a>
-            <a href="new-ticket.php" class="active">New Ticket</a>
-            <a href="help.php">Help</a>
+            <a href="index.php"><?php echo htmlspecialchars(t('self-service.nav.dashboard')); ?></a>
+            <a href="new-ticket.php" class="active"><?php echo htmlspecialchars(t('self-service.nav.new_ticket')); ?></a>
+            <a href="help.php"><?php echo htmlspecialchars(t('self-service.nav.help')); ?></a>
         </nav>
         <?php include 'includes/user-menu.php'; ?>
     </div>
 
     <div class="portal-layout">
-        <h1 class="page-title">New Ticket</h1>
+        <h1 class="page-title"><?php echo htmlspecialchars(t('self-service.new_ticket.heading')); ?></h1>
 
         <div class="error-message" id="errorMsg"></div>
         <div class="success-message" id="successMsg"></div>
@@ -341,61 +345,63 @@ require_once 'includes/auth.php';
         <div class="form-card" id="formCard">
             <form id="ticketForm" onsubmit="return handleSubmit(event)" autocomplete="off">
                 <div class="form-group">
-                    <label for="mailbox">Mailbox *</label>
+                    <label for="mailbox"><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox')); ?></label>
                     <select id="mailbox" required>
-                        <option value="">Loading...</option>
+                        <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox_loading')); ?></option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="subject">Subject *</label>
-                    <input type="text" id="subject" required placeholder="Brief summary of your issue">
+                    <label for="subject"><?php echo htmlspecialchars(t('self-service.new_ticket.subject')); ?></label>
+                    <input type="text" id="subject" required placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.subject_placeholder')); ?>">
                 </div>
                 <div class="form-group">
-                    <label for="priority">Priority</label>
+                    <label for="priority"><?php echo htmlspecialchars(t('self-service.new_ticket.priority')); ?></label>
                     <select id="priority">
-                        <option value="Low">Low</option>
-                        <option value="Normal" selected>Normal</option>
-                        <option value="High">High</option>
+                        <option value="Low"><?php echo htmlspecialchars(t('self-service.new_ticket.priority_low')); ?></option>
+                        <option value="Normal" selected><?php echo htmlspecialchars(t('self-service.new_ticket.priority_normal')); ?></option>
+                        <option value="High"><?php echo htmlspecialchars(t('self-service.new_ticket.priority_high')); ?></option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="description">Description</label>
-                    <textarea id="description" placeholder="Provide as much detail as possible about your issue..."></textarea>
+                    <label for="description"><?php echo htmlspecialchars(t('self-service.new_ticket.description')); ?></label>
+                    <textarea id="description" placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.description_placeholder')); ?>"></textarea>
                 </div>
                 <div class="form-group">
-                    <label>Attachments</label>
+                    <label><?php echo htmlspecialchars(t('self-service.new_ticket.attachments')); ?></label>
                     <div class="dropzone" id="dropzone">
                         <div class="dropzone-icon">📎</div>
-                        Drag and drop files here or <span class="dropzone-browse">browse</span>
+                        <?php echo t('self-service.new_ticket.dropzone', ['browse' => '<span class="dropzone-browse">' . htmlspecialchars(t('self-service.new_ticket.dropzone_browse')) . '</span>']); ?>
                     </div>
                     <input type="file" id="fileInput" multiple style="display:none">
                     <div class="attachment-list" id="attachmentList"></div>
 
                     <button type="button" class="record-toggle" id="recordToggle" onclick="toggleRecordPanel()">
-                        <span class="rec-dot"></span> Record screen
+                        <span class="rec-dot"></span> <?php echo htmlspecialchars(t('self-service.new_ticket.record_screen')); ?>
                     </button>
                     <div class="record-panel hidden" id="recordPanel">
                         <label class="mic-toggle">
-                            <input type="checkbox" id="recMicToggle"> Include microphone audio
+                            <input type="checkbox" id="recMicToggle"> <?php echo htmlspecialchars(t('self-service.new_ticket.include_mic')); ?>
                         </label>
                         <div class="record-controls">
-                            <button type="button" class="btn-rec-start" id="recStartBtn" onclick="startRecording()">Start</button>
-                            <button type="button" class="btn-rec-stop" id="recStopBtn" onclick="stopRecording()" style="display:none">Stop</button>
-                            <button type="button" class="btn-rec-use" id="recUseBtn" onclick="useRecording()" style="display:none">Use this</button>
-                            <button type="button" class="btn-rec-discard" id="recDiscardBtn" onclick="discardRecording()" style="display:none">Discard</button>
-                            <span class="rec-status" id="recStatus">Ready &mdash; max 5 minutes</span>
+                            <button type="button" class="btn-rec-start" id="recStartBtn" onclick="startRecording()"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_start')); ?></button>
+                            <button type="button" class="btn-rec-stop" id="recStopBtn" onclick="stopRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_stop')); ?></button>
+                            <button type="button" class="btn-rec-use" id="recUseBtn" onclick="useRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_use')); ?></button>
+                            <button type="button" class="btn-rec-discard" id="recDiscardBtn" onclick="discardRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_discard')); ?></button>
+                            <span class="rec-status" id="recStatus"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_ready')); ?></span>
                         </div>
                         <video id="recPreview" controls style="display:none"></video>
                     </div>
                 </div>
                 <div class="form-actions">
-                    <a href="index.php" class="btn-cancel">Cancel</a>
-                    <button type="submit" class="btn-submit" id="submitBtn">Submit</button>
+                    <a href="index.php" class="btn-cancel"><?php echo htmlspecialchars(t('self-service.new_ticket.cancel')); ?></a>
+                    <button type="submit" class="btn-submit" id="submitBtn"><?php echo htmlspecialchars(t('self-service.new_ticket.submit')); ?></button>
                 </div>
             </form>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <script>
     let attachments = [];
     let recordings = []; // [{recording_id, name, size_bytes, duration_seconds}]
@@ -597,19 +603,19 @@ require_once 'includes/auth.php';
             document.getElementById('recMicToggle').disabled = true;
             const status = document.getElementById('recStatus');
             status.className = 'rec-status recording';
-            status.innerHTML = '<span class="pulse"></span> Recording 0:00';
+            status.innerHTML = '<span class="pulse"></span> ' + escapeHtml(window.t('self-service.new_ticket.rec_recording', { time: '0:00' }));
 
             recordTimer = setInterval(() => {
                 const elapsed = Math.floor((Date.now() - recordStart) / 1000);
-                status.innerHTML = '<span class="pulse"></span> Recording ' + formatDuration(elapsed);
+                status.innerHTML = '<span class="pulse"></span> ' + escapeHtml(window.t('self-service.new_ticket.rec_recording', { time: formatDuration(elapsed) }));
                 if (elapsed >= MAX_DURATION_SEC) stopRecording();
             }, 500);
         } catch (err) {
             console.error(err);
             if (err.name === 'NotAllowedError') {
-                document.getElementById('recStatus').textContent = 'Permission denied. Click Start to try again.';
+                document.getElementById('recStatus').textContent = window.t('self-service.new_ticket.rec_permission_denied');
             } else {
-                document.getElementById('recStatus').textContent = 'Could not start recording (' + err.message + ')';
+                document.getElementById('recStatus').textContent = window.t('self-service.new_ticket.rec_start_failed', { message: err.message });
             }
         }
     }
@@ -632,7 +638,7 @@ require_once 'includes/auth.php';
 
         const status = document.getElementById('recStatus');
         status.className = 'rec-status';
-        status.innerHTML = 'Recorded ' + formatDuration(recordedDuration) + ' &mdash; preview below';
+        status.textContent = window.t('self-service.new_ticket.rec_recorded', { time: formatDuration(recordedDuration) });
     }
 
     function discardRecording() {
@@ -649,7 +655,7 @@ require_once 'includes/auth.php';
         const status = document.getElementById('recStatus');
         status.style.color = '';
         status.style.fontWeight = '';
-        status.textContent = 'Ready — max 5 minutes';
+        status.textContent = window.t('self-service.new_ticket.rec_ready');
     }
 
     async function useRecording() {
@@ -658,7 +664,7 @@ require_once 'includes/auth.php';
         const discardBtn = document.getElementById('recDiscardBtn');
         useBtn.disabled = true;
         discardBtn.disabled = true;
-        useBtn.textContent = 'Uploading...';
+        useBtn.textContent = window.t('self-service.new_ticket.rec_uploading');
 
         try {
             const ext = recordedMime.startsWith('video/mp4') ? 'mp4' : 'webm';
@@ -673,7 +679,7 @@ require_once 'includes/auth.php';
 
             const resp = await fetch('../api/self-service/upload_recording.php', { method: 'POST', body: fd });
             const data = await resp.json();
-            if (!data.success) throw new Error(data.error || 'Upload failed');
+            if (!data.success) throw new Error(data.error || window.t('self-service.new_ticket.rec_upload_failed'));
 
             recordings.push({
                 recording_id: data.recording_id,
@@ -685,11 +691,11 @@ require_once 'includes/auth.php';
             discardRecording();
             document.getElementById('recordPanel').classList.add('hidden');
         } catch (err) {
-            alert('Failed to upload recording: ' + err.message);
+            alert(window.t('self-service.new_ticket.rec_upload_failed_alert', { message: err.message }));
         } finally {
             useBtn.disabled = false;
             discardBtn.disabled = false;
-            useBtn.textContent = 'Use this';
+            useBtn.textContent = window.t('self-service.new_ticket.rec_use');
         }
     }
 
@@ -708,10 +714,10 @@ require_once 'includes/auth.php';
                     select.value = data.mailboxes[0].id;
                 }
             } else {
-                select.innerHTML = '<option value="">No mailboxes available</option>';
+                select.innerHTML = '<option value="">' + escapeHtml(window.t('self-service.new_ticket.mailbox_none')) + '</option>';
             }
         } catch (err) {
-            select.innerHTML = '<option value="">Failed to load mailboxes</option>';
+            select.innerHTML = '<option value="">' + escapeHtml(window.t('self-service.new_ticket.mailbox_failed')) + '</option>';
         }
     }
 
@@ -728,7 +734,10 @@ require_once 'includes/auth.php';
             const status = document.getElementById('recStatus');
             status.style.color = '#dc2626';
             status.style.fontWeight = '600';
-            status.innerHTML = 'Click <strong>Use this</strong> to attach the recording, or <strong>Discard</strong> to drop it &mdash; then submit again.';
+            status.innerHTML = window.t('self-service.new_ticket.rec_claim_prompt', {
+                use: '<strong>' + escapeHtml(window.t('self-service.new_ticket.rec_use')) + '</strong>',
+                discard: '<strong>' + escapeHtml(window.t('self-service.new_ticket.rec_discard')) + '</strong>'
+            });
             return;
         }
 
@@ -738,7 +747,7 @@ require_once 'includes/auth.php';
         errEl.style.display = 'none';
         successEl.style.display = 'none';
         btn.disabled = true;
-        btn.textContent = 'Submitting...';
+        btn.textContent = window.t('self-service.new_ticket.submitting');
 
         try {
             // Prepare attachments as base64
@@ -763,20 +772,23 @@ require_once 'includes/auth.php';
             const data = await resp.json();
             if (data.success) {
                 document.getElementById('formCard').style.display = 'none';
-                successEl.innerHTML = 'Ticket <strong>' + escapeHtml(data.ticket_number) + '</strong> has been created. ' +
-                    '<a href="ticket.php?id=' + data.ticket_id + '">View ticket</a> or <a href="index.php">return to dashboard</a>.';
+                successEl.innerHTML = window.t('self-service.new_ticket.created', {
+                    number: '<strong>' + escapeHtml(data.ticket_number) + '</strong>',
+                    view: '<a href="ticket.php?id=' + data.ticket_id + '">' + escapeHtml(window.t('self-service.new_ticket.view_ticket')) + '</a>',
+                    dashboard: '<a href="index.php">' + escapeHtml(window.t('self-service.new_ticket.return_dashboard')) + '</a>'
+                });
                 successEl.style.display = 'block';
             } else {
                 errEl.textContent = data.error;
                 errEl.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = 'Submit';
+                btn.textContent = window.t('self-service.new_ticket.submit');
             }
         } catch (err) {
-            errEl.textContent = 'Failed to create ticket. Please try again.';
+            errEl.textContent = window.t('self-service.new_ticket.create_failed');
             errEl.style.display = 'block';
             btn.disabled = false;
-            btn.textContent = 'Submit';
+            btn.textContent = window.t('self-service.new_ticket.submit');
         }
     }
 

@@ -21,6 +21,7 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'csat';
 $path_prefix  = '../../';
+$translationNamespaces = ['common', 'tickets'];
 $days = max(1, min(365, (int)($_GET['days'] ?? 30)));
 
 $conn = connectToDatabase();
@@ -90,8 +91,10 @@ $emojis = ['', '😡', '🙁', '😐', '🙂', '😀'];
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CSAT &mdash; Service Desk</title>
+<title><?= htmlspecialchars(t('tickets.csat.page_title')) ?></title>
 <link rel="stylesheet" href="../../assets/css/inbox.css">
+<script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+<script src="../../assets/js/i18n.js"></script>
 <style>
 body { background: #f5f5f5; }
 .csat-page { height: calc(100vh - 48px); overflow-y: auto; padding: 24px; }
@@ -150,36 +153,36 @@ table.analyst-table td.score { font-weight: 600; }
 
 <div class="csat-page">
     <div class="csat-header">
-        <h1>Customer Satisfaction</h1>
+        <h1><?= htmlspecialchars(t('tickets.csat.heading')) ?></h1>
         <div class="range-picker">
             <?php foreach ([7, 30, 90, 365] as $d): ?>
-                <a href="?days=<?= $d ?>" class="<?= $days === $d ? 'active' : '' ?>"><?= $d ?>d</a>
+                <a href="?days=<?= $d ?>" class="<?= $days === $d ? 'active' : '' ?>"><?= htmlspecialchars(t('tickets.csat.range_days', ['days' => $d])) ?></a>
             <?php endforeach; ?>
         </div>
     </div>
 
     <div class="kpi-row">
         <div class="kpi-card">
-            <div class="kpi-label">Average rating</div>
+            <div class="kpi-label"><?= htmlspecialchars(t('tickets.csat.avg_rating')) ?></div>
             <div class="kpi-value"><?= $avg !== null ? number_format($avg, 2) : '—' ?></div>
-            <div class="kpi-sub">out of 5</div>
+            <div class="kpi-sub"><?= htmlspecialchars(t('tickets.csat.out_of_5')) ?></div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-label">Responses</div>
+            <div class="kpi-label"><?= htmlspecialchars(t('tickets.csat.responses')) ?></div>
             <div class="kpi-value"><?= $received ?></div>
-            <div class="kpi-sub">in last <?= $days ?> days</div>
+            <div class="kpi-sub"><?= htmlspecialchars(t('tickets.csat.in_last_days', ['days' => $days])) ?></div>
         </div>
         <div class="kpi-card">
-            <div class="kpi-label">Response rate</div>
+            <div class="kpi-label"><?= htmlspecialchars(t('tickets.csat.response_rate')) ?></div>
             <div class="kpi-value"><?= $rate ?>%</div>
-            <div class="kpi-sub"><?= $received ?> of <?= $sent ?> sent</div>
+            <div class="kpi-sub"><?= htmlspecialchars(t('tickets.csat.rate_of_sent', ['received' => $received, 'sent' => $sent])) ?></div>
         </div>
     </div>
 
     <div class="panel">
-        <h2>Score distribution</h2>
+        <h2><?= htmlspecialchars(t('tickets.csat.score_distribution')) ?></h2>
         <?php if ($received === 0): ?>
-            <div class="empty">No responses in this window yet.</div>
+            <div class="empty"><?= htmlspecialchars(t('tickets.csat.no_responses_window')) ?></div>
         <?php else: ?>
             <?php for ($i = 5; $i >= 1; $i--): ?>
                 <div class="dist-row">
@@ -192,16 +195,16 @@ table.analyst-table td.score { font-weight: 600; }
     </div>
 
     <div class="panel">
-        <h2>By analyst</h2>
+        <h2><?= htmlspecialchars(t('tickets.csat.by_analyst')) ?></h2>
         <?php if (empty($perAnalyst)): ?>
-            <div class="empty">No analyst-attributed responses in this window.</div>
+            <div class="empty"><?= htmlspecialchars(t('tickets.csat.no_analyst_responses')) ?></div>
         <?php else: ?>
             <table class="analyst-table">
-                <thead><tr><th>Analyst</th><th>Avg rating</th><th>Responses</th></tr></thead>
+                <thead><tr><th><?= htmlspecialchars(t('tickets.csat.col_analyst')) ?></th><th><?= htmlspecialchars(t('tickets.csat.col_avg_rating')) ?></th><th><?= htmlspecialchars(t('tickets.csat.col_responses')) ?></th></tr></thead>
                 <tbody>
                     <?php foreach ($perAnalyst as $row): ?>
                         <tr>
-                            <td><?= htmlspecialchars($row['full_name'] ?? 'Unassigned') ?></td>
+                            <td><?= htmlspecialchars($row['full_name'] ?? t('tickets.csat.unassigned')) ?></td>
                             <td class="score"><?= number_format((float)$row['avg_rating'], 2) ?> / 5</td>
                             <td><?= (int)$row['responses'] ?></td>
                         </tr>
@@ -212,9 +215,9 @@ table.analyst-table td.score { font-weight: 600; }
     </div>
 
     <div class="panel">
-        <h2>Recent responses</h2>
+        <h2><?= htmlspecialchars(t('tickets.csat.recent_responses')) ?></h2>
         <?php if (empty($recent)): ?>
-            <div class="empty">No responses yet in this window.</div>
+            <div class="empty"><?= htmlspecialchars(t('tickets.csat.no_recent_responses')) ?></div>
         <?php else: ?>
             <?php foreach ($recent as $r): $rating = (int)$r['rating']; ?>
                 <div class="recent-row">
@@ -229,7 +232,7 @@ table.analyst-table td.score { font-weight: 600; }
                         <?php endif; ?>
                     </div>
                     <div class="recent-meta">
-                        <?= htmlspecialchars($r['analyst_name'] ?? 'Unassigned') ?><br>
+                        <?= htmlspecialchars($r['analyst_name'] ?? t('tickets.csat.unassigned')) ?><br>
                         <?= htmlspecialchars(date('d M Y H:i', strtotime($r['responded_datetime']))) ?>
                     </div>
                 </div>

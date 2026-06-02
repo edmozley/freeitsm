@@ -8,7 +8,7 @@
 
 $path_prefix = $path_prefix ?? '../';
 $current_module = 'network-mapper';
-$module_title = 'Network Mapper';
+$module_title = function_exists('t') ? t('network-mapper.title') : 'Network Mapper';
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ' . BASE_URL . 'login.php');
@@ -28,7 +28,7 @@ require_once $path_prefix . 'includes/waffle-menu.php';
         <span class="module-title"><?php echo htmlspecialchars($module_title); ?></span>
     </div>
     <nav class="header-nav">
-        <a href="<?php echo BASE_URL; ?>network-mapper/" class="nav-btn <?php echo $current_page === 'diagrams' ? 'active' : ''; ?>" title="Diagrams">
+        <a href="<?php echo BASE_URL; ?>network-mapper/" class="nav-btn <?php echo $current_page === 'diagrams' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('network-mapper.nav.diagrams') : 'Diagrams'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="6" cy="6" r="2.5"></circle>
                 <circle cx="18" cy="6" r="2.5"></circle>
@@ -37,15 +37,15 @@ require_once $path_prefix . 'includes/waffle-menu.php';
                 <line x1="16.5" y1="7.5" x2="13" y2="16"></line>
                 <line x1="8.5" y1="6" x2="15.5" y2="6"></line>
             </svg>
-            <span>Diagrams</span>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('network-mapper.nav.diagrams') : 'Diagrams'); ?></span>
         </a>
-        <a href="<?php echo BASE_URL; ?>network-mapper/help.php" class="nav-btn <?php echo $current_page === 'help' ? 'active' : ''; ?>" title="Help">
+        <a href="<?php echo BASE_URL; ?>network-mapper/help.php" class="nav-btn <?php echo $current_page === 'help' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('network-mapper.nav.help') : 'Help'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>
                 <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
-            <span>Help</span>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('network-mapper.nav.help') : 'Help'); ?></span>
         </a>
     </nav>
     <?php renderHeaderRight($analyst_name, $path_prefix); ?>

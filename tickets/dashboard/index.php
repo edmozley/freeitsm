@@ -12,13 +12,14 @@ I18n::initFromSession();
 
 $current_page = 'dashboard';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'tickets'];
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Ticket Dashboard</title>
+    <title><?php echo htmlspecialchars(t('tickets.dashboard.page_title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .dashboard-page {
@@ -244,8 +245,8 @@ $path_prefix = '../../';
             <line x1="3" y1="9" x2="21" y2="9"></line>
             <line x1="9" y1="21" x2="9" y2="9"></line>
         </svg>
-        <h3>No widgets yet</h3>
-        <p>Use the <strong>Add</strong> button in the top right to pick widgets from the library.</p>
+        <h3><?php echo htmlspecialchars(t('tickets.dashboard.empty_title')); ?></h3>
+        <p><?php echo t('tickets.dashboard.empty_body'); ?></p>
     </div>
 
     </div><!-- /.dashboard-page -->
@@ -253,17 +254,19 @@ $path_prefix = '../../';
     <!-- Widget edit modal -->
     <div class="modal" id="widgetEditModal">
         <div class="modal-content" style="max-width:700px;">
-            <div class="modal-header">Edit Widget</div>
+            <div class="modal-header"><?php echo htmlspecialchars(t('tickets.dashboard.edit_widget')); ?></div>
             <div class="modal-body">
                 <?php require_once 'includes/widget_edit_form.php'; ?>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-primary" onclick="handleWidgetSave()">Save</button>
-                <button class="btn" onclick="closeWidgetEditModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="handleWidgetSave()"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                <button class="btn" onclick="closeWidgetEditModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
             </div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script src="../../assets/js/chart.min.js"></script>
     <script src="../../assets/js/widget-editor.js"></script>
     <script>
@@ -350,7 +353,7 @@ $path_prefix = '../../';
                 const filterHtml = filterable ? `
                     <div class="widget-filter">
                         <select onchange="onStatusFilterChange(${w.widget_id}, this.value)" data-widget-filter="${w.widget_id}">
-                            <option value="">All statuses</option>
+                            <option value="">${escapeHtml(window.t('tickets.dashboard.all_statuses'))}</option>
                             ${STATUSES.map(s => `<option value="${escapeHtml(s)}" ${w.status_filter === s ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('')}
                         </select>
                     </div>
@@ -363,10 +366,10 @@ $path_prefix = '../../';
                             <p>${escapeHtml(w.description || '')}</p>
                         </div>
                         <div class="widget-actions">
-                            <button class="widget-action-btn" onclick="openWidgetEditModal(${w.widget_id})" title="Edit">
+                            <button class="widget-action-btn" onclick="openWidgetEditModal(${w.widget_id})" title="${escapeHtml(window.t('tickets.dashboard.tooltip_edit'))}">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                             </button>
-                            <button class="widget-action-btn" onclick="removeWidget(${w.widget_id})" title="Remove">
+                            <button class="widget-action-btn" onclick="removeWidget(${w.widget_id})" title="${escapeHtml(window.t('tickets.dashboard.tooltip_remove'))}">
                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                             </button>
                         </div>
@@ -551,7 +554,7 @@ $path_prefix = '../../';
                 const data = await res.json();
 
                 if (!data.success) {
-                    showToast(data.error || 'Failed to remove widget', 'error');
+                    showToast(data.error || window.t('tickets.dashboard.failed_remove'), 'error');
                     return;
                 }
 
@@ -562,9 +565,9 @@ $path_prefix = '../../';
 
                 dashboardWidgets = dashboardWidgets.filter(w => w.widget_id != widgetId);
                 renderDashboard();
-                showToast('Widget removed', 'success');
+                showToast(window.t('tickets.dashboard.widget_removed'), 'success');
             } catch (err) {
-                showToast('Failed to remove widget', 'error');
+                showToast(window.t('tickets.dashboard.failed_remove'), 'error');
             }
         }
 
@@ -617,7 +620,7 @@ $path_prefix = '../../';
 
             closeWidgetEditModal();
             renderDashboard();
-            showToast('Widget updated', 'success');
+            showToast(window.t('tickets.dashboard.widget_updated'), 'success');
         }
 
         // Drag & Drop reordering

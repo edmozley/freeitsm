@@ -10,6 +10,8 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -24,13 +26,14 @@ if ($diagramId <= 0) {
 
 $current_page = 'diagrams';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'network-mapper'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreeITSM &mdash; Network Diagram</title>
+    <title><?php echo htmlspecialchars(t('network-mapper.editor.browser_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         body { background: #f5f5f5; height: 100vh; overflow: hidden; }
@@ -1364,70 +1367,70 @@ $path_prefix = '../';
     <div class="nm-editor">
         <div class="nm-editor-bar">
             <div class="nm-editor-title-area">
-                <a class="nm-back-btn" href="index.php">&larr; All diagrams</a>
-                <h1 class="nm-editor-title" id="diagramTitle">Loading&hellip;</h1>
+                <a class="nm-back-btn" href="index.php"><?php echo htmlspecialchars(t('network-mapper.editor.back')); ?></a>
+                <h1 class="nm-editor-title" id="diagramTitle"><?php echo htmlspecialchars(t('network-mapper.editor.loading')); ?></h1>
                 <span class="nm-version-pill" id="versionPill" style="display:none;"></span>
             </div>
             <div class="nm-editor-actions">
                 <div class="nm-autosave-wrap" id="autosaveWrap">
-                    <label class="nm-autosave-toggle" title="Auto-save changes ~2s after the last edit">
+                    <label class="nm-autosave-toggle" title="<?php echo htmlspecialchars(t('network-mapper.editor.autosave_title')); ?>">
                         <input type="checkbox" id="nmAutosaveToggle" onchange="NM.toggleAutosave(this.checked)">
                         <span class="nm-autosave-switch"></span>
-                        <span>Autosave</span>
+                        <span><?php echo htmlspecialchars(t('network-mapper.editor.autosave')); ?></span>
                     </label>
                 </div>
                 <span class="nm-status" id="saveStatus"></span>
                 <div class="nm-versions-wrap">
-                    <button class="nm-btn secondary" id="pageBtn" onclick="NM.togglePageDropdown(event)" title="Show a paper-size outline on the canvas — useful before exporting to PNG/PDF">
-                        <span id="pageBtnLabel">Page: Off</span>
+                    <button class="nm-btn secondary" id="pageBtn" onclick="NM.togglePageDropdown(event)" title="<?php echo htmlspecialchars(t('network-mapper.editor.page_btn_title')); ?>">
+                        <span id="pageBtnLabel"><?php echo htmlspecialchars(t('network-mapper.editor.page_off')); ?></span>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left: 4px; vertical-align: -1px;"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                     <div class="nm-versions-dropdown" id="pageDropdown" style="display:none;"></div>
                 </div>
                 <div class="nm-zoom-group" role="group" aria-label="Zoom">
-                    <button class="nm-btn secondary nm-zoom-btn" id="zoomOutBtn" onclick="NM.zoomOut()" title="Zoom out">&minus;</button>
-                    <button class="nm-btn secondary nm-zoom-label" id="zoomLabel" onclick="NM.zoomReset()" title="Click to reset to 100%">100%</button>
-                    <button class="nm-btn secondary nm-zoom-btn" id="zoomInBtn" onclick="NM.zoomIn()" title="Zoom in">+</button>
-                    <button class="nm-btn secondary nm-zoom-fit" id="zoomFitBtn" onclick="NM.zoomFit()" title="Fit page (or all nodes) to the visible canvas">Fit</button>
+                    <button class="nm-btn secondary nm-zoom-btn" id="zoomOutBtn" onclick="NM.zoomOut()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_out')); ?>">&minus;</button>
+                    <button class="nm-btn secondary nm-zoom-label" id="zoomLabel" onclick="NM.zoomReset()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_reset_title')); ?>">100%</button>
+                    <button class="nm-btn secondary nm-zoom-btn" id="zoomInBtn" onclick="NM.zoomIn()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_in')); ?>">+</button>
+                    <button class="nm-btn secondary nm-zoom-fit" id="zoomFitBtn" onclick="NM.zoomFit()" title="<?php echo htmlspecialchars(t('network-mapper.editor.zoom_fit_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.zoom_fit')); ?></button>
                 </div>
-                <button class="nm-btn secondary" id="brandingBtn" onclick="NM.openBrandingModal()" title="Override the org-wide header/footer for this diagram (set a page size first)">Branding</button>
-                <button class="nm-btn secondary" id="centreBtn" onclick="NM.centre()" title="Move all nodes so the diagram is centred on the selected paper size (requires a page size to be set)">Centre</button>
+                <button class="nm-btn secondary" id="brandingBtn" onclick="NM.openBrandingModal()" title="<?php echo htmlspecialchars(t('network-mapper.editor.branding_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.branding')); ?></button>
+                <button class="nm-btn secondary" id="centreBtn" onclick="NM.centre()" title="<?php echo htmlspecialchars(t('network-mapper.editor.centre_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.centre')); ?></button>
                 <div class="nm-export-group" role="group" aria-label="Export">
-                    <button class="nm-btn secondary nm-export-btn" id="exportPngBtn" onclick="NM.exportPng()" title="Export the diagram as a PNG image (clipped to the page outline if set)">PNG</button>
-                    <button class="nm-btn secondary nm-export-btn" id="exportPdfBtn" onclick="NM.exportPdf()" title="Export the diagram as a PDF (uses the chosen paper size + orientation)">PDF</button>
+                    <button class="nm-btn secondary nm-export-btn" id="exportPngBtn" onclick="NM.exportPng()" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_png_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_png')); ?></button>
+                    <button class="nm-btn secondary nm-export-btn" id="exportPdfBtn" onclick="NM.exportPdf()" title="<?php echo htmlspecialchars(t('network-mapper.editor.export_pdf_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.export_pdf')); ?></button>
                 </div>
-                <button class="nm-btn secondary" id="presentBtn" onclick="NM.enterPresent()" title="Hide the toolbar and panels to show just the diagram (Esc to exit, then F11 for full-screen)">Present</button>
+                <button class="nm-btn secondary" id="presentBtn" onclick="NM.enterPresent()" title="<?php echo htmlspecialchars(t('network-mapper.editor.present_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.present')); ?></button>
                 <div class="nm-versions-wrap">
-                    <button class="nm-btn secondary" id="versionsBtn" onclick="NM.toggleVersionsDropdown(event)" title="Browse the version history of this diagram">
-                        Versions
+                    <button class="nm-btn secondary" id="versionsBtn" onclick="NM.toggleVersionsDropdown(event)" title="<?php echo htmlspecialchars(t('network-mapper.editor.versions_title')); ?>">
+                        <?php echo htmlspecialchars(t('network-mapper.editor.versions')); ?>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-left: 4px; vertical-align: -1px;"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                     <div class="nm-versions-dropdown" id="versionsDropdown" style="display:none;"></div>
                 </div>
-                <button class="nm-btn secondary" id="saveVersionBtn" onclick="NM.openNewVersionModal()" title="Clone the current version forward into a new editable version">Save as new version</button>
-                <button class="nm-btn" id="saveBtn" onclick="NM.save()" title="Save (Ctrl+S)">Save</button>
+                <button class="nm-btn secondary" id="saveVersionBtn" onclick="NM.openNewVersionModal()" title="<?php echo htmlspecialchars(t('network-mapper.editor.save_version_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.save_version')); ?></button>
+                <button class="nm-btn" id="saveBtn" onclick="NM.save()" title="<?php echo htmlspecialchars(t('network-mapper.editor.save_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.save')); ?></button>
             </div>
         </div>
 
         <div class="nm-meta-row" id="metaRow" style="display:none;">
-            <span><strong>Author:</strong> <span id="metaAuthor">&mdash;</span></span>
-            <span><strong>Created:</strong> <span id="metaCreated">&mdash;</span></span>
-            <span><strong>Updated:</strong> <span id="metaUpdated">&mdash;</span></span>
+            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_author')); ?></strong> <span id="metaAuthor">&mdash;</span></span>
+            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_created')); ?></strong> <span id="metaCreated">&mdash;</span></span>
+            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.meta_updated')); ?></strong> <span id="metaUpdated">&mdash;</span></span>
         </div>
 
         <div class="nm-readonly-banner" id="readonlyBanner" style="display:none;">
-            <span><strong>Read-only version.</strong> This is a historical version of the diagram. To make changes, fork it into a new version from the current (leaf) version.</span>
-            <a href="index.php">&larr; Back to diagrams</a>
+            <span><strong><?php echo htmlspecialchars(t('network-mapper.editor.readonly_banner')); ?></strong><?php echo htmlspecialchars(t('network-mapper.editor.readonly_banner_rest')); ?></span>
+            <a href="index.php"><?php echo htmlspecialchars(t('network-mapper.editor.readonly_back')); ?></a>
         </div>
 
         <div class="nm-canvas-wrap">
             <aside class="nm-palette">
                 <div class="nm-palette-header">
-                    <span>CMDB classes</span>
-                    <span class="nm-palette-hint">drag to canvas</span>
+                    <span><?php echo htmlspecialchars(t('network-mapper.editor.palette_title')); ?></span>
+                    <span class="nm-palette-hint"><?php echo htmlspecialchars(t('network-mapper.editor.palette_hint')); ?></span>
                 </div>
                 <div class="nm-palette-body" id="paletteBody">
-                    <div class="nm-palette-empty">Loading classes&hellip;</div>
+                    <div class="nm-palette-empty"><?php echo htmlspecialchars(t('network-mapper.editor.palette_loading')); ?></div>
                 </div>
             </aside>
             <div class="nm-canvas" id="canvas">
@@ -1443,13 +1446,13 @@ $path_prefix = '../';
                      background painted by .nm-canvas itself. -->
                 <div class="nm-canvas-inner" id="canvasInner">
                     <div class="nm-canvas-empty" id="canvasEmpty">
-                        <h3>Empty diagram</h3>
-                        <p>Drag a class from the palette onto the canvas to start placing nodes. You'll be asked which CMDB object to bind it to.</p>
+                        <h3><?php echo htmlspecialchars(t('network-mapper.editor.canvas_empty_heading')); ?></h3>
+                        <p><?php echo htmlspecialchars(t('network-mapper.editor.canvas_empty_body')); ?></p>
                     </div>
                 </div>
             </div>
             <!-- Floating Exit pill in Present mode (hidden until .nm-editor.is-presenting) -->
-            <button class="nm-present-exit" id="presentExitBtn" onclick="NM.exitPresent()" title="Exit Present mode (Esc)">Exit&nbsp;Present</button>
+            <button class="nm-present-exit" id="presentExitBtn" onclick="NM.exitPresent()" title="<?php echo htmlspecialchars(t('network-mapper.editor.present_exit_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.editor.present_exit')); ?></button>
             <!-- Detail panel (slides in when a node is selected). Sits beside
                  the canvas inside the same wrap so it shrinks the canvas
                  rather than overlaying it — a chunk-D-only addition. -->
@@ -1458,28 +1461,28 @@ $path_prefix = '../';
                     <div class="nm-detail-title-area">
                         <div class="nm-detail-icon" id="ndIcon"></div>
                         <div class="nm-detail-title-text">
-                            <h3 id="ndName">Node</h3>
+                            <h3 id="ndName"><?php echo htmlspecialchars(t('network-mapper.detail.node')); ?></h3>
                             <div class="nm-detail-subtitle" id="ndClass">&mdash;</div>
                         </div>
                     </div>
-                    <button class="nm-detail-close" onclick="NM.closeDetail()" title="Close (Esc)">&times;</button>
+                    <button class="nm-detail-close" onclick="NM.closeDetail()" title="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
                 </div>
                 <div class="nm-detail-body">
                     <div class="nm-detail-section">
-                        <div class="nm-detail-field"><span class="nm-detail-label">Class</span><span class="nm-detail-value" id="ndClassValue">&mdash;</span></div>
-                        <div class="nm-detail-field" id="ndPlannedRow" style="display:none;"><span class="nm-detail-label">Status</span><span class="nm-detail-value"><span class="nm-detail-planned-pill">PLANNED</span> Future state</span></div>
-                        <div class="nm-detail-field"><span class="nm-detail-label">CMDB</span><span class="nm-detail-value"><a id="ndCmdbLink" href="#" target="_blank">Open in CMDB &rarr;</a></span></div>
+                        <div class="nm-detail-field"><span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.class')); ?></span><span class="nm-detail-value" id="ndClassValue">&mdash;</span></div>
+                        <div class="nm-detail-field" id="ndPlannedRow" style="display:none;"><span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.status')); ?></span><span class="nm-detail-value"><span class="nm-detail-planned-pill"><?php echo htmlspecialchars(t('network-mapper.detail.planned_pill')); ?></span> <?php echo htmlspecialchars(t('network-mapper.detail.planned_future')); ?></span></div>
+                        <div class="nm-detail-field"><span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.cmdb')); ?></span><span class="nm-detail-value"><a id="ndCmdbLink" href="#" target="_blank"><?php echo htmlspecialchars(t('network-mapper.detail.cmdb_open')); ?></a></span></div>
                         <div class="nm-detail-field">
-                            <span class="nm-detail-label">Icon</span>
+                            <span class="nm-detail-label"><?php echo htmlspecialchars(t('network-mapper.detail.icon')); ?></span>
                             <span class="nm-detail-value nm-detail-icon-row">
                                 <span class="nm-detail-icon-preview" id="ndIconPreview"></span>
-                                <button class="nm-detail-icon-btn" id="ndIconChangeBtn" onclick="NM.openIconPicker()" title="Pick a different icon for this node">Change</button>
-                                <button class="nm-detail-icon-btn nm-detail-icon-reset" id="ndIconResetBtn" onclick="NM.resetIconOverride()" title="Use the class default icon" style="display:none;">Reset</button>
+                                <button class="nm-detail-icon-btn" id="ndIconChangeBtn" onclick="NM.openIconPicker()" title="<?php echo htmlspecialchars(t('network-mapper.detail.icon_change_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.detail.icon_change')); ?></button>
+                                <button class="nm-detail-icon-btn nm-detail-icon-reset" id="ndIconResetBtn" onclick="NM.resetIconOverride()" title="<?php echo htmlspecialchars(t('network-mapper.detail.icon_reset_title')); ?>" style="display:none;"><?php echo htmlspecialchars(t('network-mapper.detail.icon_reset')); ?></button>
                             </span>
                         </div>
                     </div>
                     <div class="nm-detail-section" id="ndPropertiesSection" style="display:none;">
-                        <div class="nm-detail-section-header">Properties <span class="nm-detail-section-sub">from CMDB</span></div>
+                        <div class="nm-detail-section-header"><?php echo htmlspecialchars(t('network-mapper.detail.properties')); ?> <span class="nm-detail-section-sub"><?php echo htmlspecialchars(t('network-mapper.detail.properties_from')); ?></span></div>
                         <div id="ndProperties"></div>
                     </div>
                 </div>
@@ -1488,7 +1491,7 @@ $path_prefix = '../';
                      properties scroll above. Sits outside .nm-detail-body so
                      the body's overflow-y: auto only scrolls the content. -->
                 <div class="nm-detail-footer">
-                    <button class="nm-btn" id="ndAddRelatedBtn" onclick="NM.openRelatedModal()">Add related objects</button>
+                    <button class="nm-btn" id="ndAddRelatedBtn" onclick="NM.openRelatedModal()"><?php echo htmlspecialchars(t('network-mapper.detail.add_related')); ?></button>
                 </div>
             </aside>
         </div>
@@ -1498,16 +1501,16 @@ $path_prefix = '../';
     <div class="nm-modal-overlay" id="objectPickerModal">
         <div class="nm-modal">
             <div class="nm-modal-header">
-                Pick a <span id="pickerClassLabel">CMDB object</span> to place
+                <?php echo htmlspecialchars(t('network-mapper.picker.title_prefix')); ?><span id="pickerClassLabel"><?php echo htmlspecialchars(t('network-mapper.picker.title_default')); ?></span><?php echo htmlspecialchars(t('network-mapper.picker.title_suffix')); ?>
             </div>
             <div class="nm-modal-body">
                 <div class="nm-picker-search-wrap">
-                    <input type="text" class="nm-picker-search" id="pickerSearch" placeholder="Type to filter&hellip;" oninput="NM.onPickerSearchInput(this.value)" onkeydown="NM.onPickerKeyDown(event)">
+                    <input type="text" class="nm-picker-search" id="pickerSearch" placeholder="<?php echo htmlspecialchars(t('network-mapper.picker.search_ph')); ?>" oninput="NM.onPickerSearchInput(this.value)" onkeydown="NM.onPickerKeyDown(event)">
                 </div>
                 <div class="nm-picker-results" id="pickerResults"></div>
             </div>
             <div class="nm-modal-actions">
-                <button class="nm-btn secondary" onclick="NM.closeObjectPicker()">Cancel</button>
+                <button class="nm-btn secondary" onclick="NM.closeObjectPicker()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
             </div>
         </div>
     </div>
@@ -1516,16 +1519,16 @@ $path_prefix = '../';
     <div class="nm-modal-overlay" id="iconPickerModal">
         <div class="nm-modal nm-modal-wide">
             <div class="nm-modal-header">
-                Pick an icon for <span id="ipNodeName">&hellip;</span>
+                <?php echo htmlspecialchars(t('network-mapper.iconpicker.title', ['name' => ''])); ?><span id="ipNodeName">&hellip;</span>
             </div>
             <div class="nm-modal-body">
                 <div class="nm-ip-search-wrap">
-                    <input type="text" class="nm-ip-search" id="ipSearch" placeholder="Filter by name (e.g. &lsquo;database&rsquo;, &lsquo;firewall&rsquo;)&hellip;" oninput="NM.onIconSearchInput(this.value)">
+                    <input type="text" class="nm-ip-search" id="ipSearch" placeholder="<?php echo htmlspecialchars(t('network-mapper.iconpicker.search_ph')); ?>" oninput="NM.onIconSearchInput(this.value)">
                 </div>
                 <div class="nm-ip-grid" id="ipGrid"></div>
             </div>
             <div class="nm-modal-actions">
-                <button class="nm-btn secondary" onclick="NM.closeIconPicker()">Cancel</button>
+                <button class="nm-btn secondary" onclick="NM.closeIconPicker()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
             </div>
         </div>
     </div>
@@ -1534,19 +1537,19 @@ $path_prefix = '../';
     <div class="nm-modal-overlay" id="relatedObjectsModal">
         <div class="nm-modal nm-modal-wide">
             <div class="nm-modal-header">
-                Add objects related to <span id="rmSourceName">&hellip;</span>
+                <?php echo htmlspecialchars(t('network-mapper.related.title', ['name' => ''])); ?><span id="rmSourceName">&hellip;</span>
             </div>
             <div class="nm-modal-body">
                 <p class="nm-rm-intro">
-                    Tick any to add them to the diagram. Each tick places the object as a new node (auto-laid-out around the source) and draws a connector that mirrors the relationship.
+                    <?php echo htmlspecialchars(t('network-mapper.related.intro')); ?>
                 </p>
                 <div class="nm-rm-results" id="rmResults">
-                    <div class="nm-rm-loading">Loading related objects&hellip;</div>
+                    <div class="nm-rm-loading"><?php echo htmlspecialchars(t('network-mapper.related.loading')); ?></div>
                 </div>
             </div>
             <div class="nm-modal-actions">
-                <button class="nm-btn secondary" onclick="NM.closeRelatedModal()">Cancel</button>
-                <button class="nm-btn" id="rmAddBtn" onclick="NM.commitRelatedSelections()" disabled>Add</button>
+                <button class="nm-btn secondary" onclick="NM.closeRelatedModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="nm-btn" id="rmAddBtn" onclick="NM.commitRelatedSelections()" disabled><?php echo htmlspecialchars(t('network-mapper.related.add')); ?></button>
             </div>
         </div>
     </div>
@@ -1554,65 +1557,65 @@ $path_prefix = '../';
     <!-- Save as new version modal -->
     <div class="nm-modal-overlay" id="brandingModal">
         <div class="nm-modal nm-modal-wide">
-            <div class="nm-modal-header">Diagram branding &mdash; header &amp; footer</div>
+            <div class="nm-modal-header"><?php echo htmlspecialchars(t('network-mapper.branding.title')); ?></div>
             <div class="nm-modal-body">
                 <p style="font-size:13px;color:#6b7280;margin:0 0 12px 0;line-height:1.5;">
-                    Override the organisation-wide header/footer for this diagram only. Placeholders show the default values that would be inherited &mdash; clear a slot and Save to <em>explicitly</em> blank it, or click <strong>Reset</strong> to clear all overrides and inherit the org-wide defaults configured in <a href="../system/branding/" target="_blank">System &rsaquo; Branding</a>.
+                    <?php echo t('network-mapper.branding.intro'); ?>
                 </p>
                 <div class="nm-brand-grid">
                     <div></div>
-                    <div class="col-head">Left</div>
-                    <div class="col-head">Centre</div>
-                    <div class="col-head">Right</div>
+                    <div class="col-head"><?php echo htmlspecialchars(t('network-mapper.branding.col_left')); ?></div>
+                    <div class="col-head"><?php echo htmlspecialchars(t('network-mapper.branding.col_center')); ?></div>
+                    <div class="col-head"><?php echo htmlspecialchars(t('network-mapper.branding.col_right')); ?></div>
 
-                    <div class="row-label">Header</div>
+                    <div class="row-label"><?php echo htmlspecialchars(t('network-mapper.branding.row_header')); ?></div>
                     <input type="text" id="bmHeaderLeft" maxlength="200">
                     <input type="text" id="bmHeaderCenter" maxlength="200">
                     <input type="text" id="bmHeaderRight" maxlength="200">
 
-                    <div class="row-label">Footer</div>
+                    <div class="row-label"><?php echo htmlspecialchars(t('network-mapper.branding.row_footer')); ?></div>
                     <input type="text" id="bmFooterLeft" maxlength="200">
                     <input type="text" id="bmFooterCenter" maxlength="200">
                     <input type="text" id="bmFooterRight" maxlength="200">
                 </div>
                 <div class="nm-brand-tokens">
-                    <strong>Tokens</strong> resolved at render time:
+                    <strong><?php echo htmlspecialchars(t('network-mapper.branding.tokens_label')); ?></strong><?php echo htmlspecialchars(t('network-mapper.branding.tokens_intro')); ?>
                     <code>{{logo}}</code> &middot; <code>{{title}}</code> &middot; <code>{{author}}</code> &middot; <code>{{version}}</code> &middot; <code>{{modified}}</code>.
-                    Header/footer only renders when a page outline is set &mdash; use the <strong>Page</strong> dropdown to pick one.
+                    <?php echo t('network-mapper.branding.tokens_note'); ?>
                 </div>
             </div>
             <div class="nm-modal-actions">
-                <button class="nm-btn secondary" onclick="NM.resetBrandingOverrides()" title="Clear all overrides — slots will inherit the org-wide defaults">Reset</button>
-                <button class="nm-btn secondary" onclick="NM.closeBrandingModal()">Cancel</button>
-                <button class="nm-btn" onclick="NM.commitBrandingOverrides()">Save</button>
+                <button class="nm-btn secondary" onclick="NM.resetBrandingOverrides()" title="<?php echo htmlspecialchars(t('network-mapper.branding.reset_title')); ?>"><?php echo htmlspecialchars(t('network-mapper.branding.reset')); ?></button>
+                <button class="nm-btn secondary" onclick="NM.closeBrandingModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="nm-btn" onclick="NM.commitBrandingOverrides()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
 
     <div class="nm-modal-overlay" id="newVersionModal">
         <div class="nm-modal">
-            <div class="nm-modal-header">Save as new version</div>
+            <div class="nm-modal-header"><?php echo htmlspecialchars(t('network-mapper.newversion.title')); ?></div>
             <div class="nm-modal-body">
                 <p style="font-size:13px;color:#6b7280;margin:0 0 16px 0;line-height:1.5;">
-                    Clones the current diagram (nodes, connectors, metadata) forward into a new editable version. The current version becomes a read-only historical record.
+                    <?php echo htmlspecialchars(t('network-mapper.newversion.intro')); ?>
                 </p>
                 <div class="nm-form-group">
-                    <label for="nvTitle">Title *</label>
+                    <label for="nvTitle"><?php echo htmlspecialchars(t('network-mapper.newversion.field_title')); ?></label>
                     <input type="text" id="nvTitle" maxlength="255">
                 </div>
                 <div class="nm-form-group">
-                    <label for="nvDescription">Description</label>
+                    <label for="nvDescription"><?php echo htmlspecialchars(t('network-mapper.newversion.field_description')); ?></label>
                     <textarea id="nvDescription" maxlength="2000"></textarea>
                 </div>
                 <div class="nm-form-group">
-                    <label for="nvVersionLabel">Version label</label>
-                    <input type="text" id="nvVersionLabel" maxlength="50" placeholder="v2">
-                    <small>Free text &mdash; e.g. &ldquo;v2&rdquo;, &ldquo;Q2 baseline&rdquo;, &ldquo;Post-migration&rdquo;.</small>
+                    <label for="nvVersionLabel"><?php echo htmlspecialchars(t('network-mapper.newversion.field_version')); ?></label>
+                    <input type="text" id="nvVersionLabel" maxlength="50" placeholder="<?php echo htmlspecialchars(t('network-mapper.newversion.field_version_ph')); ?>">
+                    <small><?php echo htmlspecialchars(t('network-mapper.newversion.field_version_help')); ?></small>
                 </div>
             </div>
             <div class="nm-modal-actions">
-                <button class="nm-btn secondary" onclick="NM.closeNewVersionModal()">Cancel</button>
-                <button class="nm-btn" id="nvCreateBtn" onclick="NM.createNewVersion()">Create version</button>
+                <button class="nm-btn secondary" onclick="NM.closeNewVersionModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="nm-btn" id="nvCreateBtn" onclick="NM.createNewVersion()"><?php echo htmlspecialchars(t('network-mapper.newversion.create')); ?></button>
             </div>
         </div>
     </div>
@@ -1621,6 +1624,8 @@ $path_prefix = '../';
          jsPDF wraps the rasterised image into a paper-sized PDF document.
          Loaded eagerly because the editor is a heavy page already and lazy
          loading adds complexity for marginal gain. -->
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
     <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
     <script src="../assets/js/network-mapper-icons.js"></script>

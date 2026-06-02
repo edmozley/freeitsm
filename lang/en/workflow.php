@@ -139,6 +139,127 @@ return [
 
     'help' => [
         'page_title' => 'Workflows guide',
-        'intro'      => 'Workflows automate the things you find yourself doing manually after a ticket arrives: tagging, escalating, assigning, notifying, fanning out to other systems. A workflow listens for an event, optionally filters with conditions, then runs one or more actions in order.',
+        'intro'      => 'Workflows let you automate the things you find yourself doing manually after a ticket arrives: tagging, escalating, assigning, notifying, fanning out to other systems. A workflow listens for an event, optionally filters with conditions, then runs one or more actions in order.',
+        'guide'      => 'Guide',
+
+        'nav_anatomy'    => 'Anatomy of a workflow',
+        'nav_canvas'     => 'The visual canvas',
+        'nav_conditions' => 'Conditions',
+        'nav_actions'    => 'Actions',
+        'nav_variables'  => 'Variables',
+        'nav_ai'         => 'AI co-author',
+        'nav_testing'    => 'Saving and testing',
+        'nav_triggers'   => 'Wired triggers today',
+        'nav_failures'   => 'Engine failures are isolated',
+        'nav_ahead'      => 'What\'s still ahead',
+
+        // 1. Anatomy
+        'anatomy_heading' => '1. Anatomy of a workflow',
+        'anatomy_intro'   => 'Every workflow has three parts:',
+        'anatomy_trigger'    => '<strong>Trigger</strong> &mdash; the event that fires the workflow. Examples: <code>ticket.created</code>, <code>ticket.priority_changed</code>, <code>ticket.assigned</code>. Exactly one trigger per workflow.',
+        'anatomy_conditions' => '<strong>Conditions</strong> <em>(optional)</em> &mdash; filters that decide whether the workflow runs. All conditions must match (AND semantics). <em>"Only when priority is Critical AND department is Finance."</em>',
+        'anatomy_actions'    => '<strong>Actions</strong> <em>(one or more)</em> &mdash; the things to do when the trigger fires and the conditions pass. Run in order, top to bottom.',
+        'anatomy_exec'    => 'Execution is synchronous &mdash; the workflow runs in the same web request that fired the event. Each run writes a row to the execution log with the full trigger payload, every condition\'s pass/fail, and every action\'s result.',
+
+        // 2. Canvas
+        'canvas_heading' => '2. The visual canvas',
+        'canvas_intro'   => 'The editor is a dot-grid canvas with three node shapes:',
+        'canvas_trigger'   => '<strong>Trigger node</strong> &mdash; amber pill, pinned at the top centre. One per workflow; can\'t be deleted.',
+        'canvas_condition' => '<strong>Condition nodes</strong> &mdash; orange diamonds. Add one with <em>Add condition</em>. Drag to reorder.',
+        'canvas_action'    => '<strong>Action nodes</strong> &mdash; blue rounded rectangles. Add one with <em>Add action</em>. Drag to reorder.',
+        'canvas_order'   => 'Connectors are drawn automatically in execution order: trigger &rarr; conditions (top to bottom by y position) &rarr; actions (top to bottom). <strong>Position IS the order</strong> &mdash; drag a condition above another to swap them.',
+        'canvas_panel'   => 'Click any node to open the detail panel on the right. Click empty canvas to switch the panel back to the workflow-level fields (name / description / active flag / recent runs). Right-click or press Delete to remove the selected node (except the trigger).',
+
+        // 3. Conditions
+        'conditions_heading' => '3. Conditions',
+        'conditions_intro'   => 'The condition panel has three controls: <strong>Field</strong>, <strong>Operator</strong>, <strong>Value</strong>. Their behaviour adapts to the chosen field type:',
+        'conditions_lookup_heading' => 'Lookup fields (priority, status, department, type, analyst&hellip;)',
+        'conditions_lookup_body'    => 'The value control is a <strong>checkbox list of real values</strong> pulled from the lookup table &mdash; not opaque ids. Tick one for an exact match, tick several for OR semantics (e.g. <em>"priority is Critical OR High"</em>). The operator dropdown collapses to <strong>is / is not / is empty / is not empty</strong> &mdash; the multi-select handles the rest.',
+        'conditions_text_heading' => 'Text fields (subject, requester email, title&hellip;)',
+        'conditions_text_body'    => 'Plain text input with the full text-operator catalogue: <strong>equals / not equals / is one of / is not one of / contains / does not contain / is empty / is not empty</strong>. <code>gt</code> / <code>lt</code> are <em>not</em> offered &mdash; lexicographic string comparison is a footgun.',
+        'conditions_num_heading' => 'Numeric fields (ids, durations&hellip;)',
+        'conditions_num_body'    => 'Numeric operators: <strong>equals / not equals / is one of / is not one of / greater than / less than / is empty / is not empty</strong>. No <em>contains</em> &mdash; substring search on a number is meaningless.',
+
+        // 4. Actions
+        'actions_heading' => '4. Actions',
+        'actions_intro'   => 'Eight handlers ship today. Pick an action\'s type from the dropdown and a labelled form appears below with the right widget per arg (text input, textarea, number input, lookup dropdown):',
+        'actions_th_type'     => 'Type',
+        'actions_th_does'     => 'What it does',
+        'actions_th_args'     => 'Key args',
+        'actions_row1_does' => 'Writes a message into this workflow\'s execution log. Useful as a placeholder while you scaffold a rule and as a way to verify the engine end-to-end.',
+        'actions_row1_args' => 'message',
+        'actions_row2_does' => 'Changes a ticket\'s status. Automatically stamps / clears <code>closed_datetime</code> when the new status\'s <em>is_closed</em> flag flips.',
+        'actions_row2_args' => 'ticket_id, status_id',
+        'actions_row3_does' => 'Sets a ticket\'s priority.',
+        'actions_row3_args' => 'ticket_id, priority_id',
+        'actions_row4_does' => 'Sets a ticket\'s owner / assignee. Updates both <code>assigned_analyst_id</code> and <code>owner_id</code> so the right-pane Owner field stays in sync.',
+        'actions_row4_args' => 'ticket_id, analyst_id',
+        'actions_row5_does' => 'Appends a free-text note to the ticket\'s audit trail. Internal &mdash; never sent to the requester.',
+        'actions_row5_args' => 'ticket_id, note',
+        'actions_row6_does' => 'Sends an email to the ticket\'s requester (or any address) using the ticket\'s mailbox. Subject is prefixed with <code>[SDREF:&hellip;]</code> so replies thread back automatically.',
+        'actions_row6_args' => 'ticket_id, to, subject, body',
+        'actions_row7_does' => 'Spawns a task. Auto-links to the source ticket if a <code>ticket_id</code> is supplied. Status / priority default to the workspace defaults if blank.',
+        'actions_row7_args' => 'title, description, status_id, priority_id, assignee_id, ticket_id',
+        'actions_row8_does' => 'Creates a new ticket. Useful for fan-out workflows like <em>"new-starter form &rarr; IT + HR + Facilities tickets"</em>.',
+        'actions_row8_args' => 'subject, body, priority_id, department_id, type_id, assigned_analyst_id, from_email, from_name',
+        'actions_note'    => 'Each action\'s required args are marked with a <code>*</code> in the form. Missing required args cause the action to fail at execution time &mdash; the engine logs the failure to the execution row and stops the rest of the chain.',
+
+        // 5. Variables
+        'variables_heading' => '5. Variables &mdash; <code>{{path.to.field}}</code>',
+        'variables_intro'   => 'Any free-text action arg supports variable substitution against the trigger\'s payload. The hint <em>"Supports variables like {{ticket.id}}"</em> appears under each variable-friendly field.',
+        'variables_common'  => 'Common variables for ticket triggers:',
+        'variables_li1' => '<code>{{ticket.id}}</code>, <code>{{ticket.subject}}</code>, <code>{{ticket.priority_id}}</code>, <code>{{ticket.status_id}}</code>',
+        'variables_li2' => '<code>{{ticket.department_id}}</code>, <code>{{ticket.type_id}}</code>, <code>{{ticket.assigned_analyst_id}}</code>',
+        'variables_li3' => '<code>{{ticket.owner_id}}</code>, <code>{{ticket.created_by}}</code>, <code>{{ticket.requester_email}}</code>',
+        'variables_li4' => 'For <code>ticket.status_changed</code> / <code>ticket.priority_changed</code>: also <code>{{old_status_id}}</code>, <code>{{new_status_id}}</code>, <code>{{old_priority_id}}</code>, <code>{{new_priority_id}}</code>',
+        'variables_li5' => 'For <code>ticket.assigned</code>: also <code>{{analyst_id}}</code>, <code>{{team_id}}</code>',
+        'variables_tip' => '<strong>Best practice:</strong> in action <code>ticket_id</code> fields, leave the default <code>{{ticket.id}}</code> rather than typing a specific id &mdash; that way the workflow operates on whichever ticket triggered it, not a fixed one.',
+
+        // 6. AI co-author
+        'ai_heading' => '6. AI co-author',
+        'ai_intro'   => 'Click <strong>AI co-author</strong> on the toolbar and describe the workflow in plain English. The AI returns a structured proposal &mdash; trigger, conditions, actions &mdash; that you can <em>Apply</em> to the canvas or <em>Discard</em>.',
+        'ai_examples' => 'Examples that work well:',
+        'ai_ex1' => '<em>"When a Critical-priority ticket is created, add a note saying \'P1 &mdash; please respond within 15 minutes\'."</em>',
+        'ai_ex2' => '<em>"When a ticket from <code>finance@acme.com</code> is created, assign it to me and set priority to High."</em>',
+        'ai_ex3' => '<em>"When a ticket is closed, send an email to the requester thanking them and asking for feedback."</em>',
+        'ai_catalogue' => 'The AI knows the engine\'s full catalogue &mdash; every trigger, condition operator, action, and the available lookup-table values &mdash; so it can only propose things that will actually work. If you iterate on an existing workflow (<em>"now only match Finance"</em> / <em>"add an action to log the ticket id"</em>) it edits what\'s on the canvas rather than starting over.',
+        'ai_config'    => 'Configure the provider (Anthropic / OpenAI), model and API key under <strong>Workflow &rarr; Settings &rarr; AI</strong>. Keys are stored per module so billing and access can be granular.',
+
+        // 7. Saving and testing
+        'testing_heading' => '7. Saving and testing',
+        'testing_save'    => 'The status pip in the toolbar shows <em>Unsaved</em> / <em>Saving&hellip;</em> / <em>Saved</em>. Click <strong>Save</strong> to persist. You can save in-progress drafts with zero actions &mdash; you\'ll get a soft "this workflow has no actions yet" warning rather than being blocked.',
+        'testing_fire'    => '<strong>Test fire</strong> runs the workflow with a synthetic payload generated from its own conditions, so the action path actually executes. The result lands in <em>Recent runs</em> on the workflow detail panel with status (<em>success / failed / skipped</em>) and full step log.',
+        'testing_real'    => 'To test against real data, just do the thing that triggers it &mdash; assign a ticket, change its priority, etc. The dispatch from the host module (Tickets) is live; the execution log shows every fire.',
+
+        // 8. Wired triggers
+        'triggers_heading' => '8. Wired triggers today',
+        'triggers_intro'   => 'The trigger catalogue lists seven events. Wiring from host modules is being rolled out incrementally:',
+        'triggers_th_trigger' => 'Trigger',
+        'triggers_th_wired'   => 'Wired?',
+        'triggers_th_notes'   => 'Notes',
+        'triggers_yes'        => 'Yes',
+        'triggers_soon'       => 'Soon',
+        'triggers_row1_notes' => 'Fires from manual ticket creation; mailbox-pulled tickets land via a separate path that doesn\'t dispatch yet.',
+        'triggers_row2_notes' => 'Fires whenever the status changes via any path that calls <code>assign_ticket.php</code>.',
+        'triggers_row3_notes' => 'Same dispatch path as status.',
+        'triggers_row4_notes' => 'Fires when the assignee changes (drag-to-folder, right-click menu, dropdown).',
+        'triggers_row5_notes' => 'Forms module dispatch wiring is next.',
+        'triggers_row6_notes' => 'Tasks module dispatch wiring is next.',
+        'triggers_row7_notes' => 'Changes module dispatch wiring is next.',
+
+        // 9. Failures
+        'failures_heading' => '9. Engine failures are isolated',
+        'failures_callout' => '<strong>A buggy workflow cannot break the host module\'s request.</strong> Every dispatch is wrapped in a try/catch and every action\'s failure is logged to the execution row without aborting the chain. If a workflow stops doing what you expect, check the workflow\'s <em>Recent runs</em> panel &mdash; failures show up there with the underlying error, not as a 500 on the page that triggered them.',
+
+        // 10. What's still ahead
+        'ahead_heading' => '10. What\'s still ahead',
+        'ahead_li1' => '<strong>Tier 3 actions</strong> &mdash; Microsoft Graph: <code>graph_add_to_group</code>, <code>graph_assign_license</code>, <code>graph_disable_user</code>. The new-starter / leaver automations that justify the module\'s existence vs paid ITSM suites. Reuses the existing tenant OAuth scaffolding.',
+        'ahead_li2' => '<strong>Teams / Slack messages</strong> &mdash; channel pings on important events.',
+        'ahead_li3' => '<strong>Wire the remaining triggers</strong> &mdash; <code>form.submitted</code>, <code>task.completed</code>, <code>change.approved</code>.',
+        'ahead_li4' => '<strong>Dry-run mode</strong> &mdash; run a workflow against a real event but <em>log</em> the actions rather than execute them. So you can see what would have happened before flipping it live.',
+        'ahead_li5' => '<strong>Starter recipes</strong> &mdash; clonable templates for the common patterns: new-starter onboarding, P1 incident response, SLA-breach escalation, license-renewal reminder.',
+        'ahead_li6' => '<strong>Watchtower integration</strong> &mdash; failed runs surface as attention cards.',
+        'ahead_li7' => '<strong>Workflow versioning</strong> &mdash; draft / publish / rollback.',
+        'ahead_li8' => '<strong>Streaming AI co-author</strong> &mdash; claude.ai-style live output as the canvas builds.',
     ],
 ];

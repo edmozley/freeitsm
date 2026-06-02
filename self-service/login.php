@@ -9,13 +9,19 @@ if (isset($_SESSION['ss_user_id'])) {
     header('Location: index.php');
     exit;
 }
+
+require_once '../config.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
+
+$translationNamespaces = ['common', 'self-service'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Self-Service Portal - Login</title>
+    <title><?php echo htmlspecialchars(t('self-service.login.title')); ?></title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -150,8 +156,8 @@ if (isset($_SESSION['ss_user_id'])) {
     <div class="login-container">
         <div class="login-header">
             <img src="../assets/images/CompanyLogo.png" alt="Company Logo">
-            <h1>Self-Service Portal</h1>
-            <p id="loginSubtitle">Sign in to view your tickets</p>
+            <h1><?php echo htmlspecialchars(t('self-service.login.heading')); ?></h1>
+            <p id="loginSubtitle"><?php echo htmlspecialchars(t('self-service.login.subtitle')); ?></p>
         </div>
 
         <div class="error-message" id="errorMsg"></div>
@@ -160,20 +166,20 @@ if (isset($_SESSION['ss_user_id'])) {
         <div id="loginSection">
             <form id="loginForm" onsubmit="return handleLogin(event)" autocomplete="off">
                 <div class="form-group">
-                    <label for="email">Email</label>
+                    <label for="email"><?php echo htmlspecialchars(t('self-service.login.email')); ?></label>
                     <input type="email" id="email" required autofocus autocomplete="off">
                 </div>
                 <div class="form-group">
-                    <label for="password">Password</label>
+                    <label for="password"><?php echo htmlspecialchars(t('self-service.login.password')); ?></label>
                     <input type="password" id="password" required autocomplete="off">
                 </div>
-                <button type="submit" class="login-button" id="loginBtn">Sign In</button>
+                <button type="submit" class="login-button" id="loginBtn"><?php echo htmlspecialchars(t('self-service.login.sign_in')); ?></button>
             </form>
 
             <div class="login-links">
-                <a href="register.php">Create an account</a>
+                <a href="register.php"><?php echo htmlspecialchars(t('self-service.login.create_account')); ?></a>
                 <span class="divider">|</span>
-                <a href="../login.php">Analyst login</a>
+                <a href="../login.php"><?php echo htmlspecialchars(t('self-service.login.analyst_login')); ?></a>
             </div>
         </div>
 
@@ -182,19 +188,21 @@ if (isset($_SESSION['ss_user_id'])) {
             <div class="mfa-icon">
                 <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#667eea" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             </div>
-            <div class="mfa-desc">Enter the 6-digit code from your authenticator app</div>
+            <div class="mfa-desc"><?php echo htmlspecialchars(t('self-service.login.mfa_desc')); ?></div>
             <form id="mfaForm" onsubmit="return handleMfa(event)" autocomplete="off">
                 <div class="form-group">
                     <input type="text" id="otpCode" class="otp-input" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code" required>
                 </div>
-                <button type="submit" class="login-button" id="mfaBtn">Verify</button>
+                <button type="submit" class="login-button" id="mfaBtn"><?php echo htmlspecialchars(t('self-service.login.verify')); ?></button>
             </form>
             <div class="mfa-back">
-                <a onclick="backToLogin()">Back to login</a>
+                <a onclick="backToLogin()"><?php echo htmlspecialchars(t('self-service.login.back_to_login')); ?></a>
             </div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <script>
     async function handleLogin(e) {
         e.preventDefault();
@@ -202,7 +210,7 @@ if (isset($_SESSION['ss_user_id'])) {
         const errEl = document.getElementById('errorMsg');
         errEl.style.display = 'none';
         btn.disabled = true;
-        btn.textContent = 'Signing in...';
+        btn.textContent = t('self-service.login.signing_in');
 
         try {
             const resp = await fetch('../api/self-service/login.php', {
@@ -219,7 +227,7 @@ if (isset($_SESSION['ss_user_id'])) {
                     // Show MFA form
                     document.getElementById('loginSection').style.display = 'none';
                     document.getElementById('mfaSection').classList.add('active');
-                    document.getElementById('loginSubtitle').textContent = 'Multi-factor authentication';
+                    document.getElementById('loginSubtitle').textContent = t('self-service.login.subtitle_mfa');
                     setTimeout(() => document.getElementById('otpCode').focus(), 100);
                 } else {
                     window.location.href = 'index.php';
@@ -228,13 +236,13 @@ if (isset($_SESSION['ss_user_id'])) {
                 errEl.textContent = data.error;
                 errEl.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = 'Sign In';
+                btn.textContent = t('self-service.login.sign_in');
             }
         } catch (err) {
-            errEl.textContent = 'Login failed. Please try again.';
+            errEl.textContent = t('self-service.login.login_failed');
             errEl.style.display = 'block';
             btn.disabled = false;
-            btn.textContent = 'Sign In';
+            btn.textContent = t('self-service.login.sign_in');
         }
     }
 
@@ -244,7 +252,7 @@ if (isset($_SESSION['ss_user_id'])) {
         const errEl = document.getElementById('errorMsg');
         errEl.style.display = 'none';
         btn.disabled = true;
-        btn.textContent = 'Verifying...';
+        btn.textContent = t('self-service.login.verifying');
 
         try {
             const resp = await fetch('../api/self-service/verify_login_otp.php', {
@@ -261,25 +269,25 @@ if (isset($_SESSION['ss_user_id'])) {
                 errEl.textContent = data.error;
                 errEl.style.display = 'block';
                 btn.disabled = false;
-                btn.textContent = 'Verify';
+                btn.textContent = t('self-service.login.verify');
                 document.getElementById('otpCode').value = '';
                 document.getElementById('otpCode').focus();
             }
         } catch (err) {
-            errEl.textContent = 'Verification failed. Please try again.';
+            errEl.textContent = t('self-service.login.verify_failed');
             errEl.style.display = 'block';
             btn.disabled = false;
-            btn.textContent = 'Verify';
+            btn.textContent = t('self-service.login.verify');
         }
     }
 
     function backToLogin() {
         document.getElementById('mfaSection').classList.remove('active');
         document.getElementById('loginSection').style.display = '';
-        document.getElementById('loginSubtitle').textContent = 'Sign in to view your tickets';
+        document.getElementById('loginSubtitle').textContent = t('self-service.login.subtitle');
         document.getElementById('errorMsg').style.display = 'none';
         document.getElementById('loginBtn').disabled = false;
-        document.getElementById('loginBtn').textContent = 'Sign In';
+        document.getElementById('loginBtn').textContent = t('self-service.login.sign_in');
         document.getElementById('password').value = '';
         document.getElementById('otpCode').value = '';
     }

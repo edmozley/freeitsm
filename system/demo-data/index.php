@@ -5,9 +5,12 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/i18n.php';
+I18n::initFromSession();
 
 $current_page = 'demo-data';
 $path_prefix = '../../';
+$translationNamespaces = ['common', 'system'];
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ' . $path_prefix . 'login.php');
@@ -15,11 +18,11 @@ if (!isset($_SESSION['analyst_id'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Demo Data</title>
+    <title>Service Desk - <?php echo htmlspecialchars(t('system.demo.heading')); ?></title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .demo-container {
@@ -265,8 +268,8 @@ if (!isset($_SESSION['analyst_id'])) {
 
     <div class="demo-container">
         <div class="demo-header">
-            <h2>Demo Data</h2>
-            <p>Import realistic sample data module by module. Import Core first, then choose which modules to populate.</p>
+            <h2><?php echo htmlspecialchars(t('system.demo.heading')); ?></h2>
+            <p><?php echo htmlspecialchars(t('system.demo.subtitle')); ?></p>
         </div>
 
         <div class="warning-card">
@@ -276,7 +279,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <line x1="12" y1="17" x2="12.01" y2="17"></line>
             </svg>
             <div class="warning-text">
-                <strong>Designed for fresh installations only.</strong> Importing demo data into a system that already contains real data may cause conflicts. Each module can only be imported once.
+                <strong><?php echo htmlspecialchars(t('system.demo.warning_strong')); ?></strong> <?php echo htmlspecialchars(t('system.demo.warning_text')); ?>
             </div>
         </div>
 
@@ -287,30 +290,30 @@ if (!isset($_SESSION['analyst_id'])) {
                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
             </svg>
             <div class="tip-text">
-                Import both <strong>Assets</strong> and <strong>Software</strong> to unlock a bonus option that links installed software to computers.
+                <?php echo htmlspecialchars(t('system.demo.tip_text_prefix')); ?> <strong><?php echo htmlspecialchars(t('system.demo.tip_assets')); ?></strong> <?php echo htmlspecialchars(t('system.demo.tip_text_and')); ?> <strong><?php echo htmlspecialchars(t('system.demo.tip_software')); ?></strong> <?php echo htmlspecialchars(t('system.demo.tip_text_suffix')); ?>
             </div>
         </div>
 
         <!-- Core -->
-        <p class="section-label">Step 1 &mdash; Required</p>
+        <p class="section-label"><?php echo htmlspecialchars(t('system.demo.step1')); ?></p>
         <div class="core-card" id="core-card">
             <div class="core-info">
                 <h3>Core Data</h3>
                 <p>Analysts, departments, teams, ticket types, origins, and end users. All other modules depend on this.</p>
                 <p class="core-detail">4 analysts (password: demo1234) &bull; 5 departments &bull; 2 teams &bull; 15 end users &bull; 5 ticket types &bull; 4 origins</p>
             </div>
-            <button class="import-btn import-btn-lg" id="btn-core" onclick="importModule('core', this)">Import</button>
+            <button class="import-btn import-btn-lg" id="btn-core" onclick="importModule('core', this)"><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
         </div>
 
         <!-- Modules -->
-        <p class="section-label">Step 2 &mdash; Choose modules</p>
+        <p class="section-label"><?php echo htmlspecialchars(t('system.demo.step2')); ?></p>
         <div class="module-grid" id="moduleGrid">
             <div class="module-card" data-module="tickets">
                 <h4>Tickets</h4>
                 <p class="module-desc">30 tickets with emails, notes, and audit history across multiple statuses and priorities.</p>
                 <div class="module-footer">
                     <span class="record-count">~115 records</span>
-                    <button class="import-btn" id="btn-tickets" onclick="importModule('tickets', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-tickets" onclick="importModule('tickets', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-tickets" style="display:none"></div>
             </div>
@@ -320,7 +323,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">10 assets (laptops, desktops, monitors) with types, statuses, and user assignments.</p>
                 <div class="module-footer">
                     <span class="record-count">~24 records</span>
-                    <button class="import-btn" id="btn-assets" onclick="importModule('assets', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-assets" onclick="importModule('assets', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-assets" style="display:none"></div>
             </div>
@@ -330,7 +333,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">5 articles covering VPN, Outlook, passwords, printing, and onboarding with tags.</p>
                 <div class="module-footer">
                     <span class="record-count">~23 records</span>
-                    <button class="import-btn" id="btn-knowledge" onclick="importModule('knowledge', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-knowledge" onclick="importModule('knowledge', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-knowledge" style="display:none"></div>
             </div>
@@ -340,7 +343,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">5 changes in Draft, Approved, In Progress, Completed, and Cancelled statuses.</p>
                 <div class="module-footer">
                     <span class="record-count">~5 records</span>
-                    <button class="import-btn" id="btn-changes" onclick="importModule('changes', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-changes" onclick="importModule('changes', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-changes" style="display:none"></div>
             </div>
@@ -350,7 +353,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">3 categories and 8 events including maintenance windows, meetings, and releases.</p>
                 <div class="module-footer">
                     <span class="record-count">~11 records</span>
-                    <button class="import-btn" id="btn-calendar" onclick="importModule('calendar', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-calendar" onclick="importModule('calendar', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-calendar" style="display:none"></div>
             </div>
@@ -360,7 +363,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">6 checks with 30 days of results showing realistic OK, Warning, and Fail patterns.</p>
                 <div class="module-footer">
                     <span class="record-count">~186 records</span>
-                    <button class="import-btn" id="btn-checks" onclick="importModule('checks', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-checks" onclick="importModule('checks', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-checks" style="display:none"></div>
             </div>
@@ -370,7 +373,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">3 suppliers, 5 contacts, 3 contracts with SLA terms, plus lookup tables.</p>
                 <div class="module-footer">
                     <span class="record-count">~25 records</span>
-                    <button class="import-btn" id="btn-contracts" onclick="importModule('contracts', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-contracts" onclick="importModule('contracts', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-contracts" style="display:none"></div>
             </div>
@@ -380,7 +383,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">5 services with 2 incidents showing resolved and monitoring states.</p>
                 <div class="module-footer">
                     <span class="record-count">~11 records</span>
-                    <button class="import-btn" id="btn-services" onclick="importModule('services', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-services" onclick="importModule('services', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-services" style="display:none"></div>
             </div>
@@ -390,7 +393,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">20 applications with 13 licences &mdash; subscriptions, perpetual, expired, and bundled. Includes M365, Adobe CC, CrowdStrike, Citrix, and more.</p>
                 <div class="module-footer">
                     <span class="record-count">~33 records</span>
-                    <button class="import-btn" id="btn-software" onclick="importModule('software', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-software" onclick="importModule('software', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-software" style="display:none"></div>
             </div>
@@ -400,7 +403,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">2 forms (New Starter, Equipment Return) with fields and 3 completed submissions.</p>
                 <div class="module-footer">
                     <span class="record-count">~22 records</span>
-                    <button class="import-btn" id="btn-forms" onclick="importModule('forms', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-forms" onclick="importModule('forms', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-forms" style="display:none"></div>
             </div>
@@ -410,7 +413,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">12 parent tasks across To Do, In Progress, Done with subtasks, due dates, and comments.</p>
                 <div class="module-footer">
                     <span class="record-count">~42 records</span>
-                    <button class="import-btn" id="btn-tasks" onclick="importModule('tasks', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-tasks" onclick="importModule('tasks', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-tasks" style="display:none"></div>
             </div>
@@ -420,7 +423,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">6 ITSM flowcharts (incident triage, onboarding, change approval, major incident, asset disposal, password reset) with auto-laid-out steps and connectors.</p>
                 <div class="module-footer">
                     <span class="record-count">~125 records</span>
-                    <button class="import-btn" id="btn-process-mapper" onclick="importModule('process-mapper', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-process-mapper" onclick="importModule('process-mapper', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-process-mapper" style="display:none"></div>
             </div>
@@ -430,7 +433,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 <p class="module-desc">A small IT estate &mdash; 8 classes (Server, Database, Application, Service, Person, Team, Network Device, Endpoint) with ~50 properties (incl. coloured criticality / environment / tier dropdowns), 39 objects (8 people, 4 teams, 5 servers, 4 databases hierarchically parented, 6 apps, 6 services, 3 network devices, 3 endpoints), and ~30 relationships across 6 verbs (depends on, connects to, managed by, hosted on, uses identity from, monitors).</p>
                 <div class="module-footer">
                     <span class="record-count">~310 records</span>
-                    <button class="import-btn" id="btn-cmdb" onclick="importModule('cmdb', this)" disabled>Import</button>
+                    <button class="import-btn" id="btn-cmdb" onclick="importModule('cmdb', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
                 </div>
                 <div class="error-text" id="err-cmdb" style="display:none"></div>
             </div>
@@ -438,33 +441,35 @@ if (!isset($_SESSION['analyst_id'])) {
 
         <!-- Bonus: cross-module linking (appears after both software + assets imported) -->
         <div class="bonus-section" id="bonusSection">
-            <p class="section-label">Step 3 &mdash; Cross-module data</p>
+            <p class="section-label"><?php echo htmlspecialchars(t('system.demo.step3_cross')); ?></p>
             <div class="bonus-card" id="bonus-software-assets">
                 <div class="bonus-info">
                     <h4>Software Installed on Assets</h4>
                     <p>Links software applications to computers, showing which apps are installed on each device. Requires both Software and Assets to be imported first.</p>
                     <p class="bonus-detail">~55 installation records across 6 computers &bull; Realistic version numbers and install paths</p>
                 </div>
-                <button class="import-btn" id="btn-software-assets" onclick="importModule('software-assets', this)" disabled>Import</button>
+                <button class="import-btn" id="btn-software-assets" onclick="importModule('software-assets', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
             </div>
             <div class="error-text" id="err-software-assets" style="display:none"></div>
         </div>
 
         <!-- Dashboards: appears after tickets imported -->
         <div class="bonus-section" id="dashboardsSection">
-            <p class="section-label">Step 3 &mdash; Dashboards</p>
+            <p class="section-label"><?php echo htmlspecialchars(t('system.demo.step3_dashboards')); ?></p>
             <div class="bonus-card" id="bonus-dashboards">
                 <div class="bonus-info">
                     <h4>Dashboard Widgets</h4>
                     <p>Pre-built dashboard widgets and per-analyst layouts for the ticket dashboard. Requires Tickets to be imported first.</p>
                     <p class="bonus-detail">15 widgets &bull; 3 analyst dashboards with varied layouts</p>
                 </div>
-                <button class="import-btn" id="btn-dashboards" onclick="importModule('dashboards', this)" disabled>Import</button>
+                <button class="import-btn" id="btn-dashboards" onclick="importModule('dashboards', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
             </div>
             <div class="error-text" id="err-dashboards" style="display:none"></div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../../assets/js/i18n.js"></script>
     <script>
         let coreImported = false;
         let importedModules = {};
@@ -473,12 +478,12 @@ if (!isset($_SESSION['analyst_id'])) {
 
         async function importModule(module, btn) {
             if (btn.classList.contains('success')) {
-                if (!(await showConfirm({ title: 'Delete', message: 'This will delete existing ' + module + ' demo data and re-import fresh. Continue?', okLabel: 'Delete', okClass: 'danger' }))) return;
+                if (!(await showConfirm({ title: window.t('system.demo.delete_title'), message: window.t('system.demo.delete_confirm', { module: module }), okLabel: window.t('system.demo.delete_ok'), okClass: 'danger' }))) return;
             }
 
             btn.disabled = true;
             const origHtml = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner-inline"></span> Importing...';
+            btn.innerHTML = '<span class="spinner-inline"></span> ' + window.t('system.demo.importing');
 
             const errEl = document.getElementById('err-' + module);
             if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
@@ -492,7 +497,7 @@ if (!isset($_SESSION['analyst_id'])) {
 
                 if (data.success) {
                     btn.className = btn.className.includes('import-btn-lg') ? 'import-btn import-btn-lg success' : 'import-btn success';
-                    btn.innerHTML = checkSvg + ' ' + data.total + ' imported';
+                    btn.innerHTML = checkSvg + ' ' + window.t('system.demo.imported_count', { total: data.total });
                     btn.disabled = false;
                     importedModules[module] = true;
 
@@ -508,7 +513,7 @@ if (!isset($_SESSION['analyst_id'])) {
                     btn.innerHTML = origHtml;
                 }
             } catch (error) {
-                if (errEl) { errEl.textContent = 'Connection failed: ' + error.message; errEl.style.display = 'block'; }
+                if (errEl) { errEl.textContent = window.t('system.demo.connection_failed', { message: error.message }); errEl.style.display = 'block'; }
                 btn.disabled = false;
                 btn.innerHTML = origHtml;
             }
@@ -552,7 +557,7 @@ if (!isset($_SESSION['analyst_id'])) {
                     coreImported = true;
                     const btn = document.getElementById('btn-core');
                     btn.className = 'import-btn import-btn-lg success';
-                    btn.innerHTML = checkSvg + ' Already imported';
+                    btn.innerHTML = checkSvg + ' ' + window.t('system.demo.already_imported');
                     enableModuleButtons();
                 }
                 // Track which modules have data so bonus sections appear
@@ -565,7 +570,7 @@ if (!isset($_SESSION['analyst_id'])) {
                         var saBtn = document.getElementById('btn-software-assets');
                         if (saBtn) {
                             saBtn.className = 'import-btn success';
-                            saBtn.innerHTML = checkSvg + ' Already imported';
+                            saBtn.innerHTML = checkSvg + ' ' + window.t('system.demo.already_imported');
                             saBtn.disabled = false;
                         }
                     }
@@ -574,7 +579,7 @@ if (!isset($_SESSION['analyst_id'])) {
                         var dbBtn = document.getElementById('btn-dashboards');
                         if (dbBtn) {
                             dbBtn.className = 'import-btn success';
-                            dbBtn.innerHTML = checkSvg + ' Already imported';
+                            dbBtn.innerHTML = checkSvg + ' ' + window.t('system.demo.already_imported');
                             dbBtn.disabled = false;
                         }
                     }

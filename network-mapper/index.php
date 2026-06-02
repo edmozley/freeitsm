@@ -9,6 +9,8 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
+require_once '../includes/i18n.php';
+I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -17,13 +19,14 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $current_page = 'diagrams';
 $path_prefix = '../';
+$translationNamespaces = ['common', 'network-mapper'];
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FreeITSM &mdash; Network Mapper</title>
+    <title><?php echo htmlspecialchars(t('network-mapper.index.browser_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         body { background: #f5f5f5; height: 100vh; overflow: hidden; }
@@ -229,16 +232,16 @@ $path_prefix = '../';
 
     <div class="nm-page">
         <div class="nm-toolbar">
-            <h1>Network Diagrams</h1>
+            <h1><?php echo htmlspecialchars(t('network-mapper.index.heading')); ?></h1>
             <div class="actions">
-                <input type="text" id="searchInput" placeholder="Filter by title&hellip;" oninput="filterDiagrams(this.value)">
-                <button class="nm-btn" onclick="openNewModal()">+ New diagram</button>
+                <input type="text" id="searchInput" placeholder="<?php echo htmlspecialchars(t('network-mapper.index.filter_placeholder')); ?>" oninput="filterDiagrams(this.value)">
+                <button class="nm-btn" onclick="openNewModal()">+ <?php echo htmlspecialchars(t('network-mapper.index.new')); ?></button>
             </div>
         </div>
 
         <div class="nm-list-wrap">
             <div id="diagramListContainer">
-                <div class="nm-empty"><p>Loading diagrams&hellip;</p></div>
+                <div class="nm-empty"><p><?php echo htmlspecialchars(t('network-mapper.index.loading')); ?></p></div>
             </div>
         </div>
     </div>
@@ -246,36 +249,38 @@ $path_prefix = '../';
     <!-- New diagram modal -->
     <div class="nm-modal-overlay" id="newModal">
         <div class="nm-modal">
-            <div class="nm-modal-header">New network diagram</div>
+            <div class="nm-modal-header"><?php echo htmlspecialchars(t('network-mapper.index.modal_title')); ?></div>
             <div class="nm-modal-body">
                 <div class="nm-form-group">
-                    <label for="newTitle">Title *</label>
-                    <input type="text" id="newTitle" maxlength="255" placeholder="e.g. Core network &mdash; HQ floor 2">
+                    <label for="newTitle"><?php echo htmlspecialchars(t('network-mapper.index.field_title')); ?></label>
+                    <input type="text" id="newTitle" maxlength="255" placeholder="<?php echo htmlspecialchars(t('network-mapper.index.field_title_ph')); ?>">
                 </div>
                 <div class="nm-form-group">
-                    <label for="newDescription">Description</label>
-                    <textarea id="newDescription" maxlength="2000" placeholder="What does this diagram show? (optional)"></textarea>
+                    <label for="newDescription"><?php echo htmlspecialchars(t('network-mapper.index.field_description')); ?></label>
+                    <textarea id="newDescription" maxlength="2000" placeholder="<?php echo htmlspecialchars(t('network-mapper.index.field_description_ph')); ?>"></textarea>
                 </div>
                 <div class="nm-form-group">
-                    <label for="newVersionLabel">Initial version label</label>
-                    <input type="text" id="newVersionLabel" maxlength="50" value="v1" placeholder="v1">
-                    <small>Free text &mdash; e.g. &ldquo;v1&rdquo;, &ldquo;Draft&rdquo;, &ldquo;Q1 baseline&rdquo;. You can save new versions later from the editor.</small>
+                    <label for="newVersionLabel"><?php echo htmlspecialchars(t('network-mapper.index.field_version')); ?></label>
+                    <input type="text" id="newVersionLabel" maxlength="50" value="v1" placeholder="<?php echo htmlspecialchars(t('network-mapper.index.field_version_ph')); ?>">
+                    <small><?php echo htmlspecialchars(t('network-mapper.index.field_version_help')); ?></small>
                 </div>
             </div>
             <div class="nm-modal-actions">
-                <button class="nm-btn secondary" onclick="closeNewModal()">Cancel</button>
-                <button class="nm-btn" id="createBtn" onclick="createDiagram()">Create &amp; open</button>
+                <button class="nm-btn secondary" onclick="closeNewModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="nm-btn" id="createBtn" onclick="createDiagram()"><?php echo htmlspecialchars(t('network-mapper.index.create')); ?></button>
             </div>
         </div>
     </div>
 
+    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <script src="../assets/js/i18n.js"></script>
     <script>
         const API = '../api/network-mapper/';
         let allDiagrams = [];
 
         async function loadDiagrams() {
             const container = document.getElementById('diagramListContainer');
-            container.innerHTML = '<div class="nm-empty"><p>Loading diagrams&hellip;</p></div>';
+            container.innerHTML = '<div class="nm-empty"><p>' + escapeHtml(t('network-mapper.index.loading')) + '</p></div>';
             try {
                 const resp = await fetch(API + 'list_diagrams.php');
                 const data = await resp.json();
@@ -283,7 +288,7 @@ $path_prefix = '../';
                 allDiagrams = data.diagrams || [];
                 renderDiagrams(allDiagrams);
             } catch (e) {
-                container.innerHTML = '<div class="nm-empty"><p style="color:#b91c1c;">Failed to load: ' + escapeHtml(e.message) + '</p></div>';
+                container.innerHTML = '<div class="nm-empty"><p style="color:#b91c1c;">' + escapeHtml(t('network-mapper.index.load_failed', { message: e.message })) + '</p></div>';
             }
         }
 
@@ -292,9 +297,9 @@ $path_prefix = '../';
             if (!list.length) {
                 container.innerHTML = `
                     <div class="nm-empty">
-                        <h2>No diagrams yet</h2>
-                        <p>Network diagrams sit on top of the CMDB &mdash; drag a class onto the canvas, bind it to a CMDB object, and let related objects pull in automatically.</p>
-                        <button class="nm-btn" onclick="openNewModal()">Create your first diagram</button>
+                        <h2>${escapeHtml(t('network-mapper.index.empty_heading'))}</h2>
+                        <p>${escapeHtml(t('network-mapper.index.empty_body'))}</p>
+                        <button class="nm-btn" onclick="openNewModal()">${escapeHtml(t('network-mapper.index.empty_create'))}</button>
                     </div>`;
                 return;
             }
@@ -303,11 +308,11 @@ $path_prefix = '../';
         }
 
         function diagramCardHtml(d) {
-            const desc = d.description ? escapeHtml(d.description) : '<span class="empty">No description</span>';
+            const desc = d.description ? escapeHtml(d.description) : '<span class="empty">' + escapeHtml(t('network-mapper.index.no_description')) + '</span>';
             const updated = d.updated_datetime ? new Date(d.updated_datetime.replace(' ', 'T') + 'Z').toLocaleString() : '';
-            const author = d.author_name ? escapeHtml(d.author_name) : 'Unknown';
-            const versionLabel = d.version_label ? escapeHtml(d.version_label) : 'v?';
-            const versionCount = d.version_count > 1 ? ` &middot; ${d.version_count} versions` : '';
+            const author = d.author_name ? d.author_name : t('network-mapper.index.author_unknown');
+            const versionLabel = d.version_label ? escapeHtml(d.version_label) : escapeHtml(t('network-mapper.index.version_unknown'));
+            const versionCount = d.version_count > 1 ? escapeHtml(t('network-mapper.index.versions_suffix', { count: d.version_count })) : '';
             return `
                 <div class="nm-card" onclick="openDiagram(${d.id})">
                     <div class="nm-card-title-row">
@@ -317,14 +322,14 @@ $path_prefix = '../';
                     <div class="nm-card-desc">${desc}</div>
                     <div class="nm-card-meta">
                         <div class="nm-card-stats">
-                            <span><strong>${d.node_count}</strong> nodes</span>
-                            <span><strong>${d.connector_count}</strong> connectors</span>
+                            <span><strong>${d.node_count}</strong> ${escapeHtml(t('network-mapper.index.nodes'))}</span>
+                            <span><strong>${d.connector_count}</strong> ${escapeHtml(t('network-mapper.index.connectors'))}</span>
                         </div>
                         <div class="nm-card-actions">
-                            <button class="nm-card-action-btn danger" onclick="event.stopPropagation(); deleteDiagram(${d.id}, '${escapeAttr(d.title)}')">Delete</button>
+                            <button class="nm-card-action-btn danger" onclick="event.stopPropagation(); deleteDiagram(${d.id}, '${escapeAttr(d.title)}')">${escapeHtml(t('common.delete'))}</button>
                         </div>
                     </div>
-                    <div style="font-size:11px;color:#9ca3af;">By ${author} &middot; updated ${updated}</div>
+                    <div style="font-size:11px;color:#9ca3af;">${escapeHtml(t('network-mapper.index.meta_by', { author: author, date: updated }))}</div>
                 </div>`;
         }
 
@@ -352,7 +357,7 @@ $path_prefix = '../';
             const title = document.getElementById('newTitle').value.trim();
             const description = document.getElementById('newDescription').value.trim();
             const versionLabel = document.getElementById('newVersionLabel').value.trim() || 'v1';
-            if (!title) { window.showToast ? showToast('Title is required', 'error') : showToast('Title is required', 'error'); return; }
+            if (!title) { if (window.showToast) showToast(t('network-mapper.index.title_required'), 'error'); return; }
             const btn = document.getElementById('createBtn');
             btn.disabled = true;
             try {
@@ -365,13 +370,13 @@ $path_prefix = '../';
                 if (!data.success) throw new Error(data.error || 'Failed to create');
                 window.location.href = 'diagram.php?id=' + data.id;
             } catch (e) {
-                window.showToast ? showToast('Failed: ' + e.message, 'error') : showToast('Failed: ' + e.message, 'error');
+                if (window.showToast) showToast(t('network-mapper.index.create_failed', { message: e.message }), 'error');
                 btn.disabled = false;
             }
         }
 
         async function deleteDiagram(id, title) {
-            if (!(await showConfirm({ title: 'Delete', message: 'Delete "' + title + '"? This removes the current version only. Older versions in the chain are preserved.', okLabel: 'Delete', okClass: 'danger' }))) return;
+            if (!(await showConfirm({ title: t('network-mapper.index.delete_title'), message: t('network-mapper.index.delete_confirm', { title: title }), okLabel: t('common.delete'), okClass: 'danger' }))) return;
             try {
                 const resp = await fetch(API + 'delete_diagram.php', {
                     method: 'POST',
@@ -380,10 +385,10 @@ $path_prefix = '../';
                 });
                 const data = await resp.json();
                 if (!data.success) throw new Error(data.error || 'Failed to delete');
-                window.showToast ? showToast('Diagram deleted', 'success') : null;
+                if (window.showToast) showToast(t('network-mapper.index.deleted'), 'success');
                 loadDiagrams();
             } catch (e) {
-                window.showToast ? showToast('Delete failed: ' + e.message, 'error') : showToast('Delete failed: ' + e.message, 'error');
+                if (window.showToast) showToast(t('network-mapper.index.delete_failed', { message: e.message }), 'error');
             }
         }
 

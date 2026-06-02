@@ -254,17 +254,17 @@ if (count($_um_parts) > 1) {
         </div>
         <button class="ss-menu-item" onclick="ssOpenAccountModal()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-            <span>My Account</span>
+            <span><?php echo htmlspecialchars(t('self-service.menu.my_account')); ?></span>
         </button>
         <button class="ss-menu-item" onclick="ssOpenMfaModal()">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
-            <span>Multi-Factor Auth</span>
-            <span class="ss-mfa-badge disabled" id="ssMfaBadge">Off</span>
+            <span><?php echo htmlspecialchars(t('self-service.menu.mfa')); ?></span>
+            <span class="ss-mfa-badge disabled" id="ssMfaBadge"><?php echo htmlspecialchars(t('self-service.menu.mfa_off')); ?></span>
         </button>
         <div class="ss-menu-divider"></div>
-        <button class="ss-menu-item logout-item" onclick="if(confirm('Are you sure you want to logout?')) window.location.href='logout.php';">
+        <button class="ss-menu-item logout-item" onclick="if(confirm(window.t('self-service.menu.logout_confirm'))) window.location.href='logout.php';">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            <span>Logout</span>
+            <span><?php echo htmlspecialchars(t('self-service.menu.logout')); ?></span>
         </button>
     </div>
 </div>
@@ -273,41 +273,41 @@ if (count($_um_parts) > 1) {
 <div class="ss-modal" id="ssAccountModal">
     <div class="ss-modal-box">
         <div class="ss-modal-header">
-            My Account
+            <?php echo htmlspecialchars(t('self-service.account.heading')); ?>
         </div>
         <div class="ss-modal-body">
             <div id="ssAcctMsg" class="ss-msg"></div>
 
             <div class="ss-form-group">
-                <label class="ss-form-label">Preferred Name</label>
-                <input type="text" class="ss-form-input" id="ssPreferredName" placeholder="e.g. Ed" autocomplete="off">
-                <div class="ss-form-hint">How you would like to be addressed (leave blank to use your full name)</div>
+                <label class="ss-form-label"><?php echo htmlspecialchars(t('self-service.account.preferred_name')); ?></label>
+                <input type="text" class="ss-form-input" id="ssPreferredName" placeholder="<?php echo htmlspecialchars(t('self-service.account.preferred_name_placeholder')); ?>" autocomplete="off">
+                <div class="ss-form-hint"><?php echo htmlspecialchars(t('self-service.account.preferred_name_hint')); ?></div>
             </div>
 
             <div style="margin-bottom:24px;">
-                <button class="ss-btn ss-btn-primary" id="ssNameSaveBtn" onclick="ssSavePreferredName()">Save</button>
+                <button class="ss-btn ss-btn-primary" id="ssNameSaveBtn" onclick="ssSavePreferredName()"><?php echo htmlspecialchars(t('self-service.account.save')); ?></button>
             </div>
 
             <div style="border-top:1px solid #e0e0e0; padding-top:20px;">
-                <div style="font-size:15px;font-weight:600;color:#333;margin-bottom:16px;">Change Password</div>
+                <div style="font-size:15px;font-weight:600;color:#333;margin-bottom:16px;"><?php echo htmlspecialchars(t('self-service.account.change_password')); ?></div>
                 <div id="ssPwMsg" class="ss-msg"></div>
                 <div class="ss-form-group">
-                    <label class="ss-form-label">Current Password</label>
+                    <label class="ss-form-label"><?php echo htmlspecialchars(t('self-service.account.current_password')); ?></label>
                     <input type="password" class="ss-form-input" id="ssPwCurrent" autocomplete="current-password">
                 </div>
                 <div class="ss-form-group">
-                    <label class="ss-form-label">New Password</label>
+                    <label class="ss-form-label"><?php echo htmlspecialchars(t('self-service.account.new_password')); ?></label>
                     <input type="password" class="ss-form-input" id="ssPwNew" autocomplete="new-password">
                 </div>
                 <div class="ss-form-group">
-                    <label class="ss-form-label">Confirm New Password</label>
+                    <label class="ss-form-label"><?php echo htmlspecialchars(t('self-service.account.confirm_new_password')); ?></label>
                     <input type="password" class="ss-form-input" id="ssPwConfirm" autocomplete="new-password">
                 </div>
-                <button class="ss-btn ss-btn-primary" id="ssPwSaveBtn" onclick="ssSavePassword()">Change</button>
+                <button class="ss-btn ss-btn-primary" id="ssPwSaveBtn" onclick="ssSavePassword()"><?php echo htmlspecialchars(t('self-service.account.change')); ?></button>
             </div>
         </div>
         <div class="ss-modal-footer">
-            <button class="ss-btn ss-btn-secondary" onclick="ssCloseAccountModal()">Close</button>
+            <button class="ss-btn ss-btn-secondary" onclick="ssCloseAccountModal()"><?php echo htmlspecialchars(t('self-service.account.close')); ?></button>
         </div>
     </div>
 </div>
@@ -316,14 +316,14 @@ if (count($_um_parts) > 1) {
 <div class="ss-modal" id="ssMfaModal">
     <div class="ss-modal-box">
         <div class="ss-modal-header">
-            Multi-Factor Authentication
+            <?php echo htmlspecialchars(t('self-service.mfa.heading')); ?>
         </div>
         <div class="ss-modal-body">
             <div id="ssMfaMsg" class="ss-msg"></div>
-            <div id="ssMfaContent">Loading...</div>
+            <div id="ssMfaContent"><?php echo htmlspecialchars(t('self-service.mfa.loading')); ?></div>
         </div>
         <div class="ss-modal-footer">
-            <button class="ss-btn ss-btn-secondary" onclick="ssCloseMfaModal()">Close</button>
+            <button class="ss-btn ss-btn-secondary" onclick="ssCloseMfaModal()"><?php echo htmlspecialchars(t('self-service.mfa.close')); ?></button>
         </div>
     </div>
 </div>
@@ -332,6 +332,14 @@ if (count($_um_parts) > 1) {
 <script>
 const _ssApi = '../api/self-service/';
 const _mfaApi = '../api/myaccount/';
+
+// Local HTML-escape helper — self-contained so this fragment works on pages
+// that don't define their own escapeHtml (e.g. the help page).
+function _ssEsc(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
 
 /* --- User Menu --- */
 function ssToggleMenu() {
@@ -362,10 +370,10 @@ async function ssLoadMfaBadge() {
         _ssMfaEnabled = data.success && data.mfa_enabled;
         if (_ssMfaEnabled) {
             badge.className = 'ss-mfa-badge enabled';
-            badge.textContent = 'On';
+            badge.textContent = window.t('self-service.menu.mfa_on');
         } else {
             badge.className = 'ss-mfa-badge disabled';
-            badge.textContent = 'Off';
+            badge.textContent = window.t('self-service.menu.mfa_off');
         }
     } catch (e) {}
 }
@@ -415,12 +423,12 @@ async function ssSavePreferredName() {
         });
         const data = await resp.json();
         if (data.success) {
-            ssShowAcctMsg('Preferred name saved. Refresh the page to see the change.', 'success');
+            ssShowAcctMsg(window.t('self-service.account.name_saved'), 'success');
         } else {
             ssShowAcctMsg(data.error, 'error');
         }
     } catch (e) {
-        ssShowAcctMsg('Failed to save', 'error');
+        ssShowAcctMsg(window.t('self-service.account.name_save_failed'), 'error');
     }
     btn.disabled = false;
 }
@@ -437,7 +445,7 @@ async function ssSavePassword() {
 
     if (!current || !newPw || !confirm) {
         msgEl.className = 'ss-msg error';
-        msgEl.textContent = 'All fields are required';
+        msgEl.textContent = window.t('self-service.account.pw_fields_required');
         btn.disabled = false;
         return;
     }
@@ -451,7 +459,7 @@ async function ssSavePassword() {
         const data = await resp.json();
         if (data.success) {
             msgEl.className = 'ss-msg success';
-            msgEl.textContent = 'Password changed successfully';
+            msgEl.textContent = window.t('self-service.account.pw_changed');
             document.getElementById('ssPwCurrent').value = '';
             document.getElementById('ssPwNew').value = '';
             document.getElementById('ssPwConfirm').value = '';
@@ -461,7 +469,7 @@ async function ssSavePassword() {
         }
     } catch (e) {
         msgEl.className = 'ss-msg error';
-        msgEl.textContent = 'Failed to change password';
+        msgEl.textContent = window.t('self-service.account.pw_change_failed');
     }
     btn.disabled = false;
 }
@@ -470,7 +478,7 @@ async function ssSavePassword() {
 function ssOpenMfaModal() {
     ssCloseMenu();
     document.getElementById('ssMfaMsg').className = 'ss-msg';
-    document.getElementById('ssMfaContent').innerHTML = 'Loading...';
+    document.getElementById('ssMfaContent').innerHTML = _ssEsc(window.t('self-service.mfa.loading'));
     document.getElementById('ssMfaModal').classList.add('active');
     ssLoadMfaContent();
 }
@@ -492,7 +500,7 @@ async function ssLoadMfaContent() {
         _ssMfaEnabled = data.success && data.mfa_enabled;
         ssRenderMfaContent();
     } catch (e) {
-        document.getElementById('ssMfaContent').innerHTML = '<p>Failed to load MFA status</p>';
+        document.getElementById('ssMfaContent').innerHTML = '<p>' + _ssEsc(window.t('self-service.mfa.load_failed')) + '</p>';
     }
 }
 
@@ -501,29 +509,29 @@ function ssRenderMfaContent() {
     if (_ssMfaEnabled) {
         container.innerHTML =
             '<div class="ss-mfa-status-card enabled">' +
-                '<div class="ss-mfa-status-title" style="color:#2e7d32;">MFA is enabled</div>' +
-                '<div class="ss-mfa-status-desc">Your account is protected with a time-based one-time password (TOTP). You will be asked for a code from your authenticator app each time you log in.</div>' +
+                '<div class="ss-mfa-status-title" style="color:#2e7d32;">' + _ssEsc(window.t('self-service.mfa.enabled_title')) + '</div>' +
+                '<div class="ss-mfa-status-desc">' + _ssEsc(window.t('self-service.mfa.enabled_desc')) + '</div>' +
             '</div>' +
             '<div>' +
-                '<p style="font-size:13px;color:#666;margin:0 0 12px 0;">To disable MFA, enter your password below:</p>' +
+                '<p style="font-size:13px;color:#666;margin:0 0 12px 0;">' + _ssEsc(window.t('self-service.mfa.disable_prompt')) + '</p>' +
                 '<div class="ss-form-group">' +
-                    '<input type="password" class="ss-form-input" id="ssMfaDisablePw" placeholder="Enter your password">' +
+                    '<input type="password" class="ss-form-input" id="ssMfaDisablePw" placeholder="' + _ssEsc(window.t('self-service.mfa.disable_placeholder')) + '">' +
                 '</div>' +
-                '<button class="ss-btn ss-btn-danger" onclick="ssDisableMfa()">Disable</button>' +
+                '<button class="ss-btn ss-btn-danger" onclick="ssDisableMfa()">' + _ssEsc(window.t('self-service.mfa.disable')) + '</button>' +
             '</div>';
     } else {
         container.innerHTML =
             '<div class="ss-mfa-status-card not-enabled">' +
-                '<div class="ss-mfa-status-title">MFA is not enabled</div>' +
-                '<div class="ss-mfa-status-desc">Add an extra layer of security by setting up a time-based one-time password (TOTP) with an authenticator app like Google Authenticator or Microsoft Authenticator.</div>' +
+                '<div class="ss-mfa-status-title">' + _ssEsc(window.t('self-service.mfa.not_enabled_title')) + '</div>' +
+                '<div class="ss-mfa-status-desc">' + _ssEsc(window.t('self-service.mfa.not_enabled_desc')) + '</div>' +
             '</div>' +
-            '<button class="ss-btn ss-btn-primary" onclick="ssStartMfaSetup()">Set Up MFA</button>';
+            '<button class="ss-btn ss-btn-primary" onclick="ssStartMfaSetup()">' + _ssEsc(window.t('self-service.mfa.setup')) + '</button>';
     }
 }
 
 async function ssStartMfaSetup() {
     const container = document.getElementById('ssMfaContent');
-    container.innerHTML = '<p style="color:#888;">Generating secret...</p>';
+    container.innerHTML = '<p style="color:#888;">' + _ssEsc(window.t('self-service.mfa.generating')) + '</p>';
 
     try {
         const resp = await fetch(_mfaApi + 'setup_mfa.php?ctx=user', {
@@ -545,26 +553,26 @@ async function ssStartMfaSetup() {
             qr.make();
             qrHtml = qr.createImgTag(5, 0);
         } catch (e) {
-            qrHtml = '<p style="color:#c62828;">QR generation failed. Use the manual key below.</p>';
+            qrHtml = '<p style="color:#c62828;">' + _ssEsc(window.t('self-service.mfa.qr_failed')) + '</p>';
         }
 
         container.innerHTML =
-            '<p style="font-size:13px;color:#333;margin:0 0 16px 0;"><strong>Step 1:</strong> Scan this QR code with your authenticator app</p>' +
+            '<p style="font-size:13px;color:#333;margin:0 0 16px 0;">' + window.t('self-service.mfa.step1') + '</p>' +
             '<div class="ss-qr-container">' + qrHtml + '</div>' +
             '<div class="ss-secret-display">' +
-                '<code>' + data.secret + '</code>' +
-                '<p>Or enter this key manually in your authenticator app</p>' +
+                '<code>' + _ssEsc(data.secret) + '</code>' +
+                '<p>' + _ssEsc(window.t('self-service.mfa.manual_key')) + '</p>' +
             '</div>' +
-            '<p style="font-size:13px;color:#333;margin:0 0 12px 0;"><strong>Step 2:</strong> Enter the 6-digit code from your app to verify</p>' +
+            '<p style="font-size:13px;color:#333;margin:0 0 12px 0;">' + window.t('self-service.mfa.step2') + '</p>' +
             '<div class="ss-verify-row">' +
                 '<div class="ss-form-group">' +
                     '<input type="text" class="ss-form-input ss-otp-input" id="ssMfaVerifyCode" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">' +
                 '</div>' +
-                '<button class="ss-btn ss-btn-primary" id="ssMfaVerifyBtn" onclick="ssVerifyMfaSetup()" style="margin-bottom:0;height:40px;">Verify</button>' +
+                '<button class="ss-btn ss-btn-primary" id="ssMfaVerifyBtn" onclick="ssVerifyMfaSetup()" style="margin-bottom:0;height:40px;">' + _ssEsc(window.t('self-service.mfa.verify')) + '</button>' +
             '</div>';
         setTimeout(() => document.getElementById('ssMfaVerifyCode').focus(), 100);
     } catch (e) {
-        ssShowMfaMsg('Failed to start MFA setup', 'error');
+        ssShowMfaMsg(window.t('self-service.mfa.setup_failed'), 'error');
         ssRenderMfaContent();
     }
 }
@@ -572,7 +580,7 @@ async function ssStartMfaSetup() {
 async function ssVerifyMfaSetup() {
     const code = document.getElementById('ssMfaVerifyCode').value.trim();
     if (!code || code.length !== 6) {
-        ssShowMfaMsg('Please enter a 6-digit code', 'error');
+        ssShowMfaMsg(window.t('self-service.mfa.enter_6_digit'), 'error');
         return;
     }
 
@@ -587,7 +595,7 @@ async function ssVerifyMfaSetup() {
         });
         const data = await resp.json();
         if (data.success) {
-            ssShowMfaMsg('MFA has been enabled successfully', 'success');
+            ssShowMfaMsg(window.t('self-service.mfa.enabled_success'), 'success');
             _ssMfaEnabled = true;
             ssLoadMfaBadge();
             setTimeout(() => {
@@ -599,7 +607,7 @@ async function ssVerifyMfaSetup() {
             btn.disabled = false;
         }
     } catch (e) {
-        ssShowMfaMsg('Verification failed', 'error');
+        ssShowMfaMsg(window.t('self-service.mfa.verify_failed'), 'error');
         btn.disabled = false;
     }
 }
@@ -607,7 +615,7 @@ async function ssVerifyMfaSetup() {
 async function ssDisableMfa() {
     const pw = document.getElementById('ssMfaDisablePw').value;
     if (!pw) {
-        ssShowMfaMsg('Password is required', 'error');
+        ssShowMfaMsg(window.t('self-service.mfa.password_required'), 'error');
         return;
     }
 
@@ -619,7 +627,7 @@ async function ssDisableMfa() {
         });
         const data = await resp.json();
         if (data.success) {
-            ssShowMfaMsg('MFA has been disabled', 'success');
+            ssShowMfaMsg(window.t('self-service.mfa.disabled_success'), 'success');
             _ssMfaEnabled = false;
             ssLoadMfaBadge();
             setTimeout(() => {
@@ -630,7 +638,7 @@ async function ssDisableMfa() {
             ssShowMfaMsg(data.error, 'error');
         }
     } catch (e) {
-        ssShowMfaMsg('Failed to disable MFA', 'error');
+        ssShowMfaMsg(window.t('self-service.mfa.disable_failed'), 'error');
     }
 }
 
