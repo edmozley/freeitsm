@@ -617,6 +617,7 @@ Event calendar with configurable categories.
 - Drag-and-drop to move events between days in month view
 - Category colour coding and filtering
 - Events visible in adjacent-month cells for context
+- **Subscribe on your phone** (`api/calendar/feed.php`): the sidebar offers a read-only iCalendar (`.ics`) subscription feed — scan the QR code or copy the link to add the team calendar to Apple Calendar, Google Calendar or Outlook, where it stays up to date automatically. Authenticated by a per-analyst capability token (revocable via "Reset link"); the device must be able to reach the server URL
 - **Table view** (`calendar/table/`): full-screen Excel-style grid of every event with inline cell editing (title, category, start/end, all-day, location), column show/hide + drag-reorder (persisted per analyst), click-to-sort, search, per-column tickbox filters, and CSV export — the same table experience as the Asset Management and Tasks modules
 - **Help guide** (`help.php`): Interactive guide covering calendar views, event creation, categories, settings configuration, and scheduling tips for IT teams
 

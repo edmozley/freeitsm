@@ -37,6 +37,18 @@ $translationNamespaces = ['common', 'calendar'];
                     <div class="loading"><div class="spinner"></div></div>
                 </div>
             </div>
+            <div class="sidebar-section calendar-subscribe">
+                <h3><?php echo htmlspecialchars(t('calendar.subscribe.heading')); ?></h3>
+                <p class="subscribe-intro"><?php echo htmlspecialchars(t('calendar.subscribe.intro')); ?></p>
+                <div class="subscribe-qr" id="subscribeQr"></div>
+                <div class="subscribe-url-row">
+                    <input type="text" id="subscribeUrl" class="subscribe-url" readonly value="">
+                    <button type="button" class="btn btn-secondary btn-sm" id="subscribeCopyBtn" onclick="copySubscribeUrl()"><?php echo htmlspecialchars(t('calendar.subscribe.copy')); ?></button>
+                </div>
+                <p class="subscribe-hint"><strong><?php echo htmlspecialchars(t('calendar.subscribe.ios_label')); ?>:</strong> <?php echo htmlspecialchars(t('calendar.subscribe.ios_hint')); ?></p>
+                <p class="subscribe-hint"><strong><?php echo htmlspecialchars(t('calendar.subscribe.android_label')); ?>:</strong> <?php echo htmlspecialchars(t('calendar.subscribe.android_hint')); ?></p>
+                <button type="button" class="subscribe-reset" onclick="resetSubscribeUrl()"><?php echo htmlspecialchars(t('calendar.subscribe.reset')); ?></button>
+            </div>
         </div>
 
         <!-- Main calendar area -->
@@ -143,5 +155,58 @@ $translationNamespaces = ['common', 'calendar'];
 
     <script>window.API_BASE = '../api/calendar/';</script>
     <script src="../assets/js/itsm_calendar.js"></script>
+    <script src="../assets/js/qrcode.min.js"></script>
+    <script>
+    // Calendar subscription panel: fetch the analyst's feed URL, render a QR code
+    // (encodes the webcal:// link so an iPhone camera scan offers "Subscribe").
+    (function () {
+        function render(d) {
+            var input = document.getElementById('subscribeUrl');
+            if (input) input.value = d.url;
+            var qr = document.getElementById('subscribeQr');
+            if (qr) {
+                qr.innerHTML = '';
+                try { var q = qrcode(0, 'M'); q.addData(d.webcal); q.make(); qr.innerHTML = q.createImgTag(4, 0); }
+                catch (e) { /* QR optional — the copy link still works */ }
+            }
+        }
+        function load(reset) {
+            var opts = reset
+                ? { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: 'action=reset' }
+                : {};
+            fetch(window.API_BASE + 'get_feed_url.php', opts)
+                .then(function (r) { return r.json(); })
+                .then(function (d) { if (d && d.success) render(d); })
+                .catch(function () {});
+        }
+        window.copySubscribeUrl = function () {
+            var input = document.getElementById('subscribeUrl');
+            if (!input || !input.value) return;
+            var done = function () {
+                var b = document.getElementById('subscribeCopyBtn');
+                if (!b) return;
+                var prev = b.textContent;
+                b.textContent = window.t('calendar.subscribe.copied');
+                setTimeout(function () { b.textContent = prev; }, 1500);
+            };
+            input.select();
+            if (navigator.clipboard) { navigator.clipboard.writeText(input.value).then(done, done); }
+            else { try { document.execCommand('copy'); } catch (e) {} done(); }
+        };
+        window.resetSubscribeUrl = function () {
+            var msg = window.t('calendar.subscribe.reset_confirm');
+            if (window.showConfirm) {
+                showConfirm({
+                    title: window.t('calendar.subscribe.reset'),
+                    message: msg,
+                    okLabel: window.t('calendar.subscribe.reset'),
+                    okClass: 'primary',
+                    onConfirm: function () { load(true); }
+                });
+            } else if (window.confirm(msg)) { load(true); }
+        };
+        document.addEventListener('DOMContentLoaded', function () { load(false); });
+    })();
+    </script>
 </body>
 </html>

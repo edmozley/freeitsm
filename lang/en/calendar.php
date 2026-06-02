@@ -29,6 +29,19 @@ return [
         'none'        => 'No categories found',
     ],
 
+    'subscribe' => [
+        'heading'       => 'Add to your phone',
+        'intro'         => 'Subscribe in your phone\'s calendar app — events stay up to date automatically.',
+        'copy'          => 'Copy',
+        'copied'        => 'Copied',
+        'ios_label'     => 'iPhone',
+        'ios_hint'      => 'Scan the QR code (or tap the copied link), then choose Subscribe.',
+        'android_label' => 'Android',
+        'android_hint'  => 'Open Google Calendar on the web → Other calendars → From URL, and paste the link.',
+        'reset'         => 'Reset link',
+        'reset_confirm' => 'Reset your calendar link? The current link will stop working on any device already subscribed to it.',
+    ],
+
     'event' => [
         'modal_new'      => 'New Event',
         'modal_edit'     => 'Edit Event',
