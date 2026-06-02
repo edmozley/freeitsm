@@ -47,9 +47,8 @@ $translationNamespaces = ['common', 'service-status'];
         .tab-content .action-btn.delete:hover { background: #fdf3f3; border-color: #d13438; color: #a00; }
         .tab-content .action-btn svg { width: 16px; height: 16px; }
 
-        .status-badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; }
-        .status-badge.active { background: #d4edda; color: #155724; }
-        .status-badge.inactive { background: #f8d7da; color: #721c24; }
+        /* Active/Inactive badges use the shared .status-badge / .status-active
+           / .status-inactive classes from inbox.css (canonical shape + colour). */
 
         /* Module accent — drives toggle, focus rings, button colours.
            Modal form CSS lives entirely in inbox.css. */
@@ -264,7 +263,7 @@ $translationNamespaces = ['common', 'service-status'];
                     <td><strong>${escapeHtml(item.name)}</strong></td>
                     <td>${escapeHtml(item.description || '-')}</td>
                     <td>${item.display_order}</td>
-                    <td><span class="status-badge ${item.is_active ? 'active' : 'inactive'}">${item.is_active ? escapeHtml(window.t('service-status.settings.active')) : escapeHtml(window.t('service-status.settings.inactive'))}</span></td>
+                    <td><span class="status-badge status-${item.is_active ? 'active' : 'inactive'}">${item.is_active ? escapeHtml(window.t('service-status.settings.active')) : escapeHtml(window.t('service-status.settings.inactive'))}</span></td>
                     <td>
                         <button class="action-btn" onclick="editService(${item.id})" title="${escapeHtml(window.t('service-status.settings.edit'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -408,7 +407,7 @@ $translationNamespaces = ['common', 'service-status'];
                 const swatch = r.colour
                     ? `<span style="display:inline-block;width:18px;height:18px;border-radius:3px;background:${escapeHtml(r.colour)};vertical-align:middle;border:1px solid #ddd;margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(r.colour)}</code>`
                     : '<span style="color:#999;">—</span>';
-                const yesBadge = `<span class="status-badge active">${escapeHtml(window.t('service-status.settings.yes'))}</span>`;
+                const yesBadge = `<span class="status-badge status-active">${escapeHtml(window.t('service-status.settings.yes'))}</span>`;
                 const noBadge = `<span style="color:#999;">${escapeHtml(window.t('service-status.settings.no'))}</span>`;
                 const flagCol = cfg.hasResolved
                     ? `<td>${r.is_resolved ? yesBadge : noBadge}</td>`
@@ -420,7 +419,7 @@ $translationNamespaces = ['common', 'service-status'];
                     ${flagCol}
                     <td>${r.is_default ? yesBadge : noBadge}</td>
                     <td>${r.display_order}</td>
-                    <td><span class="status-badge ${r.is_active ? 'active' : 'inactive'}">${r.is_active ? escapeHtml(window.t('service-status.settings.active')) : escapeHtml(window.t('service-status.settings.inactive'))}</span></td>
+                    <td><span class="status-badge status-${r.is_active ? 'active' : 'inactive'}">${r.is_active ? escapeHtml(window.t('service-status.settings.active')) : escapeHtml(window.t('service-status.settings.inactive'))}</span></td>
                     <td>
                         <button class="action-btn" onclick="editLookup('${kind}', ${r.id})" title="${escapeHtml(window.t('service-status.settings.edit'))}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>

@@ -67,23 +67,8 @@ $translationNamespaces = ['common', 'asset-management'];
             height: 16px;
         }
 
-        .status-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .status-badge.active {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .status-badge.inactive {
-            background: #f8d7da;
-            color: #721c24;
-        }
+        /* Active/Inactive badges use the shared .status-badge / .status-active
+           / .status-inactive classes from inbox.css (canonical shape + colour). */
 
         /* vCenter section styles */
         .settings-section {
@@ -649,7 +634,7 @@ $translationNamespaces = ['common', 'asset-management'];
                     <td><strong>${escapeHtml(item.name)}</strong></td>
                     <td>${escapeHtml(item.description || '-')}</td>
                     <td>${item.display_order}</td>
-                    <td><span class="status-badge ${item.is_active ? 'active' : 'inactive'}">${item.is_active ? window.t('asset-management.status.active') : window.t('asset-management.status.inactive')}</span></td>
+                    <td><span class="status-badge status-${item.is_active ? 'active' : 'inactive'}">${item.is_active ? window.t('asset-management.status.active') : window.t('asset-management.status.inactive')}</span></td>
                     <td>
                         <button class="action-btn" onclick="editItem('${type}', ${item.id})" title="${window.t('asset-management.common.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1411,7 +1396,7 @@ $translationNamespaces = ['common', 'asset-management'];
             tbody.innerHTML = rows.map(s => {
                 const alt = (s.trading_name && s.legal_name && s.trading_name !== s.legal_name)
                     ? ` <span style="color:#999;font-size:12px;">(${escapeHtml(s.legal_name)})</span>` : '';
-                const inactive = !s.is_active ? ` <span class="status-badge inactive">${window.t('asset-management.status.inactive')}</span>` : '';
+                const inactive = !s.is_active ? ` <span class="status-badge status-inactive">${window.t('asset-management.status.inactive')}</span>` : '';
                 return `
                     <tr>
                         <td><strong>${escapeHtml(s.name)}</strong>${alt}${inactive}</td>
