@@ -105,24 +105,8 @@ $translationNamespaces = ['common', 'calendar'];
             margin-right: 6px;
         }
 
-        .badge-active {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            background: #fff3e0;
-            color: #ef6c00;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .badge-inactive {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            background: #fafafa;
-            color: #999;
-            font-size: 11px;
-            font-weight: 600;
-        }
+        /* Active/Inactive uses the shared .status-badge / .status-active
+           / .status-inactive classes from inbox.css (canonical green/red). */
 
         .action-btn {
             background: none;
@@ -385,7 +369,7 @@ $translationNamespaces = ['common', 'calendar'];
                     </td>
                     <td>${cat.description ? escapeHtml(cat.description) : '<span style="color:#999">&mdash;</span>'}</td>
                     <td>
-                        <span class="${cat.is_active ? 'badge-active' : 'badge-inactive'}">
+                        <span class="status-badge status-${cat.is_active ? 'active' : 'inactive'}">
                             ${cat.is_active ? window.t('calendar.settings.active') : window.t('calendar.settings.inactive')}
                         </span>
                     </td>

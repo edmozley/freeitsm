@@ -229,8 +229,7 @@ $translationNamespaces = ['common', 'change-management'];
         .lookup-table th { font-weight: 600; color: #666; background: #fafafa; }
         .badge-yes { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #e0f2f1; color: #00695c; font-size: 11px; font-weight: 600; }
         .badge-no  { color: #999; }
-        .badge-active   { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #e0f2f1; color: #00695c; font-size: 11px; font-weight: 600; }
-        .badge-inactive { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #fafafa; color: #999;   font-size: 11px; font-weight: 600; }
+        /* Active/Inactive uses the shared .status-badge / .status-active / .status-inactive classes from inbox.css (canonical green/red). */
         .swatch { display: inline-block; width: 18px; height: 18px; border-radius: 3px; vertical-align: middle; border: 1px solid #ddd; margin-right: 6px; }
         .action-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #666; display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
         /* Force the Actions column to size to its content (width: 1%) and
@@ -475,7 +474,7 @@ $translationNamespaces = ['common', 'change-management'];
                     ${closedCol}
                     <td>${r.is_default ? `<span class="badge-yes">${window.t('change-management.settings.yes')}</span>` : `<span class="badge-no">${window.t('change-management.settings.no')}</span>`}</td>
                     <td>${r.display_order}</td>
-                    <td><span class="${r.is_active ? 'badge-active' : 'badge-inactive'}">${r.is_active ? window.t('change-management.settings.active') : window.t('change-management.settings.inactive')}</span></td>
+                    <td><span class="status-badge status-${r.is_active ? 'active' : 'inactive'}">${r.is_active ? window.t('change-management.settings.active') : window.t('change-management.settings.inactive')}</span></td>
                     <td>
                         <button class="action-btn" onclick="editLookup('${kind}', ${r.id})" title="${window.t('change-management.settings.edit')}">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>

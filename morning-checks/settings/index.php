@@ -122,16 +122,8 @@ $translationNamespaces = ['common', 'morning-checks'];
             vertical-align: middle;
             margin-right: 6px;
         }
-        .badge-active {
-            display: inline-block; padding: 2px 8px; border-radius: 10px;
-            background: #e3f2fd; color: #1565c0;
-            font-size: 11px; font-weight: 600;
-        }
-        .badge-inactive {
-            display: inline-block; padding: 2px 8px; border-radius: 10px;
-            background: #fafafa; color: #999;
-            font-size: 11px; font-weight: 600;
-        }
+        /* Active/Inactive uses the shared .status-badge / .status-active
+           / .status-inactive classes from inbox.css (canonical green/red). */
         .badge-yes { color: #1565c0; font-weight: 600; }
         .badge-no  { color: #999; }
 
@@ -428,7 +420,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                         <strong>${escapeHtml(check.CheckName)}</strong>
                         ${check.CheckDescription ? '<span class="check-description">' + escapeHtml(check.CheckDescription) + '</span>' : ''}
                     </div>
-                    <span class="badge ${check.IsActive ? 'badge-active' : 'badge-inactive'}">
+                    <span class="status-badge status-${check.IsActive ? 'active' : 'inactive'}">
                         ${check.IsActive ? escapeHtml(window.t('morning-checks.settings.check_active')) : escapeHtml(window.t('morning-checks.settings.check_inactive'))}
                     </span>
                     <div class="check-actions">
@@ -781,7 +773,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                     </td>
                     <td><code style="font-size: 12px; color: #666;">${escapeHtml(s.Colour)}</code></td>
                     <td>${s.RequiresNotes ? '<span class="badge-yes">' + escapeHtml(window.t('morning-checks.settings.yes')) + '</span>' : '<span class="badge-no">' + escapeHtml(window.t('morning-checks.settings.no')) + '</span>'}</td>
-                    <td><span class="${s.IsActive ? 'badge-active' : 'badge-inactive'}">${s.IsActive ? escapeHtml(window.t('morning-checks.settings.status_active')) : escapeHtml(window.t('morning-checks.settings.status_inactive'))}</span></td>
+                    <td><span class="status-badge status-${s.IsActive ? 'active' : 'inactive'}">${s.IsActive ? escapeHtml(window.t('morning-checks.settings.status_active')) : escapeHtml(window.t('morning-checks.settings.status_inactive'))}</span></td>
                     <td>
                         <button class="action-btn" onclick="openEditStatusModal(${s.StatusID})" title="${escapeHtmlAttr(window.t('morning-checks.settings.edit'))}">${ICON_EDIT_S}</button>
                         <button class="action-btn delete" onclick="deleteStatus(${s.StatusID}, '${escapeJsString(s.Label)}')" title="${escapeHtmlAttr(window.t('morning-checks.settings.delete'))}">${ICON_DELETE_S}</button>

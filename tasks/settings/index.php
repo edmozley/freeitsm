@@ -44,8 +44,7 @@ $translationNamespaces = ['common', 'tasks'];
         .lookup-table th { font-weight: 600; color: #666; background: #fafafa; }
         .badge-yes { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #f3e8ff; color: #7e22ce; font-size: 11px; font-weight: 600; }
         .badge-no { color: #999; }
-        .badge-active   { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #f3e8ff; color: #7e22ce; font-size: 11px; font-weight: 600; }
-        .badge-inactive { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #fafafa; color: #999;   font-size: 11px; font-weight: 600; }
+        /* Active/Inactive uses the shared .status-badge / .status-active / .status-inactive classes from inbox.css (canonical green/red). */
         .swatch { display: inline-block; width: 18px; height: 18px; border-radius: 3px; vertical-align: middle; border: 1px solid #ddd; margin-right: 6px; }
         .action-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #666; }
         .action-btn:hover { color: #9333ea; }
@@ -512,7 +511,7 @@ $translationNamespaces = ['common', 'tasks'];
                     ? `<td>${r.is_default ? yes : no}</td>`
                     : '';
                 const activeCol = cfg.hasActive
-                    ? `<td><span class="${r.is_active ? 'badge-active' : 'badge-inactive'}">${r.is_active ? t('tasks.settings.active') : t('tasks.settings.inactive')}</span></td>`
+                    ? `<td><span class="status-badge status-${r.is_active ? 'active' : 'inactive'}">${r.is_active ? t('tasks.settings.active') : t('tasks.settings.inactive')}</span></td>`
                     : '';
                 return `
                 <tr>
