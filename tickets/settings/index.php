@@ -40,13 +40,21 @@ $translationNamespaces = ['common', 'tickets'];
     <style>
         /* Page-specific overrides for settings page */
 
-        /* Override the shared .container 1200px cap so settings fills the
-         * full width, matching other modules' settings pages (#268-#270).
-         * padding-bottom keeps the last row of buttons clear of the scroll
-         * viewport's bottom edge (otherwise the buttons sit flush against it
-         * and get visually clipped). */
+        /* Pin the header and make .container the ONLY scroll region, whatever
+         * height the header/tab strip ends up. The previous
+         * `height: calc(100vh - 48px)` hard-coded a one-line 48px header; once
+         * the header nav or the tab strip wraps to two lines the real header is
+         * taller, the body overflowed 100vh, and because inbox.css sets
+         * body{overflow:hidden} a field focus could nudge-scroll the body and
+         * shove the header off the top with no scrollbar to bring it back.
+         * Flex layout removes that hard-coded assumption.
+         * Also overrides the shared .container 1200px cap so settings fills the
+         * full width (#268-#270); padding-bottom keeps the last row of buttons
+         * clear of the scroll viewport's bottom edge. */
+        body { display: flex; flex-direction: column; }
         .container {
-            height: calc(100vh - 48px);
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
             max-width: none;
             padding-bottom: 24px;
