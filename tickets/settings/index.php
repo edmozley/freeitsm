@@ -40,26 +40,29 @@ $translationNamespaces = ['common', 'tickets'];
     <style>
         /* Page-specific overrides for settings page */
 
-        /* Let the page body scroll and pin the header with position:sticky.
-         *
-         * We deliberately do NOT make <body> a flex (or grid) container and do
-         * NOT give .container a fixed height. Browser extensions such as
-         * LastPass inject their own nodes as direct children of <body> (and
-         * around focused inputs); under a flex body those became flex items and
-         * wrecked the layout, and the old fixed `height: calc(100vh - 48px)`
-         * assumed a one-line 48px header. With a normally-scrolling body + a
-         * sticky header, the header stays put no matter the header/tab height
-         * or anything an extension injects.
-         *
-         * Also overrides the shared .container 1200px cap so settings fills the
-         * full width (#268-#270); padding-bottom keeps the last row of buttons
-         * clear of the viewport's bottom edge. */
-        html { height: 100%; }
-        body { height: 100%; overflow-y: auto; overflow-x: hidden; display: block; }
-        .header { position: sticky; top: 0; z-index: 100; }
+        /* Pin the header WITHOUT making it (or <body>) a positioned or flex
+         * element:
+         *   - a flex <body> turned extension-injected nodes (e.g. LastPass)
+         *     into flex items and wrecked the layout;
+         *   - a sticky/positioned header became a stacking context that trapped
+         *     the waffle menu panel behind its own fixed close-overlay.
+         * Instead a plain flex wrapper (.settings-shell) holds the header + the
+         * scrolling container: the header pins at the top, .container is the
+         * sole scroll region (no fragile `height: calc(100vh - 48px)`), and the
+         * header stays a normal static element so the waffle menu's z-index
+         * behaviour is unchanged. <body> keeps the inbox.css default (no flex),
+         * so injected extension nodes can't disrupt the layout.
+         * .container also drops the shared 1200px cap so settings fills the full
+         * width (#268-#270); padding-bottom clears the viewport bottom edge. */
+        .settings-shell {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
         .container {
-            height: auto;
-            overflow: visible;
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
             max-width: none;
             padding-bottom: 24px;
         }
@@ -219,6 +222,7 @@ $translationNamespaces = ['common', 'tickets'];
     </style>
 </head>
 <body>
+    <div class="settings-shell">
     <?php include '../includes/header.php'; ?>
 
     <div class="container">
@@ -1498,6 +1502,7 @@ $translationNamespaces = ['common', 'tickets'];
             </div>
         </div>
     </div>
+    </div><!-- /.settings-shell -->
 
     <script>
         const API_BASE = '../../api/tickets/';
