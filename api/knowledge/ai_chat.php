@@ -8,6 +8,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';
+require_once '../../includes/ai_settings.php';
 
 header('Content-Type: application/json');
 
@@ -84,18 +85,13 @@ function generateEmbedding($text, $apiKey) {
 try {
     $conn = connectToDatabase();
 
-    // Get Claude API key
-    $keySql = "SELECT setting_value FROM system_settings WHERE setting_key = 'knowledge_ai_api_key'";
-    $keyStmt = $conn->prepare($keySql);
-    $keyStmt->execute();
-    $keyRow = $keyStmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$keyRow || empty($keyRow['setting_value'])) {
+    // Load the configured chat provider/model/key (Anthropic / OpenAI / OpenRouter)
+    // via the shared AI settings building block.
+    $aiCfg = aiSettingsLoad($conn, 'knowledge_ai');
+    if (($aiCfg['api_key'] ?? '') === '') {
         echo json_encode(['success' => false, 'error' => 'AI API key not configured. Please add it in Knowledge Settings.']);
         exit;
     }
-
-    $claudeApiKey = decryptValue($keyRow['setting_value']);
 
     // Get OpenAI API key for embeddings
     $openaiSql = "SELECT setting_value FROM system_settings WHERE setting_key = 'knowledge_openai_api_key'";
@@ -219,46 +215,19 @@ try {
         "Keep your answers concise and practical.\n\n" .
         "KNOWLEDGE BASE ARTICLES:\n" . $context;
 
-    $requestBody = json_encode([
-        'model' => 'claude-haiku-4-5-20251001',
-        'max_tokens' => 1024,
-        'system' => $systemPrompt,
-        'messages' => [
-            ['role' => 'user', 'content' => $question]
-        ]
-    ]);
-
-    $ch = curl_init('https://api.anthropic.com/v1/messages');
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $requestBody);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: application/json',
-        'x-api-key: ' . $claudeApiKey,
-        'anthropic-version: 2023-06-01'
-    ]);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-
-    $response = curl_exec($ch);
-    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $curlError = curl_error($ch);
-    curl_close($ch);
-
-    if ($curlError) {
-        echo json_encode(['success' => false, 'error' => 'Connection error: ' . $curlError]);
+    // Call the configured AI provider via the shared client (one-shot, no streaming).
+    try {
+        $aiResult = aiProviderChat($aiCfg, [
+            'system'     => $systemPrompt,
+            'user'       => $question,
+            'max_tokens' => 1024,
+        ]);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'error' => 'AI error: ' . $e->getMessage()]);
         exit;
     }
 
-    $responseData = json_decode($response, true);
-
-    if ($httpCode !== 200) {
-        $errorMsg = $responseData['error']['message'] ?? 'API returned HTTP ' . $httpCode;
-        echo json_encode(['success' => false, 'error' => 'Claude API error: ' . $errorMsg]);
-        exit;
-    }
-
-    $answer = $responseData['content'][0]['text'] ?? 'No response received';
+    $answer = $aiResult['content'] !== '' ? $aiResult['content'] : 'No response received';
 
     // Build article lookup for frontend linking
     $articleList = array_map(function($a) {

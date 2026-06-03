@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/ai_settings_panel.php';
 I18n::initFromSession();
 
 // Check if user is logged in
@@ -27,6 +28,7 @@ $translationNamespaces = ['common', 'knowledge'];
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
+    <script src="../../assets/js/ai-settings.js"></script>
     <style>
         /* Page-specific overrides for settings page */
         .container {
@@ -358,26 +360,21 @@ $translationNamespaces = ['common', 'knowledge'];
             </div>
             <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_intro')); ?></p>
 
-            <form id="aiSettingsForm">
-                <h3 style="font-size: 16px; margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_claude_heading')); ?></h3>
-                <div class="form-group">
-                    <label for="aiApiKey"><?php echo htmlspecialchars(t('knowledge.settings.ai_anthropic_key')); ?></label>
-                    <input type="password" id="aiApiKey" placeholder="sk-ant-...">
-                    <small><?php echo t('knowledge.settings.ai_anthropic_help', ['link' => '<a href="https://console.anthropic.com/settings/keys" target="_blank" style="color:#8764b8;">console.anthropic.com</a>']); ?></small>
-                </div>
+            <!-- Assistant provider/model/key — reusable block (Anthropic / OpenAI / OpenRouter). -->
+            <h3 style="font-size: 16px; margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_chat_heading')); ?></h3>
+            <?php renderAiSettingsPanel('knowledge_ai'); ?>
 
-                <h3 style="font-size: 16px; margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid #e0e0e0;"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_heading')); ?></h3>
+            <!-- OpenAI key for semantic-search embeddings — a separate concern from the chat provider. -->
+            <h3 style="font-size: 16px; margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid #e0e0e0;"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_heading')); ?></h3>
+            <form id="aiSettingsForm">
                 <div class="form-group">
                     <label for="openaiApiKey"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_key')); ?></label>
                     <input type="password" id="openaiApiKey" placeholder="sk-proj-...">
                     <small><?php echo t('knowledge.settings.ai_openai_help', ['link' => '<a href="https://platform.openai.com/api-keys" target="_blank" style="color:#8764b8;">platform.openai.com</a>']); ?></small>
                 </div>
-
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('knowledge.settings.save')); ?></button>
-                    <button type="button" class="btn btn-test" onclick="testAiConnection()"><?php echo htmlspecialchars(t('knowledge.settings.test')); ?></button>
                 </div>
-                <div class="test-result" id="aiTestResult"></div>
             </form>
         </div>
 
@@ -674,9 +671,8 @@ $translationNamespaces = ['common', 'knowledge'];
                 const response = await fetch(API_BASE + 'get_email_settings.php');
                 const data = await response.json();
                 if (data.success && data.settings) {
-                    if (data.settings.ai_api_key) {
-                        document.getElementById('aiApiKey').placeholder = window.t('knowledge.settings.key_saved_placeholder');
-                    }
+                    // The Anthropic/chat key is now owned by the reusable AI panel above;
+                    // this form only handles the OpenAI embeddings key.
                     if (data.settings.openai_api_key) {
                         document.getElementById('openaiApiKey').placeholder = window.t('knowledge.settings.key_saved_placeholder');
                     }
@@ -689,36 +685,27 @@ $translationNamespaces = ['common', 'knowledge'];
         document.getElementById('aiSettingsForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const anthropicKey = document.getElementById('aiApiKey').value.trim();
+            // This form now saves only the OpenAI embeddings key — the chat
+            // provider/model/key is handled by the reusable AI panel above.
             const openaiKey = document.getElementById('openaiApiKey').value.trim();
 
-            if (!anthropicKey && !openaiKey) {
+            if (!openaiKey) {
                 showToast(window.t('knowledge.settings.toast_need_key'), 'error');
                 return;
             }
-
-            const settings = {};
-            if (anthropicKey) settings.ai_api_key = anthropicKey;
-            if (openaiKey) settings.openai_api_key = openaiKey;
 
             try {
                 const response = await fetch(API_BASE + 'save_email_settings.php', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ settings })
+                    body: JSON.stringify({ settings: { openai_api_key: openaiKey } })
                 });
                 const data = await response.json();
 
                 if (data.success) {
                     showToast(window.t('knowledge.settings.toast_ai_saved'), 'success');
-                    if (anthropicKey) {
-                        document.getElementById('aiApiKey').value = '';
-                        document.getElementById('aiApiKey').placeholder = window.t('knowledge.settings.key_saved_placeholder');
-                    }
-                    if (openaiKey) {
-                        document.getElementById('openaiApiKey').value = '';
-                        document.getElementById('openaiApiKey').placeholder = window.t('knowledge.settings.key_saved_placeholder');
-                    }
+                    document.getElementById('openaiApiKey').value = '';
+                    document.getElementById('openaiApiKey').placeholder = window.t('knowledge.settings.key_saved_placeholder');
                 } else {
                     showToast(window.t('knowledge.settings.toast_error', { message: data.error }), 'error');
                 }
@@ -727,33 +714,6 @@ $translationNamespaces = ['common', 'knowledge'];
                 showToast(window.t('knowledge.settings.toast_ai_save_failed'), 'error');
             }
         });
-
-        async function testAiConnection() {
-            const resultDiv = document.getElementById('aiTestResult');
-            resultDiv.className = 'test-result';
-            resultDiv.style.display = 'block';
-            resultDiv.textContent = window.t('knowledge.settings.test_ai_connecting');
-
-            try {
-                const response = await fetch(API_BASE + 'ai_chat.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ question: 'List the titles of all knowledge articles you have access to.' })
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    resultDiv.className = 'test-result success';
-                    resultDiv.textContent = window.t('knowledge.settings.test_ai_ok', { count: data.articles_searched });
-                } else {
-                    resultDiv.className = 'test-result error';
-                    resultDiv.textContent = window.t('knowledge.settings.toast_error', { message: data.error });
-                }
-            } catch (error) {
-                resultDiv.className = 'test-result error';
-                resultDiv.textContent = window.t('knowledge.settings.test_ai_error', { message: error.message });
-            }
-        }
 
         // === Embedding Functions ===
 

@@ -245,6 +245,7 @@ return [
         'ai_heading'     => 'AI assistant',
         'ai_intro'       => 'Configure the AI-powered assistant that answers questions based on your knowledge base articles.',
         'ai_claude_heading' => 'Claude API (chat)',
+        'ai_chat_heading'   => 'Assistant model (chat)',
         'ai_anthropic_key'  => 'Anthropic API key',
         'ai_anthropic_help' => 'Get your API key from {link}. Used for answering questions.',
         'ai_openai_heading' => 'OpenAI API (embeddings)',

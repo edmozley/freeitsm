@@ -587,7 +587,7 @@ Rich-text knowledge base with AI integration.
 
 - TinyMCE editor for article creation
 - Tag-based organisation and full-text search
-- AI chat powered by Anthropic Claude (searches articles via vector similarity)
+- AI chat (Ask AI) — the assistant provider/model is configurable via the shared AI panel (**Anthropic, OpenAI, or OpenRouter**); searches articles via vector similarity
 - OpenAI embeddings for semantic search
 - Email sharing capability
 - Article review workflow
@@ -699,6 +699,8 @@ System administration and configuration.
   - Each diagnostic is a single PHP file under `api/system/debug-tools/` that emits a plain-text section-delimited report — designed so the user can click **Run**, click **Copy**, and paste the entire report back to support without back-and-forth
   - Defensive by design: every section is wrapped so one failure doesn't kill the rest, and each diagnostic carries its own expected-state data so it works even when `db_verify.php`, `config.php`, the import script, or the JSON files are missing or broken
   - **D001 — Demo Core Data Import**: 9-section report covering environment (PHP, OS, extensions, limits), config files (`config.php`, `db_config.php`, DB constants), required files, `core.json` parse + record counts, DB connection (server version, charset), per-table schema sanity (expected vs actual columns, row counts, redacted sample row), transactional write probe (sentinel insert per table inside a rolled-back transaction), and a live import attempt that captures the real response + any PHP warnings + post-import row counts. Adding more diagnostics is just `Dnnn_short_name.php` + a registry entry on the landing page.
+
+- **Shared AI provider config** (`includes/ai_settings_panel.php` + `includes/ai_provider.php` + `includes/ai_settings.php` + `api/system/ai/`): one reusable building block for per-module AI configuration. Renders a provider/model/key panel (**Anthropic, OpenAI, or OpenRouter** — one OpenRouter key reaches hundreds of models, shown in a live searchable list with per-1M-token pricing), persists per-namespace settings in `system_settings` (`<ns>_provider/_model/_api_key/_verify_ssl`, key encrypted at rest), and routes chat through one provider-agnostic client (`aiProviderChat()`). A namespace allowlist registry is the security boundary for the shared endpoints. Modules opt in by registering a namespace and dropping `renderAiSettingsPanel('<ns>')` on their settings page — currently live on Knowledge; the other AI modules adopt it incrementally. OpenRouter also supports multiple keys with per-key spend limits, so per-module granular billing is preserved under a single account.
 
 ### Forms (`forms/`)
 Dynamic form builder and submission system with a full-width dashboard + dedicated edit page.
