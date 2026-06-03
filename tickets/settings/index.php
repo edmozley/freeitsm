@@ -40,22 +40,26 @@ $translationNamespaces = ['common', 'tickets'];
     <style>
         /* Page-specific overrides for settings page */
 
-        /* Pin the header and make .container the ONLY scroll region, whatever
-         * height the header/tab strip ends up. The previous
-         * `height: calc(100vh - 48px)` hard-coded a one-line 48px header; once
-         * the header nav or the tab strip wraps to two lines the real header is
-         * taller, the body overflowed 100vh, and because inbox.css sets
-         * body{overflow:hidden} a field focus could nudge-scroll the body and
-         * shove the header off the top with no scrollbar to bring it back.
-         * Flex layout removes that hard-coded assumption.
+        /* Let the page body scroll and pin the header with position:sticky.
+         *
+         * We deliberately do NOT make <body> a flex (or grid) container and do
+         * NOT give .container a fixed height. Browser extensions such as
+         * LastPass inject their own nodes as direct children of <body> (and
+         * around focused inputs); under a flex body those became flex items and
+         * wrecked the layout, and the old fixed `height: calc(100vh - 48px)`
+         * assumed a one-line 48px header. With a normally-scrolling body + a
+         * sticky header, the header stays put no matter the header/tab height
+         * or anything an extension injects.
+         *
          * Also overrides the shared .container 1200px cap so settings fills the
          * full width (#268-#270); padding-bottom keeps the last row of buttons
-         * clear of the scroll viewport's bottom edge. */
-        body { display: flex; flex-direction: column; }
+         * clear of the viewport's bottom edge. */
+        html { height: 100%; }
+        body { height: 100%; overflow-y: auto; overflow-x: hidden; display: block; }
+        .header { position: sticky; top: 0; z-index: 100; }
         .container {
-            flex: 1 1 auto;
-            min-height: 0;
-            overflow-y: auto;
+            height: auto;
+            overflow: visible;
             max-width: none;
             padding-bottom: 24px;
         }
