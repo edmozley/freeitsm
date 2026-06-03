@@ -376,6 +376,15 @@ return [
         'tab_warranty'         => 'Warranty alerts',
         'tab_vcenter'          => 'vCenter',
         'tab_intune'           => 'InTune',
+        'tab_left_panel'       => 'Left panel',
+
+        // Left panel (per-analyst sidebar visibility)
+        'left_panel_intro'        => 'Choose how the left panel (the asset list) behaves. This preference is saved to your account.',
+        'left_panel_visibility'   => 'Left panel visibility',
+        'left_panel_always'       => 'Always visible',
+        'left_panel_always_desc'  => 'Keep the asset list pinned open at all times.',
+        'left_panel_hover'        => 'Show on hover',
+        'left_panel_hover_desc'   => 'Collapse the asset list to a thin strip that expands when you hover over it, giving asset details more room.',
 
         // Type/status table columns + modal
         'col_name'        => 'Name',

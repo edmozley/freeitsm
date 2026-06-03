@@ -60,3 +60,62 @@ require_once $path_prefix . 'includes/waffle-menu.php';
 </div>
 
 <?php renderWaffleMenuJS(); ?>
+
+<style>
+/* Per-analyst left-panel visibility (set under System -> Preferences).
+   'hover' collapses .wiki-sidebar to a 16px hot-zone that expands on hover;
+   'always' (default) leaves it pinned. Mirrors the knowledge / contracts
+   pattern. Pref key: system_wiki_sidebar_mode. */
+.wiki-container { position: relative; }
+.wiki-container.sidebar-hover .wiki-sidebar {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 16px;
+    min-width: 16px;
+    z-index: 10;
+    overflow: hidden;
+    transition: width 0.18s ease;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.12);
+    padding: 0;
+}
+.wiki-container.sidebar-hover .wiki-sidebar:hover {
+    width: 280px;
+    min-width: 280px;
+    padding: 12px 0;
+    overflow-y: auto;
+}
+.wiki-container.sidebar-hover .wiki-sidebar > * {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease 0s;
+}
+.wiki-container.sidebar-hover .wiki-sidebar:hover > * {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.08s;
+}
+.wiki-container.sidebar-hover .wiki-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 6px;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 36px;
+    border-radius: 2px;
+    background: #bbb;
+    transition: opacity 0.18s;
+    pointer-events: none;
+}
+.wiki-container.sidebar-hover .wiki-sidebar:hover::before { opacity: 0; }
+</style>
+<script>
+(async function() {
+    try {
+        const r = await fetch('<?php echo BASE_URL; ?>api/system/get_user_preference.php?key=system_wiki_sidebar_mode', { credentials: 'same-origin' });
+        const d = await r.json();
+        const mode = (d.success && d.value === 'hover') ? 'hover' : 'always';
+        document.querySelectorAll('.wiki-container').forEach(el => el.classList.toggle('sidebar-hover', mode === 'hover'));
+    } catch (e) { /* no-op -- default is always-visible */ }
+})();
+</script>

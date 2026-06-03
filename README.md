@@ -687,6 +687,9 @@ System administration and configuration.
   - 9 configurable screen positions via visual grid picker in System Settings → General
   - Position preference saved per-browser in localStorage
   - Slide-in animations, auto-dismiss after 4 seconds, manual close button
+- **Preferences** (`system/preferences/`): Per-analyst settings that follow the analyst across browsers (persisted in `user_preferences`)
+  - Interface language, notification (toast) position + animation, and the Morning Checks trend-chart fill style
+  - **Left panels**: per-module control of whether a module's left panel stays pinned open (*Always visible*) or collapses to a thin 16px strip that expands on hover (*Show on hover*, freeing space for the main content). Covers every module that has a left panel — Knowledge, Process Mapper, Contracts, Calendar, Tasks, CMDB, Change Management, Asset Management and System Wiki — each stored as `<module>_sidebar_mode`. Modules with their own settings page also expose the same toggle on a **Left panel** tab there; the module header applies the choice on every page
 - **Demo Data** (`system/demo-data/`): One-click import of realistic sample data across all modules
   - Populates tickets, assets, knowledge articles, changes, calendar events, morning checks, contracts, services, software, forms, tasks, process-mapper flowcharts, analysts, and end users
   - Process Mapper demo data is **auto-laid-out**: the JSON omits step coordinates and a server-side layered-DAG layout pass assigns x/y on import

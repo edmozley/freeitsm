@@ -265,6 +265,7 @@ $translationNamespaces = ['common', 'change-management'];
             <button class="tab" data-tab="priorities" onclick="switchTab('priorities')"><?php echo htmlspecialchars(t('change-management.settings.tab_priorities')); ?></button>
             <button class="tab" data-tab="types" onclick="switchTab('types')"><?php echo htmlspecialchars(t('change-management.settings.tab_types')); ?></button>
             <button class="tab" data-tab="impacts" onclick="switchTab('impacts')"><?php echo htmlspecialchars(t('change-management.settings.tab_impacts')); ?></button>
+            <button class="tab" data-tab="left-panel" onclick="switchTab('left-panel')"><?php echo htmlspecialchars(t('change-management.settings.tab_left_panel')); ?></button>
         </div>
 
         <!-- Form Fields Tab -->
@@ -332,6 +333,34 @@ $translationNamespaces = ['common', 'change-management'];
                 <thead><tr><th><?php echo htmlspecialchars(t('change-management.settings.col_name')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_colour')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_default')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_order')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_status')); ?></th><th><?php echo htmlspecialchars(t('change-management.settings.col_actions')); ?></th></tr></thead>
                 <tbody id="impacts-list"><tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('change-management.settings.loading')); ?></td></tr></tbody>
             </table>
+        </div>
+
+        <!-- Left panel tab — per-analyst preference -->
+        <div class="tab-content" id="left-panel-tab">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('change-management.settings.tab_left_panel')); ?></h2>
+            </div>
+            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('change-management.settings.left_panel_intro')); ?></p>
+
+            <form id="leftPanelForm" autocomplete="off" onsubmit="event.preventDefault();">
+                <div class="form-group">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;"><?php echo htmlspecialchars(t('change-management.settings.left_panel_visibility')); ?></label>
+                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
+                        <input type="radio" name="cmSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
+                        <strong><?php echo htmlspecialchars(t('change-management.settings.left_panel_always')); ?></strong>
+                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                            <?php echo htmlspecialchars(t('change-management.settings.left_panel_always_desc')); ?>
+                        </span>
+                    </label>
+                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                        <input type="radio" name="cmSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
+                        <strong><?php echo htmlspecialchars(t('change-management.settings.left_panel_hover')); ?></strong>
+                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                            <?php echo htmlspecialchars(t('change-management.settings.left_panel_hover_desc')); ?>
+                        </span>
+                    </label>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -410,6 +439,41 @@ $translationNamespaces = ['common', 'change-management'];
             if (btn) btn.classList.add('active');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tab + '-tab').classList.add('active');
+            if (tab === 'left-panel') loadSidebarMode();
+        }
+
+        // --- Left panel preference ------------------------------------
+        // 'always' vs 'hover', stored per-analyst via user_preferences.
+        // header.php reads the same key on every change page and toggles
+        // .sidebar-hover on .changes-container. Also editable under
+        // System → Preferences.
+        const SIDEBAR_MODE_KEY = 'change_management_sidebar_mode';
+        let sidebarModeLoaded = false;
+        async function loadSidebarMode() {
+            if (sidebarModeLoaded) return;
+            sidebarModeLoaded = true;
+            try {
+                const r = await fetch('../../api/system/get_user_preference.php?key=' + encodeURIComponent(SIDEBAR_MODE_KEY), { credentials: 'same-origin' });
+                const d = await r.json();
+                const mode = (d.success && (d.value === 'always' || d.value === 'hover')) ? d.value : 'always';
+                document.querySelectorAll('input[name="cmSidebarMode"]').forEach(i => { i.checked = (i.value === mode); });
+            } catch (e) {
+                const first = document.querySelector('input[name="cmSidebarMode"][value="always"]');
+                if (first) first.checked = true;
+            }
+        }
+        async function saveSidebarMode(value) {
+            if (value !== 'always' && value !== 'hover') return;
+            try {
+                const r = await fetch('../../api/system/set_user_preference.php', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: SIDEBAR_MODE_KEY, value: value })
+                });
+                const d = await r.json();
+                if (d.success) showToast(window.t('change-management.toast.saved'), 'success');
+            } catch (e) { /* no-op */ }
         }
 
         document.addEventListener('DOMContentLoaded', function() {

@@ -59,3 +59,61 @@ require_once $path_prefix . 'includes/waffle-menu.php';
 </div>
 
 <?php renderWaffleMenuJS(); ?>
+
+<style>
+/* Per-analyst left-panel visibility (CMDB Settings -> Left panel, and
+   System -> Preferences). 'hover' collapses .browse-sidebar to a 16px
+   hot-zone that expands on hover; 'always' (default) leaves it pinned.
+   Mirrors the knowledge / contracts pattern. Pref key: cmdb_sidebar_mode. */
+.browse-container { position: relative; }
+.browse-container.sidebar-hover .browse-sidebar {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 16px;
+    min-width: 16px;
+    z-index: 10;
+    overflow: hidden;
+    transition: width 0.18s ease;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.12);
+    padding: 0;
+}
+.browse-container.sidebar-hover .browse-sidebar:hover {
+    width: 260px;
+    min-width: 260px;
+    overflow-y: auto;
+}
+.browse-container.sidebar-hover .browse-sidebar > * {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease 0s;
+}
+.browse-container.sidebar-hover .browse-sidebar:hover > * {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.08s;
+}
+.browse-container.sidebar-hover .browse-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 6px;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 36px;
+    border-radius: 2px;
+    background: #bbb;
+    transition: opacity 0.18s;
+    pointer-events: none;
+}
+.browse-container.sidebar-hover .browse-sidebar:hover::before { opacity: 0; }
+</style>
+<script>
+(async function() {
+    try {
+        const r = await fetch('<?php echo BASE_URL; ?>api/system/get_user_preference.php?key=cmdb_sidebar_mode', { credentials: 'same-origin' });
+        const d = await r.json();
+        const mode = (d.success && d.value === 'hover') ? 'hover' : 'always';
+        document.querySelectorAll('.browse-container').forEach(el => el.classList.toggle('sidebar-hover', mode === 'hover'));
+    } catch (e) { /* no-op -- default is always-visible */ }
+})();
+</script>

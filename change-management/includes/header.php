@@ -89,3 +89,62 @@ require_once __DIR__ . '/../../includes/waffle-menu.php';
 </div>
 
 <?php renderWaffleMenuJS(); ?>
+
+<style>
+/* Per-analyst left-panel visibility (Change Management Settings -> Left panel,
+   and System -> Preferences). 'hover' collapses .changes-sidebar to a 16px
+   hot-zone that expands on hover; 'always' (default) leaves it pinned.
+   Mirrors the knowledge / contracts pattern. Pref key: change_management_sidebar_mode. */
+.changes-container { position: relative; }
+.changes-container.sidebar-hover .changes-sidebar {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 16px;
+    min-width: 16px;
+    z-index: 10;
+    overflow: hidden;
+    transition: width 0.18s ease;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.12);
+    padding: 0;
+}
+.changes-container.sidebar-hover .changes-sidebar:hover {
+    width: 280px;
+    min-width: 280px;
+    padding: 20px;
+    overflow-y: auto;
+}
+.changes-container.sidebar-hover .changes-sidebar > * {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease 0s;
+}
+.changes-container.sidebar-hover .changes-sidebar:hover > * {
+    opacity: 1;
+    pointer-events: auto;
+    transition-delay: 0.08s;
+}
+.changes-container.sidebar-hover .changes-sidebar::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 6px;
+    transform: translateY(-50%);
+    width: 3px;
+    height: 36px;
+    border-radius: 2px;
+    background: #bbb;
+    transition: opacity 0.18s;
+    pointer-events: none;
+}
+.changes-container.sidebar-hover .changes-sidebar:hover::before { opacity: 0; }
+</style>
+<script>
+(async function() {
+    try {
+        const r = await fetch('<?php echo BASE_URL; ?>api/system/get_user_preference.php?key=change_management_sidebar_mode', { credentials: 'same-origin' });
+        const d = await r.json();
+        const mode = (d.success && d.value === 'hover') ? 'hover' : 'always';
+        document.querySelectorAll('.changes-container').forEach(el => el.classList.toggle('sidebar-hover', mode === 'hover'));
+    } catch (e) { /* no-op -- default is always-visible */ }
+})();
+</script>

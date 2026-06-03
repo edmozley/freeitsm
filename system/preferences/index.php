@@ -21,8 +21,18 @@ $currentLocale = I18n::getLocale();
 $prefDefaults = [
     'toast_position'             => 'bottom-right',
     'toast_animation'            => 'slide',
-    'knowledge_sidebar_mode'     => 'always',
-    'process_mapper_sidebar_mode'=> 'always',
+    // Left-panel visibility — one key per module that has a left panel.
+    // Each module's header reads its key; module settings pages (where one
+    // exists) edit the same key. Surfaced together below.
+    'knowledge_sidebar_mode'         => 'always',
+    'process_mapper_sidebar_mode'    => 'always',
+    'contracts_sidebar_mode'         => 'always',
+    'calendar_sidebar_mode'          => 'always',
+    'tasks_sidebar_mode'             => 'always',
+    'cmdb_sidebar_mode'              => 'always',
+    'change_management_sidebar_mode' => 'always',
+    'asset_management_sidebar_mode'  => 'always',
+    'system_wiki_sidebar_mode'       => 'always',
     'mc_chart_fill_style'        => 'plain',
 ];
 $prefs = $prefDefaults;
@@ -174,6 +184,29 @@ if (isset($_SESSION['analyst_id'])) {
             transition: opacity 0.2s;
         }
         .pref-saving-hint.show { opacity: 1; }
+
+        .sidebar-panels-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 520px;
+        }
+
+        .sidebar-panel-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .sidebar-panel-row:last-child { border-bottom: none; }
+
+        .sidebar-panel-label {
+            font-size: 14px;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -213,21 +246,12 @@ if (isset($_SESSION['analyst_id'])) {
             </div>
 
             <div class="pref-section">
-                <h3><?php echo htmlspecialchars(t('system.preferences.kb_heading')); ?></h3>
-                <p><?php echo htmlspecialchars(t('system.preferences.kb_desc')); ?></p>
-                <div class="anim-toggle" id="kbSidebarToggle">
-                    <button class="anim-option" data-mode="always"><?php echo htmlspecialchars(t('system.preferences.always_visible')); ?></button>
-                    <button class="anim-option" data-mode="hover"><?php echo htmlspecialchars(t('system.preferences.show_on_hover')); ?></button>
-                </div>
-            </div>
-
-            <div class="pref-section">
-                <h3><?php echo htmlspecialchars(t('system.preferences.pm_heading')); ?></h3>
-                <p><?php echo htmlspecialchars(t('system.preferences.pm_desc')); ?></p>
-                <div class="anim-toggle" id="pmSidebarToggle">
-                    <button class="anim-option" data-mode="always"><?php echo htmlspecialchars(t('system.preferences.always_visible')); ?></button>
-                    <button class="anim-option" data-mode="hover"><?php echo htmlspecialchars(t('system.preferences.show_on_hover')); ?></button>
-                </div>
+                <h3><?php echo htmlspecialchars(t('system.preferences.panels_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.panels_desc')); ?></p>
+                <!-- One row per module that has a left panel. Rows are built
+                     in JS from SIDEBAR_PANELS so adding a module is a one-line
+                     change here + a default in $prefDefaults above. -->
+                <div id="sidebarPanelsList" class="sidebar-panels-list"></div>
             </div>
 
             <div class="pref-section">
@@ -350,9 +374,59 @@ if (isset($_SESSION['analyst_id'])) {
 
         wireToggle('animToggle',      'anim', 'toast_animation',            INITIAL_PREFS.toast_animation,
                    v => showToast(window.t('system.preferences.anim_preview', { anim: v }), 'info'));
-        wireToggle('kbSidebarToggle', 'mode', 'knowledge_sidebar_mode',     INITIAL_PREFS.knowledge_sidebar_mode);
-        wireToggle('pmSidebarToggle', 'mode', 'process_mapper_sidebar_mode',INITIAL_PREFS.process_mapper_sidebar_mode);
         wireToggle('mcFillToggle',    'fill', 'mc_chart_fill_style',        INITIAL_PREFS.mc_chart_fill_style);
+
+        // ===== Left-panel visibility, one toggle per module =====
+        // Rows are generated here so the markup stays a single container.
+        // Each module's settings page (where one exists) edits the same
+        // preference key, and the module header reads it on every page.
+        const SIDEBAR_PANELS = [
+            { key: 'knowledge_sidebar_mode',         label: window.t('system.preferences.panel_knowledge') },
+            { key: 'process_mapper_sidebar_mode',    label: window.t('system.preferences.panel_process_mapper') },
+            { key: 'contracts_sidebar_mode',         label: window.t('system.preferences.panel_contracts') },
+            { key: 'calendar_sidebar_mode',          label: window.t('system.preferences.panel_calendar') },
+            { key: 'tasks_sidebar_mode',             label: window.t('system.preferences.panel_tasks') },
+            { key: 'cmdb_sidebar_mode',              label: window.t('system.preferences.panel_cmdb') },
+            { key: 'change_management_sidebar_mode', label: window.t('system.preferences.panel_change_management') },
+            { key: 'asset_management_sidebar_mode',  label: window.t('system.preferences.panel_asset_management') },
+            { key: 'system_wiki_sidebar_mode',       label: window.t('system.preferences.panel_system_wiki') }
+        ];
+        const ALWAYS_LABEL = window.t('system.preferences.always_visible');
+        const HOVER_LABEL  = window.t('system.preferences.show_on_hover');
+        const panelsList = document.getElementById('sidebarPanelsList');
+        if (panelsList) {
+            SIDEBAR_PANELS.forEach(panel => {
+                const row = document.createElement('div');
+                row.className = 'sidebar-panel-row';
+
+                const label = document.createElement('span');
+                label.className = 'sidebar-panel-label';
+                label.textContent = panel.label;
+
+                const toggle = document.createElement('div');
+                toggle.className = 'anim-toggle';
+                const toggleId = 'panelToggle_' + panel.key;
+                toggle.id = toggleId;
+
+                const alwaysBtn = document.createElement('button');
+                alwaysBtn.className = 'anim-option';
+                alwaysBtn.dataset.mode = 'always';
+                alwaysBtn.textContent = ALWAYS_LABEL;
+
+                const hoverBtn = document.createElement('button');
+                hoverBtn.className = 'anim-option';
+                hoverBtn.dataset.mode = 'hover';
+                hoverBtn.textContent = HOVER_LABEL;
+
+                toggle.appendChild(alwaysBtn);
+                toggle.appendChild(hoverBtn);
+                row.appendChild(label);
+                row.appendChild(toggle);
+                panelsList.appendChild(row);
+
+                wireToggle(toggleId, 'mode', panel.key, INITIAL_PREFS[panel.key] || 'always');
+            });
+        }
 
         // One-shot migration — if the user had old localStorage values
         // for the two toast prefs but no DB row yet (e.g. they're

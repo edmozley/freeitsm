@@ -97,6 +97,7 @@ $translationNamespaces = ['common', 'tasks'];
             <button class="tab" data-tab="calendar" onclick="switchTab('calendar')"><?php echo htmlspecialchars(t('tasks.settings.tab_calendar')); ?></button>
             <button class="tab" data-tab="card" onclick="switchTab('card')"><?php echo htmlspecialchars(t('tasks.settings.tab_card')); ?></button>
             <button class="tab" data-tab="tags" onclick="switchTab('tags')"><?php echo htmlspecialchars(t('tasks.settings.tab_tags')); ?></button>
+            <button class="tab" data-tab="left-panel" onclick="switchTab('left-panel')"><?php echo htmlspecialchars(t('tasks.settings.tab_left_panel')); ?></button>
         </div>
 
         <!-- Statuses Tab -->
@@ -297,6 +298,33 @@ $translationNamespaces = ['common', 'tasks'];
                 </div>
             </div>
         </div>
+
+        <!-- Left panel tab — per-analyst preference -->
+        <div class="tab-content" id="left-panel-tab">
+            <div class="settings-group">
+                <div class="section-header">
+                    <h3><?php echo htmlspecialchars(t('tasks.settings.tab_left_panel')); ?></h3>
+                </div>
+                <p style="color: #666; margin-bottom: 14px;"><?php echo htmlspecialchars(t('tasks.settings.left_panel_intro')); ?></p>
+                <form id="leftPanelForm" autocomplete="off" onsubmit="event.preventDefault();">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;"><?php echo htmlspecialchars(t('tasks.settings.left_panel_visibility')); ?></label>
+                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
+                        <input type="radio" name="tasksSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
+                        <strong><?php echo htmlspecialchars(t('tasks.settings.left_panel_always')); ?></strong>
+                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                            <?php echo htmlspecialchars(t('tasks.settings.left_panel_always_desc')); ?>
+                        </span>
+                    </label>
+                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                        <input type="radio" name="tasksSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
+                        <strong><?php echo htmlspecialchars(t('tasks.settings.left_panel_hover')); ?></strong>
+                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                            <?php echo htmlspecialchars(t('tasks.settings.left_panel_hover_desc')); ?>
+                        </span>
+                    </label>
+                </form>
+            </div>
+        </div>
     </div>
 
     <!-- Lookup edit modal -->
@@ -361,6 +389,41 @@ $translationNamespaces = ['common', 'tasks'];
             if (btn) btn.classList.add('active');
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             document.getElementById(tab + '-tab').classList.add('active');
+            if (tab === 'left-panel') loadSidebarMode();
+        }
+
+        // --- Left panel preference ------------------------------------
+        // 'always' vs 'hover', stored per-analyst via user_preferences.
+        // header.php reads the same key on every tasks page and toggles
+        // .sidebar-hover on .tasks-container. Also editable under
+        // System → Preferences.
+        const SIDEBAR_MODE_KEY = 'tasks_sidebar_mode';
+        let sidebarModeLoaded = false;
+        async function loadSidebarMode() {
+            if (sidebarModeLoaded) return;
+            sidebarModeLoaded = true;
+            try {
+                const r = await fetch('../../api/system/get_user_preference.php?key=' + encodeURIComponent(SIDEBAR_MODE_KEY), { credentials: 'same-origin' });
+                const d = await r.json();
+                const mode = (d.success && (d.value === 'always' || d.value === 'hover')) ? d.value : 'always';
+                document.querySelectorAll('input[name="tasksSidebarMode"]').forEach(i => { i.checked = (i.value === mode); });
+            } catch (e) {
+                const first = document.querySelector('input[name="tasksSidebarMode"][value="always"]');
+                if (first) first.checked = true;
+            }
+        }
+        async function saveSidebarMode(value) {
+            if (value !== 'always' && value !== 'hover') return;
+            try {
+                const r = await fetch('../../api/system/set_user_preference.php', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ key: SIDEBAR_MODE_KEY, value: value })
+                });
+                const d = await r.json();
+                if (d.success) showToast(t('tasks.toast.saved'), 'success');
+            } catch (e) { /* no-op */ }
         }
 
         const LOOKUP_KINDS = {

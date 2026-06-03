@@ -51,6 +51,40 @@ function switchTab(tab) {
     if (tab === 'classes') loadClasses();
     else if (tab === 'relationship-types') loadRelTypes();
     else if (tab === 'ai') loadAiSettings();
+    else if (tab === 'left-panel') loadSidebarMode();
+}
+
+// ---------- Left panel preference ----------
+// 'always' vs 'hover', stored per-analyst via user_preferences. header.php
+// reads the same key on every CMDB page and toggles .sidebar-hover on the
+// .browse-container. Also editable under System → Preferences.
+const SIDEBAR_MODE_KEY = 'cmdb_sidebar_mode';
+let sidebarModeLoaded = false;
+async function loadSidebarMode() {
+    if (sidebarModeLoaded) return;
+    sidebarModeLoaded = true;
+    try {
+        const r = await fetch('../../api/system/get_user_preference.php?key=' + encodeURIComponent(SIDEBAR_MODE_KEY), { credentials: 'same-origin' });
+        const d = await r.json();
+        const mode = (d.success && (d.value === 'always' || d.value === 'hover')) ? d.value : 'always';
+        document.querySelectorAll('input[name="cmdbSidebarMode"]').forEach(i => { i.checked = (i.value === mode); });
+    } catch (e) {
+        const first = document.querySelector('input[name="cmdbSidebarMode"][value="always"]');
+        if (first) first.checked = true;
+    }
+}
+async function saveSidebarMode(value) {
+    if (value !== 'always' && value !== 'hover') return;
+    try {
+        const r = await fetch('../../api/system/set_user_preference.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: SIDEBAR_MODE_KEY, value: value })
+        });
+        const d = await r.json();
+        if (d.success) showInlineToast(window.t('cmdb.settings.left_panel_saved'));
+    } catch (e) { /* no-op */ }
 }
 
 // ---------- Classes ----------
