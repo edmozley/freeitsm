@@ -2833,16 +2833,26 @@ try {
     // Ticket child foreign keys (db_verify $schema only builds columns + PK; FKs
     // added here so installs grown via db_verify match a fresh freeitsm.sql).
     // These have NO cascade, so delete_ticket.php removes the children explicitly.
-    // On installs that already hold orphaned child rows the ADD silently no-ops
-    // (caught below) — the FK simply isn't enforced until the orphans clear.
+    // Older installs may hold orphaned child rows (e.g. attachments left behind
+    // when the pre-fix delete removed an email but not its email_attachments) —
+    // MySQL refuses to add a FK while those exist. We delete the provably-orphaned
+    // rows (parent id no longer present) first, then add the constraint.
+    // [child table, constraint name, child FK column, parent table, ADD sql]
     $ticketChildFks = [
-        ['email_attachments',   'fk_email_attachments_email', "ALTER TABLE email_attachments ADD CONSTRAINT fk_email_attachments_email FOREIGN KEY (email_id) REFERENCES emails (id)"],
-        ['ticket_notes',        'fk_notes_tickets',           "ALTER TABLE ticket_notes ADD CONSTRAINT fk_notes_tickets FOREIGN KEY (ticket_id) REFERENCES tickets (id)"],
-        ['ticket_audit',        'fk_ticket_audit_ticket',     "ALTER TABLE ticket_audit ADD CONSTRAINT fk_ticket_audit_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id)"],
-        ['ticket_time_entries', 'fk_time_entries_tickets',    "ALTER TABLE ticket_time_entries ADD CONSTRAINT fk_time_entries_tickets FOREIGN KEY (ticket_id) REFERENCES tickets (id)"],
+        ['email_attachments',   'fk_email_attachments_email', 'email_id',  'emails',  "ALTER TABLE email_attachments ADD CONSTRAINT fk_email_attachments_email FOREIGN KEY (email_id) REFERENCES emails (id)"],
+        ['ticket_notes',        'fk_notes_tickets',           'ticket_id', 'tickets', "ALTER TABLE ticket_notes ADD CONSTRAINT fk_notes_tickets FOREIGN KEY (ticket_id) REFERENCES tickets (id)"],
+        ['ticket_audit',        'fk_ticket_audit_ticket',     'ticket_id', 'tickets', "ALTER TABLE ticket_audit ADD CONSTRAINT fk_ticket_audit_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id)"],
+        ['ticket_time_entries', 'fk_time_entries_tickets',    'ticket_id', 'tickets', "ALTER TABLE ticket_time_entries ADD CONSTRAINT fk_time_entries_tickets FOREIGN KEY (ticket_id) REFERENCES tickets (id)"],
     ];
-    foreach ($ticketChildFks as [$tbl, $name, $sql]) {
-        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+    foreach ($ticketChildFks as [$tbl, $name, $col, $parent, $sql]) {
+        if (!$tableExists($tbl) || !$tableExists($parent) || $fkExists($tbl, $name)) continue;
+        // Clear provably-orphaned rows (parent gone) so the ADD CONSTRAINT can pass.
+        try {
+            $orphan = $conn->exec("DELETE c FROM `$tbl` c LEFT JOIN `$parent` p ON p.id = c.`$col` WHERE p.id IS NULL");
+            if ($orphan > 0) {
+                $results[] = ['table' => $tbl, 'status' => 'migrated', 'details' => ["Removed $orphan orphaned row(s) with no matching $parent before adding $name"]];
+            }
+        } catch (Exception $e) {}
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
