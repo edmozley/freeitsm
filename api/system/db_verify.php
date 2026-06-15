@@ -2845,15 +2845,29 @@ try {
         ['ticket_audit',        'fk_ticket_audit_ticket',     'ticket_id', 'tickets', "ALTER TABLE ticket_audit ADD CONSTRAINT fk_ticket_audit_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id)"],
         ['ticket_time_entries', 'fk_time_entries_tickets',    'ticket_id', 'tickets', "ALTER TABLE ticket_time_entries ADD CONSTRAINT fk_time_entries_tickets FOREIGN KEY (ticket_id) REFERENCES tickets (id)"],
     ];
+    // Plain-English description of what an orphan in each table actually is.
+    $orphanLabel = [
+        'email_attachments'   => 'email attachment(s) whose email has been deleted but the attachment rows were left behind',
+        'ticket_notes'        => 'note(s) whose ticket no longer exists',
+        'ticket_audit'        => 'audit record(s) whose ticket no longer exists',
+        'ticket_time_entries' => 'time entry/entries whose ticket no longer exists',
+    ];
     foreach ($ticketChildFks as [$tbl, $name, $col, $parent, $sql]) {
         if (!$tableExists($tbl) || !$tableExists($parent) || $fkExists($tbl, $name)) continue;
         try { $conn->exec($sql); } catch (Exception $e) {}
-        // Still missing? Orphaned rows are blocking it — report, never delete.
+        // Still missing? Orphaned rows are blocking it — report (never delete) and
+        // attach 'fix' metadata so the UI can offer a one-click cleanup button.
         if (!$fkExists($tbl, $name)) {
             try {
                 $n = (int)$conn->query("SELECT COUNT(*) FROM `$tbl` c LEFT JOIN `$parent` p ON p.id = c.`$col` WHERE p.id IS NULL")->fetchColumn();
                 if ($n > 0) {
-                    $results[] = ['table' => $tbl, 'status' => 'pending', 'details' => ["$name not added: $n orphaned row(s) reference a missing $parent. Remove those rows manually, then re-run, to enforce this foreign key. (db_verify does not delete data.)"]];
+                    $what = $orphanLabel[$tbl] ?? "orphaned row(s) referencing a missing $parent";
+                    $results[] = [
+                        'table'   => $tbl,
+                        'status'  => 'pending',
+                        'details' => ["Found $n $what. The foreign key can't be added until these are removed. Click Fix to delete them and re-check."],
+                        'fix'     => ['type' => 'delete_orphans', 'table' => $tbl, 'count' => $n],
+                    ];
                 }
             } catch (Exception $e) {}
         }

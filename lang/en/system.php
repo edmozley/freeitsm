@@ -133,6 +133,11 @@ return [
 
         'status_ok' => 'OK',
 
+        'fix'         => 'Fix',
+        'fixing'      => 'Fixing…',
+        'fix_confirm' => 'Permanently delete {count} orphaned row(s) from {table}? Their parent record no longer exists, so this data is unreachable.',
+        'fix_failed'  => 'Fix failed: {message}',
+
         'error'        => 'Error: {message}',
         'connect_fail' => 'Failed to connect: {message}',
     ],

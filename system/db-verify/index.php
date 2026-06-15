@@ -139,8 +139,24 @@ if (!isset($_SESSION['analyst_id'])) {
         .status-pill.created { background: #fff3cd; color: #856404; }
         .status-pill.updated { background: #cce5ff; color: #004085; }
         .status-pill.error { background: #f8d7da; color: #721c24; }
+        .status-pill.pending { background: #ffe0b2; color: #8a4b00; }
 
         .detail-text { font-size: 12px; color: #666; }
+
+        .fix-btn {
+            margin-left: 10px;
+            background: #8a4b00;
+            color: #fff;
+            border: none;
+            padding: 5px 14px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .fix-btn:hover { background: #6d3b00; }
+        .fix-btn:disabled { background: #bbb; cursor: not-allowed; }
 
         .placeholder-msg {
             text-align: center;
@@ -240,17 +256,65 @@ if (!isset($_SESSION['analyst_id'])) {
             document.getElementById('summaryArea').innerHTML = summaryHtml;
 
             let tableHtml = '<table class="results-table"><thead><tr><th>' + window.t('system.db_verify.col_table') + '</th><th>' + window.t('system.db_verify.col_status') + '</th><th>' + window.t('system.db_verify.col_details') + '</th></tr></thead><tbody>';
-            results.forEach(r => {
+            results.forEach((r, i) => {
                 const statusLabel = r.status === 'ok' ? window.t('system.db_verify.status_ok') : r.status.charAt(0).toUpperCase() + r.status.slice(1);
                 const details = r.details.length > 0 ? r.details.join('; ') : '-';
+                // Rows that carry a one-click fix (e.g. delete orphaned attachment rows).
+                let fixBtn = '';
+                if (r.fix && r.fix.type === 'delete_orphans') {
+                    fixBtn = ` <button class="fix-btn" data-fix-table="${escapeHtml(r.fix.table)}" data-fix-count="${r.fix.count}">${dt('system.db_verify.fix', 'Fix')}</button>`;
+                }
                 tableHtml += `<tr>
                     <td><strong>${escapeHtml(r.table)}</strong></td>
                     <td><span class="status-pill ${r.status}">${statusLabel}</span></td>
-                    <td class="detail-text">${escapeHtml(details)}</td>
+                    <td class="detail-text">${escapeHtml(details)}${fixBtn}</td>
                 </tr>`;
             });
             tableHtml += '</tbody></table>';
             document.getElementById('resultsArea').innerHTML = tableHtml;
+
+            document.querySelectorAll('.fix-btn').forEach(btn => {
+                btn.addEventListener('click', () => fixOrphans(btn));
+            });
+        }
+
+        // Delete the orphaned rows behind a 'pending' FK, then re-run verification.
+        async function fixOrphans(btn) {
+            const table = btn.getAttribute('data-fix-table');
+            const count = btn.getAttribute('data-fix-count');
+            const msg = dt('system.db_verify.fix_confirm', 'Permanently delete {count} orphaned row(s) from {table}? Their parent record no longer exists, so this data is unreachable.')
+                .replace('{count}', count).replace('{table}', table);
+            if (!confirm(msg)) return;
+
+            btn.disabled = true;
+            btn.textContent = dt('system.db_verify.fixing', 'Fixing…');
+            try {
+                const res = await fetch('../../api/system/fix_orphans.php', {
+                    method: 'POST',
+                    credentials: 'same-origin',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ table })
+                });
+                const data = await res.json();
+                if (!data.success) {
+                    alert(dt('system.db_verify.fix_failed', 'Fix failed: {message}').replace('{message}', data.error || 'unknown error'));
+                    btn.disabled = false;
+                    btn.textContent = dt('system.db_verify.fix', 'Fix');
+                    return;
+                }
+                // Re-run verification — the FK should now add cleanly and the row clears.
+                runVerification();
+            } catch (e) {
+                alert(dt('system.db_verify.fix_failed', 'Fix failed: {message}').replace('{message}', e.message));
+                btn.disabled = false;
+                btn.textContent = dt('system.db_verify.fix', 'Fix');
+            }
+        }
+
+        // t() with an English fallback so untranslated locales don't show raw keys.
+        function dt(key, fallback) {
+            const v = window.t(key);
+            return (v && v !== key) ? v : fallback;
         }
 
         function escapeHtml(text) {
