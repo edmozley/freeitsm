@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/ai_settings_panel.php';
 I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
