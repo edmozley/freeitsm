@@ -42,10 +42,27 @@ try {
     $id = $data['id'] ?? null;
     $name = $data['name'];
     $provider = $data['provider'] ?? 'microsoft';
+    $oauth_redirect_uri_plain = trim($data['oauth_redirect_uri']);
+    $redirectPath = parse_url($oauth_redirect_uri_plain, PHP_URL_PATH) ?: '';
+    if ($provider === 'google' && !preg_match('#(^|/)google_oauth_callback\.php$#i', $redirectPath)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Google Workspace mailboxes must use google_oauth_callback.php as the OAuth redirect URI.'
+        ]);
+        exit;
+    }
+    if ($provider === 'microsoft' && !preg_match('#(^|/)oauth_callback\.php$#i', $redirectPath)) {
+        echo json_encode([
+            'success' => false,
+            'error' => 'Microsoft 365 mailboxes must use oauth_callback.php as the OAuth redirect URI.'
+        ]);
+        exit;
+    }
+
     $azure_tenant_id = encryptValue($data['azure_tenant_id'] ?? '');
     $azure_client_id = encryptValue($data['azure_client_id']);
     $azure_client_secret = $data['azure_client_secret'] ?? '';
-    $oauth_redirect_uri = encryptValue($data['oauth_redirect_uri']);
+    $oauth_redirect_uri = encryptValue($oauth_redirect_uri_plain);
     $oauth_scopes = $data['oauth_scopes'] ?? 'openid email offline_access Mail.Read Mail.ReadWrite Mail.Send';
     $imap_server = encryptValue($data['imap_server'] ?? 'outlook.office365.com');
     $imap_port = $data['imap_port'] ?? 993;

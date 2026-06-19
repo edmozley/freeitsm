@@ -294,15 +294,15 @@ $schema = [
         'id'                      => 'INT NOT NULL AUTO_INCREMENT',
         'name'                    => 'VARCHAR(100) NOT NULL',
         'provider'                => "VARCHAR(20) NOT NULL DEFAULT 'microsoft'",
-        'azure_tenant_id'         => 'VARCHAR(100) NOT NULL',
-        'azure_client_id'         => 'VARCHAR(100) NOT NULL',
-        'azure_client_secret'     => 'VARCHAR(255) NOT NULL',
-        'oauth_redirect_uri'      => 'VARCHAR(500) NOT NULL',
+        'azure_tenant_id'         => 'TEXT NOT NULL',
+        'azure_client_id'         => 'TEXT NOT NULL',
+        'azure_client_secret'     => 'TEXT NOT NULL',
+        'oauth_redirect_uri'      => 'TEXT NOT NULL',
         'oauth_scopes'            => 'VARCHAR(500) NOT NULL DEFAULT \'openid email offline_access Mail.Read Mail.ReadWrite Mail.Send\'',
-        'imap_server'             => 'VARCHAR(255) NOT NULL DEFAULT \'outlook.office365.com\'',
+        'imap_server'             => 'TEXT NOT NULL',
         'imap_port'               => 'INT NOT NULL DEFAULT 993',
         'imap_encryption'         => 'VARCHAR(10) NOT NULL DEFAULT \'ssl\'',
-        'target_mailbox'          => 'VARCHAR(255) NOT NULL',
+        'target_mailbox'          => 'TEXT NOT NULL',
         'token_data'              => 'LONGTEXT NULL',
         'email_folder'            => 'VARCHAR(100) NOT NULL DEFAULT \'INBOX\'',
         'max_emails_per_check'    => 'INT NOT NULL DEFAULT 10',
@@ -2064,8 +2064,47 @@ try {
                 $tableResult['details'][] = 'Added columns: ' . implode(', ', $addedColumns);
             }
         }
-
         $results[] = $tableResult;
+    }
+
+    // Existing installs may have encrypted mailbox values in VARCHAR columns.
+    // AES-GCM ciphertext can exceed the original plaintext length, so widen
+    // those columns even when they already exist.
+    $mailboxEncryptedColumns = [
+        'azure_tenant_id',
+        'azure_client_id',
+        'azure_client_secret',
+        'oauth_redirect_uri',
+        'imap_server',
+        'target_mailbox',
+    ];
+    $modifiedMailboxColumns = [];
+    foreach ($mailboxEncryptedColumns as $columnName) {
+        $typeStmt = $conn->prepare(
+            "SELECT DATA_TYPE FROM information_schema.columns
+             WHERE table_schema = ? AND table_name = 'target_mailboxes' AND column_name = ?"
+        );
+        $typeStmt->execute([$dbName, $columnName]);
+        $dataType = strtolower((string)$typeStmt->fetchColumn());
+        if ($dataType !== '' && $dataType !== 'text') {
+            try {
+                $conn->exec("ALTER TABLE `target_mailboxes` MODIFY `$columnName` TEXT NOT NULL");
+                $modifiedMailboxColumns[] = $columnName;
+            } catch (Exception $e) {
+                $results[] = [
+                    'table' => 'target_mailboxes',
+                    'status' => 'error',
+                    'details' => ["Failed to widen $columnName: " . $e->getMessage()]
+                ];
+            }
+        }
+    }
+    if (count($modifiedMailboxColumns) > 0) {
+        $results[] = [
+            'table' => 'target_mailboxes',
+            'status' => 'updated',
+            'details' => ['Widened encrypted mailbox columns: ' . implode(', ', $modifiedMailboxColumns)]
+        ];
     }
 
     // Seed default admin account if no analysts exist

@@ -2387,7 +2387,7 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('mailboxTenantId').value = mailbox ? mailbox.azure_tenant_id : '';
             document.getElementById('mailboxClientId').value = mailbox ? mailbox.azure_client_id : '';
             document.getElementById('mailboxClientSecret').value = '';
-            document.getElementById('mailboxRedirectUri').value = mailbox ? mailbox.oauth_redirect_uri : 'https://your-server.com/oauth_callback.php';
+            document.getElementById('mailboxRedirectUri').value = mailbox ? mailbox.oauth_redirect_uri : getDefaultOAuthRedirectUri(document.getElementById('mailboxProvider').value);
             document.getElementById('mailboxScopes').value = mailbox ? mailbox.oauth_scopes : 'openid email offline_access Mail.Read Mail.ReadWrite Mail.Send';
             document.getElementById('mailboxImapServer').value = mailbox ? mailbox.imap_server : 'outlook.office365.com';
             document.getElementById('mailboxImapPort').value = mailbox ? mailbox.imap_port : 993;
@@ -2426,6 +2426,7 @@ $translationNamespaces = ['common', 'tickets'];
         function toggleProviderFields() {
             const provider = document.getElementById('mailboxProvider').value;
             const isMicrosoft = provider === 'microsoft';
+            const mailboxId = document.getElementById('mailboxId').value;
 
             // Show/hide Microsoft-only fields
             document.querySelectorAll('.provider-microsoft').forEach(el => {
@@ -2443,12 +2444,24 @@ $translationNamespaces = ['common', 'tickets'];
                 : 'xxxxxxxxxx-xxxxxxxxx.apps.googleusercontent.com';
 
             const redirectInput = document.getElementById('mailboxRedirectUri');
-            if (!document.getElementById('mailboxId').value) {
-                // Only auto-fill for new mailboxes
-                redirectInput.placeholder = isMicrosoft
-                    ? 'https://yoursite.com/oauth_callback.php'
-                    : 'https://yoursite.com/google_oauth_callback.php';
+            const expectedCallback = isMicrosoft ? 'oauth_callback.php' : 'google_oauth_callback.php';
+            const otherCallback = isMicrosoft ? 'google_oauth_callback.php' : 'oauth_callback.php';
+            redirectInput.placeholder = getDefaultOAuthRedirectUri(provider);
+
+            if (!mailboxId || redirectInput.value.includes(otherCallback)) {
+                redirectInput.value = getDefaultOAuthRedirectUri(provider);
+                redirectInput.setCustomValidity('');
+            } else if (redirectInput.value && !redirectInput.value.includes(expectedCallback)) {
+                redirectInput.setCustomValidity('OAuth redirect URI must use ' + expectedCallback + ' for this provider.');
+            } else {
+                redirectInput.setCustomValidity('');
             }
+        }
+
+        function getDefaultOAuthRedirectUri(provider) {
+            const callback = provider === 'google' ? 'google_oauth_callback.php' : 'oauth_callback.php';
+            const appRoot = new URL('../../', window.location.href);
+            return appRoot.origin + appRoot.pathname + callback;
         }
 
         function toggleImportedFolder() {
