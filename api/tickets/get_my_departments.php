@@ -40,7 +40,7 @@ try {
         $departments = $stmt->fetchAll(PDO::FETCH_ASSOC);
     } else {
         // User has team assignments - first get accessible department IDs
-        $accessibleDeptsSql = "SELECT DISTINCT CAST(dt.department_id AS INT) as dept_id
+        $accessibleDeptsSql = "SELECT DISTINCT CAST(dt.department_id AS SIGNED) as dept_id
                                FROM department_teams dt
                                INNER JOIN analyst_teams ant ON dt.team_id = ant.team_id
                                WHERE ant.analyst_id = ?";
