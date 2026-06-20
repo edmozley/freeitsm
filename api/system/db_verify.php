@@ -294,8 +294,8 @@ $schema = [
         'id'                      => 'INT NOT NULL AUTO_INCREMENT',
         'name'                    => 'VARCHAR(100) NOT NULL',
         'provider'                => "VARCHAR(20) NOT NULL DEFAULT 'microsoft'",
-        'azure_tenant_id'         => 'VARCHAR(100) NOT NULL',
-        'azure_client_id'         => 'VARCHAR(100) NOT NULL',
+        'azure_tenant_id'         => 'VARCHAR(255) NOT NULL',
+        'azure_client_id'         => 'VARCHAR(255) NOT NULL',
         'azure_client_secret'     => 'VARCHAR(255) NOT NULL',
         'oauth_redirect_uri'      => 'VARCHAR(500) NOT NULL',
         'oauth_scopes'            => 'VARCHAR(500) NOT NULL DEFAULT \'openid email offline_access Mail.Read Mail.ReadWrite Mail.Send\'',
@@ -2066,6 +2066,34 @@ try {
         }
 
         $results[] = $tableResult;
+    }
+
+    // Widen target_mailboxes OAuth identifier columns.
+    // The schema loop only ADDs missing columns; it never widens existing ones.
+    // These were originally VARCHAR(100), sized for Azure GUIDs. Google client IDs
+    // (~72 chars) encrypt to ~140 chars and were silently truncated on insert,
+    // corrupting the stored value so it could no longer be decrypted.
+    try {
+        $widenCols = ['azure_tenant_id', 'azure_client_id'];
+        $widened = [];
+        foreach ($widenCols as $col) {
+            $lenStmt = $conn->prepare("SELECT CHARACTER_MAXIMUM_LENGTH FROM information_schema.columns WHERE table_schema = ? AND table_name = 'target_mailboxes' AND column_name = ?");
+            $lenStmt->execute([$dbName, $col]);
+            $curLen = $lenStmt->fetchColumn();
+            if ($curLen !== false && (int)$curLen < 255) {
+                $conn->exec("ALTER TABLE target_mailboxes MODIFY `$col` VARCHAR(255) NOT NULL");
+                $widened[] = $col;
+            }
+        }
+        if ($widened) {
+            $results[] = [
+                'table' => 'target_mailboxes',
+                'status' => 'updated',
+                'details' => ['Widened to VARCHAR(255): ' . implode(', ', $widened) . ' (Google client IDs exceed the old 100-char limit)']
+            ];
+        }
+    } catch (Exception $e) {
+        $results[] = ['table' => 'target_mailboxes', 'status' => 'error', 'details' => ['Failed to widen OAuth columns: ' . $e->getMessage()]];
     }
 
     // Seed default admin account if no analysts exist

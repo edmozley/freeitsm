@@ -33,8 +33,16 @@ try {
 
     // Convert fields to proper types
     foreach ($mailboxes as &$mailbox) {
-        // Decrypt encrypted columns
-        $mailbox = decryptMailboxRow($mailbox);
+        // Decrypt encrypted columns. Guard per-row so a single undecryptable
+        // value (e.g. a field that was truncated by an undersized column) can't
+        // blank out the entire mailbox list — flag that row instead.
+        try {
+            $mailbox = decryptMailboxRow($mailbox);
+            $mailbox['decrypt_error'] = false;
+        } catch (Exception $e) {
+            $mailbox['decrypt_error'] = true;
+            $mailbox['decrypt_error_message'] = $e->getMessage();
+        }
 
         // Convert numeric fields to integers
         $mailbox['id'] = (int)$mailbox['id'];
