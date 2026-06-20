@@ -414,6 +414,24 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         $initials .= strtoupper(substr(end($parts), 0, 1));
     }
     $analyst_username = $_SESSION['analyst_username'] ?? '';
+
+    // Company switcher (multi-tenancy). Captured defensively — it renders an
+    // empty string unless a second company exists, so single-company installs
+    // see no change to the header at all. Any error renders nothing.
+    $__tenantSwitcherHtml = '';
+    if (isset($_SESSION['analyst_id'])) {
+        try {
+            require_once __DIR__ . '/tenancy-switcher.php';
+            if (!function_exists('connectToDatabase')) {
+                require_once __DIR__ . '/functions.php';
+            }
+            ob_start();
+            renderTenantSwitcher(connectToDatabase(), (int) $_SESSION['analyst_id']);
+            $__tenantSwitcherHtml = ob_get_clean();
+        } catch (Exception $e) {
+            $__tenantSwitcherHtml = '';
+        }
+    }
     ?>
     <style>
         /* Avatar & User Menu */
@@ -746,6 +764,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
     </style>
 
     <div class="header-right">
+        <?php echo $__tenantSwitcherHtml; ?>
         <button class="mail-check-btn" id="mailCheckBtn" onclick="triggerMailCheck()" title="<?php echo htmlspecialchars(t('common.account.mail_check')); ?>" style="display:none;">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
         </button>
