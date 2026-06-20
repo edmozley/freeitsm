@@ -290,6 +290,17 @@ $schema = [
         'updated_datetime'    => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
     ],
 
+    // Multi-tenancy foundation — a single install can host multiple client
+    // companies (tenants). Invisible until a second tenant exists.
+    'tenants' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'name'             => 'VARCHAR(150) NOT NULL',
+        'slug'             => 'VARCHAR(100) NULL',
+        'is_default'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'target_mailboxes' => [
         'id'                      => 'INT NOT NULL AUTO_INCREMENT',
         'name'                    => 'VARCHAR(100) NOT NULL',
@@ -2122,6 +2133,23 @@ try {
             'status' => 'seeded',
             'details' => ['Created default admin account (username: admin, password: freeitsm)']
         ];
+    }
+
+    // Seed the silent Default tenant (multi-tenancy foundation) if none exists.
+    // Single-company installs run entirely inside this one tenant; it stays
+    // invisible until a second tenant is created.
+    $tenantTableCheck = $conn->prepare("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = ? AND table_name = 'tenants'");
+    $tenantTableCheck->execute([DB_NAME]);
+    if ((int)$tenantTableCheck->fetch(PDO::FETCH_ASSOC)['cnt'] > 0) {
+        $tenantCount = (int) $conn->query("SELECT COUNT(*) FROM tenants")->fetchColumn();
+        if ($tenantCount === 0) {
+            $conn->exec("INSERT INTO tenants (name, is_default, is_active, created_datetime) VALUES ('Default', 1, 1, UTC_TIMESTAMP())");
+            $results[] = [
+                'table' => 'tenants',
+                'status' => 'seeded',
+                'details' => ['Created the default tenant (multi-tenancy foundation; invisible until a second tenant is added)']
+            ];
+        }
     }
 
     // Seed default dashboard widgets if table is empty

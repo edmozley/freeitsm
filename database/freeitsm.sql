@@ -422,6 +422,28 @@ CREATE TABLE IF NOT EXISTS `ticket_time_entries` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
+-- Multi-tenancy (foundation)
+-- A single FreeITSM install can host multiple client companies (tenants).
+-- Single-company installs run entirely inside one silent "Default" tenant,
+-- so multi-tenancy stays invisible until a second tenant is created.
+-- ----------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `tenants` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(150) NOT NULL,
+    `slug`              VARCHAR(100) NULL,
+    `is_default`        TINYINT(1) NOT NULL DEFAULT 0,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The silent default tenant that owns all data on a single-company install.
+INSERT INTO `tenants` (`name`, `is_default`, `is_active`)
+SELECT 'Default', 1, 1 FROM DUAL
+WHERE NOT EXISTS (SELECT 1 FROM `tenants`);
+
+-- ----------------------------------------------------------
 -- Email / Mailbox
 -- ----------------------------------------------------------
 
