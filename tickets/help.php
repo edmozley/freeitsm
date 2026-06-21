@@ -1168,6 +1168,10 @@ try {
                     <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.test_heading'); ?></p>
                     <p><?php echo t('tickets.help.companies.test_body'); ?></p>
 
+                    <!-- Data separation -->
+                    <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.privacy_heading'); ?></p>
+                    <p><?php echo t('tickets.help.companies.privacy_body'); ?></p>
+
                     <!-- Per-company settings -->
                     <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.settings_heading'); ?></p>
                     <p><?php echo t('tickets.help.companies.settings_body'); ?></p>
