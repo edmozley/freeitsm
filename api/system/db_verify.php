@@ -137,6 +137,10 @@ $schema = [
         'description'       => 'VARCHAR(255) NULL',
         'display_order'     => 'INT NULL DEFAULT 0',
         'is_active'         => 'TINYINT(1) NULL DEFAULT 1',
+        // Multi-tenancy: NULL = global default origin; set = a company's own.
+        // (Config meaning of tenant_id — see ticket_types.) Existing rows stay
+        // NULL, so a single-company install is unaffected.
+        'tenant_id'         => 'INT NULL',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
@@ -2398,6 +2402,13 @@ try {
         }
         if (!$idxExists('ticket_types', 'uq_ticket_types_tenant_name')) {
             try { $conn->exec("ALTER TABLE ticket_types ADD UNIQUE KEY uq_ticket_types_tenant_name (tenant_id, name)"); } catch (Exception $e) {}
+        }
+    }
+    // ticket_origins had no name unique key historically; we don't add one (would
+    // fail on pre-existing duplicate names) — dedup is enforced in the API.
+    if ($tableExists('ticket_origins') && $tableExists('tenants') && $colExists('ticket_origins', 'tenant_id')) {
+        if (!$fkExists('ticket_origins', 'fk_ticket_origins_tenant')) {
+            try { $conn->exec("ALTER TABLE ticket_origins ADD CONSTRAINT fk_ticket_origins_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
     if ($tableExists('analyst_tenant_access') && $tableExists('analysts') && $tableExists('tenants')) {

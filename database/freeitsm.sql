@@ -173,6 +173,8 @@ CREATE TABLE IF NOT EXISTS `ticket_origins` (
     `description`       VARCHAR(255) NULL,
     `display_order`     INT NULL DEFAULT 0,
     `is_active`         TINYINT(1) NULL DEFAULT 1,
+    -- Multi-tenancy: NULL = global default origin; set = a company's own.
+    `tenant_id`         INT NULL,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

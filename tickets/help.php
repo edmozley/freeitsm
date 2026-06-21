@@ -1168,6 +1168,20 @@ try {
                     <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.test_heading'); ?></p>
                     <p><?php echo t('tickets.help.companies.test_body'); ?></p>
 
+                    <!-- Per-company settings -->
+                    <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.settings_heading'); ?></p>
+                    <p><?php echo t('tickets.help.companies.settings_body'); ?></p>
+                    <div class="tk-help-data-grid">
+                        <div class="tk-help-data-card">
+                            <strong><?php echo t('tickets.help.companies.settings_custom_title'); ?></strong>
+                            <span><?php echo t('tickets.help.companies.settings_custom_body'); ?></span>
+                        </div>
+                        <div class="tk-help-data-card">
+                            <strong><?php echo t('tickets.help.companies.settings_global_title'); ?></strong>
+                            <span><?php echo t('tickets.help.companies.settings_global_body'); ?></span>
+                        </div>
+                    </div>
+
                     <p class="tk-help-tip"><?php echo t('tickets.help.companies.tip'); ?></p>
                 </div>
                 <?php endif; ?>

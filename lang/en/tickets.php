@@ -947,6 +947,13 @@ return [
             'test_heading' => 'Test your routing before going live',
             'test_body'    => 'Under <strong>System &rarr; Email routing test</strong> you can pretend an email arrived &mdash; pick a mailbox, type a sender address &mdash; and see exactly which company the new ticket would land in (or that it\'d go to triage) and which rule decided it. It creates nothing; it just reads your settings.',
 
+            'settings_heading' => 'Settings: shared by default, tailored where it matters',
+            'settings_body'    => 'Some of these Settings can be <strong>tailored per company</strong>; others stay shared on purpose. Where a setting is a simple list of options &mdash; like <strong>ticket types</strong> and <strong>origins</strong> &mdash; switch into a company\'s context and you\'ll see the shared defaults (each with an eye icon to hide any it doesn\'t use) plus any it has added just for itself. You can\'t hide or delete an option while open tickets still use it, and the shared defaults themselves are edited from the MSP / default company.',
+            'settings_custom_title' => 'Tailored per company',
+            'settings_custom_body'  => 'Ticket types &amp; origins (now), and categories, SLAs &amp; business hours (coming) &mdash; things that genuinely differ from one client to the next.',
+            'settings_global_title' => 'Shared across every company',
+            'settings_global_body'  => 'Statuses and priorities stay the same everywhere, so cross-company reporting and SLAs stay consistent; so do your teams, rota and mailboxes &mdash; your own operation, not a client\'s.',
+
             'tip' => 'On a single-company install none of this appears &mdash; there\'s one company, every ticket belongs to it, and there\'s no switcher or triage. These features only switch on once a second company exists.',
         ],
     ],

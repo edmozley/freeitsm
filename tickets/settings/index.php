@@ -1594,11 +1594,11 @@ $translationNamespaces = ['common', 'tickets'];
         // Load ticket origins
         async function loadTicketOrigins() {
             try {
-                const response = await fetch(API_BASE + 'get_ticket_origins.php');
+                const response = await fetch(API_BASE + 'get_ticket_origins.php?manage=1');
                 const data = await response.json();
 
                 if (data.success) {
-                    renderTicketOrigins(data.origins);
+                    renderTicketOrigins(data);
                 } else {
                     showToast('Error loading ticket origins: ' + data.error, 'error');
                 }
@@ -1946,30 +1946,88 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         // Render ticket origins
-        function renderTicketOrigins(origins) {
-            const tbody = document.getElementById('ticket-origins-list');
-
-            if (origins.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No ticket origins found</td></tr>';
-                return;
-            }
-
-            tbody.innerHTML = origins.map(origin => `
+        function ticketOriginRowEditable(origin) {
+            return `
                 <tr>
                     <td><strong>${escapeHtml(origin.name)}</strong></td>
                     <td>${escapeHtml(origin.description || '')}</td>
                     <td>${origin.display_order}</td>
                     <td><span class="status-badge status-${origin.is_active ? 'active' : 'inactive'}">${origin.is_active ? 'Active' : 'Inactive'}</span></td>
                     <td>
-                        <button class="action-btn" onclick="editItem('ticket-origin', ${origin.id})" title="${t('common.edit')}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        </button>
-                        <button class="action-btn delete" onclick="deleteItem('ticket-origin', ${origin.id}, '${escapeHtml(origin.name)}')" title="${t('common.delete')}">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                        </button>
+                        <button class="action-btn" onclick="editItem('ticket-origin', ${origin.id})" title="${t('common.edit')}">${TT_EDIT_SVG}</button>
+                        <button class="action-btn delete" onclick="deleteItem('ticket-origin', ${origin.id}, '${escapeHtml(origin.name)}')" title="${t('common.delete')}">${TT_DELETE_SVG}</button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+        }
+
+        function renderTicketOrigins(data) {
+            const tbody = document.getElementById('ticket-origins-list');
+
+            // Multi-company, client context → the two-group add/hide view.
+            if (data && data.scoped && data.scoped.is_default === false) {
+                renderTicketOriginsScoped(tbody, data.scoped);
+                return;
+            }
+
+            const origins = (data && data.origins) ? data.origins : [];
+            if (origins.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">No ticket origins found</td></tr>';
+                return;
+            }
+            tbody.innerHTML = origins.map(ticketOriginRowEditable).join('');
+        }
+
+        function renderTicketOriginsScoped(tbody, scoped) {
+            const groupRow = (label, hint) =>
+                `<tr class="tt-group-row"><td colspan="5" style="background:#f7f9fa;border-top:1px solid #e3e8ea;font-size:12px;font-weight:600;color:#455a64;padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:#90a4ae;">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
+
+            let html = '';
+            html += groupRow(`${scoped.company.name}’s own origins`);
+            if (!scoped.own.length) {
+                html += '<tr><td colspan="5" style="color:#aaa;font-style:italic;padding:10px;">None yet — use Add to create an origin just for this company.</td></tr>';
+            } else {
+                html += scoped.own.map(ticketOriginRowEditable).join('');
+            }
+
+            html += groupRow('Shared defaults', `inherited by ${scoped.company.name}`);
+            html += scoped.globals.map(o => {
+                const dim = o.hidden ? 'opacity:0.5;' : '';
+                const statusCell = o.hidden
+                    ? '<span class="status-badge status-inactive">Hidden here</span>'
+                    : `<span class="status-badge status-${o.is_active ? 'active' : 'inactive'}">${o.is_active ? 'Active' : 'Inactive'}</span>`;
+                const toggle = o.hidden
+                    ? `<button class="action-btn" onclick="toggleTicketOriginHidden(${o.id}, false)" title="Hidden from this company — click to show">${TT_EYE_OFF_SVG}</button>`
+                    : `<button class="action-btn" onclick="toggleTicketOriginHidden(${o.id}, true)" title="Visible to this company — click to hide">${TT_EYE_SVG}</button>`;
+                return `
+                    <tr style="${dim}">
+                        <td><strong>${escapeHtml(o.name)}</strong></td>
+                        <td>${escapeHtml(o.description || '')}</td>
+                        <td>${o.display_order}</td>
+                        <td>${statusCell}</td>
+                        <td>${toggle}</td>
+                    </tr>`;
+            }).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        async function toggleTicketOriginHidden(id, hidden) {
+            try {
+                const response = await fetch(API_BASE + 'set_ticket_origin_hidden.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ ticket_origin_id: id, hidden: hidden })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast(hidden ? 'Hidden from this company' : 'Shown for this company', 'success');
+                    loadTicketOrigins();
+                } else {
+                    showToast(data.error || 'Could not update', 'error');
+                }
+            } catch (error) {
+                showToast('Could not update', 'error');
+            }
         }
 
         // Render teams
