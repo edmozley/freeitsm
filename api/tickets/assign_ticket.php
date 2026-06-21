@@ -28,8 +28,9 @@ try {
     // Empty string / null clears it (no priority assigned).
     $priority_id = array_key_exists('priority_id', $data) ? $data['priority_id'] : null;
     $priorityWasSent = array_key_exists('priority_id', $data);
-    // When the caller supplies assigned_analyst_id explicitly (e.g. drag-to-analyst-folder),
-    // honour it and skip the "auto-assign to current user on dept/status change" behaviour below.
+    // Assignment changes ONLY when assigned_analyst_id is supplied explicitly
+    // (e.g. drag-to-analyst-folder or the Owner field) — see the assignment
+    // tracking block below.
     $explicitAnalyst = array_key_exists('assigned_analyst_id', $data);
     $explicitAnalystId = $explicitAnalyst
         ? (($data['assigned_analyst_id'] === '' || $data['assigned_analyst_id'] === null) ? null : (int)$data['assigned_analyst_id'])
@@ -118,19 +119,18 @@ try {
         $params[] = ($priority_id === '' || $priority_id === null) ? null : (int)$priority_id;
     }
 
-    // Add assignment tracking
+    // Add assignment tracking. Assignment changes ONLY when an analyst is
+    // supplied explicitly (drag-to-analyst-folder / Owner field), and then we
+    // set both assigned_analyst_id and owner_id so they stay in sync. Editing a
+    // ticket's department, type or status no longer auto-assigns it to the
+    // current user — that previously stole an existing assignment and desynced
+    // assigned_analyst_id from owner_id.
     $newAnalystId = null;
     if ($explicitAnalyst) {
-        // Caller supplied the analyst (drag-to-analyst-folder). Set both assigned_analyst_id
-        // and owner_id so the right-pane Owner field stays in sync (mirrors update_ticket_owner.php).
         $updates[] = "assigned_analyst_id = ?";
         $newAnalystId = $explicitAnalystId;
         $params[] = $newAnalystId;
         $updates[] = "owner_id = ?";
-        $params[] = $newAnalystId;
-    } elseif ($department_id || $ticket_type_id || $status) {
-        $updates[] = "assigned_analyst_id = ?";
-        $newAnalystId = $_SESSION['analyst_id'];
         $params[] = $newAnalystId;
     }
 
