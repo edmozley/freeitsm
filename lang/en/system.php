@@ -488,6 +488,19 @@ return [
         'routing_warn_domains_no_shared' => 'Domains are registered, but there\'s no active shared-intake mailbox to match them against. Add one, or pin a mailbox to this company.',
         'routing_warn_unauth'     => 'A mailbox on a route above is not authenticated, so mail won\'t flow until it\'s reconnected in Settings.',
         'routing_failed'       => 'Couldn\'t load the routing summary.',
+
+        // Public email domains (global, add-only)
+        'freemail_title'          => 'Public email domains',
+        'freemail_hint'           => 'Mail from public providers like Gmail and Outlook is never auto-routed to a company — two clients can share the same provider, so it lands in triage to be filed by hand. The common providers are always included; add any others your clients use so they\'re handled the same way.',
+        'freemail_placeholder'    => 'example-isp.com',
+        'freemail_add'            => 'Add',
+        'freemail_remove'         => 'Remove',
+        'freemail_none'           => 'No extra domains added — only the built-in providers below.',
+        'freemail_added'          => 'Domain added',
+        'freemail_removed'        => 'Domain removed',
+        'freemail_add_failed'     => 'Failed to add domain',
+        'freemail_remove_failed'  => 'Failed to remove domain',
+        'freemail_builtin_toggle' => 'Show the {count} built-in providers',
     ],
 
     // Email routing test — dry-run diagnostic (system/email-routing-test/).

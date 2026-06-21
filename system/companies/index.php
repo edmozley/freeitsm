@@ -49,6 +49,19 @@ $translationNamespaces = ['common', 'system'];
         .status-badge.off { background: #f0f0f0; color: #999; }
         .badge-default { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #e3f2fd; color: #1565c0; margin-left: 8px; }
         .domain-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #ede7f6; color: #5e35b1; margin: 2px 4px 2px 0; }
+
+        /* Public email domains card */
+        .card-title { font-size: 16px; font-weight: 600; color: #333; margin: 0 0 6px 0; }
+        .card-hint { font-size: 13px; color: #888; margin: 0 0 16px 0; max-width: 640px; line-height: 1.5; }
+        .freemail-chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 6px 4px 10px; border-radius: 14px; font-size: 12px; background: #eceff1; color: #37474f; margin: 2px 6px 2px 0; }
+        .freemail-chip button { background: none; border: none; cursor: pointer; color: #90a4ae; font-size: 14px; line-height: 1; padding: 0 2px; border-radius: 50%; }
+        .freemail-chip button:hover { color: #c62828; }
+        .freemail-none { color: #aaa; font-size: 12px; font-style: italic; }
+        .builtin-freemail { margin-top: 16px; }
+        .builtin-toggle { background: none; border: none; padding: 0; cursor: pointer; color: #607d8b; font-size: 12px; font-weight: 600; }
+        .builtin-toggle:hover { text-decoration: underline; }
+        #builtinFreemailList { margin-top: 8px; }
+        .builtin-chip { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #f5f5f5; color: #999; margin: 2px 4px 2px 0; }
         .domains-none { color: #bbb; }
         .table-action-btn { background: none; border: none; cursor: pointer; color: #607d8b; padding: 4px 8px; font-size: 13px; border-radius: 4px; }
         .table-action-btn:hover { background: #eceff1; }
@@ -114,6 +127,24 @@ $translationNamespaces = ['common', 'system'];
                 </tbody>
             </table>
         </div>
+
+        <!-- Public email domains (global). Only meaningful once there's more
+             than one company (shared-intake routing), so hidden at N=1. -->
+        <div class="settings-card" id="freemailCard" style="display: none;">
+            <h2 class="card-title"><?php echo htmlspecialchars(t('system.companies.freemail_title')); ?></h2>
+            <p class="card-hint"><?php echo htmlspecialchars(t('system.companies.freemail_hint')); ?></p>
+
+            <div id="customFreemailList"></div>
+            <div style="display: flex; gap: 8px; margin-top: 8px; max-width: 420px;">
+                <input type="text" id="freemailInput" placeholder="<?php echo htmlspecialchars(t('system.companies.freemail_placeholder')); ?>" style="flex: 1;">
+                <button type="button" class="btn btn-secondary" id="addFreemailBtn"><?php echo htmlspecialchars(t('system.companies.freemail_add')); ?></button>
+            </div>
+
+            <div class="builtin-freemail">
+                <button type="button" class="builtin-toggle" id="builtinToggle"><span id="builtinToggleText"></span></button>
+                <div id="builtinFreemailList" style="display: none;"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Add/Edit modal -->
@@ -164,6 +195,7 @@ $translationNamespaces = ['common', 'system'];
     <script>
     const API = '<?php echo $path_prefix; ?>api/';
     let companies = [];
+    let freemailLoaded = false;
 
     function esc(s) { return (s ?? '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -175,6 +207,11 @@ $translationNamespaces = ['common', 'system'];
             companies = d.success ? d.companies : [];
         } catch (e) { companies = []; }
         renderCompanies();
+        // Public email domains only matter for shared-intake routing, i.e. once
+        // a second company exists — keep the card invisible at N=1.
+        const multi = companies.length > 1;
+        document.getElementById('freemailCard').style.display = multi ? '' : 'none';
+        if (multi && !freemailLoaded) { freemailLoaded = true; loadFreemail(); }
     }
 
     function renderDomainCell(domains) {
@@ -406,6 +443,84 @@ $translationNamespaces = ['common', 'system'];
             }
         } catch (e) { showToast(window.t('system.companies.save_failed'), 'error'); }
         this.disabled = false;
+    });
+
+    // ---------- Public email domains (global, add-only) ----------
+    let customFreemail = [];
+    async function loadFreemail() {
+        let data;
+        try {
+            const r = await fetch(API + 'system/get_freemail_domains.php');
+            data = await r.json();
+        } catch (e) { data = null; }
+        if (!data || !data.success) { customFreemail = []; renderFreemail([], []); return; }
+        customFreemail = data.custom || [];
+        renderFreemail(customFreemail, data.builtin || []);
+    }
+    function renderFreemail(custom, builtin) {
+        const list = document.getElementById('customFreemailList');
+        if (!custom.length) {
+            list.innerHTML = '<div class="freemail-none">' + esc(window.t('system.companies.freemail_none')) + '</div>';
+        } else {
+            list.innerHTML = custom.map(d => `
+                <span class="freemail-chip">${esc(d.domain)}
+                    <button type="button" data-remove-freemail="${d.id}" title="${esc(window.t('system.companies.freemail_remove'))}">&times;</button>
+                </span>`).join('');
+        }
+        // Built-in list (toggle).
+        const toggle = document.getElementById('builtinToggleText');
+        const box = document.getElementById('builtinFreemailList');
+        toggle.textContent = window.t('system.companies.freemail_builtin_toggle', { count: builtin.length });
+        box.innerHTML = builtin.map(d => '<span class="builtin-chip">' + esc(d) + '</span>').join('');
+    }
+    async function addFreemail() {
+        const input = document.getElementById('freemailInput');
+        const domain = input.value.trim();
+        if (!domain) return;
+        const btn = document.getElementById('addFreemailBtn');
+        btn.disabled = true;
+        try {
+            const r = await fetch(API + 'system/add_freemail_domain.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ domain })
+            });
+            const d = await r.json();
+            if (d.success) {
+                input.value = '';
+                showToast(window.t('system.companies.freemail_added'), 'success');
+                loadFreemail();
+            } else {
+                showToast(d.error || window.t('system.companies.freemail_add_failed'), 'error');
+            }
+        } catch (e) { showToast(window.t('system.companies.freemail_add_failed'), 'error'); }
+        btn.disabled = false;
+    }
+    async function removeFreemail(id) {
+        try {
+            const r = await fetch(API + 'system/delete_freemail_domain.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id })
+            });
+            const d = await r.json();
+            if (d.success) {
+                showToast(window.t('system.companies.freemail_removed'), 'success');
+                loadFreemail();
+            } else {
+                showToast(d.error || window.t('system.companies.freemail_remove_failed'), 'error');
+            }
+        } catch (e) { showToast(window.t('system.companies.freemail_remove_failed'), 'error'); }
+    }
+    document.getElementById('addFreemailBtn').addEventListener('click', addFreemail);
+    document.getElementById('freemailInput').addEventListener('keydown', e => {
+        if (e.key === 'Enter') { e.preventDefault(); addFreemail(); }
+    });
+    document.getElementById('customFreemailList').addEventListener('click', e => {
+        const rm = e.target.getAttribute('data-remove-freemail');
+        if (rm) removeFreemail(parseInt(rm, 10));
+    });
+    document.getElementById('builtinToggle').addEventListener('click', () => {
+        const box = document.getElementById('builtinFreemailList');
+        box.style.display = box.style.display === 'none' ? '' : 'none';
     });
 
     loadCompanies();

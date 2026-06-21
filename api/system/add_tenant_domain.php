@@ -40,13 +40,15 @@ if ($domain === '') {
     echo json_encode(['success' => false, 'error' => 'Enter a valid domain, e.g. acme.com']);
     exit;
 }
-if (isFreemailDomain($domain)) {
-    echo json_encode(['success' => false, 'error' => "$domain is a public email provider and can't be mapped to a company — mail from it is filed by hand from the triage queue."]);
-    exit;
-}
 
 try {
     $conn = connectToDatabase();
+
+    // Free-email/consumer domains (built-in or admin-added) can never be mapped.
+    if (isFreemailDomain($conn, $domain)) {
+        echo json_encode(['success' => false, 'error' => "$domain is a public email provider and can't be mapped to a company — mail from it is filed by hand from the triage queue."]);
+        exit;
+    }
 
     if (!getTenantById($conn, $tenantId)) {
         echo json_encode(['success' => false, 'error' => 'Company not found']);

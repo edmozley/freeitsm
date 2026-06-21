@@ -311,6 +311,15 @@ $schema = [
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // Admin-added public/free-email domains (gmail.com etc. are built into the
+    // code; this table holds extra ones an MSP wants treated as public). These
+    // are never mapped to a company — their mail is filed by hand from triage.
+    'freemail_domains' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'domain'           => 'VARCHAR(255) NOT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     // Which analysts may access which tenants (only consulted when an analyst
     // is NOT flagged can_access_all_tenants).
     'analyst_tenant_access' => [
@@ -3458,6 +3467,7 @@ try {
         ['change_field_layout', 'uq_cfl_field_key', '(`field_key`)'],
         ['analyst_sso_identities', 'uq_sso_provider_subject', '(`provider_id`, `subject`)'],
         ['analyst_sso_identities', 'uq_sso_provider_analyst', '(`provider_id`, `analyst_id`)'],
+        ['freemail_domains', 'uq_freemail_domains_domain', '(`domain`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {

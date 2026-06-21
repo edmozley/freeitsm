@@ -83,7 +83,7 @@ try {
     if (strpos($fromForRouting, '@') !== false) {
         $fromDomain = strtolower(trim(substr(strrchr($fromForRouting, '@'), 1)));
     }
-    $isFreemail = $fromDomain !== '' && isFreemailDomain($fromDomain);
+    $isFreemail = $fromDomain !== '' && isFreemailDomain($conn, $fromDomain);
 
     // Which company (if any) owns the sender's domain.
     $domainTenantId = null;

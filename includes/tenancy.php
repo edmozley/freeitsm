@@ -287,23 +287,59 @@ function resolveTicketTenantForEmail(PDO $conn, $mailboxId, string $fromAddress)
 }
 
 /**
- * Is this a public free-email / consumer domain (gmail.com, outlook.com, …)?
- *
- * Such domains must NEVER be registered to a company for shared-intake routing
- * (two different clients can both send from gmail.com, so a mapping would
- * mis-route one of them). They still reach support fine — they simply land in
- * triage and are filed by hand. Used to guard domain registration and, later,
- * to flag triage rows.
+ * The built-in list of public free-email / consumer domains. These are ALWAYS
+ * treated as freemail; an admin can ADD to the list (the freemail_domains
+ * table, see getCustomFreemailDomains) but never remove a built-in — so
+ * gmail.com and friends can't be accidentally un-protected.
  */
-function isFreemailDomain(string $domain): bool {
-    static $freemail = [
+function freemailBuiltinDomains(): array {
+    return [
         'gmail.com', 'googlemail.com', 'outlook.com', 'hotmail.com', 'hotmail.co.uk',
         'live.com', 'live.co.uk', 'msn.com', 'yahoo.com', 'yahoo.co.uk', 'ymail.com',
         'icloud.com', 'me.com', 'mac.com', 'aol.com', 'protonmail.com', 'proton.me',
         'gmx.com', 'gmx.co.uk', 'mail.com', 'zoho.com', 'yandex.com', 'fastmail.com',
         'btinternet.com', 'sky.com', 'talktalk.net', 'virginmedia.com', 'ntlworld.com',
     ];
-    return in_array(strtolower(trim($domain)), $freemail, true);
+}
+
+/**
+ * Admin-added custom freemail domains (the freemail_domains table), lower-cased.
+ * Cached per request; degrades to [] if the table doesn't exist yet — so the
+ * file is safe on a part-migrated install.
+ */
+function getCustomFreemailDomains(PDO $conn): array {
+    static $cache = null;
+    if ($cache === null) {
+        $cache = [];
+        try {
+            foreach ($conn->query("SELECT domain FROM freemail_domains ORDER BY domain") as $row) {
+                $d = strtolower(trim($row['domain']));
+                if ($d !== '') $cache[] = $d;
+            }
+        } catch (Exception $e) {
+            $cache = [];
+        }
+    }
+    return $cache;
+}
+
+/**
+ * Is this a public free-email / consumer domain (gmail.com, outlook.com, …)?
+ *
+ * Such domains must NEVER be registered to a company for shared-intake routing
+ * (two different clients can both send from gmail.com, so a mapping would
+ * mis-route one of them). They still reach support fine — they simply land in
+ * triage and are filed by hand. Used to guard domain registration and to flag
+ * triage rows.
+ *
+ * Matches the built-in list (freemailBuiltinDomains) plus any admin-added
+ * custom domains (getCustomFreemailDomains).
+ */
+function isFreemailDomain(PDO $conn, string $domain): bool {
+    $d = strtolower(trim($domain));
+    if ($d === '') return false;
+    if (in_array($d, freemailBuiltinDomains(), true)) return true;
+    return in_array($d, getCustomFreemailDomains($conn), true);
 }
 
 /**

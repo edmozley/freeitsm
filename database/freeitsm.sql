@@ -458,6 +458,18 @@ CREATE TABLE IF NOT EXISTS `tenant_domains` (
     CONSTRAINT `fk_tenant_domains_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Admin-added public/free-email domains. gmail.com etc. are built into the code
+-- (freemailBuiltinDomains); this table holds extra domains an MSP wants treated
+-- as public. Public domains are never mapped to a company — their mail is filed
+-- by hand from the triage queue.
+CREATE TABLE IF NOT EXISTS `freemail_domains` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `domain`            VARCHAR(255) NOT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_freemail_domains_domain` (`domain`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Which analysts may access which tenants (only consulted when an analyst is
 -- NOT flagged can_access_all_tenants).
 CREATE TABLE IF NOT EXISTS `analyst_tenant_access` (

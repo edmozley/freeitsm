@@ -64,7 +64,7 @@ try {
             'from_address' => $from,
             'from_name'    => $r['from_name'] ?? '',
             'domain'       => $domain,
-            'is_freemail'  => $domain !== '' && isFreemailDomain($domain),
+            'is_freemail'  => $domain !== '' && isFreemailDomain($conn, $domain),
             'mailbox_name' => $r['mailbox_name'] ?? '',
             'received'     => $r['received_datetime'] ?? $r['created_datetime'],
         ];

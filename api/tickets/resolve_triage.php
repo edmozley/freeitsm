@@ -66,7 +66,7 @@ try {
     }
 
     // Free-email domains can never be mapped (shared across clients).
-    $freemail = $domain !== '' && isFreemailDomain($domain);
+    $freemail = $domain !== '' && isFreemailDomain($conn, $domain);
     $domainMapped = false;
 
     if ($mapDomain && $domain !== '' && !$freemail) {
