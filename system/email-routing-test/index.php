@@ -32,7 +32,7 @@ $translationNamespaces = ['common', 'system'];
         body { display: flex; flex-direction: column; }
         .rt-container { flex: 1; min-height: 0; overflow-y: auto; padding: 30px 20px; }
         .page-title { font-size: 22px; font-weight: 600; color: #333; margin: 0 0 6px 0; }
-        .page-subtitle { font-size: 13px; color: #888; margin: 0 0 24px 0; max-width: 640px; }
+        .page-subtitle { font-size: 13px; color: #888; margin: 0 0 24px 0; }
 
         /* Two columns: the form on the left, the result on the right. Wraps to
            a single column when there isn't room. */
