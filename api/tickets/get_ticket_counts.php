@@ -186,15 +186,24 @@ try {
     // Counts by analyst, and by analyst+status — bounded by accessible depts when team-filtered.
     // The dept filter sits in the LEFT JOIN ON clause so analysts with zero matching tickets
     // still appear in the folder list (as drop targets).
+    //
+    // "Always see your own": the viewer's own tickets (assigned to OR owned by
+    // them) are ALWAYS counted, even in a department their team can't otherwise
+    // see — an analyst must never lose sight of a ticket assigned to them. This
+    // is additive (it only ever includes more), and keeps the per-analyst counts
+    // consistent with the ticket list, which doesn't team-filter at all.
     $deptJoinFilter = '';
     $analystParams = [];
     $skipAnalystQueries = false;
     if ($hasTeamFilter) {
+        $ownClause = "t.assigned_analyst_id = ? OR t.owner_id = ?";
         if (empty($accessibleDepts)) {
-            $skipAnalystQueries = true;
+            $deptJoinFilter = " AND ($ownClause)";
+            $analystParams = [$analystId, $analystId];
         } else {
-            $deptJoinFilter = " AND (t.department_id IN (" . implode(',', array_fill(0, count($accessibleDepts), '?')) . ") OR t.department_id IS NULL)";
-            $analystParams = $accessibleDepts;
+            $deptIn = implode(',', array_fill(0, count($accessibleDepts), '?'));
+            $deptJoinFilter = " AND (t.department_id IN ($deptIn) OR t.department_id IS NULL OR $ownClause)";
+            $analystParams = array_merge($accessibleDepts, [$analystId, $analystId]);
         }
     }
 
