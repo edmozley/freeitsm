@@ -9,6 +9,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -27,10 +28,14 @@ try {
 
     $conn = connectToDatabase();
 
-    $existing = $conn->prepare("SELECT analyst_id FROM ticket_time_entries WHERE id = ? AND is_active = 1");
+    $existing = $conn->prepare("SELECT analyst_id, ticket_id FROM ticket_time_entries WHERE id = ? AND is_active = 1");
     $existing->execute([$entry_id]);
     $row = $existing->fetch(PDO::FETCH_ASSOC);
     if (!$row) {
+        throw new Exception('Time entry not found');
+    }
+    // Multi-tenancy: the entry's ticket must be one this analyst can access.
+    if (!analystCanAccessTicket($conn, (int)$_SESSION['analyst_id'], (int)$row['ticket_id'])) {
         throw new Exception('Time entry not found');
     }
     if ((int)$row['analyst_id'] !== (int)$_SESSION['analyst_id']) {

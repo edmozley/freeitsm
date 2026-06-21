@@ -14,6 +14,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/sla.php';
+require_once '../../includes/tenancy.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -29,6 +30,11 @@ if (!$ticketId) {
 
 try {
     $conn = connectToDatabase();
+    // Multi-tenancy: don't reveal SLA state for a company this analyst can't access.
+    if (!analystCanAccessTicket($conn, (int)$_SESSION['analyst_id'], $ticketId)) {
+        echo json_encode(['success' => false, 'error' => 'Ticket not found']);
+        exit;
+    }
     $state = sla_get_state($conn, $ticketId);
     echo json_encode(['success' => true, 'sla' => $state]);
 } catch (Exception $e) {

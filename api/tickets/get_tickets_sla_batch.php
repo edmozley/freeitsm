@@ -18,6 +18,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/sla.php';
+require_once '../../includes/tenancy.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -37,7 +38,10 @@ $ids = array_slice($ids, 0, 200);
 try {
     $conn = connectToDatabase();
     $out = [];
+    $analystId = (int)$_SESSION['analyst_id'];
     foreach ($ids as $id) {
+        // Multi-tenancy: silently skip ids in companies this analyst can't access.
+        if (!analystCanAccessTicket($conn, $analystId, $id)) continue;
         $state = sla_get_state($conn, $id);
         if ($state['enabled']) {
             // Slim the payload: callers only need the response/resolution data + the

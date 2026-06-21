@@ -12,6 +12,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/csat.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -29,6 +30,12 @@ if ($ticketId <= 0) {
 
 try {
     $conn = connectToDatabase();
+    // Multi-tenancy: don't send a CSAT survey for a ticket in a company this
+    // analyst can't access.
+    if (!analystCanAccessTicket($conn, (int)$_SESSION['analyst_id'], $ticketId)) {
+        echo json_encode(['success' => false, 'error' => 'Ticket not found']);
+        exit;
+    }
     if (csatGetSetting($conn, 'csat_mode', 'off') === 'off') {
         echo json_encode(['success' => false, 'error' => 'CSAT is turned off — enable it under Tickets → Settings → CSAT first']);
         exit;

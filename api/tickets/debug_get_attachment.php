@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: text/html; charset=utf-8');
 
@@ -66,6 +67,23 @@ try {
     $stmt = $conn->prepare($sql);
     $stmt->execute($params);
     $attachment = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    // Multi-tenancy: don't reveal another company's attachment/email data (covers
+    // both the found-attachment dump and the email_id fallback listing). No-op at N=1.
+    $dbgTicketId = false;
+    if ($attachment) {
+        $tq = $conn->prepare("SELECT ticket_id FROM emails WHERE id = ?");
+        $tq->execute([$attachment['email_id']]);
+        $dbgTicketId = $tq->fetchColumn();
+    } elseif ($emailId) {
+        $tq = $conn->prepare("SELECT ticket_id FROM emails WHERE id = ?");
+        $tq->execute([$emailId]);
+        $dbgTicketId = $tq->fetchColumn();
+    }
+    if ($dbgTicketId !== false && !analystCanAccessTicket($conn, (int)$_SESSION['analyst_id'], (int)$dbgTicketId)) {
+        echo "<p style='color:red;'>Not accessible</p>";
+        exit;
+    }
 
     echo "<h2>Database Result</h2>";
     if (!$attachment) {

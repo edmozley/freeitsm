@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['analyst_id'])) {
@@ -49,6 +50,16 @@ try {
     $attachment = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$attachment) {
+        http_response_code(404);
+        exit('Attachment not found');
+    }
+
+    // Multi-tenancy: gate on the attachment's ticket (via its email) so an analyst
+    // can't fetch another company's attachment by enumerating ids. No-op at N=1.
+    $tq = $conn->prepare("SELECT ticket_id FROM emails WHERE id = ?");
+    $tq->execute([$attachment['email_id']]);
+    $attTicketId = $tq->fetchColumn();
+    if ($attTicketId === false || !analystCanAccessTicket($conn, (int)$_SESSION['analyst_id'], (int)$attTicketId)) {
         http_response_code(404);
         exit('Attachment not found');
     }
