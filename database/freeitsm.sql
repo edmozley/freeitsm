@@ -154,6 +154,11 @@ CREATE TABLE IF NOT EXISTS `ticket_types` (
     `description`       VARCHAR(255) NULL,
     `is_active`         TINYINT(1) NULL DEFAULT 1,
     `display_order`     INT NULL DEFAULT 0,
+    -- Multi-tenancy: NULL = global default type (shared by every company); set =
+    -- a type a company added for itself. Existing rows stay NULL, so a
+    -- single-company install is unaffected. (Config meaning of tenant_id: NULL =
+    -- global default — unlike scoped data tables where NULL means "unrouted".)
+    `tenant_id`         INT NULL,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_ticket_types_name` (`name`)
@@ -482,6 +487,22 @@ CREATE TABLE IF NOT EXISTS `tenant_sender_addresses` (
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_tenant_sender_email` (`email`),
     CONSTRAINT `fk_tenant_sender_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Per-company "hide" layer for global config (the add+hide override model, design
+-- §7). A row = "this company doesn't want global <entity_type> #<entity_id> in its
+-- lists". Generic so one table serves every overridable config type (ticket_type,
+-- ticket_origin, department, …). The global row is never touched, so closed/historic
+-- tickets still resolve it — hiding only removes it from that company's pickers.
+CREATE TABLE IF NOT EXISTS `tenant_config_hidden` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`         INT NOT NULL,
+    `entity_type`       VARCHAR(50) NOT NULL,
+    `entity_id`         INT NOT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_tenant_config_hidden` (`tenant_id`, `entity_type`, `entity_id`),
+    CONSTRAINT `fk_tenant_config_hidden_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Which analysts may access which tenants (only consulted when an analyst is

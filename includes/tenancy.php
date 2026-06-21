@@ -402,3 +402,67 @@ function normaliseEmailAddress(string $raw): string {
     }
     return $a;
 }
+
+/**
+ * Resolve a per-company config list under the "add + hide" override model
+ * (design §7) — the single primitive every overridable list-setting routes
+ * through (ticket types, ticket origins, departments, …).
+ *
+ * Returns the rows of $table that should be visible to $tenantId:
+ *   - global defaults (`tenant_id IS NULL`) that this company has NOT hidden
+ *     (via tenant_config_hidden), PLUS
+ *   - the company's own added rows (`tenant_id = $tenantId`).
+ *
+ * Deliberately defensive:
+ *   - **Single-company install** (or a part-migrated table that lacks the
+ *     `tenant_id` column / the hidden table) → degrades to "all rows", i.e.
+ *     EXACTLY today's behaviour. So this is safe to call anywhere during rollout.
+ *   - Identifiers ($table, $entityType) are developer-supplied literals; they're
+ *     still regex-guarded so this can never become an injection vector.
+ *
+ * @param string $table       the config table (e.g. 'ticket_types')
+ * @param string $entityType  key used in tenant_config_hidden (e.g. 'ticket_type')
+ * @param int    $tenantId    the company to resolve for (usually the active tenant)
+ * @param string $cols        columns to select (default '*')
+ * @param string $activeWhere extra always-applied filter, no leading AND
+ *                            (e.g. 'is_active = 1'); must be unambiguous (no alias)
+ * @param string $orderBy     ORDER BY body, no keyword (default 'display_order, name')
+ * @return array rows as associative arrays
+ */
+function getTenantConfigRows(PDO $conn, string $table, string $entityType, int $tenantId, string $cols = '*', string $activeWhere = '', string $orderBy = 'display_order, name'): array {
+    if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_]*$/', $table) || !preg_match('/^[a-zA-Z_]+$/', $entityType)) {
+        return [];
+    }
+    $tail = ($activeWhere !== '' ? " WHERE $activeWhere" : '') . ($orderBy !== '' ? " ORDER BY $orderBy" : '');
+
+    // Single-company (or tables not ready): behave exactly as today — all rows.
+    if (!isMultiTenant($conn)) {
+        try {
+            return $conn->query("SELECT $cols FROM $table$tail")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e) {
+            return [];
+        }
+    }
+
+    // Multi-company: global-not-hidden + this company's own.
+    $sql = "SELECT $cols FROM $table
+            WHERE ( ( tenant_id IS NULL
+                      AND id NOT IN (SELECT entity_id FROM tenant_config_hidden
+                                     WHERE tenant_id = ? AND entity_type = ?) )
+                    OR tenant_id = ? )";
+    if ($activeWhere !== '') $sql .= " AND ($activeWhere)";
+    if ($orderBy !== '')     $sql .= " ORDER BY $orderBy";
+
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute([$tenantId, $entityType, $tenantId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        // Part-migrated (no tenant_id column / no hidden table) → fall back to all.
+        try {
+            return $conn->query("SELECT $cols FROM $table$tail")->fetchAll(PDO::FETCH_ASSOC);
+        } catch (Exception $e2) {
+            return [];
+        }
+    }
+}

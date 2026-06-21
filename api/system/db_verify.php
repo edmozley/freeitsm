@@ -122,6 +122,12 @@ $schema = [
         'description'       => 'VARCHAR(255) NULL',
         'is_active'         => 'TINYINT(1) NULL DEFAULT 1',
         'display_order'     => 'INT NULL DEFAULT 0',
+        // Multi-tenancy: NULL = a global default type (shared by every company);
+        // set = a type that company added for itself. Existing rows stay NULL, so
+        // a single-company install is unaffected (all types are global). NB this
+        // is the *config* meaning of tenant_id (NULL = global default) — different
+        // from scoped data tables like `tickets` where NULL means "unrouted".
+        'tenant_id'         => 'INT NULL',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
@@ -132,6 +138,20 @@ $schema = [
         'display_order'     => 'INT NULL DEFAULT 0',
         'is_active'         => 'TINYINT(1) NULL DEFAULT 1',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // Multi-tenancy: the per-company "hide" layer for global config (the add+hide
+    // override model — design §7). A row means "this company does NOT want global
+    // <entity_type> #<entity_id> in its lists". Generic so one table serves every
+    // overridable config type (ticket_type, ticket_origin, department, …). The
+    // global row itself is never touched, so history/closed tickets still resolve
+    // it — hiding only removes it from that company's pickers, and is reversible.
+    'tenant_config_hidden' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'         => 'INT NOT NULL',
+        'entity_type'       => 'VARCHAR(50) NOT NULL',
+        'entity_id'         => 'INT NOT NULL',
+        'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     'ticket_prefixes' => [
@@ -2355,6 +2375,20 @@ try {
         }
         if (!$fkExists('tenant_sender_addresses', 'fk_tenant_sender_tenant')) {
             try { $conn->exec("ALTER TABLE tenant_sender_addresses ADD CONSTRAINT fk_tenant_sender_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+    // Per-company config: the generic "hide" layer + per-entity tenant_id columns.
+    if ($tableExists('tenant_config_hidden') && $tableExists('tenants')) {
+        if (!$idxExists('tenant_config_hidden', 'uq_tenant_config_hidden')) {
+            try { $conn->exec("ALTER TABLE tenant_config_hidden ADD UNIQUE KEY uq_tenant_config_hidden (tenant_id, entity_type, entity_id)"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('tenant_config_hidden', 'fk_tenant_config_hidden_tenant')) {
+            try { $conn->exec("ALTER TABLE tenant_config_hidden ADD CONSTRAINT fk_tenant_config_hidden_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+    if ($tableExists('ticket_types') && $tableExists('tenants') && $colExists('ticket_types', 'tenant_id')) {
+        if (!$fkExists('ticket_types', 'fk_ticket_types_tenant')) {
+            try { $conn->exec("ALTER TABLE ticket_types ADD CONSTRAINT fk_ticket_types_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
     if ($tableExists('analyst_tenant_access') && $tableExists('analysts') && $tableExists('tenants')) {
