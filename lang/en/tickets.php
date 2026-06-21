@@ -661,6 +661,7 @@ return [
             'calendar_rota'        => 'Calendar &amp; rota',
             'settings'             => 'Settings',
             'tips'                 => 'Quick tips',
+            'companies'            => 'Companies',
         ],
         'overview' => [
             'heading' => 'Overview',
@@ -900,6 +901,53 @@ return [
             'feedback_body'  => 'Switch on CSAT under <strong>Settings &rarr; CSAT</strong> to auto-survey requesters when their tickets close. Per-analyst trends live at <code>tickets/csat/</code> &mdash; gold for development conversations.',
             'precreate_title'=> 'Pre-create end users',
             'precreate_body' => 'The <strong>Users</strong> nav button lets you add a user before they need to log a ticket &mdash; leave the password blank and they can claim the account themselves via the self-service portal.',
+        ],
+
+        // Section 12 — Companies & email routing (multi-tenancy). Only shown when
+        // the install serves more than one company (isMultiTenant). Prose values
+        // contain inline HTML and are echoed unescaped.
+        'companies' => [
+            'heading' => 'Companies &amp; email routing',
+            'intro'   => 'When your install serves more than one company (for example an IT provider supporting several clients), each company\'s tickets are kept separate. This section explains how inbound email finds the right company.',
+            'switcher_body' => 'A <strong>company switcher</strong> appears in the header. It sets the company you\'re working in &mdash; the ticket list, folders and counts all show just that company, and any ticket you create is filed to it. Staff with access to several companies can switch between them; the current one is always shown so you can\'t reply in the wrong context. Manage the companies themselves under <strong>System &rarr; Companies</strong>.',
+
+            'mailboxes_heading' => 'Every mailbox is one of two kinds &mdash; this is what decides routing:',
+            'card_pinned_title' => 'Pinned mailbox',
+            'card_pinned_body'  => 'Dedicated to one company (e.g. a client\'s own <code>itsupport@</code>). <strong>All</strong> its mail is filed to that company &mdash; the sender is ignored &mdash; and replies go back out from it, so the client sees their own help desk end to end.',
+            'card_shared_title' => 'Shared intake mailbox',
+            'card_shared_body'  => 'One address serving many companies (e.g. a provider\'s single <code>support@theprovider.com</code>). It can\'t know the company from the address alone, so it works it out from <strong>who sent the email</strong>. The recommended setup for a provider with many clients.',
+
+            'routing_heading' => 'How a shared-intake mailbox picks the company',
+            'routing_body'    => 'For each incoming email it tries these in order, and the first match wins:',
+            'flow_reply'   => 'Reply to a ticket',
+            'flow_sender'  => 'Known sender',
+            'flow_domain'  => 'Known domain',
+            'flow_triage'  => 'Triage',
+            'rule_reply'   => '<strong>1. Reply to an existing ticket</strong> &mdash; recognised by its reference, the email joins that ticket and keeps its company.',
+            'rule_sender'  => '<strong>2. A specific sender address</strong> mapped to a company (e.g. <code>jane@gmail.com</code> &rarr; Acme) &mdash; that company. Checked before the domain, so it works even for personal/webmail addresses.',
+            'rule_domain'  => '<strong>3. The sender\'s domain</strong> mapped to a company (e.g. anyone <code>@acme.com</code> &rarr; Acme) &mdash; that company.',
+            'rule_triage'  => '<strong>4. No match</strong> &mdash; the email goes to the <strong>triage</strong> queue rather than being lost (see below).',
+
+            'keys_heading' => 'Domains &amp; specific senders (set per company under System &rarr; Companies)',
+            'keys_body'    => 'These are the keys a shared-intake mailbox matches on. Each company lists the email domains it owns and, optionally, individual sender addresses.',
+            'card_domains_title' => 'Email domains',
+            'card_domains_body'  => 'The domains a company owns (acme.com, acme.co.uk). Any sender on a registered domain routes to that company. A domain belongs to one company only.',
+            'card_senders_title' => 'Specific senders',
+            'card_senders_body'  => 'Individual addresses mapped to a company, checked before the domain. Use it for a freelancer or small client emailing from a personal address.',
+            'card_public_title'  => 'Public providers',
+            'card_public_body'   => 'Gmail, Outlook, Yahoo and the like can\'t be mapped as a domain (many unrelated people share them) &mdash; map the exact address as a specific sender instead.',
+
+            'triage_heading' => 'The triage queue &mdash; the safety net',
+            'triage_body'    => 'When a shared-intake email matches no company it lands in <strong>Triage</strong> (reached from the company switcher, with a live count) instead of being lost. Each item shows the sender, domain, subject and which mailbox it arrived at. File it to a company in one step:',
+            'triage_create'  => 'Pick an existing company, or create a new one on the spot.',
+            'triage_assign'  => 'For a normal domain, optionally <strong>route that domain</strong> to the company; for a public/webmail address, optionally <strong>always file that sender</strong> there.',
+            'triage_sweep'   => 'Either choice <em>sweeps</em>: it moves every other queued email from that domain or address too, and auto-routes future mail &mdash; so you only sort a given sender once.',
+            'triage_tip'     => 'Nothing is ever lost. Unmatched mail waits in triage until someone files it; an un-filed ticket still shows under the default company in the meantime.',
+
+            'test_heading' => 'Test your routing before going live',
+            'test_body'    => 'Under <strong>System &rarr; Email routing test</strong> you can pretend an email arrived &mdash; pick a mailbox, type a sender address &mdash; and see exactly which company the new ticket would land in (or that it\'d go to triage) and which rule decided it. It creates nothing; it just reads your settings.',
+
+            'tip' => 'On a single-company install none of this appears &mdash; there\'s one company, every ticket belongs to it, and there\'s no switcher or triage. These features only switch on once a second company exists.',
         ],
     ],
 

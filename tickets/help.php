@@ -5,6 +5,8 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/functions.php';
+require_once '../includes/tenancy.php';
 I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -15,6 +17,17 @@ if (!isset($_SESSION['analyst_id'])) {
 $current_page = 'help';
 $path_prefix = '../';
 $translationNamespaces = ['common', 'tickets'];
+
+// The companies / email-routing section only makes sense once the install serves
+// more than one company — keep it invisible on a single-company install, exactly
+// like the rest of multi-tenancy (isMultiTenant gate).
+$showTenancyHelp = false;
+try {
+    $conn = connectToDatabase();
+    $showTenancyHelp = isMultiTenant($conn);
+} catch (Exception $e) {
+    $showTenancyHelp = false;
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
@@ -465,6 +478,12 @@ $translationNamespaces = ['common', 'tickets'];
                 <span class="tk-help-nav-num">11</span>
                 <?php echo t('tickets.help.nav.tips'); ?>
             </a>
+            <?php if ($showTenancyHelp): ?>
+            <a href="#companies" class="tk-help-nav-link" data-section="companies">
+                <span class="tk-help-nav-num">12</span>
+                <?php echo t('tickets.help.nav.companies'); ?>
+            </a>
+            <?php endif; ?>
         </div>
 
         <!-- Main content area -->
@@ -1065,6 +1084,93 @@ $translationNamespaces = ['common', 'tickets'];
                         </div>
                     </div>
                 </div>
+
+                <?php if ($showTenancyHelp): ?>
+                <!-- Section 12: Companies & email routing (multi-tenancy) -->
+                <div class="tk-help-section" id="companies">
+                    <div class="tk-help-section-header">
+                        <span class="tk-help-section-num">12</span>
+                        <div>
+                            <h3><?php echo t('tickets.help.companies.heading'); ?></h3>
+                            <p><?php echo t('tickets.help.companies.intro'); ?></p>
+                        </div>
+                    </div>
+
+                    <p><?php echo t('tickets.help.companies.switcher_body'); ?></p>
+
+                    <!-- Two kinds of mailbox -->
+                    <p style="margin-top: 8px;"><?php echo t('tickets.help.companies.mailboxes_heading'); ?></p>
+                    <div class="tk-help-features-grid">
+                        <div class="tk-help-feature-card">
+                            <div class="tk-help-feature-icon blue">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 12-9 12s-9-5-9-12a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                            </div>
+                            <h4><?php echo t('tickets.help.companies.card_pinned_title'); ?></h4>
+                            <p><?php echo t('tickets.help.companies.card_pinned_body'); ?></p>
+                        </div>
+                        <div class="tk-help-feature-card">
+                            <div class="tk-help-feature-icon teal">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"></path><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path></svg>
+                            </div>
+                            <h4><?php echo t('tickets.help.companies.card_shared_title'); ?></h4>
+                            <p><?php echo t('tickets.help.companies.card_shared_body'); ?></p>
+                        </div>
+                    </div>
+
+                    <!-- How a shared mailbox decides which company -->
+                    <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.routing_heading'); ?></p>
+                    <p><?php echo t('tickets.help.companies.routing_body'); ?></p>
+                    <div class="tk-help-flow">
+                        <div class="tk-help-flow-step inbox"><?php echo t('tickets.help.companies.flow_reply'); ?></div>
+                        <div class="tk-help-flow-arrow">&rarr;</div>
+                        <div class="tk-help-flow-step action"><?php echo t('tickets.help.companies.flow_sender'); ?></div>
+                        <div class="tk-help-flow-arrow">&rarr;</div>
+                        <div class="tk-help-flow-step resolve"><?php echo t('tickets.help.companies.flow_domain'); ?></div>
+                        <div class="tk-help-flow-arrow">&rarr;</div>
+                        <div class="tk-help-flow-step closed"><?php echo t('tickets.help.companies.flow_triage'); ?></div>
+                    </div>
+                    <div class="tk-help-fields">
+                        <div><?php echo t('tickets.help.companies.rule_reply'); ?></div>
+                        <div><?php echo t('tickets.help.companies.rule_sender'); ?></div>
+                        <div><?php echo t('tickets.help.companies.rule_domain'); ?></div>
+                        <div><?php echo t('tickets.help.companies.rule_triage'); ?></div>
+                    </div>
+
+                    <!-- Domains & specific senders -->
+                    <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.keys_heading'); ?></p>
+                    <p><?php echo t('tickets.help.companies.keys_body'); ?></p>
+                    <div class="tk-help-data-grid">
+                        <div class="tk-help-data-card">
+                            <strong><?php echo t('tickets.help.companies.card_domains_title'); ?></strong>
+                            <span><?php echo t('tickets.help.companies.card_domains_body'); ?></span>
+                        </div>
+                        <div class="tk-help-data-card">
+                            <strong><?php echo t('tickets.help.companies.card_senders_title'); ?></strong>
+                            <span><?php echo t('tickets.help.companies.card_senders_body'); ?></span>
+                        </div>
+                        <div class="tk-help-data-card">
+                            <strong><?php echo t('tickets.help.companies.card_public_title'); ?></strong>
+                            <span><?php echo t('tickets.help.companies.card_public_body'); ?></span>
+                        </div>
+                    </div>
+
+                    <!-- Triage queue -->
+                    <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.triage_heading'); ?></p>
+                    <p><?php echo t('tickets.help.companies.triage_body'); ?></p>
+                    <div class="tk-help-fields">
+                        <div><?php echo t('tickets.help.companies.triage_create'); ?></div>
+                        <div><?php echo t('tickets.help.companies.triage_assign'); ?></div>
+                        <div><?php echo t('tickets.help.companies.triage_sweep'); ?></div>
+                    </div>
+                    <p class="tk-help-tip"><?php echo t('tickets.help.companies.triage_tip'); ?></p>
+
+                    <!-- Routing test -->
+                    <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.test_heading'); ?></p>
+                    <p><?php echo t('tickets.help.companies.test_body'); ?></p>
+
+                    <p class="tk-help-tip"><?php echo t('tickets.help.companies.tip'); ?></p>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
     </div>
