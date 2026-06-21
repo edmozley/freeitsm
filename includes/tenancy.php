@@ -218,3 +218,70 @@ function ticketTenantFilter(PDO $conn, int $analystId, string $alias = 't'): arr
     }
     return [" AND $col = ?", [$active]];
 }
+
+/**
+ * Decide which company (tenant) a NEW inbound-email ticket belongs to.
+ *
+ * This implements the design's inbound routing for the "no existing ticket"
+ * case only — a reply to an existing ticket inherits that ticket's tenant
+ * upstream (the email is attached to the found ticket) and never reaches here:
+ *
+ *   1. Single-company install (!isMultiTenant) → always the Default company.
+ *   2. Pinned mailbox (target_mailboxes.tenant_id set) → that company; the
+ *      sender is ignored. (A pinned mailbox is also the outbound reply identity.)
+ *   3. Shared-intake mailbox (tenant_id NULL) → match the sender's domain
+ *      against the companies' registered domains (tenant_domains):
+ *        - match  → that company.
+ *        - no match (including freemail, which is never registered) → NULL,
+ *          meaning "triage": the ticket is left un-companied and, because
+ *          ticketTenantFilter() treats NULL as Default-owned, surfaces under
+ *          the Default company until an analyst files it. Nothing is ever lost.
+ *
+ * Deliberately defensive (try/catch around the mailbox/domain lookups) so it is
+ * safe to call on a part-migrated install.
+ *
+ * @param int|string|null $mailboxId  the importing mailbox's id
+ * @param string          $fromAddress the sender's email address
+ * @return int|null a tenant id, or NULL meaning "send to triage".
+ */
+function resolveTicketTenantForEmail(PDO $conn, $mailboxId, string $fromAddress): ?int {
+    // Single-company install: everything belongs to the silent Default company.
+    if (!isMultiTenant($conn)) {
+        return getDefaultTenantId($conn);
+    }
+
+    // (2) Pinned mailbox decides the company outright — sender ignored.
+    if ($mailboxId !== null && $mailboxId !== '') {
+        try {
+            $stmt = $conn->prepare("SELECT tenant_id FROM target_mailboxes WHERE id = ?");
+            $stmt->execute([(int) $mailboxId]);
+            $val = $stmt->fetchColumn();
+            if ($val !== false && $val !== null) {
+                return (int) $val;
+            }
+        } catch (Exception $e) {
+            // tenant_id column missing on a part-migrated install → treat as shared.
+        }
+    }
+
+    // (3) Shared intake → route by the sender's domain.
+    $domain = '';
+    if (strpos($fromAddress, '@') !== false) {
+        $domain = strtolower(trim(substr(strrchr($fromAddress, '@'), 1)));
+    }
+    if ($domain !== '') {
+        try {
+            $stmt = $conn->prepare("SELECT tenant_id FROM tenant_domains WHERE domain = ? LIMIT 1");
+            $stmt->execute([$domain]);
+            $val = $stmt->fetchColumn();
+            if ($val !== false && $val !== null) {
+                return (int) $val;
+            }
+        } catch (Exception $e) {
+            // tenant_domains missing → fall through to triage.
+        }
+    }
+
+    // No match → triage (NULL).
+    return null;
+}

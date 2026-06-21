@@ -8,6 +8,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -948,19 +949,24 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId) {
     if (!$ticketId) {
         $ticketNumber = generateTicketNumber($conn);
 
+        // Multi-tenancy: route the new ticket to a company. Pinned mailbox → its
+        // company; shared intake → sender-domain match → that company, else triage
+        // (NULL). Always the Default company on a single-company install.
+        $ticketTenantId = resolveTicketTenantForEmail($conn, $mailboxId, $fromAddress);
+
         $ticketSql = "INSERT INTO tickets (
             ticket_number, subject, status_id, priority_id,
-            created_datetime, updated_datetime, user_id
+            created_datetime, updated_datetime, user_id, tenant_id
         ) VALUES (
             ?, ?,
             (SELECT id FROM ticket_statuses   WHERE name = 'Open'   LIMIT 1),
             (SELECT id FROM ticket_priorities WHERE name = 'Normal' LIMIT 1),
-            ?, UTC_TIMESTAMP(), ?
+            ?, UTC_TIMESTAMP(), ?, ?
         )";
 
         $ticketStmt = $conn->prepare($ticketSql);
         $ticketStmt->execute([
-            $ticketNumber, $subject, $receivedDateTime, $userId
+            $ticketNumber, $subject, $receivedDateTime, $userId, $ticketTenantId
         ]);
 
         $ticketId = $conn->lastInsertId();
