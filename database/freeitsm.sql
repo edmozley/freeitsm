@@ -54,10 +54,14 @@ CREATE TABLE IF NOT EXISTS `auth_providers` (
     `require_verified_email` TINYINT(1) NOT NULL DEFAULT 0,
     `default_modules`        VARCHAR(500) NULL,
     `sort_order`             INT NOT NULL DEFAULT 0,
+    `tenant_id`              INT NULL,
     `created_datetime`       DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `last_modified_datetime` DATETIME NULL,
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- auth_providers.tenant_id => which client company owns this IdP (NULL = a
+-- global/MSP-internal provider, e.g. analyst SSO or a single-company install).
+-- FK added after `tenants` is defined (further down).
 
 -- Links an analyst to their identity at a given provider (the IdP `sub` claim).
 CREATE TABLE IF NOT EXISTS `analyst_sso_identities` (
@@ -479,6 +483,11 @@ CREATE TABLE IF NOT EXISTS `tenants` (
 INSERT INTO `tenants` (`name`, `is_default`, `is_active`)
 SELECT 'Default', 1, 1 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM `tenants`);
+
+-- auth_providers.tenant_id => the client company that owns this IdP (NULL =
+-- global). Defined here because `tenants` is created after `auth_providers`.
+ALTER TABLE `auth_providers`
+    ADD CONSTRAINT `fk_auth_providers_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE;
 
 -- Domains owned by a tenant (used by shared-intake email routing).
 CREATE TABLE IF NOT EXISTS `tenant_domains` (

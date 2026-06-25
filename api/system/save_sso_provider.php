@@ -50,6 +50,8 @@ $requireVerified = !empty($data['require_verified_email']) ? 1 : 0;
 $defaultModules  = isset($data['default_modules']) && trim($data['default_modules']) !== ''
                    ? trim($data['default_modules']) : null;
 $sortOrder       = (int)($data['sort_order'] ?? 0);
+// Which client company owns this IdP. Empty/0 = a global (MSP-internal) provider.
+$tenantId        = !empty($data['tenant_id']) ? (int)$data['tenant_id'] : null;
 $issuerUrl       = rtrim($issuerUrl, '/'); // store without trailing slash for consistent discovery
 $secretInput     = $data['client_secret'] ?? '';
 $id              = isset($data['id']) ? (int)$data['id'] : 0;
@@ -65,24 +67,24 @@ try {
                 "UPDATE auth_providers
                     SET display_name = ?, issuer_url = ?, client_id = ?, scopes = ?,
                         enabled = ?, auto_create_users = ?, require_verified_email = ?,
-                        default_modules = ?, sort_order = ?,
+                        default_modules = ?, sort_order = ?, tenant_id = ?,
                         last_modified_datetime = UTC_TIMESTAMP()
                   WHERE id = ?"
             );
             $stmt->execute([$displayName, $issuerUrl, $clientId, $scopes,
-                            $enabled, $autoCreate, $requireVerified, $defaultModules, $sortOrder, $id]);
+                            $enabled, $autoCreate, $requireVerified, $defaultModules, $sortOrder, $tenantId, $id]);
         } else {
             $encSecret = encryptValue($secretInput);
             $stmt = $conn->prepare(
                 "UPDATE auth_providers
                     SET display_name = ?, issuer_url = ?, client_id = ?, client_secret = ?, scopes = ?,
                         enabled = ?, auto_create_users = ?, require_verified_email = ?,
-                        default_modules = ?, sort_order = ?,
+                        default_modules = ?, sort_order = ?, tenant_id = ?,
                         last_modified_datetime = UTC_TIMESTAMP()
                   WHERE id = ?"
             );
             $stmt->execute([$displayName, $issuerUrl, $clientId, $encSecret, $scopes,
-                            $enabled, $autoCreate, $requireVerified, $defaultModules, $sortOrder, $id]);
+                            $enabled, $autoCreate, $requireVerified, $defaultModules, $sortOrder, $tenantId, $id]);
         }
         echo json_encode(['success' => true, 'id' => $id]);
 
@@ -93,11 +95,11 @@ try {
         $stmt = $conn->prepare(
             "INSERT INTO auth_providers
                 (display_name, issuer_url, client_id, client_secret, scopes,
-                 enabled, auto_create_users, require_verified_email, default_modules, sort_order, protocol)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'oidc')"
+                 enabled, auto_create_users, require_verified_email, default_modules, sort_order, tenant_id, protocol)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'oidc')"
         );
         $stmt->execute([$displayName, $issuerUrl, $clientId, $encSecret, $scopes,
-                        $enabled, $autoCreate, $requireVerified, $defaultModules, $sortOrder]);
+                        $enabled, $autoCreate, $requireVerified, $defaultModules, $sortOrder, $tenantId]);
         echo json_encode(['success' => true, 'id' => (int)$conn->lastInsertId()]);
     }
 

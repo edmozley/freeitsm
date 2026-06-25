@@ -8,9 +8,23 @@ require_once '../../config.php';
 require_once '../../includes/i18n.php';
 I18n::initFromSession();
 
+require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
+
 $current_page = 'sso';
 $path_prefix = '../../';
 $translationNamespaces = ['common', 'system'];
+
+// On a multi-tenant install a provider can be owned by a client company.
+$ssoTenants = [];
+$ssoMultiTenant = false;
+try {
+    $ssoAdminConn = connectToDatabase();
+    $ssoMultiTenant = isMultiTenant($ssoAdminConn);
+    if ($ssoMultiTenant) {
+        $ssoTenants = $ssoAdminConn->query("SELECT id, name FROM tenants WHERE is_active = 1 ORDER BY is_default DESC, name")->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (Exception $e) { $ssoTenants = []; $ssoMultiTenant = false; }
 
 // The redirect URI the admin must register in their IdP. Built from the
 // deployment's BASE_URL so it's correct whatever path the app is served at.
@@ -214,6 +228,18 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                     <div class="hint"><?php echo t('system.sso.field_default_modules_hint', ['example' => '<code>tickets, knowledge</code>', 'strong' => '<strong>' . htmlspecialchars(t('system.sso.field_default_modules_strong')) . '</strong>']); ?></div>
                     <input type="text" id="fDefaultModules" placeholder="<?php echo htmlspecialchars(t('system.sso.field_default_modules_placeholder')); ?>">
                 </div>
+                <?php if ($ssoMultiTenant): ?>
+                <div class="form-field" id="tenantField">
+                    <label><?php echo htmlspecialchars(t('system.sso.field_company')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_company_hint')); ?></div>
+                    <select id="fTenant">
+                        <option value=""><?php echo htmlspecialchars(t('system.sso.field_company_global')); ?></option>
+                        <?php foreach ($ssoTenants as $tn): ?>
+                            <option value="<?php echo (int)$tn['id']; ?>"><?php echo htmlspecialchars($tn['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <?php endif; ?>
             </div>
             <div class="sso-modal-footer">
                 <button class="btn btn-secondary" id="cancelModalBtn" type="button"><?php echo htmlspecialchars(t('system.sso.cancel')); ?></button>
@@ -307,6 +333,8 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         document.getElementById('fAutoCreate').checked = p ? !!p.auto_create_users : false;
         document.getElementById('fRequireVerified').checked = p ? !!p.require_verified_email : false;
         document.getElementById('fDefaultModules').value = p ? (p.default_modules || '') : '';
+        const tenantSel = document.getElementById('fTenant');
+        if (tenantSel) tenantSel.value = (p && p.tenant_id) ? String(p.tenant_id) : '';
         const secret = document.getElementById('fClientSecret');
         secret.value = '';
         if (p && p.has_secret) {
@@ -368,7 +396,8 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             enabled: document.getElementById('fEnabled').checked ? 1 : 0,
             auto_create_users: document.getElementById('fAutoCreate').checked ? 1 : 0,
             require_verified_email: document.getElementById('fRequireVerified').checked ? 1 : 0,
-            default_modules: document.getElementById('fDefaultModules').value.trim()
+            default_modules: document.getElementById('fDefaultModules').value.trim(),
+            tenant_id: (document.getElementById('fTenant') ? (document.getElementById('fTenant').value || null) : null)
         };
         if (!payload.display_name || !payload.issuer_url || !payload.client_id) {
             showToast(window.t('system.sso.required_fields'), 'error');

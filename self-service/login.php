@@ -12,6 +12,7 @@ if (isset($_SESSION['ss_user_id'])) {
 
 require_once '../config.php';
 require_once '../includes/functions.php';
+require_once '../includes/tenancy.php';
 require_once '../includes/i18n.php';
 I18n::initFromSession();
 
@@ -24,7 +25,7 @@ unset($_SESSION['sso_error']);
 // Work out SSO / local availability for the email-first router (mirrors the
 // analyst login). At N=1 with SSO off this all collapses to the local form.
 $ssoProviders = [];
-$ssoOn = false; $localOn = true;
+$ssoOn = false; $localOn = true; $multiTenant = false;
 try {
     $ssoConn = connectToDatabase();
     $cfg = [];
@@ -34,10 +35,16 @@ try {
     $ssoOn   = ($cfg['sso_enabled'] ?? '0') === '1';
     $localOn = ($cfg['local_login_enabled'] ?? '1') !== '0';
     if ($ssoOn) {
-        $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
+        // Only GLOBAL providers are shown up front (single-company installs).
+        // On a multi-tenant install we never list providers up front — the
+        // email-first router reveals only the requester's own company's IdP(s).
+        $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
     }
+    $multiTenant = isMultiTenant($ssoConn);
 } catch (Exception $e) { $ssoProviders = []; }
-$ssoActive = $ssoOn && !empty($ssoProviders);
+// On a multi-tenant install the router is active whenever SSO is on (companies
+// own their own providers, resolved per-email — there may be no global ones).
+$ssoActive = $ssoOn && ($multiTenant || !empty($ssoProviders));
 // Break-glass: ?local=1 always reveals the local form, even when local login is "off".
 $forceLocal   = isset($_GET['local']);
 $localAllowed = $localOn || $forceLocal;
@@ -224,12 +231,18 @@ $localAllowed = $localOn || $forceLocal;
             </form>
 
             <?php if ($ssoActive): ?>
-                <div class="sso-divider"><span></span><?php echo htmlspecialchars(t('self-service.login.or')); ?><span></span></div>
-                <?php foreach ($ssoProviders as $p): ?>
-                    <a class="sso-provider-btn" href="../api/auth/oidc_login.php?provider=<?php echo (int)$p['id']; ?>&amp;portal=self-service"><?php echo htmlspecialchars($p['display_name']); ?></a>
-                <?php endforeach; ?>
-                <?php if ($localAllowed): ?>
-                    <a href="#" id="showLocalLink" class="ss-text-link"><?php echo htmlspecialchars(t('self-service.login.use_local_account')); ?></a>
+                <!-- Multi-tenant: provider buttons for the resolved company are injected here. -->
+                <div id="ssoPicker"></div>
+
+                <?php if (!$multiTenant): ?>
+                    <!-- Single-company: providers are global, so show them up front. -->
+                    <div class="sso-divider"><span></span><?php echo htmlspecialchars(t('self-service.login.or')); ?><span></span></div>
+                    <?php foreach ($ssoProviders as $p): ?>
+                        <a class="sso-provider-btn" href="../api/auth/oidc_login.php?provider=<?php echo (int)$p['id']; ?>&amp;portal=self-service"><?php echo htmlspecialchars($p['display_name']); ?></a>
+                    <?php endforeach; ?>
+                    <?php if ($localAllowed): ?>
+                        <a href="#" id="showLocalLink" class="ss-text-link"><?php echo htmlspecialchars(t('self-service.login.use_local_account')); ?></a>
+                    <?php endif; ?>
                 <?php endif; ?>
             <?php endif; ?>
 
@@ -358,16 +371,48 @@ $localAllowed = $localOn || $forceLocal;
         var continueBtn   = document.getElementById('continueBtn');
         var loginBtn      = document.getElementById('loginBtn');
         var showLocalLink = document.getElementById('showLocalLink');
+        var picker        = document.getElementById('ssoPicker');
         var errEl         = document.getElementById('errorMsg');
         var revealed      = false;
 
+        function clearPicker() { if (picker) picker.innerHTML = ''; }
+
         function revealLocal() {
             revealed = true;
+            clearPicker();
             if (pwGroup) pwGroup.style.display = '';
             if (continueBtn) continueBtn.style.display = 'none';
             if (loginBtn) loginBtn.style.display = '';
             var pw = document.getElementById('password');
             if (pw) pw.focus();
+        }
+
+        // Company has 2+ IdPs and we can't tell which is yours → let you pick.
+        function renderPicker(providers) {
+            if (!picker) return;
+            if (continueBtn) continueBtn.style.display = 'none';
+            picker.innerHTML = '';
+            var div = document.createElement('div');
+            div.className = 'sso-divider';
+            div.appendChild(document.createElement('span'));
+            div.appendChild(document.createTextNode(t('self-service.login.choose_method')));
+            div.appendChild(document.createElement('span'));
+            picker.appendChild(div);
+            providers.forEach(function (p) {
+                var a = document.createElement('a');
+                a.className = 'sso-provider-btn';
+                a.href = '../api/auth/oidc_login.php?provider=' + encodeURIComponent(p.id) + '&portal=self-service';
+                a.textContent = p.name;
+                picker.appendChild(a);
+            });
+            if (localAllowed) {
+                var l = document.createElement('a');
+                l.href = '#';
+                l.className = 'ss-text-link';
+                l.textContent = t('self-service.login.use_local_account');
+                l.addEventListener('click', function (e) { e.preventDefault(); revealLocal(); });
+                picker.appendChild(l);
+            }
         }
 
         async function resolve() {
@@ -378,6 +423,7 @@ $localAllowed = $localOn || $forceLocal;
                 return;
             }
             errEl.style.display = 'none';
+            clearPicker();
             if (continueBtn) continueBtn.disabled = true;
             try {
                 var r = await fetch('../api/auth/resolve_login.php', {
@@ -388,6 +434,11 @@ $localAllowed = $localOn || $forceLocal;
                 var d = await r.json();
                 if (d && d.mode === 'sso' && d.provider_id) {
                     window.location = '../api/auth/oidc_login.php?provider=' + d.provider_id + '&portal=self-service';
+                    return;
+                }
+                if (d && d.mode === 'choose' && Array.isArray(d.providers) && d.providers.length) {
+                    renderPicker(d.providers);
+                    if (continueBtn) continueBtn.disabled = false;
                     return;
                 }
             } catch (e) { /* fall through to local */ }
@@ -406,6 +457,10 @@ $localAllowed = $localOn || $forceLocal;
         if (emailEl) emailEl.addEventListener('keydown', function (e) {
             if (e.key === 'Enter' && !revealed) { e.preventDefault(); resolve(); }
         });
+        <?php if ($forceLocal): ?>
+        // Break-glass ?local=1 → straight to the local form.
+        revealLocal();
+        <?php endif; ?>
     })();
 <?php endif; ?>
     </script>

@@ -21,7 +21,7 @@ try {
     $stmt = $conn->query(
         "SELECT id, display_name, protocol, issuer_url, client_id, client_secret,
                 scopes, enabled, auto_create_users, require_verified_email,
-                default_modules, sort_order
+                default_modules, sort_order, tenant_id
            FROM auth_providers
           ORDER BY sort_order, display_name"
     );
@@ -40,6 +40,8 @@ try {
             'require_verified_email' => (int)$r['require_verified_email'],
             'default_modules'   => $r['default_modules'],
             'sort_order'        => (int)$r['sort_order'],
+            // Which client company owns this IdP (null = global / MSP-internal).
+            'tenant_id'         => isset($r['tenant_id']) ? (int)$r['tenant_id'] : null,
             // Boolean flag only — the encrypted secret itself never leaves the server.
             'has_secret'        => ($r['client_secret'] !== null && $r['client_secret'] !== ''),
         ];

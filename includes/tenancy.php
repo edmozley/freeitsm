@@ -345,6 +345,40 @@ function resolveTicketTenantForEmail(PDO $conn, $mailboxId, string $fromAddress)
 }
 
 /**
+ * Resolve an email address to the tenant that owns it, for LOGIN routing
+ * (which IdP should this person be sent to). Mirrors the email-routing rule
+ * (exact sender address → registered domain), but without the mailbox step.
+ *
+ * Returns the tenant id, or null if the address maps to no company (unknown
+ * domain, or a freemail address) → caller falls back to local login.
+ */
+function resolveTenantIdForAddress(PDO $conn, string $email): ?int {
+    $addr = strtolower(trim($email));
+    if ($addr === '' || strpos($addr, '@') === false) return null;
+
+    // (1) Exact sender-address override (lets a freemail address map to a company).
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM tenant_sender_addresses WHERE email = ? LIMIT 1");
+        $stmt->execute([$addr]);
+        $val = $stmt->fetchColumn();
+        if ($val !== false && $val !== null) return (int) $val;
+    } catch (Exception $e) { /* table missing → fall through */ }
+
+    // (2) Registered domain → tenant.
+    $domain = strtolower(trim(substr(strrchr($addr, '@'), 1)));
+    if ($domain !== '') {
+        try {
+            $stmt = $conn->prepare("SELECT tenant_id FROM tenant_domains WHERE domain = ? LIMIT 1");
+            $stmt->execute([$domain]);
+            $val = $stmt->fetchColumn();
+            if ($val !== false && $val !== null) return (int) $val;
+        } catch (Exception $e) { /* table missing → fall through */ }
+    }
+
+    return null;
+}
+
+/**
  * The built-in list of public free-email / consumer domains. These are ALWAYS
  * treated as freemail; an admin can ADD to the list (the freemail_domains
  * table, see getCustomFreemailDomains) but never remove a built-in — so

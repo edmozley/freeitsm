@@ -634,7 +634,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $ssoOn   = ($cfg['sso_enabled'] ?? '0') === '1';
                 $localOn = ($cfg['local_login_enabled'] ?? '1') !== '0';
                 if ($ssoOn) {
-                    $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
+                    // Only GLOBAL providers (tenant_id IS NULL) belong on the analyst
+                    // login — tenant-scoped providers are client companies' own IdPs
+                    // for the self-service portal, not for MSP staff.
+                    $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
                 }
             } catch (Exception $e) { $ssoProviders = []; }
             $ssoActive = $ssoOn && !empty($ssoProviders);

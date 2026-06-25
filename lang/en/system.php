@@ -419,6 +419,9 @@ return [
         'field_default_modules_hint' => 'Comma-separated module keys granted to JIT-created analysts (e.g. {example}). {strong} — set this for pilots so auto-created users aren\'t admins.',
         'field_default_modules_strong' => 'Leave blank and they get full access to every module',
         'field_default_modules_placeholder' => 'tickets, knowledge',
+        'field_company'        => 'Company',
+        'field_company_hint'   => 'Which client company owns this identity provider — its requesters are routed here on the self-service portal. Leave as Global for an MSP-internal provider (e.g. analyst sign-in).',
+        'field_company_global' => 'Global (internal / all)',
         'cancel'           => 'Cancel',
 
         'global_saved'   => 'Global settings saved',

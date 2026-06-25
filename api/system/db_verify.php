@@ -55,6 +55,7 @@ $schema = [
         'require_verified_email' => 'TINYINT(1) NOT NULL DEFAULT 0',
         'default_modules'        => 'VARCHAR(500) NULL',
         'sort_order'             => 'INT NOT NULL DEFAULT 0',
+        'tenant_id'              => 'INT NULL',
         'created_datetime'       => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'last_modified_datetime' => 'DATETIME NULL',
     ],
@@ -3105,6 +3106,8 @@ try {
         ['user_sso_identities',    'fk_user_sso_identity_user',     "ALTER TABLE user_sso_identities ADD CONSTRAINT fk_user_sso_identity_user FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE"],
         ['user_sso_identities',    'fk_user_sso_identity_provider', "ALTER TABLE user_sso_identities ADD CONSTRAINT fk_user_sso_identity_provider FOREIGN KEY (provider_id) REFERENCES auth_providers (id) ON DELETE CASCADE"],
         ['users',                  'fk_users_auth_provider',        "ALTER TABLE users ADD CONSTRAINT fk_users_auth_provider FOREIGN KEY (auth_provider_id) REFERENCES auth_providers (id) ON DELETE SET NULL"],
+        // Multi-tenant portal SSO: a provider can be owned by a client company.
+        ['auth_providers',         'fk_auth_providers_tenant',      "ALTER TABLE auth_providers ADD CONSTRAINT fk_auth_providers_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"],
     ];
     foreach ($ssoFks as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;

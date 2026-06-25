@@ -41,6 +41,7 @@ return [
         'verify_failed'      => 'Verification failed. Please try again.',
         'continue'           => 'Continue',
         'or'                 => 'or',
+        'choose_method'      => 'Choose how to sign in',
         'use_local_account'  => 'Sign in with email and password',
         'enter_email'        => 'Please enter your email.',
         'no_sso_for_email'   => 'No single sign-on provider is set up for that email. Please contact your service desk.',
