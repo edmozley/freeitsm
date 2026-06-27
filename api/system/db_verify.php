@@ -402,6 +402,21 @@ $schema = [
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // Pre-approved provider message templates (replying after the WhatsApp 24h window).
+    // FreeITSM stores the definition; the template is created/approved at the provider.
+    // provider_ref = Twilio Content SID or Meta template name. language used by Meta.
+    'messaging_templates' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'name'             => 'VARCHAR(100) NOT NULL',
+        'provider'         => "VARCHAR(20) NOT NULL DEFAULT 'twilio'",
+        'language'         => "VARCHAR(20) NOT NULL DEFAULT 'en'",
+        'provider_ref'     => 'VARCHAR(255) NOT NULL',
+        'body'             => 'LONGTEXT NOT NULL',
+        'tenant_id'        => 'INT NULL',
+        'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     // Which analysts may access which tenants (only consulted when an analyst
     // is NOT flagged can_access_all_tenants).
     'analyst_tenant_access' => [
@@ -2450,6 +2465,14 @@ try {
         }
         if (!$fkExists('tenant_channel_senders', 'fk_tenant_channel_sender_tenant')) {
             try { $conn->exec("ALTER TABLE tenant_channel_senders ADD CONSTRAINT fk_tenant_channel_sender_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+    if ($tableExists('messaging_templates') && $tableExists('tenants') && $colExists('messaging_templates', 'tenant_id')) {
+        if (!$idxExists('messaging_templates', 'ix_messaging_templates_tenant_id')) {
+            try { $conn->exec("ALTER TABLE messaging_templates ADD KEY ix_messaging_templates_tenant_id (tenant_id)"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('messaging_templates', 'fk_messaging_templates_tenant')) {
+            try { $conn->exec("ALTER TABLE messaging_templates ADD CONSTRAINT fk_messaging_templates_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"); } catch (Exception $e) {}
         }
     }
     // Seed the WhatsApp ticket origin (global default) if absent, so channel tickets

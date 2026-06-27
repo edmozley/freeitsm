@@ -63,6 +63,8 @@ let folderCounts = {};
 // reading pane composes over the channel instead of email. 'email' = normal ticket.
 let currentTicketChannel = 'email';
 let currentChannelWindowOpen = false;
+let currentChannelProvider = '';
+let channelTemplates = [];
 let currentFilter = { type: 'all' };
 let expandedFolders = {};
 let currentNotes = [];
@@ -1359,6 +1361,7 @@ async function loadCorrespondenceThread(ticketId) {
         // Remember the channel so Reply composes over WhatsApp etc. rather than email.
         currentTicketChannel = data.channel || 'email';
         currentChannelWindowOpen = !!data.window_open;
+        currentChannelProvider = data.channel_provider || '';
         renderChannelComposer(ticketId);
 
         if (!data.success || !data.emails || data.emails.length === 0) return;
@@ -1393,9 +1396,41 @@ function renderChannelComposer(ticketId) {
     }
 
     const label = currentTicketChannel === 'whatsapp' ? 'WhatsApp' : currentTicketChannel;
-    const windowBanner = currentChannelWindowOpen
-        ? ''
-        : `<div class="channel-window-closed">⏳ The 24-hour reply window has closed. A pre-approved template is needed to reopen the conversation (coming soon).</div>`;
+
+    let inner;
+    if (currentChannelWindowOpen) {
+        // Inside the 24h window: free-text composer.
+        inner = `
+            <textarea id="channelComposerText" class="channel-composer-text" rows="3" placeholder="Type your reply…"></textarea>
+            <div class="channel-composer-actions">
+                <button class="action-btn" onclick="aiSuggestChannelReply(${ticketId})" title="Draft a reply with AI">
+                    <span class="action-btn-icon">🤖</span><span>Suggest</span>
+                </button>
+                <button class="action-btn" onclick="aiSummariseChannel(${ticketId})" title="Summarise this conversation into the ticket">
+                    <span class="action-btn-icon">📝</span><span>Summarise</span>
+                </button>
+                <button class="action-btn action-btn-primary" id="channelSendBtn" onclick="sendChannelMessage(${ticketId})">
+                    <span class="action-btn-icon">📤</span><span>Send</span>
+                </button>
+            </div>`;
+    } else {
+        // Window closed: only a pre-approved template can re-open the conversation.
+        inner = `
+            <div class="channel-window-closed">⏳ The 24-hour reply window has closed. Free-text replies are blocked by WhatsApp — send a pre-approved template to re-open the conversation.</div>
+            <label class="channel-tpl-label">Template</label>
+            <select id="channelTemplateSelect" class="channel-composer-text" onchange="onChannelTemplatePick(${ticketId})">
+                <option value="">Loading templates…</option>
+            </select>
+            <div id="channelTemplateVars"></div>
+            <div class="channel-composer-actions">
+                <button class="action-btn" onclick="aiSummariseChannel(${ticketId})" title="Summarise this conversation into the ticket">
+                    <span class="action-btn-icon">📝</span><span>Summarise</span>
+                </button>
+                <button class="action-btn action-btn-primary" id="channelSendTplBtn" onclick="sendChannelTemplate(${ticketId})" disabled>
+                    <span class="action-btn-icon">📤</span><span>Send template</span>
+                </button>
+            </div>`;
+    }
 
     const html = `
         <div id="channelComposer" class="channel-composer">
@@ -1403,20 +1438,7 @@ function renderChannelComposer(ticketId) {
                 <span class="thread-direction-badge outbound">${escapeHtml(label)}</span>
                 <span class="channel-composer-title">Reply to the customer over ${escapeHtml(label)}</span>
             </div>
-            ${windowBanner}
-            <textarea id="channelComposerText" class="channel-composer-text" rows="3"
-                placeholder="Type your reply…" ${currentChannelWindowOpen ? '' : 'disabled'}></textarea>
-            <div class="channel-composer-actions">
-                <button class="action-btn" onclick="aiSuggestChannelReply(${ticketId})" ${currentChannelWindowOpen ? '' : 'disabled'} title="Draft a reply with AI">
-                    <span class="action-btn-icon">🤖</span><span>Suggest</span>
-                </button>
-                <button class="action-btn" onclick="aiSummariseChannel(${ticketId})" title="Summarise this conversation into the ticket">
-                    <span class="action-btn-icon">📝</span><span>Summarise</span>
-                </button>
-                <button class="action-btn action-btn-primary" id="channelSendBtn" onclick="sendChannelMessage(${ticketId})" ${currentChannelWindowOpen ? '' : 'disabled'}>
-                    <span class="action-btn-icon">📤</span><span>Send</span>
-                </button>
-            </div>
+            ${inner}
         </div>`;
 
     const body = document.querySelector('.email-body');
@@ -1425,6 +1447,89 @@ function renderChannelComposer(ticketId) {
         existing.outerHTML = html;
     } else {
         body.insertAdjacentHTML('afterbegin', html);
+    }
+
+    if (!currentChannelWindowOpen) {
+        loadChannelTemplates();
+    }
+}
+
+// Load the templates matching this channel's provider into the picker.
+async function loadChannelTemplates() {
+    const sel = document.getElementById('channelTemplateSelect');
+    if (!sel) return;
+    try {
+        const q = currentChannelProvider ? ('?provider=' + encodeURIComponent(currentChannelProvider)) : '';
+        const res = await fetch(API_BASE.replace('tickets/', 'messaging/') + 'get_templates.php' + q, { credentials: 'same-origin' });
+        const data = await res.json();
+        channelTemplates = (data.success && data.templates) ? data.templates : [];
+        if (!channelTemplates.length) {
+            sel.innerHTML = '<option value="">No templates set up — add them in Settings → Messaging</option>';
+            return;
+        }
+        sel.innerHTML = '<option value="">— choose a template —</option>' +
+            channelTemplates.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+    } catch (e) {
+        sel.innerHTML = '<option value="">Failed to load templates</option>';
+    }
+}
+
+// When a template is chosen, render an input per {{n}} variable + a live preview.
+function onChannelTemplatePick(ticketId) {
+    const sel = document.getElementById('channelTemplateSelect');
+    const varsEl = document.getElementById('channelTemplateVars');
+    const sendBtn = document.getElementById('channelSendTplBtn');
+    const tpl = channelTemplates.find(t => String(t.id) === String(sel.value));
+    if (!tpl) { varsEl.innerHTML = ''; if (sendBtn) sendBtn.disabled = true; return; }
+
+    let fields = '';
+    for (let i = 1; i <= (tpl.var_count || 0); i++) {
+        fields += `<input type="text" class="channel-composer-text channel-tpl-var" data-idx="${i}" placeholder="Value for {{${i}}}" oninput="updateChannelTemplatePreview()" style="margin-top:6px;">`;
+    }
+    varsEl.innerHTML = `
+        ${fields}
+        <div class="channel-tpl-preview" id="channelTemplatePreview"></div>`;
+    if (sendBtn) sendBtn.disabled = false;
+    updateChannelTemplatePreview();
+}
+
+// Live preview of the rendered template (placeholders filled in).
+function updateChannelTemplatePreview() {
+    const sel = document.getElementById('channelTemplateSelect');
+    const tpl = channelTemplates.find(t => String(t.id) === String(sel && sel.value));
+    const prev = document.getElementById('channelTemplatePreview');
+    if (!tpl || !prev) return;
+    const vals = Array.from(document.querySelectorAll('.channel-tpl-var')).map(i => i.value);
+    let body = tpl.body.replace(/\{\{\s*(\d+)\s*\}\}/g, (m, n) => vals[parseInt(n, 10) - 1] || m);
+    prev.textContent = body;
+}
+
+// Send the chosen template.
+async function sendChannelTemplate(ticketId) {
+    const sel = document.getElementById('channelTemplateSelect');
+    const btn = document.getElementById('channelSendTplBtn');
+    if (!sel || !sel.value) { showToast('Choose a template first', 'error'); return; }
+    const vars = Array.from(document.querySelectorAll('.channel-tpl-var')).map(i => i.value.trim());
+    if (vars.some(v => v === '')) { showToast('Fill in all template values', 'error'); return; }
+
+    const original = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span>Sending…</span>'; }
+    try {
+        const res = await fetch(API_BASE.replace('tickets/', 'messaging/') + 'send_template.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+            body: JSON.stringify({ ticket_id: ticketId, template_id: parseInt(sel.value, 10), vars })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Template sent', 'success');
+            loadCorrespondenceThread(ticketId);
+        } else {
+            showToast('Could not send: ' + (data.error || 'unknown error'), 'error');
+        }
+    } catch (e) {
+        showToast('Failed to send template', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = original; }
     }
 }
 
@@ -2391,11 +2496,12 @@ async function saveNote() {
 function openReplyModal() {
     // Channel tickets (WhatsApp etc.) reply via the inline composer, not email.
     if (currentTicketChannel && currentTicketChannel !== 'email') {
-        const ta = document.getElementById('channelComposerText');
-        if (ta) {
-            ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            if (!ta.disabled) ta.focus();
-        }
+        // Channel ticket: jump to the inline composer (free-text box if the window is
+        // open, otherwise the template picker).
+        const composer = document.getElementById('channelComposer');
+        const focusEl = document.getElementById('channelComposerText') || document.getElementById('channelTemplateSelect');
+        if (composer) composer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        if (focusEl) focusEl.focus();
         return;
     }
     composeMode = 'reply';

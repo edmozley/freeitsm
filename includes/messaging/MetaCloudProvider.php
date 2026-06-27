@@ -115,6 +115,53 @@ class MetaCloudProvider extends MessagingProvider
         return $json['messages'][0]['id'] ?? '';
     }
 
+    public function sendTemplate(string $to, array $template, array $vars): string
+    {
+        $phoneId = $this->channel['credentials']['phone_number_id'] ?? '';
+        $token   = $this->channel['credentials']['access_token'] ?? '';
+        $name    = $template['provider_ref'] ?? '';
+        $lang    = $template['language'] ?? 'en';
+        if ($phoneId === '' || $token === '') {
+            throw new Exception('Meta channel is missing its phone number id or access token.');
+        }
+        if ($name === '') {
+            throw new Exception('This template has no Meta template name set.');
+        }
+
+        $templatePayload = [
+            'name'     => $name,
+            'language' => ['code' => $lang],
+        ];
+        if (!empty($vars)) {
+            $templatePayload['components'] = [[
+                'type'       => 'body',
+                'parameters' => array_map(function ($v) {
+                    return ['type' => 'text', 'text' => (string) $v];
+                }, array_values($vars)),
+            ]];
+        }
+
+        $version = $this->channel['credentials']['graph_version'] ?? self::GRAPH_VERSION;
+        $url = 'https://graph.facebook.com/' . $version . "/$phoneId/messages";
+        $payload = json_encode([
+            'messaging_product' => 'whatsapp',
+            'to'                => ltrim($this->ensurePlus($to), '+'),
+            'type'              => 'template',
+            'template'          => $templatePayload,
+        ]);
+
+        [$code, $resp] = $this->httpRequest($url, [
+            'method'  => 'POST',
+            'headers' => ['Content-Type: application/json', "Authorization: Bearer $token"],
+            'body'    => $payload,
+        ]);
+        $json = json_decode($resp, true);
+        if ($code < 200 || $code >= 300) {
+            throw new Exception('Meta rejected the template: ' . ($json['error']['message'] ?? ('HTTP ' . $code)));
+        }
+        return $json['messages'][0]['id'] ?? '';
+    }
+
     public function testConnection(): string
     {
         $phoneId = $this->channel['credentials']['phone_number_id'] ?? '';

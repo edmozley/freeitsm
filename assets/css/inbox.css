@@ -976,6 +976,26 @@ body.ticket-popout .ticket-toolbar {
     margin-top: 8px;
 }
 
+.channel-tpl-label {
+    display: block;
+    font-size: 13px;
+    color: #555;
+    margin: 4px 0;
+    font-weight: 600;
+}
+
+.channel-tpl-preview {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #fff;
+    border: 1px dashed #cfd8dc;
+    border-radius: 6px;
+    font-size: 13px;
+    color: #333;
+    white-space: pre-wrap;
+    min-height: 1.4em;
+}
+
 .action-btn-icon {
     font-size: 16px;
 }

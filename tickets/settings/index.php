@@ -768,6 +768,31 @@ $translationNamespaces = ['common', 'tickets'];
                     <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
                 </tbody>
             </table>
+
+            <div class="section-header" style="margin-top:32px;">
+                <h2>Message templates</h2>
+                <button class="add-btn" onclick="openMsgTemplateModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
+            </div>
+            <p>
+                Pre-approved templates let an analyst reply <strong>after the 24-hour window has closed</strong>.
+                WhatsApp only allows free text within 24 hours of the customer's last message; outside that, only a
+                template Meta/Twilio has approved can be sent. Create &amp; approve the template at your provider, then
+                add its definition here (with <code>{{1}}</code>, <code>{{2}}</code> placeholders) so analysts can pick and fill it.
+            </p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Provider</th>
+                        <th>Reference</th>
+                        <th>Status</th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.actions')); ?></th>
+                    </tr>
+                </thead>
+                <tbody id="msg-templates-list">
+                    <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                </tbody>
+            </table>
         </div>
 
         <!-- Email Templates Tab -->
@@ -1328,6 +1353,53 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
+    <!-- Messaging Template Modal -->
+    <div class="modal" id="msgTemplateModal">
+        <div class="modal-content" style="max-width: 600px;">
+            <div class="modal-header" id="msgTemplateModalTitle">Add template</div>
+            <div class="modal-body">
+            <form id="msgTemplateForm" autocomplete="off">
+                <input type="hidden" id="msgTemplateId">
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div class="form-group">
+                        <label for="msgTemplateName">Name *</label>
+                        <input type="text" id="msgTemplateName" required placeholder="e.g. Ticket update nudge">
+                    </div>
+                    <div class="form-group">
+                        <label for="msgTemplateProvider">Provider *</label>
+                        <select id="msgTemplateProvider" onchange="msgTemplateProviderHint()">
+                            <option value="twilio">Twilio</option>
+                            <option value="meta">Meta (WhatsApp Cloud)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="msgTemplateRef" id="msgTemplateRefLabel">Twilio Content SID *</label>
+                        <input type="text" id="msgTemplateRef" required placeholder="HXxxxxxxxxxxxxxxxx">
+                        <small id="msgTemplateRefHint" style="color:#666;">The Content SID of the approved template in your Twilio console.</small>
+                    </div>
+                    <div class="form-group">
+                        <label for="msgTemplateLang">Language</label>
+                        <input type="text" id="msgTemplateLang" placeholder="en" value="en">
+                        <small style="color:#666;">Used by Meta (e.g. en, en_US). Ignored by Twilio.</small>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="msgTemplateBody">Body *</label>
+                        <textarea id="msgTemplateBody" rows="3" required placeholder="Hi {{1}}, there's an update on your ticket {{2}} — reply to continue."></textarea>
+                        <small style="color:#666;">Must match the approved template. Use <code>{{1}}</code>, <code>{{2}}</code> … for the variables an analyst fills in.</small>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label><input type="checkbox" id="msgTemplateActive" checked> Active</label>
+                    </div>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeMsgTemplateModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="submit" form="msgTemplateForm" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Activity Log Modal -->
     <div class="modal" id="activityModal">
         <div class="modal-content" style="max-width: 850px;">
@@ -1689,6 +1761,7 @@ $translationNamespaces = ['common', 'tickets'];
             loadRotaLocations();
             loadMailboxes();
             loadChannels();
+            loadMsgTemplates();
             loadEmailTemplates();
             loadRotaShifts();
             loadRotaWeekendSetting();
@@ -2842,6 +2915,124 @@ $translationNamespaces = ['common', 'tickets'];
                     showToast('Error: ' + (data.error || ''), 'error');
                 }
             } catch (err) { showToast('Failed to save channel', 'error'); }
+        });
+
+        // ===== Messaging templates =====
+        let msgTemplates = [];
+
+        async function loadMsgTemplates() {
+            try {
+                const res = await fetch(MSG_API + 'get_templates.php?manage=1');
+                const data = await res.json();
+                if (data.success) {
+                    msgTemplates = data.templates;
+                    renderMsgTemplates(msgTemplates);
+                } else {
+                    document.getElementById('msg-templates-list').innerHTML =
+                        `<tr><td colspan="5" style="text-align:center;color:red;">Error: ${escapeHtml(data.error || '')}</td></tr>`;
+                }
+            } catch (e) {
+                document.getElementById('msg-templates-list').innerHTML =
+                    '<tr><td colspan="5" style="text-align:center;color:red;">Failed to load templates.</td></tr>';
+            }
+        }
+
+        function renderMsgTemplates(list) {
+            const tbody = document.getElementById('msg-templates-list');
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No templates yet. Add one to reply after the 24-hour window.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.map(tpl => {
+                const prov = tpl.provider === 'meta'
+                    ? '<span class="status-badge" style="background:#e3f2fd;color:#1565c0;">Meta</span>'
+                    : '<span class="status-badge" style="background:#e8f5e9;color:#2e7d32;">Twilio</span>';
+                const active = tpl.is_active ? '' : ' <span class="status-badge status-inactive">Inactive</span>';
+                const vars = tpl.var_count ? ` <span class="status-badge" style="background:#f3e5f5;color:#6a1b9a;">${tpl.var_count} var${tpl.var_count > 1 ? 's' : ''}</span>` : '';
+                const safeName = escapeHtml(tpl.name).replace(/'/g, "\\'");
+                const actions = `
+                    <button class="action-btn" onclick="editMsgTemplate(${tpl.id})" title="${t('common.edit')}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteMsgTemplate(${tpl.id}, '${safeName}')" title="${t('common.delete')}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>`;
+                return `<tr>
+                    <td><strong>${escapeHtml(tpl.name)}</strong>${active}${vars}</td>
+                    <td>${prov}</td>
+                    <td><code style="font-size:11px;">${escapeHtml(tpl.provider_ref)}</code></td>
+                    <td>${tpl.is_active ? '<span class="status-badge status-active">Active</span>' : '<span class="status-badge status-inactive">Inactive</span>'}</td>
+                    <td>${actions}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        function msgTemplateProviderHint() {
+            const meta = document.getElementById('msgTemplateProvider').value === 'meta';
+            document.getElementById('msgTemplateRefLabel').textContent = meta ? 'Meta template name *' : 'Twilio Content SID *';
+            document.getElementById('msgTemplateRef').placeholder = meta ? 'appointment_update' : 'HXxxxxxxxxxxxxxxxx';
+            document.getElementById('msgTemplateRefHint').textContent = meta
+                ? 'The exact name of the approved template in Meta Business Manager.'
+                : 'The Content SID of the approved template in your Twilio console.';
+        }
+
+        function openMsgTemplateModal(tpl = null) {
+            document.getElementById('msgTemplateForm').reset();
+            document.getElementById('msgTemplateId').value = tpl ? tpl.id : '';
+            document.getElementById('msgTemplateModalTitle').textContent = tpl ? 'Edit template' : 'Add template';
+            document.getElementById('msgTemplateName').value = tpl ? tpl.name : '';
+            document.getElementById('msgTemplateProvider').value = tpl ? tpl.provider : 'twilio';
+            document.getElementById('msgTemplateRef').value = tpl ? tpl.provider_ref : '';
+            document.getElementById('msgTemplateLang').value = tpl ? (tpl.language || 'en') : 'en';
+            document.getElementById('msgTemplateBody').value = tpl ? tpl.body : '';
+            document.getElementById('msgTemplateActive').checked = tpl ? !!tpl.is_active : true;
+            msgTemplateProviderHint();
+            document.getElementById('msgTemplateModal').classList.add('active');
+        }
+
+        function editMsgTemplate(id) {
+            const tpl = msgTemplates.find(x => x.id === id);
+            if (tpl) openMsgTemplateModal(tpl);
+        }
+
+        function closeMsgTemplateModal() {
+            document.getElementById('msgTemplateModal').classList.remove('active');
+        }
+
+        async function deleteMsgTemplate(id, name) {
+            if (!confirm(`Delete template "${name}"?`)) return;
+            try {
+                const res = await fetch(MSG_API + 'delete_template.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('Template deleted', 'success'); loadMsgTemplates(); }
+                else showToast('Error: ' + (data.error || ''), 'error');
+            } catch (e) { showToast('Failed to delete template', 'error'); }
+        }
+
+        document.getElementById('msgTemplateForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('msgTemplateId').value || null,
+                name: document.getElementById('msgTemplateName').value.trim(),
+                provider: document.getElementById('msgTemplateProvider').value,
+                provider_ref: document.getElementById('msgTemplateRef').value.trim(),
+                language: document.getElementById('msgTemplateLang').value.trim() || 'en',
+                body: document.getElementById('msgTemplateBody').value.trim(),
+                is_active: document.getElementById('msgTemplateActive').checked
+            };
+            if (!payload.name || !payload.provider_ref || !payload.body) { showToast('Name, reference and body are required', 'error'); return; }
+            try {
+                const res = await fetch(MSG_API + 'save_template.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) { showToast(data.message || 'Saved', 'success'); closeMsgTemplateModal(); loadMsgTemplates(); }
+                else showToast('Error: ' + (data.error || ''), 'error');
+            } catch (err) { showToast('Failed to save template', 'error'); }
         });
 
         async function loadMailboxes() {

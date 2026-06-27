@@ -64,19 +64,33 @@ try {
     unset($email);
 
     // For channel tickets, expose whether the provider's 24h service window is
-    // still open (outside it, only template replies are allowed — Phase 3).
+    // still open (outside it, only template replies are allowed), plus the channel's
+    // provider so the composer can offer the matching templates.
     $windowOpen = false;
+    $channelProvider = '';
     if ($ticketChannel !== 'email') {
         $ts = $conn->prepare("SELECT last_inbound_at FROM tickets WHERE id = ?");
         $ts->execute([$ticketId]);
         $windowOpen = channelWindowOpen($ts->fetchColumn() ?: null);
+
+        try {
+            $pp = $conn->prepare(
+                "SELECT mc.provider
+                 FROM emails e JOIN messaging_channels mc ON mc.id = e.channel_id
+                 WHERE e.ticket_id = ? AND e.channel <> 'email' AND e.channel_id IS NOT NULL
+                 ORDER BY e.id DESC LIMIT 1"
+            );
+            $pp->execute([$ticketId]);
+            $channelProvider = (string) ($pp->fetchColumn() ?: '');
+        } catch (Exception $e) { /* leave blank */ }
     }
 
     echo json_encode([
-        'success'      => true,
-        'emails'       => $emails,
-        'channel'      => $ticketChannel,
-        'window_open'  => $windowOpen,
+        'success'          => true,
+        'emails'           => $emails,
+        'channel'          => $ticketChannel,
+        'window_open'      => $windowOpen,
+        'channel_provider' => $channelProvider,
     ]);
 
 } catch (Exception $e) {

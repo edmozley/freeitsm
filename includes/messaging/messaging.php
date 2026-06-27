@@ -138,6 +138,31 @@ function normaliseChannelIdentifier(string $raw): string
 }
 
 /**
+ * How many distinct {{n}} placeholders a template body uses (the highest index).
+ * e.g. "Hi {{1}}, ref {{2}}" → 2.
+ */
+function messagingTemplateVarCount(string $body): int
+{
+    if (!preg_match_all('/\{\{\s*(\d+)\s*\}\}/', $body, $m)) {
+        return 0;
+    }
+    return max(array_map('intval', $m[1]));
+}
+
+/**
+ * Substitute {{1}}, {{2}}, … in a template body with the given ordered values, for
+ * storing/showing what was actually sent. Missing values are left blank.
+ */
+function messagingRenderTemplate(string $body, array $vars): string
+{
+    $vals = array_values($vars);
+    return preg_replace_callback('/\{\{\s*(\d+)\s*\}\}/', function ($m) use ($vals) {
+        $idx = (int) $m[1] - 1;
+        return $idx >= 0 && isset($vals[$idx]) ? (string) $vals[$idx] : '';
+    }, $body);
+}
+
+/**
  * Build a plain-text transcript of a channel conversation (oldest first), capped
  * to keep token usage predictable. Used by the AI summary / suggested-reply
  * endpoints. Non-channel (email) rows are excluded.

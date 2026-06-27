@@ -692,6 +692,26 @@ CREATE TABLE IF NOT EXISTS `tenant_channel_senders` (
     CONSTRAINT `fk_tenant_channel_sender_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Pre-approved provider message templates (the only way to message a customer after
+-- the WhatsApp 24-hour window closes). FreeITSM stores the definition so an analyst
+-- can pick one and fill its {{1}},{{2}} placeholders; the template itself must be
+-- created and approved at the provider. `provider_ref` is the provider's identifier:
+-- a Twilio Content SID (HX…) or a Meta template name. `language` is used by Meta.
+CREATE TABLE IF NOT EXISTS `messaging_templates` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(100) NOT NULL,
+    `provider`          VARCHAR(20) NOT NULL DEFAULT 'twilio',
+    `language`          VARCHAR(20) NOT NULL DEFAULT 'en',
+    `provider_ref`      VARCHAR(255) NOT NULL,
+    `body`              LONGTEXT NOT NULL,
+    `tenant_id`         INT NULL,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_messaging_templates_tenant_id` (`tenant_id`),
+    CONSTRAINT `fk_messaging_templates_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `ticket_recordings` (
     `id`                  INT NOT NULL AUTO_INCREMENT,
     `ticket_id`           INT NULL,

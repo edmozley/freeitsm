@@ -1213,7 +1213,9 @@ try {
                         the customer's open one. Reply from the <strong>inline composer</strong> in the reading pane — the
                         <strong>Suggest</strong> button drafts a reply with AI and <strong>Summarise</strong> writes a summary
                         into the ticket notes. WhatsApp only allows free-text replies within <strong>24 hours</strong> of the
-                        customer's last message; after that the composer is disabled until templates (a later release).
+                        customer's last message; after that the composer offers a <strong>template picker</strong> instead &mdash;
+                        pick a pre-approved template (set up under Settings &rarr; Messaging), fill its blanks, and send to
+                        re-open the conversation.
                     </p>
                     <p class="tk-help-tip">
                         Testing on a laptop? Providers can only reach a public address, so run a tunnel

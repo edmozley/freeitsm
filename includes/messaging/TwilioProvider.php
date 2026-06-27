@@ -101,6 +101,50 @@ class TwilioProvider extends MessagingProvider
         return $json['sid'] ?? '';
     }
 
+    public function sendTemplate(string $to, array $template, array $vars): string
+    {
+        $sid   = $this->channel['credentials']['account_sid'] ?? '';
+        $token = $this->channel['credentials']['auth_token'] ?? '';
+        $from  = $this->channel['phone_number'] ?? '';
+        $contentSid = $template['provider_ref'] ?? '';
+        if ($sid === '' || $token === '' || $from === '') {
+            throw new Exception('Twilio channel is missing its Account SID, Auth Token or From number.');
+        }
+        if ($contentSid === '') {
+            throw new Exception('This template has no Twilio Content SID set.');
+        }
+
+        // Twilio Content API: ContentVariables maps "1","2",… to the placeholder values.
+        $contentVars = [];
+        foreach (array_values($vars) as $i => $v) {
+            $contentVars[(string) ($i + 1)] = $v;
+        }
+
+        $fields = [
+            'From'       => 'whatsapp:' . $this->ensurePlus($from),
+            'To'         => 'whatsapp:' . $this->ensurePlus($to),
+            'ContentSid' => $contentSid,
+        ];
+        if (!empty($contentVars)) {
+            $fields['ContentVariables'] = json_encode($contentVars);
+        }
+
+        [$code, $resp] = $this->httpRequest(
+            "https://api.twilio.com/2010-04-01/Accounts/$sid/Messages.json",
+            [
+                'method'  => 'POST',
+                'headers' => ['Content-Type: application/x-www-form-urlencoded'],
+                'body'    => http_build_query($fields),
+                'auth'    => "$sid:$token",
+            ]
+        );
+        $json = json_decode($resp, true);
+        if ($code < 200 || $code >= 300) {
+            throw new Exception('Twilio rejected the template: ' . ($json['message'] ?? ('HTTP ' . $code)));
+        }
+        return $json['sid'] ?? '';
+    }
+
     public function testConnection(): string
     {
         $sid   = $this->channel['credentials']['account_sid'] ?? '';

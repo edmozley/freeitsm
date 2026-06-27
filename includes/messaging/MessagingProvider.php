@@ -71,11 +71,15 @@ abstract class MessagingProvider
 
     /**
      * Send a pre-approved template message (the 24h-window escape hatch).
-     * Phase 3 — providers may leave this unimplemented for now.
+     *
+     * @param string $to       recipient, '+digits'
+     * @param array  $template a messaging_templates row (provider_ref, language, body…)
+     * @param array  $vars     ordered placeholder values for {{1}}, {{2}}, …
+     * @return string provider message id
      */
-    public function sendTemplate(string $to, string $template, array $vars): string
+    public function sendTemplate(string $to, array $template, array $vars): string
     {
-        throw new Exception('Template messages are not yet supported for this provider.');
+        throw new Exception('Template messages are not supported for this provider.');
     }
 
     /**
