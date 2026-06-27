@@ -20,7 +20,10 @@ require_once __DIR__ . '/MessagingProvider.php';
 
 class MetaCloudProvider extends MessagingProvider
 {
-    private const GRAPH_VERSION = 'v19.0';
+    // Default Graph API version. Meta deprecates a version roughly two years after
+    // release, so this is bumped periodically. An install can override it per channel
+    // without a code change by adding "graph_version" to the credentials JSON.
+    private const GRAPH_VERSION = 'v21.0';
 
     public function verifyChallenge(array $get): ?string
     {
@@ -89,7 +92,8 @@ class MetaCloudProvider extends MessagingProvider
             throw new Exception('Meta channel is missing its phone number id or access token.');
         }
 
-        $url = 'https://graph.facebook.com/' . self::GRAPH_VERSION . "/$phoneId/messages";
+        $version = $this->channel['credentials']['graph_version'] ?? self::GRAPH_VERSION;
+        $url = 'https://graph.facebook.com/' . $version . "/$phoneId/messages";
         $payload = json_encode([
             'messaging_product' => 'whatsapp',
             'to'                => ltrim($this->ensurePlus($to), '+'),
