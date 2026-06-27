@@ -50,6 +50,11 @@ function aiSettingsRegistry(): array
             'default_provider'=> 'anthropic',
             'default_model'   => 'claude-haiku-4-5-20251001',
         ],
+        'problem_ai' => [
+            'label'           => 'Problem AI',
+            'default_provider'=> 'anthropic',
+            'default_model'   => 'claude-sonnet-4-6',
+        ],
         // Deferred: 'rfp_ai' (RFP Builder) — needs real OpenRouter SSE streaming first.
     ];
 }

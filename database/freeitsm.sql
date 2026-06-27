@@ -1547,6 +1547,85 @@ CREATE TABLE IF NOT EXISTS `change_notifications` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
+-- Problem Management
+-- ----------------------------------------------------------
+-- A Problem is the root cause behind one or more incidents (tickets). Company-scoped
+-- via tenant_id like tickets (NULL = Default/triage); invisible at N=1.
+CREATE TABLE IF NOT EXISTS `problems` (
+    `id`                  INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`           INT NULL,
+    `problem_number`      VARCHAR(20) NULL,
+    `title`               VARCHAR(255) NOT NULL,
+    `description`         LONGTEXT NULL,
+    `status_id`           INT NULL,
+    `priority_id`         INT NULL,
+    `assigned_analyst_id` INT NULL,
+    `root_cause`          LONGTEXT NULL,
+    `workaround`          LONGTEXT NULL,
+    `is_known_error`      TINYINT(1) NOT NULL DEFAULT 0,
+    `created_by_id`       INT NULL,
+    `created_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `closed_datetime`     DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `ix_problems_status_id` (`status_id`),
+    KEY `ix_problems_tenant_id` (`tenant_id`),
+    CONSTRAINT `fk_problems_status` FOREIGN KEY (`status_id`) REFERENCES `problem_statuses` (`id`),
+    CONSTRAINT `fk_problems_priority` FOREIGN KEY (`priority_id`) REFERENCES `problem_priorities` (`id`),
+    CONSTRAINT `fk_problems_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `problem_statuses` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `name`             VARCHAR(100) NOT NULL,
+    `is_closed`        TINYINT(1) NOT NULL DEFAULT 0,
+    `colour`           VARCHAR(20) NULL,
+    `is_default`       TINYINT(1) NOT NULL DEFAULT 0,
+    `display_order`    INT NOT NULL DEFAULT 0,
+    `is_active`        TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `problem_priorities` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `name`             VARCHAR(100) NOT NULL,
+    `colour`           VARCHAR(20) NULL,
+    `is_default`       TINYINT(1) NOT NULL DEFAULT 0,
+    `display_order`    INT NOT NULL DEFAULT 0,
+    `is_active`        TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The incident link: which tickets a problem explains.
+CREATE TABLE IF NOT EXISTS `problem_tickets` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `problem_id`       INT NOT NULL,
+    `ticket_id`        INT NOT NULL,
+    `created_by_id`    INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_problem_ticket` (`problem_id`, `ticket_id`),
+    KEY `ix_ptickets_ticket` (`ticket_id`),
+    CONSTRAINT `fk_ptickets_problem` FOREIGN KEY (`problem_id`) REFERENCES `problems` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ptickets_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `problem_audit` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `problem_id`       INT NOT NULL,
+    `analyst_id`       INT NOT NULL,
+    `action_type`      VARCHAR(20) NOT NULL,
+    `field_name`       VARCHAR(100) NULL,
+    `old_value`        VARCHAR(1000) NULL,
+    `new_value`        VARCHAR(1000) NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_paudit_problem` FOREIGN KEY (`problem_id`) REFERENCES `problems` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
 -- Calendar
 -- ----------------------------------------------------------
 

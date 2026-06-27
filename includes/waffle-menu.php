@@ -65,6 +65,11 @@ $modules = [
         'path' => 'change-management/',
         'icon' => '<polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line>'
     ],
+    'problems' => [
+        'name' => 'Problem Management',
+        'path' => 'problem-management/',
+        'icon' => '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>'
+    ],
     'calendar' => [
         'name' => t('common.modules.calendar.name'),
         'path' => 'calendar/',

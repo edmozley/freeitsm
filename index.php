@@ -232,6 +232,19 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
             </a>
             <?php endif; ?>
 
+            <?php if ($allowed_modules === null || in_array('problems', $allowed_modules)): ?>
+            <a href="problem-management/" class="module-card problems" title="Track the root cause behind recurring incidents">
+                <div class="module-icon problems">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                    </svg>
+                </div>
+                <div class="module-name">Problem Management</div>
+            </a>
+            <?php endif; ?>
+
             <?php if ($allowed_modules === null || in_array('calendar', $allowed_modules)): ?>
             <a href="calendar/" class="module-card calendar" title="<?php echo htmlspecialchars(t('common.modules.calendar.description')); ?>">
                 <div class="module-icon calendar">

@@ -1071,6 +1071,70 @@ $schema = [
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // ---- Problem Management ----
+    // A Problem is the root cause behind one or more incidents (tickets). It carries
+    // RCA, a workaround and a known-error flag, and links to the incidents it explains
+    // (problem_tickets) and the change that fixes it (via change_relations). Company-
+    // scoped via tenant_id like tickets (NULL = Default), invisible at N=1.
+    'problems' => [
+        'id'                  => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'           => 'INT NULL',
+        'problem_number'      => 'VARCHAR(20) NULL',
+        'title'               => 'VARCHAR(255) NOT NULL',
+        'description'         => 'LONGTEXT NULL',
+        'status_id'           => 'INT NULL',
+        'priority_id'         => 'INT NULL',
+        'assigned_analyst_id' => 'INT NULL',
+        'root_cause'          => 'LONGTEXT NULL',
+        'workaround'          => 'LONGTEXT NULL',
+        'is_known_error'      => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_by_id'       => 'INT NULL',
+        'created_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'closed_datetime'     => 'DATETIME NULL',
+    ],
+
+    'problem_statuses' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'name'             => 'VARCHAR(100) NOT NULL',
+        'is_closed'        => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'colour'           => 'VARCHAR(20) NULL',
+        'is_default'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'display_order'    => 'INT NOT NULL DEFAULT 0',
+        'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'problem_priorities' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'name'             => 'VARCHAR(100) NOT NULL',
+        'colour'           => 'VARCHAR(20) NULL',
+        'is_default'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'display_order'    => 'INT NOT NULL DEFAULT 0',
+        'is_active'        => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // The incident link: which tickets a problem explains. UNIQUE(problem_id,ticket_id).
+    'problem_tickets' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'problem_id'       => 'INT NOT NULL',
+        'ticket_id'        => 'INT NOT NULL',
+        'created_by_id'    => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'problem_audit' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'problem_id'       => 'INT NOT NULL',
+        'analyst_id'       => 'INT NOT NULL',
+        'action_type'      => 'VARCHAR(20) NOT NULL',
+        'field_name'       => 'VARCHAR(100) NULL',
+        'old_value'        => 'VARCHAR(1000) NULL',
+        'new_value'        => 'VARCHAR(1000) NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'calendar_categories' => [
         'id'            => 'INT NOT NULL AUTO_INCREMENT',
         'name'          => 'VARCHAR(100) NOT NULL',
@@ -2975,6 +3039,32 @@ try {
         }
     }
 
+    // Seed default problem statuses (the Problem Management lifecycle).
+    if ($tableExists('problem_statuses')) {
+        if ((int) $conn->query("SELECT COUNT(*) FROM problem_statuses")->fetchColumn() === 0) {
+            $conn->exec("INSERT INTO problem_statuses (name, is_closed, colour, is_default, display_order) VALUES
+                ('New',                   0, '#2563eb', 1, 10),
+                ('Investigating',         0, '#1565c0', 0, 20),
+                ('Root Cause Identified', 0, '#9333ea', 0, 30),
+                ('Known Error',           0, '#e65100', 0, 40),
+                ('Resolved',              1, '#1b5e20', 0, 50),
+                ('Closed',                1, '#607d8b', 0, 60)");
+            $results[] = ['table' => 'problem_statuses', 'status' => 'seeded', 'details' => ['Inserted 6 default problem statuses']];
+        }
+    }
+
+    // Seed default problem priorities.
+    if ($tableExists('problem_priorities')) {
+        if ((int) $conn->query("SELECT COUNT(*) FROM problem_priorities")->fetchColumn() === 0) {
+            $conn->exec("INSERT INTO problem_priorities (name, colour, is_default, display_order) VALUES
+                ('Low',      '#16a34a', 0, 10),
+                ('Medium',   '#2563eb', 1, 20),
+                ('High',     '#f59e0b', 0, 30),
+                ('Critical', '#dc2626', 0, 40)");
+            $results[] = ['table' => 'problem_priorities', 'status' => 'seeded', 'details' => ['Inserted 4 default problem priorities']];
+        }
+    }
+
     // Seed default morning check statuses. Matches the three hardcoded
     // statuses (Green / Amber / Red) that the dashboard used before the
     // statuses became configurable, so existing historical results
@@ -3188,6 +3278,29 @@ try {
         ['changes', 'ix_changes_impact_id',      'impact_id'],
     ];
     foreach ($changeIndexes as [$tbl, $name, $col]) {
+        if (!$tableExists($tbl) || $idxExists($tbl, $name)) continue;
+        try { $conn->exec("ALTER TABLE `$tbl` ADD KEY `$name` (`$col`)"); } catch (Exception $e) {}
+    }
+
+    // Problem Management foreign keys + indexes.
+    $problemFks = [
+        ['problems',        'fk_problems_status',   "ALTER TABLE problems ADD CONSTRAINT fk_problems_status FOREIGN KEY (status_id) REFERENCES problem_statuses (id)"],
+        ['problems',        'fk_problems_priority', "ALTER TABLE problems ADD CONSTRAINT fk_problems_priority FOREIGN KEY (priority_id) REFERENCES problem_priorities (id)"],
+        ['problems',        'fk_problems_tenant',   "ALTER TABLE problems ADD CONSTRAINT fk_problems_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"],
+        ['problem_tickets', 'fk_ptickets_problem',  "ALTER TABLE problem_tickets ADD CONSTRAINT fk_ptickets_problem FOREIGN KEY (problem_id) REFERENCES problems (id) ON DELETE CASCADE"],
+        ['problem_tickets', 'fk_ptickets_ticket',   "ALTER TABLE problem_tickets ADD CONSTRAINT fk_ptickets_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"],
+        ['problem_audit',   'fk_paudit_problem',    "ALTER TABLE problem_audit ADD CONSTRAINT fk_paudit_problem FOREIGN KEY (problem_id) REFERENCES problems (id) ON DELETE CASCADE"],
+    ];
+    foreach ($problemFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+    $problemIndexes = [
+        ['problems', 'ix_problems_status_id',  'status_id'],
+        ['problems', 'ix_problems_tenant_id',  'tenant_id'],
+        ['problem_tickets', 'ix_ptickets_ticket', 'ticket_id'],
+    ];
+    foreach ($problemIndexes as [$tbl, $name, $col]) {
         if (!$tableExists($tbl) || $idxExists($tbl, $name)) continue;
         try { $conn->exec("ALTER TABLE `$tbl` ADD KEY `$name` (`$col`)"); } catch (Exception $e) {}
     }
@@ -3657,6 +3770,7 @@ try {
         ['user_sso_identities', 'uq_user_sso_provider_user', '(`provider_id`, `user_id`)'],
         ['freemail_domains', 'uq_freemail_domains_domain', '(`domain`)'],
         ['tenant_channel_senders', 'uq_tenant_channel_sender_identifier', '(`identifier`)'],
+        ['problem_tickets', 'uq_problem_ticket', '(`problem_id`, `ticket_id`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {

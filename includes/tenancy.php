@@ -192,6 +192,34 @@ function analystCanAccessTicket(PDO $conn, int $analystId, $ticketId): bool {
 }
 
 /**
+ * May this analyst access this *problem* (by its owning company)? The Problem
+ * Management twin of analystCanAccessTicket() — same rules (single-company → always
+ * true; NULL tenant treated as Default-owned; unknown id → false; part-migrated
+ * table → true).
+ */
+function analystCanAccessProblem(PDO $conn, int $analystId, $problemId): bool {
+    if (!isMultiTenant($conn)) {
+        return true;
+    }
+    $problemId = (int) $problemId;
+    if ($problemId <= 0) {
+        return false;
+    }
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM problems WHERE id = ?");
+        $stmt->execute([$problemId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
+        return analystCanAccessTenant($conn, $analystId, $tid);
+    } catch (Exception $e) {
+        return true; // tenant_id column missing on a part-migrated install.
+    }
+}
+
+/**
  * The analyst's current working company context.
  *
  * - Single-company install → always the Default tenant.
