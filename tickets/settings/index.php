@@ -741,9 +741,18 @@ $translationNamespaces = ['common', 'tickets'];
                 Let customers chat with an analyst over WhatsApp — each message becomes a ticket,
                 just like email. Add a channel below, then paste its <strong>webhook URL</strong> into
                 your provider (Twilio or Meta) so inbound messages reach this install.
-                Testing locally? Run a tunnel (e.g. <code>ngrok http 80</code>) and use the HTTPS URL it
-                gives you, since providers can only reach a public address.
             </p>
+            <div class="form-group" style="max-width:640px; margin-bottom:18px;">
+                <label for="messagingBaseUrl"><strong>Public base URL</strong></label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="messagingBaseUrl" style="flex:1;" placeholder="https://your-domain.com  (or your ngrok address while testing)">
+                    <button class="btn btn-primary" type="button" onclick="saveMessagingBaseUrl()"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                </div>
+                <small style="color:#666; display:block; margin-top:4px;">
+                    The address providers use to reach this install. Set it and the webhook URLs below become copy-paste-ready.
+                    Leave blank to use whatever address you're browsing from. Testing locally? Run <code>ngrok http 80</code> and paste the <code>https://…ngrok-free.dev</code> address it prints.
+                </small>
+            </div>
             <div id="channelsResult" class="exchange-result"></div>
             <table>
                 <thead>
@@ -2600,6 +2609,10 @@ $translationNamespaces = ['common', 'tickets'];
                 const data = await res.json();
                 if (data.success) {
                     channels = data.channels;
+                    const baseInput = document.getElementById('messagingBaseUrl');
+                    if (baseInput && document.activeElement !== baseInput) {
+                        baseInput.value = data.public_base_url || '';
+                    }
                     renderChannels(channels);
                 } else {
                     document.getElementById('channels-list').innerHTML =
@@ -2609,6 +2622,23 @@ $translationNamespaces = ['common', 'tickets'];
                 document.getElementById('channels-list').innerHTML =
                     '<tr><td colspan="5" style="text-align:center;color:red;">Failed to load channels.</td></tr>';
             }
+        }
+
+        async function saveMessagingBaseUrl() {
+            const val = document.getElementById('messagingBaseUrl').value.trim();
+            try {
+                const res = await fetch(MSG_API + 'save_base_url.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ base_url: val })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Base URL saved — webhook URLs updated', 'success');
+                    loadChannels(); // rebuild the displayed webhook URLs
+                } else {
+                    showToast('Error: ' + (data.error || ''), 'error');
+                }
+            } catch (e) { showToast('Failed to save base URL', 'error'); }
         }
 
         function renderChannels(list) {

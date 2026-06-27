@@ -19,11 +19,24 @@ if (!isset($_SESSION['analyst_id'])) {
 try {
     $conn = connectToDatabase();
 
-    // Base URL for the webhook hint (honours proxy headers behind ngrok).
-    $proto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-        || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') ? 'https' : 'http';
-    $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? ($_SERVER['HTTP_HOST'] ?? 'localhost');
-    $base = $proto . '://' . $host;
+    // Public base URL for the webhook hint. An admin can set one (Settings →
+    // Messaging) so self-hosters get a copy-paste-ready URL instead of "localhost";
+    // otherwise we derive it from the request (honouring proxy headers behind ngrok).
+    $configuredBase = '';
+    try {
+        $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'messaging_public_base_url'");
+        $st->execute();
+        $configuredBase = trim((string) ($st->fetchColumn() ?: ''));
+    } catch (Exception $e) { /* table missing → derive from request */ }
+
+    if ($configuredBase !== '') {
+        $base = rtrim($configuredBase, '/');
+    } else {
+        $proto = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https') ? 'https' : 'http';
+        $host = $_SERVER['HTTP_X_FORWARDED_HOST'] ?? ($_SERVER['HTTP_HOST'] ?? 'localhost');
+        $base = $proto . '://' . $host;
+    }
     // Strip /api/messaging/get_channels.php to get the app root.
     $root = preg_replace('#/api/messaging/.*$#', '', $_SERVER['SCRIPT_NAME'] ?? '');
 
@@ -45,7 +58,11 @@ try {
         ];
     }, $rows);
 
-    echo json_encode(['success' => true, 'channels' => $channels]);
+    echo json_encode([
+        'success'          => true,
+        'channels'         => $channels,
+        'public_base_url'  => $configuredBase,
+    ]);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
