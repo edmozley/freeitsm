@@ -16,7 +16,10 @@ $path_prefix = '../../';
         /* Same shell pattern as tickets/settings: header pinned, .container scrolls,
            full width (no max-width cap). */
         .settings-shell { display: flex; flex-direction: column; height: 100vh; }
-        .container { flex: 1 1 auto; min-height: 0; overflow-y: auto; max-width: none; padding: 24px 32px 40px; }
+        /* margin:0 is essential: inbox.css gives .container `margin:30px auto`, and auto
+           left/right margins on a flex item suppress the default stretch — so the
+           container would shrink to content width and centre (only obvious with few tabs). */
+        .container { flex: 1 1 auto; min-height: 0; overflow-y: auto; max-width: none; width: 100%; margin: 0; padding: 24px 32px 40px; box-sizing: border-box; }
         .container > h1 { font-size: 1.5rem; margin: 0 0 18px; }
         .tab-content > p { margin-bottom: 14px; }
         .pms-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
