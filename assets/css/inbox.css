@@ -1037,6 +1037,18 @@ body.ticket-popout .ticket-toolbar {
 }
 .problem-link-btn:hover { background: #f3ecfa; }
 
+/* Link-to-problem picker (right-click menu + reading-pane button) */
+.lp-list { max-height: 50vh; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; }
+.lp-row { display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
+.lp-row:last-child { border-bottom: none; }
+.lp-row:hover { background: #faf7fd; }
+.lp-row .lp-num { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: #6b7280; white-space: nowrap; }
+.lp-row .lp-title { flex: 1; min-width: 0; font-weight: 600; color: #1a1a1a; }
+.lp-row .lp-status { font-size: 12px; color: #6b7280; white-space: nowrap; }
+.lp-row.lp-create { color: #6a1b9a; font-weight: 600; }
+.lp-row.lp-create .lp-plus { font-size: 16px; line-height: 1; }
+.lp-empty { color: #9ca3af; text-align: center; padding: 24px; font-size: 13px; }
+
 /* Soft wrong-company warning banner (multi-tenancy) */
 .wrong-company-banner {
     display: flex;

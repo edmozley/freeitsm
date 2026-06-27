@@ -1421,32 +1421,80 @@ function buildProblemStrip(email) {
     </div>`;
 }
 
-async function linkTicketToProblem() {
+// Reading-pane "Link to problem" button — opens the picker for the open ticket.
+function linkTicketToProblem() {
     if (!currentEmail) return;
-    const ans = (prompt('Enter an existing problem number to link (e.g. PRB-00001), or type NEW to raise a problem from this incident:') || '').trim();
-    if (!ans) return;
-    try {
-        if (ans.toUpperCase() === 'NEW') {
-            // Create a problem from this incident, then link it.
-            const cr = await fetch('../api/problem-management/save.php', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: currentEmail.subject || 'Problem from ' + (currentEmail.ticket_number || 'incident'), description: '' })
-            }).then(r => r.json());
-            if (!cr.success) { showToast('Could not create problem: ' + (cr.error || ''), 'error'); return; }
-            await doLinkProblem({ problem_id: cr.id });
-        } else {
-            await doLinkProblem({ problem_number: ans });
-        }
-    } catch (e) { showToast('Failed to link problem', 'error'); }
+    openLinkProblemModal(currentEmail.ticket_id, currentEmail.ticket_number, currentEmail.subject || '');
 }
-async function doLinkProblem(target) {
-    const res = await fetch('../api/problem-management/link_ticket.php', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(Object.assign({ ticket_id: currentEmail.ticket_id }, target))
-    });
-    const data = await res.json();
-    if (data.success) { showToast('Linked to problem', 'success'); selectEmail(currentEmail.id); }
-    else showToast('Could not link: ' + (data.error || 'unknown error'), 'error');
+
+// Right-click "Link to problem…" — targets whichever ticket was right-clicked,
+// even if a different one is open in the reading pane.
+function openContextLinkProblem() {
+    closeTicketContextMenu();
+    if (!ctxTargetTicketId) return;
+    const subj = (currentEmail && currentEmail.ticket_id == ctxTargetTicketId) ? (currentEmail.subject || '') : '';
+    openLinkProblemModal(ctxTargetTicketId, ctxTargetTicketRef, subj);
+}
+
+let linkProblemTicketId = null;
+let linkProblemTicketRef = '';
+let linkProblemTicketSubject = '';
+let linkProblemSearchTimer = null;
+
+function openLinkProblemModal(ticketId, ticketRef, subject) {
+    linkProblemTicketId = ticketId;
+    linkProblemTicketRef = ticketRef || ('Ticket ' + ticketId);
+    linkProblemTicketSubject = subject || '';
+    document.getElementById('linkProblemTicketRef').textContent = linkProblemTicketRef;
+    const s = document.getElementById('linkProblemSearch'); if (s) s.value = '';
+    document.getElementById('linkProblemModal').classList.add('active');
+    loadLinkProblemList();
+}
+function closeLinkProblemModal() { document.getElementById('linkProblemModal').classList.remove('active'); }
+function linkProblemSearchDebounced() { clearTimeout(linkProblemSearchTimer); linkProblemSearchTimer = setTimeout(loadLinkProblemList, 250); }
+
+async function loadLinkProblemList() {
+    const list = document.getElementById('linkProblemList');
+    const q = (document.getElementById('linkProblemSearch') || {}).value || '';
+    list.innerHTML = '<div class="lp-empty">Loading…</div>';
+    try {
+        const data = await fetch('../api/problem-management/list.php?q=' + encodeURIComponent(q.trim())).then(r => r.json());
+        if (!data.success) { list.innerHTML = '<div class="lp-empty">' + escapeHtml(data.error || 'Failed to load') + '</div>'; return; }
+        const createRow = `<div class="lp-row lp-create" onclick="createProblemFromIncident()">
+            <span class="lp-plus">＋</span><span>Create a new problem from this incident</span></div>`;
+        const open = (data.problems || []).filter(p => p.is_closed != 1);
+        const rows = open.map(p => `<div class="lp-row" onclick="pickProblem(${p.id})">
+            <span class="lp-num">${escapeHtml(p.problem_number || ('#' + p.id))}</span>
+            <span class="lp-title">${escapeHtml(p.title || '')}</span>
+            <span class="lp-status">${escapeHtml(p.status_name || '')}</span></div>`).join('');
+        list.innerHTML = createRow + (rows || '<div class="lp-empty">' + (q.trim() ? 'No matching open problems.' : 'No open problems yet — create one above.') + '</div>');
+    } catch (e) { list.innerHTML = '<div class="lp-empty">Failed to load problems</div>'; }
+}
+function pickProblem(problemId) { doLinkTicketProblem({ problem_id: problemId }); }
+async function createProblemFromIncident() {
+    try {
+        const title = linkProblemTicketSubject || ('Problem from ' + linkProblemTicketRef);
+        const cr = await fetch('../api/problem-management/save.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title, description: '' })
+        }).then(r => r.json());
+        if (!cr.success) { showToast('Could not create problem: ' + (cr.error || ''), 'error'); return; }
+        doLinkTicketProblem({ problem_id: cr.id });
+    } catch (e) { showToast('Failed to create problem', 'error'); }
+}
+async function doLinkTicketProblem(target) {
+    try {
+        const res = await fetch('../api/problem-management/link_ticket.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(Object.assign({ ticket_id: linkProblemTicketId }, target))
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Linked to problem', 'success');
+            closeLinkProblemModal();
+            if (currentEmail && currentEmail.ticket_id == linkProblemTicketId) selectEmail(currentEmail.id);
+        } else showToast('Could not link: ' + (data.error || 'unknown error'), 'error');
+    } catch (e) { showToast('Failed to link problem', 'error'); }
 }
 async function unlinkTicketFromProblem(problemId) {
     if (!currentEmail) return;
