@@ -118,7 +118,7 @@ function pmRenderDetail(data) {
         </div>`).join('') || '<div style="color:#9ca3af;font-size:13px;">No incidents linked yet.</div>';
     const changes = (data.changes || []).map(c => `
         <div class="pm-link-row">
-            <a href="../change-management/index.php?id=${c.id}" target="_blank">Change #${c.id}</a>
+            <a href="../change-management/index.php?open=${c.id}" target="_blank">Change #${c.id}</a>
             <span style="flex:1;">${pmEsc(c.title || '')}</span>
             <span style="color:#6b7280;font-size:12px;">${pmEsc(c.status || '')}</span>
             <a href="#" onclick="pmUnlinkChange(${c.id});return false;" style="color:#c62828;" title="Unlink">✕</a>

@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', function() {
     //                               (a thin include wrapper). Opens the
     //                               editor in create mode straight away.
     const urlParams = new URLSearchParams(window.location.search);
-    const openId = urlParams.get('open');
+    const openId = urlParams.get('open') || urlParams.get('id');
     if (openId) {
         viewChange(parseInt(openId, 10));
     } else if (window.openCreateOnLoad) {
