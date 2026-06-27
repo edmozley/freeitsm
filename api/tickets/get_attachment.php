@@ -79,9 +79,18 @@ try {
     // For inline images, allow browser caching
     header('Cache-Control: private, max-age=86400');
 
-    // If it's an image, display inline; otherwise, offer download
-    $isImage = strpos($attachment['content_type'], 'image/') === 0;
-    if ($isImage) {
+    // Never let the browser MIME-sniff a user-supplied file into something
+    // executable (e.g. a "photo" that's actually HTML/JS) — honour our declared type.
+    header('X-Content-Type-Options: nosniff');
+
+    // Media that's safe to render in-browser is served inline (so it can preview in
+    // the reading pane); everything else is offered as a download.
+    $ct = strtolower($attachment['content_type']);
+    $inlineSafe = strpos($ct, 'image/') === 0
+        || strpos($ct, 'audio/') === 0
+        || strpos($ct, 'video/') === 0
+        || $ct === 'application/pdf';
+    if ($inlineSafe) {
         header('Content-Disposition: inline; filename="' . $attachment['filename'] . '"');
     } else {
         header('Content-Disposition: attachment; filename="' . $attachment['filename'] . '"');

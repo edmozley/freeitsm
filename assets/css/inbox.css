@@ -996,6 +996,41 @@ body.ticket-popout .ticket-toolbar {
     min-height: 1.4em;
 }
 
+/* Inline media previews in the attachment list modal */
+.attachment-previews {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+.att-preview-card {
+    margin: 0;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 8px;
+    background: #fafbfc;
+    max-width: 240px;
+}
+.att-preview-media {
+    display: block;
+    max-width: 224px;
+    max-height: 224px;
+    width: auto;
+    height: auto;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.att-preview-audio {
+    width: 224px;
+    display: block;
+}
+.att-preview-card figcaption {
+    margin-top: 6px;
+    font-size: 12px;
+    color: #666;
+    word-break: break-all;
+}
+
 .action-btn-icon {
     font-size: 16px;
 }

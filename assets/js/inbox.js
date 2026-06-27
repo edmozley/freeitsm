@@ -1405,6 +1405,7 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                 // Stop if the analyst is no longer viewing this ticket's thread.
                 if (!document.getElementById('threadContainer')) { stopChannelAutoRefresh(); return; }
                 loadCorrespondenceThread(ticketId, true);
+                loadTicketAttachments(ticketId); // keep the "N attachments" bar current
             }, 15000);
         }
     }
@@ -2420,6 +2421,27 @@ function showAttachmentList() {
         </table>
     `;
 
+    // Inline previews for media that browsers can render directly (images, audio,
+    // video) — so the analyst doesn't have to download then open. Everything still
+    // appears in the table below for download.
+    const previewable = ticketAttachments.filter(a => /^(image|audio|video)\//i.test(a.content_type || ''));
+    const previewsHtml = previewable.length ? `
+        <div class="attachment-previews">
+            ${previewable.map(att => {
+                const url = `${API_BASE}get_attachment.php?id=${att.id}`;
+                const ct = (att.content_type || '').toLowerCase();
+                let media;
+                if (ct.startsWith('image/')) {
+                    media = `<img src="${url}" alt="${escapeHtml(att.filename)}" class="att-preview-media" loading="lazy" onclick="window.open('${url}','_blank')" title="Click to open full size">`;
+                } else if (ct.startsWith('audio/')) {
+                    media = `<audio controls preload="none" src="${url}" class="att-preview-audio"></audio>`;
+                } else {
+                    media = `<video controls preload="metadata" src="${url}" class="att-preview-media"></video>`;
+                }
+                return `<figure class="att-preview-card">${media}<figcaption>${escapeHtml(att.filename)}</figcaption></figure>`;
+            }).join('')}
+        </div>` : '';
+
     // Create modal
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
@@ -2431,6 +2453,7 @@ function showAttachmentList() {
                 <h3>Attachments - ${escapeHtml(currentEmail.ticket_number)}</h3>
             </div>
             <div class="modal-body">
+                ${previewsHtml}
                 ${tableHtml}
             </div>
         </div>
