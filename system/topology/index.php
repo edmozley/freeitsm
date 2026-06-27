@@ -201,8 +201,10 @@ if (!isset($_SESSION['analyst_id'])) {
         // Requesters (count only in v1)
         cats.push(leaf('users', `Requesters <span class="tree-label muted">(by email domain)</span>`, [{ cls: 'blue', text: String(c.requester_count) }]));
 
-        // Tickets
-        cats.push(leaf('ticket', 'Tickets', [{ cls: 'blue', text: `${c.ticket_total} total` }, { cls: 'amber', text: `${c.ticket_open} open` }]));
+        // Tickets — counted across the whole company, every department (unlike the
+        // Tickets module, which scopes folder counts to the viewer's own teams).
+        cats.push(leaf('ticket', 'Tickets <span class="tree-label muted">(whole company, all departments)</span>',
+            [{ cls: 'blue', text: `${c.ticket_total} total` }, { cls: 'amber', text: `${c.ticket_open} open` }]));
 
         const tags = [];
         if (c.is_default) tags.push({ cls: 'default', text: 'default' });
