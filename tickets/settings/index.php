@@ -742,13 +742,13 @@ $translationNamespaces = ['common', 'tickets'];
                 just like email. Add a channel below, then paste its <strong>webhook URL</strong> into
                 your provider (Twilio or Meta) so inbound messages reach this install.
             </p>
-            <div class="form-group" style="max-width:640px; margin-bottom:18px;">
+            <div class="form-group" style="margin-bottom:18px;">
                 <label for="messagingBaseUrl"><strong>Public base URL</strong></label>
-                <div style="display:flex; gap:8px;">
+                <div style="display:flex; gap:8px; max-width:640px;">
                     <input type="text" id="messagingBaseUrl" style="flex:1;" placeholder="https://your-domain.com  (or your ngrok address while testing)">
                     <button class="btn btn-primary" type="button" onclick="saveMessagingBaseUrl()"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
-                <small style="color:#666; display:block; margin-top:4px;">
+                <small style="color:#666; display:block; margin-top:4px; max-width:none;">
                     The address providers use to reach this install. Set it and the webhook URLs below become copy-paste-ready.
                     Leave blank to use whatever address you're browsing from. Testing locally? Run <code>ngrok http 80</code> and paste the <code>https://…ngrok-free.dev</code> address it prints.
                 </small>
