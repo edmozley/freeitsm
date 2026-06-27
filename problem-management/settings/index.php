@@ -13,10 +13,8 @@ $path_prefix = '../../';
     <title>Service Desk - Problem Management Settings</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <style>
-        .pms-wrap { max-width: 900px; margin: 24px auto; padding: 0 20px 60px; }
-        .pms-wrap h1 { font-size: 1.5rem; }
-        .pms-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 18px 20px; margin: 18px 0; background: #fff; }
-        .pms-card h2 { margin: 0 0 12px; font-size: 1.1rem; color: #6a1b9a; }
+        .pms-page { max-width: 960px; margin: 0 auto; padding: 24px 24px 60px; }
+        .pms-page h1 { font-size: 1.5rem; margin: 0 0 18px; }
         table.pms { width: 100%; border-collapse: collapse; }
         table.pms th, table.pms td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
         table.pms th { font-size: 12px; text-transform: uppercase; color: #6b7280; }
@@ -35,30 +33,30 @@ $path_prefix = '../../';
 </head>
 <body>
     <?php include __DIR__ . '/../includes/header.php'; ?>
-    <div class="pms-wrap">
+    <div class="pms-page">
         <h1>Problem Management settings</h1>
 
-        <div class="pms-card">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <h2>Statuses</h2>
-                <button class="pms-btn pms-btn-primary" onclick="pmsOpen('status')">Add status</button>
-            </div>
+        <div class="tabs">
+            <button class="tab active" data-tab="statuses" onclick="pmsTab('statuses')">Statuses</button>
+            <button class="tab" data-tab="priorities" onclick="pmsTab('priorities')">Priorities</button>
+            <button class="tab" data-tab="ai" onclick="pmsTab('ai')">Problem AI</button>
+        </div>
+
+        <div class="tab-content active" id="tab-statuses">
+            <div class="section-header"><h2>Statuses</h2><button class="add-btn pms-btn pms-btn-primary" onclick="pmsOpen('status')">Add status</button></div>
             <table class="pms"><thead><tr><th>Name</th><th>Closed?</th><th>Default</th><th>Active</th><th></th></tr></thead>
             <tbody id="pmsStatusRows"><tr><td colspan="5">Loading…</td></tr></tbody></table>
         </div>
 
-        <div class="pms-card">
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <h2>Priorities</h2>
-                <button class="pms-btn pms-btn-primary" onclick="pmsOpen('priority')">Add priority</button>
-            </div>
+        <div class="tab-content" id="tab-priorities">
+            <div class="section-header"><h2>Priorities</h2><button class="add-btn pms-btn pms-btn-primary" onclick="pmsOpen('priority')">Add priority</button></div>
             <table class="pms"><thead><tr><th>Name</th><th>Default</th><th>Active</th><th></th></tr></thead>
             <tbody id="pmsPriorityRows"><tr><td colspan="4">Loading…</td></tr></tbody></table>
         </div>
 
-        <div class="pms-card">
-            <h2>Problem AI</h2>
-            <p style="color:#555;font-size:14px;margin-top:0;">Used by “Draft root cause”. Bring your own provider and key.</p>
+        <div class="tab-content" id="tab-ai">
+            <h2 style="margin-top:0;">Problem AI</h2>
+            <p style="color:#555;font-size:14px;">Used by “Draft root cause” and “Detect problems”. Bring your own provider and key.</p>
             <?php renderAiSettingsPanel('problem_ai'); ?>
         </div>
     </div>
@@ -83,6 +81,11 @@ $path_prefix = '../../';
     <script>
     const PMS_API = '../../api/problem-management/';
     function pmsEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+    function pmsTab(name){
+        document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('active', t.dataset.tab===name));
+        document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+        document.getElementById('tab-'+name).classList.add('active');
+    }
     let pmsStatuses=[], pmsPriorities=[];
     async function pmsLoad(){
         const s=await fetch(PMS_API+'get_problem_statuses.php?manage=1').then(r=>r.json());

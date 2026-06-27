@@ -16,7 +16,7 @@ $path_prefix = '../';
     <title>Service Desk - Problem Management</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <style>
-        .pm-container { display: flex; height: calc(100vh - 60px); overflow: hidden; }
+        .pm-container { display: flex; height: calc(100vh - 48px); width: 100%; }
         .pm-sidebar { width: 250px; min-width: 250px; border-right: 1px solid #e5e7eb; background: #fafbfc; padding: 16px; overflow-y: auto; box-sizing: border-box; }
         .pm-sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; margin: 18px 0 8px; }
         .pm-search { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cfd8dc; border-radius: 6px; font: inherit; }
@@ -26,7 +26,7 @@ $path_prefix = '../';
         .pm-filter:hover { background: #f0e6f6; }
         .pm-filter.active { background: #ede7f6; color: #6a1b9a; font-weight: 600; }
         .pm-filter .cnt { background: #e5e7eb; border-radius: 10px; padding: 1px 8px; font-size: 12px; color: #555; }
-        .pm-main { flex: 1; overflow-y: auto; padding: 20px 24px; }
+        .pm-main { flex: 1; min-width: 0; overflow-y: auto; padding: 20px 24px; }
         .pm-list-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .pm-list-head h2 { margin: 0; font-size: 1.4rem; }
         .pm-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; background: #fff; }
