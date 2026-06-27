@@ -509,9 +509,12 @@ function renderFolders() {
     }
 
     // Trash folder — soft-deleted tickets, restorable. Pinned to the bottom.
+    // It's a drop target (drag a ticket here to trash it) and has its own
+    // right-click menu (Empty trash).
     html += '<div class="folder-divider"></div>';
     html += `
-        <div class="folder-item ${currentFilter.type === 'trash' ? 'active' : ''}" data-folder-key="trash" onclick="selectFolder('trash')">
+        <div class="folder-item drop-zone ${currentFilter.type === 'trash' ? 'active' : ''}" data-folder-key="trash" data-drop-type="trash"
+             onclick="selectFolder('trash')" oncontextmenu="openTrashContextMenu(event)">
             <div class="folder-name">
                 <span class="folder-icon">🗑️</span>
                 <span>Trash</span>
@@ -731,6 +734,24 @@ function cancelDragHover() {
 
 async function handleTicketDrop(targetEl, ticketId, ticketNumber) {
     const dropType = targetEl.dataset.dropType;
+
+    // Dropping onto the Trash folder soft-deletes the ticket.
+    if (dropType === 'trash') {
+        try {
+            const res = await fetch(API_BASE + 'delete_ticket.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ticket_id: parseInt(ticketId, 10) })
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || 'failed');
+            showToast(`${ticketNumber || 'Ticket'} → Trash`, 'success');
+            clearReadingPaneIfTicket(parseInt(ticketId, 10));
+            await loadFolderCounts();
+            loadEmails();
+        } catch (e) { showToast('Move to trash failed: ' + e.message, 'error'); }
+        return;
+    }
+
     const payload = { ticket_id: parseInt(ticketId, 10) };
     let toastMsg = '';
 
@@ -3766,14 +3787,76 @@ function closeTicketContextMenu() {
     if (menu) menu.classList.remove('active');
 }
 
-// Outside click + Escape close the menu
+// Right-click a ticket -> Move to trash (soft-delete the context-menu target).
+async function contextMoveToTrash() {
+    const id = ctxTargetTicketId;
+    const ref = ctxTargetTicketRef;
+    closeTicketContextMenu();
+    if (!id) return;
+    try {
+        const res = await fetch(API_BASE + 'delete_ticket.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: id })
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'failed');
+        showToast(`${ref || 'Ticket'} → Trash`, 'success');
+        clearReadingPaneIfTicket(id);
+        loadFolderCounts();
+        loadEmails();
+    } catch (e) { showToast('Move to trash failed: ' + e.message, 'error'); }
+}
+
+// ===== Trash folder context menu (Empty trash) =====
+function openTrashContextMenu(event) {
+    event.preventDefault();
+    const menu = document.getElementById('trashContextMenu');
+    if (!menu) return;
+    menu.classList.add('active');
+    const rect = menu.getBoundingClientRect();
+    let x = event.clientX, y = event.clientY;
+    if (x + rect.width  > window.innerWidth)  x = window.innerWidth  - rect.width  - 4;
+    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
+    menu.style.left = x + 'px';
+    menu.style.top = y + 'px';
+}
+function closeTrashContextMenu() {
+    const m = document.getElementById('trashContextMenu');
+    if (m) m.classList.remove('active');
+}
+async function emptyTrash() {
+    closeTrashContextMenu();
+    const n = folderCounts.trash_count || 0;
+    if (n === 0) { showToast('Trash is already empty', 'info'); return; }
+    if (!(await showConfirm({
+        title: 'Empty trash',
+        message: `Permanently delete all ${n} ticket(s) in the trash, including their emails, attachments and notes? This cannot be undone.`,
+        okLabel: 'Empty trash', okClass: 'danger'
+    }))) return;
+    try {
+        const res = await fetch(API_BASE + 'empty_trash.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}'
+        });
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'failed');
+        showToast(`Trash emptied — ${data.deleted} ticket(s) permanently deleted`, 'success');
+        currentEmail = null;
+        selectedEmailId = null;
+        document.getElementById('readingPane').innerHTML = '<div class="reading-pane-empty">Select an email to read</div>';
+        loadFolderCounts();
+        if (currentFilter.type === 'trash') loadEmails();
+    } catch (e) { showToast('Empty trash failed: ' + e.message, 'error'); }
+}
+
+// Outside click + Escape close the menus
 document.addEventListener('mousedown', function (e) {
     const menu = document.getElementById('ticketContextMenu');
-    if (!menu || !menu.classList.contains('active')) return;
-    if (!menu.contains(e.target)) closeTicketContextMenu();
+    if (menu && menu.classList.contains('active') && !menu.contains(e.target)) closeTicketContextMenu();
+    const tmenu = document.getElementById('trashContextMenu');
+    if (tmenu && tmenu.classList.contains('active') && !tmenu.contains(e.target)) closeTrashContextMenu();
 });
 document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape') closeTicketContextMenu();
+    if (e.key === 'Escape') { closeTicketContextMenu(); closeTrashContextMenu(); }
 });
 // Right-clicking a different row should reopen, not stack
 window.addEventListener('blur', closeTicketContextMenu);
