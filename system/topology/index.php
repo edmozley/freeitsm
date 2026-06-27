@@ -48,7 +48,6 @@ if (!isset($_SESSION['analyst_id'])) {
         .topo-btn:hover { background: #f3f4f6; }
 
         .tree { background: #fff; border: 1px solid #e5e7eb; border-radius: 10px; padding: 8px 4px; }
-        .tree-node { }
         .tree-row { display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 6px; cursor: default; font-size: 13.5px; color: #333; }
         .tree-row.expandable { cursor: pointer; }
         .tree-row.expandable:hover { background: #f5f7fa; }
@@ -111,6 +110,7 @@ if (!isset($_SESSION['analyst_id'])) {
         users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"></path>',
         user: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle>',
         ticket: '<path d="M3 9a2 2 0 0 0 2-2 2 2 0 0 1 4 0 2 2 0 0 0 2 2h7a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2H11a2 2 0 0 0-2 2 2 2 0 0 1-4 0 2 2 0 0 0-2-2 2 2 0 0 1-2-2v-2a2 2 0 0 1 2-2z"></path>',
+        dot: '<circle cx="12" cy="12" r="2.5"></circle>',
     };
     function ico(key) {
         return `<svg class="tree-ico" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${ICONS[key] || ''}</svg>`;
@@ -141,14 +141,32 @@ if (!isset($_SESSION['analyst_id'])) {
         if (!m.is_active) return [{ cls: 'grey', text: 'inactive' }];
         return m.is_authenticated ? [{ cls: 'green', text: 'signed in' }] : [{ cls: 'amber', text: 'not signed in' }];
     }
+    function prettyProvider(p) {
+        return ({ microsoft: 'Microsoft 365', google: 'Google Workspace', imap: 'IMAP' })[p] || (p ? p : 'Unknown');
+    }
+    // Expandable mailbox node: row shows name + badges; expand for the config.
+    function buildMailbox(m, isShared) {
+        const tags = mailboxTags(m);
+        if (isShared) tags.unshift({ cls: 'grey', text: 'shared' });
+        const cfg = [
+            leaf('dot', `Address: <strong>${esc(m.address || '—')}</strong>`),
+            leaf('dot', `Kind: ${esc(prettyProvider(m.provider))}`),
+        ];
+        if (m.folder) cfg.push(leaf('dot', `Folder: ${esc(m.folder)}`));
+        cfg.push(leaf('dot', `Status: ${m.is_active ? 'active' : 'inactive'}, ${m.is_authenticated ? 'signed in' : 'not signed in'}`));
+        if (m.last_checked) cfg.push(leaf('dot', `Last checked: ${esc(m.last_checked)} UTC`));
+        return node('mail', esc(m.name), { tags, children: cfg });
+    }
 
-    function buildCompany(c) {
+    function buildCompany(c, sharedMailboxes) {
         const cats = [];
 
-        // Mailboxes
-        const mbItems = c.mailboxes.map(m => leaf('mail', esc(m.name), mailboxTags(m)));
-        if (c.shared_mailbox_count > 0) mbItems.push(leaf('mail', `<span class="tree-label muted">+ ${c.shared_mailbox_count} shared (see Global / shared)</span>`));
-        cats.push(node('mail', 'Mailboxes', { count: c.mailboxes.length, children: mbItems.length ? mbItems : [leaf('mail', '<span class="tree-label muted">none pinned</span>')] }));
+        // Mailboxes — pinned to this company PLUS the shared ones that serve it.
+        const shared = sharedMailboxes || [];
+        const mbItems = c.mailboxes.map(m => buildMailbox(m, false))
+            .concat(shared.map(m => buildMailbox(m, true)));
+        const mbCount = c.mailboxes.length + shared.length;
+        cats.push(node('mail', 'Mailboxes', { count: mbCount, children: mbItems.length ? mbItems : [leaf('mail', '<span class="tree-label muted">none</span>')] }));
 
         // Domains
         cats.push(node('at', 'Domains', {
@@ -202,7 +220,7 @@ if (!isset($_SESSION['analyst_id'])) {
         const kids = [];
         kids.push(node('mail', 'Shared mailboxes', {
             count: g.mailboxes.length,
-            children: g.mailboxes.length ? g.mailboxes.map(m => leaf('mail', esc(m.name), mailboxTags(m))) : [leaf('mail', '<span class="tree-label muted">none</span>')]
+            children: g.mailboxes.length ? g.mailboxes.map(m => buildMailbox(m, false)) : [leaf('mail', '<span class="tree-label muted">none</span>')]
         }));
         kids.push(node('key', 'Global sign-in providers', {
             count: g.providers.length,
@@ -230,7 +248,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 ['Sign-in providers', d.totals.providers], ['Analysts', d.totals.analysts], ['Requesters', d.totals.users]
             ].map(([k, v]) => `<div class="topo-stat"><strong>${v}</strong>${esc(k)}</div>`).join('');
 
-            let html = d.companies.map(buildCompany).join('');
+            let html = d.companies.map(c => buildCompany(c, d.global.mailboxes)).join('');
             html += buildGlobal(d.global);
             tree.innerHTML = html;
         } catch (e) {

@@ -12,6 +12,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/encryption.php';
 
 header('Content-Type: application/json');
 
@@ -44,9 +45,18 @@ try {
     }
 
     // --- Bulk child loads, grouped by tenant_id ---
-    $mailboxRows = $rows("SELECT id, name, tenant_id, is_active,
+    $mailboxRows = $rows("SELECT id, name, tenant_id, is_active, provider, target_mailbox,
+                                 email_folder, last_checked_datetime,
                                  CASE WHEN token_data IS NOT NULL AND token_data <> '' THEN 1 ELSE 0 END AS is_auth
                             FROM target_mailboxes ORDER BY name");
+    // The mailbox address is encrypted at rest — decrypt for display (admin-only view).
+    foreach ($mailboxRows as &$_m) {
+        $addr = $_m['target_mailbox'] ?? '';
+        try { if (function_exists('decryptValue')) $addr = decryptValue($addr); }
+        catch (Throwable $e) { $addr = '(unavailable)'; }
+        $_m['address'] = $addr;
+    }
+    unset($_m);
     $domainRows  = $rows("SELECT tenant_id, domain FROM tenant_domains ORDER BY domain");
     $senderRows  = $rows("SELECT tenant_id, email FROM tenant_sender_addresses ORDER BY email");
     $providerRows= $rows("SELECT id, display_name, enabled, tenant_id FROM auth_providers ORDER BY sort_order, display_name");
@@ -78,6 +88,10 @@ try {
 
     $mapMailbox = fn($m) => [
         'id' => (int)$m['id'], 'name' => $m['name'],
+        'address'      => $m['address'] ?? '',
+        'provider'     => $m['provider'] ?? '',
+        'folder'       => $m['email_folder'] ?? '',
+        'last_checked' => $m['last_checked_datetime'] ?? null,
         'is_active' => (bool)$m['is_active'], 'is_authenticated' => (bool)$m['is_auth'],
     ];
     $mapProvider = fn($p) => ['id' => (int)$p['id'], 'name' => $p['display_name'], 'enabled' => (bool)$p['enabled']];
