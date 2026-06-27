@@ -36,6 +36,10 @@ $departmentId = !empty($input['department_id']) ? (int)$input['department_id'] :
 $ticketTypeId = !empty($input['ticket_type_id']) ? (int)$input['ticket_type_id'] : null;
 $priority = $input['priority'] ?? 'Normal';
 $assignedAnalystId = !empty($input['assigned_analyst_id']) ? (int)$input['assigned_analyst_id'] : $analystId;
+// The mailbox replies will be sent FROM (optional). Stamped on the initial
+// email so the reply path can resolve a sender. Validated below against the
+// active company so a foreign company's pinned mailbox can't be chosen.
+$mailboxId = !empty($input['mailbox_id']) ? (int)$input['mailbox_id'] : null;
 
 // Validate required fields
 if (empty($fromName)) {
@@ -86,6 +90,24 @@ try {
     // At N=1 this is simply the Default company.
     $tenantId = getActiveTenantId($conn, $analystId);
 
+    // Validate the chosen mailbox: it must exist and, on a multi-tenant install,
+    // belong to the active company (pinned) or be shared intake (tenant_id NULL).
+    // This stops a foreign company's pinned mailbox being attached to the ticket.
+    if ($mailboxId !== null) {
+        $mbStmt = $conn->prepare("SELECT tenant_id FROM target_mailboxes WHERE id = ? AND is_active = 1");
+        $mbStmt->execute([$mailboxId]);
+        $mb = $mbStmt->fetch(PDO::FETCH_ASSOC);
+        $mbOk = (bool)$mb;
+        if ($mb && isMultiTenant($conn)) {
+            $mbOk = ($mb['tenant_id'] === null) || ((int)$mb['tenant_id'] === (int)$tenantId);
+        }
+        if (!$mbOk) {
+            $conn->rollBack();
+            echo json_encode(['success' => false, 'error' => 'The selected mailbox is not available for this company.']);
+            exit;
+        }
+    }
+
     // Create the ticket and get the ID. Resolve status/priority names to ids via subselects.
     $ticketSql = "INSERT INTO tickets (
         tenant_id, ticket_number, subject, status_id, priority_id, department_id, ticket_type_id,
@@ -117,13 +139,14 @@ try {
     $bodyPreview = substr(strip_tags($body), 0, 200);
 
     $emailSql = "INSERT INTO emails (
-        subject, from_address, from_name, to_recipients, received_datetime,
+        mailbox_id, subject, from_address, from_name, to_recipients, received_datetime,
         body_preview, body_content, body_type, has_attachments, importance,
         is_read, ticket_id, is_initial, direction
-    ) VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'html', 0, 'normal', 1, ?, 1, 'Manual')";
+    ) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'html', 0, 'normal', 1, ?, 1, 'Manual')";
 
     $emailStmt = $conn->prepare($emailSql);
     $emailStmt->execute([
+        $mailboxId,  // send-from mailbox (NULL if none chosen — reply won't be sendable)
         $subject,
         $fromEmail,
         $fromName,

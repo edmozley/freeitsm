@@ -155,6 +155,14 @@ $translationNamespaces = ['common', 'tickets'];
                     </div>
                 </div>
                 <div class="form-group">
+                    <label class="form-label">
+                        <?php echo htmlspecialchars(t('tickets.new_ticket_modal.mailbox')); ?>
+                        <span id="newTicketCompanyLabel" style="color:#888;font-weight:normal;"></span>
+                    </label>
+                    <select class="form-select" id="newTicketMailbox"></select>
+                    <div id="newTicketMailboxHint" style="font-size:12px;color:#999;margin-top:4px;"></div>
+                </div>
+                <div class="form-group">
                     <label class="form-label"><?php echo htmlspecialchars(t('tickets.new_ticket_modal.subject')); ?> *</label>
                     <input type="text" class="form-input" id="newTicketSubject" placeholder="<?php echo htmlspecialchars(t('tickets.new_ticket_modal.subject_placeholder')); ?>" required>
                 </div>
@@ -365,7 +373,7 @@ $translationNamespaces = ['common', 'tickets'];
         window.API_BASE = '../api/tickets/';
         window.CURRENT_ANALYST_ID = <?php echo (int)($_SESSION['analyst_id'] ?? 0); ?>;
     </script>
-    <script src="../assets/js/inbox.js?v=31"></script>
+    <script src="../assets/js/inbox.js?v=32"></script>
     <script>
     // Auto-check mailboxes every 60 seconds
     (function() {

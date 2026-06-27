@@ -2527,7 +2527,45 @@ function openNewTicketModal() {
     typeSelect.innerHTML = '<option value="">-- Select --</option>' +
         ticketTypes.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
 
+    // Populate the "Send replies from" mailbox dropdown for the active company.
+    loadNewTicketMailboxes();
+
     document.getElementById('newTicketModal').classList.add('active');
+}
+
+// Load the mailboxes this ticket can be sent from (scoped to the active company)
+// and populate the New Ticket modal's mailbox picker. Fires async; the modal can
+// open before it returns.
+async function loadNewTicketMailboxes() {
+    const sel = document.getElementById('newTicketMailbox');
+    const label = document.getElementById('newTicketCompanyLabel');
+    const hint = document.getElementById('newTicketMailboxHint');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Loading…</option>';
+    if (label) label.textContent = '';
+    if (hint) hint.textContent = '';
+    try {
+        const r = await fetch(API_BASE + 'get_sendable_mailboxes.php', { credentials: 'same-origin' });
+        const d = await r.json();
+        if (!d.success) throw new Error(d.error || 'failed');
+
+        // Show which company these mailboxes belong to (multi-company installs only).
+        if (label && d.multi_tenant && d.tenant_name) label.textContent = ' — ' + d.tenant_name;
+
+        if (!d.mailboxes || !d.mailboxes.length) {
+            sel.innerHTML = '<option value="">(no sendable mailbox)</option>';
+            if (hint) hint.textContent = d.multi_tenant
+                ? "No active, signed-in mailbox for this company — you can still create the ticket, but replies can't be emailed until one is set up."
+                : "No active, signed-in mailbox — you can still create the ticket, but replies can't be emailed until one is set up.";
+            return;
+        }
+        // Server orders pinned-to-company first, so the first option is the sensible default.
+        sel.innerHTML = d.mailboxes.map(m =>
+            `<option value="${m.id}">${escapeHtml(m.name)}${m.pinned ? '' : ' (shared)'}</option>`
+        ).join('');
+    } catch (e) {
+        sel.innerHTML = '<option value="">(could not load mailboxes)</option>';
+    }
 }
 
 function closeNewTicketModal() {
@@ -2542,6 +2580,7 @@ async function createNewTicket() {
     const departmentId = document.getElementById('newTicketDepartment').value;
     const ticketTypeId = document.getElementById('newTicketType').value;
     const priority = document.getElementById('newTicketPriority').value;
+    const mailboxId = document.getElementById('newTicketMailbox').value;
 
     // Validate required fields
     if (!fromName) {
@@ -2574,7 +2613,8 @@ async function createNewTicket() {
                 body: body,
                 department_id: departmentId || null,
                 ticket_type_id: ticketTypeId || null,
-                priority: priority
+                priority: priority,
+                mailbox_id: mailboxId || null
             })
         });
 

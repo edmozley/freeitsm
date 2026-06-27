@@ -110,6 +110,7 @@ return [
         'requester_name'          => 'Requester Name',
         'requester_email'         => 'Requester Email',
         'subject'                 => 'Subject',
+        'mailbox'                 => 'Send replies from',
         'department'              => 'Department',
         'type'                    => 'Type',
         'priority'                => 'Priority',
