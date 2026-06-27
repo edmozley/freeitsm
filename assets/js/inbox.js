@@ -1342,6 +1342,7 @@ function displayEmail(email, recordings) {
             <span class="attachment-info-icon">📎</span>
             <span>${escapeHtml(t('tickets.actions.loading_attachments'))}</span>
         </div>
+        ${buildProblemStrip(email)}
         ${buildRecordingsStrip(currentRecordings)}
         <div class="action-toolbar">
             <button class="action-btn" onclick="openNoteModal()">
@@ -1404,6 +1405,62 @@ function displayEmail(email, recordings) {
 // toolbar. Returns the empty string when the ticket has no recordings, so the
 // gap collapses cleanly. Stream URL is the same endpoint the self-service portal
 // uses — auth check inside accepts either a session analyst or the ticket owner.
+// Problem Management strip: shows any problems this incident is linked to, plus a
+// "Link to problem" action. Reads email.problems from get_email_detail.
+function buildProblemStrip(email) {
+    const probs = email.problems || [];
+    const badges = probs.map(p =>
+        `<a class="pm-ticket-badge" href="../problem-management/index.php?id=${p.id}" target="_blank" title="${escapeHtml(p.title || '')}">
+            ⚠ ${escapeHtml(p.problem_number || ('#' + p.id))}${p.status ? ' · ' + escapeHtml(p.status) : ''}
+            <span class="pm-ticket-unlink" onclick="event.preventDefault();event.stopPropagation();unlinkTicketFromProblem(${p.id});">✕</span>
+        </a>`).join('');
+    return `<div class="problem-strip">
+        <span class="problem-strip-label">Problem:</span>
+        ${badges || '<span style="color:#9ca3af;font-size:13px;">not linked</span>'}
+        <button class="problem-link-btn" onclick="linkTicketToProblem()">Link to problem</button>
+    </div>`;
+}
+
+async function linkTicketToProblem() {
+    if (!currentEmail) return;
+    const ans = (prompt('Enter an existing problem number to link (e.g. PRB-00001), or type NEW to raise a problem from this incident:') || '').trim();
+    if (!ans) return;
+    try {
+        if (ans.toUpperCase() === 'NEW') {
+            // Create a problem from this incident, then link it.
+            const cr = await fetch('../api/problem-management/save.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ title: currentEmail.subject || 'Problem from ' + (currentEmail.ticket_number || 'incident'), description: '' })
+            }).then(r => r.json());
+            if (!cr.success) { showToast('Could not create problem: ' + (cr.error || ''), 'error'); return; }
+            await doLinkProblem({ problem_id: cr.id });
+        } else {
+            await doLinkProblem({ problem_number: ans });
+        }
+    } catch (e) { showToast('Failed to link problem', 'error'); }
+}
+async function doLinkProblem(target) {
+    const res = await fetch('../api/problem-management/link_ticket.php', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Object.assign({ ticket_id: currentEmail.ticket_id }, target))
+    });
+    const data = await res.json();
+    if (data.success) { showToast('Linked to problem', 'success'); selectEmail(currentEmail.id); }
+    else showToast('Could not link: ' + (data.error || 'unknown error'), 'error');
+}
+async function unlinkTicketFromProblem(problemId) {
+    if (!currentEmail) return;
+    try {
+        const res = await fetch('../api/problem-management/unlink_ticket.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ problem_id: problemId, ticket_id: currentEmail.ticket_id })
+        });
+        const data = await res.json();
+        if (data.success) { showToast('Unlinked', 'success'); selectEmail(currentEmail.id); }
+        else showToast(data.error || 'Failed', 'error');
+    } catch (e) { showToast('Failed', 'error'); }
+}
+
 function buildRecordingsStrip(recordings) {
     if (!recordings || !recordings.length) return '';
     const cards = recordings.map(r => {

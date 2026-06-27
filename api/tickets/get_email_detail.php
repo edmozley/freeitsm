@@ -156,6 +156,21 @@ try {
         $updateStmt->execute([$emailId]);
     }
 
+    // Problem Management: problems this incident is linked to (badge + link in the
+    // reading pane). Degrades to [] if the module's tables aren't present yet.
+    $email['problems'] = [];
+    try {
+        $pq = $conn->prepare(
+            "SELECT p.id, p.problem_number, p.title, ps.name AS status
+             FROM problem_tickets pt
+             JOIN problems p ON p.id = pt.problem_id
+             LEFT JOIN problem_statuses ps ON ps.id = p.status_id
+             WHERE pt.ticket_id = ? ORDER BY p.created_datetime DESC"
+        );
+        $pq->execute([(int) $email['ticket_id']]);
+        $email['problems'] = $pq->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) { /* module not installed yet */ }
+
     // Screen recordings attached to the ticket
     $recordings = [];
     try {

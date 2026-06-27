@@ -276,6 +276,43 @@ async function pmAiRootCause() {
         out._draft = data;
     } catch (e) { out.textContent = 'AI request failed'; }
 }
+// ----- AI: detect recurring-incident problems -----
+let pmSuggestions = [];
+async function pmSuggest() {
+    const modal = document.getElementById('pmSuggestModal');
+    const body = document.getElementById('pmSuggestBody');
+    modal.classList.add('active');
+    body.innerHTML = 'Scanning recent open incidents…';
+    try {
+        const res = await fetch(PM_API + 'ai_suggest_problem.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({}) });
+        const data = await res.json();
+        if (!data.success) { body.innerHTML = '<div style="color:#c62828;">' + pmEsc(data.error || 'Failed') + '</div>'; return; }
+        pmSuggestions = data.suggestions || [];
+        if (!pmSuggestions.length) { body.innerHTML = `<div style="color:#6b7280;">No recurring patterns found across ${data.scanned} open incidents.</div>`; return; }
+        body.innerHTML = pmSuggestions.map((s, i) => `
+            <div class="pm-section" style="margin:0 0 12px;">
+                <div style="font-weight:600;">${pmEsc(s.title || 'Untitled')}</div>
+                <div style="color:#6b7280;font-size:13px;margin:4px 0;">${pmEsc(s.rationale || '')}</div>
+                <div style="font-size:12px;margin-bottom:8px;">${(s.ticket_numbers || []).map(t => `<span class="pm-num">${pmEsc(t)}</span>`).join(', ')}</div>
+                <button class="pm-btn pm-btn-primary" onclick="pmCreateFromSuggestion(${i})">Create problem &amp; link these</button>
+            </div>`).join('');
+    } catch (e) { body.innerHTML = '<div style="color:#c62828;">Request failed</div>'; }
+}
+async function pmCreateFromSuggestion(i) {
+    const s = pmSuggestions[i];
+    if (!s) return;
+    try {
+        const cr = await fetch(PM_API + 'save.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: s.title || 'Recurring problem', description: s.rationale || '' }) }).then(r => r.json());
+        if (!cr.success) { pmToast(cr.error || 'Create failed', 'error'); return; }
+        for (const num of (s.ticket_numbers || [])) {
+            await fetch(PM_API + 'link_ticket.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ problem_id: cr.id, ticket_number: num }) });
+        }
+        document.getElementById('pmSuggestModal').classList.remove('active');
+        pmToast('Problem created from suggestion', 'success');
+        pmOpenDetail(cr.id);
+    } catch (e) { pmToast('Failed', 'error'); }
+}
+
 function pmApplyAiDraft() {
     const out = document.getElementById('pmAiOut');
     if (!pmDetailCache) return;

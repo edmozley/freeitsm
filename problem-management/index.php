@@ -79,7 +79,13 @@ $path_prefix = '../';
         </div>
         <div class="pm-main">
             <div id="pmListView">
-                <div class="pm-list-head"><h2>Problems</h2><div id="pmCount" style="color:#6b7280;"></div></div>
+                <div class="pm-list-head">
+                    <h2>Problems</h2>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <button class="pm-btn" onclick="pmSuggest()" title="Let AI scan recent open incidents for recurring patterns">🤖 Detect problems</button>
+                        <div id="pmCount" style="color:#6b7280;"></div>
+                    </div>
+                </div>
                 <div id="pmList"><div class="pm-empty">Loading…</div></div>
             </div>
             <div id="pmDetailView" style="display:none;"></div>
@@ -110,6 +116,15 @@ $path_prefix = '../';
         </div>
     </div>
 
-    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=1"></script>
+    <!-- AI suggestions modal -->
+    <div class="pm-modal" id="pmSuggestModal">
+        <div class="pm-modal-content">
+            <div class="pm-modal-head">Suggested problems</div>
+            <div class="pm-modal-body" id="pmSuggestBody"></div>
+            <div class="pm-modal-foot"><button class="pm-btn" onclick="document.getElementById('pmSuggestModal').classList.remove('active')">Close</button></div>
+        </div>
+    </div>
+
+    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=2"></script>
 </body>
 </html>

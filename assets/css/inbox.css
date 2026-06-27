@@ -996,6 +996,47 @@ body.ticket-popout .ticket-toolbar {
     min-height: 1.4em;
 }
 
+/* Problem Management strip in the ticket reading pane */
+.problem-strip {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    background: #faf7fd;
+    border: 1px solid #e6d8f2;
+    border-radius: 8px;
+    font-size: 13px;
+}
+.problem-strip-label { font-weight: 600; color: #6a1b9a; }
+.pm-ticket-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #ede7f6;
+    color: #6a1b9a;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    font-size: 12px;
+}
+.pm-ticket-badge:hover { background: #e1d4f0; }
+.pm-ticket-unlink { color: #c62828; cursor: pointer; font-weight: 700; }
+.problem-link-btn {
+    margin-left: auto;
+    background: #fff;
+    border: 1px solid #cbb6e0;
+    color: #6a1b9a;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 12px;
+}
+.problem-link-btn:hover { background: #f3ecfa; }
+
 /* Soft wrong-company warning banner (multi-tenancy) */
 .wrong-company-banner {
     display: flex;
