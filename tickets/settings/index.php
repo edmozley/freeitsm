@@ -1292,6 +1292,11 @@ $translationNamespaces = ['common', 'tickets'];
                         <input type="text" id="channelVerifyToken" placeholder="any string you choose">
                         <small style="color:#666;">Used for Meta's webhook subscription handshake.</small>
                     </div>
+                    <div class="form-group provider-meta">
+                        <label for="channelGraphVersion">Graph API version <span style="color:#888; font-weight:normal;">(advanced, optional)</span></label>
+                        <input type="text" id="channelGraphVersion" placeholder="v21.0 (default)">
+                        <small style="color:#666;">Only change if Meta retires the default version. Leave blank to use the built-in default.</small>
+                    </div>
 
                     <div class="form-group" style="grid-column: span 2;">
                         <label for="channelIngress">Inbound delivery</label>
@@ -2716,6 +2721,7 @@ $translationNamespaces = ['common', 'tickets'];
             const mask = (channel && channel.has_credentials) ? '********' : '';
             ['channelAuthToken','channelAccessToken','channelAppSecret'].forEach(idv => document.getElementById(idv).value = mask);
             ['channelAccountSid','channelPhoneNumberId','channelVerifyToken','channelRelaySecret'].forEach(idv => document.getElementById(idv).value = '');
+            document.getElementById('channelGraphVersion').value = channel ? (channel.graph_version || '') : '';
 
             const hintGroup = document.getElementById('channelWebhookHintGroup');
             if (channel && channel.webhook_url) {
@@ -2770,7 +2776,8 @@ $translationNamespaces = ['common', 'tickets'];
                 auth_token: document.getElementById('channelAuthToken').value,
                 phone_number_id: document.getElementById('channelPhoneNumberId').value.trim(),
                 access_token: document.getElementById('channelAccessToken').value,
-                app_secret: document.getElementById('channelAppSecret').value
+                app_secret: document.getElementById('channelAppSecret').value,
+                graph_version: document.getElementById('channelGraphVersion').value.trim()
             };
             if (!payload.name) { showToast('Name is required', 'error'); return; }
             try {

@@ -53,6 +53,7 @@ try {
             'tenant_id'             => $r['tenant_id'] !== null ? (int) $r['tenant_id'] : null,
             'is_active'             => (bool) $r['is_active'],
             'has_credentials'       => !empty($creds),
+            'graph_version'         => $creds['graph_version'] ?? '',
             'last_inbound_datetime' => $r['last_inbound_datetime'],
             'webhook_url'           => $base . $root . '/api/messaging/webhook.php?channel=' . (int) $r['id'],
         ];

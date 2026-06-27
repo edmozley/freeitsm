@@ -79,6 +79,14 @@ try {
         if (provided($data['access_token'] ?? ''))     $creds['access_token']     = trim($data['access_token']);
         if (provided($data['app_secret'] ?? ''))       $creds['app_secret']       = trim($data['app_secret']);
     }
+    // Optional Graph API version override (Meta only; not a secret). Blank = use the
+    // built-in default, so an admin can bump it when Meta retires a version.
+    $gv = trim((string) ($data['graph_version'] ?? ''));
+    if ($gv !== '') {
+        $creds['graph_version'] = $gv;
+    } else {
+        unset($creds['graph_version']);
+    }
     $credsEncrypted = empty($creds) ? null : encryptValue(json_encode($creds));
 
     // verify_token + relay_secret are secrets too — encrypt at rest, and keep the
