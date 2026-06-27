@@ -753,7 +753,7 @@ $translationNamespaces = ['common', 'tickets'];
                     Leave blank to use whatever address you're browsing from. Testing locally? Run <code>ngrok http 80</code> and paste the <code>https://…ngrok-free.dev</code> address it prints.
                 </small>
             </div>
-            <div id="channelsResult" class="exchange-result"></div>
+            <div id="channelsResult" style="margin-bottom:12px;"></div>
             <table>
                 <thead>
                     <tr>
