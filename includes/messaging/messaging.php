@@ -59,6 +59,14 @@ function loadMessagingChannel(PDO $conn, $channelId): ?array
         return null;
     }
     $row['credentials'] = messagingDecodeCredentials($row['credentials'] ?? null);
+    // verify_token / relay_secret are secrets, stored encrypted at rest. decryptValue
+    // returns the value unchanged if it lacks the ENC: prefix, so pre-encryption or
+    // empty rows still work (migration-safe).
+    foreach (['verify_token', 'relay_secret'] as $secretCol) {
+        if (isset($row[$secretCol]) && $row[$secretCol] !== null && $row[$secretCol] !== '') {
+            try { $row[$secretCol] = decryptValue($row[$secretCol]); } catch (Exception $e) { /* leave as-is */ }
+        }
+    }
     $row['is_active'] = (bool) ($row['is_active'] ?? 1);
     return $row;
 }

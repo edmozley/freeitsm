@@ -66,13 +66,11 @@ try {
         }
     }
 
-    // Merge credentials: start from existing (on edit), overwrite only provided fields.
-    $existing = [];
-    if ($id) {
-        $cur = loadMessagingChannel($conn, (int) $id);
-        $existing = $cur['credentials'] ?? [];
-    }
-    $creds = $existing;
+    // Load existing (on edit) so blank/masked secret fields are preserved, not wiped.
+    $cur = $id ? loadMessagingChannel($conn, (int) $id) : null;
+
+    // Merge credentials: start from existing, overwrite only provided fields.
+    $creds = $cur['credentials'] ?? [];
     if ($provider === 'twilio') {
         if (provided($data['account_sid'] ?? '')) $creds['account_sid'] = trim($data['account_sid']);
         if (provided($data['auth_token'] ?? ''))  $creds['auth_token']  = trim($data['auth_token']);
@@ -82,6 +80,13 @@ try {
         if (provided($data['app_secret'] ?? ''))       $creds['app_secret']       = trim($data['app_secret']);
     }
     $credsEncrypted = empty($creds) ? null : encryptValue(json_encode($creds));
+
+    // verify_token + relay_secret are secrets too — encrypt at rest, and keep the
+    // existing value if the field came in blank/masked on edit (write-only fields).
+    $verifyPlain = provided($verifyToken) ? $verifyToken : (string) ($cur['verify_token'] ?? '');
+    $relayPlain  = provided($relaySecret) ? $relaySecret : (string) ($cur['relay_secret'] ?? '');
+    $verifyToken = $verifyPlain === '' ? null : encryptValue($verifyPlain);
+    $relaySecret = $relayPlain === ''  ? null : encryptValue($relayPlain);
 
     if ($id) {
         $sql = "UPDATE messaging_channels SET
