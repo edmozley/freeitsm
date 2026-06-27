@@ -79,6 +79,17 @@ abstract class MessagingProvider
     }
 
     /**
+     * Verify the channel's credentials against the provider with a lightweight,
+     * read-only API call (no message is sent). Returns a short human-readable
+     * success detail (e.g. the account/number it reached). Throws on failure with
+     * a message suitable for showing the analyst.
+     */
+    public function testConnection(): string
+    {
+        throw new Exception('Connection test not supported for this provider.');
+    }
+
+    /**
      * Shared cURL helper. Returns [httpCode, bodyString]. No exceptions on HTTP
      * error codes — the caller decides what a bad status means.
      *

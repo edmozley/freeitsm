@@ -115,6 +115,32 @@ class MetaCloudProvider extends MessagingProvider
         return $json['messages'][0]['id'] ?? '';
     }
 
+    public function testConnection(): string
+    {
+        $phoneId = $this->channel['credentials']['phone_number_id'] ?? '';
+        $token   = $this->channel['credentials']['access_token'] ?? '';
+        if ($phoneId === '' || $token === '') {
+            throw new Exception('Missing Phone number ID or Access token.');
+        }
+
+        // Read-only: fetch the phone number resource. Validates the token + id.
+        $version = $this->channel['credentials']['graph_version'] ?? self::GRAPH_VERSION;
+        $url = 'https://graph.facebook.com/' . $version . "/$phoneId?fields=display_phone_number,verified_name";
+        [$code, $resp] = $this->httpRequest($url, [
+            'method'  => 'GET',
+            'headers' => ["Authorization: Bearer $token"],
+        ]);
+        $json = json_decode($resp, true);
+
+        if ($code < 200 || $code >= 300) {
+            throw new Exception($json['error']['message'] ?? ('Meta returned HTTP ' . $code));
+        }
+
+        $name   = $json['verified_name'] ?? '';
+        $number = $json['display_phone_number'] ?? $phoneId;
+        return 'Connected to Meta WhatsApp number ' . ($name !== '' ? "\"$name\" ($number)." : "$number.");
+    }
+
     private function ensurePlus(string $number): string
     {
         $number = ltrim(trim($number), '+');

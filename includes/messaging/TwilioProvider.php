@@ -101,6 +101,39 @@ class TwilioProvider extends MessagingProvider
         return $json['sid'] ?? '';
     }
 
+    public function testConnection(): string
+    {
+        $sid   = $this->channel['credentials']['account_sid'] ?? '';
+        $token = $this->channel['credentials']['auth_token'] ?? '';
+        if ($sid === '' || $token === '') {
+            throw new Exception('Missing Account SID or Auth Token.');
+        }
+
+        // Read-only: fetch the account resource. Validates the SID + token without
+        // sending anything.
+        [$code, $resp] = $this->httpRequest(
+            "https://api.twilio.com/2010-04-01/Accounts/$sid.json",
+            ['method' => 'GET', 'auth' => "$sid:$token"]
+        );
+        $json = json_decode($resp, true);
+
+        if ($code === 401) {
+            throw new Exception('Authentication failed — check the Account SID and Auth Token.');
+        }
+        if ($code < 200 || $code >= 300) {
+            throw new Exception($json['message'] ?? ('Twilio returned HTTP ' . $code));
+        }
+
+        $name   = $json['friendly_name'] ?? $sid;
+        $status = $json['status'] ?? 'unknown';
+        $from   = $this->channel['phone_number'] ?? '';
+        $detail = "Connected to Twilio account \"$name\" (status: $status).";
+        if ($from === '') {
+            $detail .= ' Note: no WhatsApp number is set on this channel.';
+        }
+        return $detail;
+    }
+
     /** Drop Twilio's "whatsapp:" channel prefix, leaving the bare number. */
     private function stripPrefix(string $addr): string
     {
