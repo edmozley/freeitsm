@@ -65,6 +65,11 @@ let currentTicketChannel = 'email';
 let currentChannelWindowOpen = false;
 let currentChannelProvider = '';
 let channelTemplates = [];
+// Auto-refresh: channel tickets (WhatsApp etc.) poll for new inbound messages every
+// 15s while open. lastComposerWindowOpen lets us avoid re-rendering (and wiping) the
+// composer on a refresh unless the 24h-window state actually changed.
+let channelRefreshTimer = null;
+let lastComposerWindowOpen = null;
 let currentFilter = { type: 'all' };
 let expandedFolders = {};
 let currentNotes = [];
@@ -1349,10 +1354,11 @@ function formatRecordingDuration(seconds) {
     return m + ':' + (s < 10 ? '0' : '') + s;
 }
 
-// Load and display all correspondence for a ticket
-async function loadCorrespondenceThread(ticketId) {
+// Load and display all correspondence for a ticket. isAuto=true marks a 15s
+// background refresh (channel tickets) so we don't disturb the analyst's draft.
+async function loadCorrespondenceThread(ticketId, isAuto = false) {
     const container = document.getElementById('threadContainer');
-    if (!container) return;
+    if (!container) { if (isAuto) stopChannelAutoRefresh(); return; }
 
     try {
         const response = await fetch(`${API_BASE}get_ticket_thread.php?ticket_id=${ticketId}`);
@@ -1362,27 +1368,52 @@ async function loadCorrespondenceThread(ticketId) {
         currentTicketChannel = data.channel || 'email';
         currentChannelWindowOpen = !!data.window_open;
         currentChannelProvider = data.channel_provider || '';
-        renderChannelComposer(ticketId);
 
-        if (!data.success || !data.emails || data.emails.length === 0) return;
+        // Render the composer on a fresh open, or when the 24h-window state flips —
+        // but NOT on every auto-refresh, so an in-progress draft/template isn't wiped.
+        if (currentTicketChannel === 'email' || !isAuto || currentChannelWindowOpen !== lastComposerWindowOpen) {
+            renderChannelComposer(ticketId);
+        }
+        lastComposerWindowOpen = currentChannelWindowOpen;
 
-        // Reverse so most recent email is at the top
-        const emails = [...data.emails].reverse();
-
-        container.innerHTML = emails.map((e, index) => {
-            const isOutbound = e.direction === 'Outbound';
-            return `
-                ${index > 0 ? '<div class="thread-separator"></div>' : ''}
-                <div class="thread-meta">
-                    <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${isOutbound ? 'Sent' : 'Received'}</span>
-                    <strong>${escapeHtml(e.from_name || e.from_address)}</strong>
-                    &lt;${escapeHtml(e.from_address)}&gt; &mdash; ${formatFullDateTime(e.received_datetime)}
-                </div>
-                <div class="thread-message-body">${safeEmailHtml(e.body_content)}</div>
-            `;
-        }).join('');
+        if (data.success && data.emails && data.emails.length > 0) {
+            // Reverse so most recent email is at the top
+            const emails = [...data.emails].reverse();
+            container.innerHTML = emails.map((e, index) => {
+                const isOutbound = e.direction === 'Outbound';
+                return `
+                    ${index > 0 ? '<div class="thread-separator"></div>' : ''}
+                    <div class="thread-meta">
+                        <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${isOutbound ? 'Sent' : 'Received'}</span>
+                        <strong>${escapeHtml(e.from_name || e.from_address)}</strong>
+                        &lt;${escapeHtml(e.from_address)}&gt; &mdash; ${formatFullDateTime(e.received_datetime)}
+                    </div>
+                    <div class="thread-message-body">${safeEmailHtml(e.body_content)}</div>
+                `;
+            }).join('');
+        }
     } catch (error) {
         console.error('Error loading thread:', error);
+    }
+
+    // Manage the 15s live refresh for channel tickets. Only (re)arm on a fresh open;
+    // the timer itself calls back with isAuto=true.
+    if (!isAuto) {
+        stopChannelAutoRefresh();
+        if (currentTicketChannel !== 'email') {
+            channelRefreshTimer = setInterval(() => {
+                // Stop if the analyst is no longer viewing this ticket's thread.
+                if (!document.getElementById('threadContainer')) { stopChannelAutoRefresh(); return; }
+                loadCorrespondenceThread(ticketId, true);
+            }, 15000);
+        }
+    }
+}
+
+function stopChannelAutoRefresh() {
+    if (channelRefreshTimer) {
+        clearInterval(channelRefreshTimer);
+        channelRefreshTimer = null;
     }
 }
 

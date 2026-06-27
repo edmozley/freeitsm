@@ -145,6 +145,37 @@ class TwilioProvider extends MessagingProvider
         return $json['sid'] ?? '';
     }
 
+    public function downloadMedia(array $item): array
+    {
+        $sid   = $this->channel['credentials']['account_sid'] ?? '';
+        $token = $this->channel['credentials']['auth_token'] ?? '';
+        $url   = $item['url'] ?? '';
+        if ($url === '') {
+            throw new Exception('Media item has no URL.');
+        }
+
+        // Twilio media URLs require account auth and 307-redirect to storage.
+        [$code, $body] = $this->httpRequest($url, [
+            'method' => 'GET',
+            'auth'   => "$sid:$token",
+            'follow' => true,
+        ]);
+        if ($code < 200 || $code >= 300 || $body === '') {
+            throw new Exception('Twilio media download failed (HTTP ' . $code . ').');
+        }
+
+        $contentType = $item['content_type'] ?? 'application/octet-stream';
+        $ext = messagingExtForMime($contentType);
+        // Use the Media SID (last URL path segment) as the base name when present.
+        $base = basename(parse_url($url, PHP_URL_PATH) ?: '') ?: 'media';
+        $base = preg_replace('/\.[A-Za-z0-9]+$/', '', $base);
+        return [
+            'data'         => $body,
+            'content_type' => $contentType,
+            'filename'     => $base . '.' . $ext,
+        ];
+    }
+
     public function testConnection(): string
     {
         $sid   = $this->channel['credentials']['account_sid'] ?? '';

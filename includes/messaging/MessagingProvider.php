@@ -94,6 +94,16 @@ abstract class MessagingProvider
     }
 
     /**
+     * Download one inbound media item (an entry from parseInbound's 'media' array).
+     * Returns ['data' => binary, 'content_type' => string, 'filename' => string].
+     * Throws on failure.
+     */
+    public function downloadMedia(array $item): array
+    {
+        throw new Exception('Media download not supported for this provider.');
+    }
+
+    /**
      * Shared cURL helper. Returns [httpCode, bodyString]. No exceptions on HTTP
      * error codes — the caller decides what a bad status means.
      *
@@ -111,6 +121,10 @@ abstract class MessagingProvider
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $verifyPeer);
         curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $verifyPeer ? 2 : 0);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $opts['method'] ?? 'GET');
+        if (!empty($opts['follow'])) {
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_MAXREDIRS, 5);
+        }
         if (!empty($opts['headers'])) {
             curl_setopt($ch, CURLOPT_HTTPHEADER, $opts['headers']);
         }

@@ -37,14 +37,12 @@ function ingestInboundMessage(PDO $conn, array $channel, array $msg): array
         }
     }
 
-    // Body. Phase 1 records the presence of media (download is Phase 3).
+    // Body is the caption (channel media) or the text. Media is downloaded after the
+    // message row exists, because attachments are keyed to the email row's id.
     $body = trim((string) ($msg['body'] ?? ''));
-    $hasMedia = !empty($msg['media']);
-    if ($hasMedia) {
-        $note = '[' . count($msg['media']) . ' media attachment(s) received — inline media support is coming in a later release]';
-        $body = $body === '' ? $note : ($body . "\n\n" . $note);
-    }
-    if ($body === '') {
+    $mediaItems = is_array($msg['media'] ?? null) ? $msg['media'] : [];
+    $hasMedia = !empty($mediaItems);
+    if ($body === '' && !$hasMedia) {
         $body = '[empty message]';
     }
 
@@ -87,19 +85,57 @@ function ingestInboundMessage(PDO $conn, array $channel, array $msg): array
                 has_attachments, is_read, processed_datetime, ticket_id,
                 is_initial, direction, channel, channel_id
             ) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), ?, 'text', ?, 0, UTC_TIMESTAMP(), ?, ?, 'Inbound', ?, ?)";
-    $conn->prepare($sql)->execute([
+    $stmt = $conn->prepare($sql);
+    $stmt->execute([
         $providerMsgId !== '' ? $providerMsgId : null,
         $subject,
         $from,
         $displayName,
         (string) ($channel['phone_number'] ?? ''),
         $body,
-        $hasMedia ? 1 : 0,
+        0, // has_attachments — set below once media is actually downloaded
         $ticketId,
         $isInitial,
         $channelType,
         (int) $channel['id'],
     ]);
+    $dbEmailId = (int) $conn->lastInsertId();
+
+    // Download any media and attach it (reuses the email-attachment store, so it shows
+    // in the reading pane's attachment bar like any email attachment).
+    if ($hasMedia) {
+        $saved = 0;
+        try {
+            $provider = messagingProvider($channel);
+            foreach ($mediaItems as $mediaItem) {
+                try {
+                    $dl = $provider->downloadMedia($mediaItem);
+                    if (!empty($dl['data'])) {
+                        saveChannelMediaAttachment(
+                            $conn, $dbEmailId,
+                            $dl['filename'] ?? 'media',
+                            $dl['content_type'] ?? 'application/octet-stream',
+                            $dl['data']
+                        );
+                        $saved++;
+                    }
+                } catch (Exception $e) {
+                    error_log('channel media download failed (email ' . $dbEmailId . '): ' . $e->getMessage());
+                }
+            }
+        } catch (Exception $e) {
+            error_log('channel media: provider unavailable: ' . $e->getMessage());
+        }
+
+        if ($saved > 0) {
+            $conn->prepare("UPDATE emails SET has_attachments = 1 WHERE id = ?")->execute([$dbEmailId]);
+        } else {
+            // Couldn't fetch it — leave a marker so the analyst knows media was sent.
+            $note = '[media attachment could not be downloaded]';
+            $newBody = ($body === '' || $body === '[empty message]') ? $note : ($body . "\n\n" . $note);
+            $conn->prepare("UPDATE emails SET body_content = ? WHERE id = ?")->execute([$newBody, $dbEmailId]);
+        }
+    }
 
     // Keep the channel's own last-inbound stamp current (diagnostics / settings).
     try {
@@ -200,4 +236,47 @@ function messagingGenerateTicketNumber(PDO $conn): string
         }
     }
     throw new Exception('Failed to generate unique ticket number');
+}
+
+/**
+ * Save downloaded channel media as a ticket attachment, using the same storage
+ * convention as email attachments (tickets/attachments/{floor(id/1000)}/{emailId}/…),
+ * so get_ticket_attachments.php and the reading-pane attachment bar pick it up.
+ */
+function saveChannelMediaAttachment(PDO $conn, int $emailId, string $filename, string $contentType, string $data): void
+{
+    $attachmentsDir = dirname(dirname(__DIR__)) . '/tickets/attachments';
+    if (!is_dir($attachmentsDir)) {
+        mkdir($attachmentsDir, 0755, true);
+    }
+    $subDir = floor($emailId / 1000);
+    $emailDir = $attachmentsDir . '/' . $subDir . '/' . $emailId;
+    if (!is_dir($emailDir)) {
+        mkdir($emailDir, 0755, true);
+    }
+
+    $safeFilename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
+    if ($safeFilename === '' || $safeFilename[0] === '.') {
+        $safeFilename = 'media' . $safeFilename;
+    }
+    $filePath = $subDir . '/' . $emailId . '/' . $safeFilename;
+    $fullPath = $attachmentsDir . '/' . $filePath;
+
+    // De-dup the filename if it already exists.
+    $counter = 1;
+    $pi = pathinfo($safeFilename);
+    while (file_exists($fullPath)) {
+        $newName = $pi['filename'] . '_' . $counter . (isset($pi['extension']) ? '.' . $pi['extension'] : '');
+        $filePath = $subDir . '/' . $emailId . '/' . $newName;
+        $fullPath = $attachmentsDir . '/' . $filePath;
+        $counter++;
+    }
+
+    if (file_put_contents($fullPath, $data) === false) {
+        throw new Exception('Failed to write media file: ' . $filename);
+    }
+
+    $sql = "INSERT INTO email_attachments (email_id, exchange_attachment_id, filename, content_type, content_id, file_path, file_size, is_inline)
+            VALUES (?, NULL, ?, ?, NULL, ?, ?, 0)";
+    $conn->prepare($sql)->execute([$emailId, $filename, $contentType, $filePath, strlen($data)]);
 }

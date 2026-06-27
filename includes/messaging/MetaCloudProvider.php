@@ -64,20 +64,32 @@ class MetaCloudProvider extends MessagingProvider
                     $names[$contact['wa_id'] ?? ''] = $contact['profile']['name'] ?? '';
                 }
                 foreach (($value['messages'] ?? []) as $msg) {
-                    if (($msg['type'] ?? '') !== 'text') {
-                        // Phase 1 handles text; media/interactive come in Phase 3.
-                        continue;
-                    }
-                    $from = $this->ensurePlus($msg['from'] ?? '');
-                    $out[] = [
-                        'from'            => $from,
+                    $type = $msg['type'] ?? '';
+                    $entry = [
+                        'from'            => $this->ensurePlus($msg['from'] ?? ''),
                         'to'              => $this->ensurePlus($value['metadata']['display_phone_number'] ?? ''),
-                        'body'            => trim($msg['text']['body'] ?? ''),
+                        'body'            => '',
                         'profile_name'    => $names[$msg['from'] ?? ''] ?? '',
                         'provider_msg_id' => $msg['id'] ?? '',
                         'media'           => [],
                         'timestamp'       => isset($msg['timestamp']) ? (int) $msg['timestamp'] : null,
                     ];
+                    if ($type === 'text') {
+                        $entry['body'] = trim($msg['text']['body'] ?? '');
+                    } elseif (in_array($type, ['image', 'document', 'audio', 'video', 'voice', 'sticker'], true)) {
+                        // Media arrives as an id to fetch later (see downloadMedia); caption (if any) is the body.
+                        $m = $msg[$type] ?? [];
+                        $entry['body'] = trim($m['caption'] ?? '');
+                        $entry['media'][] = [
+                            'id'           => $m['id'] ?? '',
+                            'content_type' => $m['mime_type'] ?? 'application/octet-stream',
+                            'filename'     => $m['filename'] ?? '',
+                        ];
+                    } else {
+                        // location / contacts / interactive etc. — not handled yet.
+                        continue;
+                    }
+                    $out[] = $entry;
                 }
             }
         }
@@ -160,6 +172,43 @@ class MetaCloudProvider extends MessagingProvider
             throw new Exception('Meta rejected the template: ' . ($json['error']['message'] ?? ('HTTP ' . $code)));
         }
         return $json['messages'][0]['id'] ?? '';
+    }
+
+    public function downloadMedia(array $item): array
+    {
+        $token = $this->channel['credentials']['access_token'] ?? '';
+        $id    = $item['id'] ?? '';
+        if ($token === '') {
+            throw new Exception('Meta channel is missing its access token.');
+        }
+        if ($id === '') {
+            throw new Exception('Media item has no id.');
+        }
+        $version = $this->channel['credentials']['graph_version'] ?? self::GRAPH_VERSION;
+
+        // Step 1: resolve the media id to a (short-lived, auth-gated) download URL.
+        [$c1, $r1] = $this->httpRequest("https://graph.facebook.com/$version/$id", [
+            'method'  => 'GET',
+            'headers' => ["Authorization: Bearer $token"],
+        ]);
+        $meta = json_decode($r1, true);
+        if ($c1 < 200 || $c1 >= 300 || empty($meta['url'])) {
+            throw new Exception('Meta media lookup failed: ' . ($meta['error']['message'] ?? ('HTTP ' . $c1)));
+        }
+
+        // Step 2: download the bytes (also requires the bearer token).
+        [$c2, $body] = $this->httpRequest($meta['url'], [
+            'method'  => 'GET',
+            'headers' => ["Authorization: Bearer $token"],
+            'follow'  => true,
+        ]);
+        if ($c2 < 200 || $c2 >= 300 || $body === '') {
+            throw new Exception('Meta media download failed (HTTP ' . $c2 . ').');
+        }
+
+        $mime = $item['content_type'] ?: ($meta['mime_type'] ?? 'application/octet-stream');
+        $filename = ($item['filename'] ?? '') !== '' ? $item['filename'] : ('media.' . messagingExtForMime($mime));
+        return ['data' => $body, 'content_type' => $mime, 'filename' => $filename];
     }
 
     public function testConnection(): string
