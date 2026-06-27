@@ -59,6 +59,10 @@ let analysts = [];
 let currentEmail = null;
 let currentRecordings = [];
 let folderCounts = {};
+// Messaging channels (WhatsApp etc.): set when a ticket's thread loads, so the
+// reading pane composes over the channel instead of email. 'email' = normal ticket.
+let currentTicketChannel = 'email';
+let currentChannelWindowOpen = false;
 let currentFilter = { type: 'all' };
 let expandedFolders = {};
 let currentNotes = [];
@@ -1352,6 +1356,11 @@ async function loadCorrespondenceThread(ticketId) {
         const response = await fetch(`${API_BASE}get_ticket_thread.php?ticket_id=${ticketId}`);
         const data = await response.json();
 
+        // Remember the channel so Reply composes over WhatsApp etc. rather than email.
+        currentTicketChannel = data.channel || 'email';
+        currentChannelWindowOpen = !!data.window_open;
+        renderChannelComposer(ticketId);
+
         if (!data.success || !data.emails || data.emails.length === 0) return;
 
         // Reverse so most recent email is at the top
@@ -1371,6 +1380,129 @@ async function loadCorrespondenceThread(ticketId) {
         }).join('');
     } catch (error) {
         console.error('Error loading thread:', error);
+    }
+}
+
+// Render (or remove) the inline channel reply composer for WhatsApp-style tickets.
+// Email tickets use the existing email modal and get no composer here.
+function renderChannelComposer(ticketId) {
+    const existing = document.getElementById('channelComposer');
+    if (currentTicketChannel === 'email') {
+        if (existing) existing.remove();
+        return;
+    }
+
+    const label = currentTicketChannel === 'whatsapp' ? 'WhatsApp' : currentTicketChannel;
+    const windowBanner = currentChannelWindowOpen
+        ? ''
+        : `<div class="channel-window-closed">⏳ The 24-hour reply window has closed. A pre-approved template is needed to reopen the conversation (coming soon).</div>`;
+
+    const html = `
+        <div id="channelComposer" class="channel-composer">
+            <div class="channel-composer-head">
+                <span class="thread-direction-badge outbound">${escapeHtml(label)}</span>
+                <span class="channel-composer-title">Reply to the customer over ${escapeHtml(label)}</span>
+            </div>
+            ${windowBanner}
+            <textarea id="channelComposerText" class="channel-composer-text" rows="3"
+                placeholder="Type your reply…" ${currentChannelWindowOpen ? '' : 'disabled'}></textarea>
+            <div class="channel-composer-actions">
+                <button class="action-btn" onclick="aiSuggestChannelReply(${ticketId})" ${currentChannelWindowOpen ? '' : 'disabled'} title="Draft a reply with AI">
+                    <span class="action-btn-icon">🤖</span><span>Suggest</span>
+                </button>
+                <button class="action-btn" onclick="aiSummariseChannel(${ticketId})" title="Summarise this conversation into the ticket">
+                    <span class="action-btn-icon">📝</span><span>Summarise</span>
+                </button>
+                <button class="action-btn action-btn-primary" id="channelSendBtn" onclick="sendChannelMessage(${ticketId})" ${currentChannelWindowOpen ? '' : 'disabled'}>
+                    <span class="action-btn-icon">📤</span><span>Send</span>
+                </button>
+            </div>
+        </div>`;
+
+    const body = document.querySelector('.email-body');
+    if (!body) return;
+    if (existing) {
+        existing.outerHTML = html;
+    } else {
+        body.insertAdjacentHTML('afterbegin', html);
+    }
+}
+
+// Send the analyst's reply out over the ticket's channel.
+async function sendChannelMessage(ticketId) {
+    const ta = document.getElementById('channelComposerText');
+    const btn = document.getElementById('channelSendBtn');
+    if (!ta) return;
+    const body = ta.value.trim();
+    if (!body) { showToast('Type a message first', 'error'); return; }
+
+    const original = btn ? btn.innerHTML : '';
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span>Sending…</span>'; }
+    try {
+        const res = await fetch(API_BASE.replace('tickets/', 'messaging/') + 'send_message.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ ticket_id: ticketId, body })
+        });
+        const data = await res.json();
+        if (data.success) {
+            ta.value = '';
+            showToast('Message sent', 'success');
+            loadCorrespondenceThread(ticketId);
+        } else {
+            showToast('Could not send: ' + (data.error || 'unknown error'), 'error');
+        }
+    } catch (e) {
+        showToast('Failed to send message', 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.innerHTML = original; }
+    }
+}
+
+// AI: draft a suggested reply into the composer (analyst reviews before sending).
+async function aiSuggestChannelReply(ticketId) {
+    const ta = document.getElementById('channelComposerText');
+    if (!ta || ta.disabled) return;
+    showToast('Drafting a reply…', 'info');
+    try {
+        const res = await fetch(API_BASE.replace('tickets/', 'messaging/') + 'ai_suggest_reply.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ ticket_id: ticketId })
+        });
+        const data = await res.json();
+        if (data.success && data.reply) {
+            ta.value = data.reply;
+            ta.focus();
+        } else {
+            showToast(data.error || 'Could not draft a reply', 'error');
+        }
+    } catch (e) {
+        showToast('Failed to draft a reply', 'error');
+    }
+}
+
+// AI: summarise the conversation and save it as an internal note on the ticket.
+async function aiSummariseChannel(ticketId) {
+    showToast('Summarising…', 'info');
+    try {
+        const res = await fetch(API_BASE.replace('tickets/', 'messaging/') + 'ai_summary.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ ticket_id: ticketId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Summary added to ticket notes', 'success');
+            if (typeof loadNotes === 'function') loadNotes(ticketId);
+        } else {
+            showToast(data.error || 'Could not summarise', 'error');
+        }
+    } catch (e) {
+        showToast('Failed to summarise', 'error');
     }
 }
 
@@ -2257,6 +2389,15 @@ async function saveNote() {
 
 // Open reply modal
 function openReplyModal() {
+    // Channel tickets (WhatsApp etc.) reply via the inline composer, not email.
+    if (currentTicketChannel && currentTicketChannel !== 'email') {
+        const ta = document.getElementById('channelComposerText');
+        if (ta) {
+            ta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (!ta.disabled) ta.focus();
+        }
+        return;
+    }
     composeMode = 'reply';
     document.getElementById('emailTo').value = currentEmail.from_address;
     document.getElementById('emailCc').value = '';

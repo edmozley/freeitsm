@@ -7,6 +7,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/messaging/messaging.php';
 
 header('Content-Type: application/json');
 
@@ -32,7 +33,7 @@ try {
     }
 
     $sql = "SELECT id, from_address, from_name, to_recipients, received_datetime,
-                   body_content, direction
+                   body_content, direction, channel
             FROM emails
             WHERE ticket_id = ?
             ORDER BY received_datetime ASC";
@@ -41,19 +42,42 @@ try {
     $stmt->execute([$ticketId]);
     $emails = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Determine the ticket's channel (any non-email message → a channel ticket like
+    // WhatsApp) so the UI can render/compose appropriately rather than over email.
+    $ticketChannel = 'email';
     foreach ($emails as &$email) {
+        if (($email['channel'] ?? 'email') !== 'email') {
+            $ticketChannel = $email['channel'];
+        }
         if ($email['body_content']) {
             $email['body_content'] = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $email['body_content']);
             $email['body_content'] = str_replace("\xEF\xBF\xBD", '', $email['body_content']);
-            // Strip quoted thread content so each email only shows its own content
-            $email['body_content'] = stripQuotedThread($email['body_content']);
+            // Email threads carry quoted history to strip; channel messages don't.
+            if (($email['channel'] ?? 'email') === 'email') {
+                $email['body_content'] = stripQuotedThread($email['body_content']);
+            }
         }
         if ($email['received_datetime']) {
             $email['received_datetime'] = date('Y-m-d\TH:i:s', strtotime($email['received_datetime']));
         }
     }
+    unset($email);
 
-    echo json_encode(['success' => true, 'emails' => $emails]);
+    // For channel tickets, expose whether the provider's 24h service window is
+    // still open (outside it, only template replies are allowed — Phase 3).
+    $windowOpen = false;
+    if ($ticketChannel !== 'email') {
+        $ts = $conn->prepare("SELECT last_inbound_at FROM tickets WHERE id = ?");
+        $ts->execute([$ticketId]);
+        $windowOpen = channelWindowOpen($ts->fetchColumn() ?: null);
+    }
+
+    echo json_encode([
+        'success'      => true,
+        'emails'       => $emails,
+        'channel'      => $ticketChannel,
+        'window_open'  => $windowOpen,
+    ]);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

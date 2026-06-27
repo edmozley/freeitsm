@@ -404,6 +404,9 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     `work_start_datetime`   DATETIME NULL,
     `deleted_datetime`      DATETIME NULL,
     `deleted_by`            INT NULL,
+    -- Messaging channels (WhatsApp etc.): when the customer last messaged in. Drives
+    -- the provider 24h service window — outside it, only template replies are allowed.
+    `last_inbound_at`       DATETIME NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_tickets_number` (`ticket_number`),
     KEY `ix_tickets_status_id` (`status_id`),
@@ -617,6 +620,13 @@ CREATE TABLE IF NOT EXISTS `emails` (
     `is_initial`            TINYINT(1) NULL DEFAULT 0,
     `direction`             VARCHAR(20) NULL DEFAULT 'Inbound',
     `mailbox_id`            INT NULL,
+    -- Which channel this message arrived/left on. 'email' (default) keeps every
+    -- existing row and the email pipeline unchanged; 'whatsapp' reuses this same
+    -- table so the reading-pane thread, threading and attachments work for free.
+    `channel`               VARCHAR(20) NOT NULL DEFAULT 'email',
+    -- For channel messages: the messaging_channels row it belongs to (so an
+    -- outbound reply knows which provider/number to send from). NULL for email.
+    `channel_id`            INT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_emails_analysts` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`),
     CONSTRAINT `fk_emails_departments` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`),
@@ -637,6 +647,49 @@ CREATE TABLE IF NOT EXISTS `email_attachments` (
     `created_datetime`          DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_email_attachments_email` FOREIGN KEY (`email_id`) REFERENCES `emails` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
+-- Messaging channels (WhatsApp etc.)
+-- ----------------------------------------------------------
+
+-- A messaging "inbox" — the channel equivalent of a target_mailbox. Each row is one
+-- WhatsApp number wired to a provider (Twilio or Meta Cloud). Like a mailbox it is
+-- either pinned to a company (tenant_id set → that company owns every conversation,
+-- sender ignored) or a shared intake (tenant_id NULL → routed by sender phone number,
+-- else triage). `credentials` holds an encrypted JSON blob whose shape is per-provider
+-- (Twilio: account_sid/auth_token; Meta: phone_number_id/access_token/app_secret).
+CREATE TABLE IF NOT EXISTS `messaging_channels` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `name`                  VARCHAR(100) NOT NULL,
+    `channel_type`          VARCHAR(20) NOT NULL DEFAULT 'whatsapp',
+    `provider`              VARCHAR(20) NOT NULL DEFAULT 'twilio',
+    `phone_number`          VARCHAR(40) NULL,
+    `credentials`           LONGTEXT NULL,
+    `verify_token`          VARCHAR(255) NULL,
+    `ingress_mode`          VARCHAR(10) NOT NULL DEFAULT 'direct',
+    `relay_secret`          VARCHAR(255) NULL,
+    `tenant_id`             INT NULL,
+    `is_active`             TINYINT(1) NOT NULL DEFAULT 1,
+    `created_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `last_inbound_datetime` DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `ix_messaging_channels_tenant_id` (`tenant_id`),
+    CONSTRAINT `fk_messaging_channels_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Specific sender phone numbers mapped to a company (shared-intake channel routing).
+-- The channel twin of tenant_sender_addresses: phone numbers have no domain, so for
+-- shared channels an exact-number map is the only routing key (else triage). Stored
+-- normalised (digits + leading +). UNIQUE so one number routes exactly one way.
+CREATE TABLE IF NOT EXISTS `tenant_channel_senders` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`         INT NOT NULL,
+    `identifier`        VARCHAR(64) NOT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_tenant_channel_sender_identifier` (`identifier`),
+    CONSTRAINT `fk_tenant_channel_sender_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `ticket_recordings` (

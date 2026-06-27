@@ -236,6 +236,7 @@ $translationNamespaces = ['common', 'tickets'];
             <button class="tab" data-tab="sla" onclick="switchTab('sla')"><?php echo htmlspecialchars(t('tickets.settings.tabs.sla')); ?></button>
             <button class="tab" data-tab="rota-locations" onclick="switchTab('rota-locations')"><?php echo htmlspecialchars(t('tickets.settings.tabs.rota_locations')); ?></button>
             <button class="tab" data-tab="mailboxes" onclick="switchTab('mailboxes')"><?php echo htmlspecialchars(t('tickets.settings.tabs.mailboxes')); ?></button>
+            <button class="tab" data-tab="messaging" onclick="switchTab('messaging')">Messaging</button>
             <button class="tab" data-tab="email-templates" onclick="switchTab('email-templates')"><?php echo htmlspecialchars(t('tickets.settings.tabs.email_templates')); ?></button>
             <button class="tab" data-tab="rota" onclick="switchTab('rota')"><?php echo htmlspecialchars(t('tickets.settings.tabs.rota')); ?></button>
             <button class="tab" data-tab="analysts" onclick="switchTab('analysts')"><?php echo htmlspecialchars(t('tickets.settings.tabs.analysts')); ?></button>
@@ -730,6 +731,36 @@ $translationNamespaces = ['common', 'tickets'];
             </table>
         </div>
 
+        <!-- Messaging Tab (WhatsApp etc.) -->
+        <div class="tab-content" id="messaging-tab">
+            <div class="section-header">
+                <h2>Messaging channels</h2>
+                <button class="add-btn" onclick="openChannelModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
+            </div>
+            <p>
+                Let customers chat with an analyst over WhatsApp — each message becomes a ticket,
+                just like email. Add a channel below, then paste its <strong>webhook URL</strong> into
+                your provider (Twilio or Meta) so inbound messages reach this install.
+                Testing locally? Run a tunnel (e.g. <code>ngrok http 80</code>) and use the HTTPS URL it
+                gives you, since providers can only reach a public address.
+            </p>
+            <div id="channelsResult" class="exchange-result"></div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Number</th>
+                        <th>Webhook URL</th>
+                        <th>Status</th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.actions')); ?></th>
+                    </tr>
+                </thead>
+                <tbody id="channels-list">
+                    <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
         <!-- Email Templates Tab -->
         <div class="tab-content" id="email-templates-tab">
             <div class="section-header">
@@ -1188,6 +1219,101 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
+    <!-- Messaging Channel Modal (WhatsApp etc.) -->
+    <div class="modal" id="channelModal">
+        <div class="modal-content" style="max-width: 640px;">
+            <div class="modal-header" id="channelModalTitle">Add channel</div>
+            <div class="modal-body">
+            <form id="channelForm" autocomplete="off">
+                <input type="hidden" id="channelId">
+                <input type="hidden" id="channelType" value="whatsapp">
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="channelName">Name *</label>
+                        <input type="text" id="channelName" required placeholder="e.g. Support WhatsApp">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="channelProvider">Provider *</label>
+                        <select id="channelProvider" onchange="toggleChannelProviderFields()">
+                            <option value="twilio">Twilio</option>
+                            <option value="meta">Meta (WhatsApp Cloud)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="channelPhone">WhatsApp number</label>
+                        <input type="text" id="channelPhone" placeholder="+14155238886">
+                        <small style="color:#666;">The business number messages are sent from (include the country code).</small>
+                    </div>
+
+                    <!-- Multi-tenancy: only shown when more than one company exists (populated by JS). -->
+                    <div class="form-group" id="channelCompanyGroup" style="display:none; grid-column: span 2;">
+                        <label for="channelCompany">Company</label>
+                        <select id="channelCompany"></select>
+                        <small style="color:#666; display:block; margin-top:4px;">Pin this channel to one company, or leave as shared intake (routed by sender number).</small>
+                    </div>
+
+                    <!-- Twilio credentials -->
+                    <div class="form-group provider-twilio">
+                        <label for="channelAccountSid">Account SID *</label>
+                        <input type="text" id="channelAccountSid" placeholder="ACxxxxxxxx">
+                    </div>
+                    <div class="form-group provider-twilio">
+                        <label for="channelAuthToken">Auth token *</label>
+                        <input type="password" id="channelAuthToken" placeholder="••••••••">
+                    </div>
+
+                    <!-- Meta credentials -->
+                    <div class="form-group provider-meta">
+                        <label for="channelPhoneNumberId">Phone number ID *</label>
+                        <input type="text" id="channelPhoneNumberId" placeholder="1234567890">
+                    </div>
+                    <div class="form-group provider-meta">
+                        <label for="channelAccessToken">Access token *</label>
+                        <input type="password" id="channelAccessToken" placeholder="••••••••">
+                    </div>
+                    <div class="form-group provider-meta">
+                        <label for="channelAppSecret">App secret *</label>
+                        <input type="password" id="channelAppSecret" placeholder="••••••••">
+                    </div>
+                    <div class="form-group provider-meta">
+                        <label for="channelVerifyToken">Verify token</label>
+                        <input type="text" id="channelVerifyToken" placeholder="any string you choose">
+                        <small style="color:#666;">Used for Meta's webhook subscription handshake.</small>
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="channelIngress">Inbound delivery</label>
+                        <select id="channelIngress" onchange="toggleChannelIngressFields()">
+                            <option value="direct">Direct — the provider hits this install's webhook URL</option>
+                            <option value="relay">Relay — a hosted relay forwards messages here</option>
+                        </select>
+                    </div>
+                    <div class="form-group provider-relay" style="grid-column: span 2; display:none;">
+                        <label for="channelRelaySecret">Relay shared secret</label>
+                        <input type="text" id="channelRelaySecret" placeholder="shared secret between the relay and this install">
+                    </div>
+
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label><input type="checkbox" id="channelActive" checked> Active</label>
+                    </div>
+
+                    <div class="form-group" id="channelWebhookHintGroup" style="grid-column: span 2; display:none;">
+                        <label>Webhook URL (paste into your provider)</label>
+                        <input type="text" id="channelWebhookHint" readonly onclick="this.select()">
+                    </div>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeChannelModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="submit" form="channelForm" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Activity Log Modal -->
     <div class="modal" id="activityModal">
         <div class="modal-content" style="max-width: 850px;">
@@ -1548,6 +1674,7 @@ $translationNamespaces = ['common', 'tickets'];
             loadTicketPriorities();
             loadRotaLocations();
             loadMailboxes();
+            loadChannels();
             loadEmailTemplates();
             loadRotaShifts();
             loadRotaWeekendSetting();
@@ -2461,6 +2588,176 @@ $translationNamespaces = ['common', 'tickets'];
                 mailboxMultiCompany = companies.length > 1;
             } catch (e) { mailboxCompaniesById = {}; mailboxMultiCompany = false; }
         }
+
+        // ===== Messaging channels (WhatsApp etc.) =====
+        const MSG_API = '../../api/messaging/';
+        let channels = [];
+
+        async function loadChannels() {
+            try {
+                await loadMailboxCompanies(); // reuse the company lookup
+                const res = await fetch(MSG_API + 'get_channels.php');
+                const data = await res.json();
+                if (data.success) {
+                    channels = data.channels;
+                    renderChannels(channels);
+                } else {
+                    document.getElementById('channels-list').innerHTML =
+                        `<tr><td colspan="5" style="text-align:center;color:red;">Error: ${escapeHtml(data.error || '')}</td></tr>`;
+                }
+            } catch (e) {
+                document.getElementById('channels-list').innerHTML =
+                    '<tr><td colspan="5" style="text-align:center;color:red;">Failed to load channels.</td></tr>';
+            }
+        }
+
+        function renderChannels(list) {
+            const tbody = document.getElementById('channels-list');
+            if (!list.length) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No channels yet. Click Add to connect WhatsApp.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = list.map(c => {
+                const providerBadge = c.provider === 'meta'
+                    ? ' <span class="status-badge" style="background:#e3f2fd;color:#1565c0;">Meta</span>'
+                    : ' <span class="status-badge" style="background:#e8f5e9;color:#2e7d32;">Twilio</span>';
+                const activeBadge = c.is_active ? '' : ' <span class="status-badge status-inactive">Inactive</span>';
+                const credBadge = c.has_credentials
+                    ? '<span class="status-badge status-active">Configured</span>'
+                    : '<span class="status-badge status-inactive">No credentials</span>';
+                let companyBadge = '';
+                if (mailboxMultiCompany) {
+                    companyBadge = (c.tenant_id && mailboxCompaniesById[c.tenant_id])
+                        ? ` <span class="status-badge" style="background:#ede7f6;color:#5e35b1;">${escapeHtml(mailboxCompaniesById[c.tenant_id])}</span>`
+                        : ` <span class="status-badge" style="background:#fff3e0;color:#ef6c00;">Shared</span>`;
+                }
+                const safeName = escapeHtml(c.name).replace(/'/g, "\\'");
+                const actions = `
+                    <button class="action-btn" onclick="editChannel(${c.id})" title="${t('common.edit')}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                    </button>
+                    <button class="action-btn delete" onclick="deleteChannel(${c.id}, '${safeName}')" title="${t('common.delete')}">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>`;
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(c.name)}</strong>${providerBadge}${activeBadge}${companyBadge}</td>
+                        <td>${escapeHtml(c.phone_number || '')}</td>
+                        <td><code style="font-size:11px;cursor:pointer;" title="Click to select" onclick="const r=document.createRange();r.selectNodeContents(this);const s=getSelection();s.removeAllRanges();s.addRange(r);">${escapeHtml(c.webhook_url)}</code></td>
+                        <td>${credBadge}</td>
+                        <td>${actions}</td>
+                    </tr>`;
+            }).join('');
+        }
+
+        function populateChannelCompanies(selectedTenantId) {
+            const group = document.getElementById('channelCompanyGroup');
+            const sel = document.getElementById('channelCompany');
+            if (!mailboxMultiCompany) { group.style.display = 'none'; return; }
+            group.style.display = '';
+            let opts = '<option value="">Shared intake (route by sender number)</option>';
+            Object.keys(mailboxCompaniesById).forEach(id => {
+                opts += `<option value="${id}" ${String(selectedTenantId) === String(id) ? 'selected' : ''}>${escapeHtml(mailboxCompaniesById[id])}</option>`;
+            });
+            sel.innerHTML = opts;
+        }
+
+        function toggleChannelProviderFields() {
+            const p = document.getElementById('channelProvider').value;
+            document.querySelectorAll('.provider-twilio').forEach(el => el.style.display = (p === 'twilio') ? '' : 'none');
+            document.querySelectorAll('.provider-meta').forEach(el => el.style.display = (p === 'meta') ? '' : 'none');
+        }
+
+        function toggleChannelIngressFields() {
+            const relay = document.getElementById('channelIngress').value === 'relay';
+            document.querySelectorAll('.provider-relay').forEach(el => el.style.display = relay ? '' : 'none');
+        }
+
+        function openChannelModal(channel = null) {
+            document.getElementById('channelForm').reset();
+            document.getElementById('channelId').value = channel ? channel.id : '';
+            document.getElementById('channelModalTitle').textContent = channel ? 'Edit channel' : 'Add channel';
+            document.getElementById('channelName').value = channel ? channel.name : '';
+            document.getElementById('channelProvider').value = channel ? channel.provider : 'twilio';
+            document.getElementById('channelPhone').value = channel ? (channel.phone_number || '') : '';
+            document.getElementById('channelIngress').value = channel ? (channel.ingress_mode || 'direct') : 'direct';
+            document.getElementById('channelActive').checked = channel ? !!channel.is_active : true;
+            // Secrets are write-only; show a masked placeholder on edit if configured.
+            const mask = (channel && channel.has_credentials) ? '********' : '';
+            ['channelAuthToken','channelAccessToken','channelAppSecret'].forEach(idv => document.getElementById(idv).value = mask);
+            ['channelAccountSid','channelPhoneNumberId','channelVerifyToken','channelRelaySecret'].forEach(idv => document.getElementById(idv).value = '');
+
+            const hintGroup = document.getElementById('channelWebhookHintGroup');
+            if (channel && channel.webhook_url) {
+                hintGroup.style.display = '';
+                document.getElementById('channelWebhookHint').value = channel.webhook_url;
+            } else {
+                hintGroup.style.display = 'none';
+            }
+
+            populateChannelCompanies(channel ? channel.tenant_id : null);
+            toggleChannelProviderFields();
+            toggleChannelIngressFields();
+            document.getElementById('channelModal').classList.add('active');
+        }
+
+        function editChannel(id) {
+            const c = channels.find(x => x.id === id);
+            if (c) openChannelModal(c);
+        }
+
+        function closeChannelModal() {
+            document.getElementById('channelModal').classList.remove('active');
+        }
+
+        async function deleteChannel(id, name) {
+            if (!confirm(`Delete channel "${name}"? Past tickets are kept; only new messages on this channel stop.`)) return;
+            try {
+                const res = await fetch(MSG_API + 'delete_channel.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id })
+                });
+                const data = await res.json();
+                if (data.success) { showToast('Channel deleted', 'success'); loadChannels(); }
+                else showToast('Error: ' + (data.error || ''), 'error');
+            } catch (e) { showToast('Failed to delete channel', 'error'); }
+        }
+
+        document.getElementById('channelForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const payload = {
+                id: document.getElementById('channelId').value || null,
+                name: document.getElementById('channelName').value.trim(),
+                channel_type: document.getElementById('channelType').value,
+                provider: document.getElementById('channelProvider').value,
+                phone_number: document.getElementById('channelPhone').value.trim(),
+                ingress_mode: document.getElementById('channelIngress').value,
+                relay_secret: document.getElementById('channelRelaySecret').value.trim(),
+                verify_token: document.getElementById('channelVerifyToken').value.trim(),
+                tenant_id: document.getElementById('channelCompany').value || null,
+                is_active: document.getElementById('channelActive').checked,
+                account_sid: document.getElementById('channelAccountSid').value.trim(),
+                auth_token: document.getElementById('channelAuthToken').value,
+                phone_number_id: document.getElementById('channelPhoneNumberId').value.trim(),
+                access_token: document.getElementById('channelAccessToken').value,
+                app_secret: document.getElementById('channelAppSecret').value
+            };
+            if (!payload.name) { showToast('Name is required', 'error'); return; }
+            try {
+                const res = await fetch(MSG_API + 'save_channel.php', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message || 'Saved', 'success');
+                    closeChannelModal();
+                    loadChannels();
+                } else {
+                    showToast('Error: ' + (data.error || ''), 'error');
+                }
+            } catch (err) { showToast('Failed to save channel', 'error'); }
+        });
 
         async function loadMailboxes() {
             try {

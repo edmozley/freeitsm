@@ -297,6 +297,9 @@ $schema = [
         'work_start_datetime'   => 'DATETIME NULL',
         'deleted_datetime'      => 'DATETIME NULL',
         'deleted_by'            => 'INT NULL',
+        // Messaging channels: when the customer last messaged in (drives the 24h
+        // provider service window on the reply box). NULL for non-channel tickets.
+        'last_inbound_at'       => 'DATETIME NULL',
     ],
 
     'ticket_audit' => [
@@ -369,6 +372,36 @@ $schema = [
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // Messaging channel "inbox" — the channel twin of target_mailboxes. One row per
+    // WhatsApp number wired to a provider (Twilio / Meta Cloud). Pinned (tenant_id set)
+    // or shared intake (NULL, routed by sender phone). `credentials` = encrypted JSON
+    // (per-provider shape). See includes/messaging/.
+    'messaging_channels' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'name'                  => 'VARCHAR(100) NOT NULL',
+        'channel_type'          => "VARCHAR(20) NOT NULL DEFAULT 'whatsapp'",
+        'provider'              => "VARCHAR(20) NOT NULL DEFAULT 'twilio'",
+        'phone_number'          => 'VARCHAR(40) NULL',
+        'credentials'           => 'LONGTEXT NULL',
+        'verify_token'          => 'VARCHAR(255) NULL',
+        'ingress_mode'          => "VARCHAR(10) NOT NULL DEFAULT 'direct'",
+        'relay_secret'          => 'VARCHAR(255) NULL',
+        'tenant_id'             => 'INT NULL',
+        'is_active'             => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        'last_inbound_datetime' => 'DATETIME NULL',
+    ],
+
+    // Specific sender phone numbers mapped to a company (shared-intake channel
+    // routing). Phone numbers have no domain, so for a shared channel an exact-number
+    // map is the only routing key (else triage). UNIQUE so one number routes one way.
+    'tenant_channel_senders' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'        => 'INT NOT NULL',
+        'identifier'       => 'VARCHAR(64) NOT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     // Which analysts may access which tenants (only consulted when an analyst
     // is NOT flagged can_access_all_tenants).
     'analyst_tenant_access' => [
@@ -430,6 +463,12 @@ $schema = [
         'is_initial'              => 'TINYINT(1) NULL DEFAULT 0',
         'direction'               => 'VARCHAR(20) NULL DEFAULT \'Inbound\'',
         'mailbox_id'              => 'INT NULL',
+        // Which channel this message arrived/left on. 'email' (default) leaves every
+        // existing row and the email pipeline untouched; 'whatsapp' reuses this table.
+        'channel'                 => 'VARCHAR(20) NOT NULL DEFAULT \'email\'',
+        // For channel messages: the messaging_channels row (which provider/number to
+        // reply from). NULL for email.
+        'channel_id'              => 'INT NULL',
     ],
 
     'email_attachments' => [
@@ -2395,6 +2434,37 @@ try {
             try { $conn->exec("ALTER TABLE tenant_sender_addresses ADD CONSTRAINT fk_tenant_sender_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
+    // Messaging channels (WhatsApp etc.): tenant index + FK (pinned company), and the
+    // sender-phone → company map FK. Mirrors target_mailboxes / tenant_sender_addresses.
+    if ($tableExists('messaging_channels') && $tableExists('tenants') && $colExists('messaging_channels', 'tenant_id')) {
+        if (!$idxExists('messaging_channels', 'ix_messaging_channels_tenant_id')) {
+            try { $conn->exec("ALTER TABLE messaging_channels ADD KEY ix_messaging_channels_tenant_id (tenant_id)"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('messaging_channels', 'fk_messaging_channels_tenant')) {
+            try { $conn->exec("ALTER TABLE messaging_channels ADD CONSTRAINT fk_messaging_channels_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+    }
+    if ($tableExists('tenant_channel_senders') && $tableExists('tenants')) {
+        if (!$idxExists('tenant_channel_senders', 'uq_tenant_channel_sender_identifier')) {
+            try { $conn->exec("ALTER TABLE tenant_channel_senders ADD UNIQUE KEY uq_tenant_channel_sender_identifier (identifier)"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('tenant_channel_senders', 'fk_tenant_channel_sender_tenant')) {
+            try { $conn->exec("ALTER TABLE tenant_channel_senders ADD CONSTRAINT fk_tenant_channel_sender_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+    // Seed the WhatsApp ticket origin (global default) if absent, so channel tickets
+    // can be tagged by origin out of the box. Single-company installs see it like any
+    // other origin; it can be hidden per-company via the add+hide model.
+    if ($tableExists('ticket_origins')) {
+        try {
+            $chk = $conn->prepare("SELECT COUNT(*) FROM ticket_origins WHERE name = 'WhatsApp' AND tenant_id IS NULL");
+            $chk->execute();
+            if ((int) $chk->fetchColumn() === 0) {
+                $conn->exec("INSERT INTO ticket_origins (name, description, display_order, is_active, tenant_id) VALUES ('WhatsApp', 'Messages received via WhatsApp', 50, 1, NULL)");
+                $results[] = ['table' => 'ticket_origins', 'status' => 'updated', 'details' => ['Seeded the WhatsApp ticket origin']];
+            }
+        } catch (Exception $e) {}
+    }
     // Per-company config: the generic "hide" layer + per-entity tenant_id columns.
     if ($tableExists('tenant_config_hidden') && $tableExists('tenants')) {
         if (!$idxExists('tenant_config_hidden', 'uq_tenant_config_hidden')) {
@@ -3563,6 +3633,7 @@ try {
         ['user_sso_identities', 'uq_user_sso_provider_subject', '(`provider_id`, `subject`)'],
         ['user_sso_identities', 'uq_user_sso_provider_user', '(`provider_id`, `user_id`)'],
         ['freemail_domains', 'uq_freemail_domains_domain', '(`domain`)'],
+        ['tenant_channel_senders', 'uq_tenant_channel_sender_identifier', '(`identifier`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {

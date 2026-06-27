@@ -345,6 +345,62 @@ function resolveTicketTenantForEmail(PDO $conn, $mailboxId, string $fromAddress)
 }
 
 /**
+ * Decide which company a NEW inbound messaging-channel ticket (WhatsApp etc.)
+ * belongs to. The channel twin of resolveTicketTenantForEmail():
+ *
+ *   1. Single-company install → the Default company.
+ *   2. Pinned channel (messaging_channels.tenant_id set) → that company; the
+ *      sender phone is ignored. (A pinned channel is also the reply identity.)
+ *   3. Shared channel (tenant_id NULL) → the exact sender phone is mapped to a
+ *      company (tenant_channel_senders) → that company. Phone numbers have no
+ *      domain, so there is no domain-match step — an unmapped sender goes to
+ *      triage (NULL), exactly like an unmatched email, and surfaces under Default.
+ *
+ * Defensive (try/catch) so it is safe on a part-migrated install.
+ *
+ * @param int|string|null $channelId    the receiving channel's id
+ * @param string          $fromIdentifier the sender's phone, normalised ('+digits')
+ * @return int|null a tenant id, or NULL meaning "triage".
+ */
+function resolveTicketTenantForChannel(PDO $conn, $channelId, string $fromIdentifier): ?int {
+    if (!isMultiTenant($conn)) {
+        return getDefaultTenantId($conn);
+    }
+
+    // (2) Pinned channel decides the company outright — sender ignored.
+    if ($channelId !== null && $channelId !== '') {
+        try {
+            $stmt = $conn->prepare("SELECT tenant_id FROM messaging_channels WHERE id = ?");
+            $stmt->execute([(int) $channelId]);
+            $val = $stmt->fetchColumn();
+            if ($val !== false && $val !== null) {
+                return (int) $val;
+            }
+        } catch (Exception $e) {
+            // tenant_id column missing on a part-migrated install → treat as shared.
+        }
+    }
+
+    // (3) Shared channel → exact sender-phone match, else triage.
+    $id = trim($fromIdentifier);
+    if ($id !== '') {
+        try {
+            $stmt = $conn->prepare("SELECT tenant_id FROM tenant_channel_senders WHERE identifier = ? LIMIT 1");
+            $stmt->execute([$id]);
+            $val = $stmt->fetchColumn();
+            if ($val !== false && $val !== null) {
+                return (int) $val;
+            }
+        } catch (Exception $e) {
+            // table missing → fall through to triage.
+        }
+    }
+
+    // No match → triage (NULL).
+    return null;
+}
+
+/**
  * Resolve an email address to the tenant that owns it, for LOGIN routing
  * (which IdP should this person be sent to). Mirrors the email-routing rule
  * (exact sender address → registered domain), but without the mailbox step.

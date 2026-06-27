@@ -484,6 +484,10 @@ try {
                 <?php echo t('tickets.help.nav.companies'); ?>
             </a>
             <?php endif; ?>
+            <a href="#whatsapp" class="tk-help-nav-link" data-section="whatsapp">
+                <span class="tk-help-nav-num"><?php echo $showTenancyHelp ? 13 : 12; ?></span>
+                WhatsApp channel
+            </a>
         </div>
 
         <!-- Main content area -->
@@ -1189,6 +1193,34 @@ try {
                     <p class="tk-help-tip"><?php echo t('tickets.help.companies.tip'); ?></p>
                 </div>
                 <?php endif; ?>
+
+                <!-- WhatsApp channel -->
+                <div class="tk-help-section" id="whatsapp">
+                    <div class="tk-help-section-header">
+                        <span class="tk-help-section-num"><?php echo $showTenancyHelp ? 13 : 12; ?></span>
+                        <div>
+                            <h3>WhatsApp channel</h3>
+                            <p>Let customers chat with an analyst over WhatsApp — each message becomes a ticket, just like email.</p>
+                        </div>
+                    </div>
+                    <p>
+                        Add a channel under <strong>Settings &rarr; Messaging</strong> (provider = Twilio or Meta, plus the
+                        WhatsApp number and credentials). Each channel shows a <strong>webhook URL</strong> — paste it into your
+                        provider so inbound messages reach this install.
+                    </p>
+                    <p>
+                        An inbound message opens a new ticket (tagged with the <strong>WhatsApp</strong> origin) or threads into
+                        the customer's open one. Reply from the <strong>inline composer</strong> in the reading pane — the
+                        <strong>Suggest</strong> button drafts a reply with AI and <strong>Summarise</strong> writes a summary
+                        into the ticket notes. WhatsApp only allows free-text replies within <strong>24 hours</strong> of the
+                        customer's last message; after that the composer is disabled until templates (a later release).
+                    </p>
+                    <p class="tk-help-tip">
+                        Testing on a laptop? Providers can only reach a public address, so run a tunnel
+                        (e.g. <code>ngrok http 80</code>) and use the HTTPS URL it gives you as the webhook host. See the
+                        <a href="https://github.com/edmozley/freeitsm/wiki/WhatsApp" target="_blank" rel="noopener">WhatsApp wiki page</a> for a full walkthrough.
+                    </p>
+                </div>
             </div>
         </div>
     </div>
