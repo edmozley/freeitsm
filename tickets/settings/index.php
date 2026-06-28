@@ -426,7 +426,9 @@ $translationNamespaces = ['common', 'tickets'];
 
         <!-- SLA Tab — see docs/sla.md -->
         <div class="tab-content" id="sla-tab">
-            <h2><?php echo htmlspecialchars(t('tickets.settings.sla.heading')); ?></h2>
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('tickets.settings.sla.heading')); ?></h2>
+            </div>
             <p style="margin-bottom: 20px; color: var(--text-muted, #666);">
                 <?php echo t('tickets.settings.sla.intro'); ?>
             </p>
@@ -552,7 +554,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <button class="add-btn" onclick="openSlaNotifModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
                 </div>
 
-                <div style="background:#eff6ff;border-left:4px solid #2563eb;padding:14px 16px;border-radius:4px;margin-bottom:18px;font-size:13px;line-height:1.6;color:#1e3a8a;">
+                <div style="background:var(--accent-soft, #eff6ff);border-left:4px solid var(--accent, #2563eb);padding:14px 16px;border-radius:4px;margin-bottom:18px;font-size:13px;line-height:1.6;color:var(--accent-hover, #1e3a8a);">
                     <?php echo t('tickets.settings.sla.notifs_info'); ?>
                 </div>
 

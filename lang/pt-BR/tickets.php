@@ -664,7 +664,7 @@ Obrigado por entrar em contato conosco…',
                 . 'O <strong>disparador</strong> é <em>Aviso</em> (o ticket cruzou o limite de aviso &mdash; possível violação se aproximando) ou <em>Violação</em> (o ticket agora excedeu sua meta de SLA &mdash; violação real). Cada um é sua própria regra, então você pode notificar pessoas diferentes para avisos vs. violações.<br><br>'
                 . 'O <strong>alvo</strong> é qual relógio de SLA observar &mdash; <em>Resposta</em>, <em>Resolução</em> ou <em>Ambos</em>.<br><br>'
                 . 'Os <strong>destinatários</strong> podem ser qualquer combinação de: o responsável atual do ticket, todos os analistas das equipes do departamento do ticket, um analista nomeado e/ou uma lista de endereços de e-mail livres (útil para caixas de entrada compartilhadas ou pontes de e-mail do Slack/Teams).<br><br>'
-                . '<strong style="color:#92400e;">Sem regras = sem e-mails.</strong> Mesmo que um ticket viole, nada é disparado até você adicionar pelo menos uma regra (comece com um par Aviso + Violação de escopo Padrão para obter cobertura para tudo).',
+                . '<strong style="color:var(--warning-text, #92400e);">Sem regras = sem e-mails.</strong> Mesmo que um ticket viole, nada é disparado até você adicionar pelo menos uma regra (comece com um par Aviso + Violação de escopo Padrão para obter cobertura para tudo).',
             'notifs_dedup' => 'Cada ticket dispara no máximo um e-mail por alvo por disparador &mdash; o worker cron rastreia o que já foi enviado para que você não receba duplicatas.',
             'col_scope' => 'Escopo',
             'col_trigger' => 'Disparador',

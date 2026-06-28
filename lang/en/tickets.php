@@ -741,7 +741,7 @@ return [
                 . '<strong>Trigger</strong> is either <em>Warning</em> (the ticket has crossed the warning threshold &mdash; potential breach approaching) or <em>Breach</em> (the ticket has now exceeded its SLA target &mdash; actual breach). Each is its own rule, so you can notify different people for warnings vs. breaches.<br><br>'
                 . '<strong>Target</strong> is which SLA clock to watch &mdash; <em>Response</em>, <em>Resolution</em>, or <em>Both</em>.<br><br>'
                 . '<strong>Recipients</strong> can be any combination of: the ticket\'s current assignee, every analyst in the ticket\'s department teams, one named analyst, and/or a list of free-form email addresses (useful for shared inboxes or Slack/Teams email bridges).<br><br>'
-                . '<strong style="color:#92400e;">No rules = no emails.</strong> Even if a ticket breaches, nothing fires until you add at least one rule (start with a Default-scope Warning + Breach pair to get coverage for everything).',
+                . '<strong style="color:var(--warning-text, #92400e);">No rules = no emails.</strong> Even if a ticket breaches, nothing fires until you add at least one rule (start with a Default-scope Warning + Breach pair to get coverage for everything).',
             'notifs_dedup'           => 'Each ticket fires at most one email per target per trigger &mdash; the cron worker tracks what\'s already been sent so you don\'t get duplicates.',
             'col_scope'              => 'Scope',
             'col_trigger'            => 'Trigger',
