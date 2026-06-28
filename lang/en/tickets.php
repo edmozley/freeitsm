@@ -532,6 +532,271 @@ return [
                 'display_order'    => 'Display order',
                 'active'           => 'Active',
             ],
+
+            // Messaging channel modal (WhatsApp etc.)
+            'channel' => [
+                'add_title'                => 'Add channel',
+                'name'                     => 'Name',
+                'name_placeholder'         => 'e.g. Support WhatsApp',
+                'provider'                 => 'Provider',
+                'provider_meta'            => 'Meta (WhatsApp Cloud)',
+                'phone'                    => 'WhatsApp number',
+                'phone_placeholder'        => '+14155238886',
+                'phone_help'               => 'The business number messages are sent from (include the country code).',
+                'company'                  => 'Company',
+                'company_help'             => 'Pin this channel to one company, or leave as shared intake (routed by sender number).',
+                'account_sid'              => 'Account SID',
+                'auth_token'               => 'Auth token',
+                'phone_number_id'          => 'Phone number ID',
+                'access_token'             => 'Access token',
+                'app_secret'               => 'App secret',
+                'verify_token'             => 'Verify token',
+                'verify_token_placeholder' => 'any string you choose',
+                'verify_token_help'        => 'Used for Meta\'s webhook subscription handshake.',
+                'graph_version'            => 'Graph API version <span style="color:#888; font-weight:normal;">(advanced, optional)</span>',
+                'graph_version_placeholder'=> 'v21.0 (default)',
+                'graph_version_help'       => 'Only change if Meta retires the default version. Leave blank to use the built-in default.',
+                'ingress'                  => 'Inbound delivery',
+                'ingress_direct'           => 'Direct — the provider hits this install\'s webhook URL',
+                'ingress_relay'            => 'Relay — a hosted relay forwards messages here',
+                'relay_secret'             => 'Relay shared secret',
+                'relay_secret_placeholder' => 'shared secret between the relay and this install',
+                'active'                   => 'Active',
+                'webhook_hint_label'       => 'Webhook URL (paste into your provider)',
+            ],
+
+            // Messaging template modal
+            'msg_template' => [
+                'add_title'         => 'Add template',
+                'name'              => 'Name',
+                'name_placeholder'  => 'e.g. Ticket update nudge',
+                'provider'          => 'Provider',
+                'provider_meta'     => 'Meta (WhatsApp Cloud)',
+                'ref_label'         => 'Twilio Content SID',
+                'ref_placeholder'   => 'HXxxxxxxxxxxxxxxxx',
+                'ref_help'          => 'The Content SID of the approved template in your Twilio console.',
+                'lang'              => 'Language',
+                'lang_placeholder'  => 'en',
+                'lang_help'         => 'Used by Meta (e.g. en, en_US). Ignored by Twilio.',
+                'body'              => 'Body',
+                'body_placeholder'  => 'Hi {{1}}, there\'s an update on your ticket {{2}} — reply to continue.',
+                'body_help'         => 'Must match the approved template. Use <code>{{1}}</code>, <code>{{2}}</code> … for the variables an analyst fills in.',
+                'active'            => 'Active',
+            ],
+
+            // SLA breach-notification rule modal
+            'sla_notif' => [
+                'add_title'           => 'Add notification rule',
+                'scope'               => 'Scope',
+                'scope_default_opt'   => 'Default (applies to every department without a specific rule)',
+                'trigger'             => 'Trigger',
+                'trigger_warning_opt' => 'Warning &mdash; approaching breach (potential)',
+                'trigger_breach_opt'  => 'Breach &mdash; target exceeded (actual)',
+                'target'              => 'Target',
+                'target_both_opt'     => 'Both response and resolution',
+                'target_response_opt' => 'Response only',
+                'target_resolution_opt'=> 'Resolution only',
+                'recipients'          => 'Recipients',
+                'recipient_assignee'  => 'The ticket\'s assignee',
+                'recipient_teams'     => 'Members of the ticket\'s department teams',
+                'recipient_analyst'   => 'A specific analyst',
+                'recipient_analyst_none' => '&mdash; none &mdash;',
+                'recipient_emails'    => 'Additional email addresses',
+                'recipient_emails_placeholder' => 'alerts@company.com, slm@company.com',
+                'recipient_emails_help' => 'Comma, semicolon, or newline separated. Useful for distribution lists or Slack/Teams email bridges.',
+                'active'              => 'Active',
+            ],
+
+            // SLA business calendar modal
+            'sla_calendar' => [
+                'add_title'            => 'Add business calendar',
+                'name'                 => 'Name',
+                'name_placeholder'     => 'e.g. London business hours',
+                'timezone'             => 'Timezone',
+                'timezone_help'        => 'IANA zone (e.g. Europe/London, America/New_York)',
+                'default_label'        => 'Default calendar',
+                'default_help'         => 'Used for priorities that don\'t have a calendar of their own.',
+                'hours_heading'        => 'Weekly working hours',
+                'hours_help'           => 'Uncheck a day to mark it as closed. Most desks use Mon-Fri 09:00-17:00.',
+                'holidays_heading'     => 'Holidays',
+                'holidays_help'        => 'Dates that override the weekly pattern (the clock won\'t tick on these days).',
+                'holiday_name_placeholder' => 'Name (optional, e.g. Christmas Day)',
+                'add_holiday'          => 'Add holiday',
+                'holidays_note'        => 'Note: holidays are saved with the rest of the calendar — they only persist when you hit Save.',
+            ],
+        ],
+
+        // Shared empty/loading state for the settings tables.
+        'loading' => 'Loading...',
+
+        // Tab label not mirrored in the headings group.
+        'tab_messaging' => 'Messaging',
+
+        // Extra table column headers used by individual tabs.
+        'cols' => [
+            'pause_sla'    => 'Pause SLA',
+            'number'       => 'Number',
+            'webhook_url'  => 'Webhook URL',
+            'provider'     => 'Provider',
+            'reference'    => 'Reference',
+        ],
+
+        // Instructional paragraphs / notes / info boxes shown at the top of (or
+        // within) the various tabs. Values that contain intended HTML are echoed
+        // raw (no htmlspecialchars) so the markup renders.
+        'intros' => [
+            'teams'           => 'Teams determine which departments analysts can access. Assign departments to teams, then assign analysts to teams to control their access.',
+            'statuses'        => 'Workflow states a ticket can be in. Statuses flagged as <em>Closed</em> count as terminal — used by reports, watchtower counters and the closed-datetime auto-set on assign. Exactly one status is the default for new tickets.',
+            'priorities'      => 'Priority bands shown on tickets. Exactly one priority is the default for new tickets.',
+            'rota_locations'  => 'Where each analyst is working on a given day — used by the staff rota and shown as a coloured badge on every entry. Exactly one location is the default for new rota entries.',
+            'email_templates' => 'Automated email responses triggered by ticket events. Only the first active template per event is used.',
+        ],
+
+        // Messaging tab (WhatsApp etc.)
+        'messaging' => [
+            'channels_heading'      => 'Messaging channels',
+            'channels_intro'        => 'Let customers chat with an analyst over WhatsApp — each message becomes a ticket, just like email. Add a channel below, then paste its <strong>webhook URL</strong> into your provider (Twilio or Meta) so inbound messages reach this install.',
+            'base_url_label'        => '<strong>Public base URL</strong>',
+            'base_url_placeholder'  => 'https://your-domain.com  (or your ngrok address while testing)',
+            'base_url_help'         => 'The address providers use to reach this install. Set it and the webhook URLs below become copy-paste-ready. Leave blank to use whatever address you\'re browsing from. Testing locally? Run <code>ngrok http 80</code> and paste the <code>https://…ngrok-free.dev</code> address it prints.',
+            'templates_heading'     => 'Message templates',
+            'templates_intro'       => 'Pre-approved templates let an analyst reply <strong>after the 24-hour window has closed</strong>. WhatsApp only allows free text within 24 hours of the customer\'s last message; outside that, only a template Meta/Twilio has approved can be sent. Create &amp; approve the template at your provider, then add its definition here (with <code>{{1}}</code>, <code>{{2}}</code> placeholders) so analysts can pick and fill it.',
+        ],
+
+        // Mailboxes tab — OAuth success banner.
+        'oauth' => [
+            'success_title' => 'Authentication successful!',
+            'success_body'  => 'Mailbox is now connected and ready to check for emails.',
+        ],
+
+        // SLA tab — see docs/sla.md. Headings, intros, labels, radio/checkbox
+        // option text, table headers and notes. Values with intended HTML are
+        // echoed raw.
+        'sla' => [
+            'heading'                => 'Service level agreements',
+            'intro'                  => 'Business-hours-aware SLAs with per-priority response and resolution targets. The clock pauses on statuses flagged "Pauses SLA" on the <a href="#" onclick="event.preventDefault();switchTab(\'statuses\');">Statuses tab</a>. See <a href="https://github.com/edmozley/freeitsm/blob/main/docs/sla.md" target="_blank">design notes</a>.',
+            'global_heading'         => 'Global settings',
+            'enforce_from'           => 'Enforce SLAs from',
+            'enforce_from_help'      => 'Leave blank to <strong>disable SLA enforcement entirely</strong>. Set to a datetime and only tickets created at or after that point get evaluated &mdash; useful for grandfathering in existing tickets when first activating SLAs.',
+            'priority_change_label'  => 'When a ticket\'s priority changes mid-flight',
+            'priority_change_forward'=> 'Apply new SLA from the change point forward',
+            'priority_change_recompute' => 'Recompute retroactively against the new target',
+            'priority_change_reset'  => 'Reset the SLA clock entirely',
+            'reopen_label'           => 'When a closed ticket is reopened',
+            'reopen_reset'           => 'Start the SLA fresh',
+            'reopen_continue'        => 'Continue from where the clock paused',
+            'first_response_label'   => 'First-response counts as',
+            'first_response_outbound'=> 'Outbound email only (Reply / Forward)',
+            'first_response_status'  => 'Status change away from the default',
+            'first_response_either'  => 'Either, whichever happens first',
+            'warning_threshold'      => 'Warning threshold (%)',
+            'warning_threshold_help' => 'Tickets flag visually in the inbox at this % of their SLA elapsed.',
+            'notifications_label'    => 'Notifications',
+            'notify_assignee'        => 'Email the assignee at warning threshold',
+            'notify_lead'            => 'Email the team lead at breach',
+            'save_global'            => 'Save global settings',
+            'targets_heading'        => 'SLA targets per priority',
+            'targets_intro'          => 'Response and resolution times for each ticket priority. Times are in minutes (60 = 1 hour, 240 = 4 hours, 1440 = 1 day). The calendar determines which business hours the clock ticks against. Leave blank to skip that target.',
+            'col_priority'           => 'Priority',
+            'col_response_mins'      => 'Response (mins)',
+            'col_resolution_mins'    => 'Resolution (mins)',
+            'col_calendar'           => 'Calendar',
+            'col_save'               => 'Save',
+            'calendars_heading'      => 'Business calendars',
+            'calendars_intro'        => 'Define working hours, timezones, and holiday lists. Calendars are referenced by SLA targets (above) and by individual priorities. One calendar is the default for new priorities.',
+            'col_name'               => 'Name',
+            'col_timezone'           => 'Timezone',
+            'col_hours'              => 'Hours',
+            'col_holidays'           => 'Holidays',
+            'col_default'            => 'Default',
+            'col_actions'            => 'Actions',
+            'notifs_heading'         => 'Breach notifications',
+            'notifs_info'            => '<strong style="display:block;margin-bottom:6px;font-size:14px;">How notification rules work</strong>'
+                . 'Each rule has four parts: a <strong>scope</strong>, a <strong>trigger</strong>, a <strong>target</strong>, and a list of <strong>recipients</strong>.<br><br>'
+                . '<strong>Scope</strong> can be either <em>Default</em> (the rule applies to tickets in every department) or a <em>specific department</em> (the rule applies only to tickets in that department).<br>'
+                . 'When a ticket is being evaluated, the system looks for a rule matching its department first &mdash; if one exists, that rule wins and the default is ignored. If there\'s no department-specific rule, the default rule is used. This way you can set sensible defaults that cover every department, then carve out exceptions where one team has different escalation needs.<br><br>'
+                . '<strong>Trigger</strong> is either <em>Warning</em> (the ticket has crossed the warning threshold &mdash; potential breach approaching) or <em>Breach</em> (the ticket has now exceeded its SLA target &mdash; actual breach). Each is its own rule, so you can notify different people for warnings vs. breaches.<br><br>'
+                . '<strong>Target</strong> is which SLA clock to watch &mdash; <em>Response</em>, <em>Resolution</em>, or <em>Both</em>.<br><br>'
+                . '<strong>Recipients</strong> can be any combination of: the ticket\'s current assignee, every analyst in the ticket\'s department teams, one named analyst, and/or a list of free-form email addresses (useful for shared inboxes or Slack/Teams email bridges).<br><br>'
+                . '<strong style="color:#92400e;">No rules = no emails.</strong> Even if a ticket breaches, nothing fires until you add at least one rule (start with a Default-scope Warning + Breach pair to get coverage for everything).',
+            'notifs_dedup'           => 'Each ticket fires at most one email per target per trigger &mdash; the cron worker tracks what\'s already been sent so you don\'t get duplicates.',
+            'col_scope'              => 'Scope',
+            'col_trigger'            => 'Trigger',
+            'col_target'             => 'Target',
+            'col_recipients'         => 'Recipients',
+            'col_active'             => 'Active',
+            'notifs_cron_note'       => 'The cron worker that fires these emails lives at <code>cron/sla_breach_check.php</code>. See <code>docs/sla-cron-setup.md</code> for Windows Task Scheduler + Linux cron setup.',
+            'cron_heading'           => 'Cron activity',
+            'cron_refresh'           => 'Refresh',
+            'cron_intro'             => 'Last <span id="slaCronRunsLimit">20</span> invocations of the breach-check cron (CLI and HTTP). Includes rejected requests (rate-limited, auth-failed) so the same source-of-truth supports the rate-limit checks and security audits. Pruned automatically after <strong><span id="slaCronRetentionDays">30</span> days</strong>; min interval between successful runs is <strong><span id="slaCronMinInterval">30</span>s</strong> (both configurable in <code>system_settings</code>).',
+            'col_when'               => 'When',
+            'col_source'             => 'Source',
+            'col_duration'           => 'Duration',
+            'col_sent'               => 'Sent',
+            'col_skipped'            => 'Skipped',
+            'col_errors'             => 'Errors',
+            'col_outcome'            => 'Outcome',
+        ],
+
+        // Lookup modal — "Pauses SLA clock" group (statuses only).
+        'pauses_sla' => [
+            'label' => 'Pauses SLA clock',
+            'help'  => 'When a ticket is in this status, the SLA clock stops ticking. Used for statuses where the ticket isn\'t being actively worked (e.g. <em>On Hold</em>, <em>Awaiting Response</em>).',
+        ],
+
+        // Rota settings tab — weekend toggle.
+        'rota_weekends' => 'Include weekends on the rota',
+
+        // General tab.
+        'general' => [
+            'system_name'         => 'System name',
+            'system_name_placeholder' => 'e.g., Service Desk Ticketing System',
+            'system_name_help'    => 'This name appears in the header and page titles.',
+            'timezone'            => 'Timezone',
+            'timezone_help'       => 'Used for displaying dates and times throughout the system.',
+        ],
+
+        // Reply cleanup tab.
+        'reply_cleanup' => [
+            'intro1'              => 'When an analyst types a rough reply in the ticket compose modal, the <strong>✨ Cleanup</strong> button will rewrite it as a properly formatted email — adding a "Dear [name]," greeting, fixing grammar, applying the tone you choose below, and signing off with "Kind regards,". It will <strong>not</strong> invent technical details or pad the content.',
+            'intro2'              => 'This feature uses its own Anthropic API key (separate from RFP AI and Knowledge AI) so its usage shows up as a discrete line on the Anthropic billing dashboard.',
+            'tone'                => 'Tone',
+            'tone_friendly'       => 'Friendly (default)',
+            'tone_formal'         => 'Formal',
+            'tone_brief'          => 'Brief',
+            'tone_help'           => 'Applied to every cleanup unless changed here.',
+            'custom_label'        => 'Custom instructions <span style="color: #999; font-weight: normal;">(optional)</span>',
+            'custom_placeholder'  => 'e.g. Always sign off with \'Many thanks,\'&#10;Refer to the company as \'BillCorp\'&#10;Use British English spellings throughout',
+            'custom_help'         => 'Appended to the system prompt shown to the right. Use this for organisation-specific tweaks (sign-off variations, company name, language preferences). The hard safety rules and output format will still take precedence.',
+            'prompt_summary'      => 'View system prompt (read-only)',
+            'prompt_panel_intro'  => 'This is the full system prompt sent to Claude on every cleanup. The greeting name varies per ticket; the tone reflects your selection on the left. Your custom instructions (if any) are appended at the end at runtime — they are not shown here, edit them in the textarea to the left.',
+        ],
+
+        // CSAT tab.
+        'csat_tab' => [
+            'intro1'              => 'When a ticket is closed, send the requester a short survey email asking them to rate the experience 1&ndash;5. Responses are recorded against the analyst who closed the ticket so you can pull per-analyst CSAT trends, and live as a widget on the dashboard.',
+            'intro2'              => 'The survey email is configured under <a href="#" onclick="event.preventDefault();switchTab(\'email-templates\');">Email templates</a> &mdash; create a template with event <strong>CSAT survey</strong> and embed <code>[csat_link]</code> in the body to insert the one-shot rating URL.',
+            'mode_off'            => 'Off',
+            'mode_off_help'       => 'No survey emails are sent.',
+            'mode_auto'           => 'Auto on close',
+            'mode_auto_help'      => 'A survey is sent automatically when a ticket moves into any closed status.',
+            'mode_manual'         => 'Manual only',
+            'mode_manual_help'    => 'Analysts click <em>Request feedback</em> from the ticket toolbar when they want to ask.',
+            'delay_help'          => 'Wait this many minutes after close before sending. <code>0</code> = immediate. Useful if you want the user to verify the fix actually held before being asked to rate it.',
+            'one_per_ticket'      => 'One survey per ticket',
+            'one_per_ticket_help' => 'If on, a reopened-then-closed ticket only gets another survey when an analyst manually triggers it &mdash; stops survey-spamming a flaky ticket.',
+            'scale_stars'         => 'Stars',
+            'scale_emojis'        => 'Emojis',
+            'scale_help'          => 'Both options store the same 1&ndash;5 number, so dashboards and averages work the same either way &mdash; this only changes how the survey page itself looks.',
+        ],
+
+        // Analyst modal — sign-in method / company access (multi-tenancy).
+        'analyst_extra' => [
+            'signin_method'    => 'Sign-in method',
+            'signin_local'     => 'Local (username &amp; password)',
+            'signin_help'      => 'Local users sign in with a password. Assign a provider to require SSO for this analyst — on their next SSO sign-in their identity is linked automatically (matched by email).',
+            'access_all'       => 'Access all companies',
+            'access_all_help'  => 'On = this analyst can work in every company (now and any added later). Off = only the companies you tick below.',
         ],
     ],
 

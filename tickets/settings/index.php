@@ -236,7 +236,7 @@ $translationNamespaces = ['common', 'tickets'];
             <button class="tab" data-tab="sla" onclick="switchTab('sla')"><?php echo htmlspecialchars(t('tickets.settings.tabs.sla')); ?></button>
             <button class="tab" data-tab="rota-locations" onclick="switchTab('rota-locations')"><?php echo htmlspecialchars(t('tickets.settings.tabs.rota_locations')); ?></button>
             <button class="tab" data-tab="mailboxes" onclick="switchTab('mailboxes')"><?php echo htmlspecialchars(t('tickets.settings.tabs.mailboxes')); ?></button>
-            <button class="tab" data-tab="messaging" onclick="switchTab('messaging')">Messaging</button>
+            <button class="tab" data-tab="messaging" onclick="switchTab('messaging')"><?php echo htmlspecialchars(t('tickets.settings.tab_messaging')); ?></button>
             <button class="tab" data-tab="email-templates" onclick="switchTab('email-templates')"><?php echo htmlspecialchars(t('tickets.settings.tabs.email_templates')); ?></button>
             <button class="tab" data-tab="rota" onclick="switchTab('rota')"><?php echo htmlspecialchars(t('tickets.settings.tabs.rota')); ?></button>
             <button class="tab" data-tab="analysts" onclick="switchTab('analysts')"><?php echo htmlspecialchars(t('tickets.settings.tabs.analysts')); ?></button>
@@ -263,7 +263,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="departments-list">
-                    <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="6" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -274,7 +274,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.teams')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('team')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 20px; color: #666;">Teams determine which departments analysts can access. Assign departments to teams, then assign analysts to teams to control their access.</p>
+            <p style="margin-bottom: 20px; color: #666;"><?php echo t('tickets.settings.intros.teams'); ?></p>
             <table>
                 <thead>
                     <tr>
@@ -288,7 +288,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="teams-list">
-                    <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="7" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -310,7 +310,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="ticket-types-list">
-                    <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -332,7 +332,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="ticket-origins-list">
-                    <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -343,14 +343,14 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.statuses')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('status')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 20px; color: #666;">Workflow states a ticket can be in. Statuses flagged as <em>Closed</em> count as terminal — used by reports, watchtower counters and the closed-datetime auto-set on assign. Exactly one status is the default for new tickets.</p>
+            <p style="margin-bottom: 20px; color: #666;"><?php echo t('tickets.settings.intros.statuses'); ?></p>
             <table>
                 <thead>
                     <tr>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.name')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.colour')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.closed')); ?></th>
-                        <th>Pause SLA</th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.cols.pause_sla')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.default')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.order')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.status')); ?></th>
@@ -358,7 +358,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="statuses-list">
-                    <tr><td colspan="8" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="8" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -369,7 +369,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.priorities')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('priority')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 20px; color: #666;">Priority bands shown on tickets. Exactly one priority is the default for new tickets.</p>
+            <p style="margin-bottom: 20px; color: #666;"><?php echo t('tickets.settings.intros.priorities'); ?></p>
             <table>
                 <thead>
                     <tr>
@@ -382,107 +382,104 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="priorities-list">
-                    <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="6" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
 
         <!-- SLA Tab — see docs/sla.md -->
         <div class="tab-content" id="sla-tab">
-            <h2>Service level agreements</h2>
+            <h2><?php echo htmlspecialchars(t('tickets.settings.sla.heading')); ?></h2>
             <p style="margin-bottom: 20px; color: #666;">
-                Business-hours-aware SLAs with per-priority response and resolution targets. The clock pauses on statuses
-                flagged "Pauses SLA" on the <a href="#" onclick="event.preventDefault();switchTab('statuses');">Statuses tab</a>.
-                See <a href="https://github.com/edmozley/freeitsm/blob/main/docs/sla.md" target="_blank">design notes</a>.
+                <?php echo t('tickets.settings.sla.intro'); ?>
             </p>
 
             <!-- ===== Global SLA settings ===== -->
             <div class="settings-group">
-                <h3>Global settings</h3>
+                <h3><?php echo htmlspecialchars(t('tickets.settings.sla.global_heading')); ?></h3>
                 <form id="slaGlobalForm" style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
                     <div class="form-group" style="grid-column:span 2;">
-                        <label for="slaEnforceFrom">Enforce SLAs from</label>
+                        <label for="slaEnforceFrom"><?php echo htmlspecialchars(t('tickets.settings.sla.enforce_from')); ?></label>
                         <input type="datetime-local" id="slaEnforceFrom" style="max-width:260px;">
                         <small style="display:block;color:#666;margin-top:4px;">
-                            Leave blank to <strong>disable SLA enforcement entirely</strong>. Set to a datetime and only tickets created
-                            at or after that point get evaluated &mdash; useful for grandfathering in existing tickets when first activating SLAs.
+                            <?php echo t('tickets.settings.sla.enforce_from_help'); ?>
                         </small>
                     </div>
 
                     <div class="form-group">
-                        <label>When a ticket's priority changes mid-flight</label>
+                        <label><?php echo htmlspecialchars(t('tickets.settings.sla.priority_change_label')); ?></label>
                         <label style="display:block;margin-top:6px;font-weight:400;">
-                            <input type="radio" name="slaPriorityChange" value="forward"> Apply new SLA from the change point forward
+                            <input type="radio" name="slaPriorityChange" value="forward"> <?php echo htmlspecialchars(t('tickets.settings.sla.priority_change_forward')); ?>
                         </label>
                         <label style="display:block;font-weight:400;">
-                            <input type="radio" name="slaPriorityChange" value="recompute"> Recompute retroactively against the new target
+                            <input type="radio" name="slaPriorityChange" value="recompute"> <?php echo htmlspecialchars(t('tickets.settings.sla.priority_change_recompute')); ?>
                         </label>
                         <label style="display:block;font-weight:400;">
-                            <input type="radio" name="slaPriorityChange" value="reset"> Reset the SLA clock entirely
+                            <input type="radio" name="slaPriorityChange" value="reset"> <?php echo htmlspecialchars(t('tickets.settings.sla.priority_change_reset')); ?>
                         </label>
                     </div>
 
                     <div class="form-group">
-                        <label>When a closed ticket is reopened</label>
+                        <label><?php echo htmlspecialchars(t('tickets.settings.sla.reopen_label')); ?></label>
                         <label style="display:block;margin-top:6px;font-weight:400;">
-                            <input type="radio" name="slaReopen" value="reset"> Start the SLA fresh
+                            <input type="radio" name="slaReopen" value="reset"> <?php echo htmlspecialchars(t('tickets.settings.sla.reopen_reset')); ?>
                         </label>
                         <label style="display:block;font-weight:400;">
-                            <input type="radio" name="slaReopen" value="continue"> Continue from where the clock paused
+                            <input type="radio" name="slaReopen" value="continue"> <?php echo htmlspecialchars(t('tickets.settings.sla.reopen_continue')); ?>
                         </label>
                     </div>
 
                     <div class="form-group">
-                        <label>First-response counts as</label>
+                        <label><?php echo htmlspecialchars(t('tickets.settings.sla.first_response_label')); ?></label>
                         <label style="display:block;margin-top:6px;font-weight:400;">
-                            <input type="radio" name="slaFirstResponse" value="outbound_email"> Outbound email only (Reply / Forward)
+                            <input type="radio" name="slaFirstResponse" value="outbound_email"> <?php echo htmlspecialchars(t('tickets.settings.sla.first_response_outbound')); ?>
                         </label>
                         <label style="display:block;font-weight:400;">
-                            <input type="radio" name="slaFirstResponse" value="status_change"> Status change away from the default
+                            <input type="radio" name="slaFirstResponse" value="status_change"> <?php echo htmlspecialchars(t('tickets.settings.sla.first_response_status')); ?>
                         </label>
                         <label style="display:block;font-weight:400;">
-                            <input type="radio" name="slaFirstResponse" value="either"> Either, whichever happens first
+                            <input type="radio" name="slaFirstResponse" value="either"> <?php echo htmlspecialchars(t('tickets.settings.sla.first_response_either')); ?>
                         </label>
                     </div>
 
                     <div class="form-group">
-                        <label for="slaWarningThreshold">Warning threshold (%)</label>
+                        <label for="slaWarningThreshold"><?php echo htmlspecialchars(t('tickets.settings.sla.warning_threshold')); ?></label>
                         <input type="number" id="slaWarningThreshold" min="1" max="100" style="max-width:120px;">
-                        <small style="display:block;color:#666;margin-top:4px;">Tickets flag visually in the inbox at this % of their SLA elapsed.</small>
+                        <small style="display:block;color:#666;margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.sla.warning_threshold_help')); ?></small>
                     </div>
 
                     <div class="form-group">
-                        <label>Notifications</label>
+                        <label><?php echo htmlspecialchars(t('tickets.settings.sla.notifications_label')); ?></label>
                         <label style="display:block;margin-top:6px;font-weight:400;">
-                            <input type="checkbox" id="slaNotifyAssignee"> Email the assignee at warning threshold
+                            <input type="checkbox" id="slaNotifyAssignee"> <?php echo htmlspecialchars(t('tickets.settings.sla.notify_assignee')); ?>
                         </label>
                         <label style="display:block;font-weight:400;">
-                            <input type="checkbox" id="slaNotifyLead"> Email the team lead at breach
+                            <input type="checkbox" id="slaNotifyLead"> <?php echo htmlspecialchars(t('tickets.settings.sla.notify_lead')); ?>
                         </label>
                     </div>
 
                     <div style="grid-column:span 2;margin-top:8px;">
-                        <button type="button" class="btn btn-primary" onclick="saveSlaGlobalSettings()">Save global settings</button>
+                        <button type="button" class="btn btn-primary" onclick="saveSlaGlobalSettings()"><?php echo htmlspecialchars(t('tickets.settings.sla.save_global')); ?></button>
                     </div>
                 </form>
             </div>
 
             <!-- ===== SLA Targets per priority ===== -->
             <div class="settings-group">
-                <h3>SLA targets per priority</h3>
-                <p style="color:#666;margin-bottom:14px;">Response and resolution times for each ticket priority. Times are in minutes (60 = 1 hour, 240 = 4 hours, 1440 = 1 day). The calendar determines which business hours the clock ticks against. Leave blank to skip that target.</p>
+                <h3><?php echo htmlspecialchars(t('tickets.settings.sla.targets_heading')); ?></h3>
+                <p style="color:#666;margin-bottom:14px;"><?php echo htmlspecialchars(t('tickets.settings.sla.targets_intro')); ?></p>
                 <table>
                     <thead>
                         <tr>
-                            <th>Priority</th>
-                            <th>Response (mins)</th>
-                            <th>Resolution (mins)</th>
-                            <th>Calendar</th>
-                            <th style="width:90px;">Save</th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_priority')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_response_mins')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_resolution_mins')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_calendar')); ?></th>
+                            <th style="width:90px;"><?php echo htmlspecialchars(t('tickets.settings.sla.col_save')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="slaTargetsList">
-                        <tr><td colspan="5" style="text-align:center;">Loading...</td></tr>
+                        <tr><td colspan="5" style="text-align:center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -490,23 +487,23 @@ $translationNamespaces = ['common', 'tickets'];
             <!-- ===== Business Calendars ===== -->
             <div class="settings-group">
                 <div class="section-header">
-                    <h3>Business calendars</h3>
+                    <h3><?php echo htmlspecialchars(t('tickets.settings.sla.calendars_heading')); ?></h3>
                     <button class="add-btn" onclick="openSlaCalendarModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
                 </div>
-                <p style="color:#666;margin-bottom:14px;">Define working hours, timezones, and holiday lists. Calendars are referenced by SLA targets (above) and by individual priorities. One calendar is the default for new priorities.</p>
+                <p style="color:#666;margin-bottom:14px;"><?php echo htmlspecialchars(t('tickets.settings.sla.calendars_intro')); ?></p>
                 <table>
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Timezone</th>
-                            <th>Hours</th>
-                            <th>Holidays</th>
-                            <th>Default</th>
-                            <th style="width:120px;">Actions</th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_name')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_timezone')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_hours')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_holidays')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_default')); ?></th>
+                            <th style="width:120px;"><?php echo htmlspecialchars(t('tickets.settings.sla.col_actions')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="slaCalendarsList">
-                        <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                        <tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -514,85 +511,60 @@ $translationNamespaces = ['common', 'tickets'];
             <!-- ===== Breach Notifications ===== -->
             <div class="settings-group">
                 <div class="section-header">
-                    <h3>Breach notifications</h3>
+                    <h3><?php echo htmlspecialchars(t('tickets.settings.sla.notifs_heading')); ?></h3>
                     <button class="add-btn" onclick="openSlaNotifModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
                 </div>
 
                 <div style="background:#eff6ff;border-left:4px solid #2563eb;padding:14px 16px;border-radius:4px;margin-bottom:18px;font-size:13px;line-height:1.6;color:#1e3a8a;">
-                    <strong style="display:block;margin-bottom:6px;font-size:14px;">How notification rules work</strong>
-                    Each rule has four parts: a <strong>scope</strong>, a <strong>trigger</strong>, a <strong>target</strong>, and a list of <strong>recipients</strong>.<br><br>
-
-                    <strong>Scope</strong> can be either <em>Default</em> (the rule applies to tickets in every department)
-                    or a <em>specific department</em> (the rule applies only to tickets in that department).<br>
-
-                    When a ticket is being evaluated, the system looks for a rule matching its department first &mdash; if one exists, that rule wins
-                    and the default is ignored. If there's no department-specific rule, the default rule is used. This way you can set sensible
-                    defaults that cover every department, then carve out exceptions where one team has different escalation needs.<br><br>
-
-                    <strong>Trigger</strong> is either <em>Warning</em> (the ticket has crossed the warning threshold &mdash; potential breach approaching) or
-                    <em>Breach</em> (the ticket has now exceeded its SLA target &mdash; actual breach). Each is its own rule, so you can notify
-                    different people for warnings vs. breaches.<br><br>
-
-                    <strong>Target</strong> is which SLA clock to watch &mdash; <em>Response</em>, <em>Resolution</em>, or <em>Both</em>.<br><br>
-
-                    <strong>Recipients</strong> can be any combination of: the ticket's current assignee, every analyst in the ticket's department teams,
-                    one named analyst, and/or a list of free-form email addresses (useful for shared inboxes or Slack/Teams email bridges).<br><br>
-
-                    <strong style="color:#92400e;">No rules = no emails.</strong> Even if a ticket breaches, nothing fires until you add at least
-                    one rule (start with a Default-scope Warning + Breach pair to get coverage for everything).
+                    <?php echo t('tickets.settings.sla.notifs_info'); ?>
                 </div>
 
                 <p style="color:#666;margin-bottom:14px;">
-                    Each ticket fires at most one email per target per trigger &mdash; the cron worker tracks what's already been sent so you don't get duplicates.
+                    <?php echo t('tickets.settings.sla.notifs_dedup'); ?>
                 </p>
                 <table>
                     <thead>
                         <tr>
-                            <th>Scope</th>
-                            <th>Trigger</th>
-                            <th>Target</th>
-                            <th>Recipients</th>
-                            <th>Active</th>
-                            <th style="width:120px;">Actions</th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_scope')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_trigger')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_target')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_recipients')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_active')); ?></th>
+                            <th style="width:120px;"><?php echo htmlspecialchars(t('tickets.settings.sla.col_actions')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="slaNotifRulesList">
-                        <tr><td colspan="6" style="text-align:center;">Loading...</td></tr>
+                        <tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                     </tbody>
                 </table>
                 <p style="color:#888;margin-top:14px;font-size:12px;">
-                    The cron worker that fires these emails lives at <code>cron/sla_breach_check.php</code>.
-                    See <code>docs/sla-cron-setup.md</code> for Windows Task Scheduler + Linux cron setup.
+                    <?php echo t('tickets.settings.sla.notifs_cron_note'); ?>
                 </p>
             </div>
 
             <!-- ===== Cron Activity ===== -->
             <div class="settings-group">
                 <div class="section-header">
-                    <h3>Cron activity</h3>
-                    <button class="add-btn" onclick="loadSlaCronRuns()" title="Refresh">&#x21bb;</button>
+                    <h3><?php echo htmlspecialchars(t('tickets.settings.sla.cron_heading')); ?></h3>
+                    <button class="add-btn" onclick="loadSlaCronRuns()" title="<?php echo htmlspecialchars(t('tickets.settings.sla.cron_refresh')); ?>">&#x21bb;</button>
                 </div>
                 <p style="color:#666;margin-bottom:14px;">
-                    Last <span id="slaCronRunsLimit">20</span> invocations of the breach-check cron (CLI and HTTP).
-                    Includes rejected requests (rate-limited, auth-failed) so the same source-of-truth supports the rate-limit
-                    checks and security audits. Pruned automatically after
-                    <strong><span id="slaCronRetentionDays">30</span> days</strong>; min interval between successful runs is
-                    <strong><span id="slaCronMinInterval">30</span>s</strong> (both configurable in <code>system_settings</code>).
+                    <?php echo t('tickets.settings.sla.cron_intro'); ?>
                 </p>
                 <table>
                     <thead>
                         <tr>
-                            <th>When</th>
-                            <th>Source</th>
-                            <th>Duration</th>
-                            <th>Sent</th>
-                            <th>Skipped</th>
-                            <th>Errors</th>
-                            <th>Outcome</th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_when')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_source')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_duration')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_sent')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_skipped')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_errors')); ?></th>
+                            <th><?php echo htmlspecialchars(t('tickets.settings.sla.col_outcome')); ?></th>
                         </tr>
                     </thead>
                     <tbody id="slaCronRunsList">
-                        <tr><td colspan="7" style="text-align:center;">Loading...</td></tr>
+                        <tr><td colspan="7" style="text-align:center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -601,53 +573,53 @@ $translationNamespaces = ['common', 'tickets'];
         <!-- ===== Breach Notification rule modal ===== -->
         <div id="slaNotifModal" class="modal">
             <div class="modal-content" style="max-width:640px;">
-                <div class="modal-header" id="slaNotifModalTitle">Add notification rule</div>
+                <div class="modal-header" id="slaNotifModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.add_title')); ?></div>
                 <div class="modal-body">
                     <input type="hidden" id="slaNotifId" value="">
 
                     <div class="form-group">
-                        <label for="slaNotifDept">Scope</label>
+                        <label for="slaNotifDept"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.scope')); ?></label>
                         <select id="slaNotifDept" class="form-control">
-                            <option value="">Default (applies to every department without a specific rule)</option>
+                            <option value=""><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.scope_default_opt')); ?></option>
                         </select>
                     </div>
 
                     <div class="form-group" style="display:flex;gap:12px;">
                         <div style="flex:1;">
-                            <label for="slaNotifTrigger">Trigger</label>
+                            <label for="slaNotifTrigger"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.trigger')); ?></label>
                             <select id="slaNotifTrigger" class="form-control">
-                                <option value="warning">Warning &mdash; approaching breach (potential)</option>
-                                <option value="breach">Breach &mdash; target exceeded (actual)</option>
+                                <option value="warning"><?php echo t('tickets.settings.modals.sla_notif.trigger_warning_opt'); ?></option>
+                                <option value="breach"><?php echo t('tickets.settings.modals.sla_notif.trigger_breach_opt'); ?></option>
                             </select>
                         </div>
                         <div style="flex:1;">
-                            <label for="slaNotifTarget">Target</label>
+                            <label for="slaNotifTarget"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.target')); ?></label>
                             <select id="slaNotifTarget" class="form-control">
-                                <option value="both">Both response and resolution</option>
-                                <option value="response">Response only</option>
-                                <option value="resolution">Resolution only</option>
+                                <option value="both"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.target_both_opt')); ?></option>
+                                <option value="response"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.target_response_opt')); ?></option>
+                                <option value="resolution"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.target_resolution_opt')); ?></option>
                             </select>
                         </div>
                     </div>
 
                     <fieldset style="border:1px solid #ddd;padding:12px 16px;border-radius:4px;margin-bottom:14px;">
-                        <legend style="padding:0 6px;font-weight:600;font-size:13px;">Recipients</legend>
+                        <legend style="padding:0 6px;font-weight:600;font-size:13px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipients')); ?></legend>
                         <div class="form-group" style="margin-bottom:8px;">
-                            <label><input type="checkbox" id="slaNotifAssignee"> The ticket's assignee</label>
+                            <label><input type="checkbox" id="slaNotifAssignee"> <?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipient_assignee')); ?></label>
                         </div>
                         <div class="form-group" style="margin-bottom:8px;">
-                            <label><input type="checkbox" id="slaNotifTeams"> Members of the ticket's department teams</label>
+                            <label><input type="checkbox" id="slaNotifTeams"> <?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipient_teams')); ?></label>
                         </div>
                         <div class="form-group" style="margin-bottom:8px;">
-                            <label for="slaNotifAnalyst">A specific analyst</label>
+                            <label for="slaNotifAnalyst"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipient_analyst')); ?></label>
                             <select id="slaNotifAnalyst" class="form-control">
-                                <option value="">&mdash; none &mdash;</option>
+                                <option value=""><?php echo t('tickets.settings.modals.sla_notif.recipient_analyst_none'); ?></option>
                             </select>
                         </div>
                         <div class="form-group" style="margin-bottom:0;">
-                            <label for="slaNotifEmails">Additional email addresses</label>
-                            <textarea id="slaNotifEmails" class="form-control" rows="2" placeholder="alerts@company.com, slm@company.com"></textarea>
-                            <small>Comma, semicolon, or newline separated. Useful for distribution lists or Slack/Teams email bridges.</small>
+                            <label for="slaNotifEmails"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipient_emails')); ?></label>
+                            <textarea id="slaNotifEmails" class="form-control" rows="2" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipient_emails_placeholder')); ?>"></textarea>
+                            <small><?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.recipient_emails_help')); ?></small>
                         </div>
                     </fieldset>
 
@@ -657,7 +629,7 @@ $translationNamespaces = ['common', 'tickets'];
                                 <input type="checkbox" id="slaNotifActive" checked>
                                 <span class="toggle-slider"></span>
                             </span>
-                            Active
+                            <?php echo htmlspecialchars(t('tickets.settings.modals.sla_notif.active')); ?>
                         </label>
                     </div>
                 </div>
@@ -674,7 +646,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.rota_locations')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('rota-location')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 20px; color: #666;">Where each analyst is working on a given day — used by the staff rota and shown as a coloured badge on every entry. Exactly one location is the default for new rota entries.</p>
+            <p style="margin-bottom: 20px; color: #666;"><?php echo t('tickets.settings.intros.rota_locations'); ?></p>
             <table>
                 <thead>
                     <tr>
@@ -687,7 +659,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="rota-locations-list">
-                    <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="6" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -707,8 +679,8 @@ $translationNamespaces = ['common', 'tickets'];
             <div class="exchange-status authenticated" id="oauth-success-msg">
                 <span class="status-icon">&#10003;</span>
                 <div>
-                    <strong>Authentication successful!</strong><br>
-                    Mailbox is now connected and ready to check for emails.
+                    <strong><?php echo htmlspecialchars(t('tickets.settings.oauth.success_title')); ?></strong><br>
+                    <?php echo htmlspecialchars(t('tickets.settings.oauth.success_body')); ?>
                 </div>
             </div>
             <?php endif; ?>
@@ -726,7 +698,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="mailboxes-list">
-                    <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -734,63 +706,57 @@ $translationNamespaces = ['common', 'tickets'];
         <!-- Messaging Tab (WhatsApp etc.) -->
         <div class="tab-content" id="messaging-tab">
             <div class="section-header">
-                <h2>Messaging channels</h2>
+                <h2><?php echo htmlspecialchars(t('tickets.settings.messaging.channels_heading')); ?></h2>
                 <button class="add-btn" onclick="openChannelModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <p>
-                Let customers chat with an analyst over WhatsApp — each message becomes a ticket,
-                just like email. Add a channel below, then paste its <strong>webhook URL</strong> into
-                your provider (Twilio or Meta) so inbound messages reach this install.
+                <?php echo t('tickets.settings.messaging.channels_intro'); ?>
             </p>
             <div class="form-group" style="margin-bottom:18px;">
-                <label for="messagingBaseUrl"><strong>Public base URL</strong></label>
+                <label for="messagingBaseUrl"><?php echo t('tickets.settings.messaging.base_url_label'); ?></label>
                 <div style="display:flex; gap:8px; max-width:640px;">
-                    <input type="text" id="messagingBaseUrl" style="flex:1;" placeholder="https://your-domain.com  (or your ngrok address while testing)">
+                    <input type="text" id="messagingBaseUrl" style="flex:1;" placeholder="<?php echo htmlspecialchars(t('tickets.settings.messaging.base_url_placeholder')); ?>">
                     <button class="btn btn-primary" type="button" onclick="saveMessagingBaseUrl()"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
                 <small style="color:#666; display:block; margin-top:4px; max-width:none;">
-                    The address providers use to reach this install. Set it and the webhook URLs below become copy-paste-ready.
-                    Leave blank to use whatever address you're browsing from. Testing locally? Run <code>ngrok http 80</code> and paste the <code>https://…ngrok-free.dev</code> address it prints.
+                    <?php echo t('tickets.settings.messaging.base_url_help'); ?>
                 </small>
             </div>
             <div id="channelsResult" style="margin-bottom:12px;"></div>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Number</th>
-                        <th>Webhook URL</th>
-                        <th>Status</th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.cols.number')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.cols.webhook_url')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.status')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="channels-list">
-                    <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
 
             <div class="section-header" style="margin-top:32px;">
-                <h2>Message templates</h2>
+                <h2><?php echo htmlspecialchars(t('tickets.settings.messaging.templates_heading')); ?></h2>
                 <button class="add-btn" onclick="openMsgTemplateModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
             <p>
-                Pre-approved templates let an analyst reply <strong>after the 24-hour window has closed</strong>.
-                WhatsApp only allows free text within 24 hours of the customer's last message; outside that, only a
-                template Meta/Twilio has approved can be sent. Create &amp; approve the template at your provider, then
-                add its definition here (with <code>{{1}}</code>, <code>{{2}}</code> placeholders) so analysts can pick and fill it.
+                <?php echo t('tickets.settings.messaging.templates_intro'); ?>
             </p>
             <table>
                 <thead>
                     <tr>
-                        <th>Name</th>
-                        <th>Provider</th>
-                        <th>Reference</th>
-                        <th>Status</th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.cols.provider')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.cols.reference')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.status')); ?></th>
                         <th><?php echo htmlspecialchars(t('tickets.settings.columns.actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="msg-templates-list">
-                    <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="5" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -801,7 +767,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.email_templates')); ?></h2>
                 <button class="add-btn" onclick="openTemplateModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 15px; color: #666;">Automated email responses triggered by ticket events. Only the first active template per event is used.</p>
+            <p style="margin-bottom: 15px; color: #666;"><?php echo t('tickets.settings.intros.email_templates'); ?></p>
             <table>
                 <thead>
                     <tr>
@@ -814,7 +780,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="email-templates-list">
-                    <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="6" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -837,14 +803,14 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="rota-shifts-list">
-                    <tr><td colspan="6" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="6" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
             <div style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
                 <h2 style="font-size: 16px; margin-bottom: 12px;"><?php echo htmlspecialchars(t('tickets.settings.headings.rota_settings')); ?></h2>
                 <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
                     <input type="checkbox" id="rotaIncludeWeekends" onchange="saveRotaWeekendSetting()">
-                    Include weekends on the rota
+                    <?php echo htmlspecialchars(t('tickets.settings.rota_weekends')); ?>
                 </label>
             </div>
         </div>
@@ -868,7 +834,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </tr>
                 </thead>
                 <tbody id="analysts-list">
-                    <tr><td colspan="7" style="text-align: center;">Loading...</td></tr>
+                    <tr><td colspan="7" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -880,17 +846,17 @@ $translationNamespaces = ['common', 'tickets'];
             </div>
             <form id="generalSettingsForm" style="max-width: 600px;">
                 <div class="form-group">
-                    <label for="systemName">System name</label>
-                    <input type="text" id="systemName" placeholder="e.g., Service Desk Ticketing System">
-                    <small style="color: #666;">This name appears in the header and page titles.</small>
+                    <label for="systemName"><?php echo htmlspecialchars(t('tickets.settings.general.system_name')); ?></label>
+                    <input type="text" id="systemName" placeholder="<?php echo htmlspecialchars(t('tickets.settings.general.system_name_placeholder')); ?>">
+                    <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.general.system_name_help')); ?></small>
                 </div>
 
                 <div class="form-group">
-                    <label for="systemTimezone">Timezone</label>
+                    <label for="systemTimezone"><?php echo htmlspecialchars(t('tickets.settings.general.timezone')); ?></label>
                     <select id="systemTimezone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                        <option value="">Loading...</option>
+                        <option value=""><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></option>
                     </select>
-                    <small style="color: #666;">Used for displaying dates and times throughout the system.</small>
+                    <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.general.timezone_help')); ?></small>
                 </div>
 
                 <div class="modal-actions" style="justify-content: flex-start; margin-top: 30px;">
@@ -906,16 +872,10 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.reply_cleanup_ai')); ?></h2>
             </div>
             <p style="color: #555;">
-                When an analyst types a rough reply in the ticket compose modal, the
-                <strong>✨ Cleanup</strong> button will rewrite it as a properly formatted
-                email — adding a "Dear [name]," greeting, fixing grammar, applying the
-                tone you choose below, and signing off with "Kind regards,". It will
-                <strong>not</strong> invent technical details or pad the content.
+                <?php echo t('tickets.settings.reply_cleanup.intro1'); ?>
             </p>
             <p style="color: #555;">
-                This feature uses its own Anthropic API key (separate from RFP AI and
-                Knowledge AI) so its usage shows up as a discrete line on the
-                Anthropic billing dashboard.
+                <?php echo t('tickets.settings.reply_cleanup.intro2'); ?>
             </p>
 
             <div class="reply-cleanup-layout">
@@ -926,24 +886,22 @@ $translationNamespaces = ['common', 'tickets'];
                     <!-- Tone + custom instructions (reply-cleanup specific), saved separately. -->
                     <form id="replyCleanupForm" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid #e0e0e0;">
                         <div class="form-group">
-                            <label for="rcTone">Tone</label>
+                            <label for="rcTone"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone')); ?></label>
                             <select id="rcTone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                                <option value="Friendly">Friendly (default)</option>
-                                <option value="Formal">Formal</option>
-                                <option value="Brief">Brief</option>
+                                <option value="Friendly"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_friendly')); ?></option>
+                                <option value="Formal"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_formal')); ?></option>
+                                <option value="Brief"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_brief')); ?></option>
                             </select>
-                            <small style="color: #666;">Applied to every cleanup unless changed here.</small>
+                            <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_help')); ?></small>
                         </div>
 
                         <div class="form-group">
-                            <label for="rcCustomInstructions">Custom instructions <span style="color: #999; font-weight: normal;">(optional)</span></label>
+                            <label for="rcCustomInstructions"><?php echo t('tickets.settings.reply_cleanup.custom_label'); ?></label>
                             <textarea id="rcCustomInstructions" rows="6" maxlength="4000"
                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; resize: vertical;"
-                                      placeholder="e.g. Always sign off with 'Many thanks,'&#10;Refer to the company as 'BillCorp'&#10;Use British English spellings throughout"></textarea>
+                                      placeholder="<?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.custom_placeholder')); ?>"></textarea>
                             <small style="color: #666;">
-                                Appended to the system prompt shown to the right. Use this for organisation-specific tweaks
-                                (sign-off variations, company name, language preferences). The hard safety rules
-                                and output format will still take precedence.
+                                <?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.custom_help')); ?>
                             </small>
                         </div>
 
@@ -955,13 +913,10 @@ $translationNamespaces = ['common', 'tickets'];
 
                 <aside class="reply-cleanup-prompt-panel">
                     <details open>
-                        <summary>View system prompt (read-only)</summary>
+                        <summary><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.prompt_summary')); ?></summary>
                         <div style="padding: 0 16px 16px 16px; color: #555;">
                             <p style="margin: 0 0 12px 0; font-size: 13px;">
-                                This is the full system prompt sent to Claude on every cleanup. The greeting
-                                name varies per ticket; the tone reflects your selection on the left. Your custom
-                                instructions (if any) are appended at the end at runtime — they are not shown
-                                here, edit them in the textarea to the left.
+                                <?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.prompt_panel_intro')); ?>
                             </p>
                             <pre id="rcPromptPreview" style="white-space: pre-wrap; word-wrap: break-word; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; background: white; padding: 14px; border: 1px solid #e0e0e0; border-radius: 4px; max-height: calc(100vh - 280px); overflow-y: auto; color: #333; margin: 0;"></pre>
                         </div>
@@ -976,14 +931,10 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.csat')); ?></h2>
             </div>
             <p style="color: #555;">
-                When a ticket is closed, send the requester a short survey email asking them to rate the
-                experience 1&ndash;5. Responses are recorded against the analyst who closed the ticket so
-                you can pull per-analyst CSAT trends, and live as a widget on the dashboard.
+                <?php echo t('tickets.settings.csat_tab.intro1'); ?>
             </p>
             <p style="color: #555;">
-                The survey email is configured under <a href="#" onclick="event.preventDefault();switchTab('email-templates');">Email templates</a>
-                &mdash; create a template with event <strong>CSAT survey</strong> and embed
-                <code>[csat_link]</code> in the body to insert the one-shot rating URL.
+                <?php echo t('tickets.settings.csat_tab.intro2'); ?>
             </p>
 
             <form id="csatSettingsForm" style="max-width: 700px; margin-top: 24px;">
@@ -992,15 +943,15 @@ $translationNamespaces = ['common', 'tickets'];
                     <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
                         <label style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer;">
                             <input type="radio" name="csatMode" value="off" style="margin-top: 3px;">
-                            <span><strong>Off</strong><br><small style="color: #666;">No survey emails are sent.</small></span>
+                            <span><strong><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_off')); ?></strong><br><small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_off_help')); ?></small></span>
                         </label>
                         <label style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer;">
                             <input type="radio" name="csatMode" value="auto" style="margin-top: 3px;">
-                            <span><strong>Auto on close</strong><br><small style="color: #666;">A survey is sent automatically when a ticket moves into any closed status.</small></span>
+                            <span><strong><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_auto')); ?></strong><br><small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_auto_help')); ?></small></span>
                         </label>
                         <label style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer;">
                             <input type="radio" name="csatMode" value="manual" style="margin-top: 3px;">
-                            <span><strong>Manual only</strong><br><small style="color: #666;">Analysts click <em>Request feedback</em> from the ticket toolbar when they want to ask.</small></span>
+                            <span><strong><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_manual')); ?></strong><br><small style="color: #666;"><?php echo t('tickets.settings.csat_tab.mode_manual_help'); ?></small></span>
                         </label>
                     </div>
                 </div>
@@ -1008,15 +959,15 @@ $translationNamespaces = ['common', 'tickets'];
                 <div class="form-group">
                     <label for="csatDelay"><?php echo htmlspecialchars(t('tickets.settings.csat.delay_label')); ?></label>
                     <input type="number" id="csatDelay" min="0" max="10080" step="1" style="max-width: 160px;">
-                    <small style="display: block; color: #666; margin-top: 4px;">Wait this many minutes after close before sending. <code>0</code> = immediate. Useful if you want the user to verify the fix actually held before being asked to rate it.</small>
+                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo t('tickets.settings.csat_tab.delay_help'); ?></small>
                 </div>
 
                 <div class="form-group">
                     <label style="display: flex; align-items: center; gap: 10px;">
                         <input type="checkbox" id="csatOnePerTicket">
-                        <span>One survey per ticket</span>
+                        <span><?php echo htmlspecialchars(t('tickets.settings.csat_tab.one_per_ticket')); ?></span>
                     </label>
-                    <small style="display: block; color: #666; margin-top: 4px; margin-left: 26px;">If on, a reopened-then-closed ticket only gets another survey when an analyst manually triggers it &mdash; stops survey-spamming a flaky ticket.</small>
+                    <small style="display: block; color: #666; margin-top: 4px; margin-left: 26px;"><?php echo t('tickets.settings.csat_tab.one_per_ticket_help'); ?></small>
                 </div>
 
                 <div class="form-group">
@@ -1025,15 +976,15 @@ $translationNamespaces = ['common', 'tickets'];
                         <label style="display: flex; gap: 8px; align-items: center; cursor: pointer;">
                             <input type="radio" name="csatScale" value="stars">
                             <span style="font-size: 18px;">&starf;&starf;&starf;&starf;&starf;</span>
-                            <span style="color: #666; font-size: 13px;">Stars</span>
+                            <span style="color: #666; font-size: 13px;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_stars')); ?></span>
                         </label>
                         <label style="display: flex; gap: 8px; align-items: center; cursor: pointer;">
                             <input type="radio" name="csatScale" value="emojis">
                             <span style="font-size: 18px;">😡 🙁 😐 🙂 😀</span>
-                            <span style="color: #666; font-size: 13px;">Emojis</span>
+                            <span style="color: #666; font-size: 13px;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_emojis')); ?></span>
                         </label>
                     </div>
-                    <small style="display: block; color: #666; margin-top: 4px;">Both options store the same 1&ndash;5 number, so dashboards and averages work the same either way &mdash; this only changes how the survey page itself looks.</small>
+                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo t('tickets.settings.csat_tab.scale_help'); ?></small>
                 </div>
 
                 <div class="modal-actions" style="justify-content: flex-start; margin-top: 30px;">
@@ -1076,9 +1027,9 @@ $translationNamespaces = ['common', 'tickets'];
 
                 <div class="form-group" id="itemPausesSlaGroup" style="display: none;">
                     <label>
-                        <input type="checkbox" id="itemPausesSla"> Pauses SLA clock
+                        <input type="checkbox" id="itemPausesSla"> <?php echo htmlspecialchars(t('tickets.settings.pauses_sla.label')); ?>
                     </label>
-                    <small style="display: block; color: #666; margin-top: 4px;">When a ticket is in this status, the SLA clock stops ticking. Used for statuses where the ticket isn't being actively worked (e.g. <em>On Hold</em>, <em>Awaiting Response</em>).</small>
+                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo t('tickets.settings.pauses_sla.help'); ?></small>
                 </div>
 
                 <div class="form-group" id="itemDefaultGroup" style="display: none;">
@@ -1256,7 +1207,7 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Messaging Channel Modal (WhatsApp etc.) -->
     <div class="modal" id="channelModal">
         <div class="modal-content" style="max-width: 640px;">
-            <div class="modal-header" id="channelModalTitle">Add channel</div>
+            <div class="modal-header" id="channelModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.add_title')); ?></div>
             <div class="modal-body">
             <form id="channelForm" autocomplete="off">
                 <input type="hidden" id="channelId">
@@ -1264,83 +1215,83 @@ $translationNamespaces = ['common', 'tickets'];
 
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                     <div class="form-group">
-                        <label for="channelName">Name *</label>
-                        <input type="text" id="channelName" required placeholder="e.g. Support WhatsApp">
+                        <label for="channelName"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.name')); ?> *</label>
+                        <input type="text" id="channelName" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.channel.name_placeholder')); ?>">
                     </div>
 
                     <div class="form-group">
-                        <label for="channelProvider">Provider *</label>
+                        <label for="channelProvider"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.provider')); ?> *</label>
                         <select id="channelProvider" onchange="toggleChannelProviderFields()">
                             <option value="twilio">Twilio</option>
-                            <option value="meta">Meta (WhatsApp Cloud)</option>
+                            <option value="meta"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.provider_meta')); ?></option>
                         </select>
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
-                        <label for="channelPhone">WhatsApp number</label>
-                        <input type="text" id="channelPhone" placeholder="+14155238886">
-                        <small style="color:#666;">The business number messages are sent from (include the country code).</small>
+                        <label for="channelPhone"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.phone')); ?></label>
+                        <input type="text" id="channelPhone" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.channel.phone_placeholder')); ?>">
+                        <small style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.phone_help')); ?></small>
                     </div>
 
                     <!-- Multi-tenancy: only shown when more than one company exists (populated by JS). -->
                     <div class="form-group" id="channelCompanyGroup" style="display:none; grid-column: span 2;">
-                        <label for="channelCompany">Company</label>
+                        <label for="channelCompany"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.company')); ?></label>
                         <select id="channelCompany"></select>
-                        <small style="color:#666; display:block; margin-top:4px;">Pin this channel to one company, or leave as shared intake (routed by sender number).</small>
+                        <small style="color:#666; display:block; margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.company_help')); ?></small>
                     </div>
 
                     <!-- Twilio credentials -->
                     <div class="form-group provider-twilio">
-                        <label for="channelAccountSid">Account SID *</label>
+                        <label for="channelAccountSid"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.account_sid')); ?> *</label>
                         <input type="text" id="channelAccountSid" placeholder="ACxxxxxxxx">
                     </div>
                     <div class="form-group provider-twilio">
-                        <label for="channelAuthToken">Auth token *</label>
+                        <label for="channelAuthToken"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.auth_token')); ?> *</label>
                         <input type="password" id="channelAuthToken" placeholder="••••••••">
                     </div>
 
                     <!-- Meta credentials -->
                     <div class="form-group provider-meta">
-                        <label for="channelPhoneNumberId">Phone number ID *</label>
+                        <label for="channelPhoneNumberId"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.phone_number_id')); ?> *</label>
                         <input type="text" id="channelPhoneNumberId" placeholder="1234567890">
                     </div>
                     <div class="form-group provider-meta">
-                        <label for="channelAccessToken">Access token *</label>
+                        <label for="channelAccessToken"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.access_token')); ?> *</label>
                         <input type="password" id="channelAccessToken" placeholder="••••••••">
                     </div>
                     <div class="form-group provider-meta">
-                        <label for="channelAppSecret">App secret *</label>
+                        <label for="channelAppSecret"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.app_secret')); ?> *</label>
                         <input type="password" id="channelAppSecret" placeholder="••••••••">
                     </div>
                     <div class="form-group provider-meta">
-                        <label for="channelVerifyToken">Verify token</label>
-                        <input type="text" id="channelVerifyToken" placeholder="any string you choose">
-                        <small style="color:#666;">Used for Meta's webhook subscription handshake.</small>
+                        <label for="channelVerifyToken"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.verify_token')); ?></label>
+                        <input type="text" id="channelVerifyToken" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.channel.verify_token_placeholder')); ?>">
+                        <small style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.verify_token_help')); ?></small>
                     </div>
                     <div class="form-group provider-meta">
-                        <label for="channelGraphVersion">Graph API version <span style="color:#888; font-weight:normal;">(advanced, optional)</span></label>
-                        <input type="text" id="channelGraphVersion" placeholder="v21.0 (default)">
-                        <small style="color:#666;">Only change if Meta retires the default version. Leave blank to use the built-in default.</small>
+                        <label for="channelGraphVersion"><?php echo t('tickets.settings.modals.channel.graph_version'); ?></label>
+                        <input type="text" id="channelGraphVersion" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.channel.graph_version_placeholder')); ?>">
+                        <small style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.graph_version_help')); ?></small>
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
-                        <label for="channelIngress">Inbound delivery</label>
+                        <label for="channelIngress"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.ingress')); ?></label>
                         <select id="channelIngress" onchange="toggleChannelIngressFields()">
-                            <option value="direct">Direct — the provider hits this install's webhook URL</option>
-                            <option value="relay">Relay — a hosted relay forwards messages here</option>
+                            <option value="direct"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.ingress_direct')); ?></option>
+                            <option value="relay"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.ingress_relay')); ?></option>
                         </select>
                     </div>
                     <div class="form-group provider-relay" style="grid-column: span 2; display:none;">
-                        <label for="channelRelaySecret">Relay shared secret</label>
-                        <input type="text" id="channelRelaySecret" placeholder="shared secret between the relay and this install">
+                        <label for="channelRelaySecret"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.relay_secret')); ?></label>
+                        <input type="text" id="channelRelaySecret" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.channel.relay_secret_placeholder')); ?>">
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
-                        <label><input type="checkbox" id="channelActive" checked> Active</label>
+                        <label><input type="checkbox" id="channelActive" checked> <?php echo htmlspecialchars(t('tickets.settings.modals.channel.active')); ?></label>
                     </div>
 
                     <div class="form-group" id="channelWebhookHintGroup" style="grid-column: span 2; display:none;">
-                        <label>Webhook URL (paste into your provider)</label>
+                        <label><?php echo htmlspecialchars(t('tickets.settings.modals.channel.webhook_hint_label')); ?></label>
                         <input type="text" id="channelWebhookHint" readonly onclick="this.select()">
                     </div>
                 </div>
@@ -1356,39 +1307,39 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Messaging Template Modal -->
     <div class="modal" id="msgTemplateModal">
         <div class="modal-content" style="max-width: 600px;">
-            <div class="modal-header" id="msgTemplateModalTitle">Add template</div>
+            <div class="modal-header" id="msgTemplateModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.add_title')); ?></div>
             <div class="modal-body">
             <form id="msgTemplateForm" autocomplete="off">
                 <input type="hidden" id="msgTemplateId">
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
                     <div class="form-group">
-                        <label for="msgTemplateName">Name *</label>
-                        <input type="text" id="msgTemplateName" required placeholder="e.g. Ticket update nudge">
+                        <label for="msgTemplateName"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.name')); ?> *</label>
+                        <input type="text" id="msgTemplateName" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.name_placeholder')); ?>">
                     </div>
                     <div class="form-group">
-                        <label for="msgTemplateProvider">Provider *</label>
+                        <label for="msgTemplateProvider"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.provider')); ?> *</label>
                         <select id="msgTemplateProvider" onchange="msgTemplateProviderHint()">
                             <option value="twilio">Twilio</option>
-                            <option value="meta">Meta (WhatsApp Cloud)</option>
+                            <option value="meta"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.provider_meta')); ?></option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label for="msgTemplateRef" id="msgTemplateRefLabel">Twilio Content SID *</label>
-                        <input type="text" id="msgTemplateRef" required placeholder="HXxxxxxxxxxxxxxxxx">
-                        <small id="msgTemplateRefHint" style="color:#666;">The Content SID of the approved template in your Twilio console.</small>
+                        <label for="msgTemplateRef" id="msgTemplateRefLabel"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.ref_label')); ?> *</label>
+                        <input type="text" id="msgTemplateRef" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.ref_placeholder')); ?>">
+                        <small id="msgTemplateRefHint" style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.ref_help')); ?></small>
                     </div>
                     <div class="form-group">
-                        <label for="msgTemplateLang">Language</label>
-                        <input type="text" id="msgTemplateLang" placeholder="en" value="en">
-                        <small style="color:#666;">Used by Meta (e.g. en, en_US). Ignored by Twilio.</small>
+                        <label for="msgTemplateLang"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.lang')); ?></label>
+                        <input type="text" id="msgTemplateLang" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.lang_placeholder')); ?>" value="en">
+                        <small style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.lang_help')); ?></small>
                     </div>
                     <div class="form-group" style="grid-column: span 2;">
-                        <label for="msgTemplateBody">Body *</label>
-                        <textarea id="msgTemplateBody" rows="3" required placeholder="Hi {{1}}, there's an update on your ticket {{2}} — reply to continue."></textarea>
-                        <small style="color:#666;">Must match the approved template. Use <code>{{1}}</code>, <code>{{2}}</code> … for the variables an analyst fills in.</small>
+                        <label for="msgTemplateBody"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.body')); ?> *</label>
+                        <textarea id="msgTemplateBody" rows="3" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.body_placeholder')); ?>"></textarea>
+                        <small style="color:#666;"><?php echo t('tickets.settings.modals.msg_template.body_help'); ?></small>
                     </div>
                     <div class="form-group" style="grid-column: span 2;">
-                        <label><input type="checkbox" id="msgTemplateActive" checked> Active</label>
+                        <label><input type="checkbox" id="msgTemplateActive" checked> <?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.active')); ?></label>
                     </div>
                 </div>
             </form>
@@ -1421,7 +1372,7 @@ $translationNamespaces = ['common', 'tickets'];
                         </tr>
                     </thead>
                     <tbody id="activityList">
-                        <tr><td colspan="5" style="text-align: center;">Loading...</td></tr>
+                        <tr><td colspan="5" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                     </tbody>
                 </table>
             </div>
@@ -1471,9 +1422,9 @@ $translationNamespaces = ['common', 'tickets'];
                 </div>
 
                 <div class="form-group">
-                    <label for="analystAuthProvider">Sign-in method</label>
+                    <label for="analystAuthProvider"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.signin_method')); ?></label>
                     <select id="analystAuthProvider">
-                        <option value="">Local (username &amp; password)</option>
+                        <option value=""><?php echo t('tickets.settings.analyst_extra.signin_local'); ?></option>
                         <?php
                         // Single sign-on providers — assigning one makes this analyst an SSO user
                         // (strict isolation: they can only sign in via the chosen provider).
@@ -1485,7 +1436,7 @@ $translationNamespaces = ['common', 'tickets'];
                         } catch (Exception $e) { /* table may not exist yet */ }
                         ?>
                     </select>
-                    <small style="color: #666;">Local users sign in with a password. Assign a provider to require SSO for this analyst — on their next SSO sign-in their identity is linked automatically (matched by email).</small>
+                    <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.signin_help')); ?></small>
                 </div>
 
                 <!-- Multi-tenancy: company access. Hidden on a single-company install
@@ -1496,9 +1447,9 @@ $translationNamespaces = ['common', 'tickets'];
                             <input type="checkbox" id="analystAllAccess" checked onchange="syncAnalystAccess()">
                             <span class="toggle-slider"></span>
                         </span>
-                        Access all companies
+                        <?php echo htmlspecialchars(t('tickets.settings.analyst_extra.access_all')); ?>
                     </label>
-                    <small style="color: #666; display: block; margin-top: 4px;">On = this analyst can work in every company (now and any added later). Off = only the companies you tick below.</small>
+                    <small style="color: #666; display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.access_all_help')); ?></small>
                     <div id="analystCompanyList" style="display: none; margin-top: 8px; max-height: 180px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; padding: 8px;"></div>
                 </div>
 
@@ -1683,20 +1634,20 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- SLA Calendar Modal -->
     <div class="modal" id="slaCalendarModal">
         <div class="modal-content" style="max-width:680px;">
-            <div class="modal-header" id="slaCalendarModalTitle">Add business calendar</div>
+            <div class="modal-header" id="slaCalendarModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.add_title')); ?></div>
             <div class="modal-body">
                 <form id="slaCalendarForm">
                     <input type="hidden" id="slaCalendarId">
 
                     <div class="form-row">
                         <div class="form-group">
-                            <label for="slaCalendarName">Name *</label>
-                            <input type="text" id="slaCalendarName" required placeholder="e.g. London business hours">
+                            <label for="slaCalendarName"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.name')); ?> *</label>
+                            <input type="text" id="slaCalendarName" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.name_placeholder')); ?>">
                         </div>
                         <div class="form-group">
-                            <label for="slaCalendarTimezone">Timezone *</label>
+                            <label for="slaCalendarTimezone"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.timezone')); ?> *</label>
                             <select id="slaCalendarTimezone" required></select>
-                            <small>IANA zone (e.g. Europe/London, America/New_York)</small>
+                            <small><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.timezone_help')); ?></small>
                         </div>
                     </div>
 
@@ -1706,26 +1657,26 @@ $translationNamespaces = ['common', 'tickets'];
                                 <input type="checkbox" id="slaCalendarIsDefault">
                                 <span class="toggle-slider"></span>
                             </span>
-                            Default calendar
+                            <?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.default_label')); ?>
                         </label>
-                        <small>Used for priorities that don't have a calendar of their own.</small>
+                        <small><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.default_help')); ?></small>
                     </div>
 
-                    <h4 style="margin:24px 0 8px;">Weekly working hours</h4>
-                    <p style="color:#666;font-size:13px;margin:0 0 10px;">Uncheck a day to mark it as closed. Most desks use Mon-Fri 09:00-17:00.</p>
+                    <h4 style="margin:24px 0 8px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.hours_heading')); ?></h4>
+                    <p style="color:#666;font-size:13px;margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.hours_help')); ?></p>
                     <div id="slaCalendarHoursGrid" style="display:grid;grid-template-columns:90px 80px 1fr 1fr;gap:8px 12px;align-items:center;">
                         <!-- rows injected by JS: 7 weekdays -->
                     </div>
 
-                    <h4 style="margin:24px 0 8px;">Holidays</h4>
-                    <p style="color:#666;font-size:13px;margin:0 0 10px;">Dates that override the weekly pattern (the clock won't tick on these days).</p>
+                    <h4 style="margin:24px 0 8px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_heading')); ?></h4>
+                    <p style="color:#666;font-size:13px;margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_help')); ?></p>
                     <div id="slaCalendarHolidaysList" style="margin-bottom:10px;"></div>
                     <div style="display:flex;gap:8px;">
                         <input type="date" id="slaCalendarHolidayDate" style="padding:6px 10px;border:1px solid #ddd;border-radius:4px;">
-                        <input type="text" id="slaCalendarHolidayName" placeholder="Name (optional, e.g. Christmas Day)" style="flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:4px;">
-                        <button type="button" class="btn btn-secondary" onclick="addSlaHoliday()">Add holiday</button>
+                        <input type="text" id="slaCalendarHolidayName" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holiday_name_placeholder')); ?>" style="flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:4px;">
+                        <button type="button" class="btn btn-secondary" onclick="addSlaHoliday()"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.add_holiday')); ?></button>
                     </div>
-                    <small style="color:#666;display:block;margin-top:4px;">Note: holidays are saved with the rest of the calendar — they only persist when you hit Save.</small>
+                    <small style="color:#666;display:block;margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_note')); ?></small>
                 </form>
             </div>
             <div class="modal-footer">
