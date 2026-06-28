@@ -182,7 +182,7 @@ $translationNamespaces = ['common', 'tickets'];
 
         .ticket-row {
             display: grid;
-            grid-template-columns: 130px 1fr 100px 80px 130px;
+            grid-template-columns: 130px 1fr 150px 80px 130px;
             padding: 12px 20px;
             border-bottom: 1px solid var(--border-soft, #eee);
             cursor: pointer;
@@ -221,11 +221,14 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .ticket-status {
+            display: inline-block;
+            width: 138px;          /* uniform width for every status badge */
+            box-sizing: border-box;
             padding: 4px 8px;
             border-radius: 4px;
             font-size: 12px;
             text-align: center;
-            width: fit-content;
+            white-space: nowrap;   /* keep "Awaiting Response" on one line */
         }
 
         .ticket-priority {
