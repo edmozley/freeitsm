@@ -962,7 +962,7 @@ $translationNamespaces = ['common', 'tickets'];
                             <p style="margin: 0 0 12px 0; font-size: 13px;">
                                 <?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.prompt_panel_intro')); ?>
                             </p>
-                            <pre id="rcPromptPreview" style="white-space: pre-wrap; word-wrap: break-word; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; background: white; padding: 14px; border: 1px solid #e0e0e0; border-radius: 4px; max-height: calc(100vh - 280px); overflow-y: auto; color: #333; margin: 0;"></pre>
+                            <pre id="rcPromptPreview" style="white-space: pre-wrap; word-wrap: break-word; font-family: 'Consolas', 'Monaco', monospace; font-size: 12px; line-height: 1.5; background: var(--surface, white); padding: 14px; border: 1px solid var(--border, #e0e0e0); border-radius: 4px; max-height: calc(100vh - 280px); overflow-y: auto; color: var(--text, #333); margin: 0;"></pre>
                         </div>
                     </details>
                 </aside>

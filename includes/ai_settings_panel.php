@@ -48,11 +48,11 @@ function renderAiSettingsPanel(string $ns, array $opts = []): void
     .ai-settings-panel { max-width: 640px; }
     .ai-settings-panel .form-group { margin-bottom: 16px; }
     .ai-settings-panel .ai-note {
-        font-size: 12px; color: #8a6d1f; background: #fff8e1; border: 1px solid #ffe49a;
+        font-size: 12px; color: var(--warning-text, #8a6d1f); background: var(--warning-bg, #fff8e1); border: 1px solid var(--warning-border, #ffe49a);
         border-radius: 6px; padding: 8px 12px; margin-bottom: 16px; display: none;
     }
     .ai-settings-panel .ai-note.show { display: block; }
-    .ai-settings-panel .ai-model-hint { display: block; font-size: 12px; color: #888; margin-top: 4px; }
+    .ai-settings-panel .ai-model-hint { display: block; font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; }
     /* Self-contained model dropdown — replaces a native <datalist> so a long
        list can't trigger the browser's scroll-into-view on the overflow:hidden
        body (which would push the page header off the top). */
@@ -60,22 +60,22 @@ function renderAiSettingsPanel(string $ns, array $opts = []): void
     .ai-settings-panel .ai-model-combo input { width: 100%; }
     .ai-settings-panel .ai-model-menu {
         position: absolute; top: calc(100% + 2px); left: 0; right: 0; z-index: 60;
-        background: #fff; border: 1px solid #ddd; border-radius: 6px;
-        max-height: 240px; overflow-y: auto; box-shadow: 0 4px 14px rgba(0,0,0,0.14);
+        background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 6px;
+        max-height: 240px; overflow-y: auto; box-shadow: 0 4px 14px var(--shadow, rgba(0,0,0,0.14));
     }
     .ai-settings-panel .ai-model-menu[hidden] { display: none; }
     .ai-settings-panel .ai-model-opt {
         padding: 8px 12px; cursor: pointer; font-size: 13px;
         display: flex; justify-content: space-between; gap: 10px; align-items: baseline;
     }
-    .ai-settings-panel .ai-model-opt:hover, .ai-settings-panel .ai-model-opt.active { background: #eef4ff; }
+    .ai-settings-panel .ai-model-opt:hover, .ai-settings-panel .ai-model-opt.active { background: var(--accent-soft, #eef4ff); }
     .ai-settings-panel .ai-model-opt .ai-model-id { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .ai-settings-panel .ai-model-opt .ai-model-px { color: #888; white-space: nowrap; font-size: 12px; }
-    .ai-settings-panel .ai-model-empty { padding: 8px 12px; color: #999; font-size: 12px; }
+    .ai-settings-panel .ai-model-opt .ai-model-px { color: var(--text-dim, #888); white-space: nowrap; font-size: 12px; }
+    .ai-settings-panel .ai-model-empty { padding: 8px 12px; color: var(--text-faint, #999); font-size: 12px; }
     .ai-settings-panel .ai-result { margin-top: 12px; font-size: 13px; min-height: 18px; }
-    .ai-settings-panel .ai-result.ok   { color: #107c10; }
-    .ai-settings-panel .ai-result.err  { color: #d13438; }
-    .ai-settings-panel .ai-result.busy { color: #666; }
+    .ai-settings-panel .ai-result.ok   { color: var(--success-text, #107c10); }
+    .ai-settings-panel .ai-result.err  { color: var(--danger-accent, #d13438); }
+    .ai-settings-panel .ai-result.busy { color: var(--text-muted, #666); }
     </style>
     <?php endif; ?>
 
