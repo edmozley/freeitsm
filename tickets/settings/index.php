@@ -6,6 +6,7 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/ai_settings_panel.php';
 I18n::initFromSession();
 
@@ -31,11 +32,12 @@ $path_prefix = '../../';  // Two levels up from tickets/settings/
 $translationNamespaces = ['common', 'tickets'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.settings.page_title')); ?></title>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=4">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
@@ -96,22 +98,22 @@ $translationNamespaces = ['common', 'tickets'];
             max-width: none !important;
         }
         .reply-cleanup-prompt-panel details {
-            border: 1px solid #e5e5e5;
+            border: 1px solid var(--border, #e5e5e5);
             border-radius: 4px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
         }
         .reply-cleanup-prompt-panel summary {
             padding: 12px 16px;
             cursor: pointer;
             font-weight: 600;
-            color: #333;
+            color: var(--text, #333);
         }
 
         /* Settings page uses .action-btn for table buttons */
         .tab-content .action-btn {
             background: none;
-            border: 1px solid #ddd;
-            color: #666;
+            border: 1px solid var(--border, #ddd);
+            color: var(--text-muted, #666);
             cursor: pointer;
             padding: 6px;
             margin-right: 4px;
@@ -123,19 +125,19 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .tab-content .action-btn:hover {
-            background: #f0f0f0;
-            border-color: #0078d4;
-            color: #0078d4;
+            background: var(--surface-hover, #f0f0f0);
+            border-color: var(--accent, #0078d4);
+            color: var(--accent, #0078d4);
         }
 
         .tab-content .action-btn.delete {
-            color: #d13438;
+            color: var(--danger-accent, #d13438);
         }
 
         .tab-content .action-btn.delete:hover {
-            background: #fdf3f3;
-            border-color: #d13438;
-            color: #a00;
+            background: var(--danger-bg, #fdf3f3);
+            border-color: var(--danger-accent, #d13438);
+            color: var(--danger-text, #a00);
         }
 
         .tab-content .action-btn svg {
@@ -143,7 +145,7 @@ $translationNamespaces = ['common', 'tickets'];
             height: 16px;
         }
 
-        /* Exchange status boxes */
+        /* Exchange status boxes — semantic token pairs so they flip in dark mode. */
         .exchange-status {
             padding: 15px;
             border-radius: 8px;
@@ -154,15 +156,15 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .exchange-status.authenticated {
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
+            background: var(--success-bg, #d4edda);
+            border: 1px solid var(--success-accent, #c3e6cb);
+            color: var(--success-text, #155724);
         }
 
         .exchange-status.not-authenticated {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
-            color: #856404;
+            background: var(--warning-bg, #fff3cd);
+            border: 1px solid var(--warning-border, #ffeaa7);
+            color: var(--warning-text, #856404);
         }
 
         .exchange-status .status-icon {
@@ -178,23 +180,23 @@ $translationNamespaces = ['common', 'tickets'];
 
         .exchange-result.success {
             display: block;
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
+            background: var(--success-bg, #d4edda);
+            border: 1px solid var(--success-accent, #c3e6cb);
+            color: var(--success-text, #155724);
         }
 
         .exchange-result.error {
             display: block;
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+            background: var(--danger-bg, #f8d7da);
+            border: 1px solid var(--danger-accent, #f5c6cb);
+            color: var(--danger-text, #721c24);
         }
 
         .exchange-result.info {
             display: block;
-            background: #d1ecf1;
-            border: 1px solid #bee5eb;
-            color: #0c5460;
+            background: var(--accent-soft, #d1ecf1);
+            border: 1px solid var(--accent, #bee5eb);
+            color: var(--accent-hover, #0c5460);
         }
 
         .exchange-result pre {
@@ -216,12 +218,10 @@ $translationNamespaces = ['common', 'tickets'];
             font-size: 20px;
             font-weight: 600;
             margin-bottom: 20px;
-            color: #333;
+            color: var(--text, #333);
             padding: 0;
             border-bottom: none;
         }
-        /* Toggle switch — base styles in inbox.css; just pin the accent. */
-        body { --accent: #0078d4; }
 
         /* Email-template body: Edit / Preview tabs */
         .tpl-body-tabs { display: flex; gap: 4px; margin-bottom: 6px; }
@@ -308,7 +308,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.teams')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('team')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 20px; color: #666;"><?php echo t('tickets.settings.intros.teams'); ?></p>
+            <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.teams'); ?></p>
             <table>
                 <thead>
                     <tr>
@@ -377,7 +377,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.statuses')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('status')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 20px; color: #666;"><?php echo t('tickets.settings.intros.statuses'); ?></p>
+            <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.statuses'); ?></p>
             <table>
                 <thead>
                     <tr>
@@ -403,7 +403,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.priorities')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('priority')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 20px; color: #666;"><?php echo t('tickets.settings.intros.priorities'); ?></p>
+            <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.priorities'); ?></p>
             <table>
                 <thead>
                     <tr>
@@ -424,7 +424,7 @@ $translationNamespaces = ['common', 'tickets'];
         <!-- SLA Tab — see docs/sla.md -->
         <div class="tab-content" id="sla-tab">
             <h2><?php echo htmlspecialchars(t('tickets.settings.sla.heading')); ?></h2>
-            <p style="margin-bottom: 20px; color: #666;">
+            <p style="margin-bottom: 20px; color: var(--text-muted, #666);">
                 <?php echo t('tickets.settings.sla.intro'); ?>
             </p>
 
@@ -435,7 +435,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <div class="form-group" style="grid-column:span 2;">
                         <label for="slaEnforceFrom"><?php echo htmlspecialchars(t('tickets.settings.sla.enforce_from')); ?></label>
                         <input type="datetime-local" id="slaEnforceFrom" style="max-width:260px;">
-                        <small style="display:block;color:#666;margin-top:4px;">
+                        <small style="display:block;color:var(--text-muted, #666);margin-top:4px;">
                             <?php echo t('tickets.settings.sla.enforce_from_help'); ?>
                         </small>
                     </div>
@@ -479,7 +479,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <div class="form-group">
                         <label for="slaWarningThreshold"><?php echo htmlspecialchars(t('tickets.settings.sla.warning_threshold')); ?></label>
                         <input type="number" id="slaWarningThreshold" min="1" max="100" style="max-width:120px;">
-                        <small style="display:block;color:#666;margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.sla.warning_threshold_help')); ?></small>
+                        <small style="display:block;color:var(--text-muted, #666);margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.sla.warning_threshold_help')); ?></small>
                     </div>
 
                     <div class="form-group">
@@ -501,7 +501,7 @@ $translationNamespaces = ['common', 'tickets'];
             <!-- ===== SLA Targets per priority ===== -->
             <div class="settings-group">
                 <h3><?php echo htmlspecialchars(t('tickets.settings.sla.targets_heading')); ?></h3>
-                <p style="color:#666;margin-bottom:14px;"><?php echo htmlspecialchars(t('tickets.settings.sla.targets_intro')); ?></p>
+                <p style="color:var(--text-muted, #666);margin-bottom:14px;"><?php echo htmlspecialchars(t('tickets.settings.sla.targets_intro')); ?></p>
                 <table>
                     <thead>
                         <tr>
@@ -524,7 +524,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <h3><?php echo htmlspecialchars(t('tickets.settings.sla.calendars_heading')); ?></h3>
                     <button class="add-btn" onclick="openSlaCalendarModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
                 </div>
-                <p style="color:#666;margin-bottom:14px;"><?php echo htmlspecialchars(t('tickets.settings.sla.calendars_intro')); ?></p>
+                <p style="color:var(--text-muted, #666);margin-bottom:14px;"><?php echo htmlspecialchars(t('tickets.settings.sla.calendars_intro')); ?></p>
                 <table>
                     <thead>
                         <tr>
@@ -553,7 +553,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <?php echo t('tickets.settings.sla.notifs_info'); ?>
                 </div>
 
-                <p style="color:#666;margin-bottom:14px;">
+                <p style="color:var(--text-muted, #666);margin-bottom:14px;">
                     <?php echo t('tickets.settings.sla.notifs_dedup'); ?>
                 </p>
                 <table>
@@ -571,7 +571,7 @@ $translationNamespaces = ['common', 'tickets'];
                         <tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                     </tbody>
                 </table>
-                <p style="color:#888;margin-top:14px;font-size:12px;">
+                <p style="color:var(--text-dim, #888);margin-top:14px;font-size:12px;">
                     <?php echo t('tickets.settings.sla.notifs_cron_note'); ?>
                 </p>
             </div>
@@ -582,7 +582,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <h3><?php echo htmlspecialchars(t('tickets.settings.sla.cron_heading')); ?></h3>
                     <button class="add-btn" onclick="loadSlaCronRuns()" title="<?php echo htmlspecialchars(t('tickets.settings.sla.cron_refresh')); ?>">&#x21bb;</button>
                 </div>
-                <p style="color:#666;margin-bottom:14px;">
+                <p style="color:var(--text-muted, #666);margin-bottom:14px;">
                     <?php echo t('tickets.settings.sla.cron_intro'); ?>
                 </p>
                 <table>
@@ -680,7 +680,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.rota_locations')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('rota-location')"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 20px; color: #666;"><?php echo t('tickets.settings.intros.rota_locations'); ?></p>
+            <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.rota_locations'); ?></p>
             <table>
                 <thead>
                     <tr>
@@ -762,7 +762,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <input type="text" id="messagingBaseUrl" style="flex:1;" placeholder="<?php echo htmlspecialchars(t('tickets.settings.messaging.base_url_placeholder')); ?>">
                     <button class="btn btn-primary" type="button" onclick="saveMessagingBaseUrl()"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
-                <small style="color:#666; display:block; margin-top:4px; max-width:none;">
+                <small style="color:var(--text-muted, #666); display:block; margin-top:4px; max-width:none;">
                     <?php echo t('tickets.settings.messaging.base_url_help'); ?>
                 </small>
             </div>
@@ -811,7 +811,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.email_templates')); ?></h2>
                 <button class="add-btn" onclick="openTemplateModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="margin-bottom: 15px; color: #666;"><?php echo t('tickets.settings.intros.email_templates'); ?></p>
+            <p style="margin-bottom: 15px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.email_templates'); ?></p>
             <table>
                 <thead>
                     <tr>
@@ -892,7 +892,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <div class="form-group">
                     <label for="systemName"><?php echo htmlspecialchars(t('tickets.settings.general.system_name')); ?></label>
                     <input type="text" id="systemName" placeholder="<?php echo htmlspecialchars(t('tickets.settings.general.system_name_placeholder')); ?>">
-                    <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.general.system_name_help')); ?></small>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.system_name_help')); ?></small>
                 </div>
 
                 <div class="form-group">
@@ -900,7 +900,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <select id="systemTimezone" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
                         <option value=""><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></option>
                     </select>
-                    <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.general.timezone_help')); ?></small>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.timezone_help')); ?></small>
                 </div>
 
                 <div class="modal-actions" style="justify-content: flex-start; margin-top: 30px;">
@@ -936,7 +936,7 @@ $translationNamespaces = ['common', 'tickets'];
                                 <option value="Formal"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_formal')); ?></option>
                                 <option value="Brief"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_brief')); ?></option>
                             </select>
-                            <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_help')); ?></small>
+                            <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.tone_help')); ?></small>
                         </div>
 
                         <div class="form-group">
@@ -944,7 +944,7 @@ $translationNamespaces = ['common', 'tickets'];
                             <textarea id="rcCustomInstructions" rows="6" maxlength="4000"
                                       style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; font-family: inherit; resize: vertical;"
                                       placeholder="<?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.custom_placeholder')); ?>"></textarea>
-                            <small style="color: #666;">
+                            <small style="color: var(--text-muted, #666);">
                                 <?php echo htmlspecialchars(t('tickets.settings.reply_cleanup.custom_help')); ?>
                             </small>
                         </div>
@@ -987,15 +987,15 @@ $translationNamespaces = ['common', 'tickets'];
                     <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 6px;">
                         <label style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer;">
                             <input type="radio" name="csatMode" value="off" style="margin-top: 3px;">
-                            <span><strong><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_off')); ?></strong><br><small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_off_help')); ?></small></span>
+                            <span><strong><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_off')); ?></strong><br><small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_off_help')); ?></small></span>
                         </label>
                         <label style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer;">
                             <input type="radio" name="csatMode" value="auto" style="margin-top: 3px;">
-                            <span><strong><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_auto')); ?></strong><br><small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_auto_help')); ?></small></span>
+                            <span><strong><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_auto')); ?></strong><br><small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_auto_help')); ?></small></span>
                         </label>
                         <label style="display: flex; gap: 10px; align-items: flex-start; cursor: pointer;">
                             <input type="radio" name="csatMode" value="manual" style="margin-top: 3px;">
-                            <span><strong><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_manual')); ?></strong><br><small style="color: #666;"><?php echo t('tickets.settings.csat_tab.mode_manual_help'); ?></small></span>
+                            <span><strong><?php echo htmlspecialchars(t('tickets.settings.csat_tab.mode_manual')); ?></strong><br><small style="color: var(--text-muted, #666);"><?php echo t('tickets.settings.csat_tab.mode_manual_help'); ?></small></span>
                         </label>
                     </div>
                 </div>
@@ -1003,7 +1003,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <div class="form-group">
                     <label for="csatDelay"><?php echo htmlspecialchars(t('tickets.settings.csat.delay_label')); ?></label>
                     <input type="number" id="csatDelay" min="0" max="10080" step="1" style="max-width: 160px;">
-                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo t('tickets.settings.csat_tab.delay_help'); ?></small>
+                    <small style="display: block; color: var(--text-muted, #666); margin-top: 4px;"><?php echo t('tickets.settings.csat_tab.delay_help'); ?></small>
                 </div>
 
                 <div class="form-group">
@@ -1011,7 +1011,7 @@ $translationNamespaces = ['common', 'tickets'];
                         <input type="checkbox" id="csatOnePerTicket">
                         <span><?php echo htmlspecialchars(t('tickets.settings.csat_tab.one_per_ticket')); ?></span>
                     </label>
-                    <small style="display: block; color: #666; margin-top: 4px; margin-left: 26px;"><?php echo t('tickets.settings.csat_tab.one_per_ticket_help'); ?></small>
+                    <small style="display: block; color: var(--text-muted, #666); margin-top: 4px; margin-left: 26px;"><?php echo t('tickets.settings.csat_tab.one_per_ticket_help'); ?></small>
                 </div>
 
                 <div class="form-group">
@@ -1020,15 +1020,15 @@ $translationNamespaces = ['common', 'tickets'];
                         <label style="display: flex; gap: 8px; align-items: center; cursor: pointer;">
                             <input type="radio" name="csatScale" value="stars">
                             <span style="font-size: 18px;">&starf;&starf;&starf;&starf;&starf;</span>
-                            <span style="color: #666; font-size: 13px;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_stars')); ?></span>
+                            <span style="color: var(--text-muted, #666); font-size: 13px;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_stars')); ?></span>
                         </label>
                         <label style="display: flex; gap: 8px; align-items: center; cursor: pointer;">
                             <input type="radio" name="csatScale" value="emojis">
                             <span style="font-size: 18px;">😡 🙁 😐 🙂 😀</span>
-                            <span style="color: #666; font-size: 13px;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_emojis')); ?></span>
+                            <span style="color: var(--text-muted, #666); font-size: 13px;"><?php echo htmlspecialchars(t('tickets.settings.csat_tab.scale_emojis')); ?></span>
                         </label>
                     </div>
-                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo t('tickets.settings.csat_tab.scale_help'); ?></small>
+                    <small style="display: block; color: var(--text-muted, #666); margin-top: 4px;"><?php echo t('tickets.settings.csat_tab.scale_help'); ?></small>
                 </div>
 
                 <div class="modal-actions" style="justify-content: flex-start; margin-top: 30px;">
@@ -1059,28 +1059,28 @@ $translationNamespaces = ['common', 'tickets'];
                 <div class="form-group" id="itemColourGroup" style="display: none;">
                     <label for="itemColour"><?php echo htmlspecialchars(t('tickets.settings.columns.colour')); ?></label>
                     <input type="color" id="itemColour" value="#2563eb" style="width: 60px; height: 32px; padding: 2px;">
-                    <small style="color: #666; margin-left: 8px;"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.colour_help')); ?></small>
+                    <small style="color: var(--text-muted, #666); margin-left: 8px;"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.colour_help')); ?></small>
                 </div>
 
                 <div class="form-group" id="itemClosedGroup" style="display: none;">
                     <label>
                         <input type="checkbox" id="itemClosed"> <?php echo htmlspecialchars(t('tickets.settings.modals.lookup.closed_label')); ?>
                     </label>
-                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.closed_help')); ?></small>
+                    <small style="display: block; color: var(--text-muted, #666); margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.closed_help')); ?></small>
                 </div>
 
                 <div class="form-group" id="itemPausesSlaGroup" style="display: none;">
                     <label>
                         <input type="checkbox" id="itemPausesSla"> <?php echo htmlspecialchars(t('tickets.settings.pauses_sla.label')); ?>
                     </label>
-                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo t('tickets.settings.pauses_sla.help'); ?></small>
+                    <small style="display: block; color: var(--text-muted, #666); margin-top: 4px;"><?php echo t('tickets.settings.pauses_sla.help'); ?></small>
                 </div>
 
                 <div class="form-group" id="itemDefaultGroup" style="display: none;">
                     <label>
                         <input type="checkbox" id="itemDefault"> <?php echo htmlspecialchars(t('tickets.settings.modals.lookup.default_label')); ?>
                     </label>
-                    <small style="display: block; color: #666; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.default_help')); ?></small>
+                    <small style="display: block; color: var(--text-muted, #666); margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.lookup.default_help')); ?></small>
                 </div>
 
                 <div class="form-group">
@@ -1139,14 +1139,14 @@ $translationNamespaces = ['common', 'tickets'];
                             <option value="delegated"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.auth_mode_delegated')); ?></option>
                             <option value="app_only"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.auth_mode_app_only')); ?></option>
                         </select>
-                        <small style="color: #666; display: block; margin-top: 4px;" id="mailboxAuthModeHelp"></small>
+                        <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;" id="mailboxAuthModeHelp"></small>
                     </div>
 
                     <!-- Multi-tenancy: only shown when more than one company exists (populated by JS). -->
                     <div class="form-group" id="mailboxCompanyGroup" style="display: none; grid-column: span 2;">
                         <label for="mailboxCompany"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.company_label')); ?></label>
                         <select id="mailboxCompany"></select>
-                        <small style="color: #666; display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.company_help')); ?></small>
+                        <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.company_help')); ?></small>
                     </div>
 
                     <div class="form-group provider-microsoft">
@@ -1162,7 +1162,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <div class="form-group" style="grid-column: span 2;">
                         <label for="mailboxClientSecret" id="clientSecretLabel"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret')); ?> *</label>
                         <input type="password" id="mailboxClientSecret" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret_placeholder')); ?>">
-                        <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret_help')); ?></small>
+                        <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret_help')); ?></small>
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
@@ -1234,7 +1234,7 @@ $translationNamespaces = ['common', 'tickets'];
 
                 <div style="grid-column: span 2; margin-top: 10px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
                     <label style="font-weight: 600; margin-bottom: 8px; display: block;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_label')); ?></label>
-                    <small style="color: #666; display: block; margin-bottom: 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_help')); ?></small>
+                    <small style="color: var(--text-muted, #666); display: block; margin-bottom: 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.whitelist_help')); ?></small>
 
                     <div style="display: flex; gap: 8px; margin-bottom: 10px;">
                         <select id="whitelistType" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
@@ -1283,14 +1283,14 @@ $translationNamespaces = ['common', 'tickets'];
                     <div class="form-group" style="grid-column: span 2;">
                         <label for="channelPhone"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.phone')); ?></label>
                         <input type="text" id="channelPhone" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.channel.phone_placeholder')); ?>">
-                        <small style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.phone_help')); ?></small>
+                        <small style="color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.phone_help')); ?></small>
                     </div>
 
                     <!-- Multi-tenancy: only shown when more than one company exists (populated by JS). -->
                     <div class="form-group" id="channelCompanyGroup" style="display:none; grid-column: span 2;">
                         <label for="channelCompany"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.company')); ?></label>
                         <select id="channelCompany"></select>
-                        <small style="color:#666; display:block; margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.company_help')); ?></small>
+                        <small style="color:var(--text-muted, #666); display:block; margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.company_help')); ?></small>
                     </div>
 
                     <!-- Twilio credentials -->
@@ -1319,12 +1319,12 @@ $translationNamespaces = ['common', 'tickets'];
                     <div class="form-group provider-meta">
                         <label for="channelVerifyToken"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.verify_token')); ?></label>
                         <input type="text" id="channelVerifyToken" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.channel.verify_token_placeholder')); ?>">
-                        <small style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.verify_token_help')); ?></small>
+                        <small style="color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.verify_token_help')); ?></small>
                     </div>
                     <div class="form-group provider-meta">
                         <label for="channelGraphVersion"><?php echo t('tickets.settings.modals.channel.graph_version'); ?></label>
                         <input type="text" id="channelGraphVersion" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.channel.graph_version_placeholder')); ?>">
-                        <small style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.graph_version_help')); ?></small>
+                        <small style="color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.channel.graph_version_help')); ?></small>
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
@@ -1379,17 +1379,17 @@ $translationNamespaces = ['common', 'tickets'];
                     <div class="form-group">
                         <label for="msgTemplateRef" id="msgTemplateRefLabel"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.ref_label')); ?> *</label>
                         <input type="text" id="msgTemplateRef" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.ref_placeholder')); ?>">
-                        <small id="msgTemplateRefHint" style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.ref_help')); ?></small>
+                        <small id="msgTemplateRefHint" style="color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.ref_help')); ?></small>
                     </div>
                     <div class="form-group">
                         <label for="msgTemplateLang"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.lang')); ?></label>
                         <input type="text" id="msgTemplateLang" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.lang_placeholder')); ?>" value="en">
-                        <small style="color:#666;"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.lang_help')); ?></small>
+                        <small style="color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.lang_help')); ?></small>
                     </div>
                     <div class="form-group" style="grid-column: span 2;">
                         <label for="msgTemplateBody"><?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.body')); ?> *</label>
                         <textarea id="msgTemplateBody" rows="3" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.body_placeholder')); ?>"></textarea>
-                        <small style="color:#666;"><?php echo t('tickets.settings.modals.msg_template.body_help'); ?></small>
+                        <small style="color:var(--text-muted, #666);"><?php echo t('tickets.settings.modals.msg_template.body_help'); ?></small>
                     </div>
                     <div class="form-group" style="grid-column: span 2;">
                         <label><input type="checkbox" id="msgTemplateActive" checked> <?php echo htmlspecialchars(t('tickets.settings.modals.msg_template.active')); ?></label>
@@ -1430,7 +1430,7 @@ $translationNamespaces = ['common', 'tickets'];
                 </table>
             </div>
 
-            <div id="activityPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 13px; color: #666;"></div>
+            <div id="activityPagination" style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 13px; color: var(--text-muted, #666);"></div>
 
             <div id="processingLogPanel" style="display: none; margin-top: 15px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
@@ -1471,7 +1471,7 @@ $translationNamespaces = ['common', 'tickets'];
                 <div class="form-group" id="analystPasswordGroup">
                     <label for="analystPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password')); ?> *</label>
                     <input type="password" id="analystPassword" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password_placeholder')); ?>">
-                    <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password_help')); ?></small>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password_help')); ?></small>
                 </div>
 
                 <div class="form-group">
@@ -1489,7 +1489,7 @@ $translationNamespaces = ['common', 'tickets'];
                         } catch (Exception $e) { /* table may not exist yet */ }
                         ?>
                     </select>
-                    <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.signin_help')); ?></small>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.signin_help')); ?></small>
                 </div>
 
                 <!-- Multi-tenancy: company access. Hidden on a single-company install
@@ -1502,7 +1502,7 @@ $translationNamespaces = ['common', 'tickets'];
                         </span>
                         <?php echo htmlspecialchars(t('tickets.settings.analyst_extra.access_all')); ?>
                     </label>
-                    <small style="color: #666; display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.access_all_help')); ?></small>
+                    <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.access_all_help')); ?></small>
                     <div id="analystCompanyList" style="display: none; margin-top: 8px; max-height: 180px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; padding: 8px;"></div>
                 </div>
 
@@ -1559,10 +1559,10 @@ $translationNamespaces = ['common', 'tickets'];
                 <input type="hidden" id="assignmentEntityType">
                 <input type="hidden" id="assignmentEntityId">
 
-                <p style="margin-bottom: 15px; color: #666;" id="teamAssignmentDesc"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.description')); ?></p>
+                <p style="margin-bottom: 15px; color: var(--text-muted, #666);" id="teamAssignmentDesc"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.description')); ?></p>
 
                 <div id="teamAssignmentList" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px;">
-                    <div style="padding: 15px; text-align: center; color: #999;"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.loading')); ?></div>
+                    <div style="padding: 15px; text-align: center; color: var(--text-faint, #999);"><?php echo htmlspecialchars(t('tickets.settings.modals.team_assignment.loading')); ?></div>
                 </div>
 
                 <div class="modal-actions" style="margin-top: 20px;">
@@ -1601,7 +1601,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <div class="form-group" style="grid-column: span 2;">
                         <label for="templateSubject"><?php echo htmlspecialchars(t('tickets.settings.modals.template.subject')); ?> *</label>
                         <input type="text" id="templateSubject" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.template.subject_placeholder')); ?>" autocomplete="off">
-                        <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.modals.template.subject_help')); ?></small>
+                        <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.template.subject_help')); ?></small>
                     </div>
 
                     <div class="form-group" style="grid-column: span 2;">
@@ -1612,13 +1612,13 @@ $translationNamespaces = ['common', 'tickets'];
                         </div>
                         <div id="tplBodyEdit">
                             <textarea id="templateBody" rows="10" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.template.body_placeholder')); ?>"></textarea>
-                            <small style="color: #666;">
+                            <small style="color: var(--text-muted, #666);">
                                 <?php echo htmlspecialchars(t('tickets.settings.modals.template.body_help')); ?>
                             </small>
                         </div>
                         <div id="tplBodyPreview" style="display: none;">
                             <div class="tpl-preview-frame" id="templatePreview"></div>
-                            <small style="color: #666;"><?php echo htmlspecialchars(t('tickets.settings.modals.template.preview_note')); ?></small>
+                            <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.template.preview_note')); ?></small>
                         </div>
                     </div>
 
@@ -1726,20 +1726,20 @@ $translationNamespaces = ['common', 'tickets'];
                     </div>
 
                     <h4 style="margin:24px 0 8px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.hours_heading')); ?></h4>
-                    <p style="color:#666;font-size:13px;margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.hours_help')); ?></p>
+                    <p style="color:var(--text-muted, #666);font-size:13px;margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.hours_help')); ?></p>
                     <div id="slaCalendarHoursGrid" style="display:grid;grid-template-columns:90px 80px 1fr 1fr;gap:8px 12px;align-items:center;">
                         <!-- rows injected by JS: 7 weekdays -->
                     </div>
 
                     <h4 style="margin:24px 0 8px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_heading')); ?></h4>
-                    <p style="color:#666;font-size:13px;margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_help')); ?></p>
+                    <p style="color:var(--text-muted, #666);font-size:13px;margin:0 0 10px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_help')); ?></p>
                     <div id="slaCalendarHolidaysList" style="margin-bottom:10px;"></div>
                     <div style="display:flex;gap:8px;">
                         <input type="date" id="slaCalendarHolidayDate" style="padding:6px 10px;border:1px solid #ddd;border-radius:4px;">
                         <input type="text" id="slaCalendarHolidayName" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holiday_name_placeholder')); ?>" style="flex:1;padding:6px 10px;border:1px solid #ddd;border-radius:4px;">
                         <button type="button" class="btn btn-secondary" onclick="addSlaHoliday()"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.add_holiday')); ?></button>
                     </div>
-                    <small style="color:#666;display:block;margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_note')); ?></small>
+                    <small style="color:var(--text-muted, #666);display:block;margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.sla_calendar.holidays_note')); ?></small>
                 </form>
             </div>
             <div class="modal-footer">
@@ -1876,12 +1876,12 @@ $translationNamespaces = ['common', 'tickets'];
                 const safeName = escapeHtml(s.name).replace(/'/g, "\\'");
                 const swatch = s.colour
                     ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(s.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(s.colour)}</code>`
-                    : '<span style="color:#999;">—</span>';
-                const closed  = s.is_closed  ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:#999;">No</span>';
-                const def     = s.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:#999;">No</span>';
+                    : '<span style="color:var(--text-faint, #999);">—</span>';
+                const closed  = s.is_closed  ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
+                const def     = s.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
                 const pauseCell = s.pauses_sla
                     ? '<span class="status-badge status-active" title="SLA clock pauses while a ticket is in this status">&#9208; Yes</span>'
-                    : '<span style="color:#999;">No</span>';
+                    : '<span style="color:var(--text-faint, #999);">No</span>';
                 return `
                 <tr>
                     <td><strong>${escapeHtml(s.name)}</strong></td>
@@ -1930,8 +1930,8 @@ $translationNamespaces = ['common', 'tickets'];
                 const safeName = escapeHtml(p.name).replace(/'/g, "\\'");
                 const swatch = p.colour
                     ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(p.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(p.colour)}</code>`
-                    : '<span style="color:#999;">—</span>';
-                const def = p.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:#999;">No</span>';
+                    : '<span style="color:var(--text-faint, #999);">—</span>';
+                const def = p.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
                 return `
                 <tr>
                     <td><strong>${escapeHtml(p.name)}</strong></td>
@@ -1978,8 +1978,8 @@ $translationNamespaces = ['common', 'tickets'];
                 const safeName = escapeHtml(l.name).replace(/'/g, "\\'");
                 const swatch = l.colour
                     ? `<span style="display:inline-block; width:20px; height:20px; border-radius:4px; background:${escapeHtml(l.colour)}; vertical-align:middle; border:1px solid #ddd; margin-right:6px;"></span><code style="font-size:12px;">${escapeHtml(l.colour)}</code>`
-                    : '<span style="color:#999;">—</span>';
-                const def = l.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:#999;">No</span>';
+                    : '<span style="color:var(--text-faint, #999);">—</span>';
+                const def = l.is_default ? '<span class="status-badge status-active">Yes</span>' : '<span style="color:var(--text-faint, #999);">No</span>';
                 return `
                 <tr>
                     <td><strong>${escapeHtml(l.name)}</strong></td>
@@ -2062,7 +2062,7 @@ $translationNamespaces = ['common', 'tickets'];
                 const deptTeams = departmentTeams[dept.id] || [];
                 const teamsText = deptTeams.length > 0
                     ? deptTeams.map(t => `<span class="status-badge" style="background: #e3f2fd; color: #1565c0; margin-right: 4px;">${escapeHtml(t.name)}</span>`).join('')
-                    : '<span style="color: #999;">None</span>';
+                    : '<span style="color: var(--text-faint, #999);">None</span>';
 
                 return `
                 <tr>
@@ -2488,7 +2488,7 @@ $translationNamespaces = ['common', 'tickets'];
             }
 
             const listContainer = document.getElementById('teamAssignmentList');
-            listContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">Loading teams...</div>';
+            listContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--text-faint, #999);">Loading teams...</div>';
 
             // Get current assignments
             let currentTeamIds = [];
@@ -2508,7 +2508,7 @@ $translationNamespaces = ['common', 'tickets'];
             // Render checkboxes for all active teams
             const activeTeams = teams.filter(t => t.is_active);
             if (activeTeams.length === 0) {
-                listContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">No active teams available. Create teams first.</div>';
+                listContainer.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--text-faint, #999);">No active teams available. Create teams first.</div>';
             } else {
                 listContainer.innerHTML = activeTeams.map(team => `
                     <label style="display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;"
@@ -2517,7 +2517,7 @@ $translationNamespaces = ['common', 'tickets'];
                                style="margin-right: 12px; width: 18px; height: 18px;">
                         <div>
                             <strong>${escapeHtml(team.name)}</strong>
-                            ${team.description ? `<div style="font-size: 12px; color: #666; margin-top: 2px;">${escapeHtml(team.description)}</div>` : ''}
+                            ${team.description ? `<div style="font-size: 12px; color: var(--text-muted, #666); margin-top: 2px;">${escapeHtml(team.description)}</div>` : ''}
                         </div>
                     </label>
                 `).join('');
@@ -3683,7 +3683,7 @@ $translationNamespaces = ['common', 'tickets'];
         function renderWhitelistEntries() {
             const container = document.getElementById('whitelistEntries');
             if (whitelistEntries.length === 0) {
-                container.innerHTML = '<span style="color: #999; font-size: 12px;">No whitelist entries — all senders allowed</span>';
+                container.innerHTML = '<span style="color: var(--text-faint, #999); font-size: 12px;">No whitelist entries — all senders allowed</span>';
                 return;
             }
 
@@ -3759,7 +3759,7 @@ $translationNamespaces = ['common', 'tickets'];
                 }
 
                 if (data.entries.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">No activity found</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-faint, #999);">No activity found</td></tr>';
                     document.getElementById('activityPagination').innerHTML = '';
                     return;
                 }
@@ -3862,7 +3862,7 @@ $translationNamespaces = ['common', 'tickets'];
                 const aTeams = analystTeams[a.id] || [];
                 const teamsText = aTeams.length > 0
                     ? aTeams.map(t => `<span class="status-badge" style="background: #e8f5e9; color: #2e7d32; margin-right: 4px;">${escapeHtml(t.name)}</span>`).join('')
-                    : '<span style="color: #999;">None</span>';
+                    : '<span style="color: var(--text-faint, #999);">None</span>';
 
                 const safeName = escapeHtml(a.full_name).replace(/'/g, "\\'");
                 const safeUsername = escapeHtml(a.username).replace(/'/g, "\\'");
@@ -4346,7 +4346,7 @@ $translationNamespaces = ['common', 'tickets'];
         function renderEmailTemplates(templates) {
             const tbody = document.getElementById('email-templates-list');
             if (templates.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No email templates configured</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-faint, #999);">No email templates configured</td></tr>';
                 return;
             }
 
@@ -4522,7 +4522,7 @@ $translationNamespaces = ['common', 'tickets'];
         function renderRotaShifts(shifts) {
             const tbody = document.getElementById('rota-shifts-list');
             if (!shifts || shifts.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: #999;">No shifts defined. Click Add to create one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-faint, #999);">No shifts defined. Click Add to create one.</td></tr>';
                 return;
             }
 
@@ -4759,7 +4759,7 @@ $translationNamespaces = ['common', 'tickets'];
         function renderSlaTargets() {
             const tbody = document.getElementById('slaTargetsList');
             if (slaData.priorities.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#999;">No active priorities — add some on the Priorities tab.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--text-faint, #999);">No active priorities — add some on the Priorities tab.</td></tr>';
                 return;
             }
             const calOptions = slaData.calendars.map(c =>
@@ -4806,7 +4806,7 @@ $translationNamespaces = ['common', 'tickets'];
         function renderSlaCalendars() {
             const tbody = document.getElementById('slaCalendarsList');
             if (slaData.calendars.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No calendars defined yet. Add one above.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-faint, #999);">No calendars defined yet. Add one above.</td></tr>';
                 return;
             }
             tbody.innerHTML = slaData.calendars.map(c => {
@@ -4944,13 +4944,13 @@ $translationNamespaces = ['common', 'tickets'];
         function renderSlaModalHolidays() {
             const container = document.getElementById('slaCalendarHolidaysList');
             if (slaModalHolidays.length === 0) {
-                container.innerHTML = '<div style="color:#999;font-size:13px;font-style:italic;">No holidays added yet.</div>';
+                container.innerHTML = '<div style="color:var(--text-faint, #999);font-size:13px;font-style:italic;">No holidays added yet.</div>';
                 return;
             }
             container.innerHTML = slaModalHolidays.map((h, i) => `
                 <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px;padding:6px 10px;background:#f5f5f5;border-radius:4px;">
                     <code style="font-size:12px;">${escapeHtml(h.holiday_date)}</code>
-                    ${h.name ? `<span style="color:#555;flex:1;">${escapeHtml(h.name)}</span>` : '<span style="flex:1;color:#999;font-style:italic;">(no name)</span>'}
+                    ${h.name ? `<span style="color:#555;flex:1;">${escapeHtml(h.name)}</span>` : '<span style="flex:1;color:var(--text-faint, #999);font-style:italic;">(no name)</span>'}
                     <button type="button" class="action-btn delete" onclick="removeSlaHoliday(${i})" title="${escapeHtml(t('common.delete'))}" style="padding:2px 8px;">&times;</button>
                 </div>
             `).join('');
@@ -5069,7 +5069,7 @@ $translationNamespaces = ['common', 'tickets'];
         function renderSlaNotifRules() {
             const tbody = document.getElementById('slaNotifRulesList');
             if (!slaNotifData.rules.length) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:#999;">No rules configured &mdash; SLA breach emails are disabled until you add at least one.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-faint, #999);">No rules configured &mdash; SLA breach emails are disabled until you add at least one.</td></tr>';
                 return;
             }
             const targetLabel = { response: 'Response', resolution: 'Resolution', both: 'Both' };
@@ -5087,7 +5087,7 @@ $translationNamespaces = ['common', 'tickets'];
                 if (r.notify_emails) {
                     const list = r.notify_emails.split(',').map(s => s.trim()).filter(Boolean);
                     if (list.length === 1) recipients.push(escapeHtml(list[0]));
-                    else if (list.length > 1) recipients.push(escapeHtml(list[0]) + ' <span style="color:#888;">+' + (list.length - 1) + ' more</span>');
+                    else if (list.length > 1) recipients.push(escapeHtml(list[0]) + ' <span style="color:var(--text-dim, #888);">+' + (list.length - 1) + ' more</span>');
                 }
                 return `
                     <tr>
@@ -5095,7 +5095,7 @@ $translationNamespaces = ['common', 'tickets'];
                         <td><span style="display:inline-block;padding:2px 8px;border-radius:10px;background:${triggerColour[r.trigger_type]}1A;color:${triggerColour[r.trigger_type]};font-size:11px;font-weight:600;">${triggerLabel[r.trigger_type]}</span></td>
                         <td>${targetLabel[r.target_type] || r.target_type}</td>
                         <td>${recipients.join(', ') || '<span style="color:#c00;">none</span>'}</td>
-                        <td>${r.is_active ? 'Yes' : '<span style="color:#888;">No</span>'}</td>
+                        <td>${r.is_active ? 'Yes' : '<span style="color:var(--text-dim, #888);">No</span>'}</td>
                         <td>
                             <button class="action-btn" onclick="openSlaNotifModal(${r.id})" title="Edit">&#9998;</button>
                             <button class="action-btn" onclick="deleteSlaNotifRule(${r.id})" title="Delete">&times;</button>
@@ -5222,7 +5222,7 @@ $translationNamespaces = ['common', 'tickets'];
 
             const tbody = document.getElementById('slaCronRunsList');
             if (!runs.length) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#999;">No runs yet &mdash; once you set up the scheduled task they\'ll appear here.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-faint, #999);">No runs yet &mdash; once you set up the scheduled task they\'ll appear here.</td></tr>';
                 return;
             }
             const outcomeColour = {
@@ -5245,7 +5245,7 @@ $translationNamespaces = ['common', 'tickets'];
                 const label = outcomeLabel[r.outcome] || r.outcome;
                 const duration = r.duration_ms != null ? r.duration_ms + ' ms' : '&mdash;';
                 const source = r.invocation === 'http'
-                    ? `HTTP <span style="color:#888;">${escapeHtml(r.client_ip || 'unknown')}</span>`
+                    ? `HTTP <span style="color:var(--text-dim, #888);">${escapeHtml(r.client_ip || 'unknown')}</span>`
                     : 'CLI';
                 const notesAttr = r.notes ? ` title="${escapeHtml(r.notes)}"` : '';
                 return `
