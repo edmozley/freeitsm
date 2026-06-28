@@ -21,6 +21,7 @@
     --surface-2:     #fafafa;   /* subtle raised/striped surface  */
     --surface-3:     #f8f8f8;   /* slightly deeper subtle surface */
     --surface-hover: #f0f0f0;   /* row / item hover               */
+    --row-unread:    #f0f8ff;   /* unread ticket-list row tint    */
 
     /* Text */
     --text:        #333333;     /* primary body text   */
@@ -38,6 +39,15 @@
     --accent-soft:   #e8f4fd;   /* tinted accent background */
     --on-accent:     #ffffff;   /* text/icons on accent     */
 
+    /* Status / semantic pairs (badges, pills) */
+    --success-bg:     #dcfce7;  --success-text: #166534;  --success-accent: #16a34a;
+    --danger-bg:      #fee2e2;  --danger-text:  #991b1b;  --danger-accent:  #d13438;
+    --warning-bg:     #fef3c7;  --warning-text: #92400e;
+
+    /* Problem Management (purple) accents — the problem strip + badges */
+    --problem-bg:        #faf7fd;  --problem-border: #e6d8f2;
+    --problem-text:      #6a1b9a;  --problem-badge-bg: #ede7f6;
+
     /* Effects */
     --shadow:        rgba(0, 0, 0, 0.1);
 }
@@ -51,6 +61,7 @@
     --surface-2:     #232830;
     --surface-3:     #20242b;
     --surface-hover: #2a3039;
+    --row-unread:    #1b2733;
 
     /* Text */
     --text:        #e6e8eb;
@@ -67,6 +78,15 @@
     --accent-hover:  #4a9ee0;
     --accent-soft:   #1d3346;
     --on-accent:     #ffffff;
+
+    /* Status / semantic pairs — dark surfaces with light readable text */
+    --success-bg:     #16331f;  --success-text: #86efac;  --success-accent: #22c55e;
+    --danger-bg:      #3a1a1d;  --danger-text:  #fca5a5;  --danger-accent:  #f87171;
+    --warning-bg:     #3a2e12;  --warning-text: #fcd34d;
+
+    /* Problem Management (purple) — dark surfaces with light readable text */
+    --problem-bg:        #241a30;  --problem-border: #3a2c4d;
+    --problem-text:      #c9a9e9;  --problem-badge-bg: #2e2440;
 
     /* Effects */
     --shadow:        rgba(0, 0, 0, 0.45);
