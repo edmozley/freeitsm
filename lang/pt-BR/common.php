@@ -98,7 +98,7 @@ return [
         'assets'         => ['name' => 'Ativos',        'description' => 'Acompanhe ativos de TI e atribuições a usuários'],
         'knowledge'      => ['name' => 'Conhecimento',  'description' => 'Crie e consulte artigos da base de conhecimento'],
         'changes'        => ['name' => 'Mudanças',      'description' => 'Planeje, acompanhe e gerencie mudanças de TI'],
-        'problems'       => ['name' => 'Problemas',     'description' => 'Acompanhe a causa raiz por trás de incidentes recorrentes'],
+        'problems'       => ['name' => 'Gerenciamento de problemas', 'name_short' => 'Problemas', 'description' => 'Acompanhe a causa raiz por trás de incidentes recorrentes'],
         'calendar'       => ['name' => 'Calendário',    'description' => 'Acompanhe eventos, prazos e agendas'],
         'morning-checks' => ['name' => 'Verificações',  'description' => 'Registre verificações diárias de infraestrutura'],
         'reporting'      => ['name' => 'Relatórios',    'description' => 'Visualize logs do sistema e análises'],

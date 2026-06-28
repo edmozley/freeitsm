@@ -109,7 +109,7 @@ return [
         'assets'         => ['name' => 'Assets',      'description' => 'Track IT assets and user assignments'],
         'knowledge'      => ['name' => 'Knowledge',   'description' => 'Create and browse knowledge base articles'],
         'changes'        => ['name' => 'Changes',     'description' => 'Plan, track and manage IT changes'],
-        'problems'       => ['name' => 'Problems',    'description' => 'Track the root cause behind recurring incidents'],
+        'problems'       => ['name' => 'Problem Management', 'name_short' => 'Problems', 'description' => 'Track the root cause behind recurring incidents'],
         'calendar'       => ['name' => 'Calendar',    'description' => 'Track events, deadlines and schedules'],
         'morning-checks' => ['name' => 'Checks',      'description' => 'Record daily infrastructure checks'],
         'reporting'      => ['name' => 'Reporting',   'description' => 'View system logs and analytics'],

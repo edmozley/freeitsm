@@ -66,7 +66,9 @@ $modules = [
         'icon' => '<polyline points="16 3 21 3 21 8"></polyline><line x1="4" y1="20" x2="21" y2="3"></line><polyline points="21 16 21 21 16 21"></polyline><line x1="15" y1="15" x2="21" y2="21"></line><line x1="4" y1="4" x2="9" y2="9"></line>'
     ],
     'problems' => [
-        'name' => t('common.modules.problems.name'),
+        // Waffle uses the short one-word label; the full ITIL term
+        // "Problem Management" (common.modules.problems.name) is used everywhere else.
+        'name' => t('common.modules.problems.name_short'),
         'path' => 'problem-management/',
         'icon' => '<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line>'
     ],
