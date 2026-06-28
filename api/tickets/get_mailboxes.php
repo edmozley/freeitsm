@@ -20,7 +20,7 @@ try {
 
     $sql = "SELECT id, name, provider, azure_tenant_id, azure_client_id, azure_client_secret,
                    oauth_redirect_uri, oauth_scopes, imap_server, imap_port, imap_encryption,
-                   target_mailbox, email_folder, max_emails_per_check, mark_as_read,
+                   target_mailbox, auth_mode, authenticated_as, email_folder, max_emails_per_check, mark_as_read,
                    rejected_action, imported_action, imported_folder,
                    is_active, tenant_id, created_datetime, last_checked_datetime,
                    CASE WHEN token_data IS NOT NULL AND token_data != '' THEN 1 ELSE 0 END as is_authenticated
@@ -61,6 +61,27 @@ try {
             $mailbox['azure_client_secret_masked'] = '****' . substr($mailbox['azure_client_secret'], -4);
         } else {
             $mailbox['azure_client_secret_masked'] = '';
+        }
+
+        // Default + normalise the auth mode.
+        $mailbox['auth_mode'] = ($mailbox['auth_mode'] ?? 'delegated') === 'app_only' ? 'app_only' : 'delegated';
+
+        // Compute a clear "where is this reading from?" status for the UI so it's
+        // obvious which inbox a mailbox actually pulls — and flags a wrong account.
+        $target  = strtolower(trim((string) ($mailbox['target_mailbox'] ?? '')));
+        $authedAs = strtolower(trim((string) ($mailbox['authenticated_as'] ?? '')));
+        if ($mailbox['provider'] === 'google') {
+            $mailbox['auth_status'] = $mailbox['is_authenticated'] ? 'ok' : 'unauthenticated';
+        } elseif ($mailbox['auth_mode'] === 'app_only') {
+            $mailbox['auth_status'] = 'app_only';            // always reads the target directly
+        } elseif (!$mailbox['is_authenticated']) {
+            $mailbox['auth_status'] = 'unauthenticated';     // delegated, never signed in
+        } elseif ($authedAs === '') {
+            $mailbox['auth_status'] = 'unverified';           // signed in before we recorded who
+        } elseif ($authedAs === $target) {
+            $mailbox['auth_status'] = 'ok';                   // reading the right inbox
+        } else {
+            $mailbox['auth_status'] = 'mismatch';             // ⚠ reading the WRONG inbox
         }
     }
 

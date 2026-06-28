@@ -23,9 +23,15 @@ if (!$data) {
     exit;
 }
 
-// Validate required fields — tenant ID only required for Microsoft
+// Validate required fields — tenant ID only required for Microsoft.
 $provider = $data['provider'] ?? 'microsoft';
-$requiredFields = ['name', 'azure_client_id', 'oauth_redirect_uri', 'target_mailbox'];
+// App-only (client credentials) doesn't use the interactive sign-in flow, so it
+// needs no redirect URI / OAuth scopes — only the client id/secret + target mailbox.
+$isAppOnly = ($provider === 'microsoft') && (($data['auth_mode'] ?? 'delegated') === 'app_only');
+$requiredFields = ['name', 'azure_client_id', 'target_mailbox'];
+if (!$isAppOnly) {
+    $requiredFields[] = 'oauth_redirect_uri';
+}
 if ($provider === 'microsoft') {
     $requiredFields[] = 'azure_tenant_id';
 }
@@ -42,21 +48,25 @@ try {
     $id = $data['id'] ?? null;
     $name = $data['name'];
     $provider = $data['provider'] ?? 'microsoft';
-    $oauth_redirect_uri_plain = trim($data['oauth_redirect_uri']);
+    $oauth_redirect_uri_plain = trim($data['oauth_redirect_uri'] ?? '');
     $redirectPath = parse_url($oauth_redirect_uri_plain, PHP_URL_PATH) ?: '';
-    if ($provider === 'google' && !preg_match('#(^|/)google_oauth_callback\.php$#i', $redirectPath)) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'Google Workspace mailboxes must use google_oauth_callback.php as the OAuth redirect URI.'
-        ]);
-        exit;
-    }
-    if ($provider === 'microsoft' && !preg_match('#(^|/)oauth_callback\.php$#i', $redirectPath)) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'Microsoft 365 mailboxes must use oauth_callback.php as the OAuth redirect URI.'
-        ]);
-        exit;
+    // The redirect URI only matters for the interactive sign-in flow — skip the
+    // callback checks for app-only mailboxes (they never redirect anywhere).
+    if (!$isAppOnly) {
+        if ($provider === 'google' && !preg_match('#(^|/)google_oauth_callback\.php$#i', $redirectPath)) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Google Workspace mailboxes must use google_oauth_callback.php as the OAuth redirect URI.'
+            ]);
+            exit;
+        }
+        if ($provider === 'microsoft' && !preg_match('#(^|/)oauth_callback\.php$#i', $redirectPath)) {
+            echo json_encode([
+                'success' => false,
+                'error' => 'Microsoft 365 mailboxes must use oauth_callback.php as the OAuth redirect URI.'
+            ]);
+            exit;
+        }
     }
 
     $azure_tenant_id = encryptValue($data['azure_tenant_id'] ?? '');

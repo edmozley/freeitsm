@@ -20,6 +20,9 @@ $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 // Check for OAuth success message
 $oauthSuccess = isset($_GET['oauth']) && $_GET['oauth'] === 'success';
 $oauthMailboxId = $_GET['mailbox_id'] ?? null;
+// Set by oauth_callback.php when the account that signed in differs from the
+// configured target mailbox — i.e. it would read the WRONG inbox.
+$oauthMismatch = isset($_GET['auth_mismatch']) && $_GET['auth_mismatch'] === '1';
 
 $current_page = 'settings';
 $path_prefix = '../../';  // Two levels up from tickets/settings/
@@ -706,12 +709,22 @@ $translationNamespaces = ['common', 'tickets'];
                 </div>
             </div>
 
-            <?php if ($oauthSuccess && $oauthMailboxId): ?>
+            <?php if ($oauthSuccess && $oauthMailboxId && !$oauthMismatch): ?>
             <div class="exchange-status authenticated" id="oauth-success-msg">
                 <span class="status-icon">&#10003;</span>
                 <div>
                     <strong><?php echo htmlspecialchars(t('tickets.settings.oauth.success_title')); ?></strong><br>
                     <?php echo htmlspecialchars(t('tickets.settings.oauth.success_body')); ?>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($oauthSuccess && $oauthMailboxId && $oauthMismatch): ?>
+            <div class="exchange-status" id="oauth-mismatch-msg" style="background:#ffebee;border:1px solid #ef9a9a;color:#c62828;display:flex;align-items:flex-start;gap:10px;padding:12px;border-radius:6px;">
+                <span class="status-icon">&#9888;</span>
+                <div>
+                    <strong><?php echo htmlspecialchars(t('tickets.settings.oauth.mismatch_title')); ?></strong><br>
+                    <?php echo htmlspecialchars(t('tickets.settings.oauth.mismatch_body')); ?>
                 </div>
             </div>
             <?php endif; ?>
@@ -1118,6 +1131,15 @@ $translationNamespaces = ['common', 'tickets'];
                     <div class="form-group">
                         <label for="mailboxEmail"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.target_mailbox')); ?> *</label>
                         <input type="email" id="mailboxEmail" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.target_mailbox_placeholder')); ?>">
+                    </div>
+
+                    <div class="form-group provider-microsoft">
+                        <label for="mailboxAuthMode"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.auth_mode')); ?> *</label>
+                        <select id="mailboxAuthMode" onchange="toggleAuthModeFields()">
+                            <option value="delegated"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.auth_mode_delegated')); ?></option>
+                            <option value="app_only"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.auth_mode_app_only')); ?></option>
+                        </select>
+                        <small style="color: #666; display: block; margin-top: 4px;" id="mailboxAuthModeHelp"></small>
                     </div>
 
                     <!-- Multi-tenancy: only shown when more than one company exists (populated by JS). -->
@@ -3057,9 +3079,25 @@ $translationNamespaces = ['common', 'tickets'];
             }
 
             tbody.innerHTML = mailboxes.map(mb => {
-                const statusBadge = mb.is_authenticated
-                    ? '<span class="status-badge status-active">Authenticated</span>'
-                    : '<span class="status-badge status-inactive">Not authenticated</span>';
+                // Auth status reflects WHERE the mailbox actually reads from (computed
+                // server-side in get_mailboxes.php) so a wrong/unverified account is obvious.
+                let statusBadge;
+                switch (mb.auth_status) {
+                    case 'app_only':
+                        statusBadge = '<span class="status-badge" style="background:#e3f2fd;color:#1565c0;">App-only</span>';
+                        break;
+                    case 'mismatch':
+                        statusBadge = '<span class="status-badge" style="background:#ffebee;color:#c62828;">⚠ Wrong account</span>';
+                        break;
+                    case 'unverified':
+                        statusBadge = '<span class="status-badge" style="background:#fff3e0;color:#ef6c00;">Unverified</span>';
+                        break;
+                    case 'ok':
+                        statusBadge = '<span class="status-badge status-active">Authenticated</span>';
+                        break;
+                    default:
+                        statusBadge = '<span class="status-badge status-inactive">Not authenticated</span>';
+                }
 
                 const activeBadge = mb.is_active
                     ? ''
@@ -3077,10 +3115,15 @@ $translationNamespaces = ['common', 'tickets'];
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                 </button>`;
 
-                if (mb.is_authenticated) {
-                    actions += `<button class="action-btn" onclick="checkMailboxEmails(${mb.id})" title="${t('tickets.settings.tooltips.check_emails')}">
+                const checkEmailsBtn = `<button class="action-btn" onclick="checkMailboxEmails(${mb.id})" title="${t('tickets.settings.tooltips.check_emails')}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                     </button>`;
+                // App-only mailboxes never use the interactive sign-in flow — they read the
+                // target directly via client credentials, so no Authenticate / Logout buttons.
+                if (mb.auth_mode === 'app_only') {
+                    actions += checkEmailsBtn;
+                } else if (mb.is_authenticated) {
+                    actions += checkEmailsBtn;
                     actions += `<button class="action-btn" onclick="logoutMailbox(${mb.id})" title="${t('tickets.settings.tooltips.logout')}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                     </button>`;
@@ -3109,10 +3152,23 @@ $translationNamespaces = ['common', 'tickets'];
                     }
                 }
 
+                // Plain-language "where is this reading from?" line so it's crystal clear
+                // which inbox is actually being pulled — and flags a wrong/unverified account.
+                let authLine = '';
+                if (mb.auth_status === 'ok') {
+                    authLine = `<div style="font-size:12px;color:#2e7d32;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.reading_from', {addr: mb.target_mailbox}))}</div>`;
+                } else if (mb.auth_status === 'app_only') {
+                    authLine = `<div style="font-size:12px;color:#1565c0;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.status_app_only', {addr: mb.target_mailbox}))}</div>`;
+                } else if (mb.auth_status === 'unverified') {
+                    authLine = `<div style="font-size:12px;color:#ef6c00;margin-top:3px;">${escapeHtml(t('tickets.settings.modals.mailbox.status_unverified'))}</div>`;
+                } else if (mb.auth_status === 'mismatch') {
+                    authLine = `<div style="font-size:12px;color:#c62828;margin-top:3px;font-weight:600;">⚠ ${escapeHtml(t('tickets.settings.modals.mailbox.status_mismatch', {authed: mb.authenticated_as || '?', target: mb.target_mailbox}))}</div>`;
+                }
+
                 return `
                     <tr>
                         <td><strong>${escapeHtml(mb.name)}</strong>${providerBadge}${activeBadge}${companyBadge}</td>
-                        <td>${escapeHtml(mb.target_mailbox)}</td>
+                        <td>${escapeHtml(mb.target_mailbox)}${authLine}</td>
                         <td>${statusBadge}</td>
                         <td>${lastChecked}</td>
                         <td>${actions}</td>
@@ -3157,6 +3213,7 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('mailboxProvider').value = mailbox ? (mailbox.provider || 'microsoft') : 'microsoft';
             document.getElementById('mailboxName').value = mailbox ? mailbox.name : '';
             document.getElementById('mailboxEmail').value = mailbox ? mailbox.target_mailbox : '';
+            document.getElementById('mailboxAuthMode').value = mailbox ? (mailbox.auth_mode || 'delegated') : 'delegated';
             document.getElementById('mailboxTenantId').value = mailbox ? mailbox.azure_tenant_id : '';
             document.getElementById('mailboxClientId').value = mailbox ? mailbox.azure_client_id : '';
             document.getElementById('mailboxClientSecret').value = '';
@@ -3165,6 +3222,7 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('mailboxImapServer').value = mailbox ? mailbox.imap_server : 'outlook.office365.com';
             document.getElementById('mailboxImapPort').value = mailbox ? mailbox.imap_port : 993;
             toggleProviderFields();
+            toggleAuthModeFields();
             document.getElementById('mailboxFolder').value = mailbox ? mailbox.email_folder : 'INBOX';
             document.getElementById('mailboxMaxEmails').value = mailbox ? mailbox.max_emails_per_check : 10;
             document.getElementById('mailboxRejectedAction').value = mailbox ? (mailbox.rejected_action || 'delete') : 'delete';
@@ -3195,6 +3253,30 @@ $translationNamespaces = ['common', 'tickets'];
 
         function closeMailboxModal() {
             document.getElementById('mailboxModal').classList.remove('active');
+        }
+
+        // Delegated vs app-only: the redirect URI + delegated scopes only apply to the
+        // interactive sign-in flow, so hide them for app-only and update the help text.
+        function toggleAuthModeFields() {
+            // App-only is Microsoft-only — for Google it never applies, so the redirect
+            // URI / scopes must stay visible regardless of the (hidden) selector's value.
+            const isMicrosoft = document.getElementById('mailboxProvider').value === 'microsoft';
+            const isAppOnly = isMicrosoft && document.getElementById('mailboxAuthMode').value === 'app_only';
+            const help = document.getElementById('mailboxAuthModeHelp');
+            if (help) {
+                help.textContent = t(isAppOnly
+                    ? 'tickets.settings.modals.mailbox.auth_mode_help_app_only'
+                    : 'tickets.settings.modals.mailbox.auth_mode_help_delegated');
+            }
+            const redirectInput = document.getElementById('mailboxRedirectUri');
+            const redirectGroup = redirectInput.closest('.form-group');
+            if (redirectGroup) redirectGroup.style.display = isAppOnly ? 'none' : '';
+            redirectInput.required = !isAppOnly;
+            // A hidden field carrying a custom-validity message can still block submit —
+            // clear it so an app-only mailbox can save without a redirect URI.
+            if (isAppOnly) redirectInput.setCustomValidity('');
+            const scopesGroup = document.getElementById('mailboxScopes').closest('.form-group');
+            if (scopesGroup) scopesGroup.style.display = isAppOnly ? 'none' : '';
         }
 
         function toggleProviderFields() {
@@ -3230,6 +3312,10 @@ $translationNamespaces = ['common', 'tickets'];
             } else {
                 redirectInput.setCustomValidity('');
             }
+
+            // Re-apply auth-mode visibility (app-only hides redirect/scopes) now that the
+            // provider — and the auth-mode selector's own visibility — has changed.
+            toggleAuthModeFields();
         }
 
         function getDefaultOAuthRedirectUri(provider) {
@@ -3508,6 +3594,7 @@ $translationNamespaces = ['common', 'tickets'];
                 provider: document.getElementById('mailboxProvider').value,
                 name: document.getElementById('mailboxName').value,
                 target_mailbox: document.getElementById('mailboxEmail').value,
+                auth_mode: document.getElementById('mailboxAuthMode').value,
                 azure_tenant_id: document.getElementById('mailboxTenantId').value,
                 azure_client_id: document.getElementById('mailboxClientId').value,
                 azure_client_secret: document.getElementById('mailboxClientSecret').value,

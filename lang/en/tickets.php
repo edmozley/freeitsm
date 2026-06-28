@@ -427,6 +427,11 @@ return [
                 'display_name_placeholder'    => 'e.g., Service Desk',
                 'target_mailbox'              => 'Target mailbox',
                 'target_mailbox_placeholder'  => 'e.g., servicedesk@company.com',
+                'auth_mode'                   => 'Authentication',
+                'auth_mode_delegated'         => 'Sign in as the mailbox (delegated)',
+                'auth_mode_app_only'          => 'App-only (client credentials)',
+                'auth_mode_help_delegated'    => 'You sign in once with the mailbox account. Make sure you sign in as the target mailbox above — not your own account — or it will read the wrong inbox.',
+                'auth_mode_help_app_only'     => 'No sign-in needed. The app reads the target mailbox directly using its client ID and secret. Requires Azure Application permissions (Mail.ReadWrite, Mail.Send) with admin consent. Best when the target mailbox is not your own.',
                 'azure_tenant_id'             => 'Azure tenant ID',
                 'client_id'                   => 'Client ID',
                 'client_secret'               => 'Client secret',
@@ -452,6 +457,10 @@ return [
                 'company_help'                => 'Pin this mailbox to a company — all its mail goes to that company and replies are sent from it. Choose "Shared intake" to route each email by the sender\'s domain instead.',
                 'company_shared'              => 'Shared intake (route by sender domain)',
                 'company_shared_badge'        => 'Shared intake',
+                'reading_from'                => 'Reading from {addr}',
+                'status_app_only'             => 'App-only — reads {addr} directly',
+                'status_unverified'           => 'Authenticated, but signed-in account not yet verified',
+                'status_mismatch'             => 'Wrong account: signed in as {authed}, but should read {target}. Re-authenticate or switch to app-only.',
                 'whitelist_label'             => 'Email whitelist',
                 'whitelist_help'              => 'If empty, all senders are allowed. Add domains or email addresses to restrict which emails are imported.',
                 'whitelist_domain'            => 'Domain',
@@ -671,6 +680,8 @@ return [
         'oauth' => [
             'success_title' => 'Authentication successful!',
             'success_body'  => 'Mailbox is now connected and ready to check for emails.',
+            'mismatch_title' => 'Wrong account signed in',
+            'mismatch_body'  => 'You signed in with a different account than the target mailbox, so this would read the wrong inbox. Sign in again as the target mailbox, or switch this mailbox to app-only authentication.',
         ],
 
         // SLA tab — see docs/sla.md. Headings, intros, labels, radio/checkbox
