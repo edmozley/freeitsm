@@ -110,7 +110,7 @@ $path_prefix = '../';
         <div class="pm-main">
             <div id="pmListView">
                 <div class="pm-list-head">
-                    <h2>Problems</h2>
+                    <h2><?php echo htmlspecialchars(t('common.modules.problems.name')); ?></h2>
                     <div style="display:flex;align-items:center;gap:12px;">
                         <button class="pm-btn" onclick="pmSuggest()" title="Let AI scan recent open incidents for recurring patterns">🤖 Detect problems</button>
                         <div id="pmCount" style="color:#6b7280;"></div>
