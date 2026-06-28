@@ -1545,7 +1545,7 @@ $translationNamespaces = ['common', 'tickets'];
 
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closePasswordResetModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('tickets.settings.tooltips.reset_password')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.submit')); ?></button>
                 </div>
             </form>
         </div>

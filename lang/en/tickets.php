@@ -499,6 +499,7 @@ return [
                 'new_password_placeholder'     => 'Enter new password',
                 'confirm_password'             => 'Confirm password',
                 'confirm_password_placeholder' => 'Confirm new password',
+                'submit'                       => 'Reset',
             ],
 
             // Team assignment modal

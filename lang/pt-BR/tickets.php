@@ -441,6 +441,7 @@ return [
                 'new_password_placeholder' => 'Digite a nova senha',
                 'confirm_password' => 'Confirmar senha',
                 'confirm_password_placeholder' => 'Confirme a nova senha',
+                'submit' => 'Redefinir',
             ],
             'team_assignment' => [
                 'title' => 'Atribuir equipes',
