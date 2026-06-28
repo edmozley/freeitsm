@@ -675,3 +675,10 @@
         display: none;
     }
 }
+
+/* Dark palettes: wash the bright accent day-headers (week + day views) so they
+   sit back like the muted nav bar. Header text stays above the wash. */
+[data-theme="dark"] .week-header-day,
+[data-theme="dark"] .day-header {
+    box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.5);
+}
