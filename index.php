@@ -233,15 +233,15 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
             <?php endif; ?>
 
             <?php if ($allowed_modules === null || in_array('problems', $allowed_modules)): ?>
-            <a href="problem-management/" class="module-card problems" title="Track the root cause behind recurring incidents">
+            <a href="problem-management/" class="module-card problems" title="<?php echo htmlspecialchars(t('common.modules.problems.description')); ?>">
                 <div class="module-icon problems">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="12" y1="8" x2="12" y2="12"></line>
-                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
                     </svg>
                 </div>
-                <div class="module-name">Problem Management</div>
+                <div class="module-name"><?php echo htmlspecialchars(t('common.modules.problems.name')); ?></div>
             </a>
             <?php endif; ?>
 

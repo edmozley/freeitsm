@@ -11,6 +11,9 @@ $defaultModuleColors = [
     'assets'         => ['#107c10', '#0b5c0b'],
     'knowledge'      => ['#8764b8', '#6b4fa2'],
     'changes'        => ['#00897b', '#00695c'],
+    // Problems uses a clear red — semantically "the thing that's gone wrong" and
+    // distinct from its teal (changes) / orange (calendar) neighbours in the grid.
+    'problems'       => ['#dc2626', '#b91c1c'],
     'calendar'       => ['#ef6c00', '#e65100'],
     'morning-checks' => ['#00acc1', '#00838f'],
     'reporting'      => ['#ca5010', '#a5410a'],
