@@ -1152,7 +1152,7 @@ function displayEmail(email, recordings) {
         ).join('');
         companyField = `
             <div class="toolbar-field">
-                <label class="toolbar-label">Company</label>
+                <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_company'))}</label>
                 <select class="toolbar-select" id="companySelect" onchange="moveTicketCompany()">
                     ${companyOptions}
                 </select>
@@ -1195,15 +1195,15 @@ function displayEmail(email, recordings) {
     // Build first time fix dropdown
     const firstTimeFixOptions = `
         <option value="" ${email.first_time_fix === null ? 'selected' : ''}>--</option>
-        <option value="1" ${email.first_time_fix === true || email.first_time_fix === 1 ? 'selected' : ''}>Yes</option>
-        <option value="0" ${email.first_time_fix === false || email.first_time_fix === 0 ? 'selected' : ''}>No</option>
+        <option value="1" ${email.first_time_fix === true || email.first_time_fix === 1 ? 'selected' : ''}>${escapeHtml(t('tickets.reading_pane.opt_yes'))}</option>
+        <option value="0" ${email.first_time_fix === false || email.first_time_fix === 0 ? 'selected' : ''}>${escapeHtml(t('tickets.reading_pane.opt_no'))}</option>
     `;
 
     // Build IT training provided dropdown
     const itTrainingOptions = `
         <option value="" ${email.it_training_provided === null ? 'selected' : ''}>--</option>
-        <option value="1" ${email.it_training_provided === true || email.it_training_provided === 1 ? 'selected' : ''}>Yes</option>
-        <option value="0" ${email.it_training_provided === false || email.it_training_provided === 0 ? 'selected' : ''}>No</option>
+        <option value="1" ${email.it_training_provided === true || email.it_training_provided === 1 ? 'selected' : ''}>${escapeHtml(t('tickets.reading_pane.opt_yes'))}</option>
+        <option value="0" ${email.it_training_provided === false || email.it_training_provided === 0 ? 'selected' : ''}>${escapeHtml(t('tickets.reading_pane.opt_no'))}</option>
     `;
 
     // Build owner/analyst dropdown
@@ -1212,9 +1212,9 @@ function displayEmail(email, recordings) {
     ).join('');
 
     // Build summary values for collapsed view
-    const summaryDept = getDisplayName('department', email.department_id) || 'None';
-    const summaryStatus = email.status || 'Open';
-    const summaryOwner = getDisplayName('owner', email.owner_id) || 'Unassigned';
+    const summaryDept = getDisplayName('department', email.department_id) || t('tickets.reading_pane.summary_none');
+    const summaryStatus = email.status || t('tickets.reading_pane.summary_open');
+    const summaryOwner = getDisplayName('owner', email.owner_id) || t('tickets.reading_pane.summary_unassigned');
 
     // When the open ticket is in the trash, lead with a banner offering Restore /
     // Delete forever instead of the usual workflow actions.
@@ -1232,19 +1232,19 @@ function displayEmail(email, recordings) {
             <div class="ticket-properties-header" onclick="toggleTicketProperties(event)">
                 <div class="ticket-properties-title">
                     <span class="ticket-properties-chevron">&#9660;</span>
-                    Ticket Properties
+                    ${escapeHtml(t('tickets.reading_pane.properties_title'))}
                 </div>
                 <div class="ticket-properties-summary">
                     <span class="ticket-properties-summary-item">
-                        <span class="ticket-properties-summary-label">Dept:</span>
+                        <span class="ticket-properties-summary-label">${escapeHtml(t('tickets.reading_pane.summary_dept'))}</span>
                         <span class="ticket-properties-summary-value" id="summaryDept">${escapeHtml(summaryDept)}</span>
                     </span>
                     <span class="ticket-properties-summary-item">
-                        <span class="ticket-properties-summary-label">Status:</span>
+                        <span class="ticket-properties-summary-label">${escapeHtml(t('tickets.reading_pane.summary_status'))}</span>
                         <span class="ticket-properties-summary-value" id="summaryStatus">${escapeHtml(summaryStatus)}</span>
                     </span>
                     <span class="ticket-properties-summary-item">
-                        <span class="ticket-properties-summary-label">Owner:</span>
+                        <span class="ticket-properties-summary-label">${escapeHtml(t('tickets.reading_pane.summary_owner'))}</span>
                         <span class="ticket-properties-summary-value" id="summaryOwner">${escapeHtml(summaryOwner)}</span>
                     </span>
                 </div>
@@ -1252,53 +1252,53 @@ function displayEmail(email, recordings) {
             <div class="ticket-properties-panel">
                 <div class="ticket-toolbar">
                     <div class="toolbar-field">
-                        <label class="toolbar-label">Department</label>
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_department'))}</label>
                         <select class="toolbar-select" id="departmentSelect" onchange="assignDepartment()">
                             <option value=""></option>
                             ${departmentOptions}
                         </select>
                     </div>
                     <div class="toolbar-field">
-                        <label class="toolbar-label">Type</label>
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_type'))}</label>
                         <select class="toolbar-select" id="ticketTypeSelect" onchange="assignTicketType()">
                             <option value=""></option>
                             ${ticketTypeOptions}
                         </select>
                     </div>
                     <div class="toolbar-field">
-                        <label class="toolbar-label">Status</label>
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_status'))}</label>
                         <select class="toolbar-select" id="statusSelect" onchange="assignStatus()">
                             ${statusOptions}
                         </select>
                     </div>
                     <div class="toolbar-field">
-                        <label class="toolbar-label">Priority</label>
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_priority'))}</label>
                         <select class="toolbar-select" id="prioritySelect" onchange="assignPriority()">
                             <option value=""></option>
                             ${priorityOptions}
                         </select>
                     </div>
                     <div class="toolbar-field">
-                        <label class="toolbar-label">Origin</label>
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_origin'))}</label>
                         <select class="toolbar-select" id="originSelect" onchange="assignOrigin()">
                             <option value=""></option>
                             ${originOptions}
                         </select>
                     </div>
                     <div class="toolbar-field">
-                        <label class="toolbar-label">First Time Fix</label>
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_first_time_fix'))}</label>
                         <select class="toolbar-select" id="firstTimeFixSelect" onchange="assignFirstTimeFix()">
                             ${firstTimeFixOptions}
                         </select>
                     </div>
                     <div class="toolbar-field">
-                        <label class="toolbar-label">IT Training</label>
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_it_training'))}</label>
                         <select class="toolbar-select" id="itTrainingSelect" onchange="assignItTraining()">
                             ${itTrainingOptions}
                         </select>
                     </div>
                     <div class="toolbar-field">
-                        <label class="toolbar-label">Owner</label>
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_owner'))}</label>
                         <select class="toolbar-select" id="ownerSelect" onchange="assignOwner()">
                             <option value=""></option>
                             ${ownerOptions}
@@ -1311,29 +1311,29 @@ function displayEmail(email, recordings) {
         ${companyWarningBanner}
         <div class="email-header">
             <div class="email-subject-line">
-                <span class="email-subject-text">Ticket ${escapeHtml(email.ticket_number || '')} - ${escapeHtml(email.subject)}</span>
-                <button class="icon-btn ticket-popout-toggle" onclick="toggleTicketPopout()" title="Toggle full-screen view" aria-label="Toggle full-screen view">
+                <span class="email-subject-text">${escapeHtml(t('tickets.reading_pane.ticket_label'))} ${escapeHtml(email.ticket_number || '')} - ${escapeHtml(email.subject)}</span>
+                <button class="icon-btn ticket-popout-toggle" onclick="toggleTicketPopout()" title="${escapeHtml(t('tickets.reading_pane.toggle_fullscreen'))}" aria-label="${escapeHtml(t('tickets.reading_pane.toggle_fullscreen'))}">
                     <svg class="popout-icon-expand" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
                     <svg class="popout-icon-contract" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
                 </button>
             </div>
             <div class="email-meta">
                 <div class="email-meta-row">
-                    <div class="email-meta-label">From:</div>
+                    <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_from'))}</div>
                     <div class="email-meta-value">${escapeHtml(email.from_name)} &lt;${escapeHtml(email.from_address)}&gt;</div>
                 </div>
                 <div class="email-meta-row">
-                    <div class="email-meta-label">To:</div>
+                    <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_to'))}</div>
                     <div class="email-meta-value">${escapeHtml(email.to_recipients)}</div>
                 </div>
                 ${email.cc_recipients ? `
                 <div class="email-meta-row">
-                    <div class="email-meta-label">Cc:</div>
+                    <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_cc'))}</div>
                     <div class="email-meta-value">${escapeHtml(email.cc_recipients)}</div>
                 </div>
                 ` : ''}
                 <div class="email-meta-row">
-                    <div class="email-meta-label">Date:</div>
+                    <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_date'))}</div>
                     <div class="email-meta-value">${formatFullDateTime(email.received_datetime)}</div>
                 </div>
             </div>
@@ -1570,7 +1570,7 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                 return `
                     ${index > 0 ? '<div class="thread-separator"></div>' : ''}
                     <div class="thread-meta">
-                        <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${isOutbound ? 'Sent' : 'Received'}</span>
+                        <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${escapeHtml(isOutbound ? t('tickets.reading_pane.badge_sent') : t('tickets.reading_pane.badge_received'))}</span>
                         <strong>${escapeHtml(e.from_name || e.from_address)}</strong>
                         &lt;${escapeHtml(e.from_address)}&gt; &mdash; ${formatFullDateTime(e.received_datetime)}
                     </div>
@@ -2544,19 +2544,20 @@ function renderAttachmentInfoBar() {
         const regularCount = ticketAttachments.filter(a => !a.is_inline).length;
         const inlineCount = ticketAttachments.filter(a => a.is_inline).length;
 
+        const regularPhrase = t(regularCount === 1 ? 'tickets.reading_pane.attach_one' : 'tickets.reading_pane.attach_many', { count: regularCount });
         let message = '';
         if (regularCount > 0 && inlineCount > 0) {
-            message = `${regularCount} attachment${regularCount === 1 ? '' : 's'} + ${inlineCount} inline`;
+            message = `${regularPhrase} ${t('tickets.reading_pane.attach_inline_suffix', { count: inlineCount })}`;
         } else if (regularCount > 0) {
-            message = `${regularCount} attachment${regularCount === 1 ? '' : 's'}`;
+            message = regularPhrase;
         } else {
-            message = `${inlineCount} inline attachment${inlineCount === 1 ? '' : 's'}`;
+            message = t(inlineCount === 1 ? 'tickets.reading_pane.attach_inline_one' : 'tickets.reading_pane.attach_inline_many', { count: inlineCount });
         }
 
         infoBar.style.display = 'block';
         infoBar.innerHTML = `
             <span class="attachment-info-icon">📎</span>
-            <span>This ticket has ${message} linked to it</span>
+            <span>${escapeHtml(t('tickets.reading_pane.attach_bar', { message: message }))}</span>
         `;
     } else {
         infoBar.style.display = 'none';
@@ -2583,16 +2584,16 @@ function showAttachmentList() {
         <table class="attachment-modal-table">
             <thead>
                 <tr>
-                    <th>From</th>
-                    <th>Date/Time</th>
-                    <th>Filename</th>
-                    <th>Size</th>
-                    <th>Type</th>
+                    <th>${escapeHtml(t('tickets.reading_pane.attach_col_from'))}</th>
+                    <th>${escapeHtml(t('tickets.reading_pane.attach_col_datetime'))}</th>
+                    <th>${escapeHtml(t('tickets.reading_pane.attach_col_filename'))}</th>
+                    <th>${escapeHtml(t('tickets.reading_pane.attach_col_size'))}</th>
+                    <th>${escapeHtml(t('tickets.reading_pane.attach_col_type'))}</th>
                 </tr>
             </thead>
             <tbody>
                 ${ticketAttachments.map(att => `
-                    <tr onclick="openAttachment(${att.id})" class="attachment-row" title="Click to download">
+                    <tr onclick="openAttachment(${att.id})" class="attachment-row" title="${escapeHtml(t('tickets.reading_pane.attach_click_download'))}">
                         <td>${escapeHtml(att.from_name || att.from_address || '')}</td>
                         <td>${formatDateDMY(att.received_datetime)}</td>
                         <td>
@@ -2600,7 +2601,7 @@ function showAttachmentList() {
                             ${escapeHtml(att.filename)}
                         </td>
                         <td>${formatFileSize(att.file_size || 0)}</td>
-                        <td>${att.is_inline ? '<span class="inline-badge">Inline</span>' : ''}</td>
+                        <td>${att.is_inline ? `<span class="inline-badge">${escapeHtml(t('tickets.reading_pane.attach_inline_badge'))}</span>` : ''}</td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -2618,7 +2619,7 @@ function showAttachmentList() {
                 const ct = (att.content_type || '').toLowerCase();
                 let media;
                 if (ct.startsWith('image/')) {
-                    media = `<img src="${url}" alt="${escapeHtml(att.filename)}" class="att-preview-media" loading="lazy" onclick="window.open('${url}','_blank')" title="Click to open full size">`;
+                    media = `<img src="${url}" alt="${escapeHtml(att.filename)}" class="att-preview-media" loading="lazy" onclick="window.open('${url}','_blank')" title="${escapeHtml(t('tickets.reading_pane.attach_click_fullsize'))}">`;
                 } else if (ct.startsWith('audio/')) {
                     media = `<audio controls preload="none" src="${url}" class="att-preview-audio"></audio>`;
                 } else {
@@ -2636,7 +2637,7 @@ function showAttachmentList() {
         <div class="modal-content attachment-list-modal">
             <button class="modal-close-top" onclick="closeAttachmentListModal()">&times;</button>
             <div class="modal-header">
-                <h3>Attachments - ${escapeHtml(currentEmail.ticket_number)}</h3>
+                <h3>${escapeHtml(t('tickets.reading_pane.attach_modal_title', { ref: currentEmail.ticket_number }))}</h3>
             </div>
             <div class="modal-body">
                 ${previewsHtml}
@@ -3916,7 +3917,7 @@ function populateContextStatusSubmenu() {
     const sub = document.getElementById('ctxStatusSubmenu');
     if (!sub) return;
     if (!ticketStatuses.length) {
-        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">No statuses configured</div>';
+        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('tickets.context.no_statuses')) + '</div>';
         return;
     }
     const currentStatus = (currentEmail && currentEmail.ticket_id == ctxTargetTicketId)
@@ -3941,7 +3942,7 @@ function populateContextPrioritySubmenu() {
     const sub = document.getElementById('ctxPrioritySubmenu');
     if (!sub) return;
     if (!ticketPriorities.length) {
-        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">No priorities configured</div>';
+        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('tickets.context.no_priorities')) + '</div>';
         return;
     }
     const currentPriorityId = (currentEmail && currentEmail.ticket_id == ctxTargetTicketId)
@@ -3950,7 +3951,7 @@ function populateContextPrioritySubmenu() {
     // "No priority" row that clears the assignment (priority_id is nullable).
     const clearRow = `<div class="ticket-context-submenu-item" data-priority-id="" onclick="setPriorityFromContext('')">
         <span class="ctx-status-swatch" style="background: transparent; border-style: dashed;"></span>
-        <span class="ctx-status-name" style="color:#888; font-style: italic;">(no priority)</span>
+        <span class="ctx-status-name" style="color:#888; font-style: italic;">${escapeHtml(t('tickets.context.clear_priority'))}</span>
         ${(currentPriorityId === null || currentPriorityId === undefined) && currentEmail && currentEmail.ticket_id == ctxTargetTicketId ? '<span class="ctx-status-check">&#10003;</span>' : ''}
     </div>`;
     sub.innerHTML = clearRow + ticketPriorities.map(p => {
@@ -4016,7 +4017,7 @@ function populateContextDepartmentSubmenu() {
     const sub = document.getElementById('ctxDepartmentSubmenu');
     if (!sub) return;
     if (!departments.length) {
-        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">No departments available</div>';
+        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('tickets.context.no_departments')) + '</div>';
         return;
     }
     const currentDeptId = (currentEmail && currentEmail.ticket_id == ctxTargetTicketId)
@@ -4025,7 +4026,7 @@ function populateContextDepartmentSubmenu() {
     const onOpenTicket = currentEmail && currentEmail.ticket_id == ctxTargetTicketId;
     const clearRow = `<div class="ticket-context-submenu-item" data-department-id="" onclick="setDepartmentFromContext('')">
         <span class="ctx-status-swatch" style="background: transparent; border-style: dashed;"></span>
-        <span class="ctx-status-name" style="color:#888; font-style: italic;">(no department)</span>
+        <span class="ctx-status-name" style="color:#888; font-style: italic;">${escapeHtml(t('tickets.context.clear_department'))}</span>
         ${(currentDeptId === null || currentDeptId === undefined) && onOpenTicket ? '<span class="ctx-status-check">&#10003;</span>' : ''}
     </div>`;
     sub.innerHTML = clearRow + departments.map(d => {
@@ -4140,7 +4141,7 @@ function populateContextTypeSubmenu() {
     const sub = document.getElementById('ctxTypeSubmenu');
     if (!sub) return;
     if (!ticketTypes.length) {
-        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">No types configured</div>';
+        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('tickets.context.no_types')) + '</div>';
         return;
     }
     const currentTypeId = (currentEmail && currentEmail.ticket_id == ctxTargetTicketId)
@@ -4149,7 +4150,7 @@ function populateContextTypeSubmenu() {
     const onOpenTicket = currentEmail && currentEmail.ticket_id == ctxTargetTicketId;
     const clearRow = `<div class="ticket-context-submenu-item" data-type-id="" onclick="setTypeFromContext('')">
         <span class="ctx-status-swatch" style="background: transparent; border-style: dashed;"></span>
-        <span class="ctx-status-name" style="color:#888; font-style: italic;">(no type)</span>
+        <span class="ctx-status-name" style="color:#888; font-style: italic;">${escapeHtml(t('tickets.context.clear_type'))}</span>
         ${(currentTypeId === null || currentTypeId === undefined) && onOpenTicket ? '<span class="ctx-status-check">&#10003;</span>' : ''}
     </div>`;
     sub.innerHTML = clearRow + ticketTypes.map(tt => {
@@ -4210,7 +4211,7 @@ function populateContextAssigneeSubmenu() {
     const sub = document.getElementById('ctxAssigneeSubmenu');
     if (!sub) return;
     if (!analysts.length) {
-        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">No analysts loaded</div>';
+        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(t('tickets.context.no_analysts')) + '</div>';
         return;
     }
     // Use owner_id as the "currently assigned" indicator since drag-to-folder
@@ -4221,7 +4222,7 @@ function populateContextAssigneeSubmenu() {
         : undefined;
     const clearRow = `<div class="ticket-context-submenu-item" data-analyst-id="" onclick="setAssigneeFromContext('')">
         <span class="ctx-status-swatch" style="background: transparent; border-style: dashed;"></span>
-        <span class="ctx-status-name" style="color:#888; font-style: italic;">(unassigned)</span>
+        <span class="ctx-status-name" style="color:#888; font-style: italic;">${escapeHtml(t('tickets.context.clear_assignee'))}</span>
         ${(currentOwnerId === null) ? '<span class="ctx-status-check">&#10003;</span>' : ''}
     </div>`;
     sub.innerHTML = clearRow + analysts.map(a => {

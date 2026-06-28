@@ -64,7 +64,85 @@ return [
     ],
     'reading_pane' => [
         'select_ticket' => 'Selecione um ticket para ver os detalhes',
+
+        // Painel de propriedades do ticket (recolhível) + rótulos dos campos
+        'properties_title'    => 'Propriedades do ticket',
+        'summary_dept'        => 'Depto:',
+        'summary_status'      => 'Status:',
+        'summary_owner'       => 'Responsável:',
+        'summary_none'        => 'Nenhum',
+        'summary_open'        => 'Aberto',
+        'summary_unassigned'  => 'Não atribuído',
+        'field_company'       => 'Empresa',
+        'field_department'    => 'Departamento',
+        'field_type'          => 'Tipo',
+        'field_status'        => 'Status',
+        'field_priority'      => 'Prioridade',
+        'field_origin'        => 'Origem',
+        'field_first_time_fix'=> 'Resolução no primeiro contato',
+        'field_it_training'   => 'Treinamento de TI',
+        'field_owner'         => 'Responsável',
+        'opt_yes'             => 'Sim',
+        'opt_no'              => 'Não',
+        'toggle_fullscreen'   => 'Alternar tela cheia',
+
+        // Cabeçalho do e-mail + prefixo do assunto
+        'ticket_label'        => 'Ticket',
+        'meta_from'           => 'De:',
+        'meta_to'             => 'Para:',
+        'meta_cc'             => 'Cc:',
+        'meta_date'           => 'Data:',
+
+        // Selos de direção na thread de mensagens
+        'badge_sent'          => 'Enviado',
+        'badge_received'      => 'Recebido',
+
+        // Barra de informação de anexos (a faixa amarela "este ticket tem anexos")
+        'attach_one'          => '{count} anexo',
+        'attach_many'         => '{count} anexos',
+        'attach_inline_one'   => '{count} anexo incorporado',
+        'attach_inline_many'  => '{count} anexos incorporados',
+        'attach_inline_suffix'=> '+ {count} incorporado(s)',
+        'attach_bar'          => 'Este ticket tem {message} vinculado(s) a ele',
+
+        // Modal da lista de anexos (aberto ao clicar na barra de informação)
+        'attach_modal_title'  => 'Anexos - {ref}',
+        'attach_col_from'     => 'De',
+        'attach_col_datetime' => 'Data/Hora',
+        'attach_col_filename' => 'Nome do arquivo',
+        'attach_col_size'     => 'Tamanho',
+        'attach_col_type'     => 'Tipo',
+        'attach_inline_badge' => 'Incorporado',
+        'attach_click_download'=> 'Clique para baixar',
+        'attach_click_fullsize'=> 'Clique para abrir em tamanho real',
     ],
+
+    // Menu de contexto (clique direito) em um ticket — os itens de nível superior
+    // ficam como marcação estática em index.php; os estados vazios dos submenus e
+    // as linhas de limpeza são construídos em inbox.js.
+    'context' => [
+        'link_cmdb'        => 'Vincular objeto do CMDB…',
+        'link_problem'     => 'Vincular a um problema…',
+        'record_time'      => 'Registrar tempo…',
+        'set_status'       => 'Definir status',
+        'set_priority'     => 'Definir prioridade',
+        'set_department'   => 'Definir departamento',
+        'set_type'         => 'Definir tipo',
+        'assign_to'        => 'Atribuir a',
+        'move_company'     => 'Mover para empresa',
+        'move_trash'       => 'Mover para a lixeira',
+        'empty_trash'      => 'Esvaziar lixeira',
+        'no_statuses'      => 'Nenhum status configurado',
+        'no_priorities'    => 'Nenhuma prioridade configurada',
+        'no_departments'   => 'Nenhum departamento disponível',
+        'no_types'         => 'Nenhum tipo configurado',
+        'no_analysts'      => 'Nenhum analista carregado',
+        'clear_priority'   => '(sem prioridade)',
+        'clear_department' => '(sem departamento)',
+        'clear_type'       => '(sem tipo)',
+        'clear_assignee'   => '(não atribuído)',
+    ],
+
     'note_modal' => [
         'title' => 'Adicionar nota',
         'note_label' => 'Nota',

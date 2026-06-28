@@ -260,21 +260,21 @@ $translationNamespaces = ['common', 'tickets'];
         <div class="ticket-context-menu-header" id="ticketContextMenuHeader"></div>
         <button class="ticket-context-menu-item" type="button" onclick="openContextLinkCmdb()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            <span>Link CMDB object…</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.link_cmdb')); ?></span>
         </button>
         <button class="ticket-context-menu-item" type="button" onclick="openContextLinkProblem()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            <span>Link to problem…</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.link_problem')); ?></span>
         </button>
         <button class="ticket-context-menu-item" type="button" onclick="openContextRecordTime()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <span>Record time…</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.record_time')); ?></span>
         </button>
         <!-- Status submenu parent. Hover/focus to reveal the flyout populated
              at menu-open time from the active ticket_statuses. -->
         <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-            <span>Set status</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.set_status')); ?></span>
             <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
             <div class="ticket-context-submenu" id="ctxStatusSubmenu" role="menu">
                 <!-- Populated by openTicketContextMenu(). -->
@@ -284,7 +284,7 @@ $translationNamespaces = ['common', 'tickets'];
              from the active ticket_priorities lookup at menu-open time. -->
         <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
-            <span>Set priority</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.set_priority')); ?></span>
             <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
             <div class="ticket-context-submenu" id="ctxPrioritySubmenu" role="menu">
                 <!-- Populated by openTicketContextMenu(). -->
@@ -295,7 +295,7 @@ $translationNamespaces = ['common', 'tickets'];
              department_id. Includes a "(no department)" clear row. -->
         <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-4"/><path d="M9 9v.01"/><path d="M9 12v.01"/><path d="M9 15v.01"/><path d="M9 18v.01"/></svg>
-            <span>Set department</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.set_department')); ?></span>
             <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
             <div class="ticket-context-submenu" id="ctxDepartmentSubmenu" role="menu">
                 <!-- Populated by openTicketContextMenu(). -->
@@ -306,7 +306,7 @@ $translationNamespaces = ['common', 'tickets'];
              "(no type)" clear row. -->
         <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-            <span>Set type</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.set_type')); ?></span>
             <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
             <div class="ticket-context-submenu" id="ctxTypeSubmenu" role="menu">
                 <!-- Populated by openTicketContextMenu(). -->
@@ -316,7 +316,7 @@ $translationNamespaces = ['common', 'tickets'];
              both assigned_analyst_id and owner_id (mirrors drag-to-analyst-folder). -->
         <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            <span>Assign to</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.assign_to')); ?></span>
             <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
             <div class="ticket-context-submenu" id="ctxAssigneeSubmenu" role="menu">
                 <!-- Populated by openTicketContextMenu(). -->
@@ -326,7 +326,7 @@ $translationNamespaces = ['common', 'tickets'];
              Lists the companies the analyst can access; picking one re-homes the ticket. -->
         <div class="ticket-context-menu-item ticket-context-menu-parent" id="ctxCompanyParent" role="menuitem" tabindex="0" style="display:none;">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M19 21V9a2 2 0 0 0-2-2h-2"/><path d="M9 7h2"/><path d="M9 11h2"/><path d="M9 15h2"/></svg>
-            <span>Move to company</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.move_company')); ?></span>
             <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
             <div class="ticket-context-submenu" id="ctxCompanySubmenu" role="menu">
                 <!-- Populated by openTicketContextMenu(). -->
@@ -335,7 +335,7 @@ $translationNamespaces = ['common', 'tickets'];
         <div style="height:1px;background:#eee;margin:4px 0;"></div>
         <button class="ticket-context-menu-item" type="button" onclick="contextMoveToTrash()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-            <span>Move to trash</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.move_trash')); ?></span>
         </button>
     </div>
 
@@ -343,7 +343,7 @@ $translationNamespaces = ['common', 'tickets'];
     <div class="ticket-context-menu" id="trashContextMenu" role="menu">
         <button class="ticket-context-menu-item" type="button" onclick="emptyTrash()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            <span>Empty trash</span>
+            <span><?php echo htmlspecialchars(t('tickets.context.empty_trash')); ?></span>
         </button>
     </div>
 
@@ -414,7 +414,7 @@ $translationNamespaces = ['common', 'tickets'];
         window.API_BASE = '../api/tickets/';
         window.CURRENT_ANALYST_ID = <?php echo (int)($_SESSION['analyst_id'] ?? 0); ?>;
     </script>
-    <script src="../assets/js/inbox.js?v=43"></script>
+    <script src="../assets/js/inbox.js?v=44"></script>
     <script>
     // Auto-check mailboxes every 60 seconds
     (function() {

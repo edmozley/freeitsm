@@ -81,6 +81,83 @@ return [
 
     'reading_pane' => [
         'select_ticket' => 'Select a ticket to view details',
+
+        // Ticket properties panel (collapsible) + field labels
+        'properties_title'    => 'Ticket Properties',
+        'summary_dept'        => 'Dept:',
+        'summary_status'      => 'Status:',
+        'summary_owner'       => 'Owner:',
+        'summary_none'        => 'None',
+        'summary_open'        => 'Open',
+        'summary_unassigned'  => 'Unassigned',
+        'field_company'       => 'Company',
+        'field_department'    => 'Department',
+        'field_type'          => 'Type',
+        'field_status'        => 'Status',
+        'field_priority'      => 'Priority',
+        'field_origin'        => 'Origin',
+        'field_first_time_fix'=> 'First Time Fix',
+        'field_it_training'   => 'IT Training',
+        'field_owner'         => 'Owner',
+        'opt_yes'             => 'Yes',
+        'opt_no'              => 'No',
+        'toggle_fullscreen'   => 'Toggle full-screen view',
+
+        // Email header meta + subject prefix
+        'ticket_label'        => 'Ticket',
+        'meta_from'           => 'From:',
+        'meta_to'             => 'To:',
+        'meta_cc'             => 'Cc:',
+        'meta_date'           => 'Date:',
+
+        // Message-thread direction badges
+        'badge_sent'          => 'Sent',
+        'badge_received'      => 'Received',
+
+        // Attachment info bar (the yellow "this ticket has attachments" strip)
+        'attach_one'          => '{count} attachment',
+        'attach_many'         => '{count} attachments',
+        'attach_inline_one'   => '{count} inline attachment',
+        'attach_inline_many'  => '{count} inline attachments',
+        'attach_inline_suffix'=> '+ {count} inline',
+        'attach_bar'          => 'This ticket has {message} linked to it',
+
+        // Attachment list modal (opened by clicking the info bar)
+        'attach_modal_title'  => 'Attachments - {ref}',
+        'attach_col_from'     => 'From',
+        'attach_col_datetime' => 'Date/Time',
+        'attach_col_filename' => 'Filename',
+        'attach_col_size'     => 'Size',
+        'attach_col_type'     => 'Type',
+        'attach_inline_badge' => 'Inline',
+        'attach_click_download'=> 'Click to download',
+        'attach_click_fullsize'=> 'Click to open full size',
+    ],
+
+    // Right-click (context) menu on a ticket — top-level items live as static
+    // markup in index.php; the submenu empty-states and clear rows are built
+    // in inbox.js.
+    'context' => [
+        'link_cmdb'        => 'Link CMDB object…',
+        'link_problem'     => 'Link to problem…',
+        'record_time'      => 'Record time…',
+        'set_status'       => 'Set status',
+        'set_priority'     => 'Set priority',
+        'set_department'   => 'Set department',
+        'set_type'         => 'Set type',
+        'assign_to'        => 'Assign to',
+        'move_company'     => 'Move to company',
+        'move_trash'       => 'Move to trash',
+        'empty_trash'      => 'Empty trash',
+        'no_statuses'      => 'No statuses configured',
+        'no_priorities'    => 'No priorities configured',
+        'no_departments'   => 'No departments available',
+        'no_types'         => 'No types configured',
+        'no_analysts'      => 'No analysts loaded',
+        'clear_priority'   => '(no priority)',
+        'clear_department' => '(no department)',
+        'clear_type'       => '(no type)',
+        'clear_assignee'   => '(unassigned)',
     ],
 
     'note_modal' => [
