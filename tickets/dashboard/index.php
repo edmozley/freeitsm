@@ -8,6 +8,7 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'dashboard';
@@ -15,12 +16,13 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'tickets'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.dashboard.page_title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=4">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=34">
     <style>
         .dashboard-page {
             height: calc(100vh - 48px);
@@ -32,14 +34,14 @@ $translationNamespaces = ['common', 'tickets'];
             align-items: center;
             justify-content: space-between;
             padding: 16px 24px;
-            background: #fff;
-            border-bottom: 1px solid #e0e0e0;
+            background: var(--surface, #fff);
+            border-bottom: 1px solid var(--border, #e0e0e0);
         }
 
         .dashboard-toolbar h2 {
             margin: 0;
             font-size: 18px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .dashboard-toolbar-actions {
@@ -49,10 +51,10 @@ $translationNamespaces = ['common', 'tickets'];
 
         .btn {
             padding: 8px 16px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 6px;
-            background: #fff;
-            color: #333;
+            background: var(--surface, #fff);
+            color: var(--text, #333);
             font-size: 13px;
             cursor: pointer;
             display: inline-flex;
@@ -62,18 +64,18 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .btn:hover {
-            background: #f5f5f5;
-            border-color: #ccc;
+            background: var(--surface-2, #f5f5f5);
+            border-color: var(--text-faint, #ccc);
         }
 
         .btn-primary {
-            background: #0078d4;
-            color: #fff;
-            border-color: #0078d4;
+            background: var(--accent, #0078d4);
+            color: var(--on-accent, #fff);
+            border-color: var(--accent, #0078d4);
         }
 
         .btn-primary:hover {
-            background: #106ebe;
+            background: var(--accent-hover, #106ebe);
         }
 
         .btn svg {
@@ -90,8 +92,8 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .widget-card {
-            background: #fff;
-            border: 1px solid #e0e0e0;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e0e0e0);
             border-radius: 8px;
             display: flex;
             flex-direction: column;
@@ -107,7 +109,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .widget-card.drag-over {
-            border-color: #0078d4;
+            border-color: var(--accent, #0078d4);
             border-style: dashed;
         }
 
@@ -127,13 +129,13 @@ $translationNamespaces = ['common', 'tickets'];
             margin: 0;
             font-size: 14px;
             font-weight: 600;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .widget-header p {
             margin: 4px 0 0 0;
             font-size: 12px;
-            color: #888;
+            color: var(--text-dim, #888);
         }
 
         .widget-actions {
@@ -148,15 +150,15 @@ $translationNamespaces = ['common', 'tickets'];
             border: none;
             padding: 4px;
             cursor: pointer;
-            color: #999;
+            color: var(--text-faint, #999);
             border-radius: 4px;
             display: flex;
             align-items: center;
         }
 
         .widget-action-btn:hover {
-            color: #333;
-            background: #f0f0f0;
+            color: var(--text, #333);
+            background: var(--surface-hover, #f0f0f0);
         }
 
         .widget-action-btn svg {
@@ -170,11 +172,11 @@ $translationNamespaces = ['common', 'tickets'];
 
         .widget-filter select {
             padding: 4px 8px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 4px;
             font-size: 12px;
-            color: #555;
-            background: #fff;
+            color: var(--text-muted, #555);
+            background: var(--surface, #fff);
         }
 
         .widget-chart {
@@ -194,20 +196,20 @@ $translationNamespaces = ['common', 'tickets'];
         .dashboard-empty {
             text-align: center;
             padding: 80px 24px;
-            color: #888;
+            color: var(--text-dim, #888);
         }
 
         .dashboard-empty svg {
             width: 64px;
             height: 64px;
-            color: #ccc;
+            color: var(--text-faint, #ccc);
             margin-bottom: 16px;
         }
 
         .dashboard-empty h3 {
             margin: 0 0 8px 0;
             font-size: 18px;
-            color: #555;
+            color: var(--text-muted, #555);
         }
 
         .dashboard-empty p {
@@ -220,6 +222,8 @@ $translationNamespaces = ['common', 'tickets'];
                 grid-template-columns: 1fr;
             }
         }
+        /* Form fields follow the palette (inbox.css only themes specific input classes). */
+    .dashboard-page input, .dashboard-page select, .dashboard-page textarea { background: var(--surface, #fff); color: var(--text, #333); }
     </style>
 </head>
 <body>
@@ -275,6 +279,17 @@ $translationNamespaces = ['common', 'tickets'];
         let chartInstances = {};
         let dragSource = null;
         let editingWidgetId = null;
+
+        // Dark-mode awareness for Chart.js (it draws on canvas, so it can't read our
+        // CSS tokens — set its global text/gridline colours by the active palette mode).
+        const DASH_DARK = (document.documentElement.getAttribute('data-theme-mode') || 'light') === 'dark';
+        if (window.Chart) {
+            Chart.defaults.color = DASH_DARK ? '#aab2bd' : '#666666';
+            Chart.defaults.borderColor = DASH_DARK ? '#343b45' : 'rgba(0,0,0,0.1)';
+        }
+        // Slice/segment separator colour — match the (now dark) widget card so pie
+        // slices stay visually separated.
+        const CHART_SLICE_BORDER = DASH_DARK ? '#1e2228' : '#fff';
 
         // Ticket statuses for filter dropdowns — loaded once from the lookup at init()
         let STATUSES = [];
@@ -432,7 +447,7 @@ $translationNamespaces = ['common', 'tickets'];
                     datasets: [{
                         data: values,
                         backgroundColor: isPieType ? bgColors : (isLine ? 'rgba(0,120,212,0.1)' : bgColors),
-                        borderColor: isPieType ? '#fff' : (isLine ? '#0078d4' : bgColors),
+                        borderColor: isPieType ? CHART_SLICE_BORDER : (isLine ? '#0078d4' : bgColors),
                         borderWidth: isPieType ? 2 : (isLine ? 2 : 0),
                         tension: isLine ? 0.3 : undefined,
                         fill: isLine ? true : undefined,

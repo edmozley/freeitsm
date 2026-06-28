@@ -6,6 +6,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'dashboard';
@@ -13,12 +14,13 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'tickets'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.dashboard.library.page_title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/inbox.css">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=4">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=34">
     <style>
         .dashboard-page {
             height: calc(100vh - 48px);
@@ -30,8 +32,8 @@ $translationNamespaces = ['common', 'tickets'];
             align-items: center;
             justify-content: space-between;
             padding: 16px 24px;
-            background: #fff;
-            border-bottom: 1px solid #e0e0e0;
+            background: var(--surface, #fff);
+            border-bottom: 1px solid var(--border, #e0e0e0);
             gap: 12px;
         }
 
@@ -42,7 +44,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .library-toolbar-left a {
-            color: #555;
+            color: var(--text-muted, #555);
             text-decoration: none;
             font-size: 13px;
             display: inline-flex;
@@ -51,7 +53,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .library-toolbar-left a:hover {
-            color: #0078d4;
+            color: var(--accent, #0078d4);
         }
 
         .library-toolbar-left a svg {
@@ -62,7 +64,7 @@ $translationNamespaces = ['common', 'tickets'];
         .library-toolbar h2 {
             margin: 0;
             font-size: 18px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .library-toolbar-right {
@@ -73,7 +75,7 @@ $translationNamespaces = ['common', 'tickets'];
 
         .search-input {
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 6px;
             font-size: 13px;
             width: 240px;
@@ -81,16 +83,16 @@ $translationNamespaces = ['common', 'tickets'];
 
         .search-input:focus {
             outline: none;
-            border-color: #0078d4;
+            border-color: var(--accent, #0078d4);
             box-shadow: 0 0 0 2px rgba(0,120,212,0.1);
         }
 
         .btn {
             padding: 8px 16px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 6px;
-            background: #fff;
-            color: #333;
+            background: var(--surface, #fff);
+            color: var(--text, #333);
             font-size: 13px;
             cursor: pointer;
             display: inline-flex;
@@ -99,15 +101,15 @@ $translationNamespaces = ['common', 'tickets'];
             transition: all 0.15s;
         }
 
-        .btn:hover { background: #f5f5f5; border-color: #ccc; }
+        .btn:hover { background: var(--surface-2, #f5f5f5); border-color: var(--border, #ccc); }
 
-        .btn-primary { background: #0078d4; color: #fff; border-color: #0078d4; }
-        .btn-primary:hover { background: #106ebe; }
+        .btn-primary { background: var(--accent, #0078d4); color: var(--on-accent, #fff); border-color: var(--accent, #0078d4); }
+        .btn-primary:hover { background: var(--accent-hover, #106ebe); }
 
         .btn-sm { padding: 5px 10px; font-size: 12px; }
 
-        .btn-danger { color: #d13438; border-color: #d13438; }
-        .btn-danger:hover { background: #fdf3f3; }
+        .btn-danger { color: var(--danger-accent, #d13438); border-color: var(--danger-accent, #d13438); }
+        .btn-danger:hover { background: var(--danger-bg, #fdf3f3); }
 
         .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
@@ -121,8 +123,8 @@ $translationNamespaces = ['common', 'tickets'];
         .widget-table {
             width: 100%;
             border-collapse: collapse;
-            background: #fff;
-            border: 1px solid #e0e0e0;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e0e0e0);
             border-radius: 8px;
             overflow: hidden;
         }
@@ -132,18 +134,18 @@ $translationNamespaces = ['common', 'tickets'];
             padding: 12px 16px;
             font-size: 12px;
             font-weight: 600;
-            color: #666;
+            color: var(--text-muted, #666);
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            background: #f8f9fa;
-            border-bottom: 1px solid #e0e0e0;
+            background: var(--surface-3, #f8f9fa);
+            border-bottom: 1px solid var(--border, #e0e0e0);
         }
 
         .widget-table td {
             padding: 12px 16px;
             font-size: 13px;
-            color: #333;
-            border-bottom: 1px solid #f0f0f0;
+            color: var(--text, #333);
+            border-bottom: 1px solid var(--border-soft, #f0f0f0);
             vertical-align: middle;
         }
 
@@ -152,7 +154,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .widget-table tr:hover td {
-            background: #f8f9fa;
+            background: var(--surface-3, #f8f9fa);
         }
 
         .widget-table .widget-title {
@@ -160,7 +162,7 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         .widget-table .widget-desc {
-            color: #888;
+            color: var(--text-dim, #888);
             font-size: 12px;
             margin-top: 2px;
         }
@@ -171,8 +173,8 @@ $translationNamespaces = ['common', 'tickets'];
             border-radius: 10px;
             font-size: 11px;
             font-weight: 500;
-            background: #f0f0f0;
-            color: #555;
+            background: var(--surface-hover, #f0f0f0);
+            color: var(--text-muted, #555);
         }
 
         .series-badge {
@@ -181,8 +183,8 @@ $translationNamespaces = ['common', 'tickets'];
             border-radius: 10px;
             font-size: 10px;
             font-weight: 600;
-            background: #e8f5e9;
-            color: #2e7d32;
+            background: var(--success-bg, #e8f5e9);
+            color: var(--success-text, #2e7d32);
         }
 
         .actions-cell {
@@ -196,8 +198,8 @@ $translationNamespaces = ['common', 'tickets'];
         /* Edit form panel */
         .edit-panel {
             display: none;
-            background: #f8f9fa;
-            border: 1px solid #e0e0e0;
+            background: var(--surface-3, #f8f9fa);
+            border: 1px solid var(--border, #e0e0e0);
             border-radius: 8px;
             padding: 20px 24px;
             margin-bottom: 20px;
@@ -210,7 +212,7 @@ $translationNamespaces = ['common', 'tickets'];
         .edit-panel h3 {
             margin: 0 0 16px 0;
             font-size: 15px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .edit-panel-actions {
@@ -218,15 +220,17 @@ $translationNamespaces = ['common', 'tickets'];
             gap: 8px;
             margin-top: 16px;
             padding-top: 16px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border, #e0e0e0);
         }
 
         .no-results {
             text-align: center;
             padding: 40px;
-            color: #888;
+            color: var(--text-dim, #888);
             font-size: 14px;
         }
+        /* Form fields follow the palette (inbox.css only themes specific input classes). */
+    .dashboard-page input, .dashboard-page select, .dashboard-page textarea { background: var(--surface, #fff); color: var(--text, #333); }
     </style>
 </head>
 <body>
