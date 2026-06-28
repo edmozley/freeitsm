@@ -939,10 +939,10 @@ body.ticket-popout .ticket-toolbar {
 
 /* Inline reply composer for messaging-channel tickets (WhatsApp etc.) */
 .channel-composer {
-    border: 1px solid #d6e9d8;
+    border: 1px solid var(--channel-border, #d6e9d8);
     border-left: 3px solid #25d366;
     border-radius: 8px;
-    background: #f7fdf9;
+    background: var(--channel-bg, #f7fdf9);
     padding: 12px 14px;
     margin: 0 0 16px 0;
 }
@@ -960,9 +960,9 @@ body.ticket-popout .ticket-toolbar {
 }
 
 .channel-window-closed {
-    background: #fff6e5;
-    border: 1px solid #f0d9a8;
-    color: #8a6d3b;
+    background: var(--warning-bg, #fff6e5);
+    border: 1px solid var(--warning-border, #f0d9a8);
+    color: var(--warning-text, #8a6d3b);
     border-radius: 6px;
     padding: 8px 10px;
     font-size: 13px;
@@ -972,7 +972,7 @@ body.ticket-popout .ticket-toolbar {
 .channel-composer-text {
     width: 100%;
     box-sizing: border-box;
-    border: 1px solid #cfd8dc;
+    border: 1px solid var(--border, #cfd8dc);
     border-radius: 6px;
     padding: 8px 10px;
     font: inherit;
@@ -1002,7 +1002,7 @@ body.ticket-popout .ticket-toolbar {
     margin-top: 8px;
     padding: 8px 10px;
     background: var(--surface, #fff);
-    border: 1px dashed #cfd8dc;
+    border: 1px dashed var(--border, #cfd8dc);
     border-radius: 6px;
     font-size: 13px;
     color: var(--text, #333);
