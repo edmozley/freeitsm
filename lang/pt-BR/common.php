@@ -4,6 +4,35 @@
  * Falls back per-key to lang/en/common.php for anything missing here.
  */
 return [
+    // Shared AI provider/model/key panel (includes/ai_settings_panel.php),
+    // reused by every module's AI settings tab.
+    'ai' => [
+        'provider'            => 'Provedor',
+        'provider_anthropic'  => 'Anthropic (Claude)',
+        'provider_openai'     => 'OpenAI (GPT)',
+        'provider_openrouter' => 'OpenRouter (uma chave, vários modelos)',
+        'openrouter_note'     => 'Com o OpenRouter, uma única chave alcança centenas de modelos. Observe que os prompts são roteados pelo serviço do OpenRouter.',
+        'model'               => 'Modelo',
+        'model_placeholder'   => 'Digite ou escolha um modelo…',
+        'model_set'           => 'Modelo',
+        'loading_models'      => 'Carregando lista de modelos…',
+        'no_models'           => 'Nenhum modelo correspondente — você pode digitar qualquer ID de modelo',
+        'openrouter_pricing'  => 'Preços exibidos por 1M de tokens (entrada / saída).',
+        'models_stale'        => 'em cache',
+        'api_key'             => 'Chave de API',
+        'api_key_help'        => 'Armazenada de forma criptografada. Deixe em branco para manter a chave salva.',
+        'api_key_set'         => 'Uma chave está salva. Deixe em branco para mantê-la.',
+        'verify_ssl'          => 'Verificar certificado SSL',
+        'verify_ssl_help'     => 'Mantenha ativado em produção. Desative apenas se o seu servidor não conseguir validar o certificado do provedor.',
+        'save'                => 'Salvar',
+        'test'                => 'Testar',
+        'testing'             => 'Testando…',
+        'test_ok'             => 'Conexão OK',
+        'test_failed'         => 'Falha no teste',
+        'saved'               => 'Salvo',
+        'save_failed'         => 'Falha ao salvar',
+    ],
+
     // Left-panel visibility preference — shared labels (mirrors lang/en/common.php).
     'left_panel' => [
         'tab'        => 'Painel esquerdo',
@@ -83,6 +112,7 @@ return [
         'cmdb'           => ['name' => 'CMDB',          'description' => 'Banco de Dados de Gerenciamento de Configuração'],
         'network-mapper' => ['name' => 'Rede',          'description' => 'Projete e documente diagramas de rede'],
         'system'         => ['name' => 'Sistema',       'description' => 'Administração e configuração do sistema'],
+        'workflow'       => ['name' => 'Fluxos',        'description' => 'Automação entre módulos — gatilhos, condições, ações'],
     ],
 
     // Account / user menu in the shared header
@@ -95,6 +125,7 @@ return [
         'logout_confirm'  => 'Tem certeza de que deseja sair?',
         'badge_off'       => 'Desligado',
         'badge_on'        => 'Ligado',
+        'preferences'     => 'Preferências',
     ],
 
     // Change-password modal
@@ -116,6 +147,10 @@ return [
         'previous' => 'Anterior',
         'next'     => 'Próximo',
         'today'    => 'Hoje',
+
+        'view_month' => 'Mês',
+        'view_week'  => 'Semana',
+        'view_day'   => 'Dia',
 
         'months' => [
             'january'   => 'janeiro',

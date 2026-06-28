@@ -324,6 +324,10 @@ return [
     ],
 
     'settings' => [
+        'left_panel_intro'       => 'Escolha como o painel esquerdo se comporta na lista de mudanças. Esta preferência é salva na sua conta.',
+        'left_panel_always_desc' => 'Mantenha o painel esquerdo sempre fixado e aberto.',
+        'left_panel_hover_desc'  => 'Recolha o painel esquerdo em uma faixa fina que se expande ao passar o mouse, dando mais espaço à lista.',
+
         'tab_fields'      => 'Campos do formulário',
         'tab_statuses'    => 'Status',
         'tab_priorities'  => 'Prioridades',

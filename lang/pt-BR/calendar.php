@@ -58,6 +58,26 @@ return [
         'col_created'     => 'Criado em',
     ],
 
+    'subscribe' => [
+        'heading'       => 'Adicionar ao seu telefone',
+        'intro'         => 'Adicione o calendário da equipe ao seu telefone — ele é atualizado automaticamente.',
+        'button'        => 'Inscrever-se',
+        'modal_title'   => 'Adicionar ao seu telefone',
+        'modal_intro'   => 'Escaneie o código QR com a câmera do seu telefone e escolha Inscrever-se. O calendário se manterá atualizado.',
+        'address_label' => 'Endereço do servidor',
+        'address_hint'  => 'Seu telefone não consegue acessar "localhost" — defina aqui o endereço IP de rede do seu computador (ex.: 192.168.1.50) para que o telefone possa se conectar. O código QR e o link são atualizados conforme você digita.',
+        'url_label'     => 'Link de inscrição',
+        'copy'          => 'Copiar',
+        'copied'        => 'Copiado',
+        'ios_label'     => 'iPhone',
+        'ios_hint'      => 'Escaneie o código QR (ou toque no link copiado) e escolha Inscrever-se.',
+        'android_label' => 'Android',
+        'android_hint'  => 'Abra o Google Agenda na web → Outros calendários → A partir do URL e cole o link.',
+        'reset'         => 'Redefinir link',
+        'reset_confirm' => 'Redefinir o link do seu calendário? O link atual deixará de funcionar em qualquer dispositivo já inscrito nele.',
+        'close'         => 'Fechar',
+    ],
+
     'settings' => [
         'title'           => 'Configurações do calendário',
         'tab_categories'  => 'Categorias',
@@ -89,6 +109,10 @@ return [
         'delete_title'    => 'Excluir categoria',
         'delete_confirm'  => 'Tem certeza de que deseja excluir "{name}"? Esta ação não pode ser desfeita.',
         'delete_this'     => 'esta categoria',
+
+        'left_panel_intro'       => 'Escolha como o painel esquerdo se comporta no calendário. Esta preferência é salva na sua conta.',
+        'left_panel_always_desc' => 'Mantenha o painel esquerdo sempre fixado e aberto.',
+        'left_panel_hover_desc'  => 'Recolha o painel esquerdo em uma faixa fina que se expande ao passar o mouse, dando mais espaço ao calendário.',
     ],
 
     'toast' => [

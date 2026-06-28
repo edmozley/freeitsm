@@ -1,0 +1,590 @@
+<?php
+/**
+ * Português (Brasil) (pt-BR) — System module.
+ * Falls back per-key to lang/en/system.php for anything missing here.
+ */
+return [
+    'title' => 'Sistema',
+
+    // Shared header navigation (system/includes/header.php)
+    'nav' => [
+        'encryption'  => 'Criptografia',
+        'modules'     => 'Módulos',
+        'db_verify'   => 'Verificar BD',
+        'colours'     => 'Cores',
+        'branding'    => 'Marca',
+        'security'    => 'Segurança',
+        'preferences' => 'Preferências',
+        'demo_data'   => 'Dados de demonstração',
+        'debug_tools' => 'Ferramentas de depuração',
+    ],
+
+    // System landing page (system/index.php)
+    'landing' => [
+        'heading'  => 'Administração do sistema',
+        'subtitle' => 'Configure as definições de nível de sistema e os controles de acesso',
+
+        // Card search box. Keywords below carry search synonyms so e.g. typing
+        // "oidc" finds Single Sign-On; they are never shown, only matched.
+        'search_placeholder' => 'Pesquisar áreas do sistema…',
+        'no_results'         => 'Nenhuma área do sistema corresponde à sua pesquisa.',
+
+        'help_title' => 'Ajuda e guias',
+        'help_desc'  => 'Guias passo a passo para cada área do sistema, incluindo a configuração de single sign-on.',
+
+        'topology_title'    => 'Topologia',
+        'topology_desc'     => 'Veja como empresas, caixas de correio, domínios, login e analistas se encaixam',
+        'topology_keywords' => 'topology map overview tree relationships companies mailboxes domains analysts structure diagram graph',
+
+        'orphaned_title'    => 'Tickets órfãos',
+        'orphaned_desc'     => 'Encontre tickets presos em um departamento excluído e reatribua-os',
+        'orphaned_keywords' => 'orphaned tickets department missing deleted hidden reassign fix stuck lost broken',
+
+        'encryption_title'  => 'Criptografia',
+        'encryption_desc'   => 'Gere e gerencie a chave de criptografia usada para proteger dados sensíveis, como chaves de API e credenciais.',
+        'encryption_keywords' => 'encryption key master key crypto secrets credentials api keys cipher',
+        'modules_title'     => 'Acesso a módulos',
+        'modules_desc'      => 'Controle quais módulos cada analista pode acessar. Restrinja a visibilidade na tela inicial e no menu de navegação.',
+        'modules_keywords'  => 'module access permissions analyst rights visibility roles enable disable',
+        'db_verify_title'   => 'Verificar banco de dados',
+        'db_verify_desc'    => 'Verifique se todas as tabelas e colunas existem no banco de dados. Cria automaticamente as que estiverem faltando.',
+        'db_verify_keywords' => 'database verify schema tables columns migration repair sql db',
+        'colours_title'     => 'Cores',
+        'colours_desc'      => 'Personalize o tema de cores de cada módulo. As alterações se aplicam aos cabeçalhos, ícones e à tela inicial.',
+        'colours_keywords'  => 'colours colors theme palette appearance customise branding',
+        'branding_title'    => 'Marca',
+        'branding_desc'     => 'Envie o logotipo da organização e defina o texto padrão de cabeçalho/rodapé para diagramas e documentos exportados.',
+        'branding_keywords' => 'branding logo header footer organisation company export documents',
+        'security_title'    => 'Segurança',
+        'security_desc'     => 'Configure políticas de dispositivos confiáveis, expiração de senha e definições de bloqueio de conta.',
+        'security_keywords' => 'security password expiry lockout trusted device mfa 2fa login policy brute force',
+        'sso_title'         => 'Single Sign-On',
+        'sso_desc'          => 'Conecte provedores de identidade externos (OpenID Connect) como Keycloak, Entra, Okta ou Google para que os usuários possam entrar com SSO.',
+        'sso_keywords'      => 'sso single sign-on single sign on oidc openid connect saml identity provider idp keycloak entra azure ad okta google oauth federation login',
+        'preferences_title' => 'Preferências',
+        'preferences_desc'  => 'Definições pessoais como a posição das notificações. São salvas por navegador e se aplicam apenas a você.',
+        'preferences_keywords' => 'preferences personal settings notifications toast position per-browser',
+        'demo_data_title'   => 'Dados de demonstração',
+        'demo_data_desc'    => 'Importe dados de exemplo realistas em todos os módulos. Ideal para avaliação e testes em uma instalação nova.',
+        'demo_data_keywords' => 'demo data sample seed test evaluation import fixtures example',
+        'debug_tools_title' => 'Ferramentas de depuração',
+        'debug_tools_desc'  => 'Biblioteca de diagnósticos para solucionar fluxos com falhas. Execute mediante solicitação e envie a saída de volta ao suporte.',
+        'debug_tools_keywords' => 'debug tools diagnostics troubleshoot logs errors support fix',
+        'companies_title'   => 'Empresas',
+        'companies_desc'    => 'Gerencie as empresas clientes que esta instalação atende.',
+        'companies_keywords' => 'companies clients tenants multi-tenancy multi tenant organisations msp',
+        'routing_test_title' => 'Teste de roteamento de e-mail',
+        'routing_test_desc'  => 'Simule um e-mail recebido para ver para qual empresa ele seria arquivado e por quê.',
+        'routing_test_keywords' => 'email routing test dry run mailbox sender domain triage tenant inbound diagnostic',
+    ],
+
+    // Branding page (system/branding/index.php)
+    'branding' => [
+        'title'    => 'Marca',
+        'subtitle' => 'Defina o logotipo da organização e o texto padrão de cabeçalho/rodapé usado em diagramas e documentos exportados',
+
+        'logo_heading'  => 'Logotipo da empresa',
+        'logo_desc'     => 'Usado como o token {code} em qualquer espaço de cabeçalho/rodapé. PNG, JPG ou SVG, máx. 2&nbsp;MB. SVG é recomendado para impressão e exportação nítidas.',
+        'no_logo'       => 'Sem logotipo',
+        'remove'        => 'Remover',
+        'logo_hint'     => 'Escolha um arquivo para substituir o logotipo atual. A nova imagem é salva quando você clicar em Salvar.',
+
+        'header_heading' => 'Cabeçalho',
+        'header_desc'    => 'Três espaços renderizados na parte superior da página. Deixe um espaço em branco para omiti-lo.',
+        'footer_heading' => 'Rodapé',
+        'footer_desc'    => 'Três espaços renderizados na parte inferior da página.',
+        'col_left'       => 'Esquerda',
+        'col_centre'     => 'Centro',
+        'col_right'      => 'Direita',
+        'row_header'     => 'Cabeçalho',
+        'row_footer'     => 'Rodapé',
+
+        'tokens_heading' => 'Tokens disponíveis',
+        'tokens_intro'   => 'estes são substituídos quando o cabeçalho/rodapé é renderizado em um diagrama ou exportação:',
+        'token_logo'     => 'a imagem do logotipo da empresa',
+        'token_title'    => 'o título do diagrama ou documento',
+        'token_author'   => 'o nome do autor',
+        'token_version'  => 'o rótulo da versão',
+        'token_modified' => 'a data da última modificação',
+        'tokens_example_prefix' => 'Combine tokens com texto simples — ex.',
+        'tokens_example_suffix' => 'renderiza como',
+        'tokens_example_render' => 'Autor: Ed Mozley',
+
+        'save'             => 'Salvar',
+        'reset_defaults'   => 'Restaurar padrões',
+
+        'load_failed'         => 'Falha ao carregar a marca: {error}',
+        'load_failed_generic' => 'Falha ao carregar as definições de marca',
+        'logo_too_large'      => 'Logotipo muito grande (máx. 2 MB)',
+        'reset_hint'          => 'Espaços restaurados aos padrões — clique em Salvar para aplicar',
+        'saved'               => 'Marca salva',
+        'error'               => 'Erro: {error}',
+        'save_failed'         => 'Falha ao salvar a marca',
+    ],
+
+    // Module colours page (system/colours/index.php)
+    'colours' => [
+        'title'     => 'Cores dos módulos',
+        'subtitle'  => 'Personalize o tema de cores de cada módulo em cabeçalhos, ícones e na tela inicial',
+        'save'      => 'Salvar',
+        'primary'   => 'Primária',
+        'secondary' => 'Secundária',
+        'reset'     => 'Restaurar',
+        'saved'     => 'Cores dos módulos salvas',
+        'error'     => 'Erro: {error}',
+        'save_failed' => 'Falha ao salvar as cores',
+    ],
+
+    // Database verification page (system/db-verify/index.php)
+    'db_verify' => [
+        'heading'     => 'Verificação do banco de dados',
+        'intro'       => 'Verifique se todas as tabelas e colunas existem. Cria automaticamente as que estiverem faltando.',
+        'run'         => 'Executar verificação',
+        'verifying'   => 'Verificando...',
+        'checking'    => 'Verificando tabelas...',
+        'placeholder' => 'Clique em "Executar verificação" para verificar o esquema do seu banco de dados',
+
+        'count_ok'      => 'OK',
+        'count_created' => 'Criadas',
+        'count_updated' => 'Atualizadas',
+        'count_errors'  => 'Erros',
+
+        'col_table'   => 'Tabela',
+        'col_status'  => 'Status',
+        'col_details' => 'Detalhes',
+
+        'status_ok' => 'OK',
+
+        'fix'         => 'Corrigir',
+        'fixing'      => 'Corrigindo…',
+        'fix_confirm' => 'Excluir permanentemente {count} linha(s) órfã(s) de {table}? O registro pai delas não existe mais, portanto esses dados são inacessíveis.',
+        'fix_failed'  => 'Falha na correção: {message}',
+
+        'error'        => 'Erro: {message}',
+        'connect_fail' => 'Falha ao conectar: {message}',
+    ],
+
+    // Debug tools page (system/debug-tools/index.php)
+    'debug' => [
+        'heading' => 'Ferramentas de depuração',
+        'intro'   => 'Biblioteca de diagnósticos independentes. Quando algo não funcionar, execute a ferramenta relevante e envie a saída de volta ao suporte — cada diagnóstico captura detalhes suficientes de ambiente e de execução para identificar a causa sem idas e vindas.',
+        'how_label' => 'Como usar:',
+        'how_text'  => 'O suporte informará qual diagnóstico executar (ex. "execute o D001"). Clique em {run}, aguarde a saída aparecer, depois clique em {copy} e cole o relatório inteiro na sua resposta. Os diagnósticos são em sua maioria de leitura — qualquer um que grave no banco de dados informa isso no card.',
+        'checks_label'   => 'O que ele verifica',
+        'runtime_label'  => 'Tempo de execução:',
+        'side_effects_label' => 'Efeitos colaterais:',
+        'run'     => 'Executar',
+        'running' => 'Executando…',
+        'copy'    => 'Copiar',
+        'copied'  => 'Copiado',
+        'output_running' => 'Executando diagnóstico…',
+        'fetch_failed'   => 'Falha ao buscar o diagnóstico: {message}',
+        'input_required' => 'Insira um valor antes de executar esta ferramenta.',
+        'search_placeholder' => 'Pesquisar ferramentas de depuração…',
+        'no_results'         => 'Nenhuma ferramenta de depuração corresponde à sua pesquisa.',
+    ],
+
+    // Demo data page (system/demo-data/index.php)
+    'demo' => [
+        'heading'  => 'Dados de demonstração',
+        'subtitle' => 'Importe dados de exemplo realistas módulo por módulo. Importe o Core primeiro, depois escolha quais módulos preencher.',
+
+        'warning_strong' => 'Projetado apenas para instalações novas.',
+        'warning_text'   => 'Importar dados de demonstração em um sistema que já contém dados reais pode causar conflitos. Cada módulo só pode ser importado uma vez.',
+        'tip_text_prefix' => 'Importe tanto',
+        'tip_text_and'    => 'quanto',
+        'tip_text_suffix' => 'para desbloquear uma opção bônus que vincula softwares instalados a computadores.',
+        'tip_assets'      => 'Ativos',
+        'tip_software'    => 'Software',
+
+        'step1' => 'Etapa 1 — Obrigatório',
+        'step2' => 'Etapa 2 — Escolha os módulos',
+        'step3_cross' => 'Etapa 3 — Dados entre módulos',
+        'step3_dashboards' => 'Etapa 3 — Painéis',
+
+        'import'           => 'Importar',
+        'importing'        => 'Importando...',
+        'imported_count'   => '{total} importados',
+        'already_imported' => 'Já importado',
+
+        'delete_title'   => 'Excluir',
+        'delete_confirm' => 'Isto excluirá os dados de demonstração de {module} existentes e os reimportará do zero. Continuar?',
+        'delete_ok'      => 'Excluir',
+        'connection_failed' => 'Falha na conexão: {message}',
+    ],
+
+    // Encryption page (system/encryption/index.php)
+    'encryption' => [
+        'title'    => 'Criptografia',
+        'subtitle' => 'Gerencie a chave de criptografia usada para proteger dados sensíveis em repouso',
+        'checking' => 'Verificando o status da criptografia...',
+
+        'how_heading'   => 'Como funciona a criptografia',
+        'how_point1'    => 'O FreeITSM usa criptografia autenticada {strong} para proteger dados sensíveis armazenados no banco de dados, como chaves de API, credenciais do vCenter e detalhes de conexão de caixas de correio.',
+        'how_point1_strong' => 'AES-256-GCM',
+        'how_point2'    => 'A chave de criptografia é uma string hexadecimal de 64 caracteres (256 bits) armazenada em um arquivo {strong} para que não possa ser acessada por um navegador.',
+        'how_point2_strong' => 'fora do diretório raiz da web',
+        'how_point3'    => 'Local do arquivo de chave:',
+        'how_point4'    => 'Valores criptografados no banco de dados têm o prefixo {enc} seguido do texto cifrado codificado em base64. Valores não criptografados são mantidos como estão, permitindo uma migração gradual.',
+
+        'backup_strong' => 'Faça backup da sua chave de criptografia.',
+        'backup_text'   => 'Se a chave for perdida, nenhum dado criptografado com ela poderá ser recuperado. Guarde uma cópia em um lugar seguro fora deste servidor.',
+
+        'whats_heading'    => 'O que é criptografado',
+        'group_settings'   => 'Definições do sistema',
+        'group_mailbox'    => 'Conexões de caixa de correio',
+
+        'status_ok_title'      => 'A criptografia está configurada',
+        'status_ok_detail'     => 'A chave de criptografia está presente e válida em {path}. Os dados sensíveis estão sendo criptografados em repouso usando AES-256-GCM.',
+        'status_invalid_title' => 'Chave de criptografia inválida',
+        'status_invalid_detail'=> 'Um arquivo de chave foi encontrado em {path}, mas não é uma string hexadecimal válida de 64 caracteres. A chave deve ter exatamente 64 caracteres hexadecimais (256 bits).',
+        'generate_valid'       => 'Gerar chave válida',
+        'status_missing_title' => 'Nenhuma chave de criptografia encontrada',
+        'status_missing_detail'=> 'Nenhum arquivo de chave de criptografia existe em {path}. Os dados sensíveis não podem ser criptografados até que uma chave seja gerada. Clique no botão abaixo para gerar uma automaticamente.',
+        'generate'             => 'Gerar chave de criptografia',
+        'generating'           => 'Gerando...',
+
+        'check_failed' => 'Falha ao verificar o status da criptografia',
+        'error'        => 'Erro: {error}',
+        'generate_failed' => 'Falha ao gerar a chave',
+        'error_prefix' => 'Erro: {message}',
+    ],
+
+    // Module access page (system/modules/index.php)
+    'modules' => [
+        'title'    => 'Acesso a módulos',
+        'subtitle' => 'Controle quais módulos cada analista pode ver na tela inicial e na navegação',
+
+        'info_text' => 'Por padrão, todos os analistas têm acesso a todos os módulos. Desative {all_access} para restringir um analista a módulos específicos. O módulo Sistema não pode ser desativado.',
+        'all_access_strong' => 'Acesso total',
+
+        'loading' => 'Carregando analistas...',
+
+        'empty_heading' => 'Nenhum analista encontrado',
+        'empty_text'    => 'Adicione analistas primeiro nas configurações do módulo Tickets.',
+
+        'col_analyst'    => 'Analista',
+        'col_all_access' => 'Acesso total',
+
+        'load_failed' => 'Falha ao carregar os dados',
+        'save_failed' => 'Falha ao salvar',
+    ],
+
+    // Preferences page (system/preferences/index.php)
+    'preferences' => [
+        'title'    => 'Preferências',
+        'subtitle' => 'Definições pessoais salvas na sua conta — elas acompanham você em todos os navegadores.',
+
+        'language_heading' => 'Idioma da interface',
+        'language_desc'    => 'O idioma usado em toda a interface do FreeITSM. As traduções recorrem ao inglês para quaisquer textos ainda não cobertos no idioma escolhido. Recarrega a página ao alterar.',
+        'saving'           => 'Salvando…',
+
+        'position_heading' => 'Posição das notificações',
+        'position_desc'    => 'Onde as notificações toast aparecem na tela.',
+
+        'animation_heading' => 'Animação das notificações',
+        'animation_desc'    => 'Como as notificações entram e saem da tela.',
+        'anim_slide'        => 'Deslizar',
+        'anim_fade'         => 'Esmaecer',
+
+        'panels_heading' => 'Painéis à esquerda',
+        'panels_desc'    => 'Escolha, por módulo, se o painel à esquerda fica fixado aberto ou recolhe em uma faixa fina que se expande ao passar o mouse. Módulos com uma página de configurações também oferecem isso na própria aba Painel à esquerda.',
+        'panel_knowledge'         => 'Conhecimento',
+        'panel_process_mapper'    => 'Process Mapper',
+        'panel_contracts'         => 'Contratos',
+        'panel_calendar'          => 'Calendário',
+        'panel_tasks'             => 'Tarefas',
+        'panel_cmdb'              => 'CMDB',
+        'panel_change_management' => 'Gestão de mudanças',
+        'panel_asset_management'  => 'Gestão de ativos',
+        'panel_system_wiki'       => 'Wiki do sistema',
+
+        'mc_heading' => 'Preenchimento das barras das verificações matinais',
+        'mc_desc'    => 'Preenchimento sólido ou em gradiente para o gráfico de tendência de 30 dias das Verificações matinais. Também disponível na página de configurações das Verificações matinais.',
+        'fill_plain'    => 'Sólido',
+        'fill_gradient' => 'Gradiente',
+
+        'pos_top_left'      => 'Superior esquerda',
+        'pos_top_center'    => 'Superior centro',
+        'pos_top_right'     => 'Superior direita',
+        'pos_middle_left'   => 'Meio esquerda',
+        'pos_middle_center' => 'Meio centro',
+        'pos_middle_right'  => 'Meio direita',
+        'pos_bottom_left'   => 'Inferior esquerda',
+        'pos_bottom_center' => 'Inferior centro',
+        'pos_bottom_right'  => 'Inferior direita',
+
+        'pos_preview'   => 'As notificações aparecerão aqui',
+        'anim_preview'  => 'Pré-visualização: animação {anim}',
+        'save_failed'   => 'Falha ao salvar',
+    ],
+
+    // Security page (system/security/index.php)
+    'security' => [
+        'title'    => 'Segurança',
+        'subtitle' => 'Configure políticas de autenticação e proteção de contas',
+
+        'trusted_heading' => 'Dispositivo confiável',
+        'trusted_desc'    => 'Permita que os usuários pulem a verificação por OTP em navegadores confiáveis. Os usuários optam por isso individualmente pelo menu do avatar. Defina como 0 para desativar este recurso completamente.',
+        'trust_duration'  => 'Duração da confiança',
+        'trust_duration_hint' => 'Por quanto tempo um dispositivo permanece confiável após a verificação por OTP',
+
+        'password_heading' => 'Política de senhas',
+        'password_desc'    => 'Exija que os usuários alterem a senha periodicamente. Quando uma senha expira, o usuário é redirecionado para uma tela obrigatória de alteração de senha no próximo login. Defina como 0 para desativar.',
+        'password_expiry'  => 'Expiração da senha',
+        'password_expiry_hint' => 'Idade máxima de uma senha antes que ela precise ser alterada',
+
+        'lockout_heading' => 'Bloqueio de conta',
+        'lockout_desc'    => 'Bloqueie contas após tentativas de login repetidamente falhas para prevenir ataques de força bruta. Defina o máximo de tentativas como 0 para desativar o bloqueio.',
+        'max_attempts'    => 'Máximo de tentativas falhas',
+        'max_attempts_hint' => 'Número de senhas incorretas antes de a conta ser bloqueada',
+        'lockout_duration' => 'Duração do bloqueio',
+        'lockout_duration_hint' => 'Por quanto tempo a conta permanece bloqueada (o contador é zerado após o desbloqueio)',
+
+        'ipban_heading' => 'Banimento de IP',
+        'ipban_desc'    => 'Bane automaticamente endereços IP que repetidamente tentam logins contra contas inexistentes ou bloqueadas. Cada banimento dura 24 horas. Após cada banimento, o limite cai em 1 (até o mínimo), tornando os reincidentes mais difíceis de abusar. Defina o máximo de tentativas como 0 para desativar.',
+        'first_ban'     => 'Limite do primeiro banimento',
+        'first_ban_hint' => 'Tentativas falhas antes de o IP ser banido pela primeira vez',
+        'min_threshold' => 'Limite mínimo',
+        'min_threshold_hint' => 'O limite para de reduzir assim que atinge este piso',
+        'ipban_example_strong' => 'Exemplo:',
+        'ipban_example_text'   => 'Com máximo 5 e mínimo 2, o primeiro banimento dispara após 5 tentativas falhas, o segundo após 4, depois 3, depois 2. Permanece em 2 para cada banimento subsequente. Apenas tentativas contra nomes de usuário inexistentes ou contas já bloqueadas contam.',
+
+        'unit_days'     => 'dias',
+        'unit_attempts' => 'tentativas',
+        'unit_minutes'  => 'minutos',
+
+        'save'        => 'Salvar',
+        'saved'       => 'Definições de segurança salvas',
+        'error'       => 'Erro: {error}',
+        'save_failed' => 'Falha ao salvar as definições',
+    ],
+
+    // Single sign-on page (system/sso/index.php)
+    'sso' => [
+        'title'    => 'Single sign-on',
+        'subtitle' => 'Permita que os usuários entrem por meio de um provedor de identidade externo (OpenID Connect) como Keycloak, Microsoft Entra, Okta ou Google — junto com contas locais.',
+
+        'global_heading' => 'Definições globais',
+        'global_desc'    => 'Controles principais de login em todo o sistema.',
+        'enable_sso'     => 'Ativar single sign-on',
+        'enable_sso_desc'=> 'Exibe os botões dos provedores configurados na página de login. Desative para recorrer instantaneamente aos logins locais em todos os lugares (break-glass).',
+        'allow_local'    => 'Permitir login local',
+        'allow_local_desc' => 'Mantenha o formulário de usuário + senha disponível. Deixe ativado para que um provedor mal configurado ou fora do ar nunca possa bloquear todos.',
+        'save'           => 'Salvar',
+
+        'redirect_heading' => 'URI de redirecionamento',
+        'redirect_desc'    => 'Registre esta URL exata em cada provedor de identidade como uma URL de redirecionamento / callback permitida. É para onde o provedor envia os usuários de volta após o login.',
+        'copy'             => 'Copiar',
+
+        'providers_heading' => 'Provedores de identidade',
+        'providers_desc'    => 'Cada provedor é um IdP separado. Atribua usuários diferentes a provedores diferentes para executar pilotos em paralelo.',
+        'add'               => '+ Adicionar',
+
+        'col_name'        => 'Nome',
+        'col_company'     => 'Empresa',
+        'col_issuer'      => 'Emissor',
+        'col_status'      => 'Status',
+        'col_auto_create' => 'Criação automática',
+        'col_actions'     => 'Ações',
+        'global_badge'    => 'Global',
+
+        'loading'        => 'Carregando…',
+        'no_providers'   => 'Nenhum provedor ainda. Clique em {add} para configurar um.',
+        'add_strong'     => 'Adicionar',
+        'enabled'        => 'Ativado',
+        'disabled'       => 'Desativado',
+        'jit_on'         => 'JIT ativado',
+        'jit_off'        => 'Desligado',
+        'edit'           => 'Editar',
+        'delete'         => 'Excluir',
+
+        'modal_add_title'  => 'Adicionar provedor',
+        'modal_edit_title' => 'Editar provedor',
+        'field_display_name' => 'Nome de exibição',
+        'field_display_name_hint' => 'Exibido no botão de login, ex. "Entrar com Keycloak"',
+        'field_display_name_placeholder' => 'Entrar com Keycloak',
+        'field_issuer'     => 'URL do emissor',
+        'field_issuer_hint'=> 'A URL base do provedor. ex. http://localhost:8080/realms/freeitsm',
+        'field_issuer_placeholder' => 'https://your-idp/realms/your-realm',
+        'test'             => 'Testar',
+        'field_client_id'  => 'Client ID',
+        'field_client_id_hint' => 'O identificador do cliente/app criado no provedor, ex. freeitsm-app',
+        'field_client_secret' => 'Client secret',
+        'field_client_secret_hint' => 'O secret do cliente, obtido no provedor. Armazenado criptografado.',
+        'field_scopes'     => 'Escopos',
+        'field_scopes_hint'=> 'Escopos OIDC separados por espaço. Deixe o padrão a menos que seu provedor precise de mais.',
+        'cb_enabled'       => 'Ativado',
+        'cb_enabled_desc'  => 'Exibe o botão deste provedor na página de login',
+        'cb_autocreate'    => 'Criar usuários automaticamente no primeiro login (JIT)',
+        'cb_autocreate_desc' => 'Cria um analista automaticamente na primeira vez que alguém entra por este provedor. Deixe desligado para pilotos rigidamente controlados, onde apenas usuários pré-criados podem entrar.',
+        'cb_verified'      => 'Exigir uma claim de e-mail verificado',
+        'cb_verified_desc' => 'Recusa o login a menos que o provedor envie {claim}. Deixe desligado para provedores que omitem a claim inteiramente (ex. o servidor de organização do Okta). Um {claim_false} explícito é sempre recusado, independentemente desta definição. Ative apenas para IdPs onde os usuários podem se autorregistrar com endereços não verificados.',
+        'field_default_modules' => 'Acesso a módulos padrão para usuários criados automaticamente',
+        'field_default_modules_hint' => 'Chaves de módulo separadas por vírgula concedidas a analistas criados via JIT (ex. {example}). {strong} — defina isto para pilotos, de modo que os usuários criados automaticamente não sejam administradores.',
+        'field_default_modules_strong' => 'Deixe em branco e eles terão acesso total a todos os módulos',
+        'field_default_modules_placeholder' => 'tickets, knowledge',
+        'field_company'        => 'Empresa',
+        'field_company_hint'   => 'Qual empresa cliente é dona deste provedor de identidade — seus solicitantes são roteados para cá no portal de autoatendimento. Deixe como Global para um provedor interno de MSP (ex. login de analistas).',
+        'field_company_global' => 'Global (interno / todas)',
+        'cancel'           => 'Cancelar',
+
+        'global_saved'   => 'Definições globais salvas',
+        'error'          => 'Erro: {error}',
+        'save_failed'    => 'Falha ao salvar',
+        'redirect_copied'=> 'URI de redirecionamento copiada',
+        'enter_issuer'   => 'Insira uma URL de emissor primeiro.',
+        'discovery_ok'   => '✓ Discovery OK — emissor: {issuer}',
+        'discovery_err'  => '✗ {error}',
+        'request_failed' => '✗ Falha na requisição',
+        'secret_stored_placeholder' => '•••••••• (deixe em branco para manter o atual)',
+        'secret_stored_hint' => 'Um secret já está armazenado. Deixe em branco para mantê-lo, ou digite um novo para substituí-lo.',
+        'required_fields' => 'Nome de exibição, URL do emissor e Client ID são obrigatórios',
+        'provider_saved'  => 'Provedor salvo',
+        'delete_confirm'  => 'Excluir "{name}"? Os usuários atribuídos a ele voltarão ao login local.',
+        'delete_this'     => 'este provedor',
+        'provider_deleted'=> 'Provedor excluído',
+        'delete_failed'   => 'Falha ao excluir',
+    ],
+
+    // Companies page (system/companies/index.php). "Company" is the
+    // user-facing word for a tenant; the underlying table/code stays `tenants`.
+    'companies' => [
+        'title'    => 'Empresas',
+        'subtitle' => 'As empresas clientes que esta instalação atende. Cada nova empresa é um espaço separado; a empresa padrão permanece sempre ativa.',
+
+        'add' => 'Adicionar',
+
+        'col_name'    => 'Nome',
+        'col_domains' => 'Domínios de e-mail',
+        'col_status'  => 'Status',
+        'col_actions' => 'Ações',
+        'domains_dash'  => '—',
+
+        'loading'      => 'Carregando…',
+        'no_companies' => 'Nenhuma empresa ainda. Clique em {add} para criar uma.',
+        'add_strong'   => 'Adicionar',
+        'default'      => 'Padrão',
+        'active'       => 'Ativa',
+        'inactive'     => 'Inativa',
+        'edit'         => 'Editar',
+
+        'modal_add_title'  => 'Adicionar empresa',
+        'modal_edit_title' => 'Editar empresa',
+        'field_name'       => 'Nome',
+        'field_name_hint'  => 'O nome da empresa exibido em todo o app.',
+        'field_name_placeholder' => 'Acme Ltda',
+        'cb_active'        => 'Ativa',
+        'cb_active_desc'   => 'Empresas inativas ficam ocultas do uso diário. A empresa padrão está sempre ativa.',
+        'cancel'          => 'Cancelar',
+        'save'            => 'Salvar',
+
+        'required_name' => 'O nome é obrigatório',
+        'company_saved' => 'Empresa salva',
+        'error'         => 'Erro: {error}',
+        'save_failed'   => 'Falha ao salvar',
+
+        // Email domains (shared-intake routing)
+        'domains_label'       => 'Domínios de e-mail',
+        'domains_hint'        => 'O e-mail de uma caixa de correio de entrada compartilhada é roteado para esta empresa quando o domínio do remetente corresponde a um destes. Provedores públicos (gmail.com, etc.) não podem ser adicionados — esse e-mail é arquivado manualmente a partir da triagem.',
+        'domains_save_first'  => 'Salve a empresa primeiro, depois adicione seus domínios de e-mail.',
+        'domains_none'        => 'Nenhum domínio ainda.',
+        'domain_placeholder'  => 'acme.com',
+        'domain_add'          => 'Adicionar',
+        'domain_remove'       => 'Remover',
+        'domain_added'        => 'Domínio adicionado',
+        'domain_removed'      => 'Domínio removido',
+        'domain_add_failed'   => 'Falha ao adicionar o domínio',
+        'domain_remove_failed'=> 'Falha ao remover o domínio',
+
+        // Specific senders (shared-intake routing, address-level)
+        'senders_label'       => 'Remetentes específicos',
+        'senders_hint'        => 'Endereços individuais que roteiam para esta empresa, verificados antes do domínio. Use isto para pessoas em provedores públicos (jane@gmail.com) cujo domínio não pode ser mapeado — o e-mail delas ainda chega à empresa certa em vez de cair na triagem.',
+        'senders_none'        => 'Nenhum remetente específico ainda.',
+        'sender_placeholder'  => 'jane@gmail.com',
+        'sender_add'          => 'Adicionar',
+        'sender_remove'       => 'Remover',
+        'sender_added'        => 'Remetente adicionado',
+        'sender_removed'      => 'Remetente removido',
+        'sender_add_failed'   => 'Falha ao adicionar o remetente',
+        'sender_remove_failed'=> 'Falha ao remover o remetente',
+
+        // "How email reaches this company" — derived, read-only routing summary.
+        'routing_label'        => 'Como o e-mail chega a esta empresa',
+        'routing_hint'         => 'Um resumo somente leitura, deduzido a partir das caixas de correio e domínios acima. As respostas sempre saem da mesma caixa de correio em que a mensagem chegou.',
+        'routing_loading'      => 'Calculando o roteamento…',
+        'routing_pinned'       => 'Caixa de correio dedicada',
+        'routing_pinned_desc'  => 'O e-mail para {address} sempre pertence a esta empresa. As respostas saem deste endereço.',
+        'routing_shared'       => 'Entrada compartilhada',
+        'routing_shared_desc'  => 'O e-mail para {address} é roteado para cá quando o domínio do remetente é {domains}. As respostas saem deste endereço.',
+        'routing_shared_desc_senders' => 'O e-mail para {address} é roteado para cá quando o remetente é {senders}. As respostas saem deste endereço.',
+        'routing_shared_desc_both'    => 'O e-mail para {address} é roteado para cá quando o domínio do remetente é {domains}, ou o remetente é {senders}. As respostas saem deste endereço.',
+        'routing_reply_from'   => 'Respostas de {address}',
+        'routing_inactive'     => 'inativa',
+        'routing_unauth'       => 'não autenticada',
+        'routing_default_note' => 'Como empresa padrão, ela também recebe qualquer e-mail que não tenha correspondido a nenhuma outra empresa (a fila de triagem).',
+        'routing_warn_no_route'   => 'Nenhuma rota de e-mail automática. O e-mail desta empresa precisa ser arquivado manualmente a partir da fila de triagem. Fixe uma caixa de correio a ela, ou registre um domínio de e-mail para que a entrada compartilhada possa corresponder.',
+        'routing_warn_domains_no_shared' => 'Há domínios registrados, mas não existe uma caixa de correio de entrada compartilhada ativa para corresponder a eles. Adicione uma, ou fixe uma caixa de correio a esta empresa.',
+        'routing_warn_unauth'     => 'Uma caixa de correio em uma rota acima não está autenticada, portanto o e-mail não fluirá até que ela seja reconectada nas Configurações.',
+        'routing_failed'       => 'Não foi possível carregar o resumo de roteamento.',
+
+        // Public email domains (global, add-only)
+        'freemail_title'          => 'Domínios de e-mail públicos',
+        'freemail_hint'           => 'O e-mail de provedores públicos como Gmail e Outlook nunca é roteado automaticamente para uma empresa — dois clientes podem compartilhar o mesmo provedor, então ele cai na triagem para ser arquivado manualmente. Os provedores comuns já estão sempre incluídos; adicione quaisquer outros que seus clientes usem para que sejam tratados da mesma forma.',
+        'freemail_placeholder'    => 'example-isp.com',
+        'freemail_add'            => 'Adicionar',
+        'freemail_remove'         => 'Remover',
+        'freemail_none'           => 'Nenhum domínio extra adicionado — apenas os provedores integrados abaixo.',
+        'freemail_added'          => 'Domínio adicionado',
+        'freemail_removed'        => 'Domínio removido',
+        'freemail_add_failed'     => 'Falha ao adicionar o domínio',
+        'freemail_remove_failed'  => 'Falha ao remover o domínio',
+        'freemail_builtin_toggle' => 'Exibir os {count} provedores integrados',
+    ],
+
+    // Email routing test — dry-run diagnostic (system/email-routing-test/).
+    'routing_test' => [
+        'title'    => 'Teste de roteamento de e-mail',
+        'subtitle' => 'Finja que um e-mail chegou e veja onde um novo ticket seria arquivado — em qual empresa, ou na fila de triagem — e qual regra decidiu isso. Nada é criado; isto apenas lê suas definições de caixa de correio e domínio.',
+        'single_company_note' => 'Esta instalação tem apenas uma empresa, então todo e-mail é arquivado para ela. Adicione uma segunda empresa para que o roteamento tenha algo a decidir.',
+
+        'from_label'       => 'Endereço do remetente',
+        'from_hint'        => 'O endereço de onde o e-mail vem. O roteamento de entrada compartilhada corresponde primeiro ao endereço exato, depois ao seu domínio.',
+        'from_placeholder' => 'jane@acme.com',
+        'mailbox_label'    => 'Chegando à caixa de correio',
+        'mailbox_hint'     => 'A caixa de correio que recebeu o e-mail. Uma caixa de correio fixada decide a empresa de imediato; uma de entrada compartilhada roteia pelo domínio do remetente.',
+        'mailbox_loading'  => 'Carregando…',
+        'mailbox_choose'   => 'Escolha uma caixa de correio…',
+        'no_mailboxes'     => 'Nenhuma caixa de correio configurada',
+        'opt_pinned'       => 'Fixada em {company}',
+        'opt_shared'       => 'Entrada compartilhada',
+        'run'              => 'Testar',
+        'pick_mailbox'     => 'Escolha uma caixa de correio primeiro',
+        'failed'           => 'Falha no teste de roteamento',
+
+        'placeholder'          => 'Execute um teste para ver onde um e-mail cairia.',
+        'result_company_label' => 'Arquivado na empresa',
+        'result_triage_label'  => 'Enviado para',
+        'result_triage_value'  => 'Fila de triagem (não atribuído)',
+        'steps_title'          => 'Como foi decidido',
+
+        'step_reply'          => 'Resposta a um ticket existente?',
+        'step_reply_detail'   => 'Verificado primeiro na prática (uma resposta herda a empresa do seu ticket), mas depende de o assunto conter uma referência de ticket — então não pode ser testado apenas a partir de um remetente e uma caixa de correio.',
+        'step_single'         => 'Instalação de empresa única',
+        'step_single_detail'  => 'Só existe uma empresa, então todo o e-mail é arquivado para {company}.',
+        'step_pinned'         => 'Caixa de correio fixada?',
+        'step_pinned_fired'   => '{mailbox} está fixada em {company}, então o e-mail é arquivado lá. O remetente é ignorado.',
+        'step_pinned_skipped' => '{mailbox} é uma caixa de correio de entrada compartilhada, então o roteamento passa para o remetente.',
+        'step_sender'         => 'Endereço do remetente mapeado para uma empresa?',
+        'step_sender_fired'   => 'O endereço {address} está na lista de remetentes específicos de {company}, então o e-mail é arquivado lá. Verificado antes do domínio.',
+        'step_sender_nomatch' => 'Nenhuma empresa tem {address} na sua lista de remetentes específicos, então o roteamento passa para o domínio do remetente.',
+        'step_sender_noaddress'=> 'Nenhum endereço de remetente foi fornecido, então não há nada a corresponder.',
+        'step_domain'         => 'O domínio do remetente corresponde a uma empresa?',
+        'step_domain_fired'   => 'O domínio {domain} está registrado para {company}.',
+        'step_domain_freemail'=> '{domain} é um provedor de e-mail público, que nunca é registrado para uma empresa — então não pode corresponder aqui e vai para a triagem.',
+        'step_domain_nomatch' => 'Nenhuma empresa registrou {domain}.',
+        'step_domain_nodomain'=> 'Nenhum domínio de remetente foi fornecido, então não há nada a corresponder.',
+        'step_triage'         => 'Fila de triagem',
+        'step_triage_detail'  => 'Nada correspondeu, então o ticket fica sem empresa e aguarda na fila de triagem para ser arquivado manualmente. Nada é perdido.',
+    ],
+];

@@ -362,6 +362,10 @@ return [
     'settings' => [
         'title'                => 'Configurações de ativos',
 
+        'left_panel_intro'       => 'Escolha como o painel esquerdo (a lista de ativos) se comporta. Esta preferência é salva na sua conta.',
+        'left_panel_always_desc' => 'Mantenha a lista de ativos sempre fixada e aberta.',
+        'left_panel_hover_desc'  => 'Recolha a lista de ativos em uma faixa fina que se expande ao passar o mouse, dando mais espaço aos detalhes do ativo.',
+
         'tab_asset_types'      => 'Tipos de ativo',
         'tab_asset_statuses'   => 'Status de ativo',
         'tab_locations'        => 'Localizações',

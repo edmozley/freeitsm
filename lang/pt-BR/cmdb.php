@@ -241,6 +241,11 @@ return [
     ],
 
     'settings' => [
+        'left_panel_intro'       => 'Escolha como o painel esquerdo se comporta ao navegar pelo CMDB. Esta preferência é salva na sua conta.',
+        'left_panel_always_desc' => 'Mantenha o painel esquerdo sempre fixado e aberto.',
+        'left_panel_hover_desc'  => 'Recolha o painel esquerdo em uma faixa fina que se expande ao passar o mouse, dando mais espaço ao navegador.',
+        'left_panel_saved'       => 'Salvo',
+
         'tab_classes'    => 'Classes',
         'tab_rel_types'  => 'Tipos de relacionamento',
         'tab_ai'         => 'Integração de IA',

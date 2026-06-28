@@ -238,6 +238,7 @@ return [
         'ai_heading'     => 'Assistente de IA',
         'ai_intro'       => 'Configure o assistente com IA que responde perguntas com base nos artigos da sua base de conhecimento.',
         'ai_claude_heading' => 'API do Claude (chat)',
+        'ai_chat_heading'   => 'Modelo do assistente (chat)',
         'ai_anthropic_key'  => 'API key da Anthropic',
         'ai_anthropic_help' => 'Obtenha sua API key em {link}. Usada para responder perguntas.',
         'ai_openai_heading' => 'API da OpenAI (embeddings)',
