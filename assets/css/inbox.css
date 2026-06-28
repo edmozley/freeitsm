@@ -1678,6 +1678,8 @@ body.ticket-popout .ticket-toolbar {
     font-family: inherit;
     font-size: 14px;
     resize: vertical;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
 }
 
 .form-textarea:focus {
@@ -1783,6 +1785,8 @@ body.ticket-popout .ticket-toolbar {
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-size: 14px;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
 }
 
 .form-input:focus {

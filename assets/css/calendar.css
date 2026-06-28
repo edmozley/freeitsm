@@ -2,7 +2,7 @@
  * Tickets Calendar Styles
  * Used by tickets/calendar.php for viewing scheduled tickets.
  * Month / Week / Day views — structure mirrors itsm_calendar.css with the
- * Tickets-module blue theme (#0078d4) instead of the Calendar-module orange.
+ * Tickets-module blue theme (var(--accent, #0078d4)) instead of the Calendar-module orange.
  */
 
 /* Main container */
@@ -11,7 +11,7 @@
     height: calc(100vh - 48px);
     display: flex;
     flex-direction: column;
-    background: #f5f5f5;
+    background: var(--surface-2, #f5f5f5);
     overflow: hidden;
     gap: 0;
 }
@@ -22,7 +22,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px 20px;
-    background: #fff;
+    background: var(--surface, #fff);
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     margin-bottom: 12px;
@@ -38,7 +38,7 @@
 .calendar-title {
     font-size: 20px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
     margin: 0 0 0 10px;
 }
 
@@ -50,24 +50,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #f5f5f5;
-    border: 1px solid #ddd;
+    background: var(--surface-2, #f5f5f5);
+    border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     cursor: pointer;
     transition: background-color 0.15s;
     font-size: 22px;
     line-height: 1;
-    color: #555;
+    color: var(--text-muted, #555);
 }
 
 .btn-icon:hover {
-    background: #e0e0e0;
+    background: var(--border, #e0e0e0);
 }
 
 /* View toggle (Month / Week / Day) */
 .view-toggle {
     display: flex;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     overflow: hidden;
 }
@@ -75,25 +75,25 @@
 .view-btn {
     padding: 8px 16px;
     border: none;
-    background: #fff;
+    background: var(--surface, #fff);
     font-size: 13px;
     font-weight: 500;
-    color: #666;
+    color: var(--text-muted, #666);
     cursor: pointer;
     transition: all 0.15s;
 }
 
 .view-btn:not(:last-child) {
-    border-right: 1px solid #ddd;
+    border-right: 1px solid var(--border, #ddd);
 }
 
 .view-btn:hover {
-    background: #f5f5f5;
+    background: var(--surface-2, #f5f5f5);
 }
 
 .view-btn.active {
-    background: #0078d4;
-    color: #fff;
+    background: var(--accent, #0078d4);
+    color: var(--on-accent, #fff);
 }
 
 /* Main grid container — holds whichever view is currently active.
@@ -101,7 +101,7 @@
    the week/day views fill 100% and handle scrolling in their inner body. */
 .calendar-grid {
     flex-grow: 1;
-    background: #fff;
+    background: var(--surface, #fff);
     border-radius: 8px;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     overflow: auto;
@@ -126,10 +126,10 @@
     text-align: center;
     font-size: 12px;
     font-weight: 600;
-    color: #666;
+    color: var(--text-muted, #666);
     text-transform: uppercase;
-    background: #f9f9f9;
-    border-bottom: 1px solid #e0e0e0;
+    background: var(--surface-2, #f9f9f9);
+    border-bottom: 1px solid var(--border, #e0e0e0);
 }
 
 .month-body {
@@ -137,13 +137,13 @@
 }
 
 .month-day {
-    border-right: 1px solid #e0e0e0;
-    border-bottom: 1px solid #e0e0e0;
+    border-right: 1px solid var(--border, #e0e0e0);
+    border-bottom: 1px solid var(--border, #e0e0e0);
     padding: 6px;
     min-height: 100px;
     display: flex;
     flex-direction: column;
-    background: #fff;
+    background: var(--surface, #fff);
     overflow: hidden;
 }
 
@@ -152,28 +152,28 @@
 }
 
 .month-day.other-month {
-    background: #fafafa;
+    background: var(--surface-2, #fafafa);
 }
 
 .month-day.other-month .day-number {
-    color: #bbb;
+    color: var(--text-faint, #bbb);
 }
 
 .month-day.weekend {
-    background: #f9f9f9;
+    background: var(--surface-2, #f9f9f9);
 }
 
 .month-day.today {
-    background: #e3f2fd;
+    background: var(--accent-soft, #e3f2fd);
 }
 
 .month-day.weekend.today {
-    background: #e3f2fd;
+    background: var(--accent-soft, #e3f2fd);
 }
 
 .month-day.today .day-number {
-    background: #0078d4;
-    color: #fff;
+    background: var(--accent, #0078d4);
+    color: var(--on-accent, #fff);
     border-radius: 50%;
     width: 28px;
     height: 28px;
@@ -185,7 +185,7 @@
 .day-number {
     font-size: 13px;
     font-weight: 500;
-    color: #333;
+    color: var(--text, #333);
     margin-bottom: 6px;
 }
 
@@ -201,8 +201,8 @@
 /* Ticket pill (month view) */
 .calendar-ticket {
     padding: 3px 6px;
-    background: #0078d4;
-    color: #fff;
+    background: var(--accent, #0078d4);
+    color: var(--on-accent, #fff);
     border-radius: 3px;
     font-size: 11px;
     cursor: pointer;
@@ -231,7 +231,7 @@
 
 .more-tickets {
     font-size: 11px;
-    color: #0078d4;
+    color: var(--accent, #0078d4);
     cursor: pointer;
     padding: 2px 0;
 }
@@ -251,7 +251,7 @@
 
 .week-header {
     display: flex;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border, #e0e0e0);
     flex-shrink: 0;
     /* Reserve space for the scrollbar so the header columns align with
        the scrolling body columns underneath. */
@@ -283,17 +283,17 @@
     flex: 1;
     text-align: center;
     padding: 10px 5px;
-    border-left: 1px solid #e0e0e0;
-    background: #0078d4;
-    color: #fff;
+    border-left: 1px solid var(--border, #e0e0e0);
+    background: var(--accent, #0078d4);
+    color: var(--on-accent, #fff);
 }
 
 .week-header-day.weekend {
-    background: #006bbd;
+    background: var(--accent-hover, #006bbd);
 }
 
 .week-header-day.today {
-    background: #005aa0;
+    background: var(--accent-hover, #005aa0);
 }
 
 .week-day-name {
@@ -306,13 +306,13 @@
 .week-day-number {
     font-size: 20px;
     font-weight: 600;
-    color: #fff;
+    color: var(--on-accent, #fff);
     margin-top: 4px;
 }
 
 .week-header-day.today .week-day-number {
-    background: #fff;
-    color: #0078d4;
+    background: var(--surface, #fff);
+    color: var(--accent, #0078d4);
     border-radius: 50%;
     width: 36px;
     height: 36px;
@@ -333,17 +333,17 @@
 }
 
 .week-body::-webkit-scrollbar-track {
-    background: #f5f5f5;
+    background: var(--surface-2, #f5f5f5);
 }
 
 .week-body::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: var(--border, #ccc);
     border-radius: 8px;
-    border: 4px solid #f5f5f5;
+    border: 4px solid var(--border-soft, #f5f5f5);
 }
 
 .week-body::-webkit-scrollbar-thumb:hover {
-    background: #aaa;
+    background: var(--text-faint, #aaa);
 }
 
 .week-time-column {
@@ -354,7 +354,7 @@
 .week-time-slot-label {
     height: 60px;
     font-size: 11px;
-    color: #666;
+    color: var(--text-muted, #666);
     text-align: right;
     padding-right: 8px;
     position: relative;
@@ -369,21 +369,21 @@
 
 .week-day-column {
     flex: 1;
-    border-left: 1px solid #e0e0e0;
+    border-left: 1px solid var(--border, #e0e0e0);
     position: relative;
 }
 
 .week-day-column.weekend {
-    background: #fafafa;
+    background: var(--surface-2, #fafafa);
 }
 
 .week-day-column.today {
-    background: #f5fafd;
+    background: var(--accent-soft, #f5fafd);
 }
 
 .week-time-slot {
     height: 60px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-soft, #f0f0f0);
 }
 
 .week-event {
@@ -393,11 +393,11 @@
     padding: 4px 6px;
     border-radius: 4px;
     font-size: 11px;
-    color: #fff;
+    color: var(--on-accent, #fff);
     overflow: hidden;
     cursor: pointer;
     z-index: 1;
-    background: #0078d4;
+    background: var(--accent, #0078d4);
 }
 
 .week-event:hover {
@@ -435,11 +435,11 @@
 
 .day-header {
     display: flex;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border, #e0e0e0);
     padding: 15px 20px;
     flex-shrink: 0;
-    background: #0078d4;
-    color: #fff;
+    background: var(--accent, #0078d4);
+    color: var(--on-accent, #fff);
 }
 
 .day-header-info {
@@ -470,17 +470,17 @@
 }
 
 .day-body::-webkit-scrollbar-track {
-    background: #f5f5f5;
+    background: var(--surface-2, #f5f5f5);
 }
 
 .day-body::-webkit-scrollbar-thumb {
-    background: #ccc;
+    background: var(--border, #ccc);
     border-radius: 8px;
-    border: 4px solid #f5f5f5;
+    border: 4px solid var(--border-soft, #f5f5f5);
 }
 
 .day-body::-webkit-scrollbar-thumb:hover {
-    background: #aaa;
+    background: var(--text-faint, #aaa);
 }
 
 .day-time-column {
@@ -490,13 +490,13 @@
 
 .day-events-column {
     flex-grow: 1;
-    border-left: 1px solid #e0e0e0;
+    border-left: 1px solid var(--border, #e0e0e0);
     position: relative;
 }
 
 .day-time-slot {
     height: 60px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-soft, #f0f0f0);
 }
 
 .day-event {
@@ -506,11 +506,11 @@
     padding: 8px 10px;
     border-radius: 4px;
     font-size: 12px;
-    color: #fff;
+    color: var(--on-accent, #fff);
     overflow: hidden;
     cursor: pointer;
     z-index: 1;
-    background: #0078d4;
+    background: var(--accent, #0078d4);
 }
 
 .day-event:hover {
@@ -559,7 +559,7 @@
 }
 
 .modal-content {
-    background: #fff;
+    background: var(--surface, #fff);
     border-radius: 8px;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
     width: 500px;
@@ -568,10 +568,10 @@
 
 .modal-header {
     padding: 16px 20px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border, #e0e0e0);
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
 }
 
 .modal-body {
@@ -580,7 +580,7 @@
 
 .modal-footer {
     padding: 16px 20px;
-    border-top: 1px solid #e0e0e0;
+    border-top: 1px solid var(--border, #e0e0e0);
     display: flex;
     justify-content: flex-end;
     gap: 10px;
@@ -589,10 +589,10 @@
 .ticket-detail-subject {
     font-size: 16px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border, #e0e0e0);
 }
 
 .ticket-detail {
@@ -609,13 +609,13 @@
 .ticket-detail-label {
     width: 100px;
     font-size: 13px;
-    color: #666;
+    color: var(--text-muted, #666);
     flex-shrink: 0;
 }
 
 .ticket-detail-value {
     font-size: 14px;
-    color: #333;
+    color: var(--text, #333);
 }
 
 .btn {
@@ -633,22 +633,22 @@
 }
 
 .btn-primary {
-    background: #0078d4;
-    color: #fff;
+    background: var(--accent, #0078d4);
+    color: var(--on-accent, #fff);
 }
 
 .btn-primary:hover {
-    background: #106ebe;
+    background: var(--accent-hover, #106ebe);
 }
 
 .btn-secondary {
-    background: #f0f0f0;
-    color: #333;
-    border: 1px solid #ddd;
+    background: var(--surface-hover, #f0f0f0);
+    color: var(--text, #333);
+    border: 1px solid var(--border, #ddd);
 }
 
 .btn-secondary:hover {
-    background: #e0e0e0;
+    background: var(--border, #e0e0e0);
 }
 
 /* Responsive */
