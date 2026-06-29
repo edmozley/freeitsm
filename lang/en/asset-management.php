@@ -89,6 +89,7 @@ return [
         'due_back'          => 'Due back: {date}',
         'assignment_error'  => 'Error loading assignment',
         'storage'           => 'Storage',
+        'tab_keyinfo'       => 'Key info',
         'tab_devices'       => 'Devices',
         'tab_software'      => 'Software',
     ],

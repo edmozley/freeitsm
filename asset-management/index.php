@@ -123,9 +123,14 @@ $translationNamespaces = ['common', 'asset-management'];
             flex-shrink: 0;
         }
 
-        .asset-detail-scroll {
+        /* Body below the sticky header+tabs. The active tab panel fills it; each
+           panel owns its own scrolling so a long device/software list never pushes
+           the page off the bottom. min-height:0 lets the flex child actually shrink. */
+        .asset-detail-body {
             flex: 1;
-            overflow-y: auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
         }
 
         .asset-detail-header {
@@ -668,6 +673,9 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .software-list {
             padding: 0;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
         }
 
         .software-table {
@@ -717,6 +725,7 @@ $translationNamespaces = ['common', 'asset-management'];
             padding: 0 20px;
             border-bottom: 1px solid var(--border, #e0e0e0);
             background-color: var(--surface, #fff);
+            flex-shrink: 0;
         }
 
         .sw-filter-tab {
@@ -759,7 +768,6 @@ $translationNamespaces = ['common', 'asset-management'];
         .detail-tabs {
             display: flex;
             gap: 0;
-            border-top: 1px solid var(--border, #e0e0e0);
             border-bottom: 1px solid var(--border, #e0e0e0);
             background-color: var(--surface-3, #f8f9fa);
         }
@@ -804,14 +812,25 @@ $translationNamespaces = ['common', 'asset-management'];
             display: none;
         }
 
+        /* Active panel fills the body. Devices/Software are flex columns whose
+           inner list scrolls; "--scroll" panels (Key info, Intune) scroll as a block. */
         .detail-tab-panel.active {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .detail-tab-panel--scroll.active {
             display: block;
+            overflow-y: auto;
         }
 
         /* Devices Section */
         .devices-search {
             padding: 10px 20px;
             border-bottom: 1px solid var(--surface-hover, #f0f0f0);
+            flex-shrink: 0;
         }
 
         .devices-search input {
@@ -830,6 +849,9 @@ $translationNamespaces = ['common', 'asset-management'];
 
         .devices-list {
             padding: 0;
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
         }
 
         .devices-table {
@@ -1159,6 +1181,14 @@ $translationNamespaces = ['common', 'asset-management'];
                             <span id="assignButtons"></span>
                         </div>
                     </div>
+                    <div class="detail-tabs" id="detailTabs">
+                        <button class="detail-tab active" onclick="switchDetailTab('keyinfo')" data-dtab="keyinfo">${window.t('asset-management.detail.tab_keyinfo')}</button>
+                        <button class="detail-tab" onclick="switchDetailTab('devices')" data-dtab="devices">${window.t('asset-management.detail.tab_devices')} <span class="tab-count" id="devicesCountBadge">...</span></button>
+                        <button class="detail-tab" onclick="switchDetailTab('software')" data-dtab="software">${window.t('asset-management.detail.tab_software')} <span class="tab-count" id="softwareCountBadge">...</span></button>
+                    </div>
+                </div>
+                <div class="asset-detail-body" id="detailBody">
+                    <div class="detail-tab-panel detail-tab-panel--scroll active" id="keyinfoPanel" data-dtab-panel="keyinfo">
                     <div class="asset-info-grid">
                         <div class="info-item">
                             <span class="info-label">${window.t('asset-management.field.type')}</span>
@@ -1240,8 +1270,6 @@ $translationNamespaces = ['common', 'asset-management'];
                             <input type="date" class="info-value-input" value="${selectedAsset.warranty_expiry || ''}" onchange="updateAssetField('warranty_expiry', this.value)">
                         </div>
                     </div>
-                </div>
-                <div class="asset-detail-scroll">
                     <div class="disks-section">
                         <div class="section-header">
                             <span class="section-title">${window.t('asset-management.detail.storage')}</span>
@@ -1250,11 +1278,8 @@ $translationNamespaces = ['common', 'asset-management'];
                             <div class="loading"><div class="spinner"></div></div>
                         </div>
                     </div>
-                    <div class="detail-tabs" id="detailTabs">
-                        <button class="detail-tab active" onclick="switchDetailTab('devices')" data-dtab="devices">${window.t('asset-management.detail.tab_devices')} <span class="tab-count" id="devicesCountBadge">...</span></button>
-                        <button class="detail-tab" onclick="switchDetailTab('software')" data-dtab="software">${window.t('asset-management.detail.tab_software')} <span class="tab-count" id="softwareCountBadge">...</span></button>
                     </div>
-                    <div class="detail-tab-panel active" id="devicesPanel" data-dtab-panel="devices">
+                    <div class="detail-tab-panel" id="devicesPanel" data-dtab-panel="devices">
                         <div class="devices-search">
                             <input type="text" id="devicesSearch" placeholder="${window.t('asset-management.devices.filter_placeholder')}" oninput="filterDevices()" autocomplete="off">
                         </div>
@@ -1470,8 +1495,8 @@ $translationNamespaces = ['common', 'asset-management'];
 
         function renderIntuneTab(d) {
             const tabs = document.getElementById('detailTabs');
-            const scrollContainer = tabs ? tabs.parentNode : null;
-            if (!tabs || !scrollContainer) return;
+            const body = document.getElementById('detailBody');
+            if (!tabs || !body) return;
 
             const tabBtn = document.createElement('button');
             tabBtn.className = 'detail-tab';
@@ -1481,10 +1506,10 @@ $translationNamespaces = ['common', 'asset-management'];
             tabs.appendChild(tabBtn);
 
             const panel = document.createElement('div');
-            panel.className = 'detail-tab-panel';
+            panel.className = 'detail-tab-panel detail-tab-panel--scroll';
             panel.dataset.dtabPanel = 'intune';
             panel.innerHTML = renderIntuneTabBody(d);
-            scrollContainer.appendChild(panel);
+            body.appendChild(panel);
         }
 
         function renderIntuneTabBody(d) {

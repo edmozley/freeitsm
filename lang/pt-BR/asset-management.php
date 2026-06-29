@@ -82,6 +82,7 @@ return [
         'due_back'          => 'Devolução prevista: {date}',
         'assignment_error'  => 'Erro ao carregar atribuição',
         'storage'           => 'Armazenamento',
+        'tab_keyinfo'       => 'Informações',
         'tab_devices'       => 'Dispositivos',
         'tab_software'      => 'Software',
     ],
