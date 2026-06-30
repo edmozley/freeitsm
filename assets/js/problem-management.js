@@ -28,8 +28,26 @@ document.addEventListener('DOMContentLoaded', async () => {
     await pmLoadLookups();
     pmLoadList();
     const params = new URLSearchParams(location.search);
-    if (params.get('id')) pmOpenDetail(parseInt(params.get('id'), 10));
+    // Canonical deep-link param is ?problem_id=; ?id= is kept as a legacy
+    // fallback (e.g. the problem badge in the tickets reading pane).
+    const pid = params.get('problem_id') || params.get('id');
+    if (pid) {
+        // Seed a base "list" entry beneath the detail so the browser Back
+        // button returns to the list even on a direct deep-link, and
+        // normalise a legacy ?id= to the canonical ?problem_id=.
+        history.replaceState({ pmView: 'list' }, '', location.pathname);
+        history.pushState({ pmView: 'detail', id: parseInt(pid, 10) }, '', location.pathname + '?problem_id=' + parseInt(pid, 10));
+        pmOpenDetail(parseInt(pid, 10), true);
+    }
     if (params.get('new')) pmOpenEditor();
+});
+
+// Browser back/forward — sync the view to the URL.
+window.addEventListener('popstate', () => {
+    const sp = new URLSearchParams(location.search);
+    const pid = sp.get('problem_id') || sp.get('id');
+    if (pid) pmOpenDetail(parseInt(pid, 10), true);
+    else { pmShowListView(); pmLoadList(); }
 });
 
 async function pmLoadLookups() {
@@ -88,7 +106,11 @@ function pmRenderList(problems) {
 // Sidebar actions must return to the list view — otherwise, when a problem is
 // open (e.g. deep-linked via ?id=), they'd update the list while it's hidden
 // behind the detail and appear to do nothing.
-function pmFilter(statusId) { pmFilterStatus = statusId; pmShowListView(); pmLoadList(); }
+function pmFilter(statusId) {
+    const leavingDetail = pmCurrentId !== null;
+    pmFilterStatus = statusId; pmShowListView(); pmLoadList();
+    if (leavingDetail) pmSetListUrl();
+}
 
 // ============ Search modal (draggable) — mirrors the Change Management search ============
 let pmSearchOffsetX = 0, pmSearchOffsetY = 0;
@@ -176,12 +198,18 @@ function pmShowListView() {
     document.getElementById('pmDetailView').style.display = 'none';
     document.getElementById('pmListView').style.display = '';
 }
+// Drop the ?problem_id= param when returning to the list (adds a history entry
+// so Back/Forward step between the list and the problem you were viewing).
+function pmSetListUrl() {
+    if (location.search) history.pushState({ pmView: 'list' }, '', location.pathname);
+}
 function pmBackToList() {
     pmShowListView();
     pmLoadList();
+    pmSetListUrl();
 }
 
-async function pmOpenDetail(id) {
+async function pmOpenDetail(id, fromHistory) {
     try {
         const res = await fetch(PM_API + 'get.php?id=' + id);
         const data = await res.json();
@@ -190,6 +218,9 @@ async function pmOpenDetail(id) {
         pmRenderDetail(data);
         document.getElementById('pmListView').style.display = 'none';
         const dv = document.getElementById('pmDetailView'); dv.style.display = ''; dv.scrollTop = 0;
+        // Reflect the open problem in the URL (skip when we're restoring from a
+        // load/back-forward navigation, which is already at the right URL).
+        if (!fromHistory) history.pushState({ pmView: 'detail', id }, '', location.pathname + '?problem_id=' + id);
     } catch (e) { pmToast('Failed to open problem', 'error'); }
 }
 
