@@ -106,6 +106,11 @@ $path_prefix = '../';
         .pm-pick-title { font-weight: 600; color: var(--text, #1a1a1a); }
         .pm-pick-meta { font-size: 12px; color: var(--text-dim, #6b7280); margin-top: 2px; }
         .pm-pick-num { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--text-dim, #6b7280); }
+        /* Sidebar Search button — opens the draggable search modal (mirrors
+           the Change Management search). The modal itself uses the shared
+           .search-modal styling from inbox.css (header picks up --accent = red). */
+        .search-btn { width: 100%; box-sizing: border-box; padding: 8px 12px; background: var(--surface, #fff); color: var(--text-muted, #374151); border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; transition: border-color .15s, color .15s; }
+        .search-btn:hover { border-color: var(--pm-accent, #dc2626); color: var(--pm-accent, #dc2626); }
     </style>
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
@@ -113,7 +118,7 @@ $path_prefix = '../';
 
     <div class="pm-container">
         <div class="pm-sidebar">
-            <input type="text" class="pm-search" id="pmSearch" placeholder="Search problems…" oninput="pmDebouncedSearch()">
+            <button class="search-btn" onclick="pmOpenSearchModal()">Search</button>
             <button class="pm-new-btn" onclick="pmOpenEditor()">+ New problem</button>
             <h3>Status</h3>
             <div id="pmStatusFilters">
@@ -132,6 +137,34 @@ $path_prefix = '../';
                 <div id="pmList"><div class="pm-empty">Loading…</div></div>
             </div>
             <div id="pmDetailView" style="display:none;"></div>
+        </div>
+    </div>
+
+    <!-- Search modal (draggable) — mirrors the Change Management search.
+         Uses the shared .search-modal styling from inbox.css. -->
+    <div class="search-modal" id="pmSearchModal">
+        <div class="search-modal-header" id="pmSearchModalHeader">
+            <span>Search problems</span>
+            <button class="search-modal-close" onclick="pmCloseSearchModal()">&times;</button>
+        </div>
+        <div class="search-modal-body">
+            <div class="search-form">
+                <div class="search-field">
+                    <label>Problem number</label>
+                    <input type="text" id="pmSearchNumber" placeholder="e.g. PRB-0001" onkeydown="if(event.key==='Enter')pmPerformSearch()">
+                </div>
+                <div class="search-field">
+                    <label>Title</label>
+                    <input type="text" id="pmSearchTitle" placeholder="Search by title…" onkeydown="if(event.key==='Enter')pmPerformSearch()">
+                </div>
+                <div class="search-actions">
+                    <button class="btn btn-primary" onclick="pmPerformSearch()">Search</button>
+                    <button class="btn btn-secondary" onclick="pmClearSearch()">Clear</button>
+                </div>
+            </div>
+            <div class="search-results" id="pmSearchResults">
+                <div class="search-results-empty">Enter a problem number or title above and press Search.</div>
+            </div>
         </div>
     </div>
 
@@ -204,6 +237,6 @@ $path_prefix = '../';
 
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=13"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=14"></script>
 </body>
 </html>

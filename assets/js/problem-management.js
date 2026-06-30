@@ -4,7 +4,6 @@ let pmStatuses = [];
 let pmPriorities = [];
 let pmAnalysts = [];
 let pmFilterStatus = 'all';
-let pmSearchTimer = null;
 let pmCurrentId = null;       // open detail
 let pmDetailCache = null;     // last loaded detail payload
 
@@ -47,10 +46,8 @@ async function pmLoadLookups() {
 }
 
 async function pmLoadList() {
-    const q = document.getElementById('pmSearch').value.trim();
     const params = new URLSearchParams();
     if (pmFilterStatus !== 'all') params.set('status_id', pmFilterStatus);
-    if (q) params.set('q', q);
     try {
         const res = await fetch(PM_API + 'list.php?' + params.toString());
         const data = await res.json();
@@ -92,7 +89,87 @@ function pmRenderList(problems) {
 // open (e.g. deep-linked via ?id=), they'd update the list while it's hidden
 // behind the detail and appear to do nothing.
 function pmFilter(statusId) { pmFilterStatus = statusId; pmShowListView(); pmLoadList(); }
-function pmDebouncedSearch() { clearTimeout(pmSearchTimer); pmSearchTimer = setTimeout(() => { pmShowListView(); pmLoadList(); }, 300); }
+
+// ============ Search modal (draggable) — mirrors the Change Management search ============
+let pmSearchOffsetX = 0, pmSearchOffsetY = 0;
+
+function pmOpenSearchModal() {
+    const modal = document.getElementById('pmSearchModal');
+    modal.classList.add('active');
+    // Position just under the Search button (falls back to top-centre).
+    const btn = document.querySelector('.search-btn');
+    if (btn) {
+        const r = btn.getBoundingClientRect();
+        modal.style.left = r.left + 'px';
+        modal.style.top = (r.bottom + 10) + 'px';
+        modal.style.transform = 'none';
+    } else {
+        modal.style.left = '50%'; modal.style.top = '100px'; modal.style.transform = 'translateX(-50%)';
+    }
+    pmInitSearchDrag();
+    document.getElementById('pmSearchNumber').focus();
+}
+
+function pmCloseSearchModal() { document.getElementById('pmSearchModal').classList.remove('active'); }
+
+function pmInitSearchDrag() {
+    const header = document.getElementById('pmSearchModalHeader');
+    const modal = document.getElementById('pmSearchModal');
+    header.onmousedown = function(e) {
+        if (e.target.tagName === 'BUTTON') return;
+        e.preventDefault();
+        const rect = modal.getBoundingClientRect();
+        pmSearchOffsetX = e.clientX - rect.left;
+        pmSearchOffsetY = e.clientY - rect.top;
+        function mm(e) { modal.style.left = (e.clientX - pmSearchOffsetX) + 'px'; modal.style.top = (e.clientY - pmSearchOffsetY) + 'px'; modal.style.transform = 'none'; }
+        function mu() { document.removeEventListener('mousemove', mm); document.removeEventListener('mouseup', mu); }
+        document.addEventListener('mousemove', mm);
+        document.addEventListener('mouseup', mu);
+    };
+}
+
+async function pmPerformSearch() {
+    const num = document.getElementById('pmSearchNumber').value.trim();
+    const title = document.getElementById('pmSearchTitle').value.trim();
+    if (!num && !title) { pmToast('Enter a problem number or title to search', 'error'); return; }
+    const results = document.getElementById('pmSearchResults');
+    results.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+    // list.php?q= searches both title and problem_number, so a single term covers either field.
+    const params = new URLSearchParams();
+    params.set('q', title || num);
+    try {
+        const res = await fetch(PM_API + 'list.php?' + params.toString());
+        const data = await res.json();
+        if (!data.success) { results.innerHTML = `<div class="search-results-empty">${pmEsc(data.error || 'Search failed')}</div>`; return; }
+        pmRenderSearchResults(data.problems || []);
+    } catch (e) { results.innerHTML = '<div class="search-results-empty">Search failed. Please try again.</div>'; }
+}
+
+function pmRenderSearchResults(results) {
+    const c = document.getElementById('pmSearchResults');
+    if (!results.length) { c.innerHTML = '<div class="search-results-empty">No matching problems.</div>'; return; }
+    let html = '<div class="search-results-count">' + results.length + (results.length === 1 ? ' result' : ' results') + '</div>';
+    results.forEach(p => {
+        html += `<div class="search-result-item" onclick="pmSelectSearchResult(${p.id})">
+            <div class="search-result-ticket">${pmEsc(p.problem_number || '')}</div>
+            <div class="search-result-subject">${pmEsc(p.title)}</div>
+            <div class="search-result-meta">
+                ${p.status_name ? '<span>' + pmEsc(p.status_name) + '</span>' : ''}
+                ${p.priority_name ? '<span>' + pmEsc(p.priority_name) + '</span>' : ''}
+                ${p.assignee_name ? '<span>' + pmEsc(p.assignee_name) + '</span>' : ''}
+            </div>
+        </div>`;
+    });
+    c.innerHTML = html;
+}
+
+function pmSelectSearchResult(id) { pmCloseSearchModal(); pmOpenDetail(id); }
+
+function pmClearSearch() {
+    document.getElementById('pmSearchNumber').value = '';
+    document.getElementById('pmSearchTitle').value = '';
+    document.getElementById('pmSearchResults').innerHTML = '<div class="search-results-empty">Enter a problem number or title above and press Search.</div>';
+}
 
 function pmShowListView() {
     pmCurrentId = null;
