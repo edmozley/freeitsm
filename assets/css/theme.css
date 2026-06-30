@@ -48,6 +48,10 @@
     --problem-bg:        #faf7fd;  --problem-border: #e6d8f2;
     --problem-text:      #6a1b9a;  --problem-badge-bg: #ede7f6;
 
+    /* Knowledge module (purple) accents — buttons, tag pills, AI chat */
+    --kb-accent:       #8764b8;  --kb-accent-hover: #6b4fa2;
+    --kb-accent-soft:  #f3eef8;  --kb-on-accent:    #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -90,6 +94,10 @@
     /* Problem Management (purple) — dark surfaces with light readable text */
     --problem-bg:        #241a30;  --problem-border: #3a2c4d;
     --problem-text:      #c9a9e9;  --problem-badge-bg: #2e2440;
+
+    /* Knowledge module (purple) — accent nudged lighter to read on dark */
+    --kb-accent:       #a98cd8;  --kb-accent-hover: #bda3e4;
+    --kb-accent-soft:  #2a2238;  --kb-on-accent:    #ffffff;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;

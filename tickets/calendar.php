@@ -20,7 +20,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.calendar.page_title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=4">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=5">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=35">
     <link rel="stylesheet" href="../assets/css/calendar.css?v=3">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>

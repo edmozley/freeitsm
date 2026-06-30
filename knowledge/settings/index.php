@@ -6,6 +6,7 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/ai_settings_panel.php';
+require_once '../../includes/theme.php';
 I18n::initFromSession();
 
 // Check if user is logged in
@@ -20,11 +21,12 @@ $path_prefix = '../../';  // Two levels up from knowledge/settings/
 $translationNamespaces = ['common', 'knowledge'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('knowledge.browser_title.settings')); ?></title>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=5">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
@@ -47,7 +49,7 @@ $translationNamespaces = ['common', 'knowledge'];
             display: block;
             font-weight: 500;
             margin-bottom: 6px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         /* Text-style inputs only — scoping by :not(...) so radios / checkboxes
@@ -56,7 +58,7 @@ $translationNamespaces = ['common', 'knowledge'];
         .form-group select {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 4px;
             font-size: 14px;
         }
@@ -64,14 +66,14 @@ $translationNamespaces = ['common', 'knowledge'];
         .form-group input:not([type="radio"]):not([type="checkbox"]):focus,
         .form-group select:focus {
             outline: none;
-            border-color: #8764b8;
+            border-color: var(--kb-accent, #8764b8);
             box-shadow: 0 0 0 2px rgba(135, 100, 184, 0.1);
         }
 
         .form-group small {
             display: block;
             margin-top: 4px;
-            color: #888;
+            color: var(--text-dim, #888);
             font-size: 12px;
         }
 
@@ -92,19 +94,19 @@ $translationNamespaces = ['common', 'knowledge'];
             align-items: flex-start;
             gap: 10px;
             padding: 15px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 6px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
         .radio-option:hover {
-            background: #f9f9f9;
+            background: var(--surface-2, #f9f9f9);
         }
 
         .radio-option.selected {
-            border-color: #8764b8;
-            background: #f8f5fb;
+            border-color: var(--kb-accent, #8764b8);
+            background: var(--kb-accent-soft, #f8f5fb);
         }
 
         .radio-option input[type="radio"] {
@@ -117,19 +119,19 @@ $translationNamespaces = ['common', 'knowledge'];
 
         .radio-option-title {
             font-weight: 500;
-            color: #333;
+            color: var(--text, #333);
             margin-bottom: 4px;
         }
 
         .radio-option-desc {
             font-size: 13px;
-            color: #666;
+            color: var(--text-muted, #666);
         }
 
         .smtp-settings {
             margin-top: 20px;
             padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border, #e0e0e0);
             display: none;
         }
 
@@ -140,7 +142,7 @@ $translationNamespaces = ['common', 'knowledge'];
         .mailbox-settings {
             margin-top: 20px;
             padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border, #e0e0e0);
             display: none;
         }
 
@@ -153,7 +155,7 @@ $translationNamespaces = ['common', 'knowledge'];
             gap: 12px;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border, #e0e0e0);
         }
 
         .btn {
@@ -166,22 +168,22 @@ $translationNamespaces = ['common', 'knowledge'];
         }
 
         .btn-primary {
-            background: #8764b8;
-            color: white;
+            background: var(--kb-accent, #8764b8);
+            color: var(--kb-on-accent, white);
         }
 
         .btn-primary:hover {
-            background: #6b4fa2;
+            background: var(--kb-accent-hover, #6b4fa2);
         }
 
         .btn-secondary {
-            background: #f0f0f0;
-            color: #333;
-            border: 1px solid #ddd;
+            background: var(--surface-hover, #f0f0f0);
+            color: var(--text, #333);
+            border: 1px solid var(--border, #ddd);
         }
 
         .btn-secondary:hover {
-            background: #e0e0e0;
+            background: var(--border, #e0e0e0);
         }
 
         .btn-test {
@@ -194,13 +196,13 @@ $translationNamespaces = ['common', 'knowledge'];
         }
 
         .save-message {
-            color: #155724;
+            color: var(--success-text, #155724);
             margin-left: 15px;
             display: none;
         }
 
         .save-message.error {
-            color: #d13438;
+            color: var(--danger-accent, #d13438);
         }
 
         .test-result {
@@ -212,16 +214,16 @@ $translationNamespaces = ['common', 'knowledge'];
 
         .test-result.success {
             display: block;
-            background: #d4edda;
-            border: 1px solid #c3e6cb;
-            color: #155724;
+            background: var(--success-bg, #d4edda);
+            border: 1px solid var(--success-bg, #c3e6cb);
+            color: var(--success-text, #155724);
         }
 
         .test-result.error {
             display: block;
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            color: #721c24;
+            background: var(--danger-bg, #f8d7da);
+            border: 1px solid var(--danger-bg, #f5c6cb);
+            color: var(--danger-text, #721c24);
         }
     </style>
 </head>
@@ -242,7 +244,7 @@ $translationNamespaces = ['common', 'knowledge'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('knowledge.settings.email_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.email_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.email_intro')); ?></p>
 
             <form id="emailSettingsForm">
                 <div class="radio-group">
@@ -358,19 +360,19 @@ $translationNamespaces = ['common', 'knowledge'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('knowledge.settings.ai_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_intro')); ?></p>
 
             <!-- Assistant provider/model/key — reusable block (Anthropic / OpenAI / OpenRouter). -->
             <h3 style="font-size: 16px; margin-bottom: 15px;"><?php echo htmlspecialchars(t('knowledge.settings.ai_chat_heading')); ?></h3>
             <?php renderAiSettingsPanel('knowledge_ai'); ?>
 
             <!-- OpenAI key for semantic-search embeddings — a separate concern from the chat provider. -->
-            <h3 style="font-size: 16px; margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid #e0e0e0;"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_heading')); ?></h3>
+            <h3 style="font-size: 16px; margin: 25px 0 15px 0; padding-top: 20px; border-top: 1px solid var(--border, #e0e0e0);"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_heading')); ?></h3>
             <form id="aiSettingsForm">
                 <div class="form-group">
                     <label for="openaiApiKey"><?php echo htmlspecialchars(t('knowledge.settings.ai_openai_key')); ?></label>
                     <input type="password" id="openaiApiKey" placeholder="sk-proj-...">
-                    <small><?php echo t('knowledge.settings.ai_openai_help', ['link' => '<a href="https://platform.openai.com/api-keys" target="_blank" style="color:#8764b8;">platform.openai.com</a>']); ?></small>
+                    <small><?php echo t('knowledge.settings.ai_openai_help', ['link' => '<a href="https://platform.openai.com/api-keys" target="_blank" style="color:var(--kb-accent,#8764b8);">platform.openai.com</a>']); ?></small>
                 </div>
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('knowledge.settings.save')); ?></button>
@@ -383,13 +385,13 @@ $translationNamespaces = ['common', 'knowledge'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('knowledge.settings.embeddings_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.embeddings_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.embeddings_intro')); ?></p>
 
-            <div id="embeddingStatus" style="padding: 15px; background: #f9f9f9; border-radius: 6px; margin-bottom: 20px;">
+            <div id="embeddingStatus" style="padding: 15px; background: var(--surface-2, #f9f9f9); border-radius: 6px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.embedding_status')); ?></strong>
-                        <div id="embeddingStats" style="margin-top: 5px; color: #666; font-size: 13px;"><?php echo htmlspecialchars(t('knowledge.settings.embed_loading')); ?></div>
+                        <div id="embeddingStats" style="margin-top: 5px; color: var(--text-muted, #666); font-size: 13px;"><?php echo htmlspecialchars(t('knowledge.settings.embed_loading')); ?></div>
                     </div>
                     <button type="button" class="btn btn-primary" id="generateEmbeddingsBtn" onclick="generateEmbeddings()"><?php echo htmlspecialchars(t('knowledge.settings.generate')); ?></button>
                 </div>
@@ -399,8 +401,8 @@ $translationNamespaces = ['common', 'knowledge'];
                 <div style="margin-bottom: 10px;">
                     <span id="embeddingProgressText"><?php echo htmlspecialchars(t('knowledge.settings.processing')); ?></span>
                 </div>
-                <div style="background: #e0e0e0; border-radius: 4px; height: 8px; overflow: hidden;">
-                    <div id="embeddingProgressBar" style="background: #8764b8; height: 100%; width: 0%; transition: width 0.3s;"></div>
+                <div style="background: var(--border, #e0e0e0); border-radius: 4px; height: 8px; overflow: hidden;">
+                    <div id="embeddingProgressBar" style="background: var(--kb-accent, #8764b8); height: 100%; width: 0%; transition: width 0.3s;"></div>
                 </div>
             </div>
 
@@ -412,7 +414,7 @@ $translationNamespaces = ['common', 'knowledge'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('knowledge.settings.recycle_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.recycle_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.recycle_intro')); ?></p>
             <form id="recycleBinSettingsForm">
                 <div class="form-group">
                     <label for="recycleBinDays"><?php echo htmlspecialchars(t('knowledge.settings.recycle_days_label')); ?></label>
@@ -430,22 +432,22 @@ $translationNamespaces = ['common', 'knowledge'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('knowledge.settings.left_panel_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.left_panel_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('knowledge.settings.left_panel_intro')); ?></p>
 
             <form id="leftPanelForm" autocomplete="off" onsubmit="event.preventDefault();">
                 <div class="form-group">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;"><?php echo htmlspecialchars(t('knowledge.settings.visibility')); ?></label>
-                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: var(--text, #333);"><?php echo htmlspecialchars(t('knowledge.settings.visibility')); ?></label>
+                    <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="kbSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.always_title')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('knowledge.settings.always_desc')); ?>
                         </span>
                     </label>
-                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                    <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="kbSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('knowledge.settings.hover_title')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('knowledge.settings.hover_desc')); ?>
                         </span>
                     </label>
@@ -728,7 +730,7 @@ $translationNamespaces = ['common', 'knowledge'];
                     if (total === 0) {
                         statsDiv.textContent = window.t('knowledge.settings.embed_none');
                     } else if (without_embeddings === 0) {
-                        statsDiv.innerHTML = `<span style="color: #155724;">${window.t('knowledge.settings.embed_all', { total: total })}</span>`;
+                        statsDiv.innerHTML = `<span style="color: var(--success-text, #155724);">${window.t('knowledge.settings.embed_all', { total: total })}</span>`;
                     } else {
                         statsDiv.innerHTML = window.t('knowledge.settings.embed_partial', { with: with_embeddings, total: total, missing: without_embeddings });
                     }

@@ -5,6 +5,7 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -17,11 +18,12 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'knowledge'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('knowledge.browser_title.help')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=5">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
@@ -29,14 +31,14 @@ $translationNamespaces = ['common', 'knowledge'];
         .kb-help-container {
             display: flex;
             height: calc(100vh - 48px);
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
         }
 
         /* Left sidebar navigation */
         .kb-help-sidebar {
             width: 260px;
-            background: white;
-            border-right: 1px solid #ddd;
+            background: var(--surface, white);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -47,7 +49,7 @@ $translationNamespaces = ['common', 'knowledge'];
         .kb-help-sidebar h3 {
             font-size: 12px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-dim, #888);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 0 0 12px;
@@ -60,19 +62,19 @@ $translationNamespaces = ['common', 'knowledge'];
             padding: 10px 12px;
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             text-decoration: none;
             transition: background 0.15s, color 0.15s;
         }
 
         .kb-help-nav-link:hover {
-            background: #f5f5f5;
-            color: #333;
+            background: var(--surface-hover, #f5f5f5);
+            color: var(--text, #333);
         }
 
         .kb-help-nav-link.active {
-            background: #f3e5f5;
-            color: #6b4fa2;
+            background: var(--kb-accent-soft, #f3e5f5);
+            color: var(--kb-accent-hover, #6b4fa2);
             font-weight: 600;
         }
 
@@ -83,16 +85,16 @@ $translationNamespaces = ['common', 'knowledge'];
             min-width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: #eee;
-            color: #888;
+            background: var(--border-soft, #eee);
+            color: var(--text-dim, #888);
             font-weight: 700;
             font-size: 11px;
             flex-shrink: 0;
         }
 
         .kb-help-nav-link.active .kb-help-nav-num {
-            background: #6b4fa2;
-            color: white;
+            background: var(--kb-accent-hover, #6b4fa2);
+            color: var(--kb-on-accent, white);
         }
 
         /* Main content */
@@ -107,6 +109,10 @@ $translationNamespaces = ['common', 'knowledge'];
             color: white;
             padding: 40px 48px 36px;
             text-align: center;
+        }
+        /* Darken the hero in dark mode so it recedes instead of glowing bright purple. */
+        [data-theme-mode="dark"] .kb-help-hero {
+            background: linear-gradient(135deg, #3a2d52 0%, #2e2342 50%, #1f1730 100%);
         }
 
         .kb-help-hero h2 {
@@ -131,7 +137,7 @@ $translationNamespaces = ['common', 'knowledge'];
         /* Sections */
         .kb-help-section {
             padding: 28px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-soft, #eee);
             scroll-margin-top: 20px;
         }
 
@@ -150,19 +156,19 @@ $translationNamespaces = ['common', 'knowledge'];
         .kb-help-section-header h3 {
             margin: 0;
             font-size: 18px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .kb-help-section-header p {
             margin: 6px 0 0;
             font-size: 14px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.6;
         }
 
         .kb-help-section > p {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin: 0 0 14px;
         }
@@ -174,16 +180,16 @@ $translationNamespaces = ['common', 'knowledge'];
             min-width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #f3e5f5;
-            color: #6b4fa2;
+            background: var(--kb-accent-soft, #f3e5f5);
+            color: var(--kb-accent-hover, #6b4fa2);
             font-weight: 700;
             font-size: 14px;
             flex-shrink: 0;
         }
 
         .kb-help-section-num.highlight {
-            background: #6b4fa2;
-            color: white;
+            background: var(--kb-accent-hover, #6b4fa2);
+            color: var(--kb-on-accent, white);
         }
 
         /* Feature cards grid */
@@ -196,14 +202,14 @@ $translationNamespaces = ['common', 'knowledge'];
         .kb-help-feature-card {
             padding: 20px;
             border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            background: white;
+            border: 1px solid var(--border, #e0e0e0);
+            background: var(--surface, white);
             transition: transform 0.15s, box-shadow 0.15s;
         }
 
         .kb-help-feature-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px var(--shadow, rgba(0,0,0,0.08));
         }
 
         .kb-help-feature-icon {
@@ -224,13 +230,13 @@ $translationNamespaces = ['common', 'knowledge'];
         .kb-help-feature-card h4 {
             margin: 0 0 6px;
             font-size: 15px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .kb-help-feature-card p {
             margin: 0;
             font-size: 12.5px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.5;
         }
 
@@ -248,9 +254,9 @@ $translationNamespaces = ['common', 'knowledge'];
             gap: 14px;
             padding: 10px 14px;
             border-radius: 8px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             font-size: 14px;
-            color: #444;
+            color: var(--text-muted, #444);
             line-height: 1.5;
         }
 
@@ -261,8 +267,8 @@ $translationNamespaces = ['common', 'knowledge'];
             min-width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: #8764b8;
-            color: white;
+            background: var(--kb-accent, #8764b8);
+            color: var(--kb-on-accent, white);
             font-weight: 700;
             font-size: 13px;
             flex-shrink: 0;
@@ -270,16 +276,16 @@ $translationNamespaces = ['common', 'knowledge'];
 
         /* Highlighted section */
         .kb-help-section-highlight {
-            background: #f3e5f5;
+            background: var(--kb-accent-soft, #f3e5f5);
             margin: 0 -48px;
             padding: 28px 48px !important;
             border-bottom: none !important;
-            border-top: 2px solid #ce93d8;
+            border-top: 2px solid var(--kb-accent, #ce93d8);
         }
 
         .kb-help-intro {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin-bottom: 20px !important;
         }
@@ -312,7 +318,7 @@ $translationNamespaces = ['common', 'knowledge'];
 
         .kb-help-workflow-arrow {
             padding: 0 8px;
-            color: #bbb;
+            color: var(--text-faint, #bbb);
             font-size: 18px;
         }
 
@@ -326,21 +332,21 @@ $translationNamespaces = ['common', 'knowledge'];
 
         .kb-help-status-card {
             padding: 14px 16px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
-            border-left: 3px solid #8764b8;
+            border-left: 3px solid var(--kb-accent, #8764b8);
         }
 
         .kb-help-status-card strong {
             display: block;
             font-size: 13px;
-            color: #333;
+            color: var(--text, #333);
             margin-bottom: 4px;
         }
 
         .kb-help-status-card span {
             font-size: 12.5px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.5;
         }
 
@@ -350,8 +356,8 @@ $translationNamespaces = ['common', 'knowledge'];
 
         /* AI chat preview */
         .kb-help-ai-demo {
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: var(--surface, white);
+            border: 1px solid var(--border, #e0e0e0);
             border-radius: 10px;
             padding: 20px;
             margin: 16px 0;
@@ -379,7 +385,7 @@ $translationNamespaces = ['common', 'knowledge'];
             flex-shrink: 0;
         }
 
-        .kb-help-ai-avatar.user { background: #f3e5f5; color: #6b4fa2; }
+        .kb-help-ai-avatar.user { background: var(--kb-accent-soft, #f3e5f5); color: var(--kb-accent-hover, #6b4fa2); }
         .kb-help-ai-avatar.ai { background: #e3f2fd; color: #1565c0; }
 
         .kb-help-ai-bubble {
@@ -387,12 +393,12 @@ $translationNamespaces = ['common', 'knowledge'];
             border-radius: 8px;
             font-size: 13px;
             line-height: 1.5;
-            color: #444;
+            color: var(--text-muted, #444);
             max-width: 80%;
         }
 
-        .kb-help-ai-bubble.user { background: #f3e5f5; }
-        .kb-help-ai-bubble.ai { background: #f5f5f5; }
+        .kb-help-ai-bubble.user { background: var(--kb-accent-soft, #f3e5f5); }
+        .kb-help-ai-bubble.ai { background: var(--surface-hover, #f5f5f5); }
 
         /* Info fields list */
         .kb-help-fields {
@@ -404,10 +410,10 @@ $translationNamespaces = ['common', 'knowledge'];
 
         .kb-help-fields div {
             padding: 8px 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
         }
 
         /* Settings options grid */
@@ -420,32 +426,32 @@ $translationNamespaces = ['common', 'knowledge'];
 
         .kb-help-setting-card {
             padding: 14px 16px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
-            border-left: 3px solid #8764b8;
+            border-left: 3px solid var(--kb-accent, #8764b8);
         }
 
         .kb-help-setting-card strong {
             display: block;
             font-size: 13px;
-            color: #333;
+            color: var(--text, #333);
             margin-bottom: 4px;
         }
 
         .kb-help-setting-card span {
             font-size: 12px;
-            color: #777;
+            color: var(--text-dim, #777);
             line-height: 1.4;
         }
 
         /* Tip callout */
         .kb-help-tip {
             font-size: 13px !important;
-            color: #6b4fa2 !important;
-            background: #f3e5f5;
+            color: var(--kb-accent-hover, #6b4fa2) !important;
+            background: var(--kb-accent-soft, #f3e5f5);
             padding: 10px 14px;
             border-radius: 8px;
-            border-left: 3px solid #8764b8;
+            border-left: 3px solid var(--kb-accent, #8764b8);
             margin-top: 10px;
         }
 
@@ -460,10 +466,10 @@ $translationNamespaces = ['common', 'knowledge'];
             display: flex;
             gap: 12px;
             padding: 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.5;
         }
 
@@ -473,7 +479,7 @@ $translationNamespaces = ['common', 'knowledge'];
         }
 
         .kb-help-tip-card strong {
-            color: #333;
+            color: var(--text, #333);
         }
 
         /* Responsive */

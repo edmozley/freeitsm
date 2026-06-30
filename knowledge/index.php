@@ -6,6 +6,7 @@ session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'knowledge';
@@ -34,13 +35,14 @@ if (isset($_SESSION['analyst_id'])) {
 $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('knowledge.browser_title.main')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=5">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/knowledge.css">
+    <link rel="stylesheet" href="../assets/css/knowledge.css?v=2">
     <!-- Prism.js for code syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/toolbar/prism-toolbar.min.css">
@@ -162,7 +164,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                                 </div>
                                 <div class="form-group tag-form-group" style="flex: 1;">
                                     <div class="tag-label-row">
-                                        <label class="form-label"><?php echo htmlspecialchars(t('knowledge.editor.field_tags')); ?> <small style="display: inline; margin-top: 0; font-weight: normal; color: #888;"><?php echo htmlspecialchars(t('knowledge.editor.tags_hint')); ?></small></label>
+                                        <label class="form-label"><?php echo htmlspecialchars(t('knowledge.editor.field_tags')); ?> <small style="display: inline; margin-top: 0; font-weight: normal; color: var(--text-dim, #888);"><?php echo htmlspecialchars(t('knowledge.editor.tags_hint')); ?></small></label>
                                         <div class="selected-tags" id="selectedTags"></div>
                                     </div>
                                     <div class="tag-input-container">
@@ -241,7 +243,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                 <h3 id="archivedArticleTitle" style="margin: 0;"></h3>
             </div>
             <div class="modal-body">
-                <div id="archivedArticleMeta" style="font-size: 13px; color: #666; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid #e0e0e0;"></div>
+                <div id="archivedArticleMeta" style="font-size: 13px; color: var(--text-muted, #666); margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border, #e0e0e0);"></div>
                 <div id="archivedArticleBody" class="article-content-body"></div>
             </div>
             <div class="modal-footer">
@@ -265,7 +267,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
         <div class="ai-chat-messages" id="aiChatMessages">
             <div class="ai-chat-welcome">
                 <p><?php echo htmlspecialchars(t('knowledge.ai.welcome')); ?></p>
-                <p style="font-size:12px; color:#999; margin-top:8px;"><?php echo htmlspecialchars(t('knowledge.ai.powered_by')); ?></p>
+                <p style="font-size:12px; color:var(--text-faint, #999); margin-top:8px;"><?php echo htmlspecialchars(t('knowledge.ai.powered_by')); ?></p>
             </div>
         </div>
         <div class="ai-chat-options">
