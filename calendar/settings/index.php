@@ -54,6 +54,10 @@ $translationNamespaces = ['common', 'calendar'];
             align-items: center;
             margin-bottom: 16px;
             gap: 16px;
+            /* Match the height of a header that has an action button (e.g. the
+               Categories "Add" button) so the heading sits in the same place on
+               every tab, button or not. */
+            min-height: 34px;
         }
 
         .section-header h2 {
@@ -207,7 +211,7 @@ $translationNamespaces = ['common', 'calendar'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('common.left_panel.tab')); ?></h2>
             </div>
-            <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('calendar.settings.left_panel_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('calendar.settings.left_panel_intro')); ?></p>
 
             <form id="leftPanelForm" autocomplete="off" onsubmit="event.preventDefault();">
                 <div class="form-group">
