@@ -1624,14 +1624,9 @@ body.cm-editor-open .editor-form {
     font-weight: 600;
 }
 
-.cm-help-nav-link.cab {
-    color: var(--cm-accent-hover, #00695c);
-}
-
-.cm-help-nav-link.cab.active {
-    background: var(--cm-accent, #00897b);
-    color: var(--cm-on-accent, white);
-}
+/* The CAB nav entry used to be specially tinted teal (and a teal active
+   pill) to stand out; per design feedback the nav headings should all read
+   the same colour, so the .cab link now inherits the standard nav styling. */
 
 .cm-help-nav-num {
     display: flex;
@@ -1650,16 +1645,6 @@ body.cm-editor-open .editor-form {
 .cm-help-nav-link.active .cm-help-nav-num {
     background: var(--cm-accent, #00897b);
     color: var(--cm-on-accent, white);
-}
-
-.cm-help-nav-num.cab {
-    background: var(--cm-accent-soft, #e0f2f1);
-    color: var(--cm-accent-hover, #00695c);
-}
-
-.cm-help-nav-link.cab.active .cm-help-nav-num {
-    background: rgba(255,255,255,0.25);
-    color: white;
 }
 
 /* Main content */

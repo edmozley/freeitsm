@@ -391,6 +391,10 @@
     display: flex;
     flex-grow: 1;
     overflow-y: scroll;
+    /* The first hour label is nudged up 8px (top: -8px) to straddle its
+       gridline; without this padding it sits above the scroll area and gets
+       clipped — you "can't quite scroll to the top". The pad gives it room. */
+    padding-top: 8px;
 }
 
 .week-body::-webkit-scrollbar {
@@ -516,6 +520,9 @@
     display: flex;
     flex-grow: 1;
     overflow-y: scroll;
+    /* Room for the first hour label's -8px nudge (see .week-body) so it isn't
+       clipped at the top of the scroll area. */
+    padding-top: 8px;
 }
 
 .day-body::-webkit-scrollbar {

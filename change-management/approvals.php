@@ -25,7 +25,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.approvals')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=6">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/change-management.css?v=5">
+    <link rel="stylesheet" href="../assets/css/change-management.css?v=6">
     <style>
         .approvals-container {
             display: flex;

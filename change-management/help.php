@@ -25,7 +25,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.help')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=6">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/change-management.css?v=5">
+    <link rel="stylesheet" href="../assets/css/change-management.css?v=6">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
 </head>
