@@ -29,10 +29,14 @@ $path_prefix = '../';
         .pm-search { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font: inherit; }
         .pm-new-btn { display: block; width: 100%; box-sizing: border-box; text-align: center; margin-top: 14px; padding: 10px; background: var(--pm-accent, #6a1b9a); color: var(--pm-on-accent, #fff); border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
         .pm-new-btn:hover { background: var(--pm-accent-hover, #581580); }
-        .pm-filter { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--text-muted, #374151); }
-        .pm-filter:hover { background: var(--pm-accent-soft, #f0e6f6); }
-        .pm-filter.active { background: var(--pm-accent-soft, #ede7f6); color: var(--pm-accent, #6a1b9a); font-weight: 600; }
-        .pm-filter .cnt { background: var(--border, #e5e7eb); border-radius: 10px; padding: 1px 8px; font-size: 12px; color: var(--text-muted, #555); }
+        /* Status list styled like the help guide's left-nav headings: rounded
+           rows with a leading circular count badge, grey hover, accent-soft
+           active state with a filled-accent badge. */
+        .pm-filter { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text-muted, #374151); transition: background .15s, color .15s; }
+        .pm-filter:hover { background: var(--surface-hover, #f5f5f5); color: var(--text, #333); }
+        .pm-filter.active { background: var(--pm-accent-soft, #fde8e8); color: var(--pm-accent, #dc2626); font-weight: 600; }
+        .pm-filter .cnt { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 7px; box-sizing: border-box; border-radius: 999px; background: var(--border-soft, #eee); color: var(--text-dim, #888); font-weight: 700; font-size: 11px; flex-shrink: 0; }
+        .pm-filter.active .cnt { background: var(--pm-accent, #dc2626); color: var(--pm-on-accent, #fff); }
         .pm-main { flex: 1; min-width: 0; overflow-y: auto; padding: 20px 24px; }
         .pm-list-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .pm-list-head h2 { margin: 0; font-size: 1.4rem; }
@@ -111,7 +115,7 @@ $path_prefix = '../';
             <button class="pm-new-btn" onclick="pmOpenEditor()">+ New problem</button>
             <h3>Status</h3>
             <div id="pmStatusFilters">
-                <div class="pm-filter active" data-status="all" onclick="pmFilter('all')"><span>All</span><span class="cnt" id="pmCountAll">0</span></div>
+                <div class="pm-filter active" data-status="all" onclick="pmFilter('all')"><span class="cnt" id="pmCountAll">0</span><span>All</span></div>
             </div>
         </div>
         <div class="pm-main">
@@ -198,6 +202,6 @@ $path_prefix = '../';
 
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=11"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=12"></script>
 </body>
 </html>
