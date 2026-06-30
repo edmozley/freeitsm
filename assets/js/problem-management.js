@@ -64,8 +64,8 @@ async function pmLoadList() {
 function pmRenderFilters(counts) {
     const wrap = document.getElementById('pmStatusFilters');
     const total = (counts || []).reduce((n, s) => n + (s.cnt || 0), 0);
-    let html = `<div class="pm-filter ${pmFilterStatus === 'all' ? 'active' : ''}" data-status="all" onclick="pmFilter('all')"><span class="cnt">${total}</span><span>All</span></div>`;
-    html += (counts || []).map(s => `<div class="pm-filter ${String(pmFilterStatus) === String(s.id) ? 'active' : ''}" onclick="pmFilter(${s.id})"><span class="cnt">${s.cnt || 0}</span><span>${pmEsc(s.name)}</span></div>`).join('');
+    let html = `<div class="pm-filter ${pmFilterStatus === 'all' ? 'active' : ''}" data-status="all" onclick="pmFilter('all')"><span>All</span><span class="cnt">${total}</span></div>`;
+    html += (counts || []).map(s => `<div class="pm-filter ${String(pmFilterStatus) === String(s.id) ? 'active' : ''}" onclick="pmFilter(${s.id})"><span>${pmEsc(s.name)}</span><span class="cnt">${s.cnt || 0}</span></div>`).join('');
     wrap.innerHTML = html;
 }
 

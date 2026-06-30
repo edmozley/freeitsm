@@ -32,7 +32,7 @@ $path_prefix = '../';
         /* Status list styled like the help guide's left-nav headings: rounded
            rows with a leading circular count badge, grey hover, accent-soft
            active state with a filled-accent badge. */
-        .pm-filter { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text-muted, #374151); transition: background .15s, color .15s; }
+        .pm-filter { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 6px; cursor: pointer; font-size: 13px; color: var(--text-muted, #374151); transition: background .15s, color .15s; }
         .pm-filter:hover { background: var(--surface-hover, #f5f5f5); color: var(--text, #333); }
         .pm-filter.active { background: var(--pm-accent-soft, #fde8e8); color: var(--pm-accent, #dc2626); font-weight: 600; }
         .pm-filter .cnt { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; padding: 0 7px; box-sizing: border-box; border-radius: 999px; background: var(--border-soft, #eee); color: var(--text-dim, #888); font-weight: 700; font-size: 11px; flex-shrink: 0; }
@@ -115,7 +115,7 @@ $path_prefix = '../';
             <button class="pm-new-btn" onclick="pmOpenEditor()">+ New problem</button>
             <h3>Status</h3>
             <div id="pmStatusFilters">
-                <div class="pm-filter active" data-status="all" onclick="pmFilter('all')"><span class="cnt" id="pmCountAll">0</span><span>All</span></div>
+                <div class="pm-filter active" data-status="all" onclick="pmFilter('all')"><span>All</span><span class="cnt" id="pmCountAll">0</span></div>
             </div>
         </div>
         <div class="pm-main">
@@ -202,6 +202,6 @@ $path_prefix = '../';
 
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=12"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=13"></script>
 </body>
 </html>
