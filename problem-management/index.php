@@ -18,6 +18,10 @@ $path_prefix = '../';
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=7">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <style>
+        /* Pin the shared accent to the module purple so shared components used
+           on this page (the editor modal's .btn-primary + input focus rings,
+           confirm dialog) read on-brand instead of the default blue. */
+        body { --accent: var(--pm-accent, #6a1b9a); --accent-hover: var(--pm-accent-hover, #581580); }
         .pm-container { display: flex; height: calc(100vh - 48px); width: 100%; }
         .pm-sidebar { width: 250px; min-width: 250px; border-right: 1px solid var(--border, #e5e7eb); background: var(--surface-2, #fafbfc); padding: 16px; overflow-y: auto; box-sizing: border-box; }
         .pm-sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #6b7280); margin: 18px 0 8px; }
@@ -124,26 +128,28 @@ $path_prefix = '../';
         </div>
     </div>
 
-    <!-- Editor modal -->
-    <div class="pm-modal" id="pmModal">
-        <div class="pm-modal-content">
-            <div class="pm-modal-head" id="pmModalTitle">New problem</div>
-            <div class="pm-modal-body">
+    <!-- Editor modal — uses the shared inbox.css .modal primitives so its
+         chrome (header, body, footer, form fields, buttons) matches the
+         Settings modals exactly. -->
+    <div class="modal" id="pmModal">
+        <div class="modal-content" style="max-width: 640px;">
+            <div class="modal-header" id="pmModalTitle">New problem</div>
+            <div class="modal-body">
                 <input type="hidden" id="pmId">
-                <div class="pm-form-row"><label>Title *</label><input type="text" id="pmTitle" placeholder="Short summary of the underlying problem"></div>
-                <div class="pm-grid2">
-                    <div class="pm-form-row"><label>Status</label><select id="pmStatus"></select></div>
-                    <div class="pm-form-row"><label>Priority</label><select id="pmPriority"></select></div>
-                    <div class="pm-form-row"><label>Assigned to</label><select id="pmAssignee"></select></div>
-                    <div class="pm-form-row"><label>&nbsp;</label><label style="font-weight:normal;"><input type="checkbox" id="pmKnownError"> Known error (workaround available)</label></div>
+                <div class="form-group"><label>Title *</label><input type="text" id="pmTitle" placeholder="Short summary of the underlying problem"></div>
+                <div class="form-row">
+                    <div class="form-group"><label>Status</label><select id="pmStatus"></select></div>
+                    <div class="form-group"><label>Priority</label><select id="pmPriority"></select></div>
+                    <div class="form-group"><label>Assigned to</label><select id="pmAssignee"></select></div>
+                    <div class="form-group"><label>&nbsp;</label><label style="font-weight:normal;"><input type="checkbox" id="pmKnownError"> Known error (workaround available)</label></div>
                 </div>
-                <div class="pm-form-row"><label>Description</label><textarea id="pmDescription" rows="3" placeholder="What's the problem?"></textarea></div>
-                <div class="pm-form-row"><label>Root cause</label><textarea id="pmRootCause" rows="3" placeholder="The underlying cause (fill in as the investigation progresses)"></textarea></div>
-                <div class="pm-form-row"><label>Workaround</label><textarea id="pmWorkaround" rows="2" placeholder="Temporary workaround for affected users"></textarea></div>
+                <div class="form-group"><label>Description</label><textarea id="pmDescription" rows="3" placeholder="What's the problem?"></textarea></div>
+                <div class="form-group"><label>Root cause</label><textarea id="pmRootCause" rows="3" placeholder="The underlying cause (fill in as the investigation progresses)"></textarea></div>
+                <div class="form-group"><label>Workaround</label><textarea id="pmWorkaround" rows="2" placeholder="Temporary workaround for affected users"></textarea></div>
             </div>
-            <div class="pm-modal-foot">
-                <button class="pm-btn" onclick="pmCloseEditor()">Cancel</button>
-                <button class="pm-btn pm-btn-primary" onclick="pmSave()">Save</button>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="pmCloseEditor()">Cancel</button>
+                <button class="btn btn-primary" onclick="pmSave()">Save</button>
             </div>
         </div>
     </div>
