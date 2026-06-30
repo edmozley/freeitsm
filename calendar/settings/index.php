@@ -249,20 +249,18 @@ $translationNamespaces = ['common', 'calendar'];
                     <label for="categoryDescription"><?php echo htmlspecialchars(t('calendar.settings.modal_description')); ?></label>
                     <textarea id="categoryDescription" placeholder="<?php echo htmlspecialchars(t('calendar.settings.modal_description_ph')); ?>" autocomplete="off"></textarea>
                 </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label for="categoryColor"><?php echo htmlspecialchars(t('calendar.settings.modal_colour')); ?></label>
-                        <input type="color" id="categoryColor" value="#ef6c00" autocomplete="off">
-                    </div>
-                    <div class="form-group" style="display: flex; align-items: flex-end; padding-bottom: 10px;">
-                        <label class="toggle-label">
-                            <span class="toggle-switch">
-                                <input type="checkbox" id="categoryActive" checked>
-                                <span class="toggle-slider"></span>
-                            </span>
-                            <?php echo htmlspecialchars(t('calendar.settings.modal_active')); ?>
-                        </label>
-                    </div>
+                <div class="form-group">
+                    <label for="categoryColor"><?php echo htmlspecialchars(t('calendar.settings.modal_colour')); ?></label>
+                    <input type="color" id="categoryColor" value="#ef6c00" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="categoryActive" checked>
+                            <span class="toggle-slider"></span>
+                        </span>
+                        <?php echo htmlspecialchars(t('calendar.settings.modal_active')); ?>
+                    </label>
                 </div>
             </form>
             <div class="modal-footer">
