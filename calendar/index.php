@@ -19,7 +19,7 @@ $translationNamespaces = ['common', 'calendar'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('calendar.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=9">
-    <link rel="stylesheet" href="../assets/css/inbox.css">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=37">
     <link rel="stylesheet" href="../assets/css/itsm_calendar.css?v=4">
     <style>
         /* Pin the shared accent to the module orange so canonical components

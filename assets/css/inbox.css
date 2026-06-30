@@ -1592,6 +1592,12 @@ body.ticket-popout .ticket-toolbar {
     display: flex;
     gap: 12px;
     justify-content: flex-end;
+    /* Round the footer's bottom corners to match .modal-content's 8px radius.
+       In the canonical 3-pane layout (header + body + footer) the content is
+       overflow: visible so the footer isn't clipped — without this its square
+       corners poke past the rounded content. Matches modal-content's radius so
+       every modal has curved bottom corners, app-wide. */
+    border-radius: 0 0 8px 8px;
 }
 
 /* Widget edit form (shared between library page and dashboard modal) */

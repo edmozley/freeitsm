@@ -16,7 +16,7 @@ $path_prefix = '../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Problem Management</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=9">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=36">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=37">
     <style>
         /* Pin the shared accent to the module red so shared components on this
            page (the editor modal's .btn-primary + input focus rings, confirm

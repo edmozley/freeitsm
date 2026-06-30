@@ -17,7 +17,7 @@ $path_prefix = '../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Problem Management Help</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=9">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=36">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=37">
     <style>
         .tk-help-container { display: flex; height: calc(100vh - 48px); background: var(--app-bg, #f5f5f5); }
         .tk-help-sidebar { width: 260px; background: var(--surface, #fff); border-right: 1px solid var(--border, #ddd); padding: 20px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; overflow-y: auto; }
