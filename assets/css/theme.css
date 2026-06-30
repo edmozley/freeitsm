@@ -63,6 +63,10 @@
     --pm-accent:       #dc2626;  --pm-accent-hover: #b91c1c;
     --pm-accent-soft:  #fde8e8;  --pm-on-accent:    #ffffff;
 
+    /* Calendar module (orange) accents — buttons, today, event chips */
+    --cal-accent:      #ef6c00;  --cal-accent-hover: #e65100;
+    --cal-accent-soft: #fff3e0;  --cal-on-accent:    #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -117,6 +121,10 @@
     /* Problem Management module (red) — accent nudged lighter to read on dark */
     --pm-accent:       #f87171;  --pm-accent-hover: #fca5a5;
     --pm-accent-soft:  #3a1a1d;  --pm-on-accent:    #ffffff;
+
+    /* Calendar module (orange) — accent nudged lighter to read on dark */
+    --cal-accent:      #ff9d4d;  --cal-accent-hover: #ffb375;
+    --cal-accent-soft: #3a2a17;  --cal-on-accent:    #ffffff;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;

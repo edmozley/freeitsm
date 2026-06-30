@@ -5,6 +5,7 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'calendar';
@@ -12,13 +13,19 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'calendar'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('calendar.title')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=9">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/itsm_calendar.css?v=3">
+    <link rel="stylesheet" href="../assets/css/itsm_calendar.css?v=4">
+    <style>
+        /* Pin the shared accent to the module orange so canonical components
+           (modal .btn-primary, input focus rings, confirm dialog) are on-brand. */
+        body { --accent: var(--cal-accent, #ef6c00); --accent-hover: var(--cal-accent-hover, #e65100); }
+    </style>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
 </head>
@@ -70,10 +77,8 @@ $translationNamespaces = ['common', 'calendar'];
 
     <!-- Event Modal -->
     <div class="modal" id="eventModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="eventModalTitle"><?php echo htmlspecialchars(t('calendar.event.modal_new')); ?></h3>
-            </div>
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header" id="eventModalTitle"><?php echo htmlspecialchars(t('calendar.event.modal_new')); ?></div>
             <div class="modal-body">
                 <input type="hidden" id="eventId" value="">
                 <div class="form-group">
@@ -134,9 +139,7 @@ $translationNamespaces = ['common', 'calendar'];
     <!-- Subscribe ("Add to your phone") Modal -->
     <div class="modal" id="subscribeModal">
         <div class="modal-content subscribe-modal">
-            <div class="modal-header">
-                <h3><?php echo htmlspecialchars(t('calendar.subscribe.modal_title')); ?></h3>
-            </div>
+            <div class="modal-header"><?php echo htmlspecialchars(t('calendar.subscribe.modal_title')); ?></div>
             <div class="modal-body">
                 <p class="subscribe-intro"><?php echo htmlspecialchars(t('calendar.subscribe.modal_intro')); ?></p>
                 <div class="form-group">

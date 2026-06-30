@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 I18n::initFromSession();
 
 // Check if user is logged in
@@ -19,16 +20,17 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'calendar'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('calendar.settings.title')); ?></title>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=9">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         /* Module accent — drives toggle, focus rings, button colours.
            Modal form CSS lives entirely in inbox.css. */
-        body { --accent: #ef6c00; }
+        body { --accent: var(--cal-accent, #ef6c00); --accent-hover: var(--cal-accent-hover, #e65100); }
 
         /* Full-width settings page matching the canonical settings layout
            (change-management/settings, tickets/settings). */
@@ -43,8 +45,8 @@ $translationNamespaces = ['common', 'calendar'];
         /* Orange theme override for the canonical .tab classes from
            inbox.css (default blue accent). Only this page is using the
            calendar's orange. */
-        .tab:hover { color: #ef6c00; }
-        .tab.active { color: #ef6c00; border-bottom-color: #ef6c00; }
+        .tab:hover { color: var(--cal-accent, #ef6c00); }
+        .tab.active { color: var(--cal-accent, #ef6c00); border-bottom-color: var(--cal-accent, #ef6c00); }
 
         .section-header {
             display: flex;
@@ -57,12 +59,12 @@ $translationNamespaces = ['common', 'calendar'];
         .section-header h2 {
             margin: 0;
             font-size: 18px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .add-btn {
-            background: #ef6c00;
-            color: white;
+            background: var(--cal-accent, #ef6c00);
+            color: var(--cal-on-accent, white);
             padding: 8px 16px;
             border: none;
             border-radius: 4px;
@@ -70,7 +72,7 @@ $translationNamespaces = ['common', 'calendar'];
             cursor: pointer;
             flex-shrink: 0;
         }
-        .add-btn:hover { background: #e65100; }
+        .add-btn:hover { background: var(--cal-accent-hover, #e65100); }
 
         /* Categories table */
         .lookup-table { width: 100%; border-collapse: collapse; }
@@ -78,13 +80,13 @@ $translationNamespaces = ['common', 'calendar'];
         .lookup-table td {
             padding: 10px 8px;
             text-align: left;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-soft, #f0f0f0);
             font-size: 14px;
         }
         .lookup-table th {
             font-weight: 600;
-            color: #666;
-            background: #fafafa;
+            color: var(--text-muted, #666);
+            background: var(--surface-2, #fafafa);
         }
         /* Force the Actions column to size to its content (width: 1%) and
            never wrap the icon buttons. Same trick the change-management
@@ -101,7 +103,7 @@ $translationNamespaces = ['common', 'calendar'];
             height: 18px;
             border-radius: 3px;
             vertical-align: middle;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             margin-right: 6px;
         }
 
@@ -113,87 +115,26 @@ $translationNamespaces = ['common', 'calendar'];
             border: none;
             cursor: pointer;
             padding: 4px;
-            color: #666;
+            color: var(--text-muted, #666);
             display: inline-flex;
             align-items: center;
             justify-content: center;
             vertical-align: middle;
         }
-        .action-btn:hover { color: #ef6c00; }
-        .action-btn.delete:hover { color: #c62828; }
+        .action-btn:hover { color: var(--cal-accent, #ef6c00); }
+        .action-btn.delete:hover { color: var(--danger-accent, #c62828); }
 
         .empty-state {
             text-align: center;
             padding: 40px;
-            color: #666;
+            color: var(--text-muted, #666);
         }
 
-        /* Modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        .modal.active { display: flex; }
-
-        .modal-content {
-            background: #fff;
-            border-radius: 8px;
-            width: 450px;
-            max-width: 90vw;
-            max-height: 90vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-        }
-
-        .modal-header {
-            padding: 20px;
-            border-bottom: 1px solid #e0e0e0;
-            flex-shrink: 0;
-        }
-
-        .modal-header h3 {
-            margin: 0;
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        /* Body scrolls; header + footer stay fixed (canonical 3-pane). */
-        .modal-body { padding: 20px; flex: 1; overflow-y: auto; min-height: 0; }
-
-        .modal-footer {
-            padding: 15px 20px;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            flex-shrink: 0;
-            background: #fff;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 4px;
-            font-size: 13px;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-        }
-        .btn-primary { background: #ef6c00; color: white; }
-        .btn-primary:hover { background: #e65100; }
-        .btn-secondary { background: #f0f0f0; color: #333; border: 1px solid #ddd; }
-        .btn-secondary:hover { background: #e0e0e0; }
-        .btn-danger { background: #c62828; color: white; }
-        .btn-danger:hover { background: #a02020; }
+        /* Modal + buttons use the canonical .modal / .modal-content / .modal-header /
+           .modal-body / .modal-footer / .btn / .btn-primary / .btn-secondary
+           primitives from inbox.css — no local overrides, so tweaking inbox.css
+           updates this modal too. (.btn-primary picks up the orange via the
+           pinned --accent above.) */
 
         /* Form-group + form-row + colour-input sizing all live in inbox.css. */
         .form-group input[type="color"] { width: 60px; height: 40px; padding: 2px; cursor: pointer; }
@@ -203,7 +144,7 @@ $translationNamespaces = ['common', 'calendar'];
             align-items: center;
             gap: 8px;
             font-size: 14px;
-            color: #333;
+            color: var(--text, #333);
             cursor: pointer;
         }
         .form-checkbox input { width: 18px; height: 18px; cursor: pointer; }
@@ -217,8 +158,8 @@ $translationNamespaces = ['common', 'calendar'];
         .spinner {
             width: 32px;
             height: 32px;
-            border: 3px solid #e0e0e0;
-            border-top-color: #ef6c00;
+            border: 3px solid var(--border, #e0e0e0);
+            border-top-color: var(--cal-accent, #ef6c00);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
@@ -244,7 +185,7 @@ $translationNamespaces = ['common', 'calendar'];
                 <h2><?php echo htmlspecialchars(t('calendar.settings.heading')); ?></h2>
                 <button class="add-btn" onclick="openCategoryModal()"><?php echo htmlspecialchars(t('calendar.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('calendar.settings.intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('calendar.settings.intro')); ?></p>
 
             <table class="lookup-table">
                 <thead>
@@ -266,22 +207,22 @@ $translationNamespaces = ['common', 'calendar'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('common.left_panel.tab')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('calendar.settings.left_panel_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('calendar.settings.left_panel_intro')); ?></p>
 
             <form id="leftPanelForm" autocomplete="off" onsubmit="event.preventDefault();">
                 <div class="form-group">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;"><?php echo htmlspecialchars(t('common.left_panel.visibility')); ?></label>
-                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: var(--text, #333);"><?php echo htmlspecialchars(t('common.left_panel.visibility')); ?></label>
+                    <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="calendarSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.always')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('calendar.settings.left_panel_always_desc')); ?>
                         </span>
                     </label>
-                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                    <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="calendarSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.hover')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: 12px; color: var(--text-dim, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('calendar.settings.left_panel_hover_desc')); ?>
                         </span>
                     </label>
@@ -292,10 +233,8 @@ $translationNamespaces = ['common', 'calendar'];
 
     <!-- Category Modal -->
     <div class="modal" id="categoryModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="categoryModalTitle"><?php echo htmlspecialchars(t('calendar.settings.modal_add')); ?></h3>
-            </div>
+        <div class="modal-content" style="max-width: 450px;">
+            <div class="modal-header" id="categoryModalTitle"><?php echo htmlspecialchars(t('calendar.settings.modal_add')); ?></div>
             <!-- autocomplete="off" on the form + each input so the browser
                  doesn't suggest previously-entered category names from
                  unrelated forms. Modern browsers can ignore form-level
@@ -431,7 +370,7 @@ $translationNamespaces = ['common', 'calendar'];
                         <span class="swatch" style="background-color: ${cat.color}"></span>
                         ${escapeHtml(cat.name)}
                     </td>
-                    <td>${cat.description ? escapeHtml(cat.description) : '<span style="color:#999">&mdash;</span>'}</td>
+                    <td>${cat.description ? escapeHtml(cat.description) : '<span style="color:var(--text-faint,#999)">&mdash;</span>'}</td>
                     <td>
                         <span class="status-badge status-${cat.is_active ? 'active' : 'inactive'}">
                             ${cat.is_active ? window.t('calendar.settings.active') : window.t('calendar.settings.inactive')}

@@ -84,7 +84,7 @@ require_once $path_prefix . 'includes/waffle-menu.php';
     z-index: 10;
     overflow: hidden;
     transition: width 0.18s ease;
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.12);
+    box-shadow: 2px 0 8px var(--shadow, rgba(0, 0, 0, 0.12));
     padding: 0;
 }
 .calendar-container.sidebar-hover .calendar-sidebar:hover {
@@ -111,7 +111,7 @@ require_once $path_prefix . 'includes/waffle-menu.php';
     width: 3px;
     height: 36px;
     border-radius: 2px;
-    background: #bbb;
+    background: var(--text-faint, #bbb);
     transition: opacity 0.18s;
     pointer-events: none;
 }

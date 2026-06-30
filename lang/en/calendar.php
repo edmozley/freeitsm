@@ -24,7 +24,7 @@ return [
     ],
 
     'sidebar' => [
-        'new_event'   => 'New Event',
+        'new_event'   => 'New event',
         'categories'  => 'Categories',
         'none'        => 'No categories found',
     ],
@@ -50,16 +50,16 @@ return [
     ],
 
     'event' => [
-        'modal_new'      => 'New Event',
-        'modal_edit'     => 'Edit Event',
+        'modal_new'      => 'New event',
+        'modal_edit'     => 'Edit event',
         'title'          => 'Title',
         'title_ph'       => 'Event title...',
         'category'       => 'Category',
         'category_none'  => '-- Select category --',
-        'start_date'     => 'Start Date',
-        'start_time'     => 'Start Time',
-        'end_date'       => 'End Date',
-        'end_time'       => 'End Time',
+        'start_date'     => 'Start date',
+        'start_time'     => 'Start time',
+        'end_date'       => 'End date',
+        'end_time'       => 'End time',
         'all_day'        => 'All day event',
         'location'       => 'Location',
         'location_ph'    => 'Location (optional)',

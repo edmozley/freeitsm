@@ -626,111 +626,22 @@
     opacity: 0.9;
 }
 
-/* Event modal */
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-}
-
-.modal.active {
-    display: flex;
-}
-
-.modal-content {
-    background: var(--surface, #fff);
-    border-radius: 8px;
-    width: 500px;
-    max-width: 90vw;
-    max-height: 90vh;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 10px 40px var(--shadow, rgba(0, 0, 0, 0.2));
-}
-
-.modal-header {
-    padding: 20px;
-    border-bottom: 1px solid var(--border, #e0e0e0);
-}
-
-.modal-header h3 {
-    margin: 0;
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text, #333);
-}
-
-.modal-body {
-    padding: 20px;
-    overflow-y: auto;
-    flex-grow: 1;
-}
-
-.modal-footer {
-    padding: 15px 20px;
-    border-top: 1px solid var(--border, #e0e0e0);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
+/* Event + subscribe modals use the canonical .modal / .modal-content /
+   .modal-header / .modal-body / .modal-footer / .form-* / .btn / .btn-primary /
+   .btn-secondary primitives from inbox.css, so they track the universal modal
+   styling (tweak inbox.css and every modal updates). Only the calendar-specific
+   extras below stay here: the footer-right group, the all-day checkbox, the
+   danger/small buttons (no inbox equivalent) and the event quick-view popup. */
 .modal-footer-right {
     display: flex;
     gap: 10px;
 }
+/* Delete sits on the left of the footer; the canonical footer is flex-end. */
+.modal-footer .btn-danger { margin-right: auto; }
 
-/* Form elements */
-.form-group {
-    margin-bottom: 16px;
-}
-
-.form-row {
-    display: flex;
-    gap: 16px;
-}
-
-.form-row .form-group {
-    flex: 1;
-}
-
-.form-label {
-    display: block;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text, #333);
-    margin-bottom: 6px;
-}
-
-.form-input,
-.form-textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid var(--border, #ddd);
-    border-radius: 4px;
-    font-size: 14px;
-    transition: border-color 0.15s;
-    box-sizing: border-box;
-}
-
-.form-input:focus,
-.form-textarea:focus {
-    outline: none;
-    border-color: #ef6c00;
-}
-
-.form-textarea {
-    resize: vertical;
-    min-height: 80px;
-}
-
+/* Calendar-specific form bit (the all-day checkbox row); the rest of the form
+   fields use the canonical .form-group / .form-row / .form-label / .form-input /
+   .form-textarea primitives from inbox.css. */
 .form-checkbox {
     display: flex;
     align-items: center;
@@ -746,43 +657,17 @@
     cursor: pointer;
 }
 
-/* Buttons */
-.btn {
-    padding: 10px 16px;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.15s;
-}
-
-.btn-primary {
-    background: #ef6c00;
-    color: #fff;
-}
-
-.btn-primary:hover {
-    background: #e65100;
-}
-
-.btn-secondary {
-    background: var(--surface-2, #f5f5f5);
-    color: var(--text, #333);
-    border: 1px solid var(--border, #ddd);
-}
-
-.btn-secondary:hover {
-    background: var(--surface-hover, #e0e0e0);
-}
-
+/* Calendar-specific buttons. .btn / .btn-primary / .btn-secondary come from
+   inbox.css (canonical); .btn-primary picks up the module orange because the
+   page pins --accent to --cal-accent. Only the danger + small variants (no
+   inbox equivalent) live here. */
 .btn-danger {
-    background: #dc3545;
+    background: var(--danger-accent, #dc3545);
     color: #fff;
 }
 
 .btn-danger:hover {
-    background: #c82333;
+    background: var(--danger-text, #c82333);
 }
 
 .btn-sm {

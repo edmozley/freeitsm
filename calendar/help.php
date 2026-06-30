@@ -5,6 +5,7 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -17,24 +18,25 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'calendar'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('calendar.help.page_title')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=9">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .cal-help-container {
             display: flex;
             height: calc(100vh - 48px);
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
         }
 
         /* Left sidebar navigation */
         .cal-help-sidebar {
             width: 260px;
-            background: white;
-            border-right: 1px solid #ddd;
+            background: var(--surface, white);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -45,7 +47,7 @@ $translationNamespaces = ['common', 'calendar'];
         .cal-help-sidebar h3 {
             font-size: 12px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-dim, #888);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 0 0 12px;
@@ -58,19 +60,19 @@ $translationNamespaces = ['common', 'calendar'];
             padding: 10px 12px;
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             text-decoration: none;
             transition: background 0.15s, color 0.15s;
         }
 
         .cal-help-nav-link:hover {
-            background: #f5f5f5;
-            color: #333;
+            background: var(--surface-hover, #f5f5f5);
+            color: var(--text, #333);
         }
 
         .cal-help-nav-link.active {
-            background: #fff3e0;
-            color: #e65100;
+            background: var(--cal-accent-soft, #fff3e0);
+            color: var(--cal-accent-hover, #e65100);
             font-weight: 600;
         }
 
@@ -81,16 +83,16 @@ $translationNamespaces = ['common', 'calendar'];
             min-width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: #eee;
-            color: #888;
+            background: var(--border-soft, #eee);
+            color: var(--text-dim, #888);
             font-weight: 700;
             font-size: 11px;
             flex-shrink: 0;
         }
 
         .cal-help-nav-link.active .cal-help-nav-num {
-            background: #e65100;
-            color: white;
+            background: var(--cal-accent-hover, #e65100);
+            color: var(--cal-on-accent, white);
         }
 
 
@@ -106,6 +108,10 @@ $translationNamespaces = ['common', 'calendar'];
             color: white;
             padding: 40px 48px 36px;
             text-align: center;
+        }
+        /* Darken the hero in dark mode so it recedes instead of glowing bright orange. */
+        [data-theme-mode="dark"] .cal-help-hero {
+            background: linear-gradient(135deg, #3a2410 0%, #2e1c0b 50%, #221408 100%);
         }
 
         .cal-help-hero h2 {
@@ -130,7 +136,7 @@ $translationNamespaces = ['common', 'calendar'];
         /* Sections */
         .cal-help-section {
             padding: 28px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-soft, #eee);
             scroll-margin-top: 20px;
         }
 
@@ -149,19 +155,19 @@ $translationNamespaces = ['common', 'calendar'];
         .cal-help-section-header h3 {
             margin: 0;
             font-size: 18px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .cal-help-section-header p {
             margin: 6px 0 0;
             font-size: 14px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.6;
         }
 
         .cal-help-section > p {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin: 0 0 14px;
         }
@@ -173,16 +179,16 @@ $translationNamespaces = ['common', 'calendar'];
             min-width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #fff3e0;
-            color: #e65100;
+            background: var(--cal-accent-soft, #fff3e0);
+            color: var(--cal-accent-hover, #e65100);
             font-weight: 700;
             font-size: 14px;
             flex-shrink: 0;
         }
 
         .cal-help-section-num.highlight {
-            background: #ef6c00;
-            color: white;
+            background: var(--cal-accent, #ef6c00);
+            color: var(--cal-on-accent, white);
         }
 
         /* Feature cards grid */
@@ -195,14 +201,14 @@ $translationNamespaces = ['common', 'calendar'];
         .cal-help-feature-card {
             padding: 20px;
             border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            background: white;
+            border: 1px solid var(--border, #e0e0e0);
+            background: var(--surface, white);
             transition: transform 0.15s, box-shadow 0.15s;
         }
 
         .cal-help-feature-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px var(--shadow, rgba(0,0,0,0.08));
         }
 
         .cal-help-feature-icon {
@@ -223,13 +229,13 @@ $translationNamespaces = ['common', 'calendar'];
         .cal-help-feature-card h4 {
             margin: 0 0 6px;
             font-size: 15px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .cal-help-feature-card p {
             margin: 0;
             font-size: 12.5px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.5;
         }
 
@@ -247,9 +253,9 @@ $translationNamespaces = ['common', 'calendar'];
             gap: 14px;
             padding: 10px 14px;
             border-radius: 8px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             font-size: 14px;
-            color: #444;
+            color: var(--text-muted, #444);
             line-height: 1.5;
         }
 
@@ -260,8 +266,8 @@ $translationNamespaces = ['common', 'calendar'];
             min-width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: #ef6c00;
-            color: white;
+            background: var(--cal-accent, #ef6c00);
+            color: var(--cal-on-accent, white);
             font-weight: 700;
             font-size: 13px;
             flex-shrink: 0;
@@ -269,16 +275,16 @@ $translationNamespaces = ['common', 'calendar'];
 
         /* Highlighted section */
         .cal-help-section-highlight {
-            background: #fff3e0;
+            background: var(--cal-accent-soft, #fff3e0);
             margin: 0 -48px;
             padding: 28px 48px !important;
             border-bottom: none !important;
-            border-top: 2px solid #ffcc80;
+            border-top: 2px solid var(--cal-accent, #ffcc80);
         }
 
         .cal-help-intro {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin-bottom: 20px !important;
         }
@@ -293,10 +299,10 @@ $translationNamespaces = ['common', 'calendar'];
 
         .cal-help-fields div {
             padding: 8px 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
         }
 
         /* Data cards grid */
@@ -309,21 +315,21 @@ $translationNamespaces = ['common', 'calendar'];
 
         .cal-help-data-card {
             padding: 12px 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
-            border-left: 3px solid #ef6c00;
+            border-left: 3px solid var(--cal-accent, #ef6c00);
         }
 
         .cal-help-data-card strong {
             display: block;
             font-size: 13px;
-            color: #333;
+            color: var(--text, #333);
             margin-bottom: 4px;
         }
 
         .cal-help-data-card span {
             font-size: 12px;
-            color: #777;
+            color: var(--text-dim, #777);
             line-height: 1.4;
         }
 
@@ -355,18 +361,18 @@ $translationNamespaces = ['common', 'calendar'];
 
         .cal-help-flow-arrow {
             padding: 0 8px;
-            color: #bbb;
+            color: var(--text-faint, #bbb);
             font-size: 18px;
         }
 
         /* Tip callout */
         .cal-help-tip {
             font-size: 13px !important;
-            color: #e65100 !important;
-            background: #fff3e0;
+            color: var(--cal-accent-hover, #e65100) !important;
+            background: var(--cal-accent-soft, #fff3e0);
             padding: 10px 14px;
             border-radius: 8px;
-            border-left: 3px solid #ef6c00;
+            border-left: 3px solid var(--cal-accent, #ef6c00);
             margin-top: 10px;
         }
 
@@ -381,10 +387,10 @@ $translationNamespaces = ['common', 'calendar'];
             display: flex;
             gap: 12px;
             padding: 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.5;
         }
 
@@ -394,7 +400,7 @@ $translationNamespaces = ['common', 'calendar'];
         }
 
         .cal-help-tip-card strong {
-            color: #333;
+            color: var(--text, #333);
         }
 
         /* Responsive */
