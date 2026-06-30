@@ -5,50 +5,54 @@
  */
 session_start();
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/theme.php';
 if (!isset($_SESSION['analyst_id'])) { header('Location: ' . BASE_URL . 'login.php'); exit; }
 $current_page = 'help';
 $path_prefix = '../';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Problem Management Help</title>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=7">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <style>
-        .tk-help-container { display: flex; height: calc(100vh - 48px); background: #f5f5f5; }
-        .tk-help-sidebar { width: 260px; background: #fff; border-right: 1px solid #ddd; padding: 20px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; overflow-y: auto; }
-        .tk-help-sidebar h3 { font-size: 12px; font-weight: 600; color: #888; text-transform: uppercase; letter-spacing: .5px; margin: 0 0 12px; }
-        .tk-help-nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; font-size: 13px; color: #555; text-decoration: none; transition: background .15s, color .15s; }
-        .tk-help-nav-link:hover { background: #f5f5f5; color: #333; }
-        .tk-help-nav-link.active { background: #f3e5f5; color: #6a1b9a; font-weight: 600; }
-        .tk-help-nav-num { display: flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; border-radius: 50%; background: #eee; color: #888; font-weight: 700; font-size: 11px; flex-shrink: 0; }
-        .tk-help-nav-link.active .tk-help-nav-num { background: #6a1b9a; color: #fff; }
+        .tk-help-container { display: flex; height: calc(100vh - 48px); background: var(--app-bg, #f5f5f5); }
+        .tk-help-sidebar { width: 260px; background: var(--surface, #fff); border-right: 1px solid var(--border, #ddd); padding: 20px; display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; overflow-y: auto; }
+        .tk-help-sidebar h3 { font-size: 12px; font-weight: 600; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: .5px; margin: 0 0 12px; }
+        .tk-help-nav-link { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 6px; font-size: 13px; color: var(--text-muted, #555); text-decoration: none; transition: background .15s, color .15s; }
+        .tk-help-nav-link:hover { background: var(--surface-hover, #f5f5f5); color: var(--text, #333); }
+        .tk-help-nav-link.active { background: var(--pm-accent-soft, #f3e5f5); color: var(--pm-accent, #6a1b9a); font-weight: 600; }
+        .tk-help-nav-num { display: flex; align-items: center; justify-content: center; min-width: 24px; height: 24px; border-radius: 50%; background: var(--border-soft, #eee); color: var(--text-dim, #888); font-weight: 700; font-size: 11px; flex-shrink: 0; }
+        .tk-help-nav-link.active .tk-help-nav-num { background: var(--pm-accent, #6a1b9a); color: var(--pm-on-accent, #fff); }
         .tk-help-main { flex: 1; overflow-y: auto; }
         .tk-help-hero { background: linear-gradient(135deg, #6a1b9a 0%, #4a148c 50%, #311b92 100%); color: #fff; padding: 40px 48px 36px; text-align: center; }
+        /* Darken the hero in dark mode so it recedes instead of glowing bright purple. */
+        [data-theme-mode="dark"] .tk-help-hero { background: linear-gradient(135deg, #3a1456 0%, #2a0f50 50%, #1d1259 100%); }
         .tk-help-hero h2 { margin: 0 0 8px; font-size: 26px; font-weight: 700; }
         .tk-help-hero p { margin: 0; font-size: 15px; opacity: .85; }
         .tk-help-content { padding: 10px 48px 48px; }
-        .tk-help-section { padding: 28px 0; border-bottom: 1px solid #eee; scroll-margin-top: 20px; }
+        .tk-help-section { padding: 28px 0; border-bottom: 1px solid var(--border-soft, #eee); scroll-margin-top: 20px; }
         .tk-help-section:last-child { border-bottom: none; padding-bottom: 0; }
         .tk-help-section-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
-        .tk-help-section-header h3 { margin: 0; font-size: 18px; color: #333; }
-        .tk-help-section-header p { margin: 6px 0 0; font-size: 14px; color: #666; line-height: 1.6; }
-        .tk-help-section > p { font-size: 14px; color: #555; line-height: 1.7; margin: 0 0 14px; }
-        .tk-help-section > ul { font-size: 14px; color: #555; line-height: 1.7; margin: 0 0 14px; padding-left: 22px; }
+        .tk-help-section-header h3 { margin: 0; font-size: 18px; color: var(--text, #333); }
+        .tk-help-section-header p { margin: 6px 0 0; font-size: 14px; color: var(--text-muted, #666); line-height: 1.6; }
+        .tk-help-section > p { font-size: 14px; color: var(--text-muted, #555); line-height: 1.7; margin: 0 0 14px; }
+        .tk-help-section > ul { font-size: 14px; color: var(--text-muted, #555); line-height: 1.7; margin: 0 0 14px; padding-left: 22px; }
         .tk-help-section > ul li { margin-bottom: 7px; }
-        .tk-help-section-num { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; border-radius: 50%; background: #f3e5f5; color: #6a1b9a; font-weight: 700; font-size: 14px; flex-shrink: 0; }
+        .tk-help-section-num { display: flex; align-items: center; justify-content: center; min-width: 32px; height: 32px; border-radius: 50%; background: var(--pm-accent-soft, #f3e5f5); color: var(--pm-accent, #6a1b9a); font-weight: 700; font-size: 14px; flex-shrink: 0; }
         .tk-help-features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 6px 0 4px; }
-        .tk-help-feature-card { padding: 20px; border-radius: 10px; border: 1px solid #e0e0e0; background: #fff; }
-        .tk-help-feature-card h4 { margin: 0 0 6px; font-size: 15px; color: #333; }
-        .tk-help-feature-card p { margin: 0; font-size: 12.5px; color: #666; line-height: 1.5; }
+        .tk-help-feature-card { padding: 20px; border-radius: 10px; border: 1px solid var(--border, #e0e0e0); background: var(--surface, #fff); }
+        .tk-help-feature-card h4 { margin: 0 0 6px; font-size: 15px; color: var(--text, #333); }
+        .tk-help-feature-card p { margin: 0; font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; }
         .tk-help-flow { display: flex; align-items: center; gap: 0; margin: 14px 0; flex-wrap: wrap; }
-        .tk-help-flow-step { display: flex; align-items: center; justify-content: center; padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; text-align: center; background: #f3e5f5; color: #6a1b9a; }
-        .tk-help-flow-step.closed { background: #e8f5e9; color: #2e7d32; }
-        .tk-help-flow-arrow { padding: 0 7px; color: #bbb; font-size: 16px; }
-        .tk-help-tip { font-size: 13px !important; color: #6a1b9a !important; background: #f3e5f5; padding: 10px 14px; border-radius: 8px; border-left: 3px solid #6a1b9a; margin: 4px 0 0; line-height: 1.6; }
-        .tk-help-warn { font-size: 13px; color: #8a6d3b; background: #fff8e1; padding: 10px 14px; border-radius: 8px; border-left: 3px solid #ffb300; margin: 4px 0 0; line-height: 1.6; }
+        .tk-help-flow-step { display: flex; align-items: center; justify-content: center; padding: 9px 14px; border-radius: 8px; font-size: 12.5px; font-weight: 600; text-align: center; background: var(--pm-accent-soft, #f3e5f5); color: var(--pm-accent, #6a1b9a); }
+        .tk-help-flow-step.closed { background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); }
+        .tk-help-flow-arrow { padding: 0 7px; color: var(--text-faint, #bbb); font-size: 16px; }
+        .tk-help-tip { font-size: 13px !important; color: var(--pm-accent, #6a1b9a) !important; background: var(--pm-accent-soft, #f3e5f5); padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--pm-accent, #6a1b9a); margin: 4px 0 0; line-height: 1.6; }
+        .tk-help-warn { font-size: 13px; color: var(--warning-text, #8a6d3b); background: var(--warning-bg, #fff8e1); padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--warning-border, #ffb300); margin: 4px 0 0; line-height: 1.6; }
         @media (max-width: 900px) { .tk-help-sidebar { display: none; } .tk-help-content { padding: 10px 24px 40px; } .tk-help-features-grid { grid-template-columns: 1fr; } }
     </style>
 </head>
@@ -185,7 +189,7 @@ $path_prefix = '../';
                         <li><strong>Review proactively</strong> — run Detect problems and review trends on a regular cadence.</li>
                         <li><strong>Watch the numbers</strong> — falling repeat-incident volume is the real sign the practice is working.</li>
                     </ul>
-                    <p style="margin-top:18px;"><a href="<?php echo BASE_URL; ?>problem-management/" style="color:#6a1b9a;font-weight:600;text-decoration:none;">← Back to Problems</a></p>
+                    <p style="margin-top:18px;"><a href="<?php echo BASE_URL; ?>problem-management/" style="color:var(--pm-accent,#6a1b9a);font-weight:600;text-decoration:none;">← Back to Problems</a></p>
                 </div>
 
             </div>

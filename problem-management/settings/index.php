@@ -2,15 +2,17 @@
 session_start();
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/ai_settings_panel.php';
+require_once __DIR__ . '/../../includes/theme.php';
 $current_page = 'settings';
 $path_prefix = '../../';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Problem Management Settings</title>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=7">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <style>
         /* Same shell pattern as tickets/settings: header pinned, .container scrolls,
@@ -53,7 +55,7 @@ $path_prefix = '../../';
 
         <div class="tab-content" id="tab-ai">
             <h2 style="margin-top:0;">Problem AI</h2>
-            <p style="color:#555;">Used by “Draft root cause” and “Detect problems”. Bring your own provider and key.</p>
+            <p style="color:var(--text-muted, #555);">Used by “Draft root cause” and “Detect problems”. Bring your own provider and key.</p>
             <?php renderAiSettingsPanel('problem_ai'); ?>
         </div>
     </div>

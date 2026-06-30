@@ -26,7 +26,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mailbox Authentication — Admin Guide</title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=6">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=7">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .tk-help-container {

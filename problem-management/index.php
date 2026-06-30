@@ -4,95 +4,97 @@
  */
 session_start();
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/theme.php';
 
 $current_page = 'problems';
 $path_prefix = '../';
 ?>
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Problem Management</title>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=7">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <style>
         .pm-container { display: flex; height: calc(100vh - 48px); width: 100%; }
-        .pm-sidebar { width: 250px; min-width: 250px; border-right: 1px solid #e5e7eb; background: #fafbfc; padding: 16px; overflow-y: auto; box-sizing: border-box; }
-        .pm-sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: #6b7280; margin: 18px 0 8px; }
-        .pm-search { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cfd8dc; border-radius: 6px; font: inherit; }
-        .pm-new-btn { display: block; width: 100%; box-sizing: border-box; text-align: center; margin-top: 14px; padding: 10px; background: #6a1b9a; color: #fff; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
-        .pm-new-btn:hover { background: #581580; }
-        .pm-filter { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; color: #374151; }
-        .pm-filter:hover { background: #f0e6f6; }
-        .pm-filter.active { background: #ede7f6; color: #6a1b9a; font-weight: 600; }
-        .pm-filter .cnt { background: #e5e7eb; border-radius: 10px; padding: 1px 8px; font-size: 12px; color: #555; }
+        .pm-sidebar { width: 250px; min-width: 250px; border-right: 1px solid var(--border, #e5e7eb); background: var(--surface-2, #fafbfc); padding: 16px; overflow-y: auto; box-sizing: border-box; }
+        .pm-sidebar h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .5px; color: var(--text-dim, #6b7280); margin: 18px 0 8px; }
+        .pm-search { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font: inherit; }
+        .pm-new-btn { display: block; width: 100%; box-sizing: border-box; text-align: center; margin-top: 14px; padding: 10px; background: var(--pm-accent, #6a1b9a); color: var(--pm-on-accent, #fff); border: none; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .pm-new-btn:hover { background: var(--pm-accent-hover, #581580); }
+        .pm-filter { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; border-radius: 6px; cursor: pointer; font-size: 14px; color: var(--text-muted, #374151); }
+        .pm-filter:hover { background: var(--pm-accent-soft, #f0e6f6); }
+        .pm-filter.active { background: var(--pm-accent-soft, #ede7f6); color: var(--pm-accent, #6a1b9a); font-weight: 600; }
+        .pm-filter .cnt { background: var(--border, #e5e7eb); border-radius: 10px; padding: 1px 8px; font-size: 12px; color: var(--text-muted, #555); }
         .pm-main { flex: 1; min-width: 0; overflow-y: auto; padding: 20px 24px; }
         .pm-list-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
         .pm-list-head h2 { margin: 0; font-size: 1.4rem; }
-        .pm-card { border: 1px solid #e5e7eb; border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; background: #fff; }
-        .pm-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,.07); }
+        .pm-card { border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 12px 14px; margin-bottom: 10px; cursor: pointer; background: var(--surface, #fff); }
+        .pm-card:hover { box-shadow: 0 2px 8px var(--shadow, rgba(0,0,0,.07)); }
         .pm-card-top { display: flex; align-items: center; gap: 10px; }
-        .pm-num { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: #6b7280; }
-        .pm-card-title { font-weight: 600; color: #1a1a1a; flex: 1; }
+        .pm-num { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--text-dim, #6b7280); }
+        .pm-card-title { font-weight: 600; color: var(--text, #1a1a1a); flex: 1; }
         .pm-badge { font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 12px; color: #fff; white-space: nowrap; }
-        .pm-meta { margin-top: 6px; font-size: 12px; color: #6b7280; display: flex; gap: 14px; flex-wrap: wrap; }
+        .pm-meta { margin-top: 6px; font-size: 12px; color: var(--text-dim, #6b7280); display: flex; gap: 14px; flex-wrap: wrap; }
         .pm-ke { background: #fff3e0; color: #e65100; border-radius: 10px; padding: 1px 8px; font-size: 11px; font-weight: 600; }
-        .pm-empty { color: #9ca3af; text-align: center; padding: 40px; }
+        .pm-empty { color: var(--text-faint, #9ca3af); text-align: center; padding: 40px; }
         /* Detail */
         .pm-detail-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
         .pm-detail h1 { font-size: 1.4rem; margin: 0; flex: 1; }
-        .pm-section { border: 1px solid #e5e7eb; border-radius: 8px; padding: 14px 16px; margin: 14px 0; background: #fff; }
-        .pm-section h3 { margin: 0 0 10px; font-size: 1rem; color: #6a1b9a; }
-        .pm-field-label { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: #6b7280; margin-bottom: 3px; }
+        .pm-section { border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 14px 16px; margin: 14px 0; background: var(--surface, #fff); }
+        .pm-section h3 { margin: 0 0 10px; font-size: 1rem; color: var(--pm-accent, #6a1b9a); }
+        .pm-field-label { font-size: 12px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #6b7280); margin-bottom: 3px; }
         .pm-field-val { margin-bottom: 12px; white-space: pre-wrap; }
-        .pm-link-row { display: flex; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid #f0f0f0; }
-        .pm-link-row a { color: #6a1b9a; text-decoration: none; font-weight: 600; }
-        .pm-icon-btn { background: none; border: none; cursor: pointer; color: #6b7280; padding: 4px; border-radius: 4px; display: inline-flex; align-items: center; line-height: 0; }
-        .pm-icon-btn:hover { background: #f0f0f0; color: #374151; }
-        .pm-icon-btn.danger { color: #c62828; }
-        .pm-icon-btn.danger:hover { background: #fdeaea; }
+        .pm-link-row { display: flex; gap: 10px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--border-soft, #f0f0f0); }
+        .pm-link-row a { color: var(--pm-accent, #6a1b9a); text-decoration: none; font-weight: 600; }
+        .pm-icon-btn { background: none; border: none; cursor: pointer; color: var(--text-dim, #6b7280); padding: 4px; border-radius: 4px; display: inline-flex; align-items: center; line-height: 0; }
+        .pm-icon-btn:hover { background: var(--surface-hover, #f0f0f0); color: var(--text-muted, #374151); }
+        .pm-icon-btn.danger { color: var(--danger-accent, #c62828); }
+        .pm-icon-btn.danger:hover { background: var(--danger-bg, #fdeaea); }
         .pm-icon-btn svg { width: 16px; height: 16px; }
         .pm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-        .pm-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: #6b7280; font-weight: 600; padding: 6px 10px; border-bottom: 2px solid #eee; }
-        .pm-table td { padding: 7px 10px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+        .pm-table th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; color: var(--text-dim, #6b7280); font-weight: 600; padding: 6px 10px; border-bottom: 2px solid var(--border-soft, #eee); }
+        .pm-table td { padding: 7px 10px; border-bottom: 1px solid var(--border-soft, #f0f0f0); vertical-align: top; }
         .pm-table tr:last-child td { border-bottom: none; }
-        .pm-table a { color: #6a1b9a; text-decoration: none; font-weight: 600; }
+        .pm-table a { color: var(--pm-accent, #6a1b9a); text-decoration: none; font-weight: 600; }
         .pm-table .pm-actions { white-space: nowrap; text-align: right; width: 1%; }
-        .pm-table .pm-when { white-space: nowrap; color: #6b7280; }
-        .pm-empty-row td { color: #9ca3af; }
+        .pm-table .pm-when { white-space: nowrap; color: var(--text-dim, #6b7280); }
+        .pm-empty-row td { color: var(--text-faint, #9ca3af); }
         /* Notes */
         .pm-note-add { display: flex; gap: 10px; margin-bottom: 14px; align-items: flex-start; }
-        .pm-note-add textarea { flex: 1; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cfd8dc; border-radius: 6px; font: inherit; resize: vertical; }
-        .pm-note { border-bottom: 1px solid #f0f0f0; padding: 9px 0; }
+        .pm-note-add textarea { flex: 1; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font: inherit; resize: vertical; }
+        .pm-note { border-bottom: 1px solid var(--border-soft, #f0f0f0); padding: 9px 0; }
         .pm-note:last-child { border-bottom: none; }
         .pm-note-head { display: flex; gap: 10px; align-items: baseline; margin-bottom: 3px; }
-        .pm-note-who { font-weight: 600; color: #1a1a1a; font-size: 13px; }
-        .pm-note-when { color: #6b7280; font-size: 12px; }
-        .pm-note-body { white-space: pre-wrap; font-size: 13px; color: #374151; }
-        .pm-audit { font-size: 12px; color: #555; padding: 4px 0; border-bottom: 1px solid #f4f4f4; }
+        .pm-note-who { font-weight: 600; color: var(--text, #1a1a1a); font-size: 13px; }
+        .pm-note-when { color: var(--text-dim, #6b7280); font-size: 12px; }
+        .pm-note-body { white-space: pre-wrap; font-size: 13px; color: var(--text-muted, #374151); }
+        .pm-audit { font-size: 12px; color: var(--text-muted, #555); padding: 4px 0; border-bottom: 1px solid var(--border-soft, #f4f4f4); }
         /* Editor modal */
         .pm-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; align-items: flex-start; justify-content: center; overflow-y: auto; }
         .pm-modal.active { display: flex; }
-        .pm-modal-content { background: #fff; border-radius: 10px; max-width: 720px; width: 92%; margin: 40px 0; padding: 0; }
-        .pm-modal-head { padding: 16px 20px; border-bottom: 1px solid #eee; font-size: 1.1rem; font-weight: 600; }
+        .pm-modal-content { background: var(--surface, #fff); border-radius: 10px; max-width: 720px; width: 92%; margin: 40px 0; padding: 0; }
+        .pm-modal-head { padding: 16px 20px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 1.1rem; font-weight: 600; }
         .pm-modal-body { padding: 20px; }
-        .pm-modal-foot { padding: 14px 20px; border-top: 1px solid #eee; display: flex; justify-content: flex-end; gap: 10px; }
+        .pm-modal-foot { padding: 14px 20px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; }
         .pm-form-row { margin-bottom: 14px; }
-        .pm-form-row label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: #374151; }
-        .pm-form-row input[type=text], .pm-form-row select, .pm-form-row textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid #cfd8dc; border-radius: 6px; font: inherit; }
+        .pm-form-row label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text-muted, #374151); }
+        .pm-form-row input[type=text], .pm-form-row select, .pm-form-row textarea { width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font: inherit; }
         .pm-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-        .pm-btn { padding: 9px 18px; border-radius: 6px; border: 1px solid #cfd8dc; background: #fff; cursor: pointer; font-weight: 600; }
-        .pm-btn-primary { background: #6a1b9a; color: #fff; border-color: #6a1b9a; }
-        .pm-btn-danger { color: #c62828; border-color: #e0a3a3; }
-        .pm-ai-out { background: #f7f3fb; border: 1px dashed #c9a8e0; border-radius: 6px; padding: 10px 12px; margin-top: 8px; white-space: pre-wrap; font-size: 13px; display: none; }
+        .pm-btn { padding: 9px 18px; border-radius: 6px; border: 1px solid var(--border, #cfd8dc); background: var(--surface, #fff); cursor: pointer; font-weight: 600; }
+        .pm-btn-primary { background: var(--pm-accent, #6a1b9a); color: var(--pm-on-accent, #fff); border-color: var(--pm-accent, #6a1b9a); }
+        .pm-btn-danger { color: var(--danger-accent, #c62828); border-color: var(--danger-accent, #e0a3a3); }
+        .pm-ai-out { background: var(--problem-bg, #f7f3fb); border: 1px dashed var(--problem-border, #c9a8e0); border-radius: 6px; padding: 10px 12px; margin-top: 8px; white-space: pre-wrap; font-size: 13px; display: none; }
         /* Incident picker */
-        .pm-pick-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 14px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
-        .pm-pick-row:hover { background: #faf7fd; }
+        .pm-pick-row { display: flex; gap: 12px; align-items: flex-start; padding: 10px 14px; border-bottom: 1px solid var(--border-soft, #f0f0f0); cursor: pointer; }
+        .pm-pick-row:hover { background: var(--problem-bg, #faf7fd); }
         .pm-pick-row input { margin-top: 3px; }
         .pm-pick-main { flex: 1; min-width: 0; }
-        .pm-pick-title { font-weight: 600; color: #1a1a1a; }
-        .pm-pick-meta { font-size: 12px; color: #6b7280; margin-top: 2px; }
-        .pm-pick-num { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: #6b7280; }
+        .pm-pick-title { font-weight: 600; color: var(--text, #1a1a1a); }
+        .pm-pick-meta { font-size: 12px; color: var(--text-dim, #6b7280); margin-top: 2px; }
+        .pm-pick-num { font-family: ui-monospace, Consolas, monospace; font-size: 12px; color: var(--text-dim, #6b7280); }
     </style>
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
@@ -113,7 +115,7 @@ $path_prefix = '../';
                     <h2><?php echo htmlspecialchars(t('common.modules.problems.name')); ?></h2>
                     <div style="display:flex;align-items:center;gap:12px;">
                         <button class="pm-btn" onclick="pmSuggest()" title="Let AI scan recent open incidents for recurring patterns">🤖 Detect problems</button>
-                        <div id="pmCount" style="color:#6b7280;"></div>
+                        <div id="pmCount" style="color:var(--text-dim, #6b7280);"></div>
                     </div>
                 </div>
                 <div id="pmList"><div class="pm-empty">Loading…</div></div>
@@ -151,11 +153,11 @@ $path_prefix = '../';
         <div class="pm-modal-content" style="max-width: 780px;">
             <div class="pm-modal-head">Link incidents to this problem</div>
             <div class="pm-modal-body">
-                <input type="text" id="pmLinkSearch" class="pm-search" placeholder="Search open incidents by number or subject…" oninput="pmLinkSearchDebounced()" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #cfd8dc;border-radius:6px;">
-                <div id="pmLinkList" style="margin-top:12px; max-height:52vh; overflow-y:auto; border:1px solid #eee; border-radius:8px;"><div class="pm-empty">Loading…</div></div>
+                <input type="text" id="pmLinkSearch" class="pm-search" placeholder="Search open incidents by number or subject…" oninput="pmLinkSearchDebounced()" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--border, #cfd8dc);border-radius:6px;">
+                <div id="pmLinkList" style="margin-top:12px; max-height:52vh; overflow-y:auto; border:1px solid var(--border-soft, #eee); border-radius:8px;"><div class="pm-empty">Loading…</div></div>
             </div>
             <div class="pm-modal-foot">
-                <label style="margin-right:auto; font-size:13px; color:#555; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="pmLinkAll" onchange="pmToggleAllLinkable(this.checked)"> Select all</label>
+                <label style="margin-right:auto; font-size:13px; color:var(--text-muted, #555); display:flex; align-items:center; gap:6px;"><input type="checkbox" id="pmLinkAll" onchange="pmToggleAllLinkable(this.checked)"> Select all</label>
                 <button class="pm-btn" onclick="document.getElementById('pmLinkModal').classList.remove('active')">Cancel</button>
                 <button class="pm-btn pm-btn-primary" id="pmLinkSelBtn" onclick="pmLinkSelected()">Link selected</button>
             </div>
@@ -167,11 +169,11 @@ $path_prefix = '../';
         <div class="pm-modal-content" style="max-width: 780px;">
             <div class="pm-modal-head">Link the change that fixes this problem</div>
             <div class="pm-modal-body">
-                <input type="text" id="pmLinkChangeSearch" class="pm-search" placeholder="Search changes by title or ID…" oninput="pmLinkChangeSearchDebounced()" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #cfd8dc;border-radius:6px;">
-                <div id="pmLinkChangeList" style="margin-top:12px; max-height:52vh; overflow-y:auto; border:1px solid #eee; border-radius:8px;"><div class="pm-empty">Loading…</div></div>
+                <input type="text" id="pmLinkChangeSearch" class="pm-search" placeholder="Search changes by title or ID…" oninput="pmLinkChangeSearchDebounced()" style="width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid var(--border, #cfd8dc);border-radius:6px;">
+                <div id="pmLinkChangeList" style="margin-top:12px; max-height:52vh; overflow-y:auto; border:1px solid var(--border-soft, #eee); border-radius:8px;"><div class="pm-empty">Loading…</div></div>
             </div>
             <div class="pm-modal-foot">
-                <label style="margin-right:auto; font-size:13px; color:#555; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="pmLinkChangeAll" onchange="pmToggleAllLinkableChanges(this.checked)"> Select all</label>
+                <label style="margin-right:auto; font-size:13px; color:var(--text-muted, #555); display:flex; align-items:center; gap:6px;"><input type="checkbox" id="pmLinkChangeAll" onchange="pmToggleAllLinkableChanges(this.checked)"> Select all</label>
                 <button class="pm-btn" onclick="document.getElementById('pmLinkChangeModal').classList.remove('active')">Cancel</button>
                 <button class="pm-btn pm-btn-primary" id="pmLinkChangeSelBtn" onclick="pmLinkChangeSelected()">Link selected</button>
             </div>

@@ -56,6 +56,11 @@
     --cm-accent:       #00897b;  --cm-accent-hover: #00695c;
     --cm-accent-soft:  #e0f2f1;  --cm-on-accent:    #ffffff;
 
+    /* Problem Management module (purple) accents — buttons, filters, RCA.
+       Distinct from the cross-module --problem-* badge palette above. */
+    --pm-accent:       #6a1b9a;  --pm-accent-hover: #581580;
+    --pm-accent-soft:  #ede7f6;  --pm-on-accent:    #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -106,6 +111,10 @@
     /* Change Management module (teal) — accent nudged lighter to read on dark */
     --cm-accent:       #26a69a;  --cm-accent-hover: #4db6ac;
     --cm-accent-soft:  #16302d;  --cm-on-accent:    #ffffff;
+
+    /* Problem Management module (purple) — accent nudged lighter to read on dark */
+    --pm-accent:       #b06fd6;  --pm-accent-hover: #c08fe0;
+    --pm-accent-soft:  #2e2440;  --pm-on-accent:    #ffffff;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;
