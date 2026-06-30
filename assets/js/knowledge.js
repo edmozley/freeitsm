@@ -57,11 +57,22 @@ async function loadAnalysts() {
 
 // Initialize TinyMCE editor
 function initTinyMCE() {
+    // Match the editor chrome + content area to the active palette. TinyMCE ships
+    // its own skins (the editor renders in an iframe), so we use the bundled
+    // oxide-dark UI skin + dark content CSS rather than CSS overrides. Switching
+    // palette reloads the page, so this runs fresh with the right data-theme.
+    // TinyMCE ships only a light + a dark skin, so we pick by the palette's
+    // declared mode (data-theme-mode on <html>) — any new palette works with no
+    // change here. Same approach as the tickets reply editor (inbox.js).
+    const isDark = (document.documentElement.getAttribute('data-theme-mode') || 'light') === 'dark';
+
     tinymce.init({
         selector: '#articleBody',
         license_key: 'gpl',
         height: 400,
         menubar: true,
+        skin: isDark ? 'oxide-dark' : 'oxide',
+        content_css: isDark ? 'dark' : 'default',
         plugins: [
             'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
             'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
