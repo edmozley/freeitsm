@@ -83,6 +83,12 @@
     --sw-accent:       #5c6bc0;  --sw-accent-hover: #3f51b5;
     --sw-accent-soft:  #e8eaf6;  --sw-on-accent:    #ffffff;
 
+    /* Forms module (teal) accents — builder, fields, submissions, hero.
+       Teal is the module's registered brand colour (module-colors.php);
+       shares the same hues as Change Management but kept as its own set. */
+    --forms-accent:      #00897b;  --forms-accent-hover: #00695c;
+    --forms-accent-soft: #e0f2f1;  --forms-on-accent:    #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -153,6 +159,10 @@
     /* Software module (indigo) — accent nudged lighter to read on dark */
     --sw-accent:       #7986cb;  --sw-accent-hover: #9fa8da;
     --sw-accent-soft:  #262b45;  --sw-on-accent:    #ffffff;
+
+    /* Forms module (teal) — accent nudged lighter to read on dark */
+    --forms-accent:      #26a69a;  --forms-accent-hover: #4db6ac;
+    --forms-accent-soft: #16302d;  --forms-on-accent:    #ffffff;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;

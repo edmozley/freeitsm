@@ -21,7 +21,7 @@ $translationNamespaces = ['common', 'software'];
     <title><?php echo htmlspecialchars(t('software.library.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=12">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         /* Module accent (indigo). */

@@ -10,6 +10,7 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'forms';
@@ -17,16 +18,20 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'forms'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('forms.list.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js"></script>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=13">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
     <style>
+        /* Module accent (teal). */
+        body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
+
         /* Full-width forms dashboard — matches the canonical layout
            used by other modules' settings + reporting pages. */
         .forms-list-container {
@@ -34,7 +39,7 @@ $translationNamespaces = ['common', 'forms'];
             display: flex;
             flex-direction: column;
             padding: 16px 30px 0;
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
         }
         .forms-list-toolbar {
             display: flex;
@@ -47,7 +52,7 @@ $translationNamespaces = ['common', 'forms'];
         .forms-list-toolbar h1 {
             margin: 0;
             font-size: 22px;
-            color: #333;
+            color: var(--text, #333);
         }
         .forms-list-toolbar .toolbar-actions {
             display: flex;
@@ -56,14 +61,16 @@ $translationNamespaces = ['common', 'forms'];
         }
         .forms-list-search {
             padding: 8px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 4px;
             font-size: 13px;
             min-width: 260px;
+            background: var(--surface, #fff);
+            color: var(--text, #333);
         }
-        .forms-list-search:focus { outline: none; border-color: #00897b; }
+        .forms-list-search:focus { outline: none; border-color: var(--forms-accent, #00897b); }
         .new-form-btn {
-            background: #00897b;
+            background: var(--forms-accent, #00897b);
             color: white;
             padding: 9px 16px;
             border: none;
@@ -76,7 +83,7 @@ $translationNamespaces = ['common', 'forms'];
             align-items: center;
             gap: 6px;
         }
-        .new-form-btn:hover { background: #00695c; color: white; }
+        .new-form-btn:hover { background: var(--forms-accent-hover, #00695c); color: white; }
 
         /* The table card itself — scrolls internally so the toolbar
            stays pinned at the top of the page. */
@@ -84,9 +91,9 @@ $translationNamespaces = ['common', 'forms'];
             flex: 1;
             min-height: 0;
             overflow-y: auto;
-            background: white;
+            background: var(--surface, #fff);
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+            box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.06));
             margin-bottom: 24px;
         }
         .forms-table {
@@ -97,12 +104,12 @@ $translationNamespaces = ['common', 'forms'];
         .forms-table thead th {
             position: sticky;
             top: 0;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             text-align: left;
             font-weight: 600;
-            color: #666;
+            color: var(--text-muted, #666);
             padding: 12px 14px;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid var(--border, #e0e0e0);
             font-size: 12px;
             text-transform: uppercase;
             letter-spacing: 0.3px;
@@ -110,7 +117,7 @@ $translationNamespaces = ['common', 'forms'];
             user-select: none;
             white-space: nowrap;
         }
-        .forms-table thead th:hover { background: #f0f0f0; }
+        .forms-table thead th:hover { background: var(--surface-hover, #f0f0f0); }
         .forms-table thead th .sort-arrow {
             display: inline-block;
             margin-left: 4px;
@@ -121,7 +128,7 @@ $translationNamespaces = ['common', 'forms'];
         .forms-table thead th.sort-desc .sort-arrow { opacity: 1; }
         .forms-table tbody td {
             padding: 12px 14px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-soft, #f0f0f0);
             vertical-align: middle;
         }
         .forms-table tbody tr {
@@ -129,15 +136,17 @@ $translationNamespaces = ['common', 'forms'];
             transition: background 0.1s;
         }
         .forms-table tbody tr:hover { background: #f5fbfa; }
+        /* Keep the pale light-mode hover as-is; give dark a glow-safe teal tint. */
+        [data-theme-mode="dark"] .forms-table tbody tr:hover { background: var(--forms-accent-soft); }
 
         .forms-table td.col-title strong {
             display: block;
-            color: #111;
+            color: var(--text, #111);
             font-size: 14px;
         }
         .forms-table td.col-title small {
             display: block;
-            color: #888;
+            color: var(--text-dim, #888);
             font-size: 12px;
             margin-top: 2px;
             max-width: 480px;
@@ -153,9 +162,9 @@ $translationNamespaces = ['common', 'forms'];
             font-size: 11px;
             font-weight: 600;
         }
-        .ft-pill.active    { background: #e0f2f1; color: #00695c; }
-        .ft-pill.inactive  { background: #fafafa; color: #999; }
-        .ft-pill.version   { background: #00897b; color: white; font-size: 11px; }
+        .ft-pill.active    { background: var(--forms-accent-soft, #e0f2f1); color: var(--forms-accent-hover, #00695c); }
+        .ft-pill.inactive  { background: var(--surface-2, #fafafa); color: var(--text-faint, #999); }
+        .ft-pill.version   { background: var(--forms-accent, #00897b); color: white; font-size: 11px; }
 
         /* Icon-only row actions — matches the canonical settings table
            pattern from #401 / #403 / etc. */
@@ -169,7 +178,7 @@ $translationNamespaces = ['common', 'forms'];
             border: none;
             padding: 4px;
             margin-left: 2px;
-            color: #666;
+            color: var(--text-muted, #666);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -178,18 +187,18 @@ $translationNamespaces = ['common', 'forms'];
             text-decoration: none;
             border-radius: 4px;
         }
-        .ft-action-btn:hover { background: #f0f0f0; color: #00897b; }
-        .ft-action-btn.danger:hover { color: #c62828; }
+        .ft-action-btn:hover { background: var(--surface-hover, #f0f0f0); color: var(--forms-accent, #00897b); }
+        .ft-action-btn.danger:hover { color: var(--danger-text, #c62828); }
         .ft-action-btn svg { width: 16px; height: 16px; }
 
         .forms-empty {
             padding: 60px 30px;
             text-align: center;
-            color: #888;
+            color: var(--text-dim, #888);
         }
-        .forms-empty svg { color: #ccc; margin-bottom: 14px; }
+        .forms-empty svg { color: var(--border, #ccc); margin-bottom: 14px; }
         .forms-empty h3 {
-            color: #555;
+            color: var(--text-muted, #555);
             font-weight: 600;
             margin: 0 0 6px;
             font-size: 16px;
@@ -210,15 +219,15 @@ $translationNamespaces = ['common', 'forms'];
         }
         .confirm-overlay.open { display: flex; }
         .confirm-box {
-            background: white;
+            background: var(--surface, #fff);
             border-radius: 8px;
             padding: 24px 26px;
             max-width: 420px;
             width: 90%;
             box-shadow: 0 10px 40px rgba(0,0,0,0.25);
         }
-        .confirm-box h3 { margin: 0 0 8px; font-size: 17px; color: #333; }
-        .confirm-box p { margin: 0 0 18px; color: #666; font-size: 14px; line-height: 1.5; }
+        .confirm-box h3 { margin: 0 0 8px; font-size: 17px; color: var(--text, #333); }
+        .confirm-box p { margin: 0 0 18px; color: var(--text-muted, #666); font-size: 14px; line-height: 1.5; }
         .confirm-actions { display: flex; justify-content: flex-end; gap: 10px; }
     </style>
 </head>

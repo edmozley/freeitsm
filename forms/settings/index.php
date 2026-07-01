@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/ai_settings_panel.php';
 I18n::initFromSession();
 
@@ -19,7 +20,7 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'forms'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,8 +28,11 @@ $translationNamespaces = ['common', 'forms'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
     <script src="../../assets/js/ai-settings.js"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
+        /* Module accent (teal) — tabs, toggles, focus rings, shared buttons. */
+        body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
         .container {
             height: calc(100vh - 48px);
             overflow-y: auto;
@@ -41,13 +45,13 @@ $translationNamespaces = ['common', 'forms'];
         }
 
         /* Teal theme for tabs */
-        .tab:hover { color: #00897b; }
-        .tab.active { color: #00897b; border-bottom-color: #00897b; }
+        .tab:hover { color: var(--accent, #00897b); }
+        .tab.active { color: var(--accent, #00897b); border-bottom-color: var(--accent, #00897b); }
 
         .section-header h2 {
             margin: 0 0 8px;
             font-size: 18px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .form-group {
@@ -58,13 +62,13 @@ $translationNamespaces = ['common', 'forms'];
             display: block;
             font-weight: 500;
             margin-bottom: 6px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .form-group small {
             display: block;
             margin-top: 4px;
-            color: #888;
+            color: var(--text-dim, #888);
             font-size: 12px;
         }
 
@@ -77,50 +81,58 @@ $translationNamespaces = ['common', 'forms'];
         .alignment-option {
             flex: 1;
             padding: 16px 12px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--border, #e0e0e0);
             border-radius: 8px;
             cursor: pointer;
             text-align: center;
             transition: all 0.15s;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
         }
 
+        /* Hover stays a LIGHTER teal than .selected (kept hardcoded so light
+           mode is unchanged and hover reads as distinct from selected); a dark
+           override gives it a sensible dark-mode tint. */
         .alignment-option:hover {
             border-color: #80cbc4;
             background: #f0f7f6;
         }
 
         .alignment-option.selected {
-            border-color: #00897b;
-            background: #e0f2f1;
+            border-color: var(--forms-accent, #00897b);
+            background: var(--forms-accent-soft, #e0f2f1);
+        }
+
+        [data-theme-mode="dark"] .alignment-option:hover {
+            border-color: var(--forms-accent-hover);
+            background: var(--forms-accent-soft);
         }
 
         .alignment-option svg {
             display: block;
             margin: 0 auto 6px;
-            color: #666;
+            color: var(--text-muted, #666);
         }
 
         .alignment-option.selected svg {
-            color: #00897b;
+            color: var(--forms-accent, #00897b);
         }
 
         .alignment-option span {
             font-size: 13px;
             font-weight: 500;
-            color: #666;
+            color: var(--text-muted, #666);
         }
 
         .alignment-option.selected span {
-            color: #00897b;
+            color: var(--forms-accent, #00897b);
             font-weight: 600;
         }
 
         .logo-preview {
             margin-top: 20px;
             padding: 20px;
-            background: #f9f9f9;
-            border: 1px solid #e0e0e0;
+            background: var(--surface-2, #f9f9f9);
+            border: 1px solid var(--border, #e0e0e0);
             border-radius: 8px;
         }
 
@@ -128,7 +140,7 @@ $translationNamespaces = ['common', 'forms'];
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            color: #999;
+            color: var(--text-faint, #999);
             margin-bottom: 10px;
             font-weight: 600;
         }
@@ -149,7 +161,7 @@ $translationNamespaces = ['common', 'forms'];
             gap: 12px;
             margin-top: 30px;
             padding-top: 20px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border, #e0e0e0);
         }
 
         .btn {
@@ -161,8 +173,8 @@ $translationNamespaces = ['common', 'forms'];
             transition: all 0.2s;
         }
 
-        .btn-primary { background: #00897b; color: white; }
-        .btn-primary:hover { background: #00695c; }
+        .btn-primary { background: var(--forms-accent, #00897b); color: white; }
+        .btn-primary:hover { background: var(--forms-accent-hover, #00695c); }
 
         /* AI tab — provider / model / key form. Matches the look of
            the Workflow + RFP Builder AI tabs so admins moving between
@@ -172,21 +184,21 @@ $translationNamespaces = ['common', 'forms'];
         .ai-form input[type="text"] {
             width: 100%;
             padding: 9px 12px;
-            border: 1px solid #ccc;
+            border: 1px solid var(--border, #ccc);
             border-radius: 4px;
             font-size: 14px;
             box-sizing: border-box;
-            background: white;
+            background: var(--surface, white);
         }
         .ai-form select:focus,
-        .ai-form input:focus { outline: none; border-color: #00897b; }
+        .ai-form input:focus { outline: none; border-color: var(--forms-accent, #00897b); }
         .ai-form .toggle-row {
             display: inline-flex;
             align-items: center;
             gap: 10px;
             cursor: pointer;
             font-weight: 500;
-            color: #333;
+            color: var(--text, #333);
         }
         .ai-form .toggle-switch {
             position: relative;
@@ -200,7 +212,7 @@ $translationNamespaces = ['common', 'forms'];
         .ai-form .toggle-slider {
             position: absolute; cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: #ccc;
+            background: var(--border, #ccc);
             border-radius: 22px;
             transition: background 0.15s;
         }
@@ -213,17 +225,17 @@ $translationNamespaces = ['common', 'forms'];
             border-radius: 50%;
             transition: transform 0.15s;
         }
-        .ai-form .toggle-switch input:checked + .toggle-slider { background: #00897b; }
+        .ai-form .toggle-switch input:checked + .toggle-slider { background: var(--forms-accent, #00897b); }
         .ai-form .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
         .ai-form .ssl-warning {
             display: none;
             margin-top: 8px;
             padding: 10px 12px;
-            background: #fff7e0;
-            border: 1px solid #ffd86b;
+            background: var(--warning-bg, #fff7e0);
+            border: 1px solid var(--warning-border, #ffd86b);
             border-radius: 6px;
             font-size: 12px;
-            color: #6b4f00;
+            color: var(--warning-text, #6b4f00);
         }
         .ai-form .ai-actions {
             display: flex;
@@ -232,15 +244,15 @@ $translationNamespaces = ['common', 'forms'];
             margin-top: 22px;
         }
         .ai-form .btn-test {
-            background: white;
-            border: 1px solid #ddd;
-            color: #333;
+            background: var(--surface, white);
+            border: 1px solid var(--border, #ddd);
+            color: var(--text, #333);
             padding: 8px 16px;
             border-radius: 4px;
             cursor: pointer;
             font-size: 13px;
         }
-        .ai-form .btn-test:hover { background: #f5f5f5; border-color: #00897b; color: #00897b; }
+        .ai-form .btn-test:hover { background: var(--surface-hover, #f5f5f5); border-color: var(--forms-accent, #00897b); color: var(--forms-accent, #00897b); }
         .ai-form .test-status { font-size: 13px; margin-left: 8px; }
     </style>
 </head>
@@ -258,7 +270,7 @@ $translationNamespaces = ['common', 'forms'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('forms.settings.layout_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 24px;"><?php echo htmlspecialchars(t('forms.settings.layout_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 24px;"><?php echo htmlspecialchars(t('forms.settings.layout_intro')); ?></p>
 
             <div class="form-group">
                 <label><?php echo htmlspecialchars(t('forms.settings.logo_alignment')); ?></label>
@@ -295,7 +307,7 @@ $translationNamespaces = ['common', 'forms'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('forms.settings.ai_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 24px; max-width: 720px;">
+            <p style="color: var(--text-muted, #666); margin-bottom: 24px; max-width: 720px;">
                 <?php echo htmlspecialchars(t('forms.settings.ai_intro')); ?>
             </p>
 

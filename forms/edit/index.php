@@ -19,6 +19,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'forms';
@@ -26,16 +27,20 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'forms'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('forms.editor.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
     <style>
+        /* Module accent (teal). */
+        body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
+
         /* The dedicated edit page doesn't use the sidebar/list layout
            of forms/index.php — it's a single full-width main panel
            laid out as a flex column so the sticky footer pins at the
@@ -63,17 +68,17 @@ $translationNamespaces = ['common', 'forms'];
             max-width: 420px;
             max-height: 380px;
             overflow-y: auto;
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: var(--surface, white);
+            border: 1px solid var(--border, #e5e7eb);
             border-radius: 6px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            box-shadow: 0 8px 24px var(--shadow, rgba(0,0,0,0.12));
             z-index: 100;
         }
         .versions-dropdown .vd-loading,
         .versions-dropdown .vd-empty {
             padding: 20px 16px;
             text-align: center;
-            color: #9ca3af;
+            color: var(--text-faint, #9ca3af);
             font-size: 13px;
         }
         .versions-dropdown .vd-row {
@@ -81,14 +86,14 @@ $translationNamespaces = ['common', 'forms'];
             flex-direction: column;
             gap: 2px;
             padding: 10px 14px;
-            border-bottom: 1px solid #f3f4f6;
+            border-bottom: 1px solid var(--border-soft, #f3f4f6);
             cursor: pointer;
             text-decoration: none;
             color: inherit;
         }
         .versions-dropdown .vd-row:last-child { border-bottom: 0; }
-        .versions-dropdown .vd-row:hover { background: #e0f2f1; }
-        .versions-dropdown .vd-row.active { background: #e0f2f1; }
+        .versions-dropdown .vd-row:hover { background: var(--forms-accent-soft, #e0f2f1); }
+        .versions-dropdown .vd-row.active { background: var(--forms-accent-soft, #e0f2f1); }
         .versions-dropdown .vd-row-top {
             display: flex;
             justify-content: space-between;
@@ -97,12 +102,12 @@ $translationNamespaces = ['common', 'forms'];
         }
         .versions-dropdown .vd-row-title {
             font-weight: 600;
-            color: #111827;
+            color: var(--text, #111827);
             font-size: 13px;
         }
         .versions-dropdown .vd-row-meta {
             font-size: 11px;
-            color: #6b7280;
+            color: var(--text-muted, #6b7280);
         }
         .versions-dropdown .vd-pill {
             display: inline-block;
@@ -110,7 +115,7 @@ $translationNamespaces = ['common', 'forms'];
             border-radius: 10px;
             font-size: 10px;
             font-weight: 600;
-            background: #00897b;
+            background: var(--forms-accent, #00897b);
             color: white;
         }
         .versions-dropdown .vd-pill.current {
@@ -121,17 +126,17 @@ $translationNamespaces = ['common', 'forms'];
         .readonly-banner {
             margin: 0 0 12px 0;
             padding: 10px 14px;
-            background: #fff7ed;
-            border: 1px solid #fed7aa;
+            background: var(--warning-bg, #fff7ed);
+            border: 1px solid var(--warning-border, #fed7aa);
             border-radius: 6px;
             font-size: 13px;
-            color: #9a3412;
+            color: var(--warning-text, #9a3412);
             display: flex;
             align-items: center;
             gap: 10px;
         }
         .readonly-banner a {
-            color: #9a3412;
+            color: var(--warning-text, #9a3412);
             text-decoration: underline;
             font-weight: 600;
         }
@@ -145,8 +150,8 @@ $translationNamespaces = ['common', 'forms'];
             justify-content: flex-end;
             gap: 10px;
             padding: 12px 30px 19px;   /* +3px bottom for breathing room */
-            border-top: 1px solid #e0e0e0;
-            background: #f5f7fa;
+            border-top: 1px solid var(--border, #e0e0e0);
+            background: var(--app-bg, #f5f7fa);
         }
 
         /* Properties drawer — right-side slide-out. Holds the version
@@ -172,8 +177,8 @@ $translationNamespaces = ['common', 'forms'];
             right: 0; bottom: 0;
             width: 360px;
             max-width: 90vw;
-            background: white;
-            box-shadow: -4px 0 16px rgba(0,0,0,0.08);
+            background: var(--surface, white);
+            box-shadow: -4px 0 16px var(--shadow, rgba(0,0,0,0.08));
             transform: translateX(100%);
             transition: transform 0.22s ease;
             z-index: 2450;
@@ -183,28 +188,28 @@ $translationNamespaces = ['common', 'forms'];
         .properties-drawer.open { transform: translateX(0); }
         .properties-drawer-header {
             padding: 14px 18px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-soft, #eee);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-shrink: 0;
         }
         .properties-drawer-header h3 {
-            margin: 0; font-size: 15px; color: #333;
+            margin: 0; font-size: 15px; color: var(--text, #333);
         }
         .properties-close {
             background: none; border: none;
             font-size: 22px; line-height: 1;
-            color: #999; cursor: pointer; padding: 0 4px;
+            color: var(--text-faint, #999); cursor: pointer; padding: 0 4px;
         }
-        .properties-close:hover { color: #333; }
+        .properties-close:hover { color: var(--text, #333); }
         .properties-drawer-body {
             padding: 18px;
             overflow-y: auto;
             flex: 1;
         }
         .properties-empty {
-            font-size: 13px; color: #888; line-height: 1.6;
+            font-size: 13px; color: var(--text-dim, #888); line-height: 1.6;
         }
         .properties-empty p { margin: 0; }
 
@@ -214,7 +219,7 @@ $translationNamespaces = ['common', 'forms'];
         .form-meta {
             padding: 4px 0;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             display: grid;
             grid-template-columns: max-content 1fr;
@@ -222,13 +227,13 @@ $translationNamespaces = ['common', 'forms'];
             row-gap: 4px;
             margin: 0;
         }
-        .form-meta dt { color: #888; font-weight: 500; margin: 0; }
-        .form-meta dd { margin: 0; color: #333; }
+        .form-meta dt { color: var(--text-dim, #888); font-weight: 500; margin: 0; }
+        .form-meta dd { margin: 0; color: var(--text, #333); }
         .form-meta .form-meta-version {
             display: inline-block;
             padding: 2px 10px;
             border-radius: 10px;
-            background: #00897b;
+            background: var(--forms-accent, #00897b);
             color: white;
             font-weight: 600;
             font-size: 12px;
@@ -249,16 +254,16 @@ $translationNamespaces = ['common', 'forms'];
         }
         .ai-modal-overlay.active { display: flex; }
         .ai-modal {
-            background: #fff; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            background: var(--surface, #fff); border-radius: 8px; box-shadow: 0 10px 40px var(--shadow, rgba(0,0,0,0.2));
             width: 640px; max-width: calc(100vw - 40px); max-height: calc(100vh - 40px); overflow: hidden;
             display: flex; flex-direction: column;
         }
         .ai-modal-header {
-            padding: 16px 20px; border-bottom: 1px solid #eee;
+            padding: 16px 20px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: space-between; align-items: center;
         }
         .ai-modal-header h3 {
-            margin: 0; font-size: 16px; color: #333;
+            margin: 0; font-size: 16px; color: var(--text, #333);
             display: flex; align-items: center; gap: 8px;
         }
         .ai-sparkle {
@@ -269,16 +274,16 @@ $translationNamespaces = ['common', 'forms'];
         }
         .ai-modal-close {
             background: none; border: none; font-size: 22px; line-height: 1;
-            color: #999; cursor: pointer; padding: 0;
+            color: var(--text-faint, #999); cursor: pointer; padding: 0;
         }
-        .ai-modal-close:hover { color: #333; }
+        .ai-modal-close:hover { color: var(--text, #333); }
         .ai-modal-body { padding: 20px; overflow-y: auto; flex: 1; }
         .ai-modal-body label {
             display: block; margin-bottom: 6px; font-weight: 500;
-            font-size: 13px; color: #333;
+            font-size: 13px; color: var(--text, #333);
         }
         .ai-modal-body textarea {
-            width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 5px;
+            width: 100%; padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 5px;
             font-size: 13px; box-sizing: border-box; font-family: inherit;
             min-height: 110px; resize: vertical;
         }
@@ -286,20 +291,20 @@ $translationNamespaces = ['common', 'forms'];
             outline: none; border-color: #6366f1; box-shadow: 0 0 0 2px rgba(99,102,241,0.12);
         }
         .ai-modal-body .ai-hint {
-            color: #888; font-size: 12px; margin-top: 6px;
+            color: var(--text-dim, #888); font-size: 12px; margin-top: 6px;
         }
         .ai-modal-body .ai-examples {
-            font-size: 12px; color: #6b7280; margin-top: 14px;
+            font-size: 12px; color: var(--text-muted, #6b7280); margin-top: 14px;
         }
-        .ai-modal-body .ai-examples strong { color: #4b5563; }
+        .ai-modal-body .ai-examples strong { color: var(--text-muted, #4b5563); }
         .ai-modal-body .ai-examples ul { margin: 6px 0 0 0; padding-left: 18px; }
         .ai-modal-body .ai-examples li { margin-bottom: 3px; cursor: pointer; }
         .ai-modal-body .ai-examples li:hover { color: #4f46e5; text-decoration: underline; }
 
         .ai-progress {
             margin-top: 16px; padding: 14px;
-            background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;
-            font-size: 12px; color: #475569;
+            background: var(--surface-2, #f8fafc); border: 1px solid var(--border, #e2e8f0); border-radius: 6px;
+            font-size: 12px; color: var(--text-muted, #475569);
         }
         .ai-progress .ai-progress-status {
             display: flex; align-items: center; gap: 8px; font-weight: 500; margin-bottom: 8px;
@@ -311,9 +316,9 @@ $translationNamespaces = ['common', 'forms'];
         }
         @keyframes ai-spin { to { transform: rotate(360deg); } }
         .ai-progress .ai-progress-counters {
-            display: flex; gap: 14px; font-size: 11px; color: #6b7280; margin-bottom: 8px;
+            display: flex; gap: 14px; font-size: 11px; color: var(--text-muted, #6b7280); margin-bottom: 8px;
         }
-        .ai-progress .ai-progress-counters span strong { color: #1f2937; }
+        .ai-progress .ai-progress-counters span strong { color: var(--text, #1f2937); }
         .ai-progress pre.ai-stream {
             margin: 0; max-height: 180px; overflow: auto;
             background: #0f172a; color: #cbd5e1; padding: 10px;
@@ -322,11 +327,11 @@ $translationNamespaces = ['common', 'forms'];
             white-space: pre-wrap; word-break: break-word;
         }
         .ai-progress.error {
-            background: #fef2f2; border-color: #fecaca; color: #991b1b;
+            background: var(--danger-bg, #fef2f2); border-color: #fecaca; color: var(--danger-text, #991b1b);
         }
 
         .ai-modal-footer {
-            padding: 14px 20px; border-top: 1px solid #eee;
+            padding: 14px 20px; border-top: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: flex-end; gap: 8px;
         }
         .ai-modal-footer .btn:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -355,8 +360,8 @@ $translationNamespaces = ['common', 'forms'];
             padding: 0;
             max-height: 220px;
             overflow-y: auto;
-            background: white;
-            border: 1px solid #e2e8f0;
+            background: var(--surface, white);
+            border: 1px solid var(--border, #e2e8f0);
             border-radius: 4px;
         }
         .ai-proposal .ai-prop-list li {
@@ -364,9 +369,9 @@ $translationNamespaces = ['common', 'forms'];
             align-items: center;
             gap: 10px;
             padding: 8px 12px;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--border-soft, #f1f5f9);
             font-size: 12.5px;
-            color: #1e293b;
+            color: var(--text, #1e293b);
         }
         .ai-proposal .ai-prop-list li:last-child { border-bottom: none; }
         .ai-proposal .ai-prop-badge {
@@ -383,13 +388,13 @@ $translationNamespaces = ['common', 'forms'];
             text-align: center;
         }
         .ai-proposal .ai-prop-meta {
-            color: #64748b;
+            color: var(--text-muted, #64748b);
             font-size: 11px;
             margin-left: auto;
         }
         .ai-proposal .ai-prop-note {
             font-size: 12px;
-            color: #475569;
+            color: var(--text-muted, #475569);
         }
     </style>
 </head>
@@ -1143,12 +1148,12 @@ $translationNamespaces = ['common', 'forms'];
                     case 'radio': {
                         const items = (f.options || []).filter(o => o).map(o =>
                             `<div class="checkbox-row"><input type="radio" disabled> <label>${esc(o)}</label></div>`).join('');
-                        return `<div class="preview-field"><label>${label}${reqStar}</label>${items || '<small style="color:#999">' + esc(window.t('forms.preview.no_options')) + '</small>'}</div>`;
+                        return `<div class="preview-field"><label>${label}${reqStar}</label>${items || '<small style="color:var(--text-faint, #999)">' + esc(window.t('forms.preview.no_options')) + '</small>'}</div>`;
                     }
                     case 'checkboxes': {
                         const items = (f.options || []).filter(o => o).map(o =>
                             `<div class="checkbox-row"><input type="checkbox" disabled> <label>${esc(o)}</label></div>`).join('');
-                        return `<div class="preview-field"><label>${label}${reqStar}</label>${items || '<small style="color:#999">' + esc(window.t('forms.preview.no_options')) + '</small>'}</div>`;
+                        return `<div class="preview-field"><label>${label}${reqStar}</label>${items || '<small style="color:var(--text-faint, #999)">' + esc(window.t('forms.preview.no_options')) + '</small>'}</div>`;
                     }
                     default:
                         return '';

@@ -5,6 +5,7 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'forms';
@@ -12,19 +13,23 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'forms'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('forms.fill.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
+        /* Module accent (teal). */
+        body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
+
         .fill-container {
             flex: 1 1 100%;
             overflow-y: auto;
-            background-color: #f5f7fa;
+            background-color: var(--app-bg, #f5f7fa);
         }
 
         .fill-content {
@@ -35,9 +40,9 @@ $translationNamespaces = ['common', 'forms'];
         }
 
         .fill-card {
-            background: #fff;
+            background: var(--surface, #fff);
             border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 12px var(--shadow, rgba(0,0,0,0.08));
             padding: 40px 50px;
             min-height: 600px;
             box-sizing: border-box;
@@ -57,13 +62,13 @@ $translationNamespaces = ['common', 'forms'];
         .fill-title {
             font-size: 22px;
             font-weight: 600;
-            color: #333;
+            color: var(--text, #333);
             margin: 0 0 4px;
         }
 
         .fill-desc {
             font-size: 14px;
-            color: #888;
+            color: var(--text-dim, #888);
             margin: 0 0 24px;
         }
 
@@ -75,7 +80,7 @@ $translationNamespaces = ['common', 'forms'];
             display: block;
             font-size: 14px;
             font-weight: 500;
-            color: #333;
+            color: var(--text, #333);
             margin-bottom: 5px;
         }
 
@@ -91,18 +96,20 @@ $translationNamespaces = ['common', 'forms'];
         .form-field select {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 5px;
             font-size: 14px;
             font-family: inherit;
             box-sizing: border-box;
+            background: var(--surface, #fff);
+            color: var(--text, #333);
         }
 
         .form-field input:focus,
         .form-field textarea:focus,
         .form-field select:focus {
             outline: none;
-            border-color: #00897b;
+            border-color: var(--forms-accent, #00897b);
             box-shadow: 0 0 0 2px rgba(0,137,123,0.1);
         }
 
@@ -150,25 +157,25 @@ $translationNamespaces = ['common', 'forms'];
             cursor: pointer;
             font-weight: normal;
             font-size: 14px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .form-field.has-error input,
         .form-field.has-error textarea,
         .form-field.has-error select {
-            border-color: #d32f2f;
+            border-color: var(--danger-text, #d32f2f);
         }
         /* When a radio/checkbox group errors, highlight the wrapper
            border instead of every input. */
         .form-field.choice-field.has-error {
-            border: 1px solid #d32f2f;
+            border: 1px solid var(--danger-text, #d32f2f);
             border-radius: 6px;
             padding: 8px 12px;
         }
 
         .field-error {
             font-size: 12px;
-            color: #d32f2f;
+            color: var(--danger-text, #d32f2f);
             margin-top: 4px;
             display: none;
         }
@@ -196,10 +203,10 @@ $translationNamespaces = ['common', 'forms'];
             gap: 6px;
         }
 
-        .btn-primary { background: #00897b; color: white; }
-        .btn-primary:hover { background: #00695c; }
-        .btn-secondary { background: #f5f7fa; color: #333; border: 1px solid #ddd; }
-        .btn-secondary:hover { background: #eef0f2; }
+        .btn-primary { background: var(--forms-accent, #00897b); color: white; }
+        .btn-primary:hover { background: var(--forms-accent-hover, #00695c); }
+        .btn-secondary { background: var(--surface-2, #f5f7fa); color: var(--text, #333); border: 1px solid var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #eef0f2); }
 
         .submit-message {
             padding: 12px 16px;
@@ -211,16 +218,16 @@ $translationNamespaces = ['common', 'forms'];
 
         .submit-message.success {
             display: block;
-            background: #e8f5e9;
-            color: #2e7d32;
-            border: 1px solid #c8e6c9;
+            background: var(--success-bg, #e8f5e9);
+            color: var(--success-text, #2e7d32);
+            border: 1px solid var(--success-bg, #c8e6c9);
         }
 
         .submit-message.error {
             display: block;
-            background: #ffebee;
-            color: #c62828;
-            border: 1px solid #ffcdd2;
+            background: var(--danger-bg, #ffebee);
+            color: var(--danger-text, #c62828);
+            border: 1px solid var(--danger-bg, #ffcdd2);
         }
 
         .success-actions {
@@ -236,7 +243,7 @@ $translationNamespaces = ['common', 'forms'];
     <div class="main-container fill-container">
         <div class="fill-content">
             <div class="fill-card" id="formCard">
-                <p style="color:#888;text-align:center;padding:20px"><?php echo htmlspecialchars(t('forms.fill.loading')); ?></p>
+                <p style="color:var(--text-dim, #888);text-align:center;padding:20px"><?php echo htmlspecialchars(t('forms.fill.loading')); ?></p>
             </div>
         </div>
     </div>
@@ -261,7 +268,7 @@ $translationNamespaces = ['common', 'forms'];
             if (id) {
                 loadForm(id);
             } else {
-                document.getElementById('formCard').innerHTML = '<p style="color:#c00;text-align:center">' + esc(window.t('forms.fill.no_id')) + '</p>';
+                document.getElementById('formCard').innerHTML = '<p style="color:var(--danger-text, #c00);text-align:center">' + esc(window.t('forms.fill.no_id')) + '</p>';
             }
         });
 
@@ -274,7 +281,7 @@ $translationNamespaces = ['common', 'forms'];
                     formData = data.form;
                     renderForm();
                 } else {
-                    document.getElementById('formCard').innerHTML = '<p style="color:#c00;text-align:center">' + esc(data.error) + '</p>';
+                    document.getElementById('formCard').innerHTML = '<p style="color:var(--danger-text, #c00);text-align:center">' + esc(data.error) + '</p>';
                 }
             } catch (e) {
                 console.error(e);

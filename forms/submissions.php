@@ -5,6 +5,7 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'forms';
@@ -12,19 +13,23 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'forms'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('forms.subs.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
+        /* Module accent (teal). */
+        body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }
+
         .subs-container {
             flex: 1;
             overflow-y: auto;
-            background-color: #f5f7fa;
+            background-color: var(--app-bg, #f5f7fa);
         }
 
         .subs-content {
@@ -51,13 +56,13 @@ $translationNamespaces = ['common', 'forms'];
         .subs-toolbar-left h2 {
             margin: 0;
             font-size: 20px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .subs-toolbar-left .sub-count {
             font-size: 13px;
-            color: #888;
-            background: #f0f0f0;
+            color: var(--text-dim, #888);
+            background: var(--surface-hover, #f0f0f0);
             padding: 3px 10px;
             border-radius: 12px;
         }
@@ -73,20 +78,22 @@ $translationNamespaces = ['common', 'forms'];
             align-items: center;
             gap: 6px;
             font-size: 13px;
-            color: #666;
+            color: var(--text-muted, #666);
         }
 
         .filter-group input[type="date"] {
             padding: 6px 10px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 4px;
             font-size: 13px;
             font-family: inherit;
+            background: var(--surface, #fff);
+            color: var(--text, #333);
         }
 
         .filter-group input[type="date"]:focus {
             outline: none;
-            border-color: #00897b;
+            border-color: var(--forms-accent, #00897b);
         }
 
         .btn {
@@ -103,17 +110,17 @@ $translationNamespaces = ['common', 'forms'];
             transition: background-color 0.15s;
         }
 
-        .btn-secondary { background: #f5f7fa; color: #333; border: 1px solid #ddd; }
-        .btn-secondary:hover { background: #eef0f2; }
-        .btn-primary { background: #00897b; color: white; }
-        .btn-primary:hover { background: #00695c; }
+        .btn-secondary { background: var(--surface-2, #f5f7fa); color: var(--text, #333); border: 1px solid var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #eef0f2); }
+        .btn-primary { background: var(--forms-accent, #00897b); color: white; }
+        .btn-primary:hover { background: var(--forms-accent-hover, #00695c); }
         .btn-export { background: #1565c0; color: white; }
         .btn-export:hover { background: #0d47a1; }
 
         .subs-card {
-            background: #fff;
+            background: var(--surface, #fff);
             border-radius: 8px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
             overflow: hidden;
         }
 
@@ -128,12 +135,12 @@ $translationNamespaces = ['common', 'forms'];
         }
 
         .subs-table th {
-            background: #f8f9fa;
+            background: var(--surface-2, #f8f9fa);
             padding: 10px 14px;
             text-align: left;
             font-weight: 600;
-            color: #555;
-            border-bottom: 2px solid #e8e8e8;
+            color: var(--text-muted, #555);
+            border-bottom: 2px solid var(--border, #e8e8e8);
             white-space: nowrap;
             position: sticky;
             top: 0;
@@ -141,8 +148,8 @@ $translationNamespaces = ['common', 'forms'];
 
         .subs-table td {
             padding: 10px 14px;
-            border-bottom: 1px solid #f0f0f0;
-            color: #333;
+            border-bottom: 1px solid var(--border-soft, #f0f0f0);
+            color: var(--text, #333);
             max-width: 250px;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -151,6 +158,10 @@ $translationNamespaces = ['common', 'forms'];
 
         .subs-table tr:hover td {
             background: #f8fbff;
+        }
+        /* Keep the pale light-mode hover as-is; give dark a glow-safe teal tint. */
+        [data-theme-mode="dark"] .subs-table tr:hover td {
+            background: var(--forms-accent-soft);
         }
 
         .subs-table tr {
@@ -168,32 +179,32 @@ $translationNamespaces = ['common', 'forms'];
             font-weight: 700;
         }
 
-        .cb-yes { background: #e8f5e9; color: #2e7d32; }
-        .cb-no { background: #f5f5f5; color: #999; }
+        .cb-yes { background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); }
+        .cb-no { background: var(--surface-hover, #f5f5f5); color: var(--text-faint, #999); }
 
         .subs-table .delete-btn {
             background: none;
             border: none;
             cursor: pointer;
-            color: #d32f2f;
+            color: var(--danger-text, #d32f2f);
             padding: 4px 6px;
             border-radius: 3px;
         }
 
         .subs-table .delete-btn:hover {
-            background: #ffebee;
+            background: var(--danger-bg, #ffebee);
         }
 
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: #888;
+            color: var(--text-dim, #888);
         }
 
         .empty-state h3 {
             margin: 15px 0 8px;
             font-size: 16px;
-            color: #666;
+            color: var(--text-muted, #666);
         }
 
         .empty-state p {
@@ -215,31 +226,31 @@ $translationNamespaces = ['common', 'forms'];
         .detail-overlay.open { display: flex; }
 
         .detail-box {
-            background: #fff;
+            background: var(--surface, #fff);
             border-radius: 8px;
             max-width: 600px;
             width: 90%;
             max-height: 80vh;
             overflow-y: auto;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 30px var(--shadow, rgba(0,0,0,0.2));
         }
 
         .detail-header {
             padding: 18px 22px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-soft, #eee);
             display: flex;
             justify-content: space-between;
             align-items: center;
             position: sticky;
             top: 0;
-            background: #fff;
+            background: var(--surface, #fff);
             border-radius: 8px 8px 0 0;
         }
 
         .detail-header h3 {
             margin: 0;
             font-size: 16px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .detail-close {
@@ -247,12 +258,12 @@ $translationNamespaces = ['common', 'forms'];
             border: none;
             cursor: pointer;
             padding: 4px;
-            color: #999;
+            color: var(--text-faint, #999);
             font-size: 20px;
             line-height: 1;
         }
 
-        .detail-close:hover { color: #333; }
+        .detail-close:hover { color: var(--text, #333); }
 
         .detail-body {
             padding: 22px;
@@ -262,10 +273,10 @@ $translationNamespaces = ['common', 'forms'];
             display: flex;
             gap: 20px;
             font-size: 13px;
-            color: #888;
+            color: var(--text-dim, #888);
             margin-bottom: 20px;
             padding-bottom: 14px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-soft, #f0f0f0);
         }
 
         .detail-field {
@@ -275,7 +286,7 @@ $translationNamespaces = ['common', 'forms'];
         .detail-field-label {
             font-size: 12px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-dim, #888);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin-bottom: 4px;
@@ -283,14 +294,14 @@ $translationNamespaces = ['common', 'forms'];
 
         .detail-field-value {
             font-size: 14px;
-            color: #333;
+            color: var(--text, #333);
             line-height: 1.5;
             white-space: pre-wrap;
             word-break: break-word;
         }
 
         .detail-field-value.empty {
-            color: #ccc;
+            color: var(--text-faint, #ccc);
             font-style: italic;
         }
 
@@ -308,16 +319,16 @@ $translationNamespaces = ['common', 'forms'];
         .confirm-overlay.open { display: flex; }
 
         .confirm-box {
-            background: #fff;
+            background: var(--surface, #fff);
             border-radius: 8px;
             padding: 24px;
             max-width: 400px;
             width: 90%;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 8px 30px var(--shadow, rgba(0,0,0,0.2));
         }
 
-        .confirm-box h3 { margin: 0 0 8px; font-size: 16px; }
-        .confirm-box p { margin: 0 0 20px; font-size: 14px; color: #666; }
+        .confirm-box h3 { margin: 0 0 8px; font-size: 16px; color: var(--text, #333); }
+        .confirm-box p { margin: 0 0 20px; font-size: 14px; color: var(--text-muted, #666); }
 
         .confirm-actions {
             display: flex;
@@ -325,7 +336,7 @@ $translationNamespaces = ['common', 'forms'];
             justify-content: flex-end;
         }
 
-        .btn-cancel { background: #f5f5f5; color: #333; border: 1px solid #ddd; }
+        .btn-cancel { background: var(--surface-hover, #f5f5f5); color: var(--text, #333); border: 1px solid var(--border, #ddd); }
         .btn-danger { background: #d32f2f; color: white; }
         .btn-danger:hover { background: #b71c1c; }
 
@@ -372,7 +383,7 @@ $translationNamespaces = ['common', 'forms'];
             <div class="subs-card">
                 <div class="subs-table-wrap">
                     <div id="subsContent">
-                        <div style="text-align:center;padding:40px;color:#888"><?php echo htmlspecialchars(t('forms.subs.loading')); ?></div>
+                        <div style="text-align:center;padding:40px;color:var(--text-dim, #888)"><?php echo htmlspecialchars(t('forms.subs.loading')); ?></div>
                     </div>
                 </div>
             </div>
@@ -414,7 +425,7 @@ $translationNamespaces = ['common', 'forms'];
             if (id) {
                 loadSubmissions(id);
             } else {
-                document.getElementById('subsContent').innerHTML = '<p style="color:#c00;text-align:center;padding:20px">' + esc(window.t('forms.subs.no_id')) + '</p>';
+                document.getElementById('subsContent').innerHTML = '<p style="color:var(--danger-text, #c00);text-align:center;padding:20px">' + esc(window.t('forms.subs.no_id')) + '</p>';
             }
         });
 
@@ -434,11 +445,11 @@ $translationNamespaces = ['common', 'forms'];
 
                     renderTable();
                 } else {
-                    document.getElementById('subsContent').innerHTML = '<p style="color:#c00;text-align:center;padding:20px">' + esc(data.error) + '</p>';
+                    document.getElementById('subsContent').innerHTML = '<p style="color:var(--danger-text, #c00);text-align:center;padding:20px">' + esc(data.error) + '</p>';
                 }
             } catch (e) {
                 console.error(e);
-                document.getElementById('subsContent').innerHTML = '<p style="color:#c00;text-align:center;padding:20px">' + esc(window.t('forms.subs.load_failed')) + '</p>';
+                document.getElementById('subsContent').innerHTML = '<p style="color:var(--danger-text, #c00);text-align:center;padding:20px">' + esc(window.t('forms.subs.load_failed')) + '</p>';
             }
         }
 
@@ -486,9 +497,9 @@ $translationNamespaces = ['common', 'forms'];
                         // value visible on hover for long lists.
                         const list = decodeMultiValue(val);
                         const display = list.length ? list.join(', ') : '';
-                        html += `<td title="${esc(display)}">${esc(display) || '<span style="color:#ccc">—</span>'}</td>`;
+                        html += `<td title="${esc(display)}">${esc(display) || '<span style="color:var(--text-faint, #ccc)">—</span>'}</td>`;
                     } else {
-                        html += `<td title="${esc(val)}">${esc(val) || '<span style="color:#ccc">—</span>'}</td>`;
+                        html += `<td title="${esc(val)}">${esc(val) || '<span style="color:var(--text-faint, #ccc)">—</span>'}</td>`;
                     }
                 });
 
