@@ -1,18 +1,23 @@
 /**
  * Forms Module Styles - Sidebar + Editor Layout
+ *
+ * Colours are tokenised via var(--token, #fallback) so the module themes
+ * with the palette system (assets/css/theme.css); the fallback is the
+ * original light colour, so pages that don't load theme.css are unchanged.
+ * Module accent = teal (--forms-*).
  */
 
 .forms-container {
     display: flex;
     height: calc(100vh - 48px);
-    background: #f5f5f5;
+    background: var(--app-bg, #f5f5f5);
 }
 
 /* Sidebar */
 .forms-sidebar {
     width: 280px;
-    background: white;
-    border-right: 1px solid #ddd;
+    background: var(--surface, white);
+    border-right: 1px solid var(--border, #ddd);
     padding: 20px;
     overflow-y: auto;
     display: flex;
@@ -26,7 +31,7 @@
 .sidebar-section h3 {
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
     margin-bottom: 12px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -35,7 +40,7 @@
 .forms-sidebar .search-box input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-size: 14px;
     box-sizing: border-box;
@@ -43,7 +48,7 @@
 
 .forms-sidebar .search-box input:focus {
     outline: none;
-    border-color: #00897b;
+    border-color: var(--forms-accent, #00897b);
 }
 
 .forms-sidebar .btn-full {
@@ -72,15 +77,18 @@
     background: #f0f7f6;
 }
 
+/* Active form uses the teal-soft token (its light value == the original
+   #e0f2f1, so light mode is unchanged). The pale hover above keeps its
+   exact light colour with a dark override below so it doesn't glow. */
 .form-list-item.active {
-    background: #e0f2f1;
-    border-color: #00897b;
+    background: var(--forms-accent-soft, #e0f2f1);
+    border-color: var(--forms-accent, #00897b);
 }
 
 .form-list-item-title {
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
     margin-bottom: 4px;
     white-space: nowrap;
     overflow: hidden;
@@ -89,7 +97,7 @@
 
 .form-list-item-meta {
     font-size: 12px;
-    color: #888;
+    color: var(--text-dim, #888);
     display: flex;
     gap: 10px;
 }
@@ -104,19 +112,19 @@
 }
 
 .form-list-item-status.active {
-    background: #e8f5e9;
-    color: #2e7d32;
+    background: var(--success-bg, #e8f5e9);
+    color: var(--success-text, #2e7d32);
 }
 
 .form-list-item-status.inactive {
-    background: #f5f5f5;
-    color: #999;
+    background: var(--surface-hover, #f5f5f5);
+    color: var(--text-faint, #999);
 }
 
 .form-list-empty {
     text-align: center;
     padding: 30px 10px;
-    color: #999;
+    color: var(--text-faint, #999);
     font-size: 13px;
 }
 
@@ -129,13 +137,13 @@
 
 /* Teal theme overrides */
 .forms-container .btn-primary {
-    background: #00897b;
-    border-color: #00897b;
+    background: var(--forms-accent, #00897b);
+    border-color: var(--forms-accent, #00897b);
 }
 
 .forms-container .btn-primary:hover {
-    background: #00695c;
-    border-color: #00695c;
+    background: var(--forms-accent-hover, #00695c);
+    border-color: var(--forms-accent-hover, #00695c);
 }
 
 /* Empty / welcome state */
@@ -145,19 +153,19 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: #888;
+    color: var(--text-dim, #888);
     text-align: center;
     padding: 40px;
 }
 
 .forms-welcome svg {
     margin-bottom: 20px;
-    color: #ccc;
+    color: var(--text-faint, #ccc);
 }
 
 .forms-welcome h3 {
     font-size: 18px;
-    color: #666;
+    color: var(--text-muted, #666);
     margin: 0 0 8px;
 }
 
@@ -177,7 +185,7 @@
 .editor-toolbar h2 {
     margin: 0;
     font-size: 20px;
-    color: #333;
+    color: var(--text, #333);
 }
 
 .editor-toolbar-actions {
@@ -185,7 +193,8 @@
     gap: 8px;
 }
 
-/* Unsaved changes indicator */
+/* Unsaved changes indicator — orange is intentional (encodes "unsaved"),
+   left hardcoded so it reads on both light and dark. */
 .unsaved-indicator {
     display: none;
     align-items: center;
@@ -218,9 +227,9 @@
 
 /* Form settings (title/desc) */
 .form-settings-card {
-    background: #fff;
+    background: var(--surface, #fff);
     border-radius: 8px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
     padding: 20px;
     margin-bottom: 16px;
 }
@@ -237,7 +246,7 @@
     display: block;
     font-size: 12px;
     font-weight: 600;
-    color: #666;
+    color: var(--text-muted, #666);
     margin-bottom: 4px;
     text-transform: uppercase;
     letter-spacing: 0.3px;
@@ -247,17 +256,19 @@
 .form-settings-card textarea {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 5px;
     font-size: 14px;
     font-family: inherit;
     box-sizing: border-box;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
 }
 
 .form-settings-card input:focus,
 .form-settings-card textarea:focus {
     outline: none;
-    border-color: #00897b;
+    border-color: var(--forms-accent, #00897b);
     box-shadow: 0 0 0 2px rgba(0,137,123,0.1);
 }
 
@@ -266,10 +277,10 @@
     display: flex;
     gap: 0;
     margin-bottom: 0;
-    border-bottom: 2px solid #e0e0e0;
-    background: white;
+    border-bottom: 2px solid var(--border, #e0e0e0);
+    background: var(--surface, white);
     border-radius: 8px 8px 0 0;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
     padding: 0 20px;
 }
 
@@ -277,7 +288,7 @@
     padding: 12px 24px;
     font-size: 14px;
     font-weight: 500;
-    color: #666;
+    color: var(--text-muted, #666);
     cursor: pointer;
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
@@ -289,20 +300,20 @@
 }
 
 .form-tab:hover {
-    color: #00897b;
+    color: var(--forms-accent, #00897b);
 }
 
 .form-tab.active {
-    color: #00897b;
-    border-bottom-color: #00897b;
+    color: var(--forms-accent, #00897b);
+    border-bottom-color: var(--forms-accent, #00897b);
     font-weight: 600;
 }
 
 .form-tab-content {
     display: none;
-    background: white;
+    background: var(--surface, white);
     border-radius: 0 0 8px 8px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
     padding: 20px;
 }
 
@@ -322,7 +333,7 @@
     margin: 0;
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
 }
 
 .add-field-btn {
@@ -334,10 +345,10 @@
     position: absolute;
     top: 100%;
     right: 0;
-    background: #fff;
-    border: 1px solid #ddd;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #ddd);
     border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px var(--shadow, rgba(0,0,0,0.15));
     z-index: 10;
     /* Wide enough that the longest label ("Radio buttons (one of)")
        fits on one line. nowrap on the button stops any future labels
@@ -360,12 +371,12 @@
     background: none;
     font-size: 13px;
     cursor: pointer;
-    color: #333;
+    color: var(--text, #333);
     white-space: nowrap;
 }
 
 .add-field-menu button:hover {
-    background: #f5f7fa;
+    background: var(--surface-hover, #f5f7fa);
 }
 
 /* Badges inside the add-field menu — fixed-width column so the labels
@@ -388,6 +399,9 @@
     letter-spacing: 0.3px;
 }
 
+/* Field-type badges are colour-coded by type (data). Light values below;
+   the dark-mode overrides further down darken each tint + lighten its text
+   so the chips don't glow on the dark builder. */
 .field-type-badge.text       { background: #e3f2fd; color: #1565c0; }
 .field-type-badge.textarea   { background: #f3e5f5; color: #7b1fa2; }
 .field-type-badge.checkbox   { background: #e8f5e9; color: #2e7d32; }
@@ -397,6 +411,15 @@
 .field-type-badge.checkboxes { background: #dcedc8; color: #33691e; }
 .field-type-badge.radio      { background: #fff8e1; color: #ff8f00; }
 
+[data-theme-mode="dark"] .field-type-badge.text       { background: #14283a; color: #8ec5f0; }
+[data-theme-mode="dark"] .field-type-badge.textarea   { background: #2a1a33; color: #d6a5e8; }
+[data-theme-mode="dark"] .field-type-badge.checkbox   { background: #16301c; color: #8fd89b; }
+[data-theme-mode="dark"] .field-type-badge.dropdown   { background: #3a2410; color: #f0a86a; }
+[data-theme-mode="dark"] .field-type-badge.email      { background: #16302d; color: #66c2b8; }
+[data-theme-mode="dark"] .field-type-badge.number     { background: #331a24; color: #e88bb0; }
+[data-theme-mode="dark"] .field-type-badge.checkboxes { background: #22300f; color: #a8cf6a; }
+[data-theme-mode="dark"] .field-type-badge.radio      { background: #332a10; color: #e0b95a; }
+
 /* Field items */
 .field-list {
     list-style: none;
@@ -405,17 +428,17 @@
 }
 
 .field-item {
-    border: 1px solid #e0e0e0;
+    border: 1px solid var(--border, #e0e0e0);
     border-radius: 6px;
     padding: 12px 14px;
     margin-bottom: 8px;
-    background: #fafafa;
+    background: var(--surface-2, #fafafa);
     transition: box-shadow 0.15s, opacity 0.15s, border-color 0.15s;
     position: relative;
 }
 
 .field-item:hover {
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
 }
 
 /* Field drag-and-drop */
@@ -424,12 +447,12 @@
 }
 
 .field-item.drag-over-top {
-    border-top: 2px solid #00897b;
+    border-top: 2px solid var(--forms-accent, #00897b);
     margin-top: -1px;
 }
 
 .field-item.drag-over-bottom {
-    border-bottom: 2px solid #00897b;
+    border-bottom: 2px solid var(--forms-accent, #00897b);
     margin-bottom: 7px;
 }
 
@@ -442,7 +465,7 @@
 
 .field-drag {
     cursor: grab;
-    color: #bbb;
+    color: var(--text-faint, #bbb);
     padding: 2px;
     touch-action: none;
 }
@@ -454,15 +477,17 @@
 .field-label-input {
     flex: 1;
     padding: 6px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-size: 13px;
     font-family: inherit;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
 }
 
 .field-label-input:focus {
     outline: none;
-    border-color: #00897b;
+    border-color: var(--forms-accent, #00897b);
 }
 
 .field-controls {
@@ -476,7 +501,7 @@
     align-items: center;
     gap: 4px;
     font-size: 11px;
-    color: #888;
+    color: var(--text-dim, #888);
     cursor: pointer;
 }
 
@@ -487,23 +512,23 @@
     border: none;
     cursor: pointer;
     padding: 4px;
-    color: #999;
+    color: var(--text-faint, #999);
     border-radius: 3px;
 }
 
-.field-move-btn:hover { color: #333; background: #eee; }
-.field-delete-btn:hover { color: #d32f2f; background: #ffebee; }
+.field-move-btn:hover { color: var(--text, #333); background: var(--surface-hover, #eee); }
+.field-delete-btn:hover { color: var(--danger-text, #d32f2f); background: var(--danger-bg, #ffebee); }
 
 /* Dropdown options */
 .field-options {
     margin-top: 8px;
     padding-top: 8px;
-    border-top: 1px solid #eee;
+    border-top: 1px solid var(--border-soft, #eee);
 }
 
 .field-options-label {
     font-size: 11px;
-    color: #888;
+    color: var(--text-dim, #888);
     margin-bottom: 6px;
     font-weight: 600;
 }
@@ -522,18 +547,18 @@
 }
 
 .option-item.drag-over-top {
-    border-top: 2px solid #00897b;
+    border-top: 2px solid var(--forms-accent, #00897b);
     padding-top: 2px;
 }
 
 .option-item.drag-over-bottom {
-    border-bottom: 2px solid #00897b;
+    border-bottom: 2px solid var(--forms-accent, #00897b);
     padding-bottom: 2px;
 }
 
 .option-drag {
     cursor: grab;
-    color: #ccc;
+    color: var(--text-faint, #ccc);
     font-size: 12px;
     padding: 0 2px;
     user-select: none;
@@ -543,52 +568,54 @@
 
 .option-drag:active {
     cursor: grabbing;
-    color: #888;
+    color: var(--text-dim, #888);
 }
 
 .option-item input {
     flex: 1;
     padding: 5px 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 3px;
     font-size: 12px;
     font-family: inherit;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
 }
 
 .option-item input:focus {
     outline: none;
-    border-color: #00897b;
+    border-color: var(--forms-accent, #00897b);
 }
 
 .option-remove {
     background: none;
     border: none;
     cursor: pointer;
-    color: #ccc;
+    color: var(--text-faint, #ccc);
     padding: 2px;
     font-size: 16px;
 }
 
-.option-remove:hover { color: #d32f2f; }
+.option-remove:hover { color: var(--danger-text, #d32f2f); }
 
 .add-option-btn {
     background: none;
-    border: 1px dashed #ccc;
+    border: 1px dashed var(--border, #ccc);
     border-radius: 3px;
     padding: 4px 10px;
     font-size: 12px;
     cursor: pointer;
-    color: #888;
+    color: var(--text-dim, #888);
     width: 100%;
     margin-top: 4px;
 }
 
-.add-option-btn:hover { border-color: #00897b; color: #00897b; }
+.add-option-btn:hover { border-color: var(--forms-accent, #00897b); color: var(--forms-accent, #00897b); }
 
 .no-fields {
     text-align: center;
     padding: 30px;
-    color: #999;
+    color: var(--text-faint, #999);
     font-size: 13px;
 }
 
@@ -603,13 +630,13 @@
 .preview-title {
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
     margin: 0 0 4px;
 }
 
 .preview-desc {
     font-size: 13px;
-    color: #888;
+    color: var(--text-dim, #888);
     margin: 0 0 16px;
 }
 
@@ -621,7 +648,7 @@
     display: block;
     font-size: 13px;
     font-weight: 500;
-    color: #333;
+    color: var(--text, #333);
     margin-bottom: 4px;
 }
 
@@ -635,12 +662,13 @@
 .preview-field select {
     width: 100%;
     padding: 8px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-size: 13px;
     font-family: inherit;
     box-sizing: border-box;
-    background: #f9f9f9;
+    background: var(--surface-2, #f9f9f9);
+    color: var(--text, #333);
 }
 
 .preview-field textarea { min-height: 60px; resize: vertical; }
@@ -655,7 +683,7 @@
 .preview-empty {
     text-align: center;
     padding: 30px;
-    color: #999;
+    color: var(--text-faint, #999);
     font-size: 13px;
 }
 
@@ -686,21 +714,26 @@
 .confirm-overlay.open { display: flex; }
 
 .confirm-box {
-    background: #fff;
+    background: var(--surface, #fff);
     border-radius: 8px;
     padding: 24px;
     max-width: 400px;
     width: 90%;
-    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 30px var(--shadow, rgba(0,0,0,0.2));
 }
 
 .confirm-box h3 { margin: 0 0 8px; font-size: 16px; }
-.confirm-box p { margin: 0 0 20px; font-size: 14px; color: #666; }
+.confirm-box p { margin: 0 0 20px; font-size: 14px; color: var(--text-muted, #666); }
 
 .confirm-actions {
     display: flex;
     gap: 8px;
     justify-content: flex-end;
+}
+
+/* Dark mode: keep the pale-teal list-item hover from glowing on dark. */
+[data-theme-mode="dark"] .form-list-item:hover {
+    background: var(--forms-accent-soft, #f0f7f6);
 }
 
 /* Preview logo alignment variants */
