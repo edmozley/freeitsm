@@ -67,6 +67,11 @@
     --cal-accent:      #ef6c00;  --cal-accent-hover: #e65100;
     --cal-accent-soft: #fff3e0;  --cal-on-accent:    #ffffff;
 
+    /* Morning Checks module (cyan) accents — chart border, raise-ticket chip.
+       Cyan is the module's registered brand colour (module-colors.php). */
+    --mc-accent:       #00acc1;  --mc-accent-hover: #00838f;
+    --mc-accent-soft:  #e0f7fa;  --mc-on-accent:    #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -125,6 +130,10 @@
     /* Calendar module (orange) — accent nudged lighter to read on dark */
     --cal-accent:      #ff9d4d;  --cal-accent-hover: #ffb375;
     --cal-accent-soft: #3a2a17;  --cal-on-accent:    #ffffff;
+
+    /* Morning Checks module (cyan) — accent nudged lighter to read on dark */
+    --mc-accent:       #26c6da;  --mc-accent-hover: #4dd0e1;
+    --mc-accent-soft:  #14343a;  --mc-on-accent:    #ffffff;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;

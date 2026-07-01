@@ -7,8 +7,8 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background-color: #f5f7fa;
-    color: #333;
+    background-color: var(--app-bg, #f5f7fa);
+    color: var(--text, #333);
     line-height: 1.6;
     height: 100vh;
     overflow: hidden;
@@ -25,11 +25,11 @@ body {
 
 /* Header */
 header {
-    background: white;
+    background: var(--surface, white);
     padding: 20px 30px;
     border-radius: 8px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.1));
 }
 
 .header-content {
@@ -56,29 +56,29 @@ nav {
 nav a {
     padding: 8px 20px;
     text-decoration: none;
-    color: #5a6c7d;
+    color: var(--text-muted, #5a6c7d);
     border-radius: 5px;
     transition: all 0.3s;
     font-weight: 500;
 }
 
 nav a:hover {
-    background-color: #f0f2f5;
-    color: #2c3e50;
+    background-color: var(--surface-hover, #f0f2f5);
+    color: var(--text, #2c3e50);
 }
 
 nav a.active {
-    background-color: #007bff;
+    background-color: var(--accent, #007bff);
     color: white;
 }
 
 /* Date Display */
 .date-display {
-    background: white;
+    background: var(--surface, white);
     padding: 20px 30px;
     border-radius: 8px;
     margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.1));
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -87,7 +87,7 @@ nav a.active {
 
 .date-display h2 {
     font-size: 18px;
-    color: #2c3e50;
+    color: var(--text, #2c3e50);
     margin: 0;
     flex-shrink: 0;
 }
@@ -101,13 +101,13 @@ nav a.active {
 
 .date-selector-container label {
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--text, #2c3e50);
     white-space: nowrap;
 }
 
 .date-selector-container input[type="date"] {
     padding: 8px 12px;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--border, #ced4da);
     border-radius: 5px;
     font-size: 14px;
     font-family: inherit;
@@ -115,7 +115,7 @@ nav a.active {
 
 .date-selector-container input[type="date"]:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: var(--accent, #007bff);
     box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
 }
 
@@ -156,27 +156,27 @@ nav a.active {
 /* Tables */
 table {
     width: 100%;
-    background: white;
+    background: var(--surface, white);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 4px var(--shadow, rgba(0,0,0,0.1));
 }
 
 thead {
-    background-color: #f8f9fa;
+    background-color: var(--surface-2, #f8f9fa);
 }
 
 th {
     padding: 15px;
     text-align: left;
     font-weight: 600;
-    color: #2c3e50;
-    border-bottom: 2px solid #e9ecef;
+    color: var(--text, #2c3e50);
+    border-bottom: 2px solid var(--border, #e9ecef);
 }
 
 td {
     padding: 15px;
-    border-bottom: 1px solid #e9ecef;
+    border-bottom: 1px solid var(--border, #e9ecef);
 }
 
 tr:last-child td {
@@ -184,17 +184,17 @@ tr:last-child td {
 }
 
 tr:hover {
-    background-color: #f8f9fa;
+    background-color: var(--surface-hover, #f8f9fa);
 }
 
 .loading, .error, .no-data {
     text-align: center;
     padding: 40px;
-    color: #6c757d;
+    color: var(--text-muted, #6c757d);
 }
 
 .error {
-    color: #dc3545;
+    color: var(--danger-accent, #dc3545);
 }
 
 /* Status Buttons */
@@ -210,7 +210,7 @@ tr:hover {
     cursor: pointer;
     font-weight: 600;
     transition: all 0.3s;
-    background: white;
+    background: var(--surface, white);
 }
 
 .status-btn.green {
@@ -271,10 +271,14 @@ tr.status-red {
     background-color: #fff0f0;
 }
 
+[data-theme-mode="dark"] tr.status-green { background-color: #14261a; }
+[data-theme-mode="dark"] tr.status-amber { background-color: #2a2410; }
+[data-theme-mode="dark"] tr.status-red   { background-color: #2a1416; }
+
 /* Notes Display */
 .notes-display {
     font-size: 14px;
-    color: #6c757d;
+    color: var(--text-muted, #6c757d);
     max-width: 300px;
     word-wrap: break-word;
 }
@@ -290,10 +294,10 @@ tr.status-red {
     font-weight: 500;
     transition: all 0.2s;
     font-size: 14px;
-    background-color: #0078d4;
+    background-color: var(--accent, #0078d4);
     color: white;
 }
-.save-btn:hover { background-color: #005a9e; }
+.save-btn:hover { background-color: var(--accent-hover, #005a9e); }
 
 .btn-edit, .btn-delete {
     padding: 6px 12px;
@@ -330,9 +334,9 @@ tr.status-red {
     bottom: 0;
     left: 0;
     right: 0;
-    background: white;
-    border-top: 3px solid #007bff;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+    background: var(--surface, white);
+    border-top: 3px solid var(--accent, #007bff);
+    box-shadow: 0 -2px 10px var(--shadow, rgba(0,0,0,0.1));
     z-index: 100;
 }
 
@@ -342,23 +346,23 @@ tr.status-red {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: #f8f9fa;
-    border-bottom: 1px solid #e9ecef;
+    background: var(--surface-2, #f8f9fa);
+    border-bottom: 1px solid var(--border, #e9ecef);
 }
 
 .chart-footer-header:hover {
-    background: #e9ecef;
+    background: var(--surface-hover, #e9ecef);
 }
 
 .chart-footer-header h2 {
     font-size: 18px;
-    color: #2c3e50;
+    color: var(--text, #2c3e50);
     margin: 0;
 }
 
 .toggle-icon {
     font-size: 18px;
-    color: #007bff;
+    color: var(--accent, #007bff);
     font-weight: bold;
 }
 
@@ -403,7 +407,7 @@ tr.status-red {
     display: block;
     margin-bottom: 8px;
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--text, #2c3e50);
 }
 
 .form-group input[type="text"],
@@ -411,7 +415,7 @@ tr.status-red {
 .form-group textarea {
     width: 100%;
     padding: 10px;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--border, #ced4da);
     border-radius: 5px;
     font-family: inherit;
     font-size: 14px;
@@ -426,7 +430,7 @@ tr.status-red {
 .form-group input[type="number"]:focus,
 .form-group textarea:focus {
     outline: none;
-    border-color: #007bff;
+    border-color: var(--accent, #007bff);
     box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
 }
 
@@ -443,13 +447,13 @@ tr.status-red {
 }
 
 .badge-active {
-    background-color: #d4edda;
-    color: #155724;
+    background-color: var(--success-bg, #d4edda);
+    color: var(--success-text, #155724);
 }
 
 .badge-inactive {
-    background-color: #f8d7da;
-    color: #721c24;
+    background-color: var(--danger-bg, #f8d7da);
+    color: var(--danger-text, #721c24);
 }
 
 /* Actions Column */
@@ -475,6 +479,11 @@ tr.status-red {
     background: #b2ebf2;
     border-color: #80deea;
 }
+[data-theme-mode="dark"] .raise-ticket-btn {
+    color: var(--mc-accent);
+    background: var(--mc-accent-soft);
+    border-color: var(--mc-accent-hover);
+}
 
 /* Form fields and base .modal styling come from inbox.css now —
    only the per-page modal-content sizing + the h2-as-header
@@ -489,12 +498,12 @@ tr.status-red {
 .modal-content h2 {
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
     margin: 0 0 10px;
 }
 
 .modal-content p {
-    color: #6c757d;
+    color: var(--text-muted, #6c757d);
     margin: 0 0 20px;
     font-size: 14px;
 }

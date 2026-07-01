@@ -6,6 +6,7 @@ session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 
 // Check if user is logged in
@@ -73,13 +74,14 @@ $chart_initial_height_calc = 'calc((100vh - 60px) * ' . ($chart_height_pct / 100
 $translationNamespaces = ['common', 'morning-checks'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('morning-checks.title')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=10">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=2">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
     <style>
@@ -94,6 +96,10 @@ $translationNamespaces = ['common', 'morning-checks'];
             flex-direction: column;
             /* inbox.css already sets height: 100vh; overflow: hidden */
         }
+        /* Module accent (cyan) → drives focus rings, shared .btn primaries,
+           tabs and toggles. The chart border + raise-ticket chip use the
+           --mc-* tokens directly. */
+        body { --accent: var(--mc-accent, #00acc1); --accent-hover: var(--mc-accent-hover, #00838f); }
         .container {
             max-width: none;
             margin: 0;
@@ -127,8 +133,8 @@ $translationNamespaces = ['common', 'morning-checks'];
             position: relative;
             flex-shrink: 0;
             min-height: 40px;
-            border-top-color: #00acc1;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.06);
+            border-top-color: var(--mc-accent, #00acc1);
+            box-shadow: 0 -2px 10px var(--shadow, rgba(0,0,0,0.06));
         }
 
         /* Tighten the chart-container-inner padding. style.css defaults
@@ -164,10 +170,10 @@ $translationNamespaces = ['common', 'morning-checks'];
             width: 26px;
             height: 22px;
             padding: 0;
-            background: rgba(255, 255, 255, 0.92);
-            border: 1px solid #e0e0e0;
+            background: var(--surface, rgba(255, 255, 255, 0.92));
+            border: 1px solid var(--border, #e0e0e0);
             border-radius: 4px;
-            color: #007bff;
+            color: var(--accent, #007bff);
             font-size: 12px;
             cursor: pointer;
             display: flex;
@@ -176,31 +182,31 @@ $translationNamespaces = ['common', 'morning-checks'];
             transition: background 0.15s, border-color 0.15s;
         }
         .chart-toggle-btn:hover {
-            background: white;
-            border-color: #007bff;
+            background: var(--surface-hover, white);
+            border-color: var(--accent, #007bff);
         }
 
         /* Orphan-status banner (top of dashboard) + per-row badge
            (inside .status-buttons cell). Surface unmapped results so
            the admin knows to use the Settings normalisation tool. */
         .orphan-banner {
-            background: #fff3cd;
-            border: 1px solid #ffe69c;
+            background: var(--warning-bg, #fff3cd);
+            border: 1px solid var(--warning-border, #ffe69c);
             border-radius: 6px;
             padding: 10px 14px;
             margin: 0 30px 12px;
             font-size: 13px;
-            color: #664d03;
+            color: var(--warning-text, #664d03);
         }
-        .orphan-banner a { color: #664d03; font-weight: 600; }
+        .orphan-banner a { color: var(--warning-text, #664d03); font-weight: 600; }
         .status-orphan-badge {
             display: inline-block;
             margin-top: 6px;
             padding: 2px 8px;
             border-radius: 10px;
-            background: #fff3cd;
-            color: #664d03;
-            border: 1px solid #ffe69c;
+            background: var(--warning-bg, #fff3cd);
+            color: var(--warning-text, #664d03);
+            border: 1px solid var(--warning-border, #ffe69c);
             font-size: 11px;
             font-weight: 600;
         }
@@ -212,7 +218,7 @@ $translationNamespaces = ['common', 'morning-checks'];
         .status-btn {
             border-color: var(--c, #999) !important;
             color: var(--c, #555) !important;
-            background: white !important;
+            background: var(--surface, white) !important;
         }
         .status-btn:hover,
         .status-btn.active {
@@ -228,7 +234,7 @@ $translationNamespaces = ['common', 'morning-checks'];
             height: 6px;
             background: transparent;
             cursor: row-resize;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border, #e0e0e0);
             transition: background 0.15s;
             user-select: none;
         }
@@ -801,6 +807,16 @@ $translationNamespaces = ['common', 'morning-checks'];
                 backgroundColor: barFill(d.colour)
             }));
 
+            // Dark-mode readability: Chart.js paints to a canvas and can't
+            // read our CSS tokens, so pick tick / legend / title / grid
+            // colours from the active palette mode (the same data-theme-mode
+            // signal TinyMCE uses elsewhere). Bars keep their status colours.
+            const mcDark = document.documentElement.getAttribute('data-theme-mode') === 'dark';
+            const mcTickColor = mcDark ? '#aab2bd' : '#666';
+            const mcTitleColor = mcDark ? '#e6e8eb' : '#2c3e50';
+            const mcGridColor = mcDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)';
+            Chart.defaults.color = mcTickColor;
+
             chartInstance = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -813,6 +829,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                     scales: {
                         x: {
                             stacked: true,
+                            grid: { color: mcGridColor },
                             ticks: {
                                 // Day-of-month only. chartRawDates is the
                                 // ISO YYYY-MM-DD parallel array we
@@ -832,11 +849,11 @@ $translationNamespaces = ['common', 'morning-checks'];
                                 display: true,
                                 text: axisTitle,
                                 font: { size: 13, weight: '600' },
-                                color: '#2c3e50',
+                                color: mcTitleColor,
                                 padding: { top: 6 }
                             }
                         },
-                        y: { stacked: true, beginAtZero: true, ticks: { stepSize: 1 } }
+                        y: { stacked: true, beginAtZero: true, grid: { color: mcGridColor }, ticks: { stepSize: 1 } }
                     },
                     plugins: {
                         // Legend at the bottom — the top-right of the

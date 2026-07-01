@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 I18n::initFromSession();
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -18,13 +19,14 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'morning-checks'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('morning-checks.title') . ' ' . t('morning-checks.nav.settings')); ?></title>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=10">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
-    <link rel="stylesheet" href="../style.css">
+    <link rel="stylesheet" href="../style.css?v=2">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
     <style>
@@ -39,18 +41,25 @@ $translationNamespaces = ['common', 'morning-checks'];
             padding: 16px 30px 24px;
         }
 
-        /* Blue theme for Morning Checks tabs */
-        .tab:hover { color: #007bff; }
-        .tab.active { color: #007bff; border-bottom-color: #007bff; }
+        /* Module-accent (cyan) tabs */
+        .tab:hover { color: var(--accent, #00acc1); }
+        .tab.active { color: var(--accent, #00acc1); border-bottom-color: var(--accent, #00acc1); }
 
-        /* Section header with Add button */
+        /* Section header with Add button. The Chart tab's header has no Add
+           button, so without a reserved height its heading (and everything
+           below it) sat higher than on the Checks/Statuses tabs — a visible
+           jump when switching tabs. min-height pins the header to the
+           button-bearing height on every tab so the layout doesn't shift.
+           (This module's body line-height:1.6 inflates the button, hence 42px
+           rather than the 34px other settings pages use.) */
         .section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
+            min-height: 42px;
         }
-        .section-header h2 { margin: 0; font-size: 18px; color: #2c3e50; }
+        .section-header h2 { margin: 0; font-size: 18px; color: var(--text, #2c3e50); }
 
         /* Check items list. Rendered as a flat list with thin separators
            rather than per-row cards — the outer .tab-content already
@@ -58,22 +67,22 @@ $translationNamespaces = ['common', 'morning-checks'];
            up the visual nesting and wasting vertical space. */
         .checks-list {
             margin-top: 0;
-            border-top: 1px solid #f0f0f0;
+            border-top: 1px solid var(--border-soft, #f0f0f0);
         }
         .check-item {
             padding: 10px 8px;
             display: flex;
             align-items: center;
             gap: 12px;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-soft, #f0f0f0);
             transition: background 0.15s;
         }
-        .check-item:hover { background: #fafafa; }
+        .check-item:hover { background: var(--surface-hover, #fafafa); }
 
         /* Grip handle */
         .check-drag {
             cursor: grab;
-            color: #bbb;
+            color: var(--text-faint, #bbb);
             padding: 4px;
             touch-action: none;
             flex-shrink: 0;
@@ -81,25 +90,25 @@ $translationNamespaces = ['common', 'morning-checks'];
             align-items: center;
         }
         .check-drag:active { cursor: grabbing; }
-        .check-drag:hover { color: #888; }
+        .check-drag:hover { color: var(--text-dim, #888); }
 
         /* Check info */
         .check-info { flex: 1; min-width: 0; }
-        .check-info strong { display: block; color: #333; font-size: 14px; margin-bottom: 2px; }
+        .check-info strong { display: block; color: var(--text, #333); font-size: 14px; margin-bottom: 2px; }
         .check-description {
             display: block;
             font-size: 12px;
-            color: #888;
+            color: var(--text-dim, #888);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
 
-        /* Drag-and-drop states. Blue 2px line above / below the drop
+        /* Drag-and-drop states. Accent 2px line above / below the drop
            target indicates where the row will land. */
         .check-item.dragging { opacity: 0.4; }
-        .check-item.drag-over-top { box-shadow: inset 0 2px 0 0 #007bff; }
-        .check-item.drag-over-bottom { box-shadow: inset 0 -2px 0 0 #007bff; }
+        .check-item.drag-over-top { box-shadow: inset 0 2px 0 0 var(--accent, #00acc1); }
+        .check-item.drag-over-bottom { box-shadow: inset 0 -2px 0 0 var(--accent, #00acc1); }
 
         /* Statuses tab — table styling matches the canonical lookup-table
            used in change-management / calendar settings. */
@@ -108,24 +117,24 @@ $translationNamespaces = ['common', 'morning-checks'];
         .lookup-table td {
             padding: 10px 8px;
             text-align: left;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-soft, #f0f0f0);
             font-size: 14px;
         }
-        .lookup-table th { font-weight: 600; color: #666; background: #fafafa; }
+        .lookup-table th { font-weight: 600; color: var(--text-muted, #666); background: var(--surface-2, #fafafa); }
         .lookup-table td:last-child,
         .lookup-table th:last-child { white-space: nowrap; width: 1%; }
         .status-swatch {
             display: inline-block;
             width: 18px; height: 18px;
             border-radius: 3px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             vertical-align: middle;
             margin-right: 6px;
         }
         /* Active/Inactive uses the shared .status-badge / .status-active
            / .status-inactive classes from inbox.css (canonical green/red). */
-        .badge-yes { color: #1565c0; font-weight: 600; }
-        .badge-no  { color: #999; }
+        .badge-yes { color: var(--accent, #1565c0); font-weight: 600; }
+        .badge-no  { color: var(--text-faint, #999); }
 
         /* Check actions — icon buttons (pencil + trash). Overrides
            inbox.css's chunky .action-btn default for this page so the
@@ -135,7 +144,7 @@ $translationNamespaces = ['common', 'morning-checks'];
             background: none;
             border: none;
             padding: 4px;
-            color: #666;
+            color: var(--text-muted, #666);
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -143,20 +152,21 @@ $translationNamespaces = ['common', 'morning-checks'];
             gap: 0;
             cursor: pointer;
         }
-        .action-btn:hover { background: none; border: none; color: #007bff; }
-        .action-btn.delete:hover { color: #c62828; }
+        .action-btn:hover { background: none; border: none; color: var(--accent, #00acc1); }
+        .action-btn.delete:hover { color: var(--danger-accent, #c62828); }
         .action-btn svg { width: 16px; height: 16px; }
 
         /* Empty / loading states */
         .checks-empty {
             text-align: center;
             padding: 40px 20px;
-            color: #999;
+            color: var(--text-faint, #999);
             font-size: 14px;
         }
 
-        /* Toggle switch — base styles in inbox.css; just pin the accent. */
-        body { --accent: #007bff; }
+        /* Module accent (cyan) — drives tabs, toggles, focus rings, shared
+           .btn primaries. Toggle switch base styles live in inbox.css. */
+        body { --accent: var(--mc-accent, #00acc1); --accent-hover: var(--mc-accent-hover, #00838f); }
     </style>
 </head>
 <body>
@@ -188,7 +198,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                 <h2><?php echo htmlspecialchars(t('morning-checks.settings.statuses_heading')); ?></h2>
                 <button class="add-btn" onclick="openAddStatusModal()"><?php echo htmlspecialchars(t('morning-checks.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;"><?php echo t('morning-checks.settings.statuses_intro_html'); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo t('morning-checks.settings.statuses_intro_html'); ?></p>
             <table class="lookup-table">
                 <thead>
                     <tr>
@@ -200,7 +210,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                     </tr>
                 </thead>
                 <tbody id="statusesTableBody">
-                    <tr><td colspan="5" style="padding: 24px; text-align: center; color: #999;"><?php echo htmlspecialchars(t('morning-checks.settings.statuses_loading')); ?></td></tr>
+                    <tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-faint, #999);"><?php echo htmlspecialchars(t('morning-checks.settings.statuses_loading')); ?></td></tr>
                 </tbody>
             </table>
 
@@ -208,9 +218,9 @@ $translationNamespaces = ['common', 'morning-checks'];
                  results in the DB whose Status string doesn't resolve
                  to a current StatusID (e.g. left over from a deleted
                  status). Hidden when no orphans exist. -->
-            <div id="orphanSection" style="display: none; margin-top: 32px; padding: 16px; background: #fff8e1; border: 1px solid #ffd54f; border-radius: 6px;">
-                <h3 style="margin: 0 0 6px; font-size: 16px; color: #663d00;">⚠ <?php echo htmlspecialchars(t('morning-checks.settings.orphan_heading')); ?></h3>
-                <p style="font-size: 13px; color: #5d4a00; margin-bottom: 14px;">
+            <div id="orphanSection" style="display: none; margin-top: 32px; padding: 16px; background: var(--warning-bg, #fff8e1); border: 1px solid var(--warning-border, #ffd54f); border-radius: 6px;">
+                <h3 style="margin: 0 0 6px; font-size: 16px; color: var(--warning-text, #663d00);">⚠ <?php echo htmlspecialchars(t('morning-checks.settings.orphan_heading')); ?></h3>
+                <p style="font-size: 13px; color: var(--warning-text, #5d4a00); margin-bottom: 14px;">
                     <?php echo t('morning-checks.settings.orphan_intro_html'); ?>
                 </p>
                 <table class="lookup-table" id="orphanTable">
@@ -237,21 +247,21 @@ $translationNamespaces = ['common', 'morning-checks'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('morning-checks.settings.chart_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_intro')); ?></p>
 
             <div class="form-group">
-                <label style="display: block; font-weight: 500; margin-bottom: 8px; color: #333; font-size: 13px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_bar_fill')); ?></label>
+                <label style="display: block; font-weight: 500; margin-bottom: 8px; color: var(--text, #333); font-size: 13px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_bar_fill')); ?></label>
                 <div style="display: flex; gap: 24px; margin-top: 4px;">
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #333;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text, #333);">
                         <input type="radio" name="chartFill" value="plain" id="chartFillPlain">
                         <?php echo htmlspecialchars(t('morning-checks.settings.chart_plain')); ?>
                     </label>
-                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: #333;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text, #333);">
                         <input type="radio" name="chartFill" value="gradient" id="chartFillGradient">
                         <?php echo htmlspecialchars(t('morning-checks.settings.chart_gradient')); ?>
                     </label>
                 </div>
-                <p style="font-size: 12px; color: #888; margin-top: 8px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_fill_help')); ?></p>
+                <p style="font-size: 12px; color: var(--text-dim, #888); margin-top: 8px;"><?php echo htmlspecialchars(t('morning-checks.settings.chart_fill_help')); ?></p>
             </div>
         </div>
     </div>
@@ -704,10 +714,10 @@ $translationNamespaces = ['common', 'morning-checks'];
                 ).join('');
                 return `
                     <tr data-label="${escapeHtmlAttr(row.label)}">
-                        <td><code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 12px;">${escapeHtml(row.label)}</code></td>
+                        <td><code style="background: var(--surface-2, #f5f5f5); padding: 2px 6px; border-radius: 3px; font-size: 12px;">${escapeHtml(row.label)}</code></td>
                         <td>${row.count}</td>
                         <td>
-                            <select class="orphan-target" data-idx="${idx}" style="padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 13px;">
+                            <select class="orphan-target" data-idx="${idx}" style="padding: 6px 10px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: 13px;">
                                 ${options}
                             </select>
                         </td>
@@ -762,7 +772,7 @@ $translationNamespaces = ['common', 'morning-checks'];
         function renderStatuses() {
             const tbody = document.getElementById('statusesTableBody');
             if (statuses.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: #999;">' + window.t('morning-checks.settings.statuses_empty_html') + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="padding: 24px; text-align: center; color: var(--text-faint, #999);">' + window.t('morning-checks.settings.statuses_empty_html') + '</td></tr>';
                 return;
             }
             tbody.innerHTML = statuses.map(s => `
@@ -771,7 +781,7 @@ $translationNamespaces = ['common', 'morning-checks'];
                         <span class="status-swatch" style="background-color: ${escapeHtmlAttr(s.Colour)}"></span>
                         ${escapeHtml(s.Label)}
                     </td>
-                    <td><code style="font-size: 12px; color: #666;">${escapeHtml(s.Colour)}</code></td>
+                    <td><code style="font-size: 12px; color: var(--text-muted, #666);">${escapeHtml(s.Colour)}</code></td>
                     <td>${s.RequiresNotes ? '<span class="badge-yes">' + escapeHtml(window.t('morning-checks.settings.yes')) + '</span>' : '<span class="badge-no">' + escapeHtml(window.t('morning-checks.settings.no')) + '</span>'}</td>
                     <td><span class="status-badge status-${s.IsActive ? 'active' : 'inactive'}">${s.IsActive ? escapeHtml(window.t('morning-checks.settings.status_active')) : escapeHtml(window.t('morning-checks.settings.status_inactive'))}</span></td>
                     <td>
