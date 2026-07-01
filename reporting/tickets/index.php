@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'tickets';
@@ -12,11 +13,12 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'reporting'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('reporting.tickets.heading')); ?></title>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=11">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
@@ -26,32 +28,32 @@ $translationNamespaces = ['common', 'reporting'];
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #f5f7fa;
+            background: var(--app-bg, #f5f7fa);
         }
 
         .coming-soon-card {
             text-align: center;
-            background: #fff;
+            background: var(--surface, #fff);
             border-radius: 12px;
             padding: 60px 80px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            box-shadow: 0 2px 12px var(--shadow, rgba(0,0,0,0.08));
         }
 
         .coming-soon-card svg {
-            color: #ca5010;
+            color: var(--rep-accent, #ca5010);
             margin-bottom: 20px;
         }
 
         .coming-soon-card h2 {
             margin: 0 0 10px 0;
             font-size: 22px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .coming-soon-card p {
             margin: 0;
             font-size: 14px;
-            color: #888;
+            color: var(--text-dim, #888);
             max-width: 360px;
             line-height: 1.6;
         }

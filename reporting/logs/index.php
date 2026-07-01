@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'logs';
@@ -12,19 +13,23 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'reporting'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('reporting.logs.heading')); ?></title>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=11">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
     <style>
+        /* Module accent (rust-orange) — tabs, spinner, refresh button, focus. */
+        body { --accent: var(--rep-accent, #ca5010); --accent-hover: var(--rep-accent-hover, #a5410a); }
+
         .logs-outer {
             flex: 1;
             overflow: hidden;       /* the inner .logs-content scrolls now, not this */
-            background: #f5f7fa;
+            background: var(--app-bg, #f5f7fa);
         }
 
         /* Full-width logs view, laid out as a flex column so the
@@ -51,7 +56,7 @@ $translationNamespaces = ['common', 'reporting'];
 
         .logs-header h2 {
             font-size: 24px;
-            color: #333;
+            color: var(--text, #333);
             margin: 0;
         }
 
@@ -59,35 +64,35 @@ $translationNamespaces = ['common', 'reporting'];
             display: flex;
             gap: 10px;
             margin-bottom: 20px;
-            border-bottom: 2px solid #ddd;
+            border-bottom: 2px solid var(--border, #ddd);
             flex-shrink: 0;
         }
 
         .log-tab {
             padding: 12px 24px;
-            background: white;
+            background: var(--surface, white);
             border: none;
             cursor: pointer;
             font-size: 14px;
             font-weight: 500;
-            color: #666;
+            color: var(--text-muted, #666);
             border-bottom: 3px solid transparent;
             transition: all 0.2s;
         }
 
         .log-tab:hover {
-            color: #ca5010;
+            color: var(--rep-accent, #ca5010);
         }
 
         .log-tab.active {
-            color: #ca5010;
-            border-bottom-color: #ca5010;
+            color: var(--rep-accent, #ca5010);
+            border-bottom-color: var(--rep-accent, #ca5010);
         }
 
         .logs-content {
-            background: white;
+            background: var(--surface, white);
             border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px var(--shadow, rgba(0,0,0,0.1));
             overflow-y: auto;
             flex: 1;
             min-height: 0;
@@ -99,29 +104,29 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         .logs-table th {
-            background: #f8f9fa;
+            background: var(--surface-2, #f8f9fa);
             padding: 12px 15px;
             text-align: left;
             font-weight: 600;
-            color: #333;
-            border-bottom: 2px solid #ddd;
+            color: var(--text, #333);
+            border-bottom: 2px solid var(--border, #ddd);
             white-space: nowrap;
         }
 
         .logs-table td {
             padding: 12px 15px;
-            border-bottom: 1px solid #eee;
-            color: #444;
+            border-bottom: 1px solid var(--border-soft, #eee);
+            color: var(--text, #444);
             vertical-align: top;
         }
 
         .logs-table tr:hover {
-            background: #f8f8f8;
+            background: var(--surface-hover, #f8f8f8);
         }
 
         .log-datetime {
             white-space: nowrap;
-            color: #666;
+            color: var(--text-muted, #666);
             font-size: 13px;
         }
 
@@ -135,22 +140,22 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         .log-status.success {
-            background: #d4edda;
-            color: #155724;
+            background: var(--success-bg, #d4edda);
+            color: var(--success-text, #155724);
         }
 
         .log-status.failed {
-            background: #f8d7da;
-            color: #721c24;
+            background: var(--danger-bg, #f8d7da);
+            color: var(--danger-text, #721c24);
         }
 
         .log-details {
             font-size: 13px;
-            color: #666;
+            color: var(--text-muted, #666);
         }
 
         .log-details code {
-            background: #f0f0f0;
+            background: var(--surface-2, #f0f0f0);
             padding: 2px 6px;
             border-radius: 3px;
             font-size: 12px;
@@ -169,7 +174,7 @@ $translationNamespaces = ['common', 'reporting'];
         .empty-state {
             padding: 60px 20px;
             text-align: center;
-            color: #888;
+            color: var(--text-dim, #888);
         }
 
         .loading {
@@ -180,8 +185,8 @@ $translationNamespaces = ['common', 'reporting'];
         .spinner {
             width: 40px;
             height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #ca5010;
+            border: 4px solid var(--border-soft, #f3f3f3);
+            border-top: 4px solid var(--rep-accent, #ca5010);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto 15px;
@@ -201,16 +206,16 @@ $translationNamespaces = ['common', 'reporting'];
             align-items: center;
             gap: 10px;
             padding: 9px 0 19px;   /* shaved 3px off the top, kept the same overall row height */
-            border-top: 1px solid #eee;
-            background: #f5f7fa;
+            border-top: 1px solid var(--border-soft, #eee);
+            background: var(--app-bg, #f5f7fa);
             flex-shrink: 0;
         }
 
         .pagination button {
             min-width: 100px;      /* match Previous + Next widths */
             padding: 8px 16px;
-            border: 1px solid #ddd;
-            background: white;
+            border: 1px solid var(--border, #ddd);
+            background: var(--surface, white);
             border-radius: 4px;
             cursor: pointer;
             font-size: 14px;
@@ -218,8 +223,8 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         .pagination button:hover:not(:disabled) {
-            background: #f0f0f0;
-            border-color: #ca5010;
+            background: var(--surface-hover, #f0f0f0);
+            border-color: var(--rep-accent, #ca5010);
         }
 
         .pagination button:disabled {
@@ -228,12 +233,12 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         .pagination span {
-            color: #666;
+            color: var(--text-muted, #666);
             font-size: 14px;
         }
 
         .refresh-btn {
-            background: #ca5010;
+            background: var(--rep-accent, #ca5010);
             color: white;
             border: none;
             padding: 8px 16px;
@@ -243,7 +248,7 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         .refresh-btn:hover {
-            background: #a5410a;
+            background: var(--rep-accent-hover, #a5410a);
         }
 
         /* JSON Modal */
@@ -269,13 +274,13 @@ $translationNamespaces = ['common', 'reporting'];
         }
 
         .modal-content {
-            background: white;
+            background: var(--surface, white);
             border-radius: 8px;
             max-width: 700px;
             width: 90%;
             max-height: 80vh;
             overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 40px var(--shadow, rgba(0,0,0,0.3));
             transform: scale(0.95) translateY(-10px);
             transition: transform 0.2s ease;
         }
@@ -289,14 +294,14 @@ $translationNamespaces = ['common', 'reporting'];
             justify-content: space-between;
             align-items: center;
             padding: 15px 20px;
-            border-bottom: 1px solid #ddd;
-            background: #f8f9fa;
+            border-bottom: 1px solid var(--border, #ddd);
+            background: var(--surface-2, #f8f9fa);
         }
 
         .modal-header h3 {
             margin: 0;
             font-size: 16px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .modal-close {
@@ -304,12 +309,12 @@ $translationNamespaces = ['common', 'reporting'];
             border: none;
             font-size: 24px;
             cursor: pointer;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1;
         }
 
         .modal-close:hover {
-            color: #333;
+            color: var(--text, #333);
         }
 
         .modal-body {
@@ -336,6 +341,13 @@ $translationNamespaces = ['common', 'reporting'];
 
         .logs-table tbody tr:hover {
             background: #fff3e0;
+        }
+
+        /* Dark mode: the pale-orange row hover would glow on the dark table,
+           so sink it to a dark rust tint (light mode keeps #fff3e0). The
+           .json-display code viewer is intentionally dark in both modes. */
+        [data-theme-mode="dark"] .logs-table tbody tr:hover {
+            background: var(--rep-accent-soft, #3a2416);
         }
     </style>
 </head>
@@ -521,7 +533,7 @@ $translationNamespaces = ['common', 'reporting'];
                                 ? `<ul class="attachment-list">${attachments.map(a =>
                                     `<li>${escapeHtml(a.name)} (${escapeHtml(a.type)}, ${formatFileSize(a.size)})</li>`
                                   ).join('')}</ul>`
-                                : `<span style="color: #888;">${escapeHtml(t('reporting.logs.none'))}</span>`;
+                                : `<span style="color: var(--text-dim, #888);">${escapeHtml(t('reporting.logs.none'))}</span>`;
 
                             return `
                                 <tr onclick="showLogJson(${index})" title="${escapeHtml(t('reporting.logs.row_title'))}">

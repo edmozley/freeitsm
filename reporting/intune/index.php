@@ -11,6 +11,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 I18n::initFromSession();
 
 $current_page = 'intune';
@@ -18,15 +19,19 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'reporting'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('reporting.intune.heading')); ?></title>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=11">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js"></script>
     <style>
+        /* Module accent (rust-orange) — primary buttons, KPI warn, focus rings. */
+        body { --accent: var(--rep-accent, #ca5010); --accent-hover: var(--rep-accent-hover, #a5410a); }
+
         .dashboard-page {
             height: calc(100vh - 48px);
             overflow-y: auto;
@@ -34,23 +39,23 @@ $translationNamespaces = ['common', 'reporting'];
 
         .dashboard-toolbar {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 24px; background: #fff; border-bottom: 1px solid #e0e0e0;
+            padding: 16px 24px; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e0e0e0);
         }
-        .dashboard-toolbar h2 { margin: 0; font-size: 18px; color: #333; }
+        .dashboard-toolbar h2 { margin: 0; font-size: 18px; color: var(--text, #333); }
         .dashboard-toolbar .last-sync {
-            font-size: 12px; color: #888; margin-left: 16px;
+            font-size: 12px; color: var(--text-dim, #888); margin-left: 16px;
         }
         .dashboard-toolbar-actions { display: flex; gap: 8px; }
 
         .btn {
-            padding: 8px 16px; border: 1px solid #ddd; border-radius: 6px;
-            background: #fff; color: #333; font-size: 13px; cursor: pointer;
+            padding: 8px 16px; border: 1px solid var(--border, #ddd); border-radius: 6px;
+            background: var(--surface, #fff); color: var(--text, #333); font-size: 13px; cursor: pointer;
             display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; text-decoration: none;
         }
-        .btn:hover { background: #f5f5f5; border-color: #ccc; }
-        .btn-primary { background: #ca5010; color: #fff; border-color: #ca5010; }
-        .btn-primary:hover { background: #b34810; }
+        .btn:hover { background: var(--surface-hover, #f5f5f5); border-color: var(--border, #ccc); }
+        .btn-primary { background: var(--rep-accent, #ca5010); color: var(--rep-on-accent, #fff); border-color: var(--rep-accent, #ca5010); }
+        .btn-primary:hover { background: var(--rep-accent-hover, #b34810); }
         .btn svg { width: 16px; height: 16px; }
 
         /* KPI strip */
@@ -59,23 +64,23 @@ $translationNamespaces = ['common', 'reporting'];
             gap: 16px; padding: 24px 24px 0 24px;
         }
         .kpi-card {
-            background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
+            background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px;
             padding: 18px 20px;
         }
         .kpi-label {
-            font-size: 11px; color: #888; text-transform: uppercase;
+            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase;
             letter-spacing: 0.5px; font-weight: 600; margin-bottom: 6px;
         }
         .kpi-value {
-            font-size: 28px; color: #333; font-weight: 600;
+            font-size: 28px; color: var(--text, #333); font-weight: 600;
             line-height: 1.1;
         }
         .kpi-sub {
-            font-size: 11px; color: #888; margin-top: 4px;
+            font-size: 11px; color: var(--text-dim, #888); margin-top: 4px;
         }
-        .kpi-card.warn .kpi-value { color: #ca5010; }
-        .kpi-card.bad  .kpi-value { color: #d13438; }
-        .kpi-card.good .kpi-value { color: #107c10; }
+        .kpi-card.warn .kpi-value { color: var(--rep-accent, #ca5010); }
+        .kpi-card.bad  .kpi-value { color: var(--danger-accent, #d13438); }
+        .kpi-card.good .kpi-value { color: var(--success-accent, #107c10); }
 
         /* Widget grid */
         .widget-grid {
@@ -83,20 +88,20 @@ $translationNamespaces = ['common', 'reporting'];
             gap: 20px; padding: 24px;
         }
         .widget-card {
-            background: #fff; border: 1px solid #e0e0e0; border-radius: 8px;
+            background: var(--surface, #fff); border: 1px solid var(--border, #e0e0e0); border-radius: 8px;
             display: flex; flex-direction: column;
             transition: box-shadow 0.15s;
         }
-        .widget-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+        .widget-card:hover { box-shadow: 0 2px 8px var(--shadow, rgba(0,0,0,0.08)); }
         .widget-header {
             display: flex; align-items: flex-start; justify-content: space-between;
             padding: 16px 16px 0 16px;
         }
         .widget-header h3 {
-            margin: 0; font-size: 14px; font-weight: 600; color: #333;
+            margin: 0; font-size: 14px; font-weight: 600; color: var(--text, #333);
         }
         .widget-header p {
-            margin: 4px 0 0 0; font-size: 12px; color: #888;
+            margin: 4px 0 0 0; font-size: 12px; color: var(--text-dim, #888);
         }
         .widget-chart {
             padding: 12px 16px 16px 16px;
@@ -105,12 +110,12 @@ $translationNamespaces = ['common', 'reporting'];
         }
         .widget-chart canvas { max-height: 290px; }
 
-        .loading-state { text-align: center; padding: 60px 20px; color: #888; font-size: 13px; }
+        .loading-state { text-align: center; padding: 60px 20px; color: var(--text-dim, #888); font-size: 13px; }
         .empty-banner {
-            background: #fff7e6; border: 1px solid #ffd591; border-radius: 8px;
-            padding: 16px 20px; margin: 24px; color: #874d00; font-size: 13px;
+            background: var(--warning-bg, #fff7e6); border: 1px solid var(--warning-border, #ffd591); border-radius: 8px;
+            padding: 16px 20px; margin: 24px; color: var(--warning-text, #874d00); font-size: 13px;
         }
-        .empty-banner strong { color: #874d00; }
+        .empty-banner strong { color: var(--warning-text, #874d00); }
 
         /* Drill-down modal */
         .drill-overlay {
@@ -119,26 +124,26 @@ $translationNamespaces = ['common', 'reporting'];
         }
         .drill-overlay.active { display: flex; }
         .drill-modal {
-            background: #fff; border-radius: 8px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            background: var(--surface, #fff); border-radius: 8px; box-shadow: 0 10px 40px var(--shadow, rgba(0,0,0,0.2));
             width: 1000px; max-width: calc(100vw - 40px);
             max-height: calc(100vh - 40px);
             display: flex; flex-direction: column;
         }
         .drill-header {
-            padding: 16px 20px; border-bottom: 1px solid #eee;
+            padding: 16px 20px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: space-between; align-items: center;
         }
         .drill-header h3 {
-            margin: 0; font-size: 15px; color: #333;
+            margin: 0; font-size: 15px; color: var(--text, #333);
         }
         .drill-header .drill-count {
-            color: #888; font-size: 13px; margin-left: 8px; font-weight: normal;
+            color: var(--text-dim, #888); font-size: 13px; margin-left: 8px; font-weight: normal;
         }
         .drill-close {
             background: none; border: none; font-size: 22px; line-height: 1;
-            color: #999; cursor: pointer; padding: 0;
+            color: var(--text-faint, #999); cursor: pointer; padding: 0;
         }
-        .drill-close:hover { color: #333; }
+        .drill-close:hover { color: var(--text, #333); }
         .drill-body {
             flex: 1; overflow: auto; padding: 0;
         }
@@ -147,51 +152,51 @@ $translationNamespaces = ['common', 'reporting'];
         }
         .drill-body th, .drill-body td {
             padding: 10px 14px; text-align: left;
-            border-bottom: 1px solid #f0f0f0;
+            border-bottom: 1px solid var(--border-soft, #f0f0f0);
         }
         .drill-body th {
-            background: #fafafa; font-weight: 600; color: #555;
+            background: var(--surface-2, #fafafa); font-weight: 600; color: var(--text-muted, #555);
             font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px;
             position: sticky; top: 0; z-index: 1;
         }
-        .drill-body tr:hover td { background: #fafbfc; }
-        .drill-body td.dim { color: #999; }
+        .drill-body tr:hover td { background: var(--surface-hover, #fafbfc); }
+        .drill-body td.dim { color: var(--text-faint, #999); }
         .drill-body .compliance-pill {
             display: inline-block; padding: 2px 10px; border-radius: 10px;
             font-size: 11px; font-weight: 500;
         }
-        .compliance-pill.compliant       { background: #d4edda; color: #155724; }
-        .compliance-pill.noncompliant    { background: #f8d7da; color: #721c24; }
-        .compliance-pill.in-grace-period { background: #fff3cd; color: #856404; }
-        .compliance-pill.unknown         { background: #eee;    color: #555; }
+        .compliance-pill.compliant       { background: var(--success-bg, #d4edda); color: var(--success-text, #155724); }
+        .compliance-pill.noncompliant    { background: var(--danger-bg, #f8d7da); color: var(--danger-text, #721c24); }
+        .compliance-pill.in-grace-period { background: var(--warning-bg, #fff3cd); color: var(--warning-text, #856404); }
+        .compliance-pill.unknown         { background: var(--surface-hover, #eee); color: var(--text-muted, #555); }
         .drill-loading {
-            text-align: center; padding: 60px 20px; color: #888; font-size: 13px;
+            text-align: center; padding: 60px 20px; color: var(--text-dim, #888); font-size: 13px;
         }
 
         .drill-footer {
-            padding: 12px 20px; border-top: 1px solid #eee;
+            padding: 12px 20px; border-top: 1px solid var(--border-soft, #eee);
             display: flex; align-items: center; justify-content: space-between;
             gap: 12px;
         }
         .drill-footer .pager {
-            display: flex; align-items: center; gap: 8px; font-size: 12px; color: #555;
+            display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted, #555);
         }
         .drill-footer .pager-btn {
-            padding: 4px 12px; border: 1px solid #ddd; border-radius: 4px;
-            background: #fff; color: #333; font-size: 12px; cursor: pointer;
+            padding: 4px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px;
+            background: var(--surface, #fff); color: var(--text, #333); font-size: 12px; cursor: pointer;
         }
-        .drill-footer .pager-btn:hover:not(:disabled) { background: #f5f5f5; }
+        .drill-footer .pager-btn:hover:not(:disabled) { background: var(--surface-hover, #f5f5f5); }
         .drill-footer .pager-btn:disabled { opacity: 0.4; cursor: not-allowed; }
         .drill-footer .drill-actions {
             display: flex; gap: 8px;
         }
         .drill-footer .btn-export {
-            background: #ca5010; color: white; border-color: #ca5010;
+            background: var(--rep-accent, #ca5010); color: white; border-color: var(--rep-accent, #ca5010);
         }
-        .drill-footer .btn-export:hover { background: #b34810; }
+        .drill-footer .btn-export:hover { background: var(--rep-accent-hover, #b34810); }
 
         .kpi-card.clickable { cursor: pointer; transition: box-shadow 0.15s, transform 0.15s ease-out; }
-        .kpi-card.clickable:hover { box-shadow: 0 8px 18px rgba(0,0,0,0.14); transform: translateY(-3px); }
+        .kpi-card.clickable:hover { box-shadow: 0 8px 18px var(--shadow, rgba(0,0,0,0.14)); transform: translateY(-3px); }
 
         @media (max-width: 1100px) {
             .kpi-strip { grid-template-columns: repeat(3, 1fr); }
@@ -259,6 +264,18 @@ $translationNamespaces = ['common', 'reporting'];
         const API_BASE = '../../api/intune/';
         const chartInstances = {};
         let chartData = null;  // most recent API payload, used by click handlers
+
+        // Dark-mode readability: Chart.js paints to a canvas and can't read our
+        // CSS tokens, so set its global text (ticks/legend) + gridline colours
+        // from the active palette mode. Series colours (STATE_COLORS/PALETTE)
+        // are unchanged — they read on both. chartSurface is the doughnut
+        // slice-border so slices separate against the card in either mode.
+        const repDark = document.documentElement.getAttribute('data-theme-mode') === 'dark';
+        const chartSurface = repDark ? '#1e2228' : '#ffffff';
+        if (window.Chart) {
+            Chart.defaults.color = repDark ? '#aab2bd' : '#666';
+            Chart.defaults.borderColor = repDark ? 'rgba(255,255,255,0.10)' : 'rgba(0,0,0,0.08)';
+        }
         const drillState = {
             filter: '',
             value: '',
@@ -350,7 +367,7 @@ $translationNamespaces = ['common', 'reporting'];
             }
             const when = formatDate(job.finished_datetime || job.started_datetime);
             const status = job.status || '';
-            span.innerHTML = `${escapeHtml(t('reporting.intune.last_sync', { when: when || '?' }))}${status === 'success' ? '' : ' &middot; <span style="color:#ca5010;">' + escapeHtml(status) + '</span>'}`;
+            span.innerHTML = `${escapeHtml(t('reporting.intune.last_sync', { when: when || '?' }))}${status === 'success' ? '' : ' &middot; <span style="color:var(--rep-accent,#ca5010);">' + escapeHtml(status) + '</span>'}`;
         }
 
         function renderKpiStrip(kpi) {
@@ -450,7 +467,7 @@ $translationNamespaces = ['common', 'reporting'];
                 type: 'doughnut',
                 data: {
                     labels,
-                    datasets: [{ data: values, backgroundColor: colors, borderColor: '#fff', borderWidth: 2 }]
+                    datasets: [{ data: values, backgroundColor: colors, borderColor: chartSurface, borderWidth: 2 }]
                 },
                 options: {
                     responsive: true, maintainAspectRatio: false,
@@ -643,7 +660,7 @@ $translationNamespaces = ['common', 'reporting'];
                 const data = await res.json();
                 if (!data.success) {
                     document.getElementById('drillBody').innerHTML =
-                        `<div class="drill-loading" style="color:#d13438;">${escapeHtml(t('reporting.intune.drill_error', { error: data.error }))}</div>`;
+                        `<div class="drill-loading" style="color:var(--danger-accent,#d13438);">${escapeHtml(t('reporting.intune.drill_error', { error: data.error }))}</div>`;
                     return;
                 }
                 drillState.totalPages = data.total_pages;
@@ -653,7 +670,7 @@ $translationNamespaces = ['common', 'reporting'];
                 updateDrillPager(data);
             } catch (err) {
                 document.getElementById('drillBody').innerHTML =
-                    `<div class="drill-loading" style="color:#d13438;">${escapeHtml(t('reporting.intune.drill_load_failed', { error: err.message }))}</div>`;
+                    `<div class="drill-loading" style="color:var(--danger-accent,#d13438);">${escapeHtml(t('reporting.intune.drill_load_failed', { error: err.message }))}</div>`;
             }
         }
 
@@ -732,7 +749,7 @@ $translationNamespaces = ['common', 'reporting'];
             const ctx = canvas.getContext('2d');
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             const parent = canvas.parentElement;
-            parent.innerHTML = `<div style="color:#aaa;font-size:13px;">${escapeHtml(t('reporting.intune.no_data'))}</div>`;
+            parent.innerHTML = `<div style="color:var(--text-faint,#aaa);font-size:13px;">${escapeHtml(t('reporting.intune.no_data'))}</div>`;
         }
 
         document.addEventListener('DOMContentLoaded', loadDashboard);

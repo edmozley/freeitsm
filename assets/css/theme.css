@@ -72,6 +72,12 @@
     --mc-accent:       #00acc1;  --mc-accent-hover: #00838f;
     --mc-accent-soft:  #e0f7fa;  --mc-on-accent:    #ffffff;
 
+    /* Reporting module (rust-orange) accents — cards, links, chart, hero.
+       Rust is the module's registered brand colour (module-colors.php).
+       Distinct from Calendar's brighter orange (--cal-*). */
+    --rep-accent:      #ca5010;  --rep-accent-hover: #a5410a;
+    --rep-accent-soft: #fdeee6;  --rep-on-accent:    #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -134,6 +140,10 @@
     /* Morning Checks module (cyan) — accent nudged lighter to read on dark */
     --mc-accent:       #26c6da;  --mc-accent-hover: #4dd0e1;
     --mc-accent-soft:  #14343a;  --mc-on-accent:    #ffffff;
+
+    /* Reporting module (rust-orange) — accent nudged lighter to read on dark */
+    --rep-accent:      #e8703a;  --rep-accent-hover: #f08a5a;
+    --rep-accent-soft: #3a2416;  --rep-on-accent:    #ffffff;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;

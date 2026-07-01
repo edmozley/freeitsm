@@ -40,7 +40,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('knowledge.browser_title.main')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=10">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=11">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/knowledge.css?v=2">
     <!-- Prism.js for code syntax highlighting -->
