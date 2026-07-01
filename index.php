@@ -18,11 +18,12 @@ $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $allowed_modules = $_SESSION['allowed_modules'] ?? null;
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('common.home.browser_title')); ?></title>
+    <link rel="stylesheet" href="assets/css/theme.css?v=9">
     <link rel="stylesheet" href="assets/css/inbox.css">
     <style>
         body {
@@ -34,6 +35,12 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
             flex-direction: column;
         }
 
+        /* Dark palettes: swap the light-grey wash for the dark app surfaces
+           (light mode keeps its original gradient, pixel-identical). */
+        [data-theme-mode="dark"] body {
+            background: linear-gradient(135deg, var(--app-bg, #14171c) 0%, var(--surface-2, #232830) 100%);
+        }
+
         .landing-header {
             background: linear-gradient(135deg, #0078d4, #106ebe);
             color: white;
@@ -42,6 +49,12 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
             justify-content: space-between;
             align-items: center;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Same translucent-black wash the module headers get in dark, so the
+           blue landing header tones down while keeping a hint of brand blue. */
+        [data-theme="dark"] .landing-header {
+            box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.4);
         }
 
         .landing-header h1 {
@@ -79,13 +92,13 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
         .welcome-text h2 {
             font-size: 32px;
             font-weight: 300;
-            color: #333;
+            color: var(--text, #333);
             margin: 0 0 10px 0;
         }
 
         .welcome-text p {
             font-size: 16px;
-            color: #666;
+            color: var(--text-muted, #666);
             margin: 0;
         }
 
@@ -99,20 +112,20 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
         }
 
         .module-card {
-            background: white;
+            background: var(--surface, white);
             border-radius: 14px;
             padding: 16px 8px;
             text-align: center;
             text-decoration: none;
-            color: #333;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            color: var(--text, #333);
+            box-shadow: 0 4px 20px var(--shadow, rgba(0, 0, 0, 0.08));
             transition: all 0.3s ease;
             border: 2px solid transparent;
         }
 
         .module-card:hover {
             transform: translateY(-6px);
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 12px 40px var(--shadow, rgba(0, 0, 0, 0.15));
         }
 
         <?php foreach (getModuleColors() as $key => $c): ?>
@@ -147,7 +160,7 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
         .footer {
             text-align: center;
             padding: 20px;
-            color: #999;
+            color: var(--text-faint, #999);
             font-size: 12px;
         }
     </style>
