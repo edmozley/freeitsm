@@ -710,6 +710,11 @@ System administration and configuration.
 - **Orphaned tickets** (`system/orphaned-tickets/`): Finds tickets whose `department_id` points at a department that no longer exists — these are hidden from every team-filtered queue (neither "no department" nor in anyone's departments), so they vanish from the inbox. Lists them and lets an admin reassign them to a real department (or "No department"), individually or in bulk. Endpoints: `api/system/get_orphaned_tickets.php`, `api/system/assign_ticket_department.php` (writes a `ticket_audit` entry per change).
 - **Topology** (`system/topology/`): A read-only, collapsible company-rooted tree of the whole configuration — each company with its mailboxes (pinned, with signed-in/active badges), domains & senders, sign-in providers, analysts with access, requester count and ticket totals, plus a "Global / shared" node (shared mailboxes, global SSO providers, all-access analysts). Health hints flag a company with no sendable mailbox and mailboxes that aren't signed in; deep-links out to the relevant editors. Aggregation endpoint: `api/system/get_topology.php`.
 - **Landing page** (`system/index.php`): A searchable grid of cards, one per system area — the single way in to everything below. Unlike other modules, System has too many areas to fit the header navbar, so navigation lives entirely in these cards; the header "System" title links back here from any sub-page. A search box filters the cards live by title, description, and hidden keyword synonyms (e.g. typing *oidc*, *saml* or *idp* surfaces the Single Sign-On card). The areas come from one registry (`system/includes/areas.php`) that drives both the cards and the search, and stays fully i18n (titles/descriptions/keywords are translation keys).
+- **API** (`system/api/`): Manage keys for the public REST API (`api/v1/`) and explore it interactively
+  - Key management: create/edit/disable/delete keys; the full key (`fitsm_…`) is shown once at creation and stored only as a SHA-256 hash (`api_keys` table — separate from the legacy plaintext `apikeys` used by `api/external/`)
+  - **Granular permissions** per key: a resource × action matrix (tickets read/create/update/delete/restore, notes, conversation, audit, SLA, time entries, requesters, analysts, companies, reference data) — keys start from zero
+  - Each key **acts as an analyst** (audit rows/notes/time attributed properly), can be scoped to specific **companies** on multi-tenant installs, and carries an optional expiry date and per-minute rate-limit override; last-used time + IP shown in the list
+  - **Interactive documentation** (`system/api/docs.php`): every endpoint documented with parameters + required permission, plus a "Try it" panel that fires real requests from the browser and shows status, rate-limit headers and the JSON response, with a copyable cURL equivalent
 - **Encryption** (`system/encryption/`): Guided interface for managing the AES-256-GCM encryption key
   - Shows key status (configured/missing/invalid) with colour-coded status card
   - One-click key generation — writes directly to `c:\wamp64\encryption_keys\sdtickets.key`
@@ -918,7 +923,13 @@ A Chrome/Edge browser extension that shows your Watchtower dashboard summary in 
 
 ## API Reference
 
-All endpoints live under `api/` and return JSON. Every endpoint requires an active session (`$_SESSION['analyst_id']`).
+All endpoints live under `api/` and return JSON. Every endpoint requires an active session (`$_SESSION['analyst_id']`) — except the public REST API below and the legacy `api/external/` ingest endpoints.
+
+### REST API v1 (`api/v1/`) — public, key-authenticated
+
+A versioned RESTful API for integrations (monitoring, RMM, scripts, portals). Keys are created under **System → API** with granular per-resource permissions and optional company scoping; authenticate with `Authorization: Bearer fitsm_…`. Front controller (`api/v1/index.php`) + `.htaccess` rewrite gives clean URLs (`/api/v1/tickets/42`); without mod_rewrite the same routes work at `/api/v1/index.php/tickets/42`. Real HTTP status codes; responses are `{data, meta?}` / `{error: {code, message}}`; 60 req/min rate limit per key (overridable per key). Writes behave exactly like the UI: audit rows, template emails, CSAT auto-trigger and workflow-engine events all fire.
+
+Current surface (tickets module): `GET/POST /tickets`, `GET/PATCH/DELETE /tickets/{id}`, `POST /tickets/{id}/restore`, notes (`GET/POST /tickets/{id}/notes`), conversation (`/thread`), history (`/audit`), live SLA (`/sla`), time entries (`GET/POST/DELETE /tickets/{id}/time-entries`), requesters (`GET/POST /users`, `GET/PATCH /users/{id}`), plus reference data (`/analysts`, `/companies`, `/statuses`, `/priorities`, `/ticket-types`, `/origins`, `/departments`) and `GET /ping`. Full interactive docs at **System → API → Documentation**.
 
 ### Standard Pattern
 ```php

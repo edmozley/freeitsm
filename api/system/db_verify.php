@@ -1548,6 +1548,33 @@ $schema = [
         'window_start'  => 'DATETIME NOT NULL',
     ],
 
+    // REST API v1 keys (System > API) — distinct from the legacy `apikeys`
+    // table above (api/external ingest): stored hashed, granular permission
+    // map (JSON), optional company scope, acts as an analyst.
+    'api_keys' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'name'                  => 'VARCHAR(100) NOT NULL',
+        'key_prefix'            => 'VARCHAR(16) NOT NULL',
+        'key_hash'              => 'CHAR(64) NOT NULL',
+        'analyst_id'            => 'INT NOT NULL',
+        'permissions'           => 'LONGTEXT NULL',
+        'company_ids'           => 'TEXT NULL',
+        'rate_limit_per_minute' => 'INT NULL',
+        'active'                => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'expires_at'            => 'DATETIME NULL',
+        'last_used_at'          => 'DATETIME NULL',
+        'last_used_ip'          => 'VARCHAR(45) NULL',
+        'created_by'            => 'INT NULL',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'api_key_rate_limits' => [
+        'id'            => 'INT NOT NULL AUTO_INCREMENT',
+        'api_key_id'    => 'INT NOT NULL',
+        'request_count' => 'INT NOT NULL DEFAULT 0',
+        'window_start'  => 'DATETIME NOT NULL',
+    ],
+
     'task_statuses' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'name'              => 'VARCHAR(50) NOT NULL',
@@ -3366,6 +3393,17 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // REST API v1 key foreign keys (db_verify $schema only builds columns + PK)
+    $apiKeyFks = [
+        ['api_keys',            'fk_api_keys_analyst',        "ALTER TABLE api_keys ADD CONSTRAINT fk_api_keys_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id)"],
+        ['api_keys',            'fk_api_keys_created_by',     "ALTER TABLE api_keys ADD CONSTRAINT fk_api_keys_created_by FOREIGN KEY (created_by) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['api_key_rate_limits', 'fk_api_key_rate_limits_key', "ALTER TABLE api_key_rate_limits ADD CONSTRAINT fk_api_key_rate_limits_key FOREIGN KEY (api_key_id) REFERENCES api_keys (id) ON DELETE CASCADE"],
+    ];
+    foreach ($apiKeyFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
     // Ticket child foreign keys (db_verify $schema only builds columns + PK; FKs
     // added here so installs grown via db_verify match a fresh freeitsm.sql).
     // These have NO cascade, so delete_ticket.php removes the children explicitly.
@@ -3815,6 +3853,8 @@ try {
         ['freemail_domains', 'uq_freemail_domains_domain', '(`domain`)'],
         ['tenant_channel_senders', 'uq_tenant_channel_sender_identifier', '(`identifier`)'],
         ['problem_tickets', 'uq_problem_ticket', '(`problem_id`, `ticket_id`)'],
+        ['api_keys', 'uq_api_keys_hash', '(`key_hash`)'],
+        ['api_key_rate_limits', 'uq_api_key_window', '(`api_key_id`, `window_start`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {

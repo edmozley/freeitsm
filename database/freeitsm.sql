@@ -1872,6 +1872,47 @@ CREATE TABLE IF NOT EXISTS `api_rate_limits` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
+-- REST API v1 keys (System > API) — distinct from the legacy `apikeys` table
+-- above (used by the api/external ingest endpoints). v1 keys are stored as a
+-- SHA-256 hash (shown once at creation), carry a granular permission map
+-- (JSON: {"tickets":["read","create"],...}), an optional company scope
+-- (JSON array of tenant ids; NULL = all companies), an optional expiry and
+-- per-minute rate-limit override, and act as an analyst so audit rows, notes
+-- and workflow events keep a real author.
+-- ----------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS `api_keys` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `name`                  VARCHAR(100) NOT NULL,
+    `key_prefix`            VARCHAR(16) NOT NULL,
+    `key_hash`              CHAR(64) NOT NULL,
+    `analyst_id`            INT NOT NULL,
+    `permissions`           LONGTEXT NULL,
+    `company_ids`           TEXT NULL,
+    `rate_limit_per_minute` INT NULL,
+    `active`                TINYINT(1) NOT NULL DEFAULT 1,
+    `expires_at`            DATETIME NULL,
+    `last_used_at`          DATETIME NULL,
+    `last_used_ip`          VARCHAR(45) NULL,
+    `created_by`            INT NULL,
+    `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_api_keys_hash` (`key_hash`),
+    CONSTRAINT `fk_api_keys_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`),
+    CONSTRAINT `fk_api_keys_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `api_key_rate_limits` (
+    `id`            INT NOT NULL AUTO_INCREMENT,
+    `api_key_id`    INT NOT NULL,
+    `request_count` INT NOT NULL DEFAULT 0,
+    `window_start`  DATETIME NOT NULL,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_api_key_window` (`api_key_id`, `window_start`),
+    CONSTRAINT `fk_api_key_rate_limits_key` FOREIGN KEY (`api_key_id`) REFERENCES `api_keys` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ----------------------------------------------------------
 -- Tasks
 -- ----------------------------------------------------------
 

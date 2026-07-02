@@ -1,0 +1,15 @@
+# FreeITSM REST API v1 — route /api/v1/<anything> into the front controller.
+# Wrapped in IfModule so servers without mod_rewrite don't 500; on those,
+# the API is still fully usable at /api/v1/index.php/<path> (PATH_INFO).
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ index.php/$1 [QSA,L]
+</IfModule>
+
+# Some Apache/FastCGI setups strip the Authorization header from PHP;
+# this hands it through as an environment variable the API also reads.
+<IfModule mod_setenvif.c>
+    SetEnvIf Authorization "(.*)" HTTP_AUTHORIZATION=$1
+</IfModule>
