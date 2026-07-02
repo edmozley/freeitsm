@@ -18,6 +18,7 @@ require_once __DIR__ . '/resources/tickets.php';
 require_once __DIR__ . '/resources/users.php';
 require_once __DIR__ . '/resources/reference.php';
 require_once __DIR__ . '/resources/assets.php';
+require_once __DIR__ . '/resources/problems.php';
 
 // --- Resolve the request path ---------------------------------------------
 $path = $_SERVER['PATH_INFO'] ?? '';
@@ -75,6 +76,21 @@ $routes = [
     ['GET',    '#^/asset-statuses$#',                      ['reference', 'read'],             'apiAssetStatusesList'],
     ['GET',    '#^/asset-locations$#',                     ['reference', 'read'],             'apiAssetLocationsList'],
     ['GET',    '#^/suppliers$#',                           ['reference', 'read'],             'apiSuppliersList'],
+
+    ['GET',    '#^/problems$#',                            ['problems', 'read'],              'apiProblemsList'],
+    ['POST',   '#^/problems$#',                            ['problems', 'create'],            'apiProblemsCreate'],
+    ['GET',    '#^/problems/(\d+)$#',                      ['problems', 'read'],              'apiProblemsGet'],
+    ['PATCH',  '#^/problems/(\d+)$#',                      ['problems', 'update'],            'apiProblemsUpdate'],
+    ['DELETE', '#^/problems/(\d+)$#',                      ['problems', 'delete'],            'apiProblemsDelete'],
+    ['GET',    '#^/problems/(\d+)/notes$#',                ['problem_notes', 'read'],         'apiProblemNotesList'],
+    ['POST',   '#^/problems/(\d+)/notes$#',                ['problem_notes', 'create'],       'apiProblemNotesCreate'],
+    ['GET',    '#^/problems/(\d+)/audit$#',                ['problem_audit', 'read'],         'apiProblemAuditList'],
+    ['POST',   '#^/problems/(\d+)/tickets$#',              ['problem_links', 'create'],       'apiProblemTicketsLink'],
+    ['DELETE', '#^/problems/(\d+)/tickets/(\d+)$#',        ['problem_links', 'delete'],       'apiProblemTicketsUnlink'],
+    ['POST',   '#^/problems/(\d+)/changes$#',              ['problem_links', 'create'],       'apiProblemChangesLink'],
+    ['DELETE', '#^/problems/(\d+)/changes/(\d+)$#',        ['problem_links', 'delete'],       'apiProblemChangesUnlink'],
+    ['GET',    '#^/problem-statuses$#',                    ['reference', 'read'],             'apiProblemStatusesList'],
+    ['GET',    '#^/problem-priorities$#',                  ['reference', 'read'],             'apiProblemPrioritiesList'],
 
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
@@ -145,6 +161,12 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'DELETE /assets/{id}/assignments/{user_id}', 'GET /assets/{id}/history',
             'GET /assets/{id}/custody', 'GET /assets/{id}/disks', 'GET /assets/{id}/network-adapters',
             'GET /assets/{id}/devices', 'GET /assets/{id}/software',
+            'GET /problems', 'POST /problems', 'GET /problems/{id}', 'PATCH /problems/{id}',
+            'DELETE /problems/{id}', 'GET /problems/{id}/notes', 'POST /problems/{id}/notes',
+            'GET /problems/{id}/audit', 'POST /problems/{id}/tickets',
+            'DELETE /problems/{id}/tickets/{ticket_id}', 'POST /problems/{id}/changes',
+            'DELETE /problems/{id}/changes/{change_id}',
+            'GET /problem-statuses', 'GET /problem-priorities',
             'GET /users', 'POST /users', 'GET /users/{id}',
             'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',

@@ -85,6 +85,35 @@ function apiV1PermissionCatalog(): array {
                 'read' => 'Read agent-collected inventory: disks, network adapters, devices, software',
             ],
         ],
+        'problems' => [
+            'label'   => 'Problems',
+            'actions' => [
+                'read'   => 'List and view problems (including linked incidents and changes)',
+                'create' => 'Create new problems',
+                'update' => 'Update problem fields (status, priority, RCA, known-error flag, …)',
+                'delete' => 'Permanently delete a problem and its links/notes/history',
+            ],
+        ],
+        'problem_notes' => [
+            'label'   => 'Problem notes',
+            'actions' => [
+                'read'   => 'Read a problem\'s journal',
+                'create' => 'Add a journal note (append-only)',
+            ],
+        ],
+        'problem_audit' => [
+            'label'   => 'Problem audit log',
+            'actions' => [
+                'read' => 'Read the change history of a problem',
+            ],
+        ],
+        'problem_links' => [
+            'label'   => 'Problem links',
+            'actions' => [
+                'create' => 'Link incidents (tickets) and changes to a problem',
+                'delete' => 'Unlink incidents and changes from a problem',
+            ],
+        ],
         'users' => [
             'label'   => 'Requesters',
             'actions' => [
@@ -108,7 +137,7 @@ function apiV1PermissionCatalog(): array {
         'reference' => [
             'label'   => 'Reference data',
             'actions' => [
-                'read' => 'Read lookups: statuses, priorities, ticket types, origins, departments, asset types/statuses/locations, suppliers',
+                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers, problem statuses/priorities',
             ],
         ],
     ];

@@ -168,13 +168,18 @@ function apiKeyCanAccessTenant(PDO $conn, array $apiKey, int $tenantId): bool {
     return in_array($tenantId, $apiKey['company_scope'], true);
 }
 
-/** May this key access this ticket (by its owning company)? Unknown id => false. */
-function apiKeyCanAccessTicket(PDO $conn, array $apiKey, int $ticketId): bool {
-    if ($ticketId <= 0) {
+/**
+ * May this key access this row of a tenant-scoped table (by its owning
+ * company)? Unknown id => false. The generic by-id gate behind
+ * apiKeyCanAccessTicket / apiKeyCanAccessProblem. $table is a developer
+ * literal, never user input.
+ */
+function apiKeyCanAccessTenantRow(PDO $conn, array $apiKey, string $table, int $rowId): bool {
+    if ($rowId <= 0) {
         return false;
     }
-    $stmt = $conn->prepare("SELECT tenant_id FROM tickets WHERE id = ?");
-    $stmt->execute([$ticketId]);
+    $stmt = $conn->prepare("SELECT tenant_id FROM {$table} WHERE id = ?");
+    $stmt->execute([$rowId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$row) {
         return false;
@@ -186,12 +191,24 @@ function apiKeyCanAccessTicket(PDO $conn, array $apiKey, int $ticketId): bool {
     return in_array($tid, $apiKey['company_scope'], true);
 }
 
+/** May this key access this ticket (by its owning company)? Unknown id => false. */
+function apiKeyCanAccessTicket(PDO $conn, array $apiKey, int $ticketId): bool {
+    return apiKeyCanAccessTenantRow($conn, $apiKey, 'tickets', $ticketId);
+}
+
+/** May this key access this problem (by its owning company)? Unknown id => false. */
+function apiKeyCanAccessProblem(PDO $conn, array $apiKey, int $problemId): bool {
+    return apiKeyCanAccessTenantRow($conn, $apiKey, 'problems', $problemId);
+}
+
 /**
- * SQL predicate scoping ticket list queries to the key's companies. Mirrors
- * ticketTenantFilter(): NULL tenant_id rows belong to the Default company.
+ * SQL predicate scoping any tenant_id-carrying list query to the key's
+ * companies. Mirrors ticketTenantFilter(): NULL tenant_id rows belong to the
+ * Default company. Works for tickets ('t'), problems ('p'), and any future
+ * tenant-scoped module.
  * @return array [sqlFragment, params]
  */
-function apiKeyTicketFilter(PDO $conn, array $apiKey, string $alias = 't'): array {
+function apiKeyTenantFilter(PDO $conn, array $apiKey, string $alias): array {
     if (!isMultiTenant($conn) || $apiKey['company_scope'] === null) {
         return ['', []];
     }
@@ -205,6 +222,11 @@ function apiKeyTicketFilter(PDO $conn, array $apiKey, string $alias = 't'): arra
         return [" AND ($col IN ($placeholders) OR $col IS NULL)", $ids];
     }
     return [" AND $col IN ($placeholders)", $ids];
+}
+
+/** Back-compat name used by the tickets resource — delegates to the generic filter. */
+function apiKeyTicketFilter(PDO $conn, array $apiKey, string $alias = 't'): array {
+    return apiKeyTenantFilter($conn, $apiKey, $alias);
 }
 
 /**
