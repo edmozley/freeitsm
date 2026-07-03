@@ -27,6 +27,7 @@ require_once __DIR__ . '/resources/contracts.php';
 require_once __DIR__ . '/resources/calendar.php';
 require_once __DIR__ . '/resources/software.php';
 require_once __DIR__ . '/resources/service_status.php';
+require_once __DIR__ . '/resources/morning_checks.php';
 
 // --- Resolve the request path ---------------------------------------------
 $path = $_SERVER['PATH_INFO'] ?? '';
@@ -206,6 +207,17 @@ $routes = [
     ['GET',    '#^/service-incident-statuses$#',           ['reference', 'read'],             'apiServiceIncidentStatusesList'],
     ['GET',    '#^/service-impact-levels$#',               ['reference', 'read'],             'apiServiceImpactLevelsList'],
 
+    ['GET',    '#^/morning-checks/checks$#',               ['morning_checks', 'read'],        'apiMorningChecksList'],
+    ['POST',   '#^/morning-checks/checks$#',               ['morning_checks', 'create'],      'apiMorningChecksCreate'],
+    ['GET',    '#^/morning-checks/checks/(\d+)$#',         ['morning_checks', 'read'],        'apiMorningChecksGet'],
+    ['PATCH',  '#^/morning-checks/checks/(\d+)$#',         ['morning_checks', 'update'],      'apiMorningChecksUpdate'],
+    ['DELETE', '#^/morning-checks/checks/(\d+)$#',         ['morning_checks', 'delete'],      'apiMorningChecksDelete'],
+    ['GET',    '#^/morning-checks/board$#',                ['morning_check_results', 'read'], 'apiMorningChecksBoard'],
+    ['GET',    '#^/morning-checks/results$#',              ['morning_check_results', 'read'], 'apiMorningCheckResultsList'],
+    ['GET',    '#^/morning-checks/results/(\d+)$#',        ['morning_check_results', 'read'], 'apiMorningCheckResultsGet'],
+    ['POST',   '#^/morning-checks/results$#',              ['morning_check_results', 'record'], 'apiMorningCheckResultsRecord'],
+    ['GET',    '#^/morning-check-statuses$#',              ['reference', 'read'],             'apiMorningCheckStatusesList'],
+
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
     ['GET',    '#^/users/(\d+)$#',                         ['users', 'read'],                 'apiUsersGet'],
@@ -319,6 +331,11 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'POST /service-status/incidents', 'GET /service-status/incidents/{id}',
             'PATCH /service-status/incidents/{id}', 'DELETE /service-status/incidents/{id}',
             'GET /service-incident-statuses', 'GET /service-impact-levels',
+            'GET /morning-checks/checks', 'POST /morning-checks/checks',
+            'GET /morning-checks/checks/{id}', 'PATCH /morning-checks/checks/{id}',
+            'DELETE /morning-checks/checks/{id}', 'GET /morning-checks/board',
+            'GET /morning-checks/results', 'POST /morning-checks/results',
+            'GET /morning-checks/results/{id}', 'GET /morning-check-statuses',
             'GET /users', 'POST /users', 'GET /users/{id}',
             'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',

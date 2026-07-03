@@ -284,6 +284,22 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Delete an incident and its service links',
             ],
         ],
+        'morning_checks' => [
+            'label'   => 'Morning checks',
+            'actions' => [
+                'read'   => 'List and view check definitions',
+                'create' => 'Add checks',
+                'update' => 'Update checks (name, description, order, active)',
+                'delete' => 'Delete a check and all its historical results',
+            ],
+        ],
+        'morning_check_results' => [
+            'label'   => 'Morning check results',
+            'actions' => [
+                'read'   => 'The day board (every active check with its result for a date) and result history',
+                'record' => 'Record a result — one per check per day, overwriting any earlier result for that day',
+            ],
+        ],
         'users' => [
             'label'   => 'Requesters',
             'actions' => [
@@ -307,7 +323,7 @@ function apiV1PermissionCatalog(): array {
         'reference' => [
             'label'   => 'Reference data',
             'actions' => [
-                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers (lite list), problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types, contract statuses/term tabs, payment schedules, supplier types/statuses, calendar categories, service incident statuses / impact levels',
+                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers (lite list), problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types, contract statuses/term tabs, payment schedules, supplier types/statuses, calendar categories, service incident statuses / impact levels, morning-check statuses',
             ],
         ],
     ];

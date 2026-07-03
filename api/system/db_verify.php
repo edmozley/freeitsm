@@ -3217,6 +3217,37 @@ try {
                 $results[] = ['table' => 'morningChecks_Results', 'status' => 'updated', 'details' => ['Added fk_results_status (StatusID → morningChecks_Statuses.StatusID, ON DELETE SET NULL)']];
             } catch (Exception $e) { /* shrug — possibly mismatched engine */ }
         }
+
+        // Step 4: the check FK (fk_results_checks in freeitsm.sql) was never
+        // backfilled here, so installs grown via Database Verification could
+        // hold results pointing at deleted checks. Remove any such orphans
+        // (a result without its check is meaningless — the UI deletes a
+        // check's results with the check), then add the constraint.
+        $hasCheckFk = $conn->prepare(
+            "SELECT COUNT(*) FROM information_schema.table_constraints
+             WHERE table_schema = ? AND table_name = 'morningChecks_Results'
+               AND constraint_name = 'fk_results_checks' AND constraint_type = 'FOREIGN KEY'"
+        );
+        $hasCheckFk->execute([$dbName]);
+        if ((int)$hasCheckFk->fetchColumn() === 0 && $tableExists('morningChecks_Checks')) {
+            try {
+                $orphans = $conn->exec(
+                    "DELETE r FROM morningChecks_Results r
+                     LEFT JOIN morningChecks_Checks c ON c.CheckID = r.CheckID
+                     WHERE c.CheckID IS NULL"
+                );
+                $conn->exec(
+                    "ALTER TABLE morningChecks_Results
+                     ADD CONSTRAINT fk_results_checks
+                     FOREIGN KEY (CheckID) REFERENCES morningChecks_Checks (CheckID)"
+                );
+                $details = ['Added fk_results_checks (CheckID → morningChecks_Checks.CheckID)'];
+                if ($orphans > 0) {
+                    $details[] = "Removed $orphans orphaned result row(s) whose check no longer exists";
+                }
+                $results[] = ['table' => 'morningChecks_Results', 'status' => 'updated', 'details' => $details];
+            } catch (Exception $e) { /* shrug — possibly mismatched engine */ }
+        }
     }
 
     // Seed default change impacts
@@ -3969,6 +4000,7 @@ try {
         ['api_keys', 'uq_api_keys_hash', '(`key_hash`)'],
         ['api_key_rate_limits', 'uq_api_key_window', '(`api_key_id`, `window_start`)'],
         ['contract_term_values', 'uq_ctv_contract_tab', '(`contract_id`, `term_tab_id`)'],
+        ['morningChecks_Results', 'uq_check_date', '(`CheckID`, `CheckDate`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {
@@ -4002,6 +4034,13 @@ try {
                 $conn->exec("DELETE t1 FROM contract_term_values t1
                              INNER JOIN contract_term_values t2
                              ON t1.contract_id = t2.contract_id AND t1.term_tab_id = t2.term_tab_id AND t1.id < t2.id");
+            }
+            // For morningChecks_Results: same select-then-insert upsert shape —
+            // keep the newest row per (check, date) before adding the unique key
+            if ($tbl === 'morningChecks_Results') {
+                $conn->exec("DELETE t1 FROM morningChecks_Results t1
+                             INNER JOIN morningChecks_Results t2
+                             ON t1.CheckID = t2.CheckID AND t1.CheckDate = t2.CheckDate AND t1.ResultID < t2.ResultID");
             }
 
             $conn->exec("ALTER TABLE `$tbl` ADD UNIQUE KEY `$idxName` $cols");

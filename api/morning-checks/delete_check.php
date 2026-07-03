@@ -24,19 +24,24 @@ try {
 
     $conn = connectToDatabase();
 
-    // First delete all associated results
+    // Results-then-check, in a transaction — a mid-way failure must not
+    // leave the check stripped of its history but still present.
+    $conn->beginTransaction();
+
     $sql = "DELETE FROM morningChecks_Results WHERE CheckID = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([(int)$checkId]);
 
-    // Then delete the check
     $sql = "DELETE FROM morningChecks_Checks WHERE CheckID = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([(int)$checkId]);
 
+    $conn->commit();
+
     echo json_encode(['success' => true]);
 
 } catch (Exception $e) {
+    if (isset($conn) && $conn->inTransaction()) $conn->rollBack();
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
 }
