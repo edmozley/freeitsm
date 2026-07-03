@@ -26,6 +26,7 @@ require_once __DIR__ . '/resources/cmdb.php';
 require_once __DIR__ . '/resources/contracts.php';
 require_once __DIR__ . '/resources/calendar.php';
 require_once __DIR__ . '/resources/software.php';
+require_once __DIR__ . '/resources/service_status.php';
 
 // --- Resolve the request path ---------------------------------------------
 $path = $_SERVER['PATH_INFO'] ?? '';
@@ -192,6 +193,19 @@ $routes = [
     ['PATCH',  '#^/software/licences/(\d+)$#',             ['software_licences', 'update'],   'apiSoftwareLicencesUpdate'],
     ['DELETE', '#^/software/licences/(\d+)$#',             ['software_licences', 'delete'],   'apiSoftwareLicencesDelete'],
 
+    ['GET',    '#^/service-status/services$#',             ['services', 'read'],              'apiStatusServicesList'],
+    ['POST',   '#^/service-status/services$#',             ['services', 'create'],            'apiStatusServicesCreate'],
+    ['GET',    '#^/service-status/services/(\d+)$#',       ['services', 'read'],              'apiStatusServicesGet'],
+    ['PATCH',  '#^/service-status/services/(\d+)$#',       ['services', 'update'],            'apiStatusServicesUpdate'],
+    ['DELETE', '#^/service-status/services/(\d+)$#',       ['services', 'delete'],            'apiStatusServicesDelete'],
+    ['GET',    '#^/service-status/incidents$#',            ['service_incidents', 'read'],     'apiStatusIncidentsList'],
+    ['POST',   '#^/service-status/incidents$#',            ['service_incidents', 'create'],   'apiStatusIncidentsCreate'],
+    ['GET',    '#^/service-status/incidents/(\d+)$#',      ['service_incidents', 'read'],     'apiStatusIncidentsGet'],
+    ['PATCH',  '#^/service-status/incidents/(\d+)$#',      ['service_incidents', 'update'],   'apiStatusIncidentsUpdate'],
+    ['DELETE', '#^/service-status/incidents/(\d+)$#',      ['service_incidents', 'delete'],   'apiStatusIncidentsDelete'],
+    ['GET',    '#^/service-incident-statuses$#',           ['reference', 'read'],             'apiServiceIncidentStatusesList'],
+    ['GET',    '#^/service-impact-levels$#',               ['reference', 'read'],             'apiServiceImpactLevelsList'],
+
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
     ['GET',    '#^/users/(\d+)$#',                         ['users', 'read'],                 'apiUsersGet'],
@@ -299,6 +313,12 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /software/apps', 'GET /software/apps/{id}', 'GET /software/apps/{id}/machines',
             'GET /software/licences', 'POST /software/licences', 'GET /software/licences/{id}',
             'PATCH /software/licences/{id}', 'DELETE /software/licences/{id}',
+            'GET /service-status/services', 'POST /service-status/services',
+            'GET /service-status/services/{id}', 'PATCH /service-status/services/{id}',
+            'DELETE /service-status/services/{id}', 'GET /service-status/incidents',
+            'POST /service-status/incidents', 'GET /service-status/incidents/{id}',
+            'PATCH /service-status/incidents/{id}', 'DELETE /service-status/incidents/{id}',
+            'GET /service-incident-statuses', 'GET /service-impact-levels',
             'GET /users', 'POST /users', 'GET /users/{id}',
             'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',

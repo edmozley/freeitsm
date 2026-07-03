@@ -24,11 +24,17 @@ try {
 
     $conn = connectToDatabase();
 
-    // Remove affected services first
-    $conn->prepare("DELETE FROM status_incident_services WHERE incident_id = ?")->execute([$id]);
-
-    // Delete the incident
-    $conn->prepare("DELETE FROM status_incidents WHERE id = ?")->execute([$id]);
+    // Junction cleanup + delete atomically — a mid-way failure would
+    // otherwise strand the affected-service rows without their incident.
+    $conn->beginTransaction();
+    try {
+        $conn->prepare("DELETE FROM status_incident_services WHERE incident_id = ?")->execute([$id]);
+        $conn->prepare("DELETE FROM status_incidents WHERE id = ?")->execute([$id]);
+        $conn->commit();
+    } catch (Exception $e) {
+        if ($conn->inTransaction()) $conn->rollBack();
+        throw $e;
+    }
 
     echo json_encode(['success' => true]);
 } catch (Exception $e) {

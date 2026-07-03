@@ -266,6 +266,24 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Delete licences',
             ],
         ],
+        'services' => [
+            'label'   => 'Status services',
+            'actions' => [
+                'read'   => 'The service health board (derived live status per service) and service records',
+                'create' => 'Add services to the status board',
+                'update' => 'Update service records',
+                'delete' => 'Delete a service (its incident links go with it)',
+            ],
+        ],
+        'service_incidents' => [
+            'label'   => 'Status incidents',
+            'actions' => [
+                'read'   => 'List and view status incidents with affected services and impacts',
+                'create' => 'Open incidents (with per-service impact levels)',
+                'update' => 'Update incidents — status, comment, affected services; resolving stamps resolved_at',
+                'delete' => 'Delete an incident and its service links',
+            ],
+        ],
         'users' => [
             'label'   => 'Requesters',
             'actions' => [
@@ -289,7 +307,7 @@ function apiV1PermissionCatalog(): array {
         'reference' => [
             'label'   => 'Reference data',
             'actions' => [
-                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers (lite list), problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types, contract statuses/term tabs, payment schedules, supplier types/statuses, calendar categories',
+                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers (lite list), problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types, contract statuses/term tabs, payment schedules, supplier types/statuses, calendar categories, service incident statuses / impact levels',
             ],
         ],
     ];
