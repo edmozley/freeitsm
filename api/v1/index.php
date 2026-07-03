@@ -22,6 +22,7 @@ require_once __DIR__ . '/resources/problems.php';
 require_once __DIR__ . '/resources/changes.php';
 require_once __DIR__ . '/resources/knowledge.php';
 require_once __DIR__ . '/resources/tasks.php';
+require_once __DIR__ . '/resources/cmdb.php';
 
 // --- Resolve the request path ---------------------------------------------
 $path = $_SERVER['PATH_INFO'] ?? '';
@@ -136,6 +137,21 @@ $routes = [
     ['GET',    '#^/task-priorities$#',                     ['reference', 'read'],             'apiTaskPrioritiesList'],
     ['GET',    '#^/task-tags$#',                           ['reference', 'read'],             'apiTaskTagsList'],
 
+    ['GET',    '#^/cmdb/classes$#',                        ['cmdb_classes', 'read'],          'apiCmdbClassesList'],
+    ['GET',    '#^/cmdb/classes/(\d+)$#',                  ['cmdb_classes', 'read'],          'apiCmdbClassesGet'],
+    ['GET',    '#^/cmdb/objects$#',                        ['cmdb_objects', 'read'],          'apiCmdbObjectsList'],
+    ['POST',   '#^/cmdb/objects$#',                        ['cmdb_objects', 'create'],        'apiCmdbObjectsCreate'],
+    ['GET',    '#^/cmdb/objects/(\d+)$#',                  ['cmdb_objects', 'read'],          'apiCmdbObjectsGet'],
+    ['PATCH',  '#^/cmdb/objects/(\d+)$#',                  ['cmdb_objects', 'update'],        'apiCmdbObjectsUpdate'],
+    ['DELETE', '#^/cmdb/objects/(\d+)$#',                  ['cmdb_objects', 'delete'],        'apiCmdbObjectsDelete'],
+    ['GET',    '#^/cmdb/objects/(\d+)/impact$#',           ['cmdb_objects', 'read'],          'apiCmdbObjectImpact'],
+    ['POST',   '#^/cmdb/objects/(\d+)/relationships$#',    ['cmdb_relationships', 'create'],  'apiCmdbRelationshipsCreate'],
+    ['DELETE', '#^/cmdb/objects/(\d+)/relationships/(\d+)$#', ['cmdb_relationships', 'delete'], 'apiCmdbRelationshipsDelete'],
+    ['GET',    '#^/cmdb/objects/(\d+)/tickets$#',          ['cmdb_ticket_links', 'read'],     'apiCmdbObjectTicketsList'],
+    ['POST',   '#^/cmdb/objects/(\d+)/tickets$#',          ['cmdb_ticket_links', 'create'],   'apiCmdbObjectTicketsLink'],
+    ['DELETE', '#^/cmdb/objects/(\d+)/tickets/(\d+)$#',    ['cmdb_ticket_links', 'delete'],   'apiCmdbObjectTicketsUnlink'],
+    ['GET',    '#^/cmdb-relationship-types$#',             ['reference', 'read'],             'apiCmdbRelationshipTypesList'],
+
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
     ['GET',    '#^/users/(\d+)$#',                         ['users', 'read'],                 'apiUsersGet'],
@@ -225,6 +241,12 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /tasks', 'POST /tasks', 'GET /tasks/{id}', 'PATCH /tasks/{id}', 'DELETE /tasks/{id}',
             'POST /tasks/{id}/move', 'GET /tasks/{id}/comments', 'POST /tasks/{id}/comments',
             'GET /task-statuses', 'GET /task-priorities', 'GET /task-tags',
+            'GET /cmdb/classes', 'GET /cmdb/classes/{id}', 'GET /cmdb/objects', 'POST /cmdb/objects',
+            'GET /cmdb/objects/{id}', 'PATCH /cmdb/objects/{id}', 'DELETE /cmdb/objects/{id}',
+            'GET /cmdb/objects/{id}/impact', 'POST /cmdb/objects/{id}/relationships',
+            'DELETE /cmdb/objects/{id}/relationships/{rel_id}', 'GET /cmdb/objects/{id}/tickets',
+            'POST /cmdb/objects/{id}/tickets', 'DELETE /cmdb/objects/{id}/tickets/{ticket_id}',
+            'GET /cmdb-relationship-types',
             'GET /users', 'POST /users', 'GET /users/{id}',
             'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',

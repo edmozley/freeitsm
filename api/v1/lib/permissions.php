@@ -178,6 +178,36 @@ function apiV1PermissionCatalog(): array {
                 'create' => 'Add a comment to a task',
             ],
         ],
+        'cmdb_classes' => [
+            'label'   => 'CMDB classes',
+            'actions' => [
+                'read' => 'Read class definitions, their typed properties and dropdown options',
+            ],
+        ],
+        'cmdb_objects' => [
+            'label'   => 'CMDB objects',
+            'actions' => [
+                'read'   => 'List, search and view configuration items (including impact analysis)',
+                'create' => 'Create configuration items (typed properties validated)',
+                'update' => 'Update configuration items and their property values',
+                'delete' => 'Permanently delete a configuration item and its descendant tree',
+            ],
+        ],
+        'cmdb_relationships' => [
+            'label'   => 'CMDB relationships',
+            'actions' => [
+                'create' => 'Link two configuration items (depends on, connects to, …)',
+                'delete' => 'Remove a relationship between configuration items',
+            ],
+        ],
+        'cmdb_ticket_links' => [
+            'label'   => 'CMDB ticket links',
+            'actions' => [
+                'read'   => 'See the tickets linked to a configuration item (company-scoped)',
+                'create' => 'Link a ticket to a configuration item',
+                'delete' => 'Unlink a ticket from a configuration item',
+            ],
+        ],
         'users' => [
             'label'   => 'Requesters',
             'actions' => [
@@ -201,7 +231,7 @@ function apiV1PermissionCatalog(): array {
         'reference' => [
             'label'   => 'Reference data',
             'actions' => [
-                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers, problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags',
+                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers, problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types',
             ],
         ],
     ];

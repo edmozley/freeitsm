@@ -3412,6 +3412,31 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // CMDB foreign keys (db_verify $schema only builds columns + PK; grown
+    // installs had NONE of these, so the module's cascade-delete design
+    // silently didn't apply there). Names + delete rules match freeitsm.sql.
+    $cmdbFks = [
+        ['cmdb_classes',                'fk_cmdb_classes_icon',    "ALTER TABLE cmdb_classes ADD CONSTRAINT fk_cmdb_classes_icon FOREIGN KEY (icon_id) REFERENCES cmdb_icons (id) ON DELETE SET NULL"],
+        ['cmdb_class_properties',       'fk_cmdb_cp_class',        "ALTER TABLE cmdb_class_properties ADD CONSTRAINT fk_cmdb_cp_class FOREIGN KEY (class_id) REFERENCES cmdb_classes (id) ON DELETE CASCADE"],
+        ['cmdb_class_properties',       'fk_cmdb_cp_target_class', "ALTER TABLE cmdb_class_properties ADD CONSTRAINT fk_cmdb_cp_target_class FOREIGN KEY (target_class_id) REFERENCES cmdb_classes (id)"],
+        ['cmdb_class_property_options', 'fk_cmdb_cpo_property',    "ALTER TABLE cmdb_class_property_options ADD CONSTRAINT fk_cmdb_cpo_property FOREIGN KEY (property_id) REFERENCES cmdb_class_properties (id) ON DELETE CASCADE"],
+        ['cmdb_objects',                'fk_cmdb_objects_class',   "ALTER TABLE cmdb_objects ADD CONSTRAINT fk_cmdb_objects_class FOREIGN KEY (class_id) REFERENCES cmdb_classes (id)"],
+        ['cmdb_objects',                'fk_cmdb_objects_parent',  "ALTER TABLE cmdb_objects ADD CONSTRAINT fk_cmdb_objects_parent FOREIGN KEY (parent_id) REFERENCES cmdb_objects (id) ON DELETE CASCADE"],
+        ['cmdb_object_properties',      'fk_cmdb_op_object',       "ALTER TABLE cmdb_object_properties ADD CONSTRAINT fk_cmdb_op_object FOREIGN KEY (object_id) REFERENCES cmdb_objects (id) ON DELETE CASCADE"],
+        ['cmdb_object_properties',      'fk_cmdb_op_property',     "ALTER TABLE cmdb_object_properties ADD CONSTRAINT fk_cmdb_op_property FOREIGN KEY (property_id) REFERENCES cmdb_class_properties (id) ON DELETE CASCADE"],
+        ['cmdb_object_properties',      'fk_cmdb_op_value_object', "ALTER TABLE cmdb_object_properties ADD CONSTRAINT fk_cmdb_op_value_object FOREIGN KEY (value_object_id) REFERENCES cmdb_objects (id) ON DELETE SET NULL"],
+        ['cmdb_object_relationships',   'fk_cmdb_or_from',         "ALTER TABLE cmdb_object_relationships ADD CONSTRAINT fk_cmdb_or_from FOREIGN KEY (from_object_id) REFERENCES cmdb_objects (id) ON DELETE CASCADE"],
+        ['cmdb_object_relationships',   'fk_cmdb_or_to',           "ALTER TABLE cmdb_object_relationships ADD CONSTRAINT fk_cmdb_or_to FOREIGN KEY (to_object_id) REFERENCES cmdb_objects (id) ON DELETE CASCADE"],
+        ['cmdb_object_relationships',   'fk_cmdb_or_type',         "ALTER TABLE cmdb_object_relationships ADD CONSTRAINT fk_cmdb_or_type FOREIGN KEY (relationship_type_id) REFERENCES cmdb_relationship_types (id)"],
+        ['ticket_cmdb_objects',         'fk_tco_ticket',           "ALTER TABLE ticket_cmdb_objects ADD CONSTRAINT fk_tco_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"],
+        ['ticket_cmdb_objects',         'fk_tco_cmdb_object',      "ALTER TABLE ticket_cmdb_objects ADD CONSTRAINT fk_tco_cmdb_object FOREIGN KEY (cmdb_object_id) REFERENCES cmdb_objects (id) ON DELETE CASCADE"],
+        ['ticket_cmdb_objects',         'fk_tco_analyst',          "ALTER TABLE ticket_cmdb_objects ADD CONSTRAINT fk_tco_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+    ];
+    foreach ($cmdbFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
     // REST API v1 key foreign keys (db_verify $schema only builds columns + PK)
     $apiKeyFks = [
         ['api_keys',            'fk_api_keys_analyst',        "ALTER TABLE api_keys ADD CONSTRAINT fk_api_keys_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id)"],
