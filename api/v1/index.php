@@ -23,6 +23,7 @@ require_once __DIR__ . '/resources/changes.php';
 require_once __DIR__ . '/resources/knowledge.php';
 require_once __DIR__ . '/resources/tasks.php';
 require_once __DIR__ . '/resources/cmdb.php';
+require_once __DIR__ . '/resources/contracts.php';
 
 // --- Resolve the request path ---------------------------------------------
 $path = $_SERVER['PATH_INFO'] ?? '';
@@ -152,6 +153,27 @@ $routes = [
     ['DELETE', '#^/cmdb/objects/(\d+)/tickets/(\d+)$#',    ['cmdb_ticket_links', 'delete'],   'apiCmdbObjectTicketsUnlink'],
     ['GET',    '#^/cmdb-relationship-types$#',             ['reference', 'read'],             'apiCmdbRelationshipTypesList'],
 
+    ['GET',    '#^/contracts$#',                           ['contracts', 'read'],             'apiContractsList'],
+    ['POST',   '#^/contracts$#',                           ['contracts', 'create'],           'apiContractsCreate'],
+    ['GET',    '#^/contracts/(\d+)$#',                     ['contracts', 'read'],             'apiContractsGet'],
+    ['PATCH',  '#^/contracts/(\d+)$#',                     ['contracts', 'update'],           'apiContractsUpdate'],
+    ['DELETE', '#^/contracts/(\d+)$#',                     ['contracts', 'delete'],           'apiContractsDelete'],
+    ['GET',    '#^/contracts/(\d+)/terms$#',               ['contract_terms', 'read'],        'apiContractTermsGet'],
+    ['POST',   '#^/contracts/(\d+)/terms$#',               ['contract_terms', 'update'],      'apiContractTermsSave'],
+    ['POST',   '#^/suppliers$#',                           ['suppliers', 'create'],           'apiSuppliersCreate'],
+    ['GET',    '#^/suppliers/(\d+)$#',                     ['suppliers', 'read'],             'apiSuppliersGet'],
+    ['PATCH',  '#^/suppliers/(\d+)$#',                     ['suppliers', 'update'],           'apiSuppliersUpdate'],
+    ['DELETE', '#^/suppliers/(\d+)$#',                     ['suppliers', 'delete'],           'apiSuppliersDelete'],
+    ['GET',    '#^/suppliers/(\d+)/contacts$#',            ['supplier_contacts', 'read'],     'apiSupplierContactsList'],
+    ['POST',   '#^/suppliers/(\d+)/contacts$#',            ['supplier_contacts', 'create'],   'apiSupplierContactsCreate'],
+    ['PATCH',  '#^/suppliers/(\d+)/contacts/(\d+)$#',      ['supplier_contacts', 'update'],   'apiSupplierContactsUpdate'],
+    ['DELETE', '#^/suppliers/(\d+)/contacts/(\d+)$#',      ['supplier_contacts', 'delete'],   'apiSupplierContactsDelete'],
+    ['GET',    '#^/contract-statuses$#',                   ['reference', 'read'],             'apiContractStatusesList'],
+    ['GET',    '#^/payment-schedules$#',                   ['reference', 'read'],             'apiPaymentSchedulesList'],
+    ['GET',    '#^/supplier-types$#',                      ['reference', 'read'],             'apiSupplierTypesList'],
+    ['GET',    '#^/supplier-statuses$#',                   ['reference', 'read'],             'apiSupplierStatusesList'],
+    ['GET',    '#^/contract-term-tabs$#',                  ['reference', 'read'],             'apiContractTermTabsList'],
+
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
     ['GET',    '#^/users/(\d+)$#',                         ['users', 'read'],                 'apiUsersGet'],
@@ -247,6 +269,13 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'DELETE /cmdb/objects/{id}/relationships/{rel_id}', 'GET /cmdb/objects/{id}/tickets',
             'POST /cmdb/objects/{id}/tickets', 'DELETE /cmdb/objects/{id}/tickets/{ticket_id}',
             'GET /cmdb-relationship-types',
+            'GET /contracts', 'POST /contracts', 'GET /contracts/{id}', 'PATCH /contracts/{id}',
+            'DELETE /contracts/{id}', 'GET /contracts/{id}/terms', 'POST /contracts/{id}/terms',
+            'POST /suppliers', 'GET /suppliers/{id}', 'PATCH /suppliers/{id}', 'DELETE /suppliers/{id}',
+            'GET /suppliers/{id}/contacts', 'POST /suppliers/{id}/contacts',
+            'PATCH /suppliers/{id}/contacts/{contact_id}', 'DELETE /suppliers/{id}/contacts/{contact_id}',
+            'GET /contract-statuses', 'GET /payment-schedules', 'GET /supplier-types',
+            'GET /supplier-statuses', 'GET /contract-term-tabs',
             'GET /users', 'POST /users', 'GET /users/{id}',
             'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',

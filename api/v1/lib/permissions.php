@@ -208,6 +208,40 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Unlink a ticket from a configuration item',
             ],
         ],
+        'contracts' => [
+            'label'   => 'Contracts',
+            'actions' => [
+                'read'   => 'List and view contracts (including renewal/expiry and notice-period filters)',
+                'create' => 'Create contracts',
+                'update' => 'Update contract fields (dates, value, supplier, governance, active flag)',
+                'delete' => 'Permanently delete a contract and its term values',
+            ],
+        ],
+        'contract_terms' => [
+            'label'   => 'Contract terms',
+            'actions' => [
+                'read'   => 'Read a contract\'s term-tab contents',
+                'update' => 'Write a contract\'s term-tab contents (per-tab upsert)',
+            ],
+        ],
+        'suppliers' => [
+            'label'   => 'Suppliers',
+            'actions' => [
+                'read'   => 'View full supplier records (address, registration, questionnaire, contacts)',
+                'create' => 'Create suppliers',
+                'update' => 'Update supplier records (including the supplies-assets flag)',
+                'delete' => 'Delete a supplier (contracts/contacts/assets keep their rows, unlinked)',
+            ],
+        ],
+        'supplier_contacts' => [
+            'label'   => 'Supplier contacts',
+            'actions' => [
+                'read'   => 'List a supplier\'s contacts',
+                'create' => 'Add contacts to a supplier',
+                'update' => 'Update a supplier\'s contacts',
+                'delete' => 'Remove a supplier\'s contacts',
+            ],
+        ],
         'users' => [
             'label'   => 'Requesters',
             'actions' => [
@@ -231,7 +265,7 @@ function apiV1PermissionCatalog(): array {
         'reference' => [
             'label'   => 'Reference data',
             'actions' => [
-                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers, problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types',
+                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers (lite list), problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types, contract statuses/term tabs, payment schedules, supplier types/statuses',
             ],
         ],
     ];

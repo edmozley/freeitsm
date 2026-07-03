@@ -3437,6 +3437,27 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // Contracts-domain foreign keys (db_verify $schema only builds columns +
+    // PK; this domain historically had NO FKs anywhere — not even in
+    // freeitsm.sql — so contract deletes orphaned term values). Names + rules
+    // match the constraints now in freeitsm.sql. Lookups use SET NULL to
+    // preserve the existing delete-freely settings behaviour.
+    $contractFks = [
+        ['suppliers',            'fk_suppliers_type',             "ALTER TABLE suppliers ADD CONSTRAINT fk_suppliers_type FOREIGN KEY (supplier_type_id) REFERENCES supplier_types (id) ON DELETE SET NULL"],
+        ['suppliers',            'fk_suppliers_status',           "ALTER TABLE suppliers ADD CONSTRAINT fk_suppliers_status FOREIGN KEY (supplier_status_id) REFERENCES supplier_statuses (id) ON DELETE SET NULL"],
+        ['contacts',             'fk_contacts_supplier',          "ALTER TABLE contacts ADD CONSTRAINT fk_contacts_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers (id) ON DELETE SET NULL"],
+        ['contracts',            'fk_contracts_supplier',         "ALTER TABLE contracts ADD CONSTRAINT fk_contracts_supplier FOREIGN KEY (supplier_id) REFERENCES suppliers (id) ON DELETE SET NULL"],
+        ['contracts',            'fk_contracts_owner',            "ALTER TABLE contracts ADD CONSTRAINT fk_contracts_owner FOREIGN KEY (contract_owner_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['contracts',            'fk_contracts_status',           "ALTER TABLE contracts ADD CONSTRAINT fk_contracts_status FOREIGN KEY (contract_status_id) REFERENCES contract_statuses (id) ON DELETE SET NULL"],
+        ['contracts',            'fk_contracts_payment_schedule', "ALTER TABLE contracts ADD CONSTRAINT fk_contracts_payment_schedule FOREIGN KEY (payment_schedule_id) REFERENCES payment_schedules (id) ON DELETE SET NULL"],
+        ['contract_term_values', 'fk_ctv_contract',               "ALTER TABLE contract_term_values ADD CONSTRAINT fk_ctv_contract FOREIGN KEY (contract_id) REFERENCES contracts (id) ON DELETE CASCADE"],
+        ['contract_term_values', 'fk_ctv_term_tab',               "ALTER TABLE contract_term_values ADD CONSTRAINT fk_ctv_term_tab FOREIGN KEY (term_tab_id) REFERENCES contract_term_tabs (id) ON DELETE CASCADE"],
+    ];
+    foreach ($contractFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
     // REST API v1 key foreign keys (db_verify $schema only builds columns + PK)
     $apiKeyFks = [
         ['api_keys',            'fk_api_keys_analyst',        "ALTER TABLE api_keys ADD CONSTRAINT fk_api_keys_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id)"],
@@ -3909,6 +3930,7 @@ try {
         ['problem_tickets', 'uq_problem_ticket', '(`problem_id`, `ticket_id`)'],
         ['api_keys', 'uq_api_keys_hash', '(`key_hash`)'],
         ['api_key_rate_limits', 'uq_api_key_window', '(`api_key_id`, `window_start`)'],
+        ['contract_term_values', 'uq_ctv_contract_tab', '(`contract_id`, `term_tab_id`)'],
     ];
 
     foreach ($uniqueIndexes as [$tbl, $idxName, $cols]) {
@@ -3934,6 +3956,14 @@ try {
                 $conn->exec("DELETE t1 FROM process_step_types t1
                              INNER JOIN process_step_types t2
                              ON t1.slug = t2.slug AND t1.id > t2.id");
+            }
+            // For contract_term_values: the old select-then-insert upsert could
+            // double-insert under concurrency — keep the newest row per
+            // (contract, tab) before adding the unique key
+            if ($tbl === 'contract_term_values') {
+                $conn->exec("DELETE t1 FROM contract_term_values t1
+                             INNER JOIN contract_term_values t2
+                             ON t1.contract_id = t2.contract_id AND t1.term_tab_id = t2.term_tab_id AND t1.id < t2.id");
             }
 
             $conn->exec("ALTER TABLE `$tbl` ADD UNIQUE KEY `$idxName` $cols");

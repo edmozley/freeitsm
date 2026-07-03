@@ -2219,7 +2219,9 @@ CREATE TABLE IF NOT EXISTS `suppliers` (
     `is_active`                     TINYINT(1) NOT NULL DEFAULT 1,
     `supplies_assets`               TINYINT(1) NOT NULL DEFAULT 0,
     `created_datetime`              DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_suppliers_type` FOREIGN KEY (`supplier_type_id`) REFERENCES `supplier_types` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_suppliers_status` FOREIGN KEY (`supplier_status_id`) REFERENCES `supplier_statuses` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `contacts` (
@@ -2234,7 +2236,8 @@ CREATE TABLE IF NOT EXISTS `contacts` (
     `switchboard`       VARCHAR(50) NULL,
     `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    CONSTRAINT `fk_contacts_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `contract_statuses` (
@@ -2291,7 +2294,13 @@ CREATE TABLE IF NOT EXISTS `contracts` (
     `dpia_dms_link`             VARCHAR(500) NULL,
     `is_active`                 TINYINT(1) NOT NULL DEFAULT 1,
     `created_datetime`          DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    KEY `ix_contracts_supplier_id` (`supplier_id`),
+    KEY `ix_contracts_contract_end` (`contract_end`),
+    CONSTRAINT `fk_contracts_supplier` FOREIGN KEY (`supplier_id`) REFERENCES `suppliers` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_contracts_owner` FOREIGN KEY (`contract_owner_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_contracts_status` FOREIGN KEY (`contract_status_id`) REFERENCES `contract_statuses` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_contracts_payment_schedule` FOREIGN KEY (`payment_schedule_id`) REFERENCES `payment_schedules` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `contract_term_values` (
@@ -2301,7 +2310,10 @@ CREATE TABLE IF NOT EXISTS `contract_term_values` (
     `content`           LONGTEXT NULL,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (`id`)
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_ctv_contract_tab` (`contract_id`, `term_tab_id`),
+    CONSTRAINT `fk_ctv_contract` FOREIGN KEY (`contract_id`) REFERENCES `contracts` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ctv_term_tab` FOREIGN KEY (`term_tab_id`) REFERENCES `contract_term_tabs` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
