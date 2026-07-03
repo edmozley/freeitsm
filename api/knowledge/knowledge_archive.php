@@ -105,14 +105,21 @@ function handleHardDelete($conn, $input) {
     $articleId = (int)$input['id'];
 
     // Only allow hard delete on archived articles
-    $sql = "DELETE FROM knowledge_articles WHERE id = ? AND is_archived = 1";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$articleId]);
-
-    if ($stmt->rowCount() === 0) {
+    $check = $conn->prepare("SELECT id FROM knowledge_articles WHERE id = ? AND is_archived = 1");
+    $check->execute([$articleId]);
+    if (!$check->fetchColumn()) {
         echo json_encode(['success' => false, 'error' => 'Article not found or not archived']);
         return;
     }
+
+    // Delete children explicitly, not via cascade: the versions FK has no
+    // ON DELETE CASCADE (a versioned article would otherwise refuse to
+    // delete), and installs grown via Database Verify may have no knowledge
+    // FKs at all (db_verify adds FKs separately from columns), which left
+    // orphaned tag links behind and blocked the orphaned-tag cleanup below.
+    $conn->prepare("DELETE FROM knowledge_article_versions WHERE article_id = ?")->execute([$articleId]);
+    $conn->prepare("DELETE FROM knowledge_article_tags WHERE article_id = ?")->execute([$articleId]);
+    $conn->prepare("DELETE FROM knowledge_articles WHERE id = ? AND is_archived = 1")->execute([$articleId]);
 
     // Clean up orphaned tags
     $cleanupSql = "DELETE FROM knowledge_tags
@@ -126,14 +133,22 @@ function purgeExpired($conn) {
     $days = getRetentionDays($conn);
     if ($days === 0) return; // 0 = keep forever
 
-    $sql = "DELETE FROM knowledge_articles
-            WHERE is_archived = 1
-            AND archived_datetime < DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? DAY)";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$days]);
+    // Delete children first (versions FK has no cascade; grown installs may
+    // lack the knowledge FKs entirely — see handleHardDelete).
+    $idsStmt = $conn->prepare(
+        "SELECT id FROM knowledge_articles
+         WHERE is_archived = 1
+         AND archived_datetime < DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? DAY)"
+    );
+    $idsStmt->execute([$days]);
+    $ids = $idsStmt->fetchAll(PDO::FETCH_COLUMN);
 
-    $purged = $stmt->rowCount();
-    if ($purged > 0) {
+    if ($ids) {
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        $conn->prepare("DELETE FROM knowledge_article_versions WHERE article_id IN ($placeholders)")->execute($ids);
+        $conn->prepare("DELETE FROM knowledge_article_tags WHERE article_id IN ($placeholders)")->execute($ids);
+        $conn->prepare("DELETE FROM knowledge_articles WHERE id IN ($placeholders)")->execute($ids);
+
         // Clean up orphaned tags after purge
         $cleanupSql = "DELETE FROM knowledge_tags
                        WHERE id NOT IN (SELECT DISTINCT tag_id FROM knowledge_article_tags)";

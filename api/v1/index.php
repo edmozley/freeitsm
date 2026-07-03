@@ -20,6 +20,7 @@ require_once __DIR__ . '/resources/reference.php';
 require_once __DIR__ . '/resources/assets.php';
 require_once __DIR__ . '/resources/problems.php';
 require_once __DIR__ . '/resources/changes.php';
+require_once __DIR__ . '/resources/knowledge.php';
 
 // --- Resolve the request path ---------------------------------------------
 $path = $_SERVER['PATH_INFO'] ?? '';
@@ -111,6 +112,17 @@ $routes = [
     ['GET',    '#^/change-impacts$#',                      ['reference', 'read'],             'apiChangeImpactsList'],
     ['GET',    '#^/change-categories$#',                   ['reference', 'read'],             'apiChangeCategoriesList'],
 
+    ['GET',    '#^/knowledge/articles$#',                  ['knowledge', 'read'],             'apiKnowledgeArticlesList'],
+    ['POST',   '#^/knowledge/articles$#',                  ['knowledge', 'create'],           'apiKnowledgeArticlesCreate'],
+    ['GET',    '#^/knowledge/articles/(\d+)$#',            ['knowledge', 'read'],             'apiKnowledgeArticlesGet'],
+    ['PATCH',  '#^/knowledge/articles/(\d+)$#',            ['knowledge', 'update'],           'apiKnowledgeArticlesUpdate'],
+    ['DELETE', '#^/knowledge/articles/(\d+)$#',            ['knowledge', 'delete'],           'apiKnowledgeArticlesDelete'],
+    ['POST',   '#^/knowledge/articles/(\d+)/restore$#',    ['knowledge', 'restore'],          'apiKnowledgeArticlesRestore'],
+    ['DELETE', '#^/knowledge/articles/(\d+)/permanent$#',  ['knowledge', 'purge'],            'apiKnowledgeArticlesPurge'],
+    ['GET',    '#^/knowledge/articles/(\d+)/versions$#',   ['knowledge_versions', 'read'],    'apiKnowledgeVersionsList'],
+    ['GET',    '#^/knowledge/articles/(\d+)/versions/(\d+)$#', ['knowledge_versions', 'read'], 'apiKnowledgeVersionsGet'],
+    ['GET',    '#^/knowledge/tags$#',                      ['reference', 'read'],             'apiKnowledgeTagsList'],
+
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
     ['GET',    '#^/users/(\d+)$#',                         ['users', 'read'],                 'apiUsersGet'],
@@ -192,6 +204,11 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /changes/{id}/cab', 'POST /changes/{id}/cab', 'POST /changes/{id}/cab/vote',
             'GET /change-statuses', 'GET /change-types', 'GET /change-priorities',
             'GET /change-impacts', 'GET /change-categories',
+            'GET /knowledge/articles', 'POST /knowledge/articles', 'GET /knowledge/articles/{id}',
+            'PATCH /knowledge/articles/{id}', 'DELETE /knowledge/articles/{id}',
+            'POST /knowledge/articles/{id}/restore', 'DELETE /knowledge/articles/{id}/permanent',
+            'GET /knowledge/articles/{id}/versions', 'GET /knowledge/articles/{id}/versions/{version}',
+            'GET /knowledge/tags',
             'GET /users', 'POST /users', 'GET /users/{id}',
             'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',

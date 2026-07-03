@@ -3393,6 +3393,25 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // Knowledge foreign keys (db_verify $schema only builds columns + PK; a
+    // grown install was missing all of these, which orphaned tag links on
+    // hard delete). Names + delete rules match freeitsm.sql. The article-tags
+    // FKs won't add while orphaned junction rows exist (MySQL refuses); the
+    // endpoints now clean children explicitly, so orphans stop accumulating.
+    $knowledgeFks = [
+        ['knowledge_articles',         'fk_knowledge_articles_author',      "ALTER TABLE knowledge_articles ADD CONSTRAINT fk_knowledge_articles_author FOREIGN KEY (author_id) REFERENCES analysts (id)"],
+        ['knowledge_articles',         'fk_knowledge_articles_owner',       "ALTER TABLE knowledge_articles ADD CONSTRAINT fk_knowledge_articles_owner FOREIGN KEY (owner_id) REFERENCES analysts (id)"],
+        ['knowledge_articles',         'fk_knowledge_articles_archived_by', "ALTER TABLE knowledge_articles ADD CONSTRAINT fk_knowledge_articles_archived_by FOREIGN KEY (archived_by_id) REFERENCES analysts (id)"],
+        ['knowledge_article_versions', 'fk_kav_article',                    "ALTER TABLE knowledge_article_versions ADD CONSTRAINT fk_kav_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id)"],
+        ['knowledge_article_versions', 'fk_kav_saved_by',                   "ALTER TABLE knowledge_article_versions ADD CONSTRAINT fk_kav_saved_by FOREIGN KEY (saved_by_id) REFERENCES analysts (id)"],
+        ['knowledge_article_tags',     'fk_article_tags_article',           "ALTER TABLE knowledge_article_tags ADD CONSTRAINT fk_article_tags_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE CASCADE"],
+        ['knowledge_article_tags',     'fk_article_tags_tag',               "ALTER TABLE knowledge_article_tags ADD CONSTRAINT fk_article_tags_tag FOREIGN KEY (tag_id) REFERENCES knowledge_tags (id) ON DELETE CASCADE"],
+    ];
+    foreach ($knowledgeFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
     // REST API v1 key foreign keys (db_verify $schema only builds columns + PK)
     $apiKeyFks = [
         ['api_keys',            'fk_api_keys_analyst',        "ALTER TABLE api_keys ADD CONSTRAINT fk_api_keys_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id)"],

@@ -145,6 +145,23 @@ function apiV1PermissionCatalog(): array {
                 'vote'   => 'Cast a CAB vote as the analyst this key acts as',
             ],
         ],
+        'knowledge' => [
+            'label'   => 'Knowledge base',
+            'actions' => [
+                'read'    => 'List, search and read articles (including the recycle bin and review filters)',
+                'create'  => 'Create articles (published immediately, like the UI)',
+                'update'  => 'Update articles, tags and review dates (optionally saving a version snapshot)',
+                'delete'  => 'Move articles to the recycle bin',
+                'restore' => 'Restore articles from the recycle bin',
+                'purge'   => 'Permanently delete an archived article',
+            ],
+        ],
+        'knowledge_versions' => [
+            'label'   => 'Article versions',
+            'actions' => [
+                'read' => 'Read an article\'s version history and snapshots',
+            ],
+        ],
         'users' => [
             'label'   => 'Requesters',
             'actions' => [
@@ -168,7 +185,7 @@ function apiV1PermissionCatalog(): array {
         'reference' => [
             'label'   => 'Reference data',
             'actions' => [
-                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers, problem statuses/priorities, change statuses/types/priorities/impacts/categories',
+                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers, problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags',
             ],
         ],
     ];
