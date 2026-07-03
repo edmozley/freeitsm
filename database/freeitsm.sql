@@ -1850,6 +1850,18 @@ CREATE TABLE IF NOT EXISTS `software_licences` (
     CONSTRAINT `fk_software_licences_analyst` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Ingest log for the software-inventory agent submissions. The submit
+-- endpoint has always written here (best-effort, failures swallowed) but the
+-- table was never defined anywhere — added 2026-07-03 so the logging works.
+CREATE TABLE IF NOT EXISTS `software_inventory_log` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `host_id`           INT NULL,
+    `api_response`      LONGTEXT NULL,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_sil_host_id` (`host_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `apikeys` (
     `id`         INT NOT NULL AUTO_INCREMENT,
     `apikey`     VARCHAR(50) NULL,

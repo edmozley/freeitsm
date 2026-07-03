@@ -251,6 +251,21 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Delete manual calendar events (generated events are read-only)',
             ],
         ],
+        'software_inventory' => [
+            'label'   => 'Software inventory',
+            'actions' => [
+                'read' => 'List applications with install counts, and the machines each is installed on (agent-owned, read-only)',
+            ],
+        ],
+        'software_licences' => [
+            'label'   => 'Software licences',
+            'actions' => [
+                'read'   => 'List and view licences (including compliance install counts and renewal status)',
+                'create' => 'Create licences',
+                'update' => 'Update licences',
+                'delete' => 'Delete licences',
+            ],
+        ],
         'users' => [
             'label'   => 'Requesters',
             'actions' => [

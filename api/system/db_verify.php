@@ -1532,6 +1532,16 @@ $schema = [
         'updated_at'        => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // Ingest log for software-inventory agent submissions — the submit
+    // endpoint always wrote here but the table was never defined (silent
+    // try/catch), so logging never worked. Defined 2026-07-03.
+    'software_inventory_log' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'host_id'          => 'INT NULL',
+        'api_response'     => 'LONGTEXT NULL',
+        'created_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'apikeys' => [
         'id'         => 'INT NOT NULL AUTO_INCREMENT',
         'apikey'     => 'VARCHAR(50) NULL',
@@ -3433,6 +3443,22 @@ try {
         ['ticket_cmdb_objects',         'fk_tco_analyst',          "ALTER TABLE ticket_cmdb_objects ADD CONSTRAINT fk_tco_analyst FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
     ];
     foreach ($cmdbFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
+    // Software-module foreign keys (db_verify $schema only builds columns +
+    // PK). Names + rules match freeitsm.sql; note the RESTRICT (no rule) FKs
+    // deliberately block deleting an app while installs/licences reference it.
+    $softwareFks = [
+        ['software_inventory_detail',        'fk_software_detail_app',      "ALTER TABLE software_inventory_detail ADD CONSTRAINT fk_software_detail_app FOREIGN KEY (app_id) REFERENCES software_inventory_apps (id)"],
+        ['software_licences',                'fk_software_licences_app',    "ALTER TABLE software_licences ADD CONSTRAINT fk_software_licences_app FOREIGN KEY (app_id) REFERENCES software_inventory_apps (id)"],
+        ['software_licences',                'fk_software_licences_analyst', "ALTER TABLE software_licences ADD CONSTRAINT fk_software_licences_analyst FOREIGN KEY (created_by) REFERENCES analysts (id)"],
+        ['software_dashboard_widgets',       'fk_sdw_app',                  "ALTER TABLE software_dashboard_widgets ADD CONSTRAINT fk_sdw_app FOREIGN KEY (app_id) REFERENCES software_inventory_apps (id) ON DELETE SET NULL"],
+        ['analyst_software_dashboard_widgets', 'fk_asdw_analyst',           "ALTER TABLE analyst_software_dashboard_widgets ADD CONSTRAINT fk_asdw_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id)"],
+        ['analyst_software_dashboard_widgets', 'fk_asdw_widget',            "ALTER TABLE analyst_software_dashboard_widgets ADD CONSTRAINT fk_asdw_widget FOREIGN KEY (widget_id) REFERENCES software_dashboard_widgets (id)"],
+    ];
+    foreach ($softwareFks as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
         try { $conn->exec($sql); } catch (Exception $e) {}
     }

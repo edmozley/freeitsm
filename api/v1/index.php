@@ -25,6 +25,7 @@ require_once __DIR__ . '/resources/tasks.php';
 require_once __DIR__ . '/resources/cmdb.php';
 require_once __DIR__ . '/resources/contracts.php';
 require_once __DIR__ . '/resources/calendar.php';
+require_once __DIR__ . '/resources/software.php';
 
 // --- Resolve the request path ---------------------------------------------
 $path = $_SERVER['PATH_INFO'] ?? '';
@@ -182,6 +183,15 @@ $routes = [
     ['DELETE', '#^/calendar/events/(\d+)$#',               ['calendar_events', 'delete'],     'apiCalendarEventsDelete'],
     ['GET',    '#^/calendar-categories$#',                 ['reference', 'read'],             'apiCalendarCategoriesList'],
 
+    ['GET',    '#^/software/apps$#',                       ['software_inventory', 'read'],    'apiSoftwareAppsList'],
+    ['GET',    '#^/software/apps/(\d+)$#',                 ['software_inventory', 'read'],    'apiSoftwareAppsGet'],
+    ['GET',    '#^/software/apps/(\d+)/machines$#',        ['software_inventory', 'read'],    'apiSoftwareAppMachinesList'],
+    ['GET',    '#^/software/licences$#',                   ['software_licences', 'read'],     'apiSoftwareLicencesList'],
+    ['POST',   '#^/software/licences$#',                   ['software_licences', 'create'],   'apiSoftwareLicencesCreate'],
+    ['GET',    '#^/software/licences/(\d+)$#',             ['software_licences', 'read'],     'apiSoftwareLicencesGet'],
+    ['PATCH',  '#^/software/licences/(\d+)$#',             ['software_licences', 'update'],   'apiSoftwareLicencesUpdate'],
+    ['DELETE', '#^/software/licences/(\d+)$#',             ['software_licences', 'delete'],   'apiSoftwareLicencesDelete'],
+
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
     ['GET',    '#^/users/(\d+)$#',                         ['users', 'read'],                 'apiUsersGet'],
@@ -286,6 +296,9 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /supplier-statuses', 'GET /contract-term-tabs',
             'GET /calendar/events', 'POST /calendar/events', 'GET /calendar/events/{id}',
             'PATCH /calendar/events/{id}', 'DELETE /calendar/events/{id}', 'GET /calendar-categories',
+            'GET /software/apps', 'GET /software/apps/{id}', 'GET /software/apps/{id}/machines',
+            'GET /software/licences', 'POST /software/licences', 'GET /software/licences/{id}',
+            'PATCH /software/licences/{id}', 'DELETE /software/licences/{id}',
             'GET /users', 'POST /users', 'GET /users/{id}',
             'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',
