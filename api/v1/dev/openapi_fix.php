@@ -52,8 +52,18 @@ function oaf_patch(&$node, $data, &$schemas, $depth = 0) {
     $g = 0;
     while (isset($node['$ref']) && $g++ < 20) { $n = preg_replace('~^#/components/schemas/~', '', $node['$ref']); if (!isset($schemas[$n])) return; oaf_patch($schemas[$n], $data, $schemas, $depth+1); return; }
     if (isset($node['allOf'])) { foreach ($node['allOf'] as &$s) oaf_patch($s, $data, $schemas, $depth+1); return; }
-    if ($data === null) { if (empty($node['nullable']) && isset($node['type'])) { $node['nullable'] = true; $patches++; } return; }
-    if (!isset($node['type'])) return;
+    if ($data === null) { if (empty($node['nullable'])) { $node['nullable'] = true; $patches++; } return; }
+    if (!isset($node['type'])) {
+        // Previously typeless (e.g. added from a null sample) — a concrete value
+        // now reveals the type. Upgrade in place, preserving nullable, then let
+        // the object/array handling below merge fields across rows.
+        $node['type'] = is_bool($data) ? 'boolean'
+            : (is_int($data) ? 'integer'
+            : (is_float($data) ? 'number'
+            : (is_string($data) ? 'string'
+            : (is_array($data) && ($data === [] || array_keys($data) === range(0, count($data)-1)) ? 'array' : 'object'))));
+        $patches++;
+    }
     if ($node['type'] === 'array' && is_array($data)) {
         if (!isset($node['items'])) $node['items'] = [];
         foreach ($data as $item) oaf_patch($node['items'], $item, $schemas, $depth+1);

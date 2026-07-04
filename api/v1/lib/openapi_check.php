@@ -74,5 +74,17 @@ $badEmpties = preg_match_all('/"(items|properties|schema|responses|content|compo
 $line($badEmpties === 0, "shape: $badEmpties object-typed fields wrongly serialized as []");
 if ($badEmpties) $fail++;
 
+// --- 6. no `nullable` without a `type` (meta-schema allows it, linters don't) -
+$bareNullable = 0;
+$walkN = function ($n) use (&$walkN, &$bareNullable) {
+    if (!is_array($n)) return;
+    if (isset($n['nullable']) && !isset($n['type']) && !isset($n['$ref'])
+        && !isset($n['allOf']) && !isset($n['anyOf']) && !isset($n['oneOf'])) $bareNullable++;
+    foreach ($n as $v) if (is_array($v)) $walkN($v);
+};
+$walkN($doc['components']['schemas']);
+$line($bareNullable === 0, "nullable: $bareNullable schema node(s) use `nullable` without a `type`");
+if ($bareNullable) $fail++;
+
 echo $fail === 0 ? "\nOpenAPI self-check: PASS\n" : "\nOpenAPI self-check: $fail FAILURE(S)\n";
 exit($fail === 0 ? 0 : 1);

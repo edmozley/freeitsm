@@ -2,7 +2,7 @@
 /**
  * FreeITSM REST API v1 — typed component schemas + per-endpoint response bindings
  * for the OpenAPI generator. Derived from the resource serializers and verified
- * against live responses. Consumed by lib/openapi.php.
+ * against live responses (api/v1/dev/openapi_verify.php). Consumed by lib/openapi.php.
  */
 return array (
   'schemas' => 
@@ -268,10 +268,12 @@ return array (
               ),
               'name' => 
               array (
+                'type' => 'string',
                 'nullable' => true,
               ),
               'email' => 
               array (
+                'type' => 'string',
                 'nullable' => true,
               ),
               'assigned_at' => 
@@ -281,10 +283,12 @@ return array (
               ),
               'expected_return_date' => 
               array (
+                'type' => 'string',
                 'nullable' => true,
               ),
               'notes' => 
               array (
+                'type' => 'string',
                 'nullable' => true,
               ),
             ),
@@ -598,10 +602,12 @@ return array (
                 ),
                 'tpm_version' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'bitlocker_status' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
               ),
@@ -655,10 +661,12 @@ return array (
               array (
                 'purchase_date' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'purchase_cost' => 
                 array (
+                  'type' => 'number',
                   'nullable' => true,
                 ),
                 'supplier' => 
@@ -680,10 +688,12 @@ return array (
                 ),
                 'order_number' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'warranty_expiry' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
               ),
@@ -2518,8 +2528,7 @@ return array (
         ),
         'value' => 
         array (
-          'nullable' => true,
-          'description' => 'Typed per the property\'s "type": a plain string for text/dropdown, a number for number, an ISO 8601 date-time string for date, a boolean for boolean, or the referenced object\'s integer id for object_ref. Null if the property has never been set.',
+          'description' => 'Polymorphic value, typed per the property definition (string, number, boolean, date or an object reference); null when unset.',
         ),
         'value_object' => 
         array (
@@ -3133,6 +3142,11 @@ return array (
         array (
           'nullable' => true,
           'description' => 'Array of choice labels for dropdown / radio / checkboxes fields; null for other field types (loosely typed — falls back to the raw stored string if it is not valid JSON).',
+          'type' => 'array',
+          'items' => 
+          array (
+            'type' => 'string',
+          ),
         ),
         'is_required' => 
         array (
@@ -3220,8 +3234,7 @@ return array (
         ),
         'value' => 
         array (
-          'nullable' => true,
-          'description' => 'The stored answer — a plain string for most field types, or an array of strings for checkboxes (decoded from its JSON storage).',
+          'description' => 'Polymorphic value, typed per the field or property definition.',
         ),
       ),
     ),
@@ -4308,6 +4321,7 @@ return array (
             ),
             'description' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'version_label' => 
@@ -4317,6 +4331,7 @@ return array (
             ),
             'parent_diagram_id' => 
             array (
+              'type' => 'integer',
               'nullable' => true,
             ),
             'is_current' => 
@@ -4466,10 +4481,12 @@ return array (
           array (
             'size' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'orientation' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
           ),
@@ -4488,14 +4505,17 @@ return array (
               array (
                 'left' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'center' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'right' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
               ),
@@ -4508,14 +4528,17 @@ return array (
               array (
                 'left' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'center' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'right' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
               ),
@@ -4559,6 +4582,7 @@ return array (
               ),
               'icon_override' => 
               array (
+                'type' => 'string',
                 'nullable' => true,
               ),
               'object' => 
@@ -4982,8 +5006,7 @@ return array (
         ),
         'value' => 
         array (
-          'nullable' => true,
-          'description' => 'Shape depends on type: text/dropdown = string, number = number, date = ISO 8601 string, boolean = bool, object_ref = {id, name}. Null if unset.',
+          'description' => 'Polymorphic value, typed per the field or property definition.',
         ),
       ),
     ),
@@ -5724,6 +5747,7 @@ return array (
             ),
             'preferred_name' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'created_at' => 
@@ -6758,6 +6782,7 @@ return array (
               ),
               'resolved_at' => 
               array (
+                'type' => 'string',
                 'nullable' => true,
               ),
             ),
@@ -6861,6 +6886,7 @@ return array (
                 ),
                 'colour' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'severity_order' => 
@@ -6897,6 +6923,7 @@ return array (
         ),
         'trading_name' => 
         array (
+          'type' => 'string',
           'nullable' => true,
         ),
         'display_name' => 
@@ -6906,18 +6933,22 @@ return array (
         ),
         'reg_number' => 
         array (
+          'type' => 'string',
           'nullable' => true,
         ),
         'vat_number' => 
         array (
+          'type' => 'string',
           'nullable' => true,
         ),
         'type' => 
         array (
+          'type' => 'object',
           'nullable' => true,
         ),
         'status' => 
         array (
+          'type' => 'object',
           'nullable' => true,
         ),
         'address' => 
@@ -6928,26 +6959,32 @@ return array (
           array (
             'line_1' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'line_2' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'city' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'county' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'postcode' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'country' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
           ),
@@ -6960,16 +6997,19 @@ return array (
           array (
             'date_issued' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'date_received' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
           ),
         ),
         'comments' => 
         array (
+          'type' => 'string',
           'nullable' => true,
         ),
         'is_active' => 
@@ -7141,6 +7181,7 @@ return array (
             ),
             'trading_name' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'display_name' => 
@@ -7150,18 +7191,22 @@ return array (
             ),
             'reg_number' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'vat_number' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'type' => 
             array (
+              'type' => 'object',
               'nullable' => true,
             ),
             'status' => 
             array (
+              'type' => 'object',
               'nullable' => true,
             ),
             'address' => 
@@ -7172,26 +7217,32 @@ return array (
               array (
                 'line_1' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'line_2' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'city' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'county' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'postcode' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'country' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
               ),
@@ -7204,16 +7255,19 @@ return array (
               array (
                 'date_issued' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
                 'date_received' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
               ),
             ),
             'comments' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'supplies_assets' => 
@@ -7465,6 +7519,7 @@ return array (
         ),
         'parent' => 
         array (
+          'type' => 'object',
           'nullable' => true,
         ),
         'subtask_list' => 
@@ -7503,10 +7558,12 @@ return array (
         ),
         'linked_ticket' => 
         array (
+          'type' => 'object',
           'nullable' => true,
         ),
         'linked_change' => 
         array (
+          'type' => 'object',
           'nullable' => true,
         ),
         'comments' => 
@@ -7778,6 +7835,7 @@ return array (
                 ),
                 'name' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
               ),
@@ -7794,12 +7852,14 @@ return array (
                 ),
                 'name' => 
                 array (
+                  'type' => 'string',
                   'nullable' => true,
                 ),
               ),
             ),
             'start_date' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'due_date' => 
@@ -7809,18 +7869,22 @@ return array (
             ),
             'parent_task_id' => 
             array (
+              'type' => 'integer',
               'nullable' => true,
             ),
             'ticket_id' => 
             array (
+              'type' => 'integer',
               'nullable' => true,
             ),
             'change_id' => 
             array (
+              'type' => 'integer',
               'nullable' => true,
             ),
             'contract_id' => 
             array (
+              'type' => 'integer',
               'nullable' => true,
             ),
             'board_position' => 
@@ -7876,6 +7940,7 @@ return array (
             ),
             'completed_at' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
           ),
@@ -8219,18 +8284,22 @@ return array (
             ),
             'ticket_type' => 
             array (
+              'type' => 'object',
               'nullable' => true,
             ),
             'origin' => 
             array (
+              'type' => 'object',
               'nullable' => true,
             ),
             'department' => 
             array (
+              'type' => 'object',
               'nullable' => true,
             ),
             'assigned_analyst' => 
             array (
+              'type' => 'object',
               'nullable' => true,
             ),
             'requester' => 
@@ -8257,14 +8326,17 @@ return array (
             ),
             'company' => 
             array (
+              'type' => 'object',
               'nullable' => true,
             ),
             'first_time_fix' => 
             array (
+              'type' => 'boolean',
               'nullable' => true,
             ),
             'it_training_provided' => 
             array (
+              'type' => 'boolean',
               'nullable' => true,
             ),
             'created_at' => 
@@ -8279,14 +8351,17 @@ return array (
             ),
             'closed_at' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'work_start_at' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
             'deleted_at' => 
             array (
+              'type' => 'string',
               'nullable' => true,
             ),
           ),
@@ -8769,6 +8844,7 @@ return array (
         array (
           'nullable' => true,
           'description' => 'The arg\'s default value; shape depends on its type, or null if none.',
+          'type' => 'string',
         ),
         'supports_vars' => 
         array (
@@ -8848,6 +8924,11 @@ return array (
         'value' => 
         array (
           'nullable' => true,
+          'type' => 'array',
+          'items' => 
+          array (
+            'type' => 'string',
+          ),
         ),
         'x' => 
         array (
@@ -8959,10 +9040,12 @@ return array (
                 ),
                 'department_id' => 
                 array (
+                  'type' => 'integer',
                   'nullable' => true,
                 ),
                 'type_id' => 
                 array (
+                  'type' => 'integer',
                   'nullable' => true,
                 ),
                 'assigned_analyst_id' => 
@@ -8975,6 +9058,7 @@ return array (
                 ),
                 'origin_id' => 
                 array (
+                  'type' => 'integer',
                   'nullable' => true,
                 ),
                 'created_by' => 
@@ -8994,6 +9078,7 @@ return array (
             ),
             'team_id' => 
             array (
+              'type' => 'integer',
               'nullable' => true,
             ),
           ),
