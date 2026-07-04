@@ -333,6 +333,15 @@ function apiV1PermissionCatalog(): array {
                 'read' => 'Read the engine\'s run history: status, payload snapshot, per-step log',
             ],
         ],
+        'network_diagrams' => [
+            'label'   => 'Network diagrams',
+            'actions' => [
+                'read'   => 'List and view diagrams fully hydrated (nodes with CMDB details, connectors, layout, versions, suggestions)',
+                'create' => 'Create diagrams (optionally with initial contents) and snapshot new versions',
+                'update' => 'Update diagram metadata/branding and edit contents — add/move/remove nodes and connectors',
+                'delete' => 'Delete the current version (or a whole version chain)',
+            ],
+        ],
         'users' => [
             'label'   => 'Requesters',
             'actions' => [
@@ -356,7 +365,7 @@ function apiV1PermissionCatalog(): array {
         'reference' => [
             'label'   => 'Reference data',
             'actions' => [
-                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers (lite list), problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types, contract statuses/term tabs, payment schedules, supplier types/statuses, calendar categories, service incident statuses / impact levels, morning-check statuses, workflow triggers/actions catalogues',
+                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers (lite list), problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types, contract statuses/term tabs, payment schedules, supplier types/statuses, calendar categories, service incident statuses / impact levels, morning-check statuses, workflow triggers/actions catalogues, CMDB icon catalogue',
             ],
         ],
     ];

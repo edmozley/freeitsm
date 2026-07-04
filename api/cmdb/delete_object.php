@@ -61,6 +61,17 @@ try {
         // object_ref values pointing at anything in the tree -> NULL (the FK's SET NULL rule)
         $conn->prepare("UPDATE cmdb_object_properties SET value_object_id = NULL WHERE value_object_id IN ($ph)")->execute($ids);
         $conn->prepare("DELETE FROM cmdb_object_properties WHERE object_id IN ($ph)")->execute($ids);
+        // Network Mapper: connector provenance pointing at these objects' relationships
+        // goes NULL (before the relationships die), then the objects' diagram nodes and
+        // their connectors go — the FKs' CASCADE/SET NULL rules, done explicitly so
+        // installs grown without the network FKs behave identically.
+        $conn->prepare("UPDATE network_diagram_connectors c JOIN cmdb_object_relationships r ON r.id = c.cmdb_relationship_id
+                        SET c.cmdb_relationship_id = NULL
+                        WHERE r.from_object_id IN ($ph) OR r.to_object_id IN ($ph)")->execute(array_merge($ids, $ids));
+        $conn->prepare("DELETE c FROM network_diagram_connectors c
+                        JOIN network_diagram_nodes n ON (n.id = c.from_node_id OR n.id = c.to_node_id)
+                        WHERE n.cmdb_object_id IN ($ph)")->execute($ids);
+        $conn->prepare("DELETE FROM network_diagram_nodes WHERE cmdb_object_id IN ($ph)")->execute($ids);
         $conn->prepare("DELETE FROM cmdb_object_relationships WHERE from_object_id IN ($ph) OR to_object_id IN ($ph)")->execute(array_merge($ids, $ids));
         $conn->prepare("DELETE FROM ticket_cmdb_objects WHERE cmdb_object_id IN ($ph)")->execute($ids);
         foreach (array_reverse($ids) as $oid) {

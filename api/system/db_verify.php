@@ -3597,6 +3597,52 @@ try {
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
 
+    // Network Mapper foreign keys (db_verify $schema only builds columns + PK;
+    // freeitsm.sql has had 7 of these 8 since the module shipped but grown
+    // installs got NONE — so delete_diagram.php's reliance on CASCADE orphaned
+    // nodes/connectors there, and deleting a CMDB object left its diagram
+    // nodes dangling). Orphans are cleaned first so the constraints attach:
+    // nodes of dead diagrams/objects go (CASCADE semantics, matching fresh
+    // installs), connectors of dead diagrams/nodes go, dangling provenance /
+    // parent / author pointers become NULL (SET NULL semantics).
+    if ($tableExists('network_diagrams')) {
+        try {
+            if ($tableExists('network_diagram_nodes')) {
+                $conn->exec("DELETE n FROM network_diagram_nodes n LEFT JOIN network_diagrams d ON d.id = n.diagram_id WHERE d.id IS NULL");
+                if ($tableExists('cmdb_objects')) {
+                    $conn->exec("DELETE n FROM network_diagram_nodes n LEFT JOIN cmdb_objects o ON o.id = n.cmdb_object_id WHERE o.id IS NULL");
+                }
+            }
+            if ($tableExists('network_diagram_connectors')) {
+                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagrams d ON d.id = c.diagram_id WHERE d.id IS NULL");
+                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.from_node_id WHERE n.id IS NULL");
+                $conn->exec("DELETE c FROM network_diagram_connectors c LEFT JOIN network_diagram_nodes n ON n.id = c.to_node_id WHERE n.id IS NULL");
+                if ($tableExists('cmdb_object_relationships')) {
+                    $conn->exec("UPDATE network_diagram_connectors c LEFT JOIN cmdb_object_relationships r ON r.id = c.cmdb_relationship_id
+                                 SET c.cmdb_relationship_id = NULL WHERE c.cmdb_relationship_id IS NOT NULL AND r.id IS NULL");
+                }
+            }
+            $conn->exec("UPDATE network_diagrams d LEFT JOIN network_diagrams p ON p.id = d.parent_diagram_id
+                         SET d.parent_diagram_id = NULL WHERE d.parent_diagram_id IS NOT NULL AND p.id IS NULL");
+            $conn->exec("UPDATE network_diagrams d LEFT JOIN analysts a ON a.id = d.created_by_analyst_id
+                         SET d.created_by_analyst_id = NULL WHERE d.created_by_analyst_id IS NOT NULL AND a.id IS NULL");
+        } catch (Exception $e) { /* shrug */ }
+    }
+    $networkFks = [
+        ['network_diagrams',           'fk_net_diag_parent', "ALTER TABLE network_diagrams ADD CONSTRAINT fk_net_diag_parent FOREIGN KEY (parent_diagram_id) REFERENCES network_diagrams (id) ON DELETE SET NULL"],
+        ['network_diagrams',           'fk_net_diag_author', "ALTER TABLE network_diagrams ADD CONSTRAINT fk_net_diag_author FOREIGN KEY (created_by_analyst_id) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['network_diagram_nodes',      'fk_net_node_diag',   "ALTER TABLE network_diagram_nodes ADD CONSTRAINT fk_net_node_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
+        ['network_diagram_nodes',      'fk_net_node_cmdb',   "ALTER TABLE network_diagram_nodes ADD CONSTRAINT fk_net_node_cmdb FOREIGN KEY (cmdb_object_id) REFERENCES cmdb_objects (id) ON DELETE CASCADE"],
+        ['network_diagram_connectors', 'fk_net_conn_diag',   "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_diag FOREIGN KEY (diagram_id) REFERENCES network_diagrams (id) ON DELETE CASCADE"],
+        ['network_diagram_connectors', 'fk_net_conn_from',   "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_from FOREIGN KEY (from_node_id) REFERENCES network_diagram_nodes (id) ON DELETE CASCADE"],
+        ['network_diagram_connectors', 'fk_net_conn_to',     "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_to FOREIGN KEY (to_node_id) REFERENCES network_diagram_nodes (id) ON DELETE CASCADE"],
+        ['network_diagram_connectors', 'fk_net_conn_rel',    "ALTER TABLE network_diagram_connectors ADD CONSTRAINT fk_net_conn_rel FOREIGN KEY (cmdb_relationship_id) REFERENCES cmdb_object_relationships (id) ON DELETE SET NULL"],
+    ];
+    foreach ($networkFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
     // REST API v1 key foreign keys (db_verify $schema only builds columns + PK)
     $apiKeyFks = [
         ['api_keys',            'fk_api_keys_analyst',        "ALTER TABLE api_keys ADD CONSTRAINT fk_api_keys_analyst FOREIGN KEY (analyst_id) REFERENCES analysts (id)"],

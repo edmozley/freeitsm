@@ -3154,7 +3154,8 @@ CREATE TABLE IF NOT EXISTS `network_diagram_connectors` (
     KEY `ix_net_conn_to` (`to_node_id`),
     CONSTRAINT `fk_net_conn_diag` FOREIGN KEY (`diagram_id`) REFERENCES `network_diagrams` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_net_conn_from` FOREIGN KEY (`from_node_id`) REFERENCES `network_diagram_nodes` (`id`) ON DELETE CASCADE,
-    CONSTRAINT `fk_net_conn_to`   FOREIGN KEY (`to_node_id`)   REFERENCES `network_diagram_nodes` (`id`) ON DELETE CASCADE
+    CONSTRAINT `fk_net_conn_to`   FOREIGN KEY (`to_node_id`)   REFERENCES `network_diagram_nodes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_net_conn_rel`  FOREIGN KEY (`cmdb_relationship_id`) REFERENCES `cmdb_object_relationships` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Seed the curated icon library on first run. Adding more icons later means

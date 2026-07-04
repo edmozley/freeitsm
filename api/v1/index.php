@@ -30,6 +30,7 @@ require_once __DIR__ . '/resources/service_status.php';
 require_once __DIR__ . '/resources/morning_checks.php';
 require_once __DIR__ . '/resources/forms.php';
 require_once __DIR__ . '/resources/workflows.php';
+require_once __DIR__ . '/resources/network_mapper.php'; // needs cmdb.php (above) for apiCmdbClassDefs
 
 // --- Resolve the request path ---------------------------------------------
 $path = $_SERVER['PATH_INFO'] ?? '';
@@ -244,6 +245,22 @@ $routes = [
     ['GET',    '#^/workflow-triggers$#',                   ['reference', 'read'],             'apiWorkflowTriggersList'],
     ['GET',    '#^/workflow-actions$#',                    ['reference', 'read'],             'apiWorkflowActionsList'],
 
+    ['GET',    '#^/network-diagrams$#',                        ['network_diagrams', 'read'],   'apiNmDiagramsList'],
+    ['POST',   '#^/network-diagrams$#',                        ['network_diagrams', 'create'], 'apiNmDiagramsCreate'],
+    ['GET',    '#^/network-diagrams/(\d+)$#',                  ['network_diagrams', 'read'],   'apiNmDiagramsGet'],
+    ['PATCH',  '#^/network-diagrams/(\d+)$#',                  ['network_diagrams', 'update'], 'apiNmDiagramsUpdate'],
+    ['DELETE', '#^/network-diagrams/(\d+)$#',                  ['network_diagrams', 'delete'], 'apiNmDiagramsDelete'],
+    ['GET',    '#^/network-diagrams/(\d+)/versions$#',         ['network_diagrams', 'read'],   'apiNmVersionsList'],
+    ['POST',   '#^/network-diagrams/(\d+)/versions$#',         ['network_diagrams', 'create'], 'apiNmVersionsCreate'],
+    ['GET',    '#^/network-diagrams/(\d+)/suggestions$#',      ['network_diagrams', 'read'],   'apiNmSuggestionsList'],
+    ['POST',   '#^/network-diagrams/(\d+)/nodes$#',            ['network_diagrams', 'update'], 'apiNmNodesCreate'],
+    ['PATCH',  '#^/network-diagrams/(\d+)/nodes/(\d+)$#',      ['network_diagrams', 'update'], 'apiNmNodesUpdate'],
+    ['DELETE', '#^/network-diagrams/(\d+)/nodes/(\d+)$#',      ['network_diagrams', 'update'], 'apiNmNodesDelete'],
+    ['POST',   '#^/network-diagrams/(\d+)/connectors$#',       ['network_diagrams', 'update'], 'apiNmConnectorsCreate'],
+    ['PATCH',  '#^/network-diagrams/(\d+)/connectors/(\d+)$#', ['network_diagrams', 'update'], 'apiNmConnectorsUpdate'],
+    ['DELETE', '#^/network-diagrams/(\d+)/connectors/(\d+)$#', ['network_diagrams', 'update'], 'apiNmConnectorsDelete'],
+    ['GET',    '#^/cmdb-icons$#',                              ['reference', 'read'],          'apiCmdbIconsList'],
+
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
     ['GET',    '#^/users/(\d+)$#',                         ['users', 'read'],                 'apiUsersGet'],
@@ -370,6 +387,14 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'DELETE /workflows/{id}', 'POST /workflows/{id}/fire', 'GET /workflows/{id}/executions',
             'GET /workflow-executions', 'GET /workflow-executions/{id}',
             'GET /workflow-triggers', 'GET /workflow-actions',
+            'GET /network-diagrams', 'POST /network-diagrams', 'GET /network-diagrams/{id}',
+            'PATCH /network-diagrams/{id}', 'DELETE /network-diagrams/{id}',
+            'GET /network-diagrams/{id}/versions', 'POST /network-diagrams/{id}/versions',
+            'GET /network-diagrams/{id}/suggestions',
+            'POST /network-diagrams/{id}/nodes', 'PATCH /network-diagrams/{id}/nodes/{node_id}',
+            'DELETE /network-diagrams/{id}/nodes/{node_id}',
+            'POST /network-diagrams/{id}/connectors', 'PATCH /network-diagrams/{id}/connectors/{connector_id}',
+            'DELETE /network-diagrams/{id}/connectors/{connector_id}', 'GET /cmdb-icons',
             'GET /users', 'POST /users', 'GET /users/{id}',
             'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',
