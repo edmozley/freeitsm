@@ -726,6 +726,19 @@ const WFE = (() => {
                     if (String(currentVal) === String(v.id)) opt.selected = true;
                     ctrl.appendChild(opt);
                 });
+            } else if (norm.type === 'select') {
+                // Fixed-option dropdown; options are [{value, label}] (or plain
+                // strings) supplied inline in the action's arg spec.
+                ctrl = document.createElement('select');
+                (norm.options || []).forEach(o => {
+                    const val = (o && typeof o === 'object') ? o.value : o;
+                    const lab = (o && typeof o === 'object') ? (o.label || o.value) : o;
+                    const opt = document.createElement('option');
+                    opt.value = String(val);
+                    opt.textContent = lab;
+                    if (String(currentVal) === String(val)) opt.selected = true;
+                    ctrl.appendChild(opt);
+                });
             } else {
                 ctrl = document.createElement('input');
                 ctrl.type = 'text';

@@ -382,6 +382,27 @@ class WorkflowEngine
                     'from_name'           => ['type' => 'text', 'label' => 'Requester name', 'supports_vars' => true],
                 ],
             ],
+            'send_webhook' => [
+                'label'       => 'Send a webhook',
+                'description' => 'POST a message to an external URL when this rule fires — the universal way to push events into Slack, Teams, Discord, PagerDuty, Zapier/Make, or any system that accepts an incoming webhook. Pick a preset for the common chat tools, or choose "Custom (raw JSON)" and write the exact payload the target expects.',
+                'args'        => [
+                    'preset' => [
+                        'type'    => 'select',
+                        'label'   => 'Format',
+                        'options' => [
+                            ['value' => 'custom',  'label' => 'Custom (raw JSON body)'],
+                            ['value' => 'slack',   'label' => 'Slack'],
+                            ['value' => 'teams',   'label' => 'Microsoft Teams'],
+                            ['value' => 'discord', 'label' => 'Discord'],
+                        ],
+                        'default' => 'custom',
+                    ],
+                    'url'     => ['type' => 'text', 'label' => 'Webhook URL', 'required' => true, 'supports_vars' => true],
+                    'message' => ['type' => 'textarea', 'label' => 'Message (Slack / Teams / Discord presets)', 'supports_vars' => true],
+                    'body'    => ['type' => 'textarea', 'label' => 'Raw JSON body (Custom format)', 'supports_vars' => true, 'default' => "{\n  \"event\": \"{{event}}\",\n  \"ticket_id\": \"{{ticket.id}}\",\n  \"subject\": \"{{ticket.subject}}\"\n}"],
+                    'secret'  => ['type' => 'text', 'label' => 'Signing secret (optional)', 'supports_vars' => false],
+                ],
+            ],
         ];
     }
 
@@ -735,6 +756,7 @@ class WorkflowEngine
             case 'send_email':          return self::action_send_email($args, $payload);
             case 'create_task':         return self::action_create_task($args, $payload);
             case 'create_ticket':       return self::action_create_ticket($args, $payload);
+            case 'send_webhook':        return self::action_send_webhook($args, $payload);
             default:
                 throw new Exception("Unknown action type: {$type}");
         }
@@ -1081,6 +1103,95 @@ class WorkflowEngine
             $conn->rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * POST a payload to an external URL — the outbound-webhook action.
+     *
+     * Two modes, chosen by the `preset` arg:
+     *   - a chat preset (slack / teams / discord) wraps the rendered `message`
+     *     in that platform's expected JSON shape, so the common case is
+     *     one field to fill;
+     *   - `custom` sends the rendered `body` verbatim (must be valid JSON), so
+     *     any target's exact payload can be produced with {{template}} vars.
+     *
+     * If a signing `secret` is set, the raw body is HMAC-SHA256 signed and the
+     * hex digest sent as X-FreeITSM-Signature so the receiver can verify the
+     * call really came from this install. Delivery is synchronous with a short
+     * timeout (a dead URL fails fast rather than hanging the host request); a
+     * non-2xx response or transport error marks the step failed and is visible
+     * in the execution log. An async delivery queue with retries is planned.
+     */
+    private static function action_send_webhook(array $args, array $payload): array
+    {
+        $preset = strtolower(trim((string)($args['preset'] ?? 'custom'))) ?: 'custom';
+        $url    = self::argString($args, 'url', $payload);
+        if ($url === '') throw new Exception('url is required');
+        if (!preg_match('#^https?://#i', $url)) throw new Exception('url must be an http(s) URL');
+
+        // Build the request body for the chosen format.
+        if ($preset === 'slack' || $preset === 'discord' || $preset === 'teams') {
+            $message = self::argString($args, 'message', $payload);
+            if ($message === '') throw new Exception('message is required for the ' . $preset . ' preset');
+            switch ($preset) {
+                case 'slack':   $bodyArr = ['text' => $message]; break;
+                case 'discord': $bodyArr = ['content' => $message]; break;
+                case 'teams':
+                default:
+                    $bodyArr = [
+                        '@type'    => 'MessageCard',
+                        '@context' => 'https://schema.org/extensions',
+                        'summary'  => mb_substr($message, 0, 80),
+                        'text'     => $message,
+                    ];
+                    break;
+            }
+            $bodyJson = json_encode($bodyArr, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        } else {
+            // Custom: render the raw JSON body and validate it parses.
+            $bodyJson = self::argString($args, 'body', $payload);
+            if ($bodyJson === '') throw new Exception('a JSON body is required for the custom format');
+            if (json_decode($bodyJson) === null && strtolower(trim($bodyJson)) !== 'null') {
+                throw new Exception('the rendered body is not valid JSON: ' . json_last_error_msg());
+            }
+        }
+
+        $headers = ['Content-Type: application/json', 'User-Agent: FreeITSM-Webhook/1'];
+        // Optional HMAC-SHA256 signature over the exact bytes sent.
+        $secret = trim((string)($args['secret'] ?? ''));
+        if ($secret !== '') {
+            $headers[] = 'X-FreeITSM-Signature: sha256=' . hash_hmac('sha256', $bodyJson, $secret);
+        }
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $bodyJson,
+            CURLOPT_HTTPHEADER     => $headers,
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_CONNECTTIMEOUT => 5,
+            CURLOPT_TIMEOUT        => 10,
+            CURLOPT_SSL_VERIFYPEER => true,
+        ]);
+        $respBody = curl_exec($ch);
+        $status   = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $err      = curl_error($ch);
+        curl_close($ch);
+
+        if ($respBody === false || $err !== '') {
+            throw new Exception('webhook delivery failed: ' . ($err !== '' ? $err : 'no response'));
+        }
+        if ($status < 200 || $status >= 300) {
+            throw new Exception('webhook returned HTTP ' . $status . ' — ' . mb_substr((string)$respBody, 0, 200));
+        }
+        // Never log the secret or the full body; enough to audit the delivery.
+        return [
+            'preset'      => $preset,
+            'url'         => preg_replace('#(https?://[^/]+).*#i', '$1/…', $url),
+            'status'      => $status,
+            'signed'      => $secret !== '',
+            'bytes_sent'  => strlen($bodyJson),
+        ];
     }
 
     // -----------------------------------------------------------------

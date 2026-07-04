@@ -202,6 +202,8 @@ return [
         'actions_row7_args' => 'title, description, status_id, priority_id, assignee_id, ticket_id',
         'actions_row8_does' => 'Creates a new ticket. Useful for fan-out workflows like <em>"new-starter form &rarr; IT + HR + Facilities tickets"</em>.',
         'actions_row8_args' => 'subject, body, priority_id, department_id, type_id, assigned_analyst_id, from_email, from_name',
+        'actions_row9_does' => 'POSTs a message to an external URL &mdash; push events into Slack, Teams, Discord, PagerDuty, Zapier/Make or any system that accepts an incoming webhook. Pick a chat preset, or send a custom JSON body you template yourself. Supports an optional HMAC signing secret.',
+        'actions_row9_args' => 'preset, url, message (presets), body (custom JSON), secret (optional)',
         'actions_note'    => 'Each action\'s required args are marked with a <code>*</code> in the form. Missing required args cause the action to fail at execution time &mdash; the engine logs the failure to the execution row and stops the rest of the chain.',
 
         // 5. Variables

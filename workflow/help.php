@@ -171,6 +171,7 @@ $translationNamespaces = ['common', 'workflow'];
                 <tr><td><code>send_email</code></td><td><?php echo t('workflow.help.actions_row6_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row6_args')); ?></td></tr>
                 <tr><td><code>create_task</code></td><td><?php echo t('workflow.help.actions_row7_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row7_args')); ?></td></tr>
                 <tr><td><code>create_ticket</code></td><td><?php echo t('workflow.help.actions_row8_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row8_args')); ?></td></tr>
+                <tr><td><code>send_webhook</code></td><td><?php echo t('workflow.help.actions_row9_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row9_args')); ?></td></tr>
             </table>
             <p><?php echo t('workflow.help.actions_note'); ?></p>
 
