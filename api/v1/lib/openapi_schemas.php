@@ -1052,6 +1052,7 @@ return array (
         ),
         'category' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1095,6 +1096,7 @@ return array (
         ),
         'created_by' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1193,6 +1195,7 @@ return array (
         ),
         'change_type' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1204,6 +1207,7 @@ return array (
         ),
         'status' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1215,6 +1219,7 @@ return array (
         ),
         'priority' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1226,6 +1231,7 @@ return array (
         ),
         'impact' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1237,6 +1243,7 @@ return array (
         ),
         'category' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1248,6 +1255,7 @@ return array (
         ),
         'requester' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1259,6 +1267,7 @@ return array (
         ),
         'assigned_to' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1270,6 +1279,7 @@ return array (
         ),
         'approver' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1374,6 +1384,7 @@ return array (
         ),
         'created_by' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1460,6 +1471,7 @@ return array (
         ),
         'analyst' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1591,6 +1603,7 @@ return array (
         ),
         'analyst' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1683,6 +1696,7 @@ return array (
         ),
         'change_type' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1694,6 +1708,7 @@ return array (
         ),
         'status' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1705,6 +1720,7 @@ return array (
         ),
         'priority' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1716,6 +1732,7 @@ return array (
         ),
         'impact' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1727,6 +1744,7 @@ return array (
         ),
         'category' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1738,6 +1756,7 @@ return array (
         ),
         'requester' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1749,6 +1768,7 @@ return array (
         ),
         'assigned_to' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1760,6 +1780,7 @@ return array (
         ),
         'approver' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -1870,6 +1891,7 @@ return array (
         ),
         'created_by' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -2118,6 +2140,7 @@ return array (
         ),
         'target_class' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -2472,6 +2495,7 @@ return array (
         ),
         'parent' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -2532,6 +2556,7 @@ return array (
         ),
         'value_object' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5172,6 +5197,7 @@ return array (
         ),
         'status' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5183,6 +5209,7 @@ return array (
         ),
         'priority' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5194,6 +5221,7 @@ return array (
         ),
         'assigned_analyst' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5219,6 +5247,7 @@ return array (
         ),
         'company' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5230,6 +5259,7 @@ return array (
         ),
         'created_by' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5295,6 +5325,7 @@ return array (
         ),
         'analyst' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5402,6 +5433,7 @@ return array (
         ),
         'status' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5413,6 +5445,7 @@ return array (
         ),
         'priority' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5424,6 +5457,7 @@ return array (
         ),
         'assigned_analyst' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5449,6 +5483,7 @@ return array (
         ),
         'company' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5460,6 +5495,7 @@ return array (
         ),
         'created_by' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -5583,6 +5619,7 @@ return array (
         ),
         'analyst' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -6216,6 +6253,7 @@ return array (
         ),
         'created_by' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -6378,6 +6416,7 @@ return array (
         ),
         'status' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -6402,6 +6441,7 @@ return array (
         ),
         'created_by' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 
@@ -6479,6 +6519,7 @@ return array (
         ),
         'impact' => 
         array (
+          'type' => 'object',
           'allOf' => 
           array (
             0 => 

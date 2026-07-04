@@ -75,11 +75,13 @@ $line($badEmpties === 0, "shape: $badEmpties object-typed fields wrongly seriali
 if ($badEmpties) $fail++;
 
 // --- 6. no `nullable` without a `type` (meta-schema allows it, linters don't) -
+// A strict linter treats `nullable` as requiring a sibling `type` — `allOf`,
+// `anyOf`, `oneOf` and a bare `$ref` do NOT satisfy it (a nullable $ref must be
+// written as `type` + `allOf: [{$ref}]`), so this flags all of those too.
 $bareNullable = 0;
 $walkN = function ($n) use (&$walkN, &$bareNullable) {
     if (!is_array($n)) return;
-    if (isset($n['nullable']) && !isset($n['type']) && !isset($n['$ref'])
-        && !isset($n['allOf']) && !isset($n['anyOf']) && !isset($n['oneOf'])) $bareNullable++;
+    if (isset($n['nullable']) && !isset($n['type'])) $bareNullable++;
     foreach ($n as $v) if (is_array($v)) $walkN($v);
 };
 $walkN($doc['components']['schemas']);
