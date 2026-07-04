@@ -300,6 +300,6 @@ foreach ($actionDefs as $actionKey => $def) {
         window.WF_ID             = <?php echo (int)$id; ?>;
         window.WF_API            = '../api/workflow/';
     </script>
-    <script src="../assets/js/workflow-editor.js?v=10"></script>
+    <script src="../assets/js/workflow-editor.js?v=11"></script>
 </body>
 </html>

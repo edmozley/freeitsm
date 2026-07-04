@@ -693,6 +693,10 @@ const WFE = (() => {
             const norm = (typeof spec === 'object' && spec) ? spec : { type: 'text', label: argName };
             const fg = document.createElement('div');
             fg.className = 'form-group';
+            fg.dataset.argFg = argName;
+            // Optional conditional visibility: show this field only when another
+            // arg has one of the listed values, e.g. show_when: {preset:['slack']}.
+            if (norm.show_when) fg._showWhen = norm.show_when;
             const labelEl = document.createElement('label');
             labelEl.textContent = (norm.label || argName) + (norm.required ? ' *' : '');
             labelEl.setAttribute('for', 'wfActArg_' + argName);
@@ -746,7 +750,9 @@ const WFE = (() => {
             }
             ctrl.id = 'wfActArg_' + argName;
             ctrl.dataset.argName = argName;
-            ctrl.addEventListener(norm.type === 'bool' ? 'change' : 'input', () => {
+            // Dropdowns/checkboxes fire 'change'; free-text fires 'input' for live updates.
+            const evt = (norm.type === 'bool' || norm.type === 'lookup' || norm.type === 'select') ? 'change' : 'input';
+            ctrl.addEventListener(evt, () => {
                 updateActionArgFromControl(argName, norm.type, ctrl);
             });
             fg.appendChild(ctrl);
@@ -763,6 +769,26 @@ const WFE = (() => {
             // through save without the user having to touch every field.
             if (!(argName in n.args) && norm.default != null) n.args[argName] = norm.default;
         });
+        applyArgVisibility(host, n);
+    }
+
+    /**
+     * Show/hide fields whose `show_when` condition (another arg's current value)
+     * isn't met — e.g. the webhook Message field only for the chat presets, the
+     * raw JSON body only for Custom.
+     */
+    function applyArgVisibility(host, n) {
+        if (!host) return;
+        host.querySelectorAll('[data-arg-fg]').forEach(fg => {
+            const sw = fg._showWhen;
+            if (!sw) return;
+            let show = true;
+            Object.keys(sw).forEach(key => {
+                const cur = (n && n.args && key in n.args) ? String(n.args[key]) : '';
+                if (!(sw[key] || []).map(String).includes(cur)) show = false;
+            });
+            fg.style.display = show ? '' : 'none';
+        });
     }
 
     function updateActionArgFromControl(argName, type, ctrl) {
@@ -775,6 +801,9 @@ const WFE = (() => {
         if (val === '' && type !== 'bool') delete n.args[argName];
         else n.args[argName] = val;
         if (n.el) n.el.innerHTML = renderNodeContent(n);
+        // Re-apply conditional visibility (e.g. changing the webhook preset
+        // swaps the Message / Raw JSON body fields).
+        applyArgVisibility(document.getElementById('wfActArgsHost'), n);
         markDirty();
     }
 
