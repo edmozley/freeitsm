@@ -389,13 +389,14 @@ class WorkflowEngine
             ],
             'send_webhook' => [
                 'label'       => 'Send a webhook',
-                'description' => 'POST a message to an external URL when this rule fires — the universal way to push events into Slack, Teams, Discord, PagerDuty, Zapier/Make, or any system that accepts an incoming webhook. Pick a preset for the common chat tools, or choose "Custom (raw JSON)" and write the exact payload the target expects. Delivery is queued and sent by a background worker with automatic retries, so a slow or dead endpoint never delays anything — track every send under Workflows > Webhook deliveries.',
+                'description' => 'POST a message to an external URL when this rule fires — the universal way to push events into Slack, Teams, Discord, PagerDuty, Zapier/Make, or any system that accepts an incoming webhook. Pick a preset for the common chat tools, choose "Full record" to send the entire object (the same JSON as the REST API), or choose "Custom (raw JSON)" and write the exact payload the target expects. Delivery is queued and sent by a background worker with automatic retries, so a slow or dead endpoint never delays anything — track every send under System > Webhooks queue.',
                 'args'        => [
                     'preset' => [
                         'type'    => 'select',
                         'label'   => 'Format',
                         'options' => [
                             ['value' => 'custom',  'label' => 'Custom (raw JSON body)'],
+                            ['value' => 'full',    'label' => 'Full record (whole object as JSON)'],
                             ['value' => 'slack',   'label' => 'Slack'],
                             ['value' => 'teams',   'label' => 'Microsoft Teams'],
                             ['value' => 'discord', 'label' => 'Discord'],
@@ -1131,12 +1132,20 @@ class WorkflowEngine
      */
     private static function action_send_webhook(array $args, array $payload): array
     {
-        $req = self::buildWebhookRequest($args, $payload);
-
-        // ENQUEUE, don't send — the cron worker delivers asynchronously with
-        // retries, so a slow or dead endpoint never blocks this run.
         require_once dirname(__DIR__, 2) . '/includes/webhook_delivery.php';
         $conn = connectToDatabase();
+
+        // If the body embeds a full object ({{ticket.full}}) or the Full record
+        // format is chosen, load + serialise the record (reusing the REST API
+        // serialisers) so the same rich, typed shape the API returns is sent.
+        // Only when needed — a plain Slack ping shouldn't trigger an extra query.
+        $preset = strtolower(trim((string)($args['preset'] ?? '')));
+        if ($preset === 'full' || strpos((string)($args['body'] ?? ''), '.full') !== false) {
+            $payload = self::enrichWithFullObjects($conn, $payload);
+        }
+
+        $req = self::buildWebhookRequest($args, $payload);
+
         $deliveryId = webhookEnqueue($conn, [
             'workflow_id'  => self::$ctxWorkflowId,
             'execution_id' => self::$ctxExecutionId,
@@ -1180,7 +1189,19 @@ class WorkflowEngine
         if (!preg_match('#^https?://#i', $url)) throw new Exception('url must be an http(s) URL');
 
         // Build the request body for the chosen format.
-        if ($preset === 'slack' || $preset === 'discord' || $preset === 'teams') {
+        if ($preset === 'full') {
+            // Send the entire record — exactly the shape the REST API returns for
+            // GET /<resource>/{id}. The full object is attached to the payload by
+            // enrichWithFullObjects() (under <key>.full) before we get here.
+            $full = null;
+            foreach ($payload as $v) {
+                if (is_array($v) && isset($v['full']) && is_array($v['full'])) { $full = $v['full']; break; }
+            }
+            if ($full === null) {
+                throw new Exception('the full-record format needs a trigger that carries a record with a full object (currently: ticket triggers)');
+            }
+            $bodyJson = json_encode($full, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+        } elseif ($preset === 'slack' || $preset === 'discord' || $preset === 'teams') {
             $message = self::argString($args, 'message', $payload);
             if ($message === '') throw new Exception('message is required for the ' . $preset . ' preset');
             switch ($preset) {
@@ -1213,6 +1234,41 @@ class WorkflowEngine
         }
 
         return ['preset' => $preset, 'url' => $url, 'body' => $bodyJson, 'headers' => $headers, 'signed' => $secret !== ''];
+    }
+
+    /**
+     * Enrich a trigger payload with the FULL, API-shaped version of its primary
+     * object, reusing the REST API serialisers so a webhook can emit exactly the
+     * JSON that GET /<resource>/{id} returns — rich, consistent and already typed
+     * in the OpenAPI spec. The full object is attached under <key>.full, so a
+     * Custom body can embed the whole record with {{ticket.full}} (the template
+     * engine json_encodes arrays), and the "Full record" preset sends it wholesale.
+     *
+     * Extend $registry to cover more trigger object types — one entry per resource
+     * is the single, typed source of truth for its shape. Best-effort: a load
+     * failure is swallowed so the webhook still sends (just without .full).
+     */
+    public static function enrichWithFullObjects(PDO $conn, array $payload): array
+    {
+        static $registry = [
+            'ticket' => [
+                'deps'      => ['/api/v1/lib/response.php', '/api/v1/resources/tickets.php'],
+                'select'    => 'apiTicketSelect',
+                'where'     => ' WHERE t.id = ? LIMIT 1',
+                'serialize' => 'apiSerializeTicket',
+            ],
+        ];
+        foreach ($registry as $key => $cfg) {
+            if (empty($payload[$key]['id']) || isset($payload[$key]['full'])) continue;
+            try {
+                foreach ($cfg['deps'] as $dep) require_once dirname(__DIR__, 2) . $dep;
+                $stmt = $conn->prepare(call_user_func($cfg['select']) . $cfg['where']);
+                $stmt->execute([(int)$payload[$key]['id']]);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                if ($row) $payload[$key]['full'] = call_user_func($cfg['serialize'], $row);
+            } catch (Throwable $e) { /* full object is best-effort */ }
+        }
+        return $payload;
     }
 
     // -----------------------------------------------------------------

@@ -17,6 +17,8 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once __DIR__ . '/../../workflow/includes/engine.php';
 require_once __DIR__ . '/../../includes/webhook_delivery.php';
+require_once __DIR__ . '/../v1/lib/response.php';
+require_once __DIR__ . '/../v1/resources/tickets.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -36,9 +38,13 @@ $args = [
 ];
 
 // A representative sample payload so {{ticket.*}} / {{event}} variables render
-// to realistic-looking values in the test send. Not real data — clearly a sample.
+// to realistic values in the test send. We prefer the most recent REAL ticket
+// (so the Full-record format has an actual object to send and template vars look
+// true-to-life); if the install has no tickets yet, we fall back to synthetic.
 $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $appBase = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL;
+$conn = connectToDatabase();
+
 $sample = [
     'event'  => (string)($in['trigger_event'] ?? 'ticket.updated'),
     'ticket' => [
@@ -60,6 +66,34 @@ $sample = [
         'url'             => $appBase . 'tickets/?ticket=1024',
     ],
 ];
+
+try {
+    $realId = (int)($conn->query("SELECT id FROM tickets WHERE deleted_datetime IS NULL ORDER BY id DESC LIMIT 1")->fetchColumn() ?: 0);
+    if ($realId) {
+        $stmt = $conn->prepare(apiTicketSelect() . ' WHERE t.id = ? LIMIT 1');
+        $stmt->execute([$realId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($row) {
+            $ser = apiSerializeTicket($row);
+            $sample['ticket'] = [
+                'id'              => $ser['id'],
+                'subject'         => $ser['subject'],
+                'status'          => $ser['status']['name']   ?? null,
+                'status_id'       => $ser['status']['id']     ?? null,
+                'priority'        => $ser['priority']['name'] ?? null,
+                'priority_id'     => $ser['priority']['id']   ?? null,
+                'type'            => $ser['ticket_type']['name'] ?? null,
+                'origin'          => $ser['origin']['name']   ?? null,
+                'company'         => $ser['company']['name']  ?? null,
+                'requester'       => $ser['requester']['name']  ?? null,
+                'requester_email' => $ser['requester']['email'] ?? null,
+                'assignee'        => $ser['assigned_analyst']['name'] ?? null,
+                'url'             => $appBase . 'tickets/?ticket=' . $ser['id'],
+                'full'            => $ser,
+            ];
+        }
+    }
+} catch (Throwable $e) { /* keep the synthetic sample */ }
 
 // 1) Build the request the same way a real send would (validates url, renders
 //    templates, builds the preset/custom body, signs if a secret is set).
