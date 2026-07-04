@@ -1438,6 +1438,27 @@ $schema = [
         'run_count'         => 'INT NOT NULL DEFAULT 0',
     ],
 
+    'webhook_deliveries' => [
+        'id'                 => 'INT NOT NULL AUTO_INCREMENT',
+        'workflow_id'        => 'INT NULL',
+        'execution_id'       => 'INT NULL',
+        'preset'             => 'VARCHAR(20) NULL',
+        'url'                => 'VARCHAR(1000) NOT NULL',
+        'method'             => "VARCHAR(10) NOT NULL DEFAULT 'POST'",
+        'request_headers'    => 'TEXT NULL',
+        'request_body'       => 'MEDIUMTEXT NULL',
+        'status'             => "VARCHAR(20) NOT NULL DEFAULT 'pending'",
+        'attempts'           => 'INT NOT NULL DEFAULT 0',
+        'max_attempts'       => 'INT NOT NULL DEFAULT 6',
+        'next_attempt_at'    => 'DATETIME NULL',
+        'last_status_code'   => 'INT NULL',
+        'last_error'         => 'VARCHAR(500) NULL',
+        'response_snippet'   => 'TEXT NULL',
+        'created_datetime'   => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'   => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP',
+        'delivered_datetime' => 'DATETIME NULL',
+    ],
+
     'workflow_executions' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'workflow_id'       => 'INT NULL',
@@ -2821,6 +2842,12 @@ try {
             'sla_cron_min_interval_seconds'   => '30',
             // How many days to keep rows in sla_cron_runs before pruning
             'sla_cron_log_retention_days'     => '30',
+            // Outbound-webhook delivery worker (cron/webhook_deliveries.php):
+            // shared secret for HTTP invocation + min seconds between runs +
+            // how long to keep delivered/dead rows before pruning.
+            'webhook_cron_token'              => bin2hex(random_bytes(16)),
+            'webhook_cron_min_interval_seconds' => '20',
+            'webhook_delivery_retention_days' => '30',
             // Watchtower: flag tickets stuck in a paused-SLA status longer than this
             // (wall-clock hours since last status change). Guardrail against analysts
             // parking tickets in On Hold to escape the SLA clock.
@@ -3588,9 +3615,18 @@ try {
                          SET w.created_by = NULL WHERE w.created_by IS NOT NULL AND a.id IS NULL");
         } catch (Exception $e) { /* shrug */ }
     }
+    // webhook_deliveries.workflow_id can dangle if a workflow is deleted while a
+    // delivery is queued; detach (SET NULL) before attaching the FK.
+    if ($tableExists('webhook_deliveries') && $tableExists('workflows')) {
+        try {
+            $conn->exec("UPDATE webhook_deliveries wd LEFT JOIN workflows w ON w.id = wd.workflow_id
+                         SET wd.workflow_id = NULL WHERE wd.workflow_id IS NOT NULL AND w.id IS NULL");
+        } catch (Exception $e) { /* shrug */ }
+    }
     $workflowFks = [
         ['workflows',           'fk_workflows_created_by', "ALTER TABLE workflows ADD CONSTRAINT fk_workflows_created_by FOREIGN KEY (created_by) REFERENCES analysts (id) ON DELETE SET NULL"],
         ['workflow_executions', 'fk_we_workflow',          "ALTER TABLE workflow_executions ADD CONSTRAINT fk_we_workflow FOREIGN KEY (workflow_id) REFERENCES workflows (id) ON DELETE SET NULL"],
+        ['webhook_deliveries',  'fk_wd_workflow',          "ALTER TABLE webhook_deliveries ADD CONSTRAINT fk_wd_workflow FOREIGN KEY (workflow_id) REFERENCES workflows (id) ON DELETE SET NULL"],
     ];
     foreach ($workflowFks as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;

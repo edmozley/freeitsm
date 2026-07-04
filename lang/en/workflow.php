@@ -12,6 +12,7 @@ return [
 
     'nav' => [
         'workflows' => 'Workflows',
+        'webhooks'  => 'Webhook deliveries',
         'settings'  => 'Settings',
         'help'      => 'Help',
     ],

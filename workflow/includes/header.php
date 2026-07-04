@@ -35,6 +35,14 @@ require_once $path_prefix . 'includes/waffle-menu.php';
             </svg>
             <span><?php echo htmlspecialchars(function_exists('t') ? t('workflow.nav.workflows') : 'Workflows'); ?></span>
         </a>
+        <a href="<?php echo BASE_URL; ?>workflow/webhooks.php" class="nav-btn <?php echo $current_page === 'webhooks' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('workflow.nav.webhooks') : 'Webhook deliveries'); ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 16.98h-5.99c-1.66 0-3.01-1.34-3.01-3s1.34-3 3.01-3H18"></path>
+                <path d="M6 8.02a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"></path>
+                <path d="M9 12h6"></path>
+            </svg>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('workflow.nav.webhooks') : 'Webhooks'); ?></span>
+        </a>
         <a href="<?php echo BASE_URL; ?>workflow/settings/" class="nav-btn <?php echo $current_page === 'settings' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('workflow.nav.settings') : 'Settings'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"></circle>

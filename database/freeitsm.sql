@@ -2796,6 +2796,38 @@ CREATE TABLE IF NOT EXISTS `workflow_executions` (
     CONSTRAINT `fk_we_workflow` FOREIGN KEY (`workflow_id`) REFERENCES `workflows` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Outbound webhook delivery queue. The `send_webhook` workflow action enqueues
+-- a row (status 'pending'); the cron worker (cron/webhook_deliveries.php)
+-- delivers it asynchronously with retries + exponential backoff, so a slow or
+-- dead endpoint never blocks the host request. The signing secret is NOT
+-- stored — the signature header is computed at enqueue time and kept in
+-- request_headers, so retries reuse it without persisting the secret.
+CREATE TABLE IF NOT EXISTS `webhook_deliveries` (
+    `id`                 INT NOT NULL AUTO_INCREMENT,
+    `workflow_id`        INT NULL,                       -- source workflow (SET NULL if deleted)
+    `execution_id`       INT NULL,                       -- the workflow_executions row that enqueued it
+    `preset`             VARCHAR(20) NULL,               -- 'custom' | 'slack' | 'teams' | 'discord'
+    `url`                VARCHAR(1000) NOT NULL,
+    `method`             VARCHAR(10) NOT NULL DEFAULT 'POST',
+    `request_headers`    TEXT NULL,                      -- JSON array of header lines (Content-Type + optional signature; NO secret)
+    `request_body`       MEDIUMTEXT NULL,                -- the rendered JSON payload
+    `status`             VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending | delivering | delivered | failed | dead
+    `attempts`           INT NOT NULL DEFAULT 0,
+    `max_attempts`       INT NOT NULL DEFAULT 6,
+    `next_attempt_at`    DATETIME NULL,                  -- earliest time to (re)try; NULL = asap
+    `last_status_code`   INT NULL,
+    `last_error`         VARCHAR(500) NULL,
+    `response_snippet`   TEXT NULL,                      -- first bytes of the last response, for debugging
+    `created_datetime`   DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`   DATETIME NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `delivered_datetime` DATETIME NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_wd_due` (`status`, `next_attempt_at`),
+    KEY `idx_wd_workflow` (`workflow_id`),
+    KEY `idx_wd_created` (`created_datetime`),
+    CONSTRAINT `fk_wd_workflow` FOREIGN KEY (`workflow_id`) REFERENCES `workflows` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ----------------------------------------------------------
 -- System
 -- ----------------------------------------------------------

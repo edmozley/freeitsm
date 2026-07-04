@@ -65,6 +65,11 @@ class WorkflowEngine
     private static $runsThisRequest  = 0;
     private static $activeWorkflowIds = [];
 
+    // The workflow + execution currently running, so async actions (webhooks)
+    // can stamp their queue rows with the source. Set per run in runInner().
+    private static $ctxWorkflowId    = null;
+    private static $ctxExecutionId   = null;
+
     // -----------------------------------------------------------------
     //  Catalogue — triggers, actions, operators, fields per trigger
     // -----------------------------------------------------------------
@@ -384,7 +389,7 @@ class WorkflowEngine
             ],
             'send_webhook' => [
                 'label'       => 'Send a webhook',
-                'description' => 'POST a message to an external URL when this rule fires — the universal way to push events into Slack, Teams, Discord, PagerDuty, Zapier/Make, or any system that accepts an incoming webhook. Pick a preset for the common chat tools, or choose "Custom (raw JSON)" and write the exact payload the target expects.',
+                'description' => 'POST a message to an external URL when this rule fires — the universal way to push events into Slack, Teams, Discord, PagerDuty, Zapier/Make, or any system that accepts an incoming webhook. Pick a preset for the common chat tools, or choose "Custom (raw JSON)" and write the exact payload the target expects. Delivery is queued and sent by a background worker with automatic retries, so a slow or dead endpoint never delays anything — track every send under Workflows > Webhook deliveries.',
                 'args'        => [
                     'preset' => [
                         'type'    => 'select',
@@ -590,6 +595,8 @@ class WorkflowEngine
             json_encode($payload),
         ]);
         $execId = (int)$conn->lastInsertId();
+        self::$ctxWorkflowId  = (int)$wf['id'];
+        self::$ctxExecutionId = $execId;
 
         try {
             $conditions = self::decodeJsonField($wf['conditions']);
@@ -1157,40 +1164,35 @@ class WorkflowEngine
         }
 
         $headers = ['Content-Type: application/json', 'User-Agent: FreeITSM-Webhook/1'];
-        // Optional HMAC-SHA256 signature over the exact bytes sent.
+        // Optional HMAC-SHA256 signature over the exact bytes sent. Signed HERE
+        // (at enqueue time) so the secret is never stored — the queue keeps only
+        // the resulting header, and retries reuse it (same body → same signature).
         $secret = trim((string)($args['secret'] ?? ''));
         if ($secret !== '') {
             $headers[] = 'X-FreeITSM-Signature: sha256=' . hash_hmac('sha256', $bodyJson, $secret);
         }
 
-        $ch = curl_init($url);
-        curl_setopt_array($ch, [
-            CURLOPT_POST           => true,
-            CURLOPT_POSTFIELDS     => $bodyJson,
-            CURLOPT_HTTPHEADER     => $headers,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_CONNECTTIMEOUT => 5,
-            CURLOPT_TIMEOUT        => 10,
-            CURLOPT_SSL_VERIFYPEER => true,
+        // ENQUEUE, don't send — the cron worker delivers asynchronously with
+        // retries, so a slow or dead endpoint never blocks this run.
+        require_once dirname(__DIR__, 2) . '/includes/webhook_delivery.php';
+        $conn = connectToDatabase();
+        $deliveryId = webhookEnqueue($conn, [
+            'workflow_id'  => self::$ctxWorkflowId,
+            'execution_id' => self::$ctxExecutionId,
+            'preset'       => $preset,
+            'url'          => $url,
+            'method'       => 'POST',
+            'headers'      => $headers,
+            'body'         => $bodyJson,
         ]);
-        $respBody = curl_exec($ch);
-        $status   = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $err      = curl_error($ch);
-        curl_close($ch);
-
-        if ($respBody === false || $err !== '') {
-            throw new Exception('webhook delivery failed: ' . ($err !== '' ? $err : 'no response'));
-        }
-        if ($status < 200 || $status >= 300) {
-            throw new Exception('webhook returned HTTP ' . $status . ' — ' . mb_substr((string)$respBody, 0, 200));
-        }
-        // Never log the secret or the full body; enough to audit the delivery.
+        // Never log the secret or the full body; enough to audit the queueing.
         return [
+            'queued'      => true,
+            'delivery_id' => $deliveryId,
             'preset'      => $preset,
             'url'         => preg_replace('#(https?://[^/]+).*#i', '$1/…', $url),
-            'status'      => $status,
             'signed'      => $secret !== '',
-            'bytes_sent'  => strlen($bodyJson),
+            'bytes'       => strlen($bodyJson),
         ];
     }
 
