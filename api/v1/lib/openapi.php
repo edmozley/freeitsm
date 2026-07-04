@@ -140,6 +140,11 @@ function apiV1BuildOperation(array $ep, string $section, array $extras, array $e
     if (!empty($ep['d'])) {
         $op['description'] = $ep['d'];
     }
+    // A spec.json entry with "deprecated": true marks the whole operation
+    // deprecated (tools strike it through / warn).
+    if (!empty($ep['deprecated'])) {
+        $op['deprecated'] = true;
+    }
 
     // --- Parameters -------------------------------------------------------
     $parameters = [];
@@ -159,12 +164,17 @@ function apiV1BuildOperation(array $ep, string $section, array $extras, array $e
         if (($p['in'] ?? '') !== 'query') continue;
         foreach (array_map('trim', explode('/', $p['name'])) as $qname) {
             if ($qname === '') continue;
-            $parameters[] = [
+            $param = [
                 'name' => $qname, 'in' => 'query',
                 'required' => (bool)($p['req'] ?? false),
                 'schema' => ['type' => 'string'],
                 'description' => $p['desc'] ?? '',
             ];
+            // A param entry with "deprecated": true marks just that parameter.
+            if (!empty($p['deprecated'])) {
+                $param['deprecated'] = true;
+            }
+            $parameters[] = $param;
         }
     }
     if ($parameters) {
