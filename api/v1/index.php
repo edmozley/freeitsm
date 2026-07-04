@@ -29,6 +29,7 @@ require_once __DIR__ . '/resources/software.php';
 require_once __DIR__ . '/resources/service_status.php';
 require_once __DIR__ . '/resources/morning_checks.php';
 require_once __DIR__ . '/resources/forms.php';
+require_once __DIR__ . '/resources/workflows.php';
 
 // --- Resolve the request path ---------------------------------------------
 $path = $_SERVER['PATH_INFO'] ?? '';
@@ -231,6 +232,18 @@ $routes = [
     ['GET',    '#^/forms/(\d+)/submissions/(\d+)$#',       ['form_submissions', 'read'],      'apiFormSubmissionsGet'],
     ['DELETE', '#^/forms/(\d+)/submissions/(\d+)$#',       ['form_submissions', 'delete'],    'apiFormSubmissionsDelete'],
 
+    ['GET',    '#^/workflows$#',                           ['workflows', 'read'],             'apiWorkflowsList'],
+    ['POST',   '#^/workflows$#',                           ['workflows', 'create'],           'apiWorkflowsCreate'],
+    ['GET',    '#^/workflows/(\d+)$#',                     ['workflows', 'read'],             'apiWorkflowsGet'],
+    ['PATCH',  '#^/workflows/(\d+)$#',                     ['workflows', 'update'],           'apiWorkflowsUpdate'],
+    ['DELETE', '#^/workflows/(\d+)$#',                     ['workflows', 'delete'],           'apiWorkflowsDelete'],
+    ['POST',   '#^/workflows/(\d+)/fire$#',                ['workflows', 'fire'],             'apiWorkflowsFire'],
+    ['GET',    '#^/workflows/(\d+)/executions$#',          ['workflow_executions', 'read'],   'apiWorkflowExecutionsList'],
+    ['GET',    '#^/workflow-executions$#',                 ['workflow_executions', 'read'],   'apiWorkflowExecutionsListAll'],
+    ['GET',    '#^/workflow-executions/(\d+)$#',           ['workflow_executions', 'read'],   'apiWorkflowExecutionsGet'],
+    ['GET',    '#^/workflow-triggers$#',                   ['reference', 'read'],             'apiWorkflowTriggersList'],
+    ['GET',    '#^/workflow-actions$#',                    ['reference', 'read'],             'apiWorkflowActionsList'],
+
     ['GET',    '#^/users$#',                               ['users', 'read'],                 'apiUsersList'],
     ['POST',   '#^/users$#',                               ['users', 'create'],               'apiUsersCreate'],
     ['GET',    '#^/users/(\d+)$#',                         ['users', 'read'],                 'apiUsersGet'],
@@ -353,6 +366,10 @@ function apiHandleRoot(PDO $conn, array $apiKey, array $params, array $body): vo
             'GET /forms/{id}/versions', 'POST /forms/{id}/versions',
             'GET /forms/{id}/submissions', 'POST /forms/{id}/submissions',
             'GET /forms/{id}/submissions/{submission_id}', 'DELETE /forms/{id}/submissions/{submission_id}',
+            'GET /workflows', 'POST /workflows', 'GET /workflows/{id}', 'PATCH /workflows/{id}',
+            'DELETE /workflows/{id}', 'POST /workflows/{id}/fire', 'GET /workflows/{id}/executions',
+            'GET /workflow-executions', 'GET /workflow-executions/{id}',
+            'GET /workflow-triggers', 'GET /workflow-actions',
             'GET /users', 'POST /users', 'GET /users/{id}',
             'PATCH /users/{id}', 'GET /analysts', 'GET /companies', 'GET /statuses', 'GET /priorities',
             'GET /ticket-types', 'GET /origins', 'GET /departments',

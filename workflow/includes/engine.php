@@ -520,11 +520,11 @@ class WorkflowEngine
             $conn = connectToDatabase();
             $stmt = $conn->prepare(
                 "INSERT INTO workflow_executions
-                 (workflow_id, trigger_event, trigger_payload, status, started_datetime, finished_datetime, step_log, error_message)
-                 VALUES (?, ?, ?, 'aborted', UTC_TIMESTAMP(), UTC_TIMESTAMP(), ?, ?)"
+                 (workflow_id, workflow_name, trigger_event, trigger_payload, status, started_datetime, finished_datetime, step_log, error_message)
+                 VALUES (?, ?, ?, ?, 'aborted', UTC_TIMESTAMP(), UTC_TIMESTAMP(), ?, ?)"
             );
             $stmt->execute([
-                $wfId, $event, json_encode($payload), json_encode($stepLog), $message,
+                $wfId, $wf['name'] ?? null, $event, json_encode($payload), json_encode($stepLog), $message,
             ]);
             $execId = (int)$conn->lastInsertId();
             // Reflect the block in the parent workflow's last-run state, but
@@ -554,14 +554,17 @@ class WorkflowEngine
         $status  = 'success';
         $errorMessage = null;
 
-        // Insert a "running" execution row so we have an id to update.
+        // Insert a "running" execution row so we have an id to update. The
+        // workflow name is snapshotted so the run stays attributable after
+        // its parent workflow is deleted (workflow_id goes NULL then).
         $insert = $conn->prepare(
             "INSERT INTO workflow_executions
-             (workflow_id, trigger_event, trigger_payload, status, started_datetime)
-             VALUES (?, ?, ?, 'running', UTC_TIMESTAMP())"
+             (workflow_id, workflow_name, trigger_event, trigger_payload, status, started_datetime)
+             VALUES (?, ?, ?, ?, 'running', UTC_TIMESTAMP())"
         );
         $insert->execute([
             (int)$wf['id'],
+            $wf['name'] ?? null,
             $event,
             json_encode($payload),
         ]);

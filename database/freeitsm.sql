@@ -2772,12 +2772,17 @@ CREATE TABLE IF NOT EXISTS `workflows` (
     `run_count`         INT NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     KEY `idx_workflows_trigger` (`trigger_event`),
-    KEY `idx_workflows_active` (`is_active`)
+    KEY `idx_workflows_active` (`is_active`),
+    CONSTRAINT `fk_workflows_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Execution rows deliberately SURVIVE workflow deletion (they're the audit
+-- trail): workflow_id is nullable with ON DELETE SET NULL, and workflow_name
+-- snapshots the name at run time so orphaned runs stay attributable.
 CREATE TABLE IF NOT EXISTS `workflow_executions` (
     `id`                INT NOT NULL AUTO_INCREMENT,
-    `workflow_id`       INT NOT NULL,
+    `workflow_id`       INT NULL,
+    `workflow_name`     VARCHAR(255) NULL,            -- snapshot at run time; survives workflow deletion
     `trigger_event`     VARCHAR(100) NOT NULL,
     `trigger_payload`   TEXT NULL,                    -- JSON snapshot of the event payload
     `status`            VARCHAR(20) NOT NULL,         -- 'running' | 'success' | 'failed' | 'skipped' | 'aborted'
@@ -2787,7 +2792,8 @@ CREATE TABLE IF NOT EXISTS `workflow_executions` (
     `error_message`     TEXT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_we_workflow` (`workflow_id`),
-    KEY `idx_we_started` (`started_datetime`)
+    KEY `idx_we_started` (`started_datetime`),
+    CONSTRAINT `fk_we_workflow` FOREIGN KEY (`workflow_id`) REFERENCES `workflows` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------

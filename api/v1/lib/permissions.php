@@ -317,6 +317,22 @@ function apiV1PermissionCatalog(): array {
                 'delete' => 'Delete a submission and its answers',
             ],
         ],
+        'workflows' => [
+            'label'   => 'Workflows',
+            'actions' => [
+                'read'   => 'List and view workflow definitions (trigger, conditions, actions, run stats)',
+                'create' => 'Create workflows — powerful: actions run with engine privileges (tickets, email)',
+                'update' => 'Update workflows (rule bodies validated against the engine catalogues)',
+                'delete' => 'Delete a workflow (its execution history survives, detached)',
+                'fire'   => 'Manually fire a workflow with a synthetic payload (like the editor\'s Test fire)',
+            ],
+        ],
+        'workflow_executions' => [
+            'label'   => 'Workflow executions',
+            'actions' => [
+                'read' => 'Read the engine\'s run history: status, payload snapshot, per-step log',
+            ],
+        ],
         'users' => [
             'label'   => 'Requesters',
             'actions' => [
@@ -340,7 +356,7 @@ function apiV1PermissionCatalog(): array {
         'reference' => [
             'label'   => 'Reference data',
             'actions' => [
-                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers (lite list), problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types, contract statuses/term tabs, payment schedules, supplier types/statuses, calendar categories, service incident statuses / impact levels, morning-check statuses',
+                'read' => 'Read lookups: ticket statuses/priorities/types/origins, departments, asset types/statuses/locations, suppliers (lite list), problem statuses/priorities, change statuses/types/priorities/impacts/categories, knowledge tags, task statuses/priorities/tags, CMDB relationship types, contract statuses/term tabs, payment schedules, supplier types/statuses, calendar categories, service incident statuses / impact levels, morning-check statuses, workflow triggers/actions catalogues',
             ],
         ],
     ];

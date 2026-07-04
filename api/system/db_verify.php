@@ -1440,7 +1440,8 @@ $schema = [
 
     'workflow_executions' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
-        'workflow_id'       => 'INT NOT NULL',
+        'workflow_id'       => 'INT NULL',
+        'workflow_name'     => 'VARCHAR(255) NULL',
         'trigger_event'     => 'VARCHAR(100) NOT NULL',
         'trigger_payload'   => 'TEXT NULL',
         'status'            => 'VARCHAR(20) NOT NULL',
@@ -3556,6 +3557,42 @@ try {
         ['form_submission_data', 'fk_submission_data_field',     "ALTER TABLE form_submission_data ADD CONSTRAINT fk_submission_data_field FOREIGN KEY (field_id) REFERENCES form_fields (id)"],
     ];
     foreach ($formsFks as [$tbl, $name, $sql]) {
+        if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
+        try { $conn->exec($sql); } catch (Exception $e) {}
+    }
+
+    // Workflow-module foreign keys (db_verify $schema only builds columns +
+    // PK; these tables historically had NO FKs anywhere — deliberately, so
+    // execution rows survive workflow deletion as an audit trail). The intent
+    // is kept but made referentially sound: workflow_id becomes nullable with
+    // ON DELETE SET NULL, and the workflow_name snapshot (backfilled from
+    // still-live parents, stamped by the engine on every new run) keeps
+    // orphaned runs attributable. Existing dangling workflow_ids are detached
+    // (no rows deleted).
+    if ($tableExists('workflow_executions')) {
+        try {
+            if ($tableExists('workflows')) {
+                $conn->exec("UPDATE workflow_executions we JOIN workflows w ON w.id = we.workflow_id
+                             SET we.workflow_name = w.name WHERE we.workflow_name IS NULL");
+                $conn->exec("UPDATE workflow_executions we LEFT JOIN workflows w ON w.id = we.workflow_id
+                             SET we.workflow_id = NULL WHERE we.workflow_id IS NOT NULL AND w.id IS NULL");
+            }
+            // Grown installs created workflow_id as NOT NULL — the SET NULL
+            // FK can't attach until it's nullable ($schema only adds columns).
+            $conn->exec("ALTER TABLE workflow_executions MODIFY workflow_id INT NULL");
+        } catch (Exception $e) { /* shrug */ }
+    }
+    if ($tableExists('workflows') && $tableExists('analysts')) {
+        try {
+            $conn->exec("UPDATE workflows w LEFT JOIN analysts a ON a.id = w.created_by
+                         SET w.created_by = NULL WHERE w.created_by IS NOT NULL AND a.id IS NULL");
+        } catch (Exception $e) { /* shrug */ }
+    }
+    $workflowFks = [
+        ['workflows',           'fk_workflows_created_by', "ALTER TABLE workflows ADD CONSTRAINT fk_workflows_created_by FOREIGN KEY (created_by) REFERENCES analysts (id) ON DELETE SET NULL"],
+        ['workflow_executions', 'fk_we_workflow',          "ALTER TABLE workflow_executions ADD CONSTRAINT fk_we_workflow FOREIGN KEY (workflow_id) REFERENCES workflows (id) ON DELETE SET NULL"],
+    ];
+    foreach ($workflowFks as [$tbl, $name, $sql]) {
         if (!$tableExists($tbl) || $fkExists($tbl, $name)) continue;
         try { $conn->exec($sql); } catch (Exception $e) {}
     }
