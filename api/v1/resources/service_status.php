@@ -24,6 +24,14 @@
  * status feed in the product (yet). Install-wide; no audit trail exists.
  */
 
+require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+require_once dirname(__DIR__, 3) . '/includes/services/service_status.php';
+
+/** Map a ServiceError raised by the shared service to the API's error response. */
+function apiServiceStatusFail(ServiceError $e): void {
+    apiError(serviceErrorHttpStatus($e->kind), $e->errorCode, $e->getMessage());
+}
+
 // ---------------------------------------------------------------------------
 // Derived status + serializers
 // ---------------------------------------------------------------------------
@@ -138,57 +146,8 @@ function apiLoadIncident(PDO $conn, int $incidentId): array {
     return $row;
 }
 
-/** Resolve an incident status by name or id — strict 422 on unknown/inactive. */
-function apiResolveIncidentStatus(PDO $conn, array $body): ?array {
-    if (isset($body['status_id']) && $body['status_id'] !== '' && $body['status_id'] !== null) {
-        $stmt = $conn->prepare("SELECT id, name, is_resolved FROM service_incident_statuses WHERE id = ? AND is_active = 1");
-        $stmt->execute([(int)$body['status_id']]);
-    } elseif (isset($body['status']) && trim((string)$body['status']) !== '') {
-        $stmt = $conn->prepare("SELECT id, name, is_resolved FROM service_incident_statuses WHERE name = ? AND is_active = 1");
-        $stmt->execute([trim((string)$body['status'])]);
-    } else {
-        return null;
-    }
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        apiError(422, 'invalid_field', 'Unknown or inactive incident status: ' . ($body['status'] ?? $body['status_id']));
-    }
-    return [(int)$row['id'], $row['name'], (int)$row['is_resolved']];
-}
-
-/**
- * Validate the affected-services array [{service_id, impact_level|impact_level_id}]
- * — strict (422 on unknowns; save_incident.php silently skips them).
- * Returns [[service_id, impact_level_id], ...].
- */
-function apiValidateIncidentServices(PDO $conn, array $services): array {
-    $out = [];
-    foreach ($services as $s) {
-        $serviceId = isset($s['service_id']) ? (int)$s['service_id'] : 0;
-        if ($serviceId <= 0) {
-            apiError(422, 'invalid_field', "Each affected service needs a 'service_id'.");
-        }
-        $check = $conn->prepare("SELECT id FROM status_services WHERE id = ?");
-        $check->execute([$serviceId]);
-        if (!$check->fetchColumn()) {
-            apiError(422, 'invalid_field', "Unknown service id: {$serviceId}");
-        }
-        if (isset($s['impact_level_id']) && $s['impact_level_id'] !== '' && $s['impact_level_id'] !== null) {
-            $imp = $conn->prepare("SELECT id FROM service_impact_levels WHERE id = ? AND is_active = 1");
-            $imp->execute([(int)$s['impact_level_id']]);
-        } else {
-            $name = trim((string)($s['impact_level'] ?? 'Operational'));
-            $imp = $conn->prepare("SELECT id FROM service_impact_levels WHERE name = ? AND is_active = 1");
-            $imp->execute([$name !== '' ? $name : 'Operational']);
-        }
-        $impactId = $imp->fetchColumn();
-        if ($impactId === false) {
-            apiError(422, 'invalid_field', 'Unknown or inactive impact level: ' . ($s['impact_level'] ?? $s['impact_level_id'] ?? ''));
-        }
-        $out[] = [$serviceId, (int)$impactId];
-    }
-    return $out;
-}
+// Incident-status resolution and affected-services validation now live in the
+// shared ServiceStatusService (used by the UI too) — see includes/services/.
 
 // ---------------------------------------------------------------------------
 // Services
@@ -241,60 +200,24 @@ function apiStatusServicesGet(PDO $conn, array $apiKey, array $params, array $bo
 }
 
 function apiStatusServicesCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $name = trim((string)($body['name'] ?? ''));
-    if ($name === '') {
-        apiError(422, 'missing_field', "'name' is required.");
-    }
-    $conn->prepare(
-        "INSERT INTO status_services (name, description, display_order, is_active, created_datetime)
-         VALUES (?, ?, ?, ?, UTC_TIMESTAMP())"
-    )->execute([
-        $name,
-        ($v = trim((string)($body['description'] ?? ''))) !== '' ? $v : null,
-        isset($body['display_order']) ? (int)$body['display_order'] : 0,
-        isset($body['is_active']) ? (int)(bool)$body['is_active'] : 1,
-    ]);
-    apiRespond(apiSerializeService($conn, apiLoadService($conn, (int)$conn->lastInsertId())), 201);
+    try {
+        $id = ServiceStatusService::saveService($conn, ActorContext::fromApiKey($apiKey), $body);
+        apiRespond(apiSerializeService($conn, apiLoadService($conn, $id)), 201);
+    } catch (ServiceError $e) { apiServiceStatusFail($e); }
 }
 
 function apiStatusServicesUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $current = apiLoadService($conn, $params[0]);
-    if (!$body) {
-        apiError(422, 'missing_field', 'No fields to update.');
-    }
-    $get = function (string $key, $default) use ($body, $current) {
-        return array_key_exists($key, $body) ? $body[$key] : ($current[$key] ?? $default);
-    };
-    $name = trim((string)$get('name', ''));
-    if ($name === '') {
-        apiError(422, 'invalid_field', "'name' cannot be empty.");
-    }
-    $conn->prepare("UPDATE status_services SET name=?, description=?, display_order=?, is_active=? WHERE id=?")
-         ->execute([
-             $name,
-             ($v = trim((string)($get('description', '') ?? ''))) !== '' ? $v : null,
-             (int)$get('display_order', 0),
-             (int)(bool)$get('is_active', 1),
-             $params[0],
-         ]);
-    apiRespond(apiSerializeService($conn, apiLoadService($conn, $params[0])));
+    try {
+        $id = ServiceStatusService::saveService($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
+        apiRespond(apiSerializeService($conn, apiLoadService($conn, $id)));
+    } catch (ServiceError $e) { apiServiceStatusFail($e); }
 }
 
-// DELETE — the UI's manual junction cleanup, but transactional.
 function apiStatusServicesDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadService($conn, $params[0]);
-    $conn->beginTransaction();
     try {
-        $conn->prepare("DELETE FROM status_incident_services WHERE service_id = ?")->execute([$params[0]]);
-        $conn->prepare("DELETE FROM status_services WHERE id = ?")->execute([$params[0]]);
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-    apiRespond(['id' => $params[0], 'deleted' => true]);
+        ServiceStatusService::deleteService($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+        apiRespond(['id' => $params[0], 'deleted' => true]);
+    } catch (ServiceError $e) { apiServiceStatusFail($e); }
 }
 
 // ---------------------------------------------------------------------------
@@ -358,111 +281,25 @@ function apiStatusIncidentsGet(PDO $conn, array $apiKey, array $params, array $b
 
 // POST /service-status/incidents
 function apiStatusIncidentsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $title = trim((string)($body['title'] ?? ''));
-    if ($title === '') {
-        apiError(422, 'missing_field', "'title' is required.");
-    }
-    // Default Investigating, like save_incident.php.
-    $status = apiResolveIncidentStatus($conn, $body) ?? apiResolveIncidentStatus($conn, ['status' => 'Investigating']);
-    $comment = trim((string)($body['comment'] ?? '')) ?: null;
-    $servicesIn = (isset($body['services']) && is_array($body['services'])) ? $body['services'] : [];
-    $links = apiValidateIncidentServices($conn, $servicesIn);
-
-    $conn->beginTransaction();
     try {
-        $conn->prepare(
-            "INSERT INTO status_incidents (title, status_id, comment, created_by_id, created_datetime, updated_datetime, resolved_datetime)
-             VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), " . ($status[2] ? "UTC_TIMESTAMP()" : "NULL") . ")"
-        )->execute([$title, $status[0], $comment, (int)$apiKey['analyst_id']]);
-        $incidentId = (int)$conn->lastInsertId();
-
-        $link = $conn->prepare("INSERT INTO status_incident_services (incident_id, service_id, impact_level_id) VALUES (?, ?, ?)");
-        foreach ($links as [$serviceId, $impactId]) {
-            $link->execute([$incidentId, $serviceId, $impactId]);
-        }
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-
-    apiRespond(apiSerializeIncident($conn, apiLoadIncident($conn, $incidentId)), 201);
+        $id = ServiceStatusService::saveIncident($conn, ActorContext::fromApiKey($apiKey), $body);
+        apiRespond(apiSerializeIncident($conn, apiLoadIncident($conn, $id)), 201);
+    } catch (ServiceError $e) { apiServiceStatusFail($e); }
 }
 
 // PATCH /service-status/incidents/{id}
 function apiStatusIncidentsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $current = apiLoadIncident($conn, $params[0]);
-    if (!$body) {
-        apiError(422, 'missing_field', 'No fields to update.');
-    }
-
-    $title = array_key_exists('title', $body) ? trim((string)$body['title']) : $current['title'];
-    if ($title === '') {
-        apiError(422, 'invalid_field', "'title' cannot be empty.");
-    }
-    $status = apiResolveIncidentStatus($conn, $body);
-    $statusId   = $status !== null ? $status[0] : ($current['status_id'] !== null ? (int)$current['status_id'] : null);
-    $isResolved = $status !== null ? (bool)$status[2] : (bool)$current['status_is_resolved'];
-    $comment = array_key_exists('comment', $body)
-        ? (trim((string)$body['comment']) ?: null)
-        : $current['comment'];
-
-    $links = null;
-    if (isset($body['services']) && is_array($body['services'])) {
-        $links = apiValidateIncidentServices($conn, $body['services']);
-    }
-
-    $conn->beginTransaction();
     try {
-        // save_incident.php's exact resolved_datetime rule: stamped once on
-        // entering a resolved status (original preserved), cleared on reopen.
-        if ($isResolved) {
-            $conn->prepare(
-                "UPDATE status_incidents SET title=?, status_id=?, comment=?,
-                        resolved_datetime = COALESCE(resolved_datetime, UTC_TIMESTAMP()),
-                        updated_datetime = UTC_TIMESTAMP() WHERE id=?"
-            )->execute([$title, $statusId, $comment, $params[0]]);
-        } else {
-            $conn->prepare(
-                "UPDATE status_incidents SET title=?, status_id=?, comment=?,
-                        resolved_datetime = NULL, updated_datetime = UTC_TIMESTAMP() WHERE id=?"
-            )->execute([$title, $statusId, $comment, $params[0]]);
-        }
-        if ($links !== null) {
-            $conn->prepare("DELETE FROM status_incident_services WHERE incident_id = ?")->execute([$params[0]]);
-            $link = $conn->prepare("INSERT INTO status_incident_services (incident_id, service_id, impact_level_id) VALUES (?, ?, ?)");
-            foreach ($links as [$serviceId, $impactId]) {
-                $link->execute([$params[0], $serviceId, $impactId]);
-            }
-        }
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-
-    apiRespond(apiSerializeIncident($conn, apiLoadIncident($conn, $params[0])));
+        $id = ServiceStatusService::saveIncident($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
+        apiRespond(apiSerializeIncident($conn, apiLoadIncident($conn, $id)));
+    } catch (ServiceError $e) { apiServiceStatusFail($e); }
 }
 
-// DELETE — the UI's manual junction cleanup, but transactional.
 function apiStatusIncidentsDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadIncident($conn, $params[0]);
-    $conn->beginTransaction();
     try {
-        $conn->prepare("DELETE FROM status_incident_services WHERE incident_id = ?")->execute([$params[0]]);
-        $conn->prepare("DELETE FROM status_incidents WHERE id = ?")->execute([$params[0]]);
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-    apiRespond(['id' => $params[0], 'deleted' => true]);
+        ServiceStatusService::deleteIncident($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+        apiRespond(['id' => $params[0], 'deleted' => true]);
+    } catch (ServiceError $e) { apiServiceStatusFail($e); }
 }
 
 // ---------------------------------------------------------------------------
