@@ -27,7 +27,14 @@
  *
  * CMDB tables themselves are install-wide (no tenant_id — matches the UI).
  * There is no audit trail in the product and none is invented here.
+ *
+ * Object + relationship WRITES are delegated to CmdbService
+ * (includes/services/cmdb.php); the read handlers, serializers, class defs, and
+ * the (API-only) ticket-link endpoints stay here.
  */
+
+require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+require_once dirname(__DIR__, 3) . '/includes/services/cmdb.php';
 
 // ---------------------------------------------------------------------------
 // Classes (read-only in v1 — class design stays an admin activity in the UI)
@@ -150,160 +157,6 @@ function apiCmdbClassDefs(PDO $conn, int $classId): array {
         $defs[$d['property_key']] = $d;
     }
     return $defs;
-}
-
-/** Dropdown options (values only) for one property. */
-function apiCmdbPropertyOptionValues(PDO $conn, int $propertyId): array {
-    $stmt = $conn->prepare("SELECT option_value FROM cmdb_class_property_options WHERE property_id = ? ORDER BY display_order, id");
-    $stmt->execute([$propertyId]);
-    return $stmt->fetchAll(PDO::FETCH_COLUMN);
-}
-
-/**
- * Validate + write a set of property values (keyed by property_key) for an
- * object — save_object.php's exact typing and rules, plus dropdown-option
- * validation (deliberate improvement). Unknown keys are a 422 (machines
- * should not have typos silently ignored).
- */
-function apiCmdbWriteProperties(PDO $conn, int $objectId, int $classId, array $values): void {
-    $defs = apiCmdbClassDefs($conn, $classId);
-    $del = $conn->prepare("DELETE FROM cmdb_object_properties WHERE object_id = ? AND property_id = ?");
-    $ins = $conn->prepare(
-        "INSERT INTO cmdb_object_properties
-             (object_id, property_id, value_text, value_number, value_date, value_boolean, value_object_id)
-         VALUES (?, ?, ?, ?, ?, ?, ?)"
-    );
-
-    foreach ($values as $key => $rawValue) {
-        if (!isset($defs[$key])) {
-            apiError(422, 'invalid_field', "Unknown property '{$key}' for this class. See GET /cmdb/classes/{$classId}.");
-        }
-        $def = $defs[$key];
-        $pid = (int)$def['id'];
-        $del->execute([$objectId, $pid]);
-
-        if ($rawValue === null || $rawValue === '') {
-            continue; // clear this property
-        }
-
-        $vText = null; $vNumber = null; $vDate = null; $vBool = null; $vObj = null;
-        switch ($def['property_type']) {
-            case 'text':
-                $vText = (string)$rawValue;
-                break;
-            case 'dropdown':
-                $vText = (string)$rawValue;
-                $allowed = apiCmdbPropertyOptionValues($conn, $pid);
-                if ($allowed && !in_array($vText, $allowed, true)) {
-                    apiError(422, 'invalid_field', "Property '{$def['label']}' must be one of: " . implode(', ', $allowed));
-                }
-                break;
-            case 'number':
-                if (!is_numeric($rawValue)) {
-                    apiError(422, 'invalid_field', "Property '{$def['label']}' expects a number.");
-                }
-                $vNumber = (float)$rawValue;
-                break;
-            case 'date':
-                $vDate = apiParseDate((string)$rawValue, $key);
-                break;
-            case 'boolean':
-                $vBool = ($rawValue === true || $rawValue === 1 || $rawValue === '1' || $rawValue === 'true') ? 1 : 0;
-                break;
-            case 'object_ref':
-                $vObj = (int)$rawValue;
-                if ($vObj <= 0) {
-                    continue 2;
-                }
-                if ($vObj === $objectId) {
-                    apiError(422, 'invalid_field', "Property '{$def['label']}' can't reference its own object.");
-                }
-                $rs = $conn->prepare("SELECT class_id FROM cmdb_objects WHERE id = ?");
-                $rs->execute([$vObj]);
-                $refClassId = $rs->fetchColumn();
-                if ($refClassId === false) {
-                    apiError(422, 'invalid_field', "Property '{$def['label']}' references an object that doesn't exist.");
-                }
-                if ($def['target_class_id'] !== null && (int)$refClassId !== (int)$def['target_class_id']) {
-                    apiError(422, 'invalid_field', "Property '{$def['label']}' can only reference objects of its target class.");
-                }
-                break;
-            default:
-                apiError(422, 'invalid_field', "Unknown property type: {$def['property_type']}");
-        }
-
-        $ins->execute([$objectId, $pid, $vText, $vNumber, $vDate, $vBool, $vObj]);
-    }
-}
-
-/** Required-property enforcement — save_object.php's create/update asymmetry. */
-function apiCmdbCheckRequired(PDO $conn, int $classId, array $values, bool $isCreate): void {
-    foreach (apiCmdbClassDefs($conn, $classId) as $key => $def) {
-        if ((int)$def['is_required'] !== 1) {
-            continue;
-        }
-        if (array_key_exists($key, $values)) {
-            $v = $values[$key];
-            if ($v === null || $v === '' || (is_array($v) && empty($v))) {
-                apiError(422, 'missing_field', "Required property missing: {$def['label']}");
-            }
-        } elseif ($isCreate) {
-            apiError(422, 'missing_field', "Required property missing: {$def['label']}");
-        }
-    }
-}
-
-/** Parent validation incl. save_object.php's cycle walk. */
-function apiCmdbValidateParent(PDO $conn, ?int $objectId, ?int $parentId): void {
-    if ($parentId === null) {
-        return;
-    }
-    if ($objectId !== null && $parentId === $objectId) {
-        apiError(422, 'invalid_field', "An object can't be its own parent.");
-    }
-    $ps = $conn->prepare("SELECT id FROM cmdb_objects WHERE id = ?");
-    $ps->execute([$parentId]);
-    if (!$ps->fetchColumn()) {
-        apiError(422, 'invalid_field', "Parent object not found: {$parentId}");
-    }
-    if ($objectId !== null) {
-        $cursor = $parentId;
-        $hops = 0;
-        while ($cursor !== null && $hops < 100) {
-            if ($cursor === $objectId) {
-                apiError(422, 'invalid_field', 'That parent would create a cycle (the parent is a descendant of this object).');
-            }
-            $u = $conn->prepare("SELECT parent_id FROM cmdb_objects WHERE id = ?");
-            $u->execute([$cursor]);
-            $next = $u->fetchColumn();
-            $cursor = $next ? (int)$next : null;
-            $hops++;
-        }
-    }
-}
-
-/** All descendant ids of an object (excluding itself), cycle-safe. */
-function apiCmdbDescendantIds(PDO $conn, int $rootId): array {
-    $ids = [];
-    $stack = [$rootId];
-    $seen = [$rootId => true];
-    $hops = 0;
-    $stmt = $conn->prepare("SELECT id FROM cmdb_objects WHERE parent_id = ?");
-    while ($stack && $hops < 10000) {
-        $cur = array_pop($stack);
-        $stmt->execute([$cur]);
-        foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $cid) {
-            $cid = (int)$cid;
-            if (isset($seen[$cid])) {
-                continue;
-            }
-            $seen[$cid] = true;
-            $ids[] = $cid;
-            $stack[] = $cid;
-        }
-        $hops++;
-    }
-    return $ids;
 }
 
 // ---------------------------------------------------------------------------
@@ -487,109 +340,20 @@ function apiCmdbObjectsGet(PDO $conn, array $apiKey, array $params, array $body)
 // POST /cmdb/objects
 // ---------------------------------------------------------------------------
 function apiCmdbObjectsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $name = trim((string)($body['name'] ?? ''));
-    if ($name === '') {
-        apiError(422, 'missing_field', "'name' is required.");
-    }
-    if (mb_strlen($name) > 255) {
-        apiError(422, 'invalid_field', "'name' must be at most 255 characters.");
-    }
-
-    // Class by id or key; must be active (save_object.php's create rule).
-    if (isset($body['class_id']) && $body['class_id'] !== '') {
-        $cs = $conn->prepare("SELECT id FROM cmdb_classes WHERE id = ? AND is_active = 1");
-        $cs->execute([(int)$body['class_id']]);
-    } elseif (isset($body['class_key']) && trim((string)$body['class_key']) !== '') {
-        $cs = $conn->prepare("SELECT id FROM cmdb_classes WHERE class_key = ? AND is_active = 1");
-        $cs->execute([trim((string)$body['class_key'])]);
-    } else {
-        apiError(422, 'missing_field', "'class_id' or 'class_key' is required.");
-    }
-    $classId = $cs->fetchColumn();
-    if ($classId === false) {
-        apiError(422, 'invalid_field', 'Class not found or inactive.');
-    }
-    $classId = (int)$classId;
-
-    $parentId = isset($body['parent_id']) && $body['parent_id'] !== '' && $body['parent_id'] !== null
-        ? (int)$body['parent_id'] : null;
-    apiCmdbValidateParent($conn, null, $parentId);
-    $isPlanned = !empty($body['is_planned']) ? 1 : 0;
-
-    $values = (isset($body['properties']) && is_array($body['properties'])) ? $body['properties'] : [];
-    apiCmdbCheckRequired($conn, $classId, $values, true);
-
-    $conn->beginTransaction();
     try {
-        $ins = $conn->prepare(
-            "INSERT INTO cmdb_objects (class_id, name, parent_id, is_planned, created_datetime, updated_datetime)
-             VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
-        );
-        $ins->execute([$classId, $name, $parentId, $isPlanned]);
-        $objectId = (int)$conn->lastInsertId();
-        apiCmdbWriteProperties($conn, $objectId, $classId, $values);
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-
-    apiRespond(apiCmdbSerializeObject(apiCmdbLoadObject($conn, $objectId)), 201);
+        $res = CmdbService::saveObject($conn, ActorContext::fromApiKey($apiKey), $body);
+        apiRespond(apiCmdbSerializeObject(apiCmdbLoadObject($conn, $res['id'])), 201);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
 // PATCH /cmdb/objects/{id}
 // ---------------------------------------------------------------------------
 function apiCmdbObjectsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $objectId = $params[0];
-    $current = apiCmdbLoadObject($conn, $objectId);
-    if (!$body) {
-        apiError(422, 'missing_field', 'No fields to update.');
-    }
-    $classId = (int)$current['class_id']; // class is immutable, like the UI
-
-    $newName = $current['name'];
-    if (array_key_exists('name', $body)) {
-        $newName = trim((string)$body['name']);
-        if ($newName === '') {
-            apiError(422, 'invalid_field', "'name' cannot be empty.");
-        }
-        if (mb_strlen($newName) > 255) {
-            apiError(422, 'invalid_field', "'name' must be at most 255 characters.");
-        }
-    }
-    $newParent = $current['parent_id'] !== null ? (int)$current['parent_id'] : null;
-    if (array_key_exists('parent_id', $body)) {
-        $newParent = ($body['parent_id'] === '' || $body['parent_id'] === null) ? null : (int)$body['parent_id'];
-        apiCmdbValidateParent($conn, $objectId, $newParent);
-    }
-
-    $values = (isset($body['properties']) && is_array($body['properties'])) ? $body['properties'] : [];
-    apiCmdbCheckRequired($conn, $classId, $values, false);
-
-    $conn->beginTransaction();
     try {
-        if (array_key_exists('is_planned', $body)) {
-            $conn->prepare("UPDATE cmdb_objects SET name = ?, parent_id = ?, is_planned = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
-                 ->execute([$newName, $newParent, !empty($body['is_planned']) ? 1 : 0, $objectId]);
-        } else {
-            $conn->prepare("UPDATE cmdb_objects SET name = ?, parent_id = ?, updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
-                 ->execute([$newName, $newParent, $objectId]);
-        }
-        if ($values) {
-            apiCmdbWriteProperties($conn, $objectId, $classId, $values);
-        }
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-
-    apiRespond(apiCmdbSerializeObject(apiCmdbLoadObject($conn, $objectId)));
+        $res = CmdbService::saveObject($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
+        apiRespond(apiCmdbSerializeObject(apiCmdbLoadObject($conn, $res['id'])));
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
@@ -597,43 +361,10 @@ function apiCmdbObjectsUpdate(PDO $conn, array $apiKey, array $params, array $bo
 // have no CMDB FK cascades; see the db_verify FK group added alongside this)
 // ---------------------------------------------------------------------------
 function apiCmdbObjectsDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiCmdbLoadObject($conn, $params[0]);
-
-    $descendants = apiCmdbDescendantIds($conn, $params[0]);
-    $ids = array_merge([$params[0]], $descendants);
-    $ph = implode(',', array_fill(0, count($ids), '?'));
-
-    $conn->beginTransaction();
     try {
-        // object_ref values pointing at anything in the tree -> NULL (the FK's SET NULL rule).
-        $conn->prepare("UPDATE cmdb_object_properties SET value_object_id = NULL WHERE value_object_id IN ($ph)")->execute($ids);
-        $conn->prepare("DELETE FROM cmdb_object_properties WHERE object_id IN ($ph)")->execute($ids);
-        // Network Mapper: connector provenance pointing at these objects' relationships
-        // goes NULL (before the relationships die), then the objects' diagram nodes and
-        // their connectors go — the FKs' CASCADE/SET NULL rules, done explicitly so
-        // installs grown without the network FKs behave identically.
-        $conn->prepare("UPDATE network_diagram_connectors c JOIN cmdb_object_relationships r ON r.id = c.cmdb_relationship_id
-                        SET c.cmdb_relationship_id = NULL
-                        WHERE r.from_object_id IN ($ph) OR r.to_object_id IN ($ph)")->execute(array_merge($ids, $ids));
-        $conn->prepare("DELETE c FROM network_diagram_connectors c
-                        JOIN network_diagram_nodes n ON (n.id = c.from_node_id OR n.id = c.to_node_id)
-                        WHERE n.cmdb_object_id IN ($ph)")->execute($ids);
-        $conn->prepare("DELETE FROM network_diagram_nodes WHERE cmdb_object_id IN ($ph)")->execute($ids);
-        $conn->prepare("DELETE FROM cmdb_object_relationships WHERE from_object_id IN ($ph) OR to_object_id IN ($ph)")->execute(array_merge($ids, $ids));
-        $conn->prepare("DELETE FROM ticket_cmdb_objects WHERE cmdb_object_id IN ($ph)")->execute($ids);
-        // Children first so the parent FK (where it exists) never blocks.
-        foreach (array_reverse($ids) as $oid) {
-            $conn->prepare("DELETE FROM cmdb_objects WHERE id = ?")->execute([$oid]);
-        }
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-
-    apiRespond(['id' => $params[0], 'deleted' => true, 'deleted_descendants' => count($descendants)]);
+        $res = CmdbService::deleteObject($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+        apiRespond(['id' => $params[0], 'deleted' => true, 'deleted_descendants' => $res['deleted_descendants']]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
@@ -699,63 +430,22 @@ function apiCmdbObjectImpact(PDO $conn, array $apiKey, array $params, array $bod
 // Relationships — POST /cmdb/objects/{id}/relationships, DELETE .../{rel_id}
 // ---------------------------------------------------------------------------
 function apiCmdbRelationshipsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $fromId = $params[0];
-    apiCmdbLoadObject($conn, $fromId);
-
-    $toId = isset($body['to_object_id']) ? (int)$body['to_object_id'] : 0;
-    if ($toId <= 0) {
-        apiError(422, 'missing_field', "'to_object_id' is required.");
-    }
-    if ($toId === $fromId) {
-        apiError(422, 'invalid_field', "An object can't have a relationship with itself.");
-    }
-    apiCmdbLoadObject($conn, $toId);
-
-    // Type by id or verb; must be active (save_object_relationship.php).
-    if (isset($body['relationship_type_id']) && $body['relationship_type_id'] !== '') {
-        $ts = $conn->prepare("SELECT id, verb FROM cmdb_relationship_types WHERE id = ? AND is_active = 1");
-        $ts->execute([(int)$body['relationship_type_id']]);
-    } elseif (isset($body['verb']) && trim((string)$body['verb']) !== '') {
-        $ts = $conn->prepare("SELECT id, verb FROM cmdb_relationship_types WHERE verb = ? AND is_active = 1");
-        $ts->execute([trim((string)$body['verb'])]);
-    } else {
-        apiError(422, 'missing_field', "'relationship_type_id' or 'verb' is required.");
-    }
-    $type = $ts->fetch(PDO::FETCH_ASSOC);
-    if (!$type) {
-        apiError(422, 'invalid_field', 'Relationship type not found or inactive.');
-    }
-
     try {
-        $conn->prepare(
-            "INSERT INTO cmdb_object_relationships (from_object_id, to_object_id, relationship_type_id, created_datetime)
-             VALUES (?, ?, ?, UTC_TIMESTAMP())"
-        )->execute([$fromId, $toId, (int)$type['id']]);
-    } catch (PDOException $e) {
-        if ($e->errorInfo[1] == 1062) {
-            apiError(409, 'conflict', 'That relationship already exists.');
-        }
-        throw $e;
-    }
-
-    apiRespond([
-        'id'             => (int)$conn->lastInsertId(),
-        'from_object_id' => $fromId,
-        'to_object_id'   => $toId,
-        'verb'           => $type['verb'],
-    ], 201);
+        $res = CmdbService::createRelationship($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+        apiRespond([
+            'id'             => $res['id'],
+            'from_object_id' => $params[0],
+            'to_object_id'   => $res['to_object_id'],
+            'verb'           => $res['verb'],
+        ], 201);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 function apiCmdbRelationshipsDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    [$objectId, $relId] = $params;
-    apiCmdbLoadObject($conn, $objectId);
-    // The relationship must involve this object (either direction).
-    $stmt = $conn->prepare("DELETE FROM cmdb_object_relationships WHERE id = ? AND (from_object_id = ? OR to_object_id = ?)");
-    $stmt->execute([$relId, $objectId, $objectId]);
-    if ($stmt->rowCount() === 0) {
-        apiError(404, 'not_found', 'Relationship not found on this object.');
-    }
-    apiRespond(['id' => $relId, 'deleted' => true]);
+    try {
+        CmdbService::deleteRelationship($conn, ActorContext::fromApiKey($apiKey), (int)$params[1], (int)$params[0]);
+        apiRespond(['id' => $params[1], 'deleted' => true]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------

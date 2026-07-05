@@ -99,6 +99,7 @@ class ServiceError extends Exception
 function serviceErrorHttpStatus(string $kind): int
 {
     switch ($kind) {
+        case 'bad_request': return 400;  // malformed input (e.g. an unparseable date/time)
         case 'not_found':  return 404;
         case 'forbidden':  return 403;
         case 'conflict':   return 409;
