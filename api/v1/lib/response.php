@@ -32,6 +32,17 @@ function apiError(int $status, string $code, string $message, ?array $details = 
 }
 
 /**
+ * Emit the API error response for a ServiceError raised by a shared service
+ * (see includes/service_context.php). Maps kind -> HTTP status and passes the
+ * code + message through verbatim, so a service-backed handler produces the
+ * same error body it did when the logic lived inline. Resolves ServiceError /
+ * serviceErrorHttpStatus at call time (the calling resource has required them).
+ */
+function apiFailFromService(ServiceError $e): void {
+    apiError(serviceErrorHttpStatus($e->kind), $e->errorCode, $e->getMessage());
+}
+
+/**
  * Parse the JSON request body. Returns [] for an empty body; 400s on a body
  * that is present but not valid JSON (silent garbage-in is worse than an error).
  */

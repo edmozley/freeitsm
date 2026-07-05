@@ -1,10 +1,12 @@
 <?php
 /**
- * API Endpoint: Update Morning Check
+ * API Endpoint: Update Morning Check.
+ * Thin UI adapter over MorningChecksService.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/services/morning_checks.php';
 
 header('Content-Type: application/json');
 
@@ -14,35 +16,20 @@ if (!isset($_SESSION['analyst_id'])) {
 }
 
 try {
-    $input = json_decode(file_get_contents('php://input'), true);
-
-    $checkId = $input['checkId'] ?? null;
-    $checkName = $input['checkName'] ?? null;
-    $checkDescription = $input['checkDescription'] ?? '';
-    $sortOrder = $input['sortOrder'] ?? 0;
-    $isActive = $input['isActive'] ?? true;
-
-    if (!$checkId) {
+    $conn = connectToDatabase();
+    $input = json_decode(file_get_contents('php://input'), true) ?: [];
+    if (empty($input['checkId'])) {
         throw new Exception('Check ID is required');
     }
-
-    if (!$checkName || empty(trim($checkName))) {
-        throw new Exception('Check name is required');
-    }
-
-    $conn = connectToDatabase();
-
-    $sql = "UPDATE morningChecks_Checks
-            SET CheckName = ?, CheckDescription = ?, SortOrder = ?, IsActive = ?, ModifiedDate = UTC_TIMESTAMP()
-            WHERE CheckID = ?";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([trim($checkName), trim($checkDescription), (int)$sortOrder, $isActive ? 1 : 0, (int)$checkId]);
-
+    MorningChecksService::saveCheck($conn, ActorContext::fromSession($conn), [
+        'id'          => (int)$input['checkId'],
+        'name'        => $input['checkName'] ?? '',
+        'description' => $input['checkDescription'] ?? '',
+        'sort_order'  => $input['sortOrder'] ?? 0,
+        'is_active'   => $input['isActive'] ?? true,
+    ]);
     echo json_encode(['success' => true]);
-
 } catch (Exception $e) {
     http_response_code(500);
     echo json_encode(['error' => $e->getMessage()]);
 }
-?>

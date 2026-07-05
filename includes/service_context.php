@@ -24,7 +24,8 @@ final class ActorContext
         public int $actorId,
         public ?array $companyScope = null,
         public string $source = 'api',      // 'ui' | 'api'
-        public string $locale = 'en'
+        public string $locale = 'en',
+        public string $actorName = ''       // the acting analyst's display name (for *_by attribution columns)
     ) {}
 
     /** Build from the logged-in analyst session (UI adapters). */
@@ -35,7 +36,8 @@ final class ActorContext
             actorId:      $actorId,
             companyScope: self::sessionCompanyScope($conn, $actorId),
             source:       'ui',
-            locale:       class_exists('I18n') ? I18n::getLocale() : 'en'
+            locale:       class_exists('I18n') ? I18n::getLocale() : 'en',
+            actorName:    (string)($_SESSION['analyst_name'] ?? '')
         );
     }
 
@@ -46,7 +48,8 @@ final class ActorContext
             actorId:      (int)$apiKey['analyst_id'],
             companyScope: $apiKey['company_scope'] ?? null,   // apiAuthenticate() already computes this (null = all)
             source:       'api',
-            locale:       'en'
+            locale:       'en',
+            actorName:    (string)($apiKey['analyst_name'] ?? '')
         );
     }
 

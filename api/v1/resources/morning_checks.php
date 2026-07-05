@@ -27,6 +27,9 @@
  * Install-wide (no company scoping — matches the UI); no audit trail exists.
  */
 
+require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+require_once dirname(__DIR__, 3) . '/includes/services/morning_checks.php';
+
 // ---------------------------------------------------------------------------
 // Serializers + loaders
 // ---------------------------------------------------------------------------
@@ -133,63 +136,28 @@ function apiMorningChecksGet(PDO $conn, array $apiKey, array $params, array $bod
     apiRespond(apiSerializeMorningCheck(apiLoadMorningCheck($conn, $params[0])));
 }
 
-// POST /morning-checks/checks — mirrors add_check.php
+// POST /morning-checks/checks
 function apiMorningChecksCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $name = trim((string)($body['name'] ?? ''));
-    if ($name === '') {
-        apiError(422, 'missing_field', "'name' is required.");
-    }
-    $conn->prepare(
-        "INSERT INTO morningChecks_Checks (CheckName, CheckDescription, SortOrder, IsActive, CreatedDate, ModifiedDate)
-         VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
-    )->execute([
-        $name,
-        trim((string)($body['description'] ?? '')),
-        isset($body['sort_order']) ? (int)$body['sort_order'] : 0,
-        isset($body['is_active']) ? (int)(bool)$body['is_active'] : 1,
-    ]);
-    apiRespond(apiSerializeMorningCheck(apiLoadMorningCheck($conn, (int)$conn->lastInsertId())), 201);
-}
-
-// PATCH /morning-checks/checks/{id} — mirrors update_check.php
-function apiMorningChecksUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $current = apiLoadMorningCheck($conn, $params[0]);
-    if (!$body) {
-        apiError(422, 'missing_field', 'No fields to update.');
-    }
-    $name = array_key_exists('name', $body) ? trim((string)$body['name']) : $current['CheckName'];
-    if ($name === '') {
-        apiError(422, 'invalid_field', "'name' cannot be empty.");
-    }
-    $conn->prepare(
-        "UPDATE morningChecks_Checks
-         SET CheckName = ?, CheckDescription = ?, SortOrder = ?, IsActive = ?, ModifiedDate = UTC_TIMESTAMP()
-         WHERE CheckID = ?"
-    )->execute([
-        $name,
-        array_key_exists('description', $body) ? trim((string)$body['description']) : $current['CheckDescription'],
-        array_key_exists('sort_order', $body) ? (int)$body['sort_order'] : (int)$current['SortOrder'],
-        array_key_exists('is_active', $body) ? (int)(bool)$body['is_active'] : (int)$current['IsActive'],
-        $params[0],
-    ]);
-    apiRespond(apiSerializeMorningCheck(apiLoadMorningCheck($conn, $params[0])));
-}
-
-// DELETE — delete_check.php's results-then-check, but transactional.
-function apiMorningChecksDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadMorningCheck($conn, $params[0]);
-    $conn->beginTransaction();
     try {
-        $conn->prepare("DELETE FROM morningChecks_Results WHERE CheckID = ?")->execute([$params[0]]);
-        $conn->prepare("DELETE FROM morningChecks_Checks WHERE CheckID = ?")->execute([$params[0]]);
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-    apiRespond(['id' => $params[0], 'deleted' => true]);
+        $id = MorningChecksService::saveCheck($conn, ActorContext::fromApiKey($apiKey), $body);
+        apiRespond(apiSerializeMorningCheck(apiLoadMorningCheck($conn, $id)), 201);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+}
+
+// PATCH /morning-checks/checks/{id}
+function apiMorningChecksUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
+    try {
+        $id = MorningChecksService::saveCheck($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
+        apiRespond(apiSerializeMorningCheck(apiLoadMorningCheck($conn, $id)));
+    } catch (ServiceError $e) { apiFailFromService($e); }
+}
+
+// DELETE /morning-checks/checks/{id}
+function apiMorningChecksDelete(PDO $conn, array $apiKey, array $params, array $body): void {
+    try {
+        MorningChecksService::deleteCheck($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+        apiRespond(['id' => $params[0], 'deleted' => true]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
@@ -306,64 +274,10 @@ function apiMorningCheckResultsGet(PDO $conn, array $apiKey, array $params, arra
 // POST /morning-checks/results — save_check_result.php's upsert: one result
 // per check per date. 201 on first record of the day, 200 on overwrite.
 function apiMorningCheckResultsRecord(PDO $conn, array $apiKey, array $params, array $body): void {
-    $checkId = isset($body['check_id']) ? (int)$body['check_id'] : 0;
-    if ($checkId <= 0) {
-        apiError(422, 'missing_field', "'check_id' is required.");
-    }
-    $check = $conn->prepare("SELECT CheckID FROM morningChecks_Checks WHERE CheckID = ?");
-    $check->execute([$checkId]);
-    if (!$check->fetchColumn()) {
-        apiError(422, 'invalid_field', "Unknown check id: {$checkId}");
-    }
-
-    // Status by id or label — must exist and be active (the dashboard's rule).
-    if (isset($body['status_id']) && $body['status_id'] !== '' && $body['status_id'] !== null) {
-        $stmt = $conn->prepare(
-            "SELECT StatusID, Label, RequiresNotes FROM morningChecks_Statuses WHERE StatusID = ? AND IsActive = 1"
-        );
-        $stmt->execute([(int)$body['status_id']]);
-    } elseif (isset($body['status']) && trim((string)$body['status']) !== '') {
-        $stmt = $conn->prepare(
-            "SELECT StatusID, Label, RequiresNotes FROM morningChecks_Statuses WHERE Label = ? AND IsActive = 1"
-        );
-        $stmt->execute([trim((string)$body['status'])]);
-    } else {
-        apiError(422, 'missing_field', "'status' (label) or 'status_id' is required.");
-    }
-    $status = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$status) {
-        apiError(422, 'invalid_field', 'Unknown or inactive status: ' . ($body['status'] ?? $body['status_id']));
-    }
-
-    $notes = trim((string)($body['notes'] ?? ''));
-    if ((int)$status['RequiresNotes'] === 1 && $notes === '') {
-        apiError(422, 'missing_field', "Notes are required for the '{$status['Label']}' status.");
-    }
-
-    $date = isset($body['date']) && trim((string)$body['date']) !== ''
-        ? apiMorningCheckDate((string)$body['date'], 'date')
-        : date('Y-m-d');
-
-    $existing = $conn->prepare("SELECT ResultID FROM morningChecks_Results WHERE CheckID = ? AND CheckDate = ?");
-    $existing->execute([$checkId, $date]);
-    $resultId = $existing->fetchColumn();
-
-    if ($resultId !== false) {
-        // Overwrite — StatusID is the source of truth, so the legacy label
-        // snapshot is cleared exactly like save_check_result.php.
-        $conn->prepare(
-            "UPDATE morningChecks_Results
-             SET StatusID = ?, Status = NULL, Notes = ?, ModifiedDate = UTC_TIMESTAMP()
-             WHERE ResultID = ?"
-        )->execute([(int)$status['StatusID'], $notes, (int)$resultId]);
-        apiRespond(apiSerializeMorningResult(apiLoadMorningResult($conn, (int)$resultId)));
-    }
-
-    $conn->prepare(
-        "INSERT INTO morningChecks_Results (CheckID, CheckDate, StatusID, Status, Notes, CreatedBy, CreatedDate, ModifiedDate)
-         VALUES (?, ?, ?, NULL, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
-    )->execute([$checkId, $date, (int)$status['StatusID'], $notes, $apiKey['analyst_name']]);
-    apiRespond(apiSerializeMorningResult(apiLoadMorningResult($conn, (int)$conn->lastInsertId())), 201);
+    try {
+        $res = MorningChecksService::recordResult($conn, ActorContext::fromApiKey($apiKey), $body);
+        apiRespond(apiSerializeMorningResult(apiLoadMorningResult($conn, $res['id'])), $res['created'] ? 201 : 200);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
