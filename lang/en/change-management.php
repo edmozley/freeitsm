@@ -58,6 +58,19 @@ return [
         'delete'    => 'Delete',
         'not_set'   => 'Not set',
 
+        // Linked incidents section + picker
+        'linked_incidents'       => 'Linked incidents',
+        'link_incident'          => 'Link incident',
+        'open_incident'          => 'Open incident',
+        'unlink'                 => 'Unlink',
+        'no_incidents'           => 'No incidents linked yet.',
+        'no_linkable'            => 'No incidents available to link.',
+        'loading'                => 'Loading…',
+        'link_search_placeholder' => 'Search incidents by number or subject…',
+        'linked_incident'        => 'linked incident',
+        'unlinked_incident'      => 'unlinked incident',
+        'unlink_incident_confirm' => 'Remove the link to this incident? The incident itself is not deleted.',
+
         'impact'        => 'Impact',
         'category'      => 'Category',
         'requester'     => 'Requester',
@@ -436,6 +449,11 @@ return [
         'deleted'         => 'Deleted',
         'save_failed'     => 'Failed to save',
         'delete_failed'   => 'Failed to delete',
+        'incident_linked'    => 'Incident linked',
+        'incident_unlinked'  => 'Incident unlinked',
+        'link_failed'        => 'Failed to link incident',
+        'unlink_failed'      => 'Failed to unlink incident',
+        'load_incidents_failed' => 'Failed to load incidents',
     ],
 
     // Right-click context menu on the change list cards. Mirrors tickets.context.*

@@ -22,7 +22,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=13">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=6">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=7">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=1"></script>
@@ -498,6 +498,23 @@ $translationNamespaces = ['common', 'change-management'];
         </div>
     </div>
 
+    <!-- Link incident picker modal. Searches list_linkable_tickets.php
+         (company-scoped, excludes already-linked); clicking a result links it. -->
+    <div class="modal" id="linkIncidentModal">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3><?php echo htmlspecialchars(t('change-management.detail.link_incident')); ?></h3>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-input" id="linkIncidentSearch" placeholder="<?php echo htmlspecialchars(t('change-management.detail.link_search_placeholder')); ?>" oninput="linkIncidentSearchDebounced()">
+                <div id="linkIncidentList" class="link-incident-list"><div class="link-incident-empty"><?php echo htmlspecialchars(t('change-management.detail.loading')); ?></div></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLinkIncidentModal()"><?php echo htmlspecialchars(t('change-management.editor.cancel')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- html2pdf for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
@@ -508,6 +525,6 @@ $translationNamespaces = ['common', 'change-management'];
         window.openCreateOnLoad = true;
         <?php endif; ?>
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=14"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=15"></script>
 </body>
 </html>

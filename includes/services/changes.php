@@ -650,15 +650,21 @@ class ChangesService
         return ['change_id' => $changeId, 'ticket_id' => $ticketId, 'ticket_number' => $ticket['ticket_number'], 'linked' => true];
     }
 
-    /** Unlink an incident from a change. 404 if not linked. */
+    /** Unlink an incident from a change. 404 if not linked. Audited. */
     public static function unlinkTicket(PDO $conn, ActorContext $ctx, int $changeId, int $ticketId): void
     {
         self::loadJoined($conn, $ctx, $changeId);   // 404 if gone / out of scope
+        // Ticket number for the audit trail (before the link is removed).
+        $tn = $conn->prepare("SELECT ticket_number FROM tickets WHERE id = ?");
+        $tn->execute([$ticketId]);
+        $ticketNumber = $tn->fetchColumn() ?: ('#' . $ticketId);
+
         $stmt = $conn->prepare("DELETE FROM change_tickets WHERE change_id = ? AND ticket_id = ?");
         $stmt->execute([$changeId, $ticketId]);
         if ($stmt->rowCount() === 0) {
             throw new ServiceError('not_found', 'not_found', 'Link not found.');
         }
+        self::auditWrite($conn, $changeId, $ctx->actorId, 'field_change', 'Linked incident', $ticketNumber, null);
         $conn->prepare("UPDATE changes SET modified_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$changeId]);
     }
 

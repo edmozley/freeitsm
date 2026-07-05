@@ -700,6 +700,9 @@ function renderChangeDetail() {
         `;
     }
 
+    // Linked incidents section
+    html += renderLinkedIncidents(c);
+
     // Activity section (comments + audit trail)
     html += `
         <div class="activity-section">
@@ -718,6 +721,98 @@ function renderChangeDetail() {
 
     // Load activity timeline asynchronously
     loadActivityTimeline(c.id);
+}
+
+// ============ Linked incidents ============
+
+// Small inline icons for the linked-incidents rows.
+const CM_OPEN_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+const CM_UNLINK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+function renderLinkedIncidents(c) {
+    const incidents = c.incidents || [];
+    const rows = incidents.map(i => `
+        <tr>
+            <td><a href="../tickets/index.php?ticket_id=${i.id}" target="_blank" rel="noopener">${escapeHtml(i.ticket_number || ('#' + i.id))}</a></td>
+            <td>${escapeHtml(i.subject || '')}</td>
+            <td>${escapeHtml(i.status || '')}</td>
+            <td class="linked-incidents-actions">
+                <a class="linked-incident-btn" href="../tickets/index.php?ticket_id=${i.id}" target="_blank" rel="noopener" title="${escapeHtml(window.t('change-management.detail.open_incident'))}">${CM_OPEN_SVG}</a>
+                <button class="linked-incident-btn danger" onclick="unlinkChangeIncident(${i.id})" title="${escapeHtml(window.t('change-management.detail.unlink'))}">${CM_UNLINK_SVG}</button>
+            </td>
+        </tr>`).join('');
+    const body = rows || `<tr class="linked-incidents-empty"><td colspan="4">${window.t('change-management.detail.no_incidents')}</td></tr>`;
+    return `
+        <div class="linked-incidents-section">
+            <div class="linked-incidents-head">
+                <h3>${window.t('change-management.detail.linked_incidents')} (${incidents.length})</h3>
+                <button class="btn btn-secondary btn-sm" onclick="openLinkIncidentModal()">${window.t('change-management.detail.link_incident')}</button>
+            </div>
+            <table class="linked-incidents-table">
+                <tbody>${body}</tbody>
+            </table>
+        </div>
+    `;
+}
+
+let cmLinkIncidentSearchTimer = null;
+function openLinkIncidentModal() {
+    if (!currentChange) return;
+    const search = document.getElementById('linkIncidentSearch');
+    if (search) search.value = '';
+    document.getElementById('linkIncidentModal').classList.add('active');
+    loadLinkableIncidents();
+}
+function closeLinkIncidentModal() {
+    document.getElementById('linkIncidentModal').classList.remove('active');
+}
+function linkIncidentSearchDebounced() {
+    clearTimeout(cmLinkIncidentSearchTimer);
+    cmLinkIncidentSearchTimer = setTimeout(loadLinkableIncidents, 250);
+}
+async function loadLinkableIncidents() {
+    if (!currentChange) return;
+    const list = document.getElementById('linkIncidentList');
+    const q = (document.getElementById('linkIncidentSearch') || {}).value || '';
+    list.innerHTML = `<div class="link-incident-empty">${window.t('change-management.detail.loading')}</div>`;
+    try {
+        const res = await fetch(API_BASE + 'list_linkable_tickets.php?change_id=' + currentChange.id + '&q=' + encodeURIComponent(q.trim()));
+        const data = await res.json();
+        if (!data.success) { list.innerHTML = `<div class="link-incident-empty">${escapeHtml(data.error || '')}</div>`; return; }
+        if (!data.tickets.length) { list.innerHTML = `<div class="link-incident-empty">${window.t('change-management.detail.no_linkable')}</div>`; return; }
+        list.innerHTML = data.tickets.map(t => `
+            <button type="button" class="link-incident-row" onclick="linkChangeIncident(${t.id})">
+                <span class="link-incident-title">${escapeHtml(t.subject || '(no subject)')}</span>
+                <span class="link-incident-meta">${escapeHtml(t.ticket_number || '')}${t.status ? ' &middot; ' + escapeHtml(t.status) : ''}${t.requester ? ' &middot; ' + escapeHtml(t.requester) : ''}</span>
+            </button>`).join('');
+    } catch (e) {
+        list.innerHTML = `<div class="link-incident-empty">${window.t('change-management.toast.load_incidents_failed')}</div>`;
+    }
+}
+async function linkChangeIncident(ticketId) {
+    if (!currentChange) return;
+    try {
+        const res = await fetch(API_BASE + 'link_ticket.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ change_id: currentChange.id, ticket_id: ticketId }) });
+        const data = await res.json();
+        if (!data.success) { showToast(data.error || window.t('change-management.toast.link_failed'), 'error'); return; }
+        closeLinkIncidentModal();
+        showToast(window.t('change-management.toast.incident_linked'), 'success');
+        viewChange(currentChange.id);
+    } catch (e) { showToast(window.t('change-management.toast.link_failed'), 'error'); }
+}
+async function unlinkChangeIncident(ticketId) {
+    if (!currentChange) return;
+    const ok = window.showConfirm
+        ? await showConfirm({ title: window.t('change-management.detail.unlink'), message: window.t('change-management.detail.unlink_incident_confirm'), okLabel: window.t('change-management.detail.unlink'), okClass: 'danger' })
+        : confirm(window.t('change-management.detail.unlink_incident_confirm'));
+    if (!ok) return;
+    try {
+        const res = await fetch(API_BASE + 'unlink_ticket.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ change_id: currentChange.id, ticket_id: ticketId }) });
+        const data = await res.json();
+        if (!data.success) { showToast(data.error || window.t('change-management.toast.unlink_failed'), 'error'); return; }
+        showToast(window.t('change-management.toast.incident_unlinked'), 'success');
+        viewChange(currentChange.id);
+    } catch (e) { showToast(window.t('change-management.toast.unlink_failed'), 'error'); }
 }
 
 function renderDetailSection(title, content) {
@@ -908,6 +1003,10 @@ function renderActivityTimeline(timeline, container) {
                 description = `<strong>${escapeHtml(entry.field_name || 'CAB')}</strong>`;
                 if (entry.new_value) description += `: <span class="new-val">${escapeHtml(entry.new_value)}</span>`;
                 if (entry.old_value) description += ` <span class="old-val">(${escapeHtml(entry.old_value)})</span>`;
+            } else if (entry.field_name === 'Linked incident') {
+                description = entry.new_value
+                    ? `${window.t('change-management.detail.linked_incident')} <span class="new-val">${escapeHtml(entry.new_value)}</span>`
+                    : `${window.t('change-management.detail.unlinked_incident')} <span class="old-val">${escapeHtml(entry.old_value)}</span>`;
             } else {
                 description = `changed <strong>${escapeHtml(entry.field_name || '')}</strong>`;
                 if (entry.old_value && entry.new_value) {

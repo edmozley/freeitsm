@@ -84,6 +84,20 @@ try {
     $commentStmt->execute([$changeId]);
     $change['comments'] = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Linked incidents (tickets). Degrades to [] if the table isn't present yet.
+    $change['incidents'] = [];
+    try {
+        $incSql = "SELECT t.id, t.ticket_number, t.subject, ts.name AS status
+                   FROM change_tickets ct
+                   JOIN tickets t ON t.id = ct.ticket_id
+                   LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
+                   WHERE ct.change_id = ? AND t.deleted_datetime IS NULL
+                   ORDER BY t.created_datetime DESC";
+        $incStmt = $conn->prepare($incSql);
+        $incStmt->execute([$changeId]);
+        $change['incidents'] = $incStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) { /* change_tickets not created yet */ }
+
     // Get CAB members
     $cabSql = "SELECT m.id, m.analyst_id, m.is_required, m.vote, m.vote_comment,
                       m.vote_datetime, m.added_by_id, m.added_datetime,
