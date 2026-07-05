@@ -27,7 +27,14 @@
  * TinyMCE HTML stored verbatim, exactly like the UI (no server-side
  * sanitisation exists in the product) — consumers render at their own risk,
  * and integrations should send trusted HTML only.
+ *
+ * Article WRITES (create/update/archive/restore/purge) are delegated to
+ * KnowledgeService (includes/services/knowledge.php); the read handlers,
+ * serializers + the bin's retention auto-purge stay here.
  */
+
+require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+require_once dirname(__DIR__, 3) . '/includes/services/knowledge.php';
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -94,74 +101,6 @@ function apiLoadArticle(PDO $conn, int $articleId): array {
         apiError(404, 'not_found', 'Article not found.');
     }
     return $row;
-}
-
-/** Replace the article's tag set: get-or-create each name, relink (mirrors knowledge_save.php). */
-function apiKnowledgeSetTags(PDO $conn, int $articleId, array $tags): void {
-    $conn->prepare("DELETE FROM knowledge_article_tags WHERE article_id = ?")->execute([$articleId]);
-    foreach ($tags as $raw) {
-        $name = trim((string)$raw);
-        if ($name === '' || mb_strlen($name) > 50) {
-            continue;
-        }
-        $find = $conn->prepare("SELECT id FROM knowledge_tags WHERE name = ?");
-        $find->execute([$name]);
-        $tagId = $find->fetchColumn();
-        if ($tagId === false) {
-            $conn->prepare("INSERT INTO knowledge_tags (name, created_datetime) VALUES (?, UTC_TIMESTAMP())")->execute([$name]);
-            $tagId = $conn->lastInsertId();
-        }
-        $conn->prepare("INSERT IGNORE INTO knowledge_article_tags (article_id, tag_id) VALUES (?, ?)")
-             ->execute([$articleId, (int)$tagId]);
-    }
-}
-
-/**
- * Regenerate the article's OpenAI embedding — the same best-effort post-save
- * step knowledge_save.php runs, so API-written articles stay searchable by
- * the AI chat. Silently no-ops without a key or on any failure.
- */
-function apiKnowledgeUpdateEmbedding(PDO $conn, int $articleId, string $title, string $body): void {
-    try {
-        $stmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'knowledge_openai_api_key'");
-        $stmt->execute();
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$row || empty($row['setting_value']) || !function_exists('decryptValue')) {
-            return;
-        }
-        $apiKeyValue = decryptValue($row['setting_value']);
-        if (!$apiKeyValue) {
-            return;
-        }
-
-        $plainText = trim(preg_replace('/\s+/', ' ', html_entity_decode(strip_tags($body), ENT_QUOTES, 'UTF-8')));
-        $textToEmbed = $title . "\n\n" . $plainText;
-        if (strlen($textToEmbed) > 30000) {
-            $textToEmbed = substr($textToEmbed, 0, 30000);
-        }
-
-        $ch = curl_init('https://api.openai.com/v1/embeddings');
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['model' => 'text-embedding-3-small', 'input' => $textToEmbed]));
-        curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $apiKeyValue]);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, defined('SSL_VERIFY_PEER') ? SSL_VERIFY_PEER : true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        curl_close($ch);
-
-        if ($httpCode === 200) {
-            $data = json_decode($response, true);
-            $embedding = $data['data'][0]['embedding'] ?? null;
-            if ($embedding && is_array($embedding)) {
-                $conn->prepare("UPDATE knowledge_articles SET embedding = ?, embedding_updated = UTC_TIMESTAMP() WHERE id = ?")
-                     ->execute([json_encode($embedding), $articleId]);
-            }
-        }
-    } catch (Exception $e) {
-        // Embedding is a bonus, never a blocker — same as the UI.
-    }
 }
 
 /** The recycle bin's retention auto-purge (mirrors knowledge_archive.php). */
@@ -289,168 +228,44 @@ function apiKnowledgeArticlesGet(PDO $conn, array $apiKey, array $params, array 
 // POST /knowledge/articles
 // ---------------------------------------------------------------------------
 function apiKnowledgeArticlesCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $title = trim((string)($body['title'] ?? ''));
-    if ($title === '') {
-        apiError(422, 'missing_field', "'title' is required.");
-    }
-    if (mb_strlen($title) > 255) {
-        apiError(422, 'invalid_field', "'title' must be at most 255 characters.");
-    }
-    $bodyHtml = (string)($body['body_html'] ?? '');
-
-    $ownerId = null;
-    if (isset($body['owner_id']) && $body['owner_id'] !== '' && $body['owner_id'] !== null) {
-        $ownerId = (int)$body['owner_id'];
-        apiResolveAnalyst($conn, $ownerId);
-    }
-    $nextReview = apiParseDateOnly($body['next_review_date'] ?? null, 'next_review_date');
-
-    $conn->beginTransaction();
     try {
-        // Articles are created published — the product has no draft workflow.
-        $ins = $conn->prepare(
-            "INSERT INTO knowledge_articles
-                (title, body, author_id, owner_id, next_review_date,
-                 created_datetime, modified_datetime, is_published, view_count)
-             VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1, 0)"
-        );
-        $ins->execute([$title, $bodyHtml, (int)$apiKey['analyst_id'], $ownerId, $nextReview]);
-        $articleId = (int)$conn->lastInsertId();
-
-        if (isset($body['tags']) && is_array($body['tags'])) {
-            apiKnowledgeSetTags($conn, $articleId, $body['tags']);
-        }
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-
-    apiKnowledgeUpdateEmbedding($conn, $articleId, $title, $bodyHtml);
-
-    apiRespond(apiSerializeArticle($conn, apiLoadArticle($conn, $articleId), true), 201);
+        $res = KnowledgeService::saveArticle($conn, ActorContext::fromApiKey($apiKey), $body);
+        apiRespond(apiSerializeArticle($conn, apiLoadArticle($conn, $res['id']), true), 201);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
 // PATCH /knowledge/articles/{id}
 // ---------------------------------------------------------------------------
 function apiKnowledgeArticlesUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $articleId = $params[0];
-    $current = apiLoadArticle($conn, $articleId);
-    if ((int)$current['is_archived']) {
-        apiError(409, 'conflict', 'Article is in the recycle bin. Restore it before updating.');
-    }
-    if (!$body) {
-        apiError(422, 'missing_field', 'No fields to update.');
-    }
-
-    $newTitle = $current['title'];
-    if (array_key_exists('title', $body)) {
-        $newTitle = trim((string)$body['title']);
-        if ($newTitle === '') {
-            apiError(422, 'invalid_field', "'title' cannot be empty.");
-        }
-        if (mb_strlen($newTitle) > 255) {
-            apiError(422, 'invalid_field', "'title' must be at most 255 characters.");
-        }
-    }
-    $newBody = array_key_exists('body_html', $body) ? (string)$body['body_html'] : (string)$current['body'];
-
-    $updates = ['title = ?', 'body = ?', 'modified_datetime = UTC_TIMESTAMP()'];
-    $args    = [$newTitle, $newBody];
-
-    if (array_key_exists('owner_id', $body)) {
-        $ownerId = ($body['owner_id'] === '' || $body['owner_id'] === null) ? null : (int)$body['owner_id'];
-        if ($ownerId !== null) {
-            apiResolveAnalyst($conn, $ownerId);
-        }
-        $updates[] = 'owner_id = ?';
-        $args[]    = $ownerId;
-    }
-    if (array_key_exists('next_review_date', $body)) {
-        $updates[] = 'next_review_date = ?';
-        $args[]    = apiParseDateOnly($body['next_review_date'], 'next_review_date');
-    }
-
-    $saveAsVersion = !empty($body['save_as_version']);
-
-    $conn->beginTransaction();
     try {
-        if ($saveAsVersion) {
-            // Snapshot the CURRENT content into history, then bump the version
-            // — exactly knowledge_save.php's save-as-version path.
-            $conn->prepare(
-                "INSERT INTO knowledge_article_versions (article_id, version, title, body, saved_by_id, saved_datetime)
-                 SELECT id, version, title, body, ?, UTC_TIMESTAMP() FROM knowledge_articles WHERE id = ?"
-            )->execute([(int)$apiKey['analyst_id'], $articleId]);
-            $updates[] = 'version = version + 1';
-        }
-        $args[] = $articleId;
-        $conn->prepare('UPDATE knowledge_articles SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
-
-        if (isset($body['tags']) && is_array($body['tags'])) {
-            apiKnowledgeSetTags($conn, $articleId, $body['tags']);
-        }
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-
-    apiKnowledgeUpdateEmbedding($conn, $articleId, $newTitle, $newBody);
-
-    apiRespond(apiSerializeArticle($conn, apiLoadArticle($conn, $articleId), true));
+        $res = KnowledgeService::saveArticle($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
+        apiRespond(apiSerializeArticle($conn, apiLoadArticle($conn, $res['id']), true));
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
 // DELETE (archive) / restore / permanent purge — the recycle-bin semantics
 // ---------------------------------------------------------------------------
 function apiKnowledgeArticlesDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadArticle($conn, $params[0]);
-    $stmt = $conn->prepare(
-        "UPDATE knowledge_articles
-         SET is_archived = 1, archived_datetime = UTC_TIMESTAMP(), archived_by_id = ?
-         WHERE id = ? AND (is_archived = 0 OR is_archived IS NULL)"
-    );
-    $stmt->execute([(int)$apiKey['analyst_id'], $params[0]]);
-    if ($stmt->rowCount() === 0) {
-        apiError(409, 'conflict', 'Article is already in the recycle bin.');
-    }
-    apiRespond(['id' => $params[0], 'archived' => true]);
+    try {
+        KnowledgeService::archiveArticle($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+        apiRespond(['id' => $params[0], 'archived' => true]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 function apiKnowledgeArticlesRestore(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadArticle($conn, $params[0]);
-    $stmt = $conn->prepare(
-        "UPDATE knowledge_articles
-         SET is_archived = 0, archived_datetime = NULL, archived_by_id = NULL
-         WHERE id = ? AND is_archived = 1"
-    );
-    $stmt->execute([$params[0]]);
-    if ($stmt->rowCount() === 0) {
-        apiError(409, 'conflict', 'Article is not in the recycle bin.');
-    }
-    apiRespond(apiSerializeArticle($conn, apiLoadArticle($conn, $params[0]), true));
+    try {
+        KnowledgeService::restoreArticle($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+        apiRespond(apiSerializeArticle($conn, apiLoadArticle($conn, $params[0]), true));
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 function apiKnowledgeArticlesPurge(PDO $conn, array $apiKey, array $params, array $body): void {
-    $row = apiLoadArticle($conn, $params[0]);
-    // Permanent delete only works from the bin — same guard as the UI.
-    if (!(int)$row['is_archived']) {
-        apiError(409, 'conflict', 'Only archived articles can be permanently deleted. DELETE (archive) it first.');
-    }
-    // Children explicitly, not via cascade: the tag-junction FK cascades but
-    // the versions FK does not, and installs grown via Database Verify may
-    // have neither (FKs are added separately from columns).
-    $conn->prepare("DELETE FROM knowledge_article_versions WHERE article_id = ?")->execute([$params[0]]);
-    $conn->prepare("DELETE FROM knowledge_article_tags WHERE article_id = ?")->execute([$params[0]]);
-    $conn->prepare("DELETE FROM knowledge_articles WHERE id = ? AND is_archived = 1")->execute([$params[0]]);
-    $conn->exec("DELETE FROM knowledge_tags WHERE id NOT IN (SELECT DISTINCT tag_id FROM knowledge_article_tags)");
-    apiRespond(['id' => $params[0], 'deleted' => true]);
+    try {
+        KnowledgeService::purgeArticle($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+        apiRespond(['id' => $params[0], 'deleted' => true]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------

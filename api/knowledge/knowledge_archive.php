@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/services/knowledge.php';
 
 header('Content-Type: application/json');
 
@@ -73,59 +74,14 @@ function handleList($conn) {
 }
 
 function handleRestore($conn, $input) {
-    if (empty($input['id'])) {
-        echo json_encode(['success' => false, 'error' => 'Article ID required']);
-        return;
-    }
-
-    $articleId = (int)$input['id'];
-
-    $sql = "UPDATE knowledge_articles
-            SET is_archived = 0,
-                archived_datetime = NULL,
-                archived_by_id = NULL
-            WHERE id = ? AND is_archived = 1";
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$articleId]);
-
-    if ($stmt->rowCount() === 0) {
-        echo json_encode(['success' => false, 'error' => 'Article not found or not archived']);
-        return;
-    }
-
+    // Thin UI adapter over KnowledgeService (errors bubble to the caller's catch).
+    KnowledgeService::restoreArticle($conn, ActorContext::fromSession($conn), (int)($input['id'] ?? 0));
     echo json_encode(['success' => true, 'message' => 'Article restored']);
 }
 
 function handleHardDelete($conn, $input) {
-    if (empty($input['id'])) {
-        echo json_encode(['success' => false, 'error' => 'Article ID required']);
-        return;
-    }
-
-    $articleId = (int)$input['id'];
-
-    // Only allow hard delete on archived articles
-    $check = $conn->prepare("SELECT id FROM knowledge_articles WHERE id = ? AND is_archived = 1");
-    $check->execute([$articleId]);
-    if (!$check->fetchColumn()) {
-        echo json_encode(['success' => false, 'error' => 'Article not found or not archived']);
-        return;
-    }
-
-    // Delete children explicitly, not via cascade: the versions FK has no
-    // ON DELETE CASCADE (a versioned article would otherwise refuse to
-    // delete), and installs grown via Database Verify may have no knowledge
-    // FKs at all (db_verify adds FKs separately from columns), which left
-    // orphaned tag links behind and blocked the orphaned-tag cleanup below.
-    $conn->prepare("DELETE FROM knowledge_article_versions WHERE article_id = ?")->execute([$articleId]);
-    $conn->prepare("DELETE FROM knowledge_article_tags WHERE article_id = ?")->execute([$articleId]);
-    $conn->prepare("DELETE FROM knowledge_articles WHERE id = ? AND is_archived = 1")->execute([$articleId]);
-
-    // Clean up orphaned tags
-    $cleanupSql = "DELETE FROM knowledge_tags
-                   WHERE id NOT IN (SELECT DISTINCT tag_id FROM knowledge_article_tags)";
-    $conn->exec($cleanupSql);
-
+    // Thin UI adapter over KnowledgeService (errors bubble to the caller's catch).
+    KnowledgeService::purgeArticle($conn, ActorContext::fromSession($conn), (int)($input['id'] ?? 0));
     echo json_encode(['success' => true, 'message' => 'Article permanently deleted']);
 }
 
