@@ -1365,7 +1365,7 @@ class WorkflowEngine
                 if (is_array($v) && isset($v['full']) && is_array($v['full'])) { $full = $v['full']; break; }
             }
             if ($full === null) {
-                throw new Exception('the full-record format needs a trigger that carries a record with a full object (currently: ticket triggers)');
+                throw new Exception('the full-record format needs a trigger that carries a record with a full object (ticket, change, problem, task, asset, knowledge, contract, supplier, calendar event, software licence, or service-status incident events)');
             }
             $bodyJson = json_encode($full, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
         } elseif ($preset === 'slack' || $preset === 'discord' || $preset === 'teams') {
@@ -1417,25 +1417,60 @@ class WorkflowEngine
      */
     public static function enrichWithFullObjects(PDO $conn, array $payload): array
     {
-        static $registry = [
-            'ticket' => [
-                'deps'      => ['/api/v1/lib/response.php', '/api/v1/resources/tickets.php'],
-                'select'    => 'apiTicketSelect',
-                'where'     => ' WHERE t.id = ? LIMIT 1',
-                'serialize' => 'apiSerializeTicket',
-            ],
-        ];
-        foreach ($registry as $key => $cfg) {
+        // key = the payload key an event ships (e.g. 'change' for change.*); the
+        // loader reproduces exactly what GET /<resource>/{id} returns by reusing
+        // the REST API's own SELECT + serialiser, so `.full` is byte-for-byte the
+        // API shape. We run the RAW select (not the apiLoadX() helpers) on purpose:
+        // those call apiError()/exit on a missing or out-of-scope row, which would
+        // abort the host module's request. Best-effort throughout — any failure is
+        // swallowed so the webhook still sends (just without `.full`).
+        //
+        // Deferred on purpose: `cmdb.object.*` and `network_diagram.*`. Their API
+        // GET hydrates deep child collections (typed properties / nodes+connectors)
+        // beyond a single select+serialise; those events still carry id+name inline.
+        foreach (self::fullObjectLoaders($conn) as $key => $loader) {
             if (empty($payload[$key]['id']) || isset($payload[$key]['full'])) continue;
             try {
-                foreach ($cfg['deps'] as $dep) require_once dirname(__DIR__, 2) . $dep;
-                $stmt = $conn->prepare(call_user_func($cfg['select']) . $cfg['where']);
-                $stmt->execute([(int)$payload[$key]['id']]);
-                $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                if ($row) $payload[$key]['full'] = call_user_func($cfg['serialize'], $row);
+                $full = $loader((int)$payload[$key]['id']);
+                if ($full) $payload[$key]['full'] = $full;
             } catch (Throwable $e) { /* full object is best-effort */ }
         }
         return $payload;
+    }
+
+    /**
+     * The registry of full-object loaders, keyed by payload key. Each loader takes
+     * an id and returns the API-shaped record (or null if gone). Built per-call (not
+     * a static, so it can hold closures) — cheap, since it only runs when a webhook
+     * actually needs a full object. One entry per resource whose GET /{id} is a
+     * clean select+serialise; add a resource here to light up its `.full`.
+     */
+    private static function fullObjectLoaders(PDO $conn): array
+    {
+        $R = dirname(__DIR__, 2);
+        $one = function (string $resourceFile, string $selectFn, string $where, callable $serialize) use ($conn, $R) {
+            return function (int $id) use ($conn, $R, $resourceFile, $selectFn, $where, $serialize) {
+                require_once $R . '/api/v1/lib/response.php';
+                require_once $R . '/api/v1/resources/' . $resourceFile;
+                $stmt = $conn->prepare($selectFn() . $where);
+                $stmt->execute([$id]);
+                $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                return $row ? $serialize($conn, $row) : null;
+            };
+        };
+        return [
+            'ticket'           => $one('tickets.php',        'apiTicketSelect',         ' WHERE t.id = ? LIMIT 1',  fn($c, $r) => apiSerializeTicket($r)),
+            'change'           => $one('changes.php',        'apiChangeSelect',         ' WHERE c.id = ? LIMIT 1',  fn($c, $r) => apiSerializeChange($r)),
+            'problem'          => $one('problems.php',        'apiProblemSelect',        ' WHERE p.id = ? LIMIT 1',  fn($c, $r) => apiSerializeProblem($r)),
+            'task'             => $one('tasks.php',          'apiTaskSelect',           ' WHERE t.id = ? LIMIT 1',  fn($c, $r) => apiSerializeTask($c, $r)),
+            'asset'            => $one('assets.php',          'apiAssetSelect',          ' WHERE a.id = ? LIMIT 1',  fn($c, $r) => apiSerializeAsset($c, $r)),
+            'article'          => $one('knowledge.php',       'apiKnowledgeSelect',      ' WHERE a.id = ? LIMIT 1',  fn($c, $r) => apiSerializeArticle($c, $r, true)),
+            'contract'         => $one('contracts.php',       'apiContractSelect',       ' WHERE c.id = ? LIMIT 1',  fn($c, $r) => apiSerializeContract($r)),
+            'supplier'         => $one('contracts.php',       'apiSupplierSelect',       ' WHERE s.id = ? LIMIT 1',  fn($c, $r) => apiSerializeSupplier($r)),
+            'calendar_event'   => $one('calendar.php',        'apiCalendarEventSelect',  ' WHERE e.id = ? LIMIT 1',  fn($c, $r) => apiSerializeCalendarEvent($r)),
+            'software_licence' => $one('software.php',        'apiSoftwareLicenceSelect', ' WHERE l.id = ? LIMIT 1', fn($c, $r) => apiSerializeLicence($r)),
+            'incident'         => $one('service_status.php',  'apiServiceIncidentSelect', ' WHERE si.id = ? LIMIT 1', fn($c, $r) => apiSerializeIncident($c, $r)),
+        ];
     }
 
     // -----------------------------------------------------------------
