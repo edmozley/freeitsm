@@ -1,12 +1,15 @@
 <?php
 /**
- * API Endpoint: Create or update a change record
- * Includes server-side audit logging for all field changes.
+ * API Endpoint: Create or update a change record.
+ * Thin UI adapter over ChangesService (create/update). The per-field audit
+ * trail, risk scoring, and the change.approved workflow event live there, shared
+ * with the REST API's POST/PATCH /changes. This is a full-form save, so it sends
+ * every field; the service treats absent keys as untouched.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
-require_once dirname(dirname(__DIR__)) . '/workflow/includes/engine.php';
+require_once '../../includes/services/changes.php';
 
 header('Content-Type: application/json');
 
@@ -15,322 +18,42 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
-$analystId = (int)$_SESSION['analyst_id'];
-
 $input = json_decode(file_get_contents('php://input'), true);
-
 if (!$input) {
     echo json_encode(['success' => false, 'error' => 'Invalid request data']);
     exit;
 }
 
-$changeId = !empty($input['id']) ? (int)$input['id'] : null;
-$title = trim($input['title'] ?? '');
-
-if (empty($title)) {
-    echo json_encode(['success' => false, 'error' => 'Title is required']);
-    exit;
-}
-
-// Helper to coerce empty/null values
-function nullInt($val) {
-    return (isset($val) && $val !== '' && $val !== null) ? (int)$val : null;
-}
-function nullTinyInt($val) {
-    return (isset($val) && $val !== '' && $val !== null) ? (int)$val : null;
-}
-function nullStr($val) {
-    return (isset($val) && $val !== '' && $val !== null) ? trim($val) : null;
-}
-function nullDatetime($val) {
-    if (!isset($val) || $val === '' || $val === null) return null;
-    $val = str_replace('T', ' ', $val);
-    if (preg_match('/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/', $val)) {
-        $val .= ':00';
+// Map the UI's schedule/PIR datetime keys onto the service's canonical names;
+// everything else passes through unchanged.
+$dateKeys = [
+    'work_start_datetime'   => 'work_start_at',
+    'work_end_datetime'     => 'work_end_at',
+    'outage_start_datetime' => 'outage_start_at',
+    'outage_end_datetime'   => 'outage_end_at',
+    'pir_actual_start'      => 'pir_actual_start_at',
+    'pir_actual_end'        => 'pir_actual_end_at',
+];
+$in = $input;
+foreach ($dateKeys as $uiKey => $canonKey) {
+    if (array_key_exists($uiKey, $in)) {
+        $in[$canonKey] = $in[$uiKey];
+        unset($in[$uiKey]);
     }
-    return $val;
 }
-function nullText($val) {
-    if (!isset($val) || $val === null) return null;
-    $stripped = trim(strip_tags($val));
-    return ($stripped === '' || $stripped === '&nbsp;') ? null : $val;
-}
-
-// Calculate risk level from score
-function calculateRiskLevel($score) {
-    if ($score === null) return null;
-    if ($score <= 4) return 'Low';
-    if ($score <= 9) return 'Medium';
-    if ($score <= 15) return 'High';
-    if ($score <= 20) return 'Very High';
-    return 'Critical';
-}
-
-$changeType = $input['change_type'] ?? 'Normal';
-$status = $input['status'] ?? 'Draft';
-$priority = $input['priority'] ?? 'Medium';
-$impact = $input['impact'] ?? 'Medium';
-$category = nullStr($input['category'] ?? null);
-$categoryId = nullInt($input['category_id'] ?? null);
-$requesterId = nullInt($input['requester_id'] ?? null);
-$assignedToId = nullInt($input['assigned_to_id'] ?? null);
-$approverId = nullInt($input['approver_id'] ?? null);
-$workStart = nullDatetime($input['work_start_datetime'] ?? null);
-$workEnd = nullDatetime($input['work_end_datetime'] ?? null);
-$outageStart = nullDatetime($input['outage_start_datetime'] ?? null);
-$outageEnd = nullDatetime($input['outage_end_datetime'] ?? null);
-$description = nullText($input['description'] ?? null);
-$reasonForChange = nullText($input['reason_for_change'] ?? null);
-$riskEvaluation = nullText($input['risk_evaluation'] ?? null);
-$testPlan = nullText($input['test_plan'] ?? null);
-$rollbackPlan = nullText($input['rollback_plan'] ?? null);
-$postImplementationReview = nullText($input['post_implementation_review'] ?? null);
-
-// Risk scoring
-$riskLikelihood = nullTinyInt($input['risk_likelihood'] ?? null);
-$riskImpactScore = nullTinyInt($input['risk_impact_score'] ?? null);
-$riskScore = ($riskLikelihood !== null && $riskImpactScore !== null) ? $riskLikelihood * $riskImpactScore : null;
-$riskLevel = calculateRiskLevel($riskScore);
-
-// PIR fields
-$pirWasSuccessful = isset($input['pir_was_successful']) && $input['pir_was_successful'] !== '' ? (int)$input['pir_was_successful'] : null;
-$pirActualStart = nullDatetime($input['pir_actual_start'] ?? null);
-$pirActualEnd = nullDatetime($input['pir_actual_end'] ?? null);
-$pirLessonsLearned = nullText($input['pir_lessons_learned'] ?? null);
-$pirFollowUp = nullText($input['pir_follow_up'] ?? null);
-
-// CAB fields
-$cabRequired = isset($input['cab_required']) ? (int)$input['cab_required'] : 0;
-$cabApprovalType = $input['cab_approval_type'] ?? 'all';
-if (!in_array($cabApprovalType, ['all', 'majority'])) $cabApprovalType = 'all';
 
 try {
     $conn = connectToDatabase();
-
-    // Resolve incoming lookup names to ids. Fall back to default rows if name not recognised.
-    $resolveLookup = function($table, $name) use ($conn) {
-        if ($name === null || $name === '') return null;
-        $s = $conn->prepare("SELECT id FROM `$table` WHERE name = ? LIMIT 1");
-        $s->execute([$name]);
-        $id = $s->fetchColumn();
-        if ($id) return (int)$id;
-        $s = $conn->prepare("SELECT id FROM `$table` WHERE is_default = 1 LIMIT 1");
-        $s->execute();
-        $id = $s->fetchColumn();
-        return $id ? (int)$id : null;
-    };
-    $changeTypeId = $resolveLookup('change_types',      $changeType);
-    $statusId     = $resolveLookup('change_statuses',   $status);
-    $priorityId   = $resolveLookup('change_priorities', $priority);
-    $impactId     = $resolveLookup('change_impacts',    $impact);
-
-    // Audit: fields to track (field_name => [label, is_longtext])
-    // Lookup-FK fields use the id columns in the row but compare the resolved names.
-    $auditFields = [
-        'title'                     => ['Title', false],
-        'change_type_id'            => ['Type', false],
-        'status_id'                 => ['Status', false],
-        'priority_id'               => ['Priority', false],
-        'impact_id'                 => ['Impact', false],
-        'category'                  => ['Category', false],
-        'requester_id'              => ['Requester', false],
-        'assigned_to_id'            => ['Assigned To', false],
-        'approver_id'               => ['Approver', false],
-        'work_start_datetime'       => ['Work Start', false],
-        'work_end_datetime'         => ['Work End', false],
-        'outage_start_datetime'     => ['Outage Start', false],
-        'outage_end_datetime'       => ['Outage End', false],
-        'risk_likelihood'           => ['Risk Likelihood', false],
-        'risk_impact_score'         => ['Risk Impact Score', false],
-        'risk_level'                => ['Risk Level', false],
-        'pir_was_successful'        => ['PIR Successful', false],
-        'pir_actual_start'          => ['PIR Actual Start', false],
-        'pir_actual_end'            => ['PIR Actual End', false],
-        'cab_required'              => ['CAB Required', false],
-        'cab_approval_type'         => ['CAB Approval Type', false],
-    ];
-
-    // New values map. Lookup-FK fields are stored as ids but audited as names so the
-    // change_audit log keeps reading e.g. "Draft -> Approved" rather than "3 -> 5".
-    $newValues = [
-        'title' => $title,
-        'change_type_id' => $changeType, 'status_id' => $status,
-        'priority_id' => $priority, 'impact_id' => $impact,
-        'category' => $category,
-        'category_id' => $categoryId,
-        'requester_id' => $requesterId, 'assigned_to_id' => $assignedToId,
-        'approver_id' => $approverId,
-        'work_start_datetime' => $workStart, 'work_end_datetime' => $workEnd,
-        'outage_start_datetime' => $outageStart, 'outage_end_datetime' => $outageEnd,
-        'description' => $description, 'reason_for_change' => $reasonForChange,
-        'risk_evaluation' => $riskEvaluation, 'test_plan' => $testPlan,
-        'rollback_plan' => $rollbackPlan, 'post_implementation_review' => $postImplementationReview,
-        'risk_likelihood' => $riskLikelihood, 'risk_impact_score' => $riskImpactScore,
-        'risk_score' => $riskScore, 'risk_level' => $riskLevel,
-        'pir_was_successful' => $pirWasSuccessful, 'pir_actual_start' => $pirActualStart,
-        'pir_actual_end' => $pirActualEnd, 'pir_lessons_learned' => $pirLessonsLearned,
-        'pir_follow_up' => $pirFollowUp,
-        'cab_required' => $cabRequired, 'cab_approval_type' => $cabApprovalType,
-    ];
-
-    // For audit display, resolve old id -> name via the lookup table for FK fields
-    $lookupForField = [
-        'change_type_id' => 'change_types',
-        'status_id'      => 'change_statuses',
-        'priority_id'    => 'change_priorities',
-        'impact_id'      => 'change_impacts',
-    ];
-    $resolveLookupName = function($table, $id) use ($conn) {
-        if (!$id) return null;
-        $s = $conn->prepare("SELECT name FROM `$table` WHERE id = ? LIMIT 1");
-        $s->execute([$id]);
-        return $s->fetchColumn() ?: null;
-    };
-
+    $ctx = ActorContext::fromSession($conn);
+    $changeId = !empty($input['id']) ? (int)$input['id'] : null;
     if ($changeId) {
-        // Fetch existing record for audit comparison
-        $oldStmt = $conn->prepare("SELECT * FROM changes WHERE id = ?");
-        $oldStmt->execute([$changeId]);
-        $oldRecord = $oldStmt->fetch(PDO::FETCH_ASSOC);
-
-        // Update existing change
-        $sql = "UPDATE changes SET
-                    title = ?, change_type_id = ?, status_id = ?, priority_id = ?, impact_id = ?,
-                    category = ?, category_id = ?,
-                    requester_id = ?, assigned_to_id = ?, approver_id = ?,
-                    work_start_datetime = ?, work_end_datetime = ?,
-                    outage_start_datetime = ?, outage_end_datetime = ?,
-                    description = ?, reason_for_change = ?, risk_evaluation = ?,
-                    test_plan = ?, rollback_plan = ?, post_implementation_review = ?,
-                    risk_likelihood = ?, risk_impact_score = ?, risk_score = ?, risk_level = ?,
-                    pir_was_successful = ?, pir_actual_start = ?, pir_actual_end = ?,
-                    pir_lessons_learned = ?, pir_follow_up = ?,
-                    cab_required = ?, cab_approval_type = ?,
-                    modified_datetime = UTC_TIMESTAMP()
-                WHERE id = ?";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            $title, $changeTypeId, $statusId, $priorityId, $impactId,
-            $category, $categoryId,
-            $requesterId, $assignedToId, $approverId,
-            $workStart, $workEnd, $outageStart, $outageEnd,
-            $description, $reasonForChange, $riskEvaluation,
-            $testPlan, $rollbackPlan, $postImplementationReview,
-            $riskLikelihood, $riskImpactScore, $riskScore, $riskLevel,
-            $pirWasSuccessful, $pirActualStart, $pirActualEnd,
-            $pirLessonsLearned, $pirFollowUp,
-            $cabRequired, $cabApprovalType,
-            $changeId
-        ]);
-
-        // Server-side audit logging
-        if ($oldRecord) {
-            $auditSql = "INSERT INTO change_audit (change_id, analyst_id, action_type, field_name, old_value, new_value, created_datetime)
-                         VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())";
-            $auditStmt = $conn->prepare($auditSql);
-
-            foreach ($auditFields as $field => $info) {
-                // For lookup-FK fields, resolve both sides to names for the audit log
-                if (isset($lookupForField[$field])) {
-                    $oldVal = $resolveLookupName($lookupForField[$field], $oldRecord[$field] ?? null);
-                    $newVal = $newValues[$field] ?? null; // already a name string
-                } else {
-                    $oldVal = $oldRecord[$field] ?? null;
-                    $newVal = $newValues[$field] ?? null;
-                }
-
-                // Normalize for comparison
-                $oldNorm = ($oldVal === null || $oldVal === '') ? null : (string)$oldVal;
-                $newNorm = ($newVal === null || $newVal === '') ? null : (string)$newVal;
-
-                if ($oldNorm !== $newNorm) {
-                    $actionType = ($field === 'status_id') ? 'status_change' : 'field_change';
-                    $oldDisplay = $oldNorm ?? '(empty)';
-                    $newDisplay = $newNorm ?? '(empty)';
-
-                    // Truncate long values for audit display
-                    if (strlen($oldDisplay) > 200) $oldDisplay = substr($oldDisplay, 0, 200) . '...';
-                    if (strlen($newDisplay) > 200) $newDisplay = substr($newDisplay, 0, 200) . '...';
-
-                    $auditStmt->execute([
-                        $changeId, $analystId, $actionType,
-                        $info[0], $oldDisplay, $newDisplay
-                    ]);
-                }
-            }
-        }
+        ChangesService::updateChange($conn, $ctx, $changeId, $in);
     } else {
-        // Create new change
-        $sql = "INSERT INTO changes (
-                    title, change_type_id, status_id, priority_id, impact_id,
-                    category, category_id,
-                    requester_id, assigned_to_id, approver_id,
-                    work_start_datetime, work_end_datetime,
-                    outage_start_datetime, outage_end_datetime,
-                    description, reason_for_change, risk_evaluation,
-                    test_plan, rollback_plan, post_implementation_review,
-                    risk_likelihood, risk_impact_score, risk_score, risk_level,
-                    pir_was_successful, pir_actual_start, pir_actual_end,
-                    pir_lessons_learned, pir_follow_up,
-                    cab_required, cab_approval_type,
-                    created_by_id, created_datetime, modified_datetime
-                )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
-        $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            $title, $changeTypeId, $statusId, $priorityId, $impactId,
-            $category, $categoryId,
-            $requesterId, $assignedToId, $approverId,
-            $workStart, $workEnd, $outageStart, $outageEnd,
-            $description, $reasonForChange, $riskEvaluation,
-            $testPlan, $rollbackPlan, $postImplementationReview,
-            $riskLikelihood, $riskImpactScore, $riskScore, $riskLevel,
-            $pirWasSuccessful, $pirActualStart, $pirActualEnd,
-            $pirLessonsLearned, $pirFollowUp,
-            $cabRequired, $cabApprovalType,
-            $analystId
-        ]);
-        $changeId = $conn->lastInsertId();
-
-        // Log creation in audit
-        $auditSql = "INSERT INTO change_audit (change_id, analyst_id, action_type, field_name, new_value, created_datetime)
-                     VALUES (?, ?, 'status_change', 'Status', 'Created as Draft', UTC_TIMESTAMP())";
-        $auditStmt = $conn->prepare($auditSql);
-        $auditStmt->execute([$changeId, $analystId]);
+        $changeId = ChangesService::createChange($conn, $ctx, $in);
     }
-
-    echo json_encode([
-        'success' => true,
-        'change_id' => $changeId,
-        'message' => 'Change saved successfully'
-    ]);
-
-    // Workflow engine: change.approved. Fires when a manual status edit moved
-    // the change into Approved (the CAB-vote path fires its own dispatch in
-    // submit_cab_vote.php). Only on a genuine transition, so re-saving an
-    // already-approved change doesn't re-fire. Engine swallows its own errors;
-    // outer try/catch is belt+braces.
-    if (isset($oldRecord) && $oldRecord) {
-        $oldStatusName = $resolveLookupName('change_statuses', $oldRecord['status_id'] ?? null);
-        if ($status === 'Approved' && $oldStatusName !== 'Approved') {
-            try {
-                WorkflowEngine::dispatch('change.approved', [
-                    'change' => [
-                        'id'    => (int)$changeId,
-                        'title' => $title,
-                        'risk'  => $riskLevel,
-                    ],
-                    'approver' => [
-                        'id' => $approverId,
-                    ],
-                ]);
-            } catch (Exception $wfEx) {
-                error_log('Workflow dispatch error in change save: ' . $wfEx->getMessage());
-            }
-        }
-    }
-
+    echo json_encode(['success' => true, 'change_id' => $changeId, 'message' => 'Change saved successfully']);
+} catch (ServiceError $e) {
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>

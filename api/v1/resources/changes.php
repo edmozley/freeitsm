@@ -23,9 +23,16 @@
  * Changes are NOT company-scoped (no tenant_id — matches the UI), so a key's
  * company scope does not restrict these routes. CHG-#### references are
  * derived from the id, exactly as the UI renders them.
+ *
+ * The WRITES (create / update / delete / comments / CAB roster + vote) are
+ * delegated to ChangesService — the same rules the UI's
+ * api/change-management/*.php endpoints now call. The reads, serialisers, list
+ * filters, CAB roster read, and reference lookups below are API-only and stay
+ * here. (ChangesService requires the workflow engine for change.approved.)
  */
 
-require_once dirname(__DIR__, 3) . '/workflow/includes/engine.php';
+require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+require_once dirname(__DIR__, 3) . '/includes/services/changes.php';
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -114,87 +121,10 @@ function apiLoadChange(PDO $conn, int $changeId): array {
     return $row;
 }
 
-function apiChangeAuditWrite(PDO $conn, int $changeId, int $analystId, string $actionType, ?string $field, ?string $old, ?string $new): void {
-    $stmt = $conn->prepare(
-        "INSERT INTO change_audit (change_id, analyst_id, action_type, field_name, old_value, new_value, created_datetime)
-         VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-    );
-    $stmt->execute([$changeId, $analystId, $actionType, $field, $old, $new]);
-}
-
-/** The UI's risk banding (save.php calculateRiskLevel). */
-function apiChangeRiskLevel(?int $score): ?string {
-    if ($score === null) return null;
-    if ($score <= 4)  return 'Low';
-    if ($score <= 9)  return 'Medium';
-    if ($score <= 15) return 'High';
-    if ($score <= 20) return 'Very High';
-    return 'Critical';
-}
-
-/**
- * Resolve a change lookup (type/status/priority/impact) by name or id from
- * body keys "<key>" / "<key>_id". Strict: unknown values are a 422 (the UI's
- * silent fall-back-to-default is a footgun for machines). Returns
- * [id, name, extraCol?] or null when neither key was sent.
- */
-function apiResolveChangeLookup(PDO $conn, array $body, string $key, string $table, string $extraCol = ''): ?array {
-    $cols = 'id, name' . ($extraCol !== '' ? ", $extraCol" : '');
-    if (isset($body[$key . '_id']) && $body[$key . '_id'] !== '' && $body[$key . '_id'] !== null) {
-        $stmt = $conn->prepare("SELECT $cols FROM `$table` WHERE id = ? LIMIT 1");
-        $stmt->execute([(int)$body[$key . '_id']]);
-    } elseif (isset($body[$key]) && trim((string)$body[$key]) !== '') {
-        $stmt = $conn->prepare("SELECT $cols FROM `$table` WHERE name = ? LIMIT 1");
-        $stmt->execute([trim((string)$body[$key])]);
-    } else {
-        return null;
-    }
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        apiError(422, 'invalid_field', "Unknown $key: " . ($body[$key] ?? $body[$key . '_id']));
-    }
-    $out = [(int)$row['id'], $row['name']];
-    if ($extraCol !== '') {
-        $out[] = (int)$row[$extraCol];
-    }
-    return $out;
-}
-
-/** The default (is_default=1) row of a change lookup table: [id, name] or [null, null]. */
-function apiChangeLookupDefault(PDO $conn, string $table): array {
-    $row = $conn->query("SELECT id, name FROM `$table` WHERE is_default = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
-    return $row ? [(int)$row['id'], $row['name']] : [null, null];
-}
-
-/** Validate a 1-5 risk input. Null/'' clears. */
-function apiChangeRiskInput($value, string $field): ?int {
-    if ($value === null || $value === '') {
-        return null;
-    }
-    $v = (int)$value;
-    if ($v < 1 || $v > 5) {
-        apiError(422, 'invalid_field', "'{$field}' must be between 1 and 5.");
-    }
-    return $v;
-}
-
-/** Fire change.approved exactly like the UI (save.php / submit_cab_vote.php). */
-function apiChangeApprovedDispatch(int $changeId, ?string $title, ?string $riskLevel, ?int $approverId): void {
-    try {
-        WorkflowEngine::dispatch('change.approved', [
-            'change' => [
-                'id'    => $changeId,
-                'title' => $title,
-                'risk'  => $riskLevel,
-            ],
-            'approver' => [
-                'id' => $approverId,
-            ],
-        ]);
-    } catch (Exception $wfEx) {
-        error_log('Workflow dispatch error in API v1 change: ' . $wfEx->getMessage());
-    }
-}
+// The change audit-write, risk banding, lookup resolution/defaults, 1-5 risk
+// validation, and the change.approved dispatch now live in ChangesService
+// (includes/services/changes.php) — the single home shared with the UI's
+// api/change-management/*.php endpoints.
 
 // ---------------------------------------------------------------------------
 // GET /changes
@@ -365,93 +295,9 @@ function apiChangesGet(PDO $conn, array $apiKey, array $params, array $body): vo
 // POST /changes
 // ---------------------------------------------------------------------------
 function apiChangesCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $title = trim((string)($body['title'] ?? ''));
-    if ($title === '') {
-        apiError(422, 'missing_field', "'title' is required.");
-    }
-    $actorId = (int)$apiKey['analyst_id'];
-
-    // Lookups: explicit (strict) or the module defaults (Normal/Draft/Medium/Medium).
-    $type     = apiResolveChangeLookup($conn, $body, 'change_type', 'change_types') ?? apiChangeLookupDefault($conn, 'change_types');
-    $status   = apiResolveChangeLookup($conn, $body, 'status', 'change_statuses', 'is_closed');
-    if ($status === null) {
-        $d = apiChangeLookupDefault($conn, 'change_statuses');
-        $status = [$d[0], $d[1], 0];
-    }
-    $priority = apiResolveChangeLookup($conn, $body, 'priority', 'change_priorities') ?? apiChangeLookupDefault($conn, 'change_priorities');
-    $impact   = apiResolveChangeLookup($conn, $body, 'impact', 'change_impacts') ?? apiChangeLookupDefault($conn, 'change_impacts');
-
-    $categoryId = null;
-    if (isset($body['category_id']) && $body['category_id'] !== '' && $body['category_id'] !== null) {
-        $categoryId = (int)$body['category_id'];
-        $cStmt = $conn->prepare("SELECT id FROM change_categories WHERE id = ?");
-        $cStmt->execute([$categoryId]);
-        if (!$cStmt->fetchColumn()) {
-            apiError(422, 'invalid_field', "Unknown category id: {$categoryId}");
-        }
-    }
-
-    $people = [];
-    foreach (['requester_id', 'assigned_to_id', 'approver_id'] as $field) {
-        $people[$field] = null;
-        if (isset($body[$field]) && $body[$field] !== '' && $body[$field] !== null) {
-            $people[$field] = (int)$body[$field];
-            apiResolveAnalyst($conn, $people[$field]);
-        }
-    }
-
-    $dates = [];
-    foreach (['work_start_at' => 'work_start_datetime', 'work_end_at' => 'work_end_datetime',
-              'outage_start_at' => 'outage_start_datetime', 'outage_end_at' => 'outage_end_datetime',
-              'pir_actual_start_at' => 'pir_actual_start', 'pir_actual_end_at' => 'pir_actual_end'] as $in => $col) {
-        $dates[$col] = isset($body[$in]) && $body[$in] !== '' && $body[$in] !== null
-            ? apiParseDate((string)$body[$in], $in) : null;
-    }
-
-    $riskLikelihood = apiChangeRiskInput($body['risk_likelihood'] ?? null, 'risk_likelihood');
-    $riskImpact     = apiChangeRiskInput($body['risk_impact_score'] ?? null, 'risk_impact_score');
-    $riskScore = ($riskLikelihood !== null && $riskImpact !== null) ? $riskLikelihood * $riskImpact : null;
-    $riskLevel = apiChangeRiskLevel($riskScore);
-
-    $cabRequired = !empty($body['cab_required']) ? 1 : 0;
-    $cabType = $body['cab_approval_type'] ?? 'all';
-    if (!in_array($cabType, ['all', 'majority'], true)) {
-        $cabType = 'all';
-    }
-
-    $text = function ($key) use ($body) {
-        $v = trim((string)($body[$key] ?? ''));
-        return $v === '' ? null : $v;
-    };
-
-    $ins = $conn->prepare(
-        "INSERT INTO changes (
-            title, change_type_id, status_id, priority_id, impact_id, category, category_id,
-            requester_id, assigned_to_id, approver_id,
-            work_start_datetime, work_end_datetime, outage_start_datetime, outage_end_datetime,
-            description, reason_for_change, risk_evaluation, test_plan, rollback_plan,
-            post_implementation_review, risk_likelihood, risk_impact_score, risk_score, risk_level,
-            pir_actual_start, pir_actual_end, pir_lessons_learned, pir_follow_up,
-            cab_required, cab_approval_type, created_by_id, created_datetime, modified_datetime
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
-    );
-    $ins->execute([
-        $title, $type[0], $status[0], $priority[0], $impact[0], $text('category'), $categoryId,
-        $people['requester_id'], $people['assigned_to_id'], $people['approver_id'],
-        $dates['work_start_datetime'], $dates['work_end_datetime'],
-        $dates['outage_start_datetime'], $dates['outage_end_datetime'],
-        $text('description'), $text('reason_for_change'), $text('risk_evaluation'),
-        $text('test_plan'), $text('rollback_plan'), $text('post_implementation_review'),
-        $riskLikelihood, $riskImpact, $riskScore, $riskLevel,
-        $dates['pir_actual_start'], $dates['pir_actual_end'],
-        $text('pir_lessons_learned'), $text('pir_follow_up'),
-        $cabRequired, $cabType, $actorId,
-    ]);
-    $changeId = (int)$conn->lastInsertId();
-
-    // Creation audit row (same shape as the UI's, but naming the real status).
-    apiChangeAuditWrite($conn, $changeId, $actorId, 'status_change', 'Status', null, 'Created as ' . ($status[1] ?? 'Draft'));
-
+    try {
+        $changeId = ChangesService::createChange($conn, ActorContext::fromApiKey($apiKey), $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
     apiRespond(apiSerializeChange(apiLoadChange($conn, $changeId)), 201);
 }
 
@@ -459,243 +305,19 @@ function apiChangesCreate(PDO $conn, array $apiKey, array $params, array $body):
 // PATCH /changes/{id}
 // ---------------------------------------------------------------------------
 function apiChangesUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $changeId = $params[0];
-    $current = apiLoadChange($conn, $changeId);
-    if (!$body) {
-        apiError(422, 'missing_field', 'No fields to update.');
-    }
-    $actorId = (int)$apiKey['analyst_id'];
-
-    $updates = [];
-    $args    = [];
-    $audits  = [];   // [actionType, label, old, new] — the UI's exact audit shape
-
-    // The UI's audit-value normalisation: '(empty)' placeholder + 200-char cap.
-    $auditVal = function ($v) {
-        $s = ($v === null || $v === '') ? '(empty)' : (string)$v;
-        return strlen($s) > 200 ? substr($s, 0, 200) . '...' : $s;
-    };
-    $queueAudit = function (string $label, $old, $new, string $actionType = 'field_change') use (&$audits, $auditVal) {
-        $audits[] = [$actionType, $label, $auditVal($old), $auditVal($new)];
-    };
-
-    if (array_key_exists('title', $body)) {
-        $title = trim((string)$body['title']);
-        if ($title === '') {
-            apiError(422, 'invalid_field', "'title' cannot be empty.");
-        }
-        if ($title !== $current['title']) {
-            $updates[] = 'title = ?';
-            $args[]    = $title;
-            $queueAudit('Title', $current['title'], $title);
-        }
-    }
-
-    // Lookup fields (name or id; audited as display names).
-    $newStatusName = null;
-    $wasApproved = ($current['status_name'] === 'Approved');
-    foreach ([
-        ['change_type', 'change_types',      'change_type_id', 'Type',     'type_name'],
-        ['status',      'change_statuses',   'status_id',      'Status',   'status_name'],
-        ['priority',    'change_priorities', 'priority_id',    'Priority', 'priority_name'],
-        ['impact',      'change_impacts',    'impact_id',      'Impact',   'impact_name'],
-    ] as [$key, $table, $col, $label, $currentNameKey]) {
-        $res = apiResolveChangeLookup($conn, $body, $key, $table);
-        if ($res === null || $res[0] === ((int)($current[$col] ?? 0) ?: null)) {
-            continue;
-        }
-        $updates[] = "$col = ?";
-        $args[]    = $res[0];
-        $queueAudit($label, $current[$currentNameKey], $res[1], $key === 'status' ? 'status_change' : 'field_change');
-        if ($key === 'status') {
-            $newStatusName = $res[1];
-        }
-    }
-
-    if (array_key_exists('category_id', $body)) {
-        $newCatId = ($body['category_id'] === '' || $body['category_id'] === null) ? null : (int)$body['category_id'];
-        $newCatName = null;
-        if ($newCatId !== null) {
-            $cStmt = $conn->prepare("SELECT name FROM change_categories WHERE id = ?");
-            $cStmt->execute([$newCatId]);
-            $newCatName = $cStmt->fetchColumn();
-            if ($newCatName === false) {
-                apiError(422, 'invalid_field', "Unknown category id: {$newCatId}");
-            }
-        }
-        if ($newCatId !== ($current['category_id'] !== null ? (int)$current['category_id'] : null)) {
-            $updates[] = 'category_id = ?';
-            $args[]    = $newCatId;
-            $queueAudit('Category', $current['category_name'], $newCatName);
-        }
-    }
-    if (array_key_exists('category', $body)) {
-        $newCat = trim((string)$body['category']) ?: null;
-        if ($newCat !== $current['category']) {
-            $updates[] = 'category = ?';
-            $args[]    = $newCat;
-            $queueAudit('Category', $current['category'], $newCat);
-        }
-    }
-
-    // People
-    foreach ([
-        'requester_id'   => ['Requester',   'requester_name'],
-        'assigned_to_id' => ['Assigned To', 'assigned_to_name'],
-        'approver_id'    => ['Approver',    'approver_name'],
-    ] as $field => [$label, $currentNameKey]) {
-        if (!array_key_exists($field, $body)) {
-            continue;
-        }
-        $newId = ($body[$field] === '' || $body[$field] === null) ? null : (int)$body[$field];
-        $newName = $newId !== null ? apiResolveAnalyst($conn, $newId) : null;
-        if ($newId !== ($current[$field] !== null ? (int)$current[$field] : null)) {
-            $updates[] = "$field = ?";
-            $args[]    = $newId;
-            $queueAudit($label, $current[$currentNameKey], $newName);
-        }
-    }
-
-    // Schedule / PIR dates
-    foreach ([
-        'work_start_at'       => ['work_start_datetime',    'Work Start'],
-        'work_end_at'         => ['work_end_datetime',      'Work End'],
-        'outage_start_at'     => ['outage_start_datetime',  'Outage Start'],
-        'outage_end_at'       => ['outage_end_datetime',    'Outage End'],
-        'pir_actual_start_at' => ['pir_actual_start',       'PIR Actual Start'],
-        'pir_actual_end_at'   => ['pir_actual_end',         'PIR Actual End'],
-    ] as $in => [$col, $label]) {
-        if (!array_key_exists($in, $body)) {
-            continue;
-        }
-        $newVal = ($body[$in] === null || $body[$in] === '') ? null : apiParseDate((string)$body[$in], $in);
-        if ($newVal !== $current[$col]) {
-            $updates[] = "$col = ?";
-            $args[]    = $newVal;
-            $queueAudit($label, $current[$col], $newVal);
-        }
-    }
-
-    // Longtext bodies — updated but NOT audited (same as the UI).
-    foreach (['description', 'reason_for_change', 'risk_evaluation', 'test_plan',
-              'rollback_plan', 'post_implementation_review', 'pir_lessons_learned', 'pir_follow_up'] as $field) {
-        if (!array_key_exists($field, $body)) {
-            continue;
-        }
-        $newVal = trim((string)$body[$field]) ?: null;
-        if ($newVal !== $current[$field]) {
-            $updates[] = "$field = ?";
-            $args[]    = $newVal;
-        }
-    }
-
-    // Risk inputs — recompute score + level from the merged pair.
-    $riskTouched = array_key_exists('risk_likelihood', $body) || array_key_exists('risk_impact_score', $body);
-    if ($riskTouched) {
-        $newLikelihood = array_key_exists('risk_likelihood', $body)
-            ? apiChangeRiskInput($body['risk_likelihood'], 'risk_likelihood')
-            : ($current['risk_likelihood'] !== null ? (int)$current['risk_likelihood'] : null);
-        $newImpact = array_key_exists('risk_impact_score', $body)
-            ? apiChangeRiskInput($body['risk_impact_score'], 'risk_impact_score')
-            : ($current['risk_impact_score'] !== null ? (int)$current['risk_impact_score'] : null);
-        $newScore = ($newLikelihood !== null && $newImpact !== null) ? $newLikelihood * $newImpact : null;
-        $newLevel = apiChangeRiskLevel($newScore);
-
-        $oldLikelihood = $current['risk_likelihood'] !== null ? (int)$current['risk_likelihood'] : null;
-        $oldImpact     = $current['risk_impact_score'] !== null ? (int)$current['risk_impact_score'] : null;
-        if ($newLikelihood !== $oldLikelihood) {
-            $updates[] = 'risk_likelihood = ?';
-            $args[]    = $newLikelihood;
-            $queueAudit('Risk Likelihood', $oldLikelihood, $newLikelihood);
-        }
-        if ($newImpact !== $oldImpact) {
-            $updates[] = 'risk_impact_score = ?';
-            $args[]    = $newImpact;
-            $queueAudit('Risk Impact Score', $oldImpact, $newImpact);
-        }
-        if ($newLikelihood !== $oldLikelihood || $newImpact !== $oldImpact) {
-            if ($newLevel !== $current['risk_level']) {
-                $queueAudit('Risk Level', $current['risk_level'], $newLevel);
-            }
-            $updates[] = 'risk_score = ?';
-            $args[]    = $newScore;
-            $updates[] = 'risk_level = ?';
-            $args[]    = $newLevel;
-        }
-    }
-
-    // PIR success flag + CAB settings
-    if (array_key_exists('pir_was_successful', $body)) {
-        $newVal = ($body['pir_was_successful'] === null || $body['pir_was_successful'] === '') ? null : (int)(bool)$body['pir_was_successful'];
-        $oldVal = $current['pir_was_successful'] !== null ? (int)$current['pir_was_successful'] : null;
-        if ($newVal !== $oldVal) {
-            $updates[] = 'pir_was_successful = ?';
-            $args[]    = $newVal;
-            $queueAudit('PIR Successful', $oldVal, $newVal);
-        }
-    }
-    if (array_key_exists('cab_required', $body)) {
-        $newVal = !empty($body['cab_required']) ? 1 : 0;
-        if ($newVal !== (int)$current['cab_required']) {
-            $updates[] = 'cab_required = ?';
-            $args[]    = $newVal;
-            $queueAudit('CAB Required', (int)$current['cab_required'], $newVal);
-        }
-    }
-    if (array_key_exists('cab_approval_type', $body)) {
-        $newVal = in_array($body['cab_approval_type'], ['all', 'majority'], true) ? $body['cab_approval_type'] : 'all';
-        if ($newVal !== $current['cab_approval_type']) {
-            $updates[] = 'cab_approval_type = ?';
-            $args[]    = $newVal;
-            $queueAudit('CAB Approval Type', $current['cab_approval_type'], $newVal);
-        }
-    }
-
-    if (!$updates) {
-        apiRespond(apiSerializeChange($current)); // idempotent PATCH
-    }
-
-    $updates[] = 'modified_datetime = UTC_TIMESTAMP()';
-    $args[]    = $changeId;
-    $conn->prepare('UPDATE changes SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
-
-    foreach ($audits as [$actionType, $label, $old, $new]) {
-        apiChangeAuditWrite($conn, $changeId, $actorId, $actionType, $label, $old, $new);
-    }
-
-    // change.approved on a genuine manual transition into Approved (UI parity).
-    if ($newStatusName === 'Approved' && !$wasApproved) {
-        $fresh = apiLoadChange($conn, $changeId);
-        apiChangeApprovedDispatch($changeId, $fresh['title'], $fresh['risk_level'],
-            $fresh['approver_id'] !== null ? (int)$fresh['approver_id'] : null);
-        apiRespond(apiSerializeChange($fresh));
-    }
-
-    apiRespond(apiSerializeChange(apiLoadChange($conn, $changeId)));
+    try {
+        ChangesService::updateChange($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond(apiSerializeChange(apiLoadChange($conn, $params[0])));
 }
 
 // ---------------------------------------------------------------------------
 // DELETE /changes/{id} — permanent; removes attachment files, cascades children
 // ---------------------------------------------------------------------------
 function apiChangesDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadChange($conn, $params[0]);
-
-    // Remove attachment files from disk, then rows (mirrors delete.php).
-    $att = $conn->prepare("SELECT file_path FROM change_attachments WHERE change_id = ?");
-    $att->execute([$params[0]]);
-    foreach ($att->fetchAll(PDO::FETCH_ASSOC) as $a) {
-        $filePath = dirname(__DIR__, 3) . '/change-management/attachments/' . $a['file_path'];
-        if (file_exists($filePath)) {
-            @unlink($filePath);
-        }
-    }
-    $conn->prepare("DELETE FROM change_attachments WHERE change_id = ?")->execute([$params[0]]);
-    $conn->prepare("DELETE FROM changes WHERE id = ?")->execute([$params[0]]);
-    $dir = dirname(__DIR__, 3) . '/change-management/attachments/' . $params[0];
-    if (is_dir($dir)) {
-        @rmdir($dir);
-    }
-
+    try {
+        ChangesService::deleteChange($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
     apiRespond(['id' => $params[0], 'deleted' => true]);
 }
 
@@ -721,32 +343,16 @@ function apiChangeCommentsList(PDO $conn, array $apiKey, array $params, array $b
 }
 
 function apiChangeCommentsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadChange($conn, $params[0]);
-    $text = trim((string)($body['text'] ?? ''));
-    if ($text === '') {
-        apiError(422, 'missing_field', "'text' is required.");
-    }
-    $actorId = (int)$apiKey['analyst_id'];
-    $conn->prepare(
-        "INSERT INTO change_comments (change_id, analyst_id, comment_text, is_internal, created_datetime)
-         VALUES (?, ?, ?, 1, UTC_TIMESTAMP())"
-    )->execute([$params[0], $actorId, $text]);
-    $commentId = (int)$conn->lastInsertId();
-
-    // Audit with a 100-char preview, same shape as save_comment.php.
-    $preview = mb_strlen($text) > 100 ? mb_substr($text, 0, 100) . '...' : $text;
-    apiChangeAuditWrite($conn, $params[0], $actorId, 'comment', null, null, $preview);
-
-    apiRespond(['id' => $commentId, 'change_id' => $params[0], 'text' => $text], 201);
+    try {
+        $commentId = ChangesService::createComment($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond(['id' => $commentId, 'change_id' => $params[0], 'text' => trim((string)($body['text'] ?? ''))], 201);
 }
 
 function apiChangeCommentsDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadChange($conn, $params[0]);
-    $stmt = $conn->prepare("DELETE FROM change_comments WHERE id = ? AND change_id = ?");
-    $stmt->execute([$params[1], $params[0]]);
-    if ($stmt->rowCount() === 0) {
-        apiError(404, 'not_found', 'Comment not found.');
-    }
+    try {
+        ChangesService::deleteComment($conn, ActorContext::fromApiKey($apiKey), (int)$params[1], (int)$params[0]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
     apiRespond(['id' => $params[1], 'deleted' => true]);
 }
 
@@ -812,157 +418,18 @@ function apiChangeCabGet(PDO $conn, array $apiKey, array $params, array $body): 
 
 /** POST /changes/{id}/cab — replace the roster (diff-sync + audit, like save_cab_members.php). */
 function apiChangeCabSave(PDO $conn, array $apiKey, array $params, array $body): void {
-    $changeId = $params[0];
-    apiLoadChange($conn, $changeId);
-    $actorId = (int)$apiKey['analyst_id'];
-
-    $incoming = $body['members'] ?? null;
-    if (!is_array($incoming)) {
-        apiError(422, 'missing_field', "'members' is required: [{\"analyst_id\": 1, \"is_required\": true}, …].");
-    }
-    $wanted = [];
-    foreach ($incoming as $m) {
-        $aid = isset($m['analyst_id']) ? (int)$m['analyst_id'] : 0;
-        if ($aid <= 0) {
-            apiError(422, 'invalid_field', "Each member needs an 'analyst_id'.");
-        }
-        apiResolveAnalyst($conn, $aid);
-        $wanted[$aid] = array_key_exists('is_required', $m) ? (bool)$m['is_required'] : true;
-    }
-
-    $exStmt = $conn->prepare("SELECT analyst_id, is_required FROM change_cab_members WHERE change_id = ?");
-    $exStmt->execute([$changeId]);
-    $existing = [];
-    foreach ($exStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
-        $existing[(int)$row['analyst_id']] = (bool)$row['is_required'];
-    }
-
-    $nameOf = function (int $aid) use ($conn) {
-        $s = $conn->prepare("SELECT full_name FROM analysts WHERE id = ?");
-        $s->execute([$aid]);
-        return $s->fetchColumn() ?: (string)$aid;
-    };
-
-    foreach ($wanted as $aid => $isRequired) {
-        if (!isset($existing[$aid])) {
-            $conn->prepare(
-                "INSERT INTO change_cab_members (change_id, analyst_id, is_required, added_by_id, added_datetime)
-                 VALUES (?, ?, ?, ?, UTC_TIMESTAMP())"
-            )->execute([$changeId, $aid, $isRequired ? 1 : 0, $actorId]);
-            apiChangeAuditWrite($conn, $changeId, $actorId, 'cab_vote', 'CAB Member', null,
-                'Added: ' . $nameOf($aid) . ' (' . ($isRequired ? 'Required' : 'Optional') . ')');
-        } elseif ($existing[$aid] !== $isRequired) {
-            $conn->prepare("UPDATE change_cab_members SET is_required = ? WHERE change_id = ? AND analyst_id = ?")
-                 ->execute([$isRequired ? 1 : 0, $changeId, $aid]);
-            apiChangeAuditWrite($conn, $changeId, $actorId, 'cab_vote', 'CAB Member', null,
-                $nameOf($aid) . ': ' . ($isRequired ? 'Optional → Required' : 'Required → Optional'));
-        }
-    }
-    foreach ($existing as $aid => $isRequired) {
-        if (!isset($wanted[$aid])) {
-            $conn->prepare("DELETE FROM change_cab_members WHERE change_id = ? AND analyst_id = ?")
-                 ->execute([$changeId, $aid]);
-            apiChangeAuditWrite($conn, $changeId, $actorId, 'cab_vote', 'CAB Member', null, 'Removed: ' . $nameOf($aid));
-        }
-    }
-
+    try {
+        ChangesService::saveCab($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body['members'] ?? null);
+    } catch (ServiceError $e) { apiFailFromService($e); }
     apiChangeCabGet($conn, $apiKey, $params, $body);
 }
 
 /** POST /changes/{id}/cab/vote — the key's acts-as analyst votes; mirrors submit_cab_vote.php. */
 function apiChangeCabVote(PDO $conn, array $apiKey, array $params, array $body): void {
-    $changeId = $params[0];
-    apiLoadChange($conn, $changeId);
-    $actorId = (int)$apiKey['analyst_id'];
-
-    $vote = $body['vote'] ?? '';
-    if (!in_array($vote, ['Approve', 'Reject', 'Abstain'], true)) {
-        apiError(422, 'invalid_field', "'vote' must be Approve, Reject or Abstain.");
-    }
-    $voteComment = trim((string)($body['comment'] ?? ''));
-
-    $memberStmt = $conn->prepare("SELECT id, vote FROM change_cab_members WHERE change_id = ? AND analyst_id = ?");
-    $memberStmt->execute([$changeId, $actorId]);
-    $membership = $memberStmt->fetch(PDO::FETCH_ASSOC);
-    if (!$membership) {
-        apiError(403, 'forbidden', 'The analyst this key acts as is not a CAB member for this change.');
-    }
-    if ($membership['vote'] !== null) {
-        apiError(409, 'conflict', 'This CAB member has already voted on this change.');
-    }
-
-    $conn->prepare(
-        "UPDATE change_cab_members SET vote = ?, vote_comment = ?, vote_datetime = UTC_TIMESTAMP()
-         WHERE change_id = ? AND analyst_id = ?"
-    )->execute([$vote, $voteComment ?: null, $changeId, $actorId]);
-
-    $nameStmt = $conn->prepare("SELECT full_name FROM analysts WHERE id = ?");
-    $nameStmt->execute([$actorId]);
-    $analystName = $nameStmt->fetchColumn() ?: 'Unknown';
-
-    $auditDisplay = "$vote by $analystName";
-    if ($voteComment) {
-        $preview = mb_strlen($voteComment) > 80 ? mb_substr($voteComment, 0, 80) . '...' : $voteComment;
-        $auditDisplay .= ": $preview";
-    }
-    apiChangeAuditWrite($conn, $changeId, $actorId, 'cab_vote', 'CAB Vote', null, $auditDisplay);
-
-    // Auto-transition — identical mechanics to submit_cab_vote.php.
-    $statusChanged = false;
-    $newStatus = null;
-
-    $changeStmt = $conn->prepare(
-        "SELECT c.cab_approval_type, c.title, c.risk_level, c.approver_id, cs.name AS status
-         FROM changes c LEFT JOIN change_statuses cs ON cs.id = c.status_id WHERE c.id = ?"
-    );
-    $changeStmt->execute([$changeId]);
-    $changeRow = $changeStmt->fetch(PDO::FETCH_ASSOC);
-
-    $statusIdFor = function ($name) use ($conn) {
-        $s = $conn->prepare("SELECT id FROM change_statuses WHERE name = ? LIMIT 1");
-        $s->execute([$name]);
-        return $s->fetchColumn() ?: null;
-    };
-
-    if ($changeRow && $changeRow['status'] === 'Pending Approval') {
-        $approvalType = $changeRow['cab_approval_type'] ?: 'all';
-        $reqStmt = $conn->prepare("SELECT vote FROM change_cab_members WHERE change_id = ? AND is_required = 1");
-        $reqStmt->execute([$changeId]);
-        $reqVotes = $reqStmt->fetchAll(PDO::FETCH_COLUMN);
-
-        $totalRequired = count($reqVotes);
-        $approved = count(array_filter($reqVotes, fn($v) => $v === 'Approve'));
-        $rejected = count(array_filter($reqVotes, fn($v) => $v === 'Reject'));
-
-        if ($rejected > 0) {
-            $conn->prepare("UPDATE changes SET status_id = ?, modified_datetime = UTC_TIMESTAMP() WHERE id = ?")
-                 ->execute([$statusIdFor('Draft'), $changeId]);
-            apiChangeAuditWrite($conn, $changeId, $actorId, 'status_change', 'Status', 'Pending Approval', 'Draft');
-            $statusChanged = true;
-            $newStatus = 'Draft';
-        } elseif ($totalRequired > 0) {
-            $thresholdMet = ($approvalType === 'majority') ? ($approved > $totalRequired / 2) : ($approved === $totalRequired);
-            if ($thresholdMet) {
-                $conn->prepare("UPDATE changes SET status_id = ?, approval_datetime = UTC_TIMESTAMP(), modified_datetime = UTC_TIMESTAMP() WHERE id = ?")
-                     ->execute([$statusIdFor('Approved'), $changeId]);
-                apiChangeAuditWrite($conn, $changeId, $actorId, 'status_change', 'Status', 'Pending Approval', 'Approved');
-                $statusChanged = true;
-                $newStatus = 'Approved';
-            }
-        }
-    }
-
-    if ($statusChanged && $newStatus === 'Approved') {
-        apiChangeApprovedDispatch($changeId, $changeRow['title'] ?? null, $changeRow['risk_level'] ?? null,
-            isset($changeRow['approver_id']) && $changeRow['approver_id'] !== null ? (int)$changeRow['approver_id'] : null);
-    }
-
-    apiRespond([
-        'change_id'      => $changeId,
-        'vote'           => $vote,
-        'status_changed' => $statusChanged,
-        'new_status'     => $newStatus,
-    ], 201);
+    try {
+        $res = ChangesService::voteCab($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond($res, 201);
 }
 
 // ---------------------------------------------------------------------------
