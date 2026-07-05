@@ -16,6 +16,7 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/ai_settings_panel.php';   // defines renderAiSettingsPanel()
 I18n::initFromSession();
 
 $current_page = 'settings';
