@@ -25,7 +25,12 @@
  * key could read directly — tighter than the UI, which doesn't check.
  */
 
-require_once dirname(__DIR__, 3) . '/workflow/includes/engine.php';
+// Task WRITES (create/update/move/delete/comment) are delegated to TasksService
+// (includes/services/tasks.php), which pulls in the workflow engine (for the
+// task.completed dispatch) + tenancy helpers (for ticket-link scope). The read
+// handlers + serializers stay here.
+require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+require_once dirname(__DIR__, 3) . '/includes/services/tasks.php';
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -101,134 +106,6 @@ function apiLoadTask(PDO $conn, int $taskId): array {
         apiError(404, 'not_found', 'Task not found.');
     }
     return $row;
-}
-
-/** Resolve a task lookup (status/priority) by name or id — strict 422 on unknown. */
-function apiResolveTaskLookup(PDO $conn, array $body, string $key, string $table, bool $withClosed = false): ?array {
-    $cols = 'id, name' . ($withClosed ? ', is_closed' : '');
-    if (isset($body[$key . '_id']) && $body[$key . '_id'] !== '' && $body[$key . '_id'] !== null) {
-        $stmt = $conn->prepare("SELECT $cols FROM `$table` WHERE id = ? LIMIT 1");
-        $stmt->execute([(int)$body[$key . '_id']]);
-    } elseif (isset($body[$key]) && trim((string)$body[$key]) !== '') {
-        $stmt = $conn->prepare("SELECT $cols FROM `$table` WHERE name = ? LIMIT 1");
-        $stmt->execute([trim((string)$body[$key])]);
-    } else {
-        return null;
-    }
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        apiError(422, 'invalid_field', "Unknown task $key: " . ($body[$key] ?? $body[$key . '_id']));
-    }
-    $out = [(int)$row['id'], $row['name']];
-    if ($withClosed) {
-        $out[] = (int)$row['is_closed'];
-    }
-    return $out;
-}
-
-/** The default row of a task lookup table: [id, name(, is_closed)]. Prefers the named seed, then is_default. */
-function apiTaskLookupDefault(PDO $conn, string $table, string $preferName, bool $withClosed = false): array {
-    $cols = 'id, name' . ($withClosed ? ', is_closed' : '');
-    $stmt = $conn->prepare("SELECT $cols FROM `$table` WHERE name = ? LIMIT 1");
-    $stmt->execute([$preferName]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        $row = $conn->query("SELECT $cols FROM `$table` WHERE is_default = 1 LIMIT 1")->fetch(PDO::FETCH_ASSOC);
-    }
-    if (!$row) {
-        return $withClosed ? [null, null, 0] : [null, null];
-    }
-    $out = [(int)$row['id'], $row['name']];
-    if ($withClosed) {
-        $out[] = (int)$row['is_closed'];
-    }
-    return $out;
-}
-
-/**
- * Validate the three link columns + parent task. Ticket links are checked
- * against the key's company scope (tickets are tenant-scoped; tasks aren't).
- * Returns the validated value or exits with 404/422.
- */
-function apiTaskValidateLink(PDO $conn, array $apiKey, string $field, $value) {
-    if ($value === '' || $value === null) {
-        return null;
-    }
-    $id = (int)$value;
-    switch ($field) {
-        case 'ticket_id':
-            if (!apiKeyCanAccessTicket($conn, $apiKey, $id)) {
-                apiError(422, 'invalid_field', "Unknown ticket id: {$id}");
-            }
-            return $id;
-        case 'change_id':
-            $stmt = $conn->prepare("SELECT id FROM changes WHERE id = ?");
-            break;
-        case 'contract_id':
-            $stmt = $conn->prepare("SELECT id FROM contracts WHERE id = ?");
-            break;
-        case 'parent_task_id':
-            $stmt = $conn->prepare("SELECT id FROM tasks WHERE id = ?");
-            break;
-        default:
-            return null;
-    }
-    try {
-        $stmt->execute([$id]);
-        if (!$stmt->fetchColumn()) {
-            apiError(422, 'invalid_field', "Unknown " . str_replace('_id', '', $field) . " id: {$id}");
-        }
-    } catch (Exception $e) {
-        apiError(422, 'invalid_field', ucfirst(str_replace('_id', ' ', $field)) . "links are not available on this install.");
-    }
-    return $id;
-}
-
-/** Resolve a tags array (names or ids) to ids — strict 422 on unknown (tags are a curated list). */
-function apiTaskResolveTags(PDO $conn, array $tags): array {
-    $ids = [];
-    foreach ($tags as $t) {
-        if (is_numeric($t)) {
-            $stmt = $conn->prepare("SELECT id FROM task_tags WHERE id = ?");
-            $stmt->execute([(int)$t]);
-        } else {
-            $stmt = $conn->prepare("SELECT id FROM task_tags WHERE name = ?");
-            $stmt->execute([trim((string)$t)]);
-        }
-        $id = $stmt->fetchColumn();
-        if ($id === false) {
-            apiError(422, 'invalid_field', "Unknown tag: {$t}. Tags are managed in Tasks > Settings.");
-        }
-        $ids[(int)$id] = true;
-    }
-    return array_keys($ids);
-}
-
-function apiTaskSyncTags(PDO $conn, int $taskId, array $tagIds): void {
-    $conn->prepare("DELETE FROM task_tag_map WHERE task_id = ?")->execute([$taskId]);
-    $ins = $conn->prepare("INSERT IGNORE INTO task_tag_map (task_id, tag_id) VALUES (?, ?)");
-    foreach ($tagIds as $tid) {
-        $ins->execute([$taskId, $tid]);
-    }
-}
-
-/** save.php's exact task.completed dispatch (open -> closed transitions via PATCH only). */
-function apiTaskCompletedDispatch(PDO $conn, int $taskId): void {
-    try {
-        $rb = $conn->prepare("SELECT title, priority_id, assigned_analyst_id FROM tasks WHERE id = ?");
-        $rb->execute([$taskId]);
-        $taskRow = $rb->fetch(PDO::FETCH_ASSOC) ?: [];
-        WorkflowEngine::dispatch('task.completed', [
-            'task' => [
-                'id'          => $taskId,
-                'title'       => $taskRow['title'] ?? null,
-                'priority_id' => isset($taskRow['priority_id']) ? (int)$taskRow['priority_id'] : null,
-                'assignee_id' => isset($taskRow['assigned_analyst_id']) ? (int)$taskRow['assigned_analyst_id'] : null,
-            ],
-        ]);
-    } catch (Exception $wfEx) {
-        error_log('Workflow dispatch error in API v1 task: ' . $wfEx->getMessage());
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -413,242 +290,30 @@ function apiTasksGet(PDO $conn, array $apiKey, array $params, array $body): void
 // POST /tasks
 // ---------------------------------------------------------------------------
 function apiTasksCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $title = trim((string)($body['title'] ?? ''));
-    if ($title === '') {
-        apiError(422, 'missing_field', "'title' is required.");
-    }
-
-    $status   = apiResolveTaskLookup($conn, $body, 'status', 'task_statuses', true)
-        ?? apiTaskLookupDefault($conn, 'task_statuses', 'To Do', true);
-    $priority = apiResolveTaskLookup($conn, $body, 'priority', 'task_priorities')
-        ?? apiTaskLookupDefault($conn, 'task_priorities', 'Medium');
-
-    $analystId = null;
-    if (isset($body['assigned_analyst_id']) && $body['assigned_analyst_id'] !== '') {
-        $analystId = (int)$body['assigned_analyst_id'];
-        apiResolveAnalyst($conn, $analystId);
-    }
-    $teamId = null;
-    if (isset($body['assigned_team_id']) && $body['assigned_team_id'] !== '') {
-        $teamId = (int)$body['assigned_team_id'];
-        $tStmt = $conn->prepare("SELECT id FROM teams WHERE id = ?");
-        $tStmt->execute([$teamId]);
-        if (!$tStmt->fetchColumn()) {
-            apiError(422, 'invalid_field', "Unknown team id: {$teamId}");
-        }
-    }
-
-    $links = [];
-    foreach (['parent_task_id', 'ticket_id', 'change_id', 'contract_id'] as $field) {
-        $links[$field] = apiTaskValidateLink($conn, $apiKey, $field, $body[$field] ?? null);
-    }
-
-    $startDate = apiParseDateOnly($body['start_date'] ?? null, 'start_date');
-    $dueDate   = apiParseDateOnly($body['due_date'] ?? null, 'due_date');
-    $description = trim((string)($body['description'] ?? '')) ?: null;
-
-    $tagIds = null;
-    if (isset($body['tags']) && is_array($body['tags'])) {
-        $tagIds = apiTaskResolveTags($conn, $body['tags']);
-    }
-
-    // Append to the end of the target status column (top-level tasks only) — save.php's rule.
-    $posStmt = $conn->prepare("SELECT COALESCE(MAX(board_position), -1) + 1 FROM tasks WHERE status_id = ? AND parent_task_id IS NULL");
-    $posStmt->execute([$status[0]]);
-    $boardPosition = (int)$posStmt->fetchColumn();
-
-    $ins = $conn->prepare(
-        "INSERT INTO tasks (title, description, status_id, priority_id, start_date, due_date,
-                            assigned_analyst_id, assigned_team_id, parent_task_id,
-                            ticket_id, change_id, contract_id, board_position, created_by_id,
-                            completed_datetime, created_datetime, updated_datetime)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
-    );
-    $ins->execute([
-        $title, $description, $status[0], $priority[0], $startDate, $dueDate,
-        $analystId, $teamId, $links['parent_task_id'],
-        $links['ticket_id'], $links['change_id'], $links['contract_id'],
-        $boardPosition, (int)$apiKey['analyst_id'],
-        !empty($status[2]) ? gmdate('Y-m-d H:i:s') : null,
-    ]);
-    $taskId = (int)$conn->lastInsertId();
-
-    if ($tagIds !== null) {
-        apiTaskSyncTags($conn, $taskId, $tagIds);
-    }
-
-    apiRespond(apiSerializeTask($conn, apiLoadTask($conn, $taskId)), 201);
+    try {
+        $res = TasksService::saveTask($conn, ActorContext::fromApiKey($apiKey), $body);
+        apiRespond(apiSerializeTask($conn, apiLoadTask($conn, $res['id'])), 201);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
 // PATCH /tasks/{id}
 // ---------------------------------------------------------------------------
 function apiTasksUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $taskId = $params[0];
-    $current = apiLoadTask($conn, $taskId);
-    if (!$body) {
-        apiError(422, 'missing_field', 'No fields to update.');
-    }
-
-    $updates = [];
-    $args    = [];
-
-    if (array_key_exists('title', $body)) {
-        $title = trim((string)$body['title']);
-        if ($title === '') {
-            apiError(422, 'invalid_field', "'title' cannot be empty.");
-        }
-        $updates[] = 'title = ?';
-        $args[]    = $title;
-    }
-    if (array_key_exists('description', $body)) {
-        $updates[] = 'description = ?';
-        $args[]    = trim((string)$body['description']) ?: null;
-    }
-
-    // Status — completed_datetime mechanics + workflow dispatch mirror save.php.
-    $wasClosed = (bool)($current['status_is_closed'] ?? false);
-    $firesCompleted = false;
-    $status = apiResolveTaskLookup($conn, $body, 'status', 'task_statuses', true);
-    if ($status !== null && $status[0] !== (int)$current['status_id']) {
-        $updates[] = 'status_id = ?';
-        $args[]    = $status[0];
-        if ($status[2]) {
-            $updates[] = 'completed_datetime = COALESCE(completed_datetime, UTC_TIMESTAMP())';
-            $firesCompleted = !$wasClosed;
-        } else {
-            $updates[] = 'completed_datetime = NULL';
-        }
-    }
-    $priority = apiResolveTaskLookup($conn, $body, 'priority', 'task_priorities');
-    if ($priority !== null && $priority[0] !== ($current['priority_id'] !== null ? (int)$current['priority_id'] : null)) {
-        $updates[] = 'priority_id = ?';
-        $args[]    = $priority[0];
-    }
-
-    if (array_key_exists('assigned_analyst_id', $body)) {
-        $newAnalyst = ($body['assigned_analyst_id'] === '' || $body['assigned_analyst_id'] === null) ? null : (int)$body['assigned_analyst_id'];
-        if ($newAnalyst !== null) {
-            apiResolveAnalyst($conn, $newAnalyst);
-        }
-        $updates[] = 'assigned_analyst_id = ?';
-        $args[]    = $newAnalyst;
-    }
-    if (array_key_exists('assigned_team_id', $body)) {
-        $newTeam = ($body['assigned_team_id'] === '' || $body['assigned_team_id'] === null) ? null : (int)$body['assigned_team_id'];
-        if ($newTeam !== null) {
-            $tStmt = $conn->prepare("SELECT id FROM teams WHERE id = ?");
-            $tStmt->execute([$newTeam]);
-            if (!$tStmt->fetchColumn()) {
-                apiError(422, 'invalid_field', "Unknown team id: {$newTeam}");
-            }
-        }
-        $updates[] = 'assigned_team_id = ?';
-        $args[]    = $newTeam;
-    }
-
-    foreach (['start_date', 'due_date'] as $field) {
-        if (array_key_exists($field, $body)) {
-            $updates[] = "$field = ?";
-            $args[]    = apiParseDateOnly($body[$field], $field);
-        }
-    }
-
-    foreach (['parent_task_id', 'ticket_id', 'change_id', 'contract_id'] as $field) {
-        if (!array_key_exists($field, $body)) {
-            continue;
-        }
-        if ($field === 'parent_task_id' && (int)$body[$field] === (int)$taskId) {
-            apiError(422, 'invalid_field', 'A task cannot be its own parent.');
-        }
-        $updates[] = "$field = ?";
-        $args[]    = apiTaskValidateLink($conn, $apiKey, $field, $body[$field]);
-    }
-
-    if (array_key_exists('board_position', $body) && $body['board_position'] !== '' && $body['board_position'] !== null) {
-        $updates[] = 'board_position = ?';
-        $args[]    = max(0, (int)$body['board_position']);
-    }
-
-    $tagIds = null;
-    if (isset($body['tags']) && is_array($body['tags'])) {
-        $tagIds = apiTaskResolveTags($conn, $body['tags']);
-    }
-
-    if (!$updates && $tagIds === null) {
-        apiRespond(apiSerializeTask($conn, $current)); // nothing to do
-    }
-
-    if ($updates) {
-        $updates[] = 'updated_datetime = UTC_TIMESTAMP()';
-        $args[]    = $taskId;
-        $conn->prepare('UPDATE tasks SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
-    }
-    if ($tagIds !== null) {
-        apiTaskSyncTags($conn, $taskId, $tagIds);
-        $conn->prepare("UPDATE tasks SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$taskId]);
-    }
-
-    if ($firesCompleted) {
-        apiTaskCompletedDispatch($conn, $taskId);
-    }
-
-    apiRespond(apiSerializeTask($conn, apiLoadTask($conn, $taskId)));
+    try {
+        $res = TasksService::saveTask($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
+        apiRespond(apiSerializeTask($conn, apiLoadTask($conn, $res['id'])));
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
 // POST /tasks/{id}/move — kanban move (mirrors reorder.php: NO workflow event)
 // ---------------------------------------------------------------------------
 function apiTasksMove(PDO $conn, array $apiKey, array $params, array $body): void {
-    $taskId = $params[0];
-    $current = apiLoadTask($conn, $taskId);
-
-    $status = apiResolveTaskLookup($conn, $body, 'status', 'task_statuses', true);
-    $targetStatusId = $status !== null ? $status[0] : (int)$current['status_id'];
-    $targetIsClosed = $status !== null ? (bool)$status[2] : (bool)$current['status_is_closed'];
-
-    $position = array_key_exists('position', $body) && $body['position'] !== null && $body['position'] !== ''
-        ? max(0, (int)$body['position'])
-        : null; // null = end of column
-
-    $conn->beginTransaction();
     try {
-        // Status + completed_datetime, exactly like reorder.php.
-        $conn->prepare(
-            "UPDATE tasks SET status_id = ?,
-                    completed_datetime = " . ($targetIsClosed ? "COALESCE(completed_datetime, UTC_TIMESTAMP())" : "NULL") . ",
-                    updated_datetime = UTC_TIMESTAMP()
-             WHERE id = ?"
-        )->execute([$targetStatusId, $taskId]);
-
-        // Re-pack the target column: existing top-level tasks in order, with
-        // the moved task spliced in at the requested position (default: end).
-        $colStmt = $conn->prepare(
-            "SELECT id FROM tasks
-             WHERE status_id = ? AND parent_task_id IS NULL AND id != ?
-             ORDER BY board_position ASC, created_datetime ASC"
-        );
-        $colStmt->execute([$targetStatusId, $taskId]);
-        $column = array_map('intval', $colStmt->fetchAll(PDO::FETCH_COLUMN));
-
-        $insertAt = ($position === null || $position > count($column)) ? count($column) : $position;
-        array_splice($column, $insertAt, 0, [$taskId]);
-
-        $posUpd = $conn->prepare("UPDATE tasks SET board_position = ? WHERE id = ?");
-        foreach ($column as $i => $id) {
-            $posUpd->execute([$i, $id]);
-        }
-        $conn->commit();
-    } catch (Exception $e) {
-        if ($conn->inTransaction()) {
-            $conn->rollBack();
-        }
-        throw $e;
-    }
-
-    // NB: no task.completed dispatch here — the UI's drag (reorder.php)
-    // doesn't fire it either; only a status change via PATCH does.
-    apiRespond(apiSerializeTask($conn, apiLoadTask($conn, $taskId)));
+        TasksService::moveTask($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+        apiRespond(apiSerializeTask($conn, apiLoadTask($conn, $params[0])));
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
@@ -658,27 +323,10 @@ function apiTasksMove(PDO $conn, array $apiKey, array $params, array $body): voi
 // UI's delete.php).
 // ---------------------------------------------------------------------------
 function apiTasksDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadTask($conn, $params[0]);
-
-    // Walk the subtask tree, then delete comments/tag links for every task in
-    // it, then the tasks themselves, children first.
-    $ids = [$params[0]];
-    $frontier = [$params[0]];
-    while ($frontier) {
-        $ph = implode(',', array_fill(0, count($frontier), '?'));
-        $kids = $conn->prepare("SELECT id FROM tasks WHERE parent_task_id IN ($ph)");
-        $kids->execute($frontier);
-        $frontier = array_map('intval', $kids->fetchAll(PDO::FETCH_COLUMN));
-        $ids = array_merge($ids, $frontier);
-    }
-    $ph = implode(',', array_fill(0, count($ids), '?'));
-    $conn->prepare("DELETE FROM task_comments WHERE task_id IN ($ph)")->execute($ids);
-    $conn->prepare("DELETE FROM task_tag_map WHERE task_id IN ($ph)")->execute($ids);
-    foreach (array_reverse($ids) as $taskId) {
-        $conn->prepare("DELETE FROM tasks WHERE id = ?")->execute([$taskId]);
-    }
-
-    apiRespond(['id' => $params[0], 'deleted' => true, 'subtasks_deleted' => count($ids) - 1]);
+    try {
+        $res = TasksService::deleteTask($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+        apiRespond(['id' => $params[0], 'deleted' => true, 'subtasks_deleted' => $res['subtasks_deleted']]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
@@ -703,16 +351,10 @@ function apiTaskCommentsList(PDO $conn, array $apiKey, array $params, array $bod
 }
 
 function apiTaskCommentsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadTask($conn, $params[0]);
-    $text = trim((string)($body['text'] ?? ''));
-    if ($text === '') {
-        apiError(422, 'missing_field', "'text' is required.");
-    }
-    $conn->prepare("INSERT INTO task_comments (task_id, analyst_id, comment, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
-         ->execute([$params[0], (int)$apiKey['analyst_id'], $text]);
-    $commentId = (int)$conn->lastInsertId();
-    $conn->prepare("UPDATE tasks SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$params[0]]);
-    apiRespond(['id' => $commentId, 'task_id' => $params[0], 'text' => $text], 201);
+    try {
+        $commentId = TasksService::createComment($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], (string)($body['text'] ?? ''));
+        apiRespond(['id' => $commentId, 'task_id' => $params[0], 'text' => trim((string)($body['text'] ?? ''))], 201);
+    } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
 // ---------------------------------------------------------------------------
