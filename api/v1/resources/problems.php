@@ -18,7 +18,16 @@
  * Problems ARE company-scoped (problems.tenant_id), so the key's company
  * scope is enforced: apiKeyTenantFilter on lists, apiKeyCanAccessProblem on
  * every by-id read/write. Invisible on single-company installs.
+ *
+ * The WRITES (create / update / delete / notes / incident + change linking)
+ * are delegated to ProblemsService — the same rules the UI's
+ * api/problem-management/*.php endpoints now call, gated by ctx->companyScope.
+ * The reads, serialisers, list filter, and reference lookups below are API-only
+ * and stay here.
  */
+
+require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+require_once dirname(__DIR__, 3) . '/includes/services/problems.php';
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -78,72 +87,10 @@ function apiLoadProblem(PDO $conn, array $apiKey, int $problemId): array {
     return $row;
 }
 
-function apiProblemAuditWrite(PDO $conn, int $problemId, int $analystId, string $actionType, ?string $field, ?string $old, ?string $new): void {
-    $stmt = $conn->prepare(
-        "INSERT INTO problem_audit (problem_id, analyst_id, action_type, field_name, old_value, new_value, created_datetime)
-         VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-    );
-    // The UI truncates audit values to the column width.
-    $stmt->execute([
-        $problemId, $analystId, $actionType, $field,
-        $old !== null ? mb_substr($old, 0, 1000) : null,
-        $new !== null ? mb_substr($new, 0, 1000) : null,
-    ]);
-}
-
-function apiProblemTouch(PDO $conn, int $problemId): void {
-    $conn->prepare("UPDATE problems SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$problemId]);
-}
-
-/** Resolve a problem status by name or id (status / status_id). Returns [id, name, is_closed] or null. */
-function apiResolveProblemStatus(PDO $conn, array $body): ?array {
-    if (isset($body['status_id']) && $body['status_id'] !== '' && $body['status_id'] !== null) {
-        $stmt = $conn->prepare("SELECT id, name, is_closed FROM problem_statuses WHERE id = ? LIMIT 1");
-        $stmt->execute([(int)$body['status_id']]);
-    } elseif (isset($body['status']) && trim((string)$body['status']) !== '') {
-        $stmt = $conn->prepare("SELECT id, name, is_closed FROM problem_statuses WHERE name = ? LIMIT 1");
-        $stmt->execute([trim((string)$body['status'])]);
-    } else {
-        return null;
-    }
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        apiError(422, 'invalid_field', 'Unknown problem status: ' . ($body['status'] ?? $body['status_id']));
-    }
-    return [(int)$row['id'], $row['name'], (int)$row['is_closed']];
-}
-
-/** Resolve a problem priority by name or id. Explicit null/'' clears. */
-function apiResolveProblemPriority(PDO $conn, array $body): ?array {
-    if (array_key_exists('priority_id', $body)) {
-        if ($body['priority_id'] === '' || $body['priority_id'] === null) {
-            return [null, null];
-        }
-        $stmt = $conn->prepare("SELECT id, name FROM problem_priorities WHERE id = ? LIMIT 1");
-        $stmt->execute([(int)$body['priority_id']]);
-    } elseif (isset($body['priority']) && trim((string)$body['priority']) !== '') {
-        $stmt = $conn->prepare("SELECT id, name FROM problem_priorities WHERE name = ? LIMIT 1");
-        $stmt->execute([trim((string)$body['priority'])]);
-    } else {
-        return null;
-    }
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        apiError(422, 'invalid_field', 'Unknown problem priority: ' . ($body['priority'] ?? $body['priority_id']));
-    }
-    return [(int)$row['id'], $row['name']];
-}
-
-/** Validate an analyst id (active); returns full_name. */
-function apiResolveAnalyst(PDO $conn, int $analystId): string {
-    $stmt = $conn->prepare("SELECT full_name FROM analysts WHERE id = ? AND is_active = 1");
-    $stmt->execute([$analystId]);
-    $name = $stmt->fetchColumn();
-    if ($name === false) {
-        apiError(422, 'invalid_field', "Unknown or inactive analyst id: {$analystId}");
-    }
-    return $name;
-}
+// The problem audit-write, updated_datetime touch, status/priority resolution,
+// and analyst validation now live in ProblemsService
+// (includes/services/problems.php) — the single home shared with the UI's
+// api/problem-management/*.php endpoints.
 
 // ---------------------------------------------------------------------------
 // GET /problems
@@ -302,13 +249,14 @@ function apiProblemsGet(PDO $conn, array $apiKey, array $params, array $body): v
 // POST /problems
 // ---------------------------------------------------------------------------
 function apiProblemsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
+    // Title (business rule) then company (transport/auth) are validated here to
+    // preserve the original error ordering; the shared insert/status/PRB/audit
+    // lives in ProblemsService. The company is auth-adjacent — resolved per
+    // transport (key default / explicit company_id here) and passed in.
     $title = trim((string)($body['title'] ?? ''));
     if ($title === '') {
         apiError(422, 'missing_field', "'title' is required.");
     }
-    $actorId = (int)$apiKey['analyst_id'];
-
-    // Company: explicit + in scope, else the key's default company.
     if (isset($body['company_id']) && $body['company_id'] !== '' && $body['company_id'] !== null) {
         $tenantId = (int)$body['company_id'];
         if (!getTenantById($conn, $tenantId)) {
@@ -321,46 +269,9 @@ function apiProblemsCreate(PDO $conn, array $apiKey, array $params, array $body)
         $tenantId = apiKeyDefaultTenantId($conn, $apiKey);
     }
 
-    // Status: explicit, else the module's default status (same as the UI).
-    $statusRes = apiResolveProblemStatus($conn, $body);
-    if ($statusRes === null) {
-        $row = $conn->query(
-            "SELECT id, name, is_closed FROM problem_statuses WHERE is_default = 1 ORDER BY display_order LIMIT 1"
-        )->fetch(PDO::FETCH_ASSOC);
-        $statusRes = $row ? [(int)$row['id'], $row['name'], (int)$row['is_closed']] : [null, null, 0];
-    }
-    $priorityRes = apiResolveProblemPriority($conn, $body) ?? [null, null];
-
-    $analystId = null;
-    if (isset($body['assigned_analyst_id']) && $body['assigned_analyst_id'] !== '') {
-        $analystId = (int)$body['assigned_analyst_id'];
-        apiResolveAnalyst($conn, $analystId);
-    }
-
-    $description  = trim((string)($body['description'] ?? '')) ?: null;
-    $rootCause    = trim((string)($body['root_cause'] ?? '')) ?: null;
-    $workaround   = trim((string)($body['workaround'] ?? '')) ?: null;
-    $isKnownError = !empty($body['is_known_error']) ? 1 : 0;
-
-    $ins = $conn->prepare(
-        "INSERT INTO problems (
-            tenant_id, title, description, status_id, priority_id, assigned_analyst_id,
-            root_cause, workaround, is_known_error, created_by_id,
-            created_datetime, updated_datetime
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
-    );
-    $ins->execute([
-        $tenantId, $title, $description, $statusRes[0], $priorityRes[0], $analystId,
-        $rootCause, $workaround, $isKnownError, $actorId,
-    ]);
-    $problemId = (int)$conn->lastInsertId();
-
-    // PRB-##### stamped from the new id, exactly like save.php.
-    $conn->prepare("UPDATE problems SET problem_number = ? WHERE id = ?")
-         ->execute(['PRB-' . str_pad((string)$problemId, 5, '0', STR_PAD_LEFT), $problemId]);
-
-    apiProblemAuditWrite($conn, $problemId, $actorId, 'created', null, null, null);
-
+    try {
+        $problemId = ProblemsService::createProblem($conn, ActorContext::fromApiKey($apiKey), $tenantId, $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
     apiRespond(apiSerializeProblem(apiLoadProblem($conn, $apiKey, $problemId)), 201);
 }
 
@@ -368,106 +279,10 @@ function apiProblemsCreate(PDO $conn, array $apiKey, array $params, array $body)
 // PATCH /problems/{id}
 // ---------------------------------------------------------------------------
 function apiProblemsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $problemId = $params[0];
-    $current = apiLoadProblem($conn, $apiKey, $problemId);
-    if (!$body) {
-        apiError(422, 'missing_field', 'No fields to update.');
-    }
-    $actorId = (int)$apiKey['analyst_id'];
-
-    $updates = [];
-    $args    = [];
-    $audits  = [];   // [field_key, old, new] — the UI's exact audit field keys
-
-    if (array_key_exists('title', $body)) {
-        $title = trim((string)$body['title']);
-        if ($title === '') {
-            apiError(422, 'invalid_field', "'title' cannot be empty.");
-        }
-        if ($title !== $current['title']) {
-            $updates[] = 'title = ?';
-            $args[]    = $title;
-            $audits[]  = ['title', $current['title'], $title];
-        }
-    }
-    if (array_key_exists('description', $body)) {
-        $description = trim((string)$body['description']) ?: null;
-        if ($description !== $current['description']) {
-            $updates[] = 'description = ?';
-            $args[]    = $description;
-            $audits[]  = ['description', $current['description'], $description];
-        }
-    }
-
-    // Status — closed_datetime transitions mirror save.php.
-    $oldIsClosed = (int)($current['status_is_closed'] ?? 0);
-    $statusRes = apiResolveProblemStatus($conn, $body);
-    if ($statusRes !== null && $statusRes[0] !== (int)$current['status_id']) {
-        [$newStatusId, $newStatusName, $newIsClosed] = $statusRes;
-        $updates[] = 'status_id = ?';
-        $args[]    = $newStatusId;
-        if ($newIsClosed && !$oldIsClosed) $updates[] = 'closed_datetime = UTC_TIMESTAMP()';
-        if (!$newIsClosed && $oldIsClosed) $updates[] = 'closed_datetime = NULL';
-        $audits[] = ['status', $current['status_name'], $newStatusName];
-    }
-
-    $priorityRes = apiResolveProblemPriority($conn, $body);
-    if ($priorityRes !== null) {
-        [$newPriorityId, $newPriorityName] = $priorityRes;
-        if ($newPriorityId !== ($current['priority_id'] !== null ? (int)$current['priority_id'] : null)) {
-            $updates[] = 'priority_id = ?';
-            $args[]    = $newPriorityId;
-            $audits[]  = ['priority', $current['priority_name'], $newPriorityName];
-        }
-    }
-
-    if (array_key_exists('assigned_analyst_id', $body)) {
-        $newAnalystId = ($body['assigned_analyst_id'] === '' || $body['assigned_analyst_id'] === null)
-            ? null : (int)$body['assigned_analyst_id'];
-        $newAnalystName = $newAnalystId !== null ? apiResolveAnalyst($conn, $newAnalystId) : null;
-        $oldAnalystId = $current['assigned_analyst_id'] !== null ? (int)$current['assigned_analyst_id'] : null;
-        if ($newAnalystId !== $oldAnalystId) {
-            $updates[] = 'assigned_analyst_id = ?';
-            $args[]    = $newAnalystId;
-            $audits[]  = ['assigned_to', $current['analyst_name'], $newAnalystName];
-        }
-    }
-
-    foreach (['root_cause', 'workaround'] as $field) {
-        if (!array_key_exists($field, $body)) {
-            continue;
-        }
-        $newVal = trim((string)$body[$field]) ?: null;
-        if ($newVal !== $current[$field]) {
-            $updates[] = "$field = ?";
-            $args[]    = $newVal;
-            $audits[]  = [$field, $current[$field], $newVal];
-        }
-    }
-
-    if (array_key_exists('is_known_error', $body)) {
-        $newKE = !empty($body['is_known_error']) ? 1 : 0;
-        if ($newKE !== (int)$current['is_known_error']) {
-            $updates[] = 'is_known_error = ?';
-            $args[]    = $newKE;
-            // The UI audits this as Yes/No.
-            $audits[]  = ['known_error', ((int)$current['is_known_error']) ? 'Yes' : 'No', $newKE ? 'Yes' : 'No'];
-        }
-    }
-
-    if (!$updates) {
-        apiRespond(apiSerializeProblem($current)); // idempotent PATCH
-    }
-
-    $updates[] = 'updated_datetime = UTC_TIMESTAMP()';
-    $args[]    = $problemId;
-    $conn->prepare('UPDATE problems SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
-
-    foreach ($audits as [$field, $old, $new]) {
-        apiProblemAuditWrite($conn, $problemId, $actorId, 'modified', $field, $old, $new);
-    }
-
-    apiRespond(apiSerializeProblem(apiLoadProblem($conn, $apiKey, $problemId)));
+    try {
+        ProblemsService::updateProblem($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond(apiSerializeProblem(apiLoadProblem($conn, $apiKey, $params[0])));
 }
 
 // ---------------------------------------------------------------------------
@@ -475,12 +290,9 @@ function apiProblemsUpdate(PDO $conn, array $apiKey, array $params, array $body)
 // tidies change_relations which has no FK back to problems)
 // ---------------------------------------------------------------------------
 function apiProblemsDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadProblem($conn, $apiKey, $params[0]);
     try {
-        $conn->prepare("DELETE FROM change_relations WHERE related_type = 'problem' AND related_id = ?")
-             ->execute([$params[0]]);
-    } catch (Exception $e) { /* change module absent */ }
-    $conn->prepare("DELETE FROM problems WHERE id = ?")->execute([$params[0]]);
+        ProblemsService::deleteProblem($conn, ActorContext::fromApiKey($apiKey), (int)$params[0]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
     apiRespond(['id' => $params[0], 'deleted' => true]);
 }
 
@@ -506,18 +318,13 @@ function apiProblemNotesList(PDO $conn, array $apiKey, array $params, array $bod
 }
 
 function apiProblemNotesCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadProblem($conn, $apiKey, $params[0]);
-    $note = trim((string)($body['note'] ?? ''));
-    if ($note === '') {
-        apiError(422, 'missing_field', "'note' is required.");
-    }
-    $conn->prepare("INSERT INTO problem_notes (problem_id, analyst_id, note, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
-         ->execute([$params[0], (int)$apiKey['analyst_id'], $note]);
-    apiProblemTouch($conn, $params[0]);
+    try {
+        $noteId = ProblemsService::addNote($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
     apiRespond([
-        'id'         => (int)$conn->lastInsertId(),
+        'id'         => $noteId,
         'problem_id' => $params[0],
-        'note'       => $note,
+        'note'       => trim((string)($body['note'] ?? '')),
     ], 201);
 }
 
@@ -550,60 +357,17 @@ function apiProblemAuditList(PDO $conn, array $apiKey, array $params, array $bod
 // Incident linking — POST /problems/{id}/tickets, DELETE .../{ticket_id}
 // ---------------------------------------------------------------------------
 function apiProblemTicketsLink(PDO $conn, array $apiKey, array $params, array $body): void {
-    $problemId = $params[0];
-    $problem = apiLoadProblem($conn, $apiKey, $problemId);
-    $actorId = (int)$apiKey['analyst_id'];
-
-    $ticketId = isset($body['ticket_id']) ? (int)$body['ticket_id'] : 0;
-    if ($ticketId <= 0) {
-        apiError(422, 'missing_field', "'ticket_id' is required.");
-    }
-    // The key must be able to see the ticket too (its company scope).
-    if (!apiKeyCanAccessTicket($conn, $apiKey, $ticketId)) {
-        apiError(404, 'not_found', 'Ticket not found.');
-    }
-    $tStmt = $conn->prepare("SELECT ticket_number, tenant_id FROM tickets WHERE id = ? AND deleted_datetime IS NULL");
-    $tStmt->execute([$ticketId]);
-    $ticket = $tStmt->fetch(PDO::FETCH_ASSOC);
-    if (!$ticket) {
-        apiError(404, 'not_found', 'Ticket not found.');
-    }
-
-    // Same-company rule, exactly as link_ticket.php: NULL normalises to Default.
-    if (isMultiTenant($conn)) {
-        $default = getDefaultTenantId($conn);
-        $pTid = $problem['tenant_id'] === null ? $default : (int)$problem['tenant_id'];
-        $tTid = $ticket['tenant_id'] === null ? $default : (int)$ticket['tenant_id'];
-        if ($pTid !== $tTid) {
-            apiError(422, 'invalid_field', 'That incident belongs to a different company than this problem.');
-        }
-    }
-
-    $dup = $conn->prepare("SELECT id FROM problem_tickets WHERE problem_id = ? AND ticket_id = ?");
-    $dup->execute([$problemId, $ticketId]);
-    if ($dup->fetchColumn()) {
-        apiError(409, 'conflict', 'This incident is already linked to this problem.');
-    }
-
-    $conn->prepare("INSERT INTO problem_tickets (problem_id, ticket_id, created_by_id, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
-         ->execute([$problemId, $ticketId, $actorId]);
-    apiProblemAuditWrite($conn, $problemId, $actorId, 'modified', 'linked_incident', null, $ticket['ticket_number']);
-    apiProblemTouch($conn, $problemId);
-
-    apiRespond(['problem_id' => $problemId, 'ticket_id' => $ticketId, 'ticket_number' => $ticket['ticket_number'], 'linked' => true], 201);
+    try {
+        $res = ProblemsService::linkTicket($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond($res, 201);
 }
 
 function apiProblemTicketsUnlink(PDO $conn, array $apiKey, array $params, array $body): void {
-    [$problemId, $ticketId] = $params;
-    apiLoadProblem($conn, $apiKey, $problemId);
-    $stmt = $conn->prepare("DELETE FROM problem_tickets WHERE problem_id = ? AND ticket_id = ?");
-    $stmt->execute([$problemId, $ticketId]);
-    if ($stmt->rowCount() === 0) {
-        apiError(404, 'not_found', 'Link not found.');
-    }
-    // No audit row on unlink — parity with the UI.
-    apiProblemTouch($conn, $problemId);
-    apiRespond(['problem_id' => $problemId, 'ticket_id' => $ticketId, 'unlinked' => true]);
+    try {
+        ProblemsService::unlinkTicket($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], (int)$params[1]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond(['problem_id' => $params[0], 'ticket_id' => $params[1], 'unlinked' => true]);
 }
 
 // ---------------------------------------------------------------------------
@@ -611,56 +375,17 @@ function apiProblemTicketsUnlink(PDO $conn, array $apiKey, array $params, array 
 // (shared change_relations table, related_type='problem', relation 'fixes')
 // ---------------------------------------------------------------------------
 function apiProblemChangesLink(PDO $conn, array $apiKey, array $params, array $body): void {
-    $problemId = $params[0];
-    apiLoadProblem($conn, $apiKey, $problemId);
-    $actorId = (int)$apiKey['analyst_id'];
-
-    $changeId = isset($body['change_id']) ? (int)$body['change_id'] : 0;
-    if ($changeId <= 0) {
-        apiError(422, 'missing_field', "'change_id' is required.");
-    }
     try {
-        $cStmt = $conn->prepare("SELECT id, title FROM changes WHERE id = ?");
-        $cStmt->execute([$changeId]);
-        $change = $cStmt->fetch(PDO::FETCH_ASSOC);
-    } catch (Exception $e) {
-        apiError(422, 'invalid_field', 'Change Management is not available on this install.');
-    }
-    if (!$change) {
-        apiError(422, 'invalid_field', "Unknown change id: {$changeId}");
-    }
-
-    $dup = $conn->prepare("SELECT id FROM change_relations WHERE change_id = ? AND related_type = 'problem' AND related_id = ?");
-    $dup->execute([$changeId, $problemId]);
-    if ($dup->fetchColumn()) {
-        apiError(409, 'conflict', 'This change is already linked to this problem.');
-    }
-
-    $conn->prepare(
-        "INSERT INTO change_relations (change_id, related_type, related_id, relation_type, created_by_id, created_datetime)
-         VALUES (?, 'problem', ?, 'fixes', ?, UTC_TIMESTAMP())"
-    )->execute([$changeId, $problemId, $actorId]);
-    apiProblemAuditWrite($conn, $problemId, $actorId, 'modified', 'linked_change', null, 'Change #' . $changeId);
-    apiProblemTouch($conn, $problemId);
-
-    apiRespond(['problem_id' => $problemId, 'change_id' => $changeId, 'title' => $change['title'], 'linked' => true], 201);
+        $res = ProblemsService::linkChange($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond($res, 201);
 }
 
 function apiProblemChangesUnlink(PDO $conn, array $apiKey, array $params, array $body): void {
-    [$problemId, $changeId] = $params;
-    apiLoadProblem($conn, $apiKey, $problemId);
     try {
-        $stmt = $conn->prepare("DELETE FROM change_relations WHERE change_id = ? AND related_type = 'problem' AND related_id = ?");
-        $stmt->execute([$changeId, $problemId]);
-    } catch (Exception $e) {
-        apiError(422, 'invalid_field', 'Change Management is not available on this install.');
-    }
-    if ($stmt->rowCount() === 0) {
-        apiError(404, 'not_found', 'Link not found.');
-    }
-    // No audit row on unlink — parity with the UI.
-    apiProblemTouch($conn, $problemId);
-    apiRespond(['problem_id' => $problemId, 'change_id' => $changeId, 'unlinked' => true]);
+        ProblemsService::unlinkChange($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], (int)$params[1]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond(['problem_id' => $params[0], 'change_id' => $params[1], 'unlinked' => true]);
 }
 
 // ---------------------------------------------------------------------------

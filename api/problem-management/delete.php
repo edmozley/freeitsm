@@ -1,11 +1,13 @@
 <?php
 /**
  * API: delete a problem (cascades problem_tickets + problem_audit via FKs).
+ * Thin UI adapter over ProblemsService::deleteProblem.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/services/problems.php';
 
 header('Content-Type: application/json');
 if (!isset($_SESSION['analyst_id'])) { echo json_encode(['success' => false, 'error' => 'Not authenticated']); exit; }
@@ -15,11 +17,10 @@ try {
     $id = (int) ($data['id'] ?? $_GET['id'] ?? 0);
     if ($id <= 0) throw new Exception('Problem ID is required');
     $conn = connectToDatabase();
-    if (!analystCanAccessProblem($conn, (int) $_SESSION['analyst_id'], $id)) throw new Exception('Problem not found');
-    // Tidy any change_relations pointing at this problem (not FK-bound).
-    try { $conn->prepare("DELETE FROM change_relations WHERE related_type = 'problem' AND related_id = ?")->execute([$id]); } catch (Exception $e) {}
-    $conn->prepare("DELETE FROM problems WHERE id = ?")->execute([$id]);
+    ProblemsService::deleteProblem($conn, ActorContext::fromSession($conn), $id);
     echo json_encode(['success' => true, 'message' => 'Problem deleted']);
+} catch (ServiceError $e) {
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
