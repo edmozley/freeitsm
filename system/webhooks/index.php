@@ -1,6 +1,6 @@
 <?php
 /**
- * System — Webhooks queue.
+ * System — Webhooks.
  *
  * Admin view over the outbound-webhook delivery queue (webhook_deliveries):
  *   1. A prominent SETUP card that makes it unmistakable what has to be in place
@@ -8,7 +8,10 @@
  *      delivery worker (cron/webhook_deliveries.php). We detect live whether that
  *      worker is running (webhook_cron_last_run) and show the exact command to
  *      schedule if not.
- *   2. Queue health — counts per status.
+ *   2. An OVERVIEW dashboard — 7-day success rate / volume / avg delivery time /
+ *      queued / dead-letter KPIs, a 14-day delivered-vs-failed volume chart, and
+ *      top target endpoints + source workflows with per-row success rates. All
+ *      computed server-side from webhook_deliveries on page load.
  *   3. The delivery log — every queued webhook, its full request payload, the
  *      full response from the endpoint, and a Replay button.
  *
@@ -59,6 +62,98 @@ elseif ($lastRunAge <= 180)    { $cronState = 'running'; }
 elseif ($lastRunAge <= 900)    { $cronState = 'stale'; }
 else                           { $cronState = 'down'; }
 
+// --- Dashboard metrics ---------------------------------------------------
+// One aggregate pass for the KPI strip (all-time + rolling windows). Booleans
+// summed as 0/1; AVG latency is NULL when nothing has been delivered yet.
+$m = $conn->query(
+    "SELECT
+        COUNT(*)                                                                      AS total_all,
+        SUM(status='delivered')                                                       AS delivered_all,
+        SUM(status IN ('pending','delivering'))                                        AS inflight_all,
+        SUM(status='failed')                                                          AS retrying_all,
+        SUM(status='dead')                                                            AS dead_all,
+        SUM(created_datetime >= UTC_TIMESTAMP() - INTERVAL 7 DAY)                       AS total_7d,
+        SUM(status='delivered' AND created_datetime >= UTC_TIMESTAMP() - INTERVAL 7 DAY)  AS delivered_7d,
+        SUM(status='dead'      AND created_datetime >= UTC_TIMESTAMP() - INTERVAL 7 DAY)  AS dead_7d,
+        SUM(created_datetime >= UTC_TIMESTAMP() - INTERVAL 24 HOUR)                     AS total_24h,
+        AVG(CASE WHEN status='delivered' AND delivered_datetime IS NOT NULL
+                  AND created_datetime >= UTC_TIMESTAMP() - INTERVAL 7 DAY
+                 THEN TIMESTAMPDIFF(SECOND, created_datetime, delivered_datetime) END) AS avg_latency_7d
+     FROM webhook_deliveries"
+)->fetch(PDO::FETCH_ASSOC) ?: [];
+
+$hasData = ((int)($m['total_all'] ?? 0)) > 0;
+
+// 7-day success rate = delivered vs terminal (delivered + dead); in-flight excluded.
+$term7    = (int)($m['delivered_7d'] ?? 0) + (int)($m['dead_7d'] ?? 0);
+$success7 = $term7 > 0 ? (int)round(100 * (int)$m['delivered_7d'] / $term7) : null;
+
+// 14-day volume series, delivered vs failed (failed = retrying + dead), gap-filled.
+$volRaw = [];
+foreach ($conn->query(
+    "SELECT DATE(created_datetime) d,
+            SUM(status='delivered')            AS delivered,
+            SUM(status IN ('dead','failed'))   AS failed,
+            COUNT(*)                           AS total
+       FROM webhook_deliveries
+      WHERE created_datetime >= UTC_TIMESTAMP() - INTERVAL 13 DAY
+      GROUP BY DATE(created_datetime)"
+) as $r) { $volRaw[$r['d']] = $r; }
+
+$vol = [];
+$today = strtotime(gmdate('Y-m-d'));            // UTC midnight — matches the UTC-stored rows
+for ($i = 13; $i >= 0; $i--) {
+    $day = gmdate('Y-m-d', strtotime("-$i day", $today));
+    $row = $volRaw[$day] ?? [];
+    $vol[] = [
+        'day'       => $day,
+        'delivered' => (int)($row['delivered'] ?? 0),
+        'failed'    => (int)($row['failed'] ?? 0),
+        'total'     => (int)($row['total'] ?? 0),
+    ];
+}
+$volMax = 1;
+foreach ($vol as $v) { if ($v['total'] > $volMax) $volMax = $v['total']; }
+
+// Top target endpoints (by host) and top source workflows — with success rates.
+$byHost = $conn->query(
+    "SELECT SUBSTRING_INDEX(SUBSTRING_INDEX(url,'/',3),'/',-1) AS host,
+            COUNT(*) AS total, SUM(status='delivered') AS delivered,
+            SUM(status='dead') AS dead,
+            SUM(status IN ('pending','delivering','failed')) AS inflight,
+            MAX(created_datetime) AS last_at
+       FROM webhook_deliveries
+      GROUP BY host ORDER BY total DESC LIMIT 8"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+$byWorkflow = $conn->query(
+    "SELECT COALESCE(w.name,
+              CASE WHEN d.workflow_id IS NULL THEN '(direct send)'
+                   ELSE CONCAT('workflow #', d.workflow_id, ' (deleted)') END) AS name,
+            COUNT(*) AS total, SUM(d.status='delivered') AS delivered, SUM(d.status='dead') AS dead
+       FROM webhook_deliveries d
+       LEFT JOIN workflows w ON w.id = d.workflow_id
+      GROUP BY d.workflow_id, w.name ORDER BY total DESC LIMIT 8"
+)->fetchAll(PDO::FETCH_ASSOC);
+
+function whLatency($s) {
+    if ($s === null) return '—';
+    $s = (float)$s;
+    if ($s < 1)    return '<1s';
+    if ($s < 90)   return round($s) . 's';
+    if ($s < 5400) return round($s / 60) . 'm';
+    return round($s / 3600, 1) . 'h';
+}
+// Success-rate cell: delivered vs terminal (delivered + dead); in-flight ignored.
+function whRate($delivered, $dead) {
+    $term = (int)$delivered + (int)$dead;
+    if ($term === 0) return '<span class="pct">—</span>';
+    $pct = (int)round(100 * (int)$delivered / $term);
+    $cls = $pct >= 95 ? '' : ($pct >= 80 ? 'warn' : 'bad');
+    return '<span class="rate"><span class="track"><span class="fill ' . $cls . '" style="width:' . $pct . '%"></span></span>'
+         . '<span class="pct">' . $pct . '%</span></span>';
+}
+
 // Exact commands for this install.
 $scriptPath = realpath(__DIR__ . '/../../cron/webhook_deliveries.php') ?: 'cron/webhook_deliveries.php';
 $scheme     = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
@@ -79,7 +174,7 @@ function whAgo($s) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Service Desk - Webhooks queue</title>
+    <title>Service Desk - Webhooks</title>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .wh-container { height: calc(100vh - 48px); overflow-y: auto; padding: 30px 20px; }
@@ -142,17 +237,58 @@ function whAgo($s) {
         .table-action-btn:hover { background: #e8ecef; }
         .wh-empty { padding: 30px; text-align: center; color: #90a4ae; font-size: 13px; }
         .modal-body pre { background: #263238; color: #eceff1; border-radius: 6px; padding: 12px; font-size: 11.5px; overflow: auto; max-height: 300px; white-space: pre-wrap; word-break: break-word; }
+
+        /* ---- Overview dashboard ---- */
+        .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(148px, 1fr)); gap: 14px; margin: 4px 0 22px; }
+        .kpi { border: 1px solid #eef2f4; border-radius: 8px; padding: 13px 16px; background: #fbfcfd; }
+        .kpi .k-label { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; color: #90a4ae; font-weight: 600; }
+        .kpi .k-value { font-size: 25px; font-weight: 700; color: #37474f; margin-top: 5px; line-height: 1; }
+        .kpi .k-sub { font-size: 11.5px; color: #a3adb5; margin-top: 6px; }
+        .kpi.good .k-value { color: #1e7e34; }
+        .kpi.warn .k-value { color: #b26a00; }
+        .kpi.bad  .k-value { color: #c0392b; }
+
+        .ov-grid { display: grid; grid-template-columns: 1.15fr 1fr; gap: 22px; }
+        @media (max-width: 880px) { .ov-grid { grid-template-columns: 1fr; } }
+        .ov-panel h4 { font-size: 12.5px; font-weight: 600; color: #55606a; margin: 0 0 12px; }
+
+        .chart { display: flex; align-items: flex-end; gap: 5px; height: 132px; }
+        .chart .bar { flex: 1; display: flex; flex-direction: column; align-items: center; height: 100%; justify-content: flex-end; gap: 5px; }
+        .chart .col { width: 62%; max-width: 24px; display: flex; flex-direction: column; justify-content: flex-end; }
+        .chart .col .seg { width: 100%; }
+        .chart .col .seg-fail { background: #ef9a9a; border-radius: 3px 3px 0 0; }
+        .chart .col .seg-ok   { background: #66bb6a; }
+        .chart .col .seg-ok.top { border-radius: 3px 3px 0 0; }
+        .chart .col .seg-zero { height: 2px; background: #e4e9ec; border-radius: 2px; }
+        .chart .cap { font-size: 9px; color: #b0bec5; white-space: nowrap; }
+        .chart-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 11.5px; color: #90a4ae; }
+        .chart-legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 2px; vertical-align: -1px; margin-right: 5px; }
+
+        table.mini { width: 100%; border-collapse: collapse; font-size: 12px; }
+        table.mini th { text-align: left; color: #90a4ae; font-weight: 600; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; padding: 4px 8px; border-bottom: 1px solid #eef2f4; }
+        table.mini td { padding: 6px 8px; border-bottom: 1px solid #f4f6f8; vertical-align: middle; }
+        table.mini td.name { font-weight: 500; color: #37474f; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        table.mini td.mono { font-family: Consolas, Monaco, monospace; font-size: 11px; color: #455a64; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        table.mini td.num { text-align: right; color: #607d8b; font-variant-numeric: tabular-nums; }
+        .rate { display: flex; align-items: center; gap: 7px; justify-content: flex-end; }
+        .rate .track { width: 42px; height: 5px; border-radius: 3px; background: #eef2f4; overflow: hidden; }
+        .rate .fill { height: 100%; background: #66bb6a; }
+        .rate .fill.warn { background: #ffb74d; }
+        .rate .fill.bad { background: #e57373; }
+        .rate .pct { font-size: 11px; color: #607d8b; min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
+        .ov-empty { padding: 26px; text-align: center; color: #b0bec5; font-size: 12.5px; }
     </style>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>
 
     <div class="wh-container">
-        <h1 class="page-title">Webhooks queue</h1>
+        <h1 class="page-title">Webhooks</h1>
         <p class="page-subtitle">
             Outbound webhooks — queued by the <em>Send a webhook</em> workflow action — are delivered in the
             background with automatic retries, so a slow or dead endpoint never holds up a ticket. This page shows
-            whether delivery is set up correctly and lets you inspect every request, its full response, and replay any of them.
+            whether delivery is set up, an overview of delivery health, and the full log where you can inspect every
+            request, its response, and replay any of them.
         </p>
 
         <!-- ============ SETUP / STATUS ============ -->
@@ -231,6 +367,109 @@ function whAgo($s) {
                     <div class="fact">Queued now<b><?php echo $pendingCount; ?></b></div>
                 <?php endif; ?>
             </div>
+        </div>
+
+        <!-- ============ OVERVIEW DASHBOARD ============ -->
+        <div class="card">
+            <h3>Overview</h3>
+            <p class="desc">Delivery health at a glance — the last 7 days, plus your busiest endpoints and the workflows sending the most.</p>
+
+            <?php
+                $srClass = $success7 === null ? '' : ($success7 >= 99 ? 'good' : ($success7 >= 90 ? 'warn' : 'bad'));
+                $deadAll = (int)($m['dead_all'] ?? 0);
+            ?>
+            <div class="kpis">
+                <div class="kpi <?php echo $srClass; ?>">
+                    <div class="k-label">Success rate · 7d</div>
+                    <div class="k-value"><?php echo $success7 === null ? '—' : $success7 . '%'; ?></div>
+                    <div class="k-sub"><?php echo (int)($m['delivered_7d'] ?? 0); ?> of <?php echo $term7; ?> delivered</div>
+                </div>
+                <div class="kpi">
+                    <div class="k-label">Sent · 7d</div>
+                    <div class="k-value"><?php echo (int)($m['total_7d'] ?? 0); ?></div>
+                    <div class="k-sub"><?php echo (int)($m['total_24h'] ?? 0); ?> in the last 24h</div>
+                </div>
+                <div class="kpi">
+                    <div class="k-label">Avg delivery time</div>
+                    <div class="k-value"><?php echo whLatency($m['avg_latency_7d'] ?? null); ?></div>
+                    <div class="k-sub">queue → delivered · 7d</div>
+                </div>
+                <div class="kpi <?php echo $pendingCount > 0 ? 'warn' : ''; ?>">
+                    <div class="k-label">Queued now</div>
+                    <div class="k-value"><?php echo $pendingCount; ?></div>
+                    <div class="k-sub"><?php echo (int)($m['inflight_all'] ?? 0); ?> in flight · <?php echo (int)($m['retrying_all'] ?? 0); ?> retrying</div>
+                </div>
+                <div class="kpi <?php echo $deadAll > 0 ? 'bad' : ''; ?>">
+                    <div class="k-label">Dead-letter</div>
+                    <div class="k-value"><?php echo $deadAll; ?></div>
+                    <div class="k-sub"><?php echo $deadAll > 0 ? 'gave up after retries' : 'none — all clear'; ?></div>
+                </div>
+            </div>
+
+            <?php if (!$hasData): ?>
+                <div class="ov-empty">No webhook deliveries recorded yet — once a <em>Send a webhook</em> action fires, its stats appear here.</div>
+            <?php else: ?>
+                <div class="ov-grid">
+                    <!-- 14-day volume -->
+                    <div class="ov-panel">
+                        <h4>Volume — last 14 days</h4>
+                        <div class="chart">
+                            <?php foreach ($vol as $v):
+                                $okpx   = $v['delivered'] > 0 ? max(2, (int)round(110 * $v['delivered'] / $volMax)) : 0;
+                                $failpx = $v['failed']    > 0 ? max(2, (int)round(110 * $v['failed']    / $volMax)) : 0;
+                                $dd = (int)substr($v['day'], 8, 2);
+                            ?>
+                                <div class="bar" title="<?php echo htmlspecialchars($v['day']); ?>: <?php echo $v['delivered']; ?> delivered, <?php echo $v['failed']; ?> failed">
+                                    <div class="col">
+                                        <?php if ($v['total'] === 0): ?>
+                                            <div class="seg seg-zero"></div>
+                                        <?php else: ?>
+                                            <?php if ($failpx > 0): ?><div class="seg seg-fail" style="height:<?php echo $failpx; ?>px;"></div><?php endif; ?>
+                                            <?php if ($okpx > 0): ?><div class="seg seg-ok <?php echo $failpx > 0 ? '' : 'top'; ?>" style="height:<?php echo $okpx; ?>px;"></div><?php endif; ?>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="cap"><?php echo $dd; ?></div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <div class="chart-legend">
+                            <span><span class="sw" style="background:#66bb6a;"></span>Delivered</span>
+                            <span><span class="sw" style="background:#ef9a9a;"></span>Failed / retrying</span>
+                        </div>
+                    </div>
+
+                    <!-- breakdowns -->
+                    <div class="ov-panel">
+                        <h4>Top endpoints</h4>
+                        <table class="mini">
+                            <thead><tr><th>Endpoint</th><th class="num">Sent</th><th class="num">Success</th></tr></thead>
+                            <tbody>
+                                <?php foreach ($byHost as $h): ?>
+                                    <tr>
+                                        <td class="mono" title="<?php echo htmlspecialchars($h['host']); ?>"><?php echo htmlspecialchars($h['host']); ?></td>
+                                        <td class="num"><?php echo (int)$h['total']; ?></td>
+                                        <td class="num"><?php echo whRate($h['delivered'], $h['dead']); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+
+                        <h4 style="margin-top:18px;">Top source workflows</h4>
+                        <table class="mini">
+                            <thead><tr><th>Workflow</th><th class="num">Sent</th><th class="num">Success</th></tr></thead>
+                            <tbody>
+                                <?php foreach ($byWorkflow as $w): ?>
+                                    <tr>
+                                        <td class="name" title="<?php echo htmlspecialchars($w['name']); ?>"><?php echo htmlspecialchars($w['name']); ?></td>
+                                        <td class="num"><?php echo (int)$w['total']; ?></td>
+                                        <td class="num"><?php echo whRate($w['delivered'], $w['dead']); ?></td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endif; ?>
         </div>
 
         <!-- ============ DELIVERY LOG ============ -->
