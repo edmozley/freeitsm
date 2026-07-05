@@ -10,7 +10,9 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
 require_once 'includes/tools.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'debug-tools';
 $path_prefix = '../../';
@@ -60,6 +62,8 @@ $debugTools = getDebugTools();
         .debug-card h3 { margin: 0 0 5px; font-size: 15.5px; color: #333; }
         .debug-card p { margin: 0; font-size: 12.5px; color: #888; line-height: 1.45; }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo $path_prefix; ?>assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>

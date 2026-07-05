@@ -61,7 +61,7 @@ const LMS = (() => {
         }
         tbody.innerHTML = courses.map(c => {
             const version = c.scorm_version ? `<span class="scorm-badge">SCORM ${esc(c.scorm_version)}</span>` : `<span style="color:#999;">${esc(window.t('lms.courses.version_unknown'))}</span>`;
-            const date = c.created_datetime ? new Date(c.created_datetime).toLocaleDateString() : '';
+            const date = c.created_datetime ? parseUTCDate(c.created_datetime).toLocaleDateString(undefined, tzOpts({})) : '';
             return `<tr>
                 <td><strong>${esc(c.title)}</strong>${c.description ? '<br><small style="color:#888;">' + esc(c.description).substring(0, 80) + '</small>' : ''}</td>
                 <td>${version}</td>
@@ -402,7 +402,7 @@ const LMS = (() => {
 
             const score = row.score_raw !== null ? row.score_raw + (row.score_max ? '/' + row.score_max : '') : '';
             const deadline = row.deadline ? new Date(row.deadline).toLocaleDateString() : '';
-            const lastAccess = row.last_access ? new Date(row.last_access).toLocaleString() : '';
+            const lastAccess = row.last_access ? parseUTCDate(row.last_access).toLocaleString(undefined, tzOpts({})) : '';
             const trStyle = row.is_overdue ? ' style="background: #fff5f5;"' : '';
 
             const viewBtn = row.status !== 'not_started'
@@ -451,8 +451,8 @@ const LMS = (() => {
                 <div class="ld-stat"><div class="ld-stat-value">${esc(scoreDisplay)}</div><div class="ld-stat-label">${esc(window.t('lms.learner_modal.stat_score'))}</div></div>
                 <div class="ld-stat"><div class="ld-stat-value">${p.attempt_count || 0}</div><div class="ld-stat-label">${esc(window.t('lms.learner_modal.stat_attempts'))}</div></div>
                 <div class="ld-stat"><div class="ld-stat-value">${formatTime(p.total_time)}</div><div class="ld-stat-label">${esc(window.t('lms.learner_modal.stat_time_spent'))}</div></div>
-                <div class="ld-stat"><div class="ld-stat-value">${p.first_access ? new Date(p.first_access).toLocaleDateString() : '—'}</div><div class="ld-stat-label">${esc(window.t('lms.learner_modal.stat_first_access'))}</div></div>
-                <div class="ld-stat"><div class="ld-stat-value">${p.last_access ? new Date(p.last_access).toLocaleDateString() : '—'}</div><div class="ld-stat-label">${esc(window.t('lms.learner_modal.stat_last_access'))}</div></div>
+                <div class="ld-stat"><div class="ld-stat-value">${p.first_access ? parseUTCDate(p.first_access).toLocaleDateString(undefined, tzOpts({})) : '—'}</div><div class="ld-stat-label">${esc(window.t('lms.learner_modal.stat_first_access'))}</div></div>
+                <div class="ld-stat"><div class="ld-stat-value">${p.last_access ? parseUTCDate(p.last_access).toLocaleDateString(undefined, tzOpts({})) : '—'}</div><div class="ld-stat-label">${esc(window.t('lms.learner_modal.stat_last_access'))}</div></div>
             </div>`;
 
             // Interactions (quiz responses)

@@ -10,7 +10,9 @@ require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/i18n.php';
 require_once '../includes/areas.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ' . BASE_URL . 'login.php');
@@ -45,6 +47,8 @@ try { $multiTenant = isMultiTenant(connectToDatabase()); } catch (Exception $e) 
         .syshelp-tile p { margin: 0; font-size: 12.5px; color: #6b7280; line-height: 1.5; }
         @media (max-width: 700px) { .syshelp-grid { padding: 22px; } .syshelp-hero { padding: 30px 22px; } }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>

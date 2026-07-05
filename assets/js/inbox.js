@@ -2339,6 +2339,20 @@ function formatFullDateTime(dateStr) {
     })) + ' ' + date.toLocaleTimeString('en-US', tzOpts({ hour: '2-digit', minute: '2-digit' }));
 }
 
+// Format a NAIVE wall-clock datetime (a user-entered scheduling value stored
+// WITHOUT a zone, e.g. a ticket's scheduled work-start) exactly as typed — no
+// timezone conversion, so "2pm" reads 2pm for every analyst. Scheduling times
+// are naive; only server-stamped UTC timestamps (received/created/…) convert.
+function formatNaiveFullDateTime(dateStr) {
+    if (!dateStr) return '';
+    const m = String(dateStr).replace('T', ' ').match(/(\d{4})-(\d{2})-(\d{2})[ ](\d{1,2}):(\d{2})/);
+    if (!m) return dateStr;
+    const d = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+    return d.toLocaleDateString('en-GB', {
+        weekday: 'short', day: 'numeric', month: 'short', year: 'numeric'
+    }) + ' ' + d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+}
+
 // Toggle ticket properties panel
 function toggleTicketProperties(event) {
     event.stopPropagation();
@@ -3463,7 +3477,7 @@ function openScheduleModal() {
     // Check if already scheduled
     if (currentEmail.work_start_datetime) {
         const scheduled = new Date(currentEmail.work_start_datetime);
-        document.getElementById('currentSchedule').textContent = formatFullDateTime(currentEmail.work_start_datetime);
+        document.getElementById('currentSchedule').textContent = formatNaiveFullDateTime(currentEmail.work_start_datetime);
         document.getElementById('scheduleCurrent').style.display = 'block';
 
         // Pre-fill with existing schedule

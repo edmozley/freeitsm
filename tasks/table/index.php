@@ -10,7 +10,9 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'table';
 $path_prefix = '../../';
@@ -26,6 +28,8 @@ $translationNamespaces = ['common', 'tasks'];
     <link rel="stylesheet" href="../../assets/css/tasks.css?v=14">
     <link rel="stylesheet" href="../../assets/css/data-table.css?v=2">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js"></script>
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
@@ -93,6 +97,6 @@ $translationNamespaces = ['common', 'tasks'];
 
     <script src="../../assets/js/data-table.js?v=2"></script>
     <script src="../../assets/js/tasks-ctx-menu.js?v=1"></script>
-    <script src="../../assets/js/tasks-table.js?v=2"></script>
+    <script src="../../assets/js/tasks-table.js?v=3"></script>
 </body>
 </html>

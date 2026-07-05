@@ -6,7 +6,9 @@ session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'forms';
 $path_prefix = '../';
@@ -20,6 +22,8 @@ $translationNamespaces = ['common', 'forms'];
     <title><?php echo htmlspecialchars(t('forms.subs.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js"></script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
@@ -558,7 +562,10 @@ $translationNamespaces = ['common', 'forms'];
             const to = document.getElementById('dateTo').value;
 
             filteredSubmissions = allSubmissions.filter(sub => {
-                const d = sub.submitted_date.substring(0, 10); // YYYY-MM-DD
+                // Bucket by the LOCAL (analyst-zone) date so the filter
+                // matches the date shown in the table — submitted_date is
+                // a UTC instant, so use the zone-aware YYYY-MM-DD.
+                const d = ymdInZone(parseUTCDate(sub.submitted_date));
                 if (from && d < from) return false;
                 if (to && d > to) return false;
                 return true;
@@ -665,12 +672,14 @@ $translationNamespaces = ['common', 'forms'];
         });
 
         // Helpers
+        // submitted_date is the server-stamped UTC receipt timestamp
+        // (kind 1): parse as UTC and render in the analyst's zone.
         function formatDate(dateStr) {
             if (!dateStr) return '';
-            const d = new Date(dateStr);
-            if (isNaN(d)) return dateStr;
-            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const d = parseUTCDate(dateStr);
+            if (!d || isNaN(d)) return dateStr;
+            return d.toLocaleDateString('en-GB', tzOpts({ day: '2-digit', month: 'short', year: 'numeric' }))
+                + ' ' + d.toLocaleTimeString('en-GB', tzOpts({ hour: '2-digit', minute: '2-digit' }));
         }
 
         function esc(text) {

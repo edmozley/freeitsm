@@ -5,7 +5,9 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'board';
 $path_prefix = '../';
@@ -20,6 +22,8 @@ $translationNamespaces = ['common', 'tasks'];
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/tasks.css?v=10">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
 </head>
@@ -163,6 +167,6 @@ $translationNamespaces = ['common', 'tasks'];
     <!-- Toast -->
     <script>window.API_BASE = '../api/tasks/';</script>
     <script src="../assets/js/tasks-ctx-menu.js?v=1"></script>
-    <script src="../assets/js/tasks.js?v=10"></script>
+    <script src="../assets/js/tasks.js?v=11"></script>
 </body>
 </html>

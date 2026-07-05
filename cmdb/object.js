@@ -38,8 +38,8 @@ async function postJson(url, body) {
 function formatDate(s) {
     if (!s) return '';
     try {
-        const d = new Date(s.replace(' ', 'T') + 'Z');
-        return d.toLocaleString();
+        const d = parseUTCDate(s);
+        return d.toLocaleString(undefined, tzOpts());
     } catch (e) { return s; }
 }
 

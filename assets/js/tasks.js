@@ -1258,9 +1258,12 @@ function esc(text) {
 
 function formatDateTime(dt) {
     if (!dt) return '';
-    const d = new Date(dt.replace(' ', 'T'));
-    if (isNaN(d)) return dt;
-    return d.toLocaleDateString(UI_LOCALE, { day: '2-digit', month: 'short', year: 'numeric' })
-        + ' ' + d.toLocaleTimeString(UI_LOCALE, { hour: '2-digit', minute: '2-digit' });
+    // Stored UTC → render in the analyst's chosen display zone (parseUTCDate /
+    // tzOpts from assets/js/tz.js). Used for comment/created/updated/completed
+    // timestamps — all true datetimes.
+    const d = parseUTCDate(dt);
+    if (!d || isNaN(d)) return dt;
+    return d.toLocaleDateString(UI_LOCALE, tzOpts({ day: '2-digit', month: 'short', year: 'numeric' }))
+        + ' ' + d.toLocaleTimeString(UI_LOCALE, tzOpts({ hour: '2-digit', minute: '2-digit' }));
 }
 

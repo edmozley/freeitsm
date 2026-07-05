@@ -5,7 +5,9 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -361,6 +363,8 @@ $translationNamespaces = ['common', 'tickets'];
     </div>
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
     <script>
         const API_BASE = '../api/tickets/';
@@ -495,7 +499,7 @@ $translationNamespaces = ['common', 'tickets'];
                 window._logs = data.entries.map(e => e.processing_log || null);
 
                 tbody.innerHTML = data.entries.map((e, idx) => {
-                    const dt = new Date(e.created_datetime + 'Z').toLocaleString();
+                    const dt = parseUTCDate(e.created_datetime).toLocaleString(undefined, tzOpts());
                     const badge = e.action === 'imported'
                         ? '<span class="badge-imported">' + escapeHtml(window.t('tickets.activity.badge_imported')) + '</span>'
                         : '<span class="badge-rejected">' + escapeHtml(window.t('tickets.activity.badge_rejected')) + '</span>';
@@ -556,7 +560,7 @@ $translationNamespaces = ['common', 'tickets'];
                 window._logs = entries.map(e => e.processing_log || null);
 
                 tbody.innerHTML = entries.map((e, idx) => {
-                    const dt = new Date(e.created_datetime + 'Z').toLocaleString();
+                    const dt = parseUTCDate(e.created_datetime).toLocaleString(undefined, tzOpts());
                     const badge = e.action === 'imported'
                         ? '<span class="badge-imported">' + escapeHtml(window.t('tickets.activity.badge_imported')) + '</span>'
                         : '<span class="badge-rejected">' + escapeHtml(window.t('tickets.activity.badge_rejected')) + '</span>';

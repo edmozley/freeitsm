@@ -9,7 +9,9 @@ session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -246,6 +248,8 @@ $translationNamespaces = ['common', 'network-mapper'];
             .nh-tips-grid { grid-template-columns: 1fr; }
         }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

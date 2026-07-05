@@ -2682,7 +2682,9 @@
     // =========================================================
     function formatDate(s) {
         if (!s) return '—';
-        try { return new Date(s.replace(' ', 'T') + 'Z').toLocaleString(); }
+        // KIND 1: server-stamped UTC (created/updated_datetime) — convert to the
+        // analyst's display zone via the shared tz helpers.
+        try { return parseUTCDate(s).toLocaleString(undefined, tzOpts({})); }
         catch (e) { return s; }
     }
 

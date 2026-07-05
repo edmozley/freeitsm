@@ -6,7 +6,9 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'settings';
 $path_prefix = '../../';
@@ -19,6 +21,8 @@ $translationNamespaces = ['common', 'software'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('software.settings.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
@@ -517,12 +521,14 @@ $translationNamespaces = ['common', 'software'];
             return key.substring(0, 6) + '\u2022'.repeat(20) + key.substring(key.length - 6);
         }
 
+        // created_at is a server-stamped UTC timestamp — parse as UTC and render
+        // in the analyst's display zone (kind 1).
         function formatDate(dateStr) {
             if (!dateStr) return '';
-            const d = new Date(dateStr);
-            if (isNaN(d)) return dateStr;
-            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-                + ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const d = parseUTCDate(dateStr);
+            if (!d || isNaN(d)) return dateStr;
+            return d.toLocaleDateString('en-GB', tzOpts({ day: '2-digit', month: 'short', year: 'numeric' }))
+                + ' ' + d.toLocaleTimeString('en-GB', tzOpts({ hour: '2-digit', minute: '2-digit' }));
         }
 
         async function generateKey() {

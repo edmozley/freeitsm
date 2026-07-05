@@ -3,6 +3,8 @@ session_start();
 require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/ai_settings_panel.php';
 require_once __DIR__ . '/../../includes/theme.php';
+require_once __DIR__ . '/../../includes/timezone.php';
+Tz::init();
 $current_page = 'settings';
 $path_prefix = '../../';
 ?>
@@ -30,6 +32,8 @@ $path_prefix = '../../';
         .pms-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
         .tab-content .table-action-btn svg { width: 15px; height: 15px; }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <div class="settings-shell">

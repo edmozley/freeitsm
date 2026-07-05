@@ -11,7 +11,9 @@ session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'forms';
 $path_prefix = '../';
@@ -25,6 +27,8 @@ $translationNamespaces = ['common', 'forms'];
     <title><?php echo htmlspecialchars(t('forms.list.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js"></script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=1"></script>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=13">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
@@ -383,7 +387,7 @@ $translationNamespaces = ['common', 'forms'];
                     <td>${statusPill}</td>
                     <td style="text-align: right;">${f.field_count}</td>
                     <td style="text-align: right;">${f.submission_count}</td>
-                    <td title="${esc(f.modified_date || '')}">${esc(relativeDate(f.modified_date))}</td>
+                    <td title="${esc(fullLocalDate(f.modified_date))}">${esc(relativeDate(f.modified_date))}</td>
                     <td>${esc(f.modified_by_name || f.created_by_name || window.t('forms.list.unknown_user'))}</td>
                     <td class="col-actions" onclick="event.stopPropagation()">
                         <a class="ft-action-btn" href="<?php echo BASE_URL; ?>forms/fill.php?id=${f.id}" title="${escAttr(window.t('forms.list.fill_title'))}">${ICON_FILL}</a>
@@ -413,18 +417,29 @@ $translationNamespaces = ['common', 'forms'];
         }
 
         // Friendly "5 minutes ago" / "2 days ago" — falls back to the
-        // ISO date once it's older than a week so dates stay readable.
+        // date once it's older than a week so dates stay readable.
+        // modified_date is a server-stamped UTC timestamp (kind 1): parse
+        // it as UTC and render the fallback date in the analyst's zone.
         function relativeDate(iso) {
             if (!iso) return '';
-            const d = new Date(iso.replace(' ', 'T') + 'Z');
-            if (isNaN(d.getTime())) return iso;
+            const d = parseUTCDate(iso);
+            if (!d || isNaN(d.getTime())) return iso;
             const now = new Date();
             const secs = Math.floor((now - d) / 1000);
             if (secs < 60)        return window.t('forms.list.relative_just_now');
             if (secs < 3600)      return window.t('forms.list.relative_min_ago', { n: Math.floor(secs / 60) });
             if (secs < 86400)     return window.t('forms.list.relative_hr_ago', { n: Math.floor(secs / 3600) });
             if (secs < 604800)    return window.t('forms.list.relative_days_ago', { n: Math.floor(secs / 86400) });
-            return d.toLocaleDateString();
+            return d.toLocaleDateString(undefined, tzOpts());
+        }
+
+        // Full timestamp for the row's hover title — the UTC value (kind 1)
+        // shown in the analyst's zone.
+        function fullLocalDate(iso) {
+            if (!iso) return '';
+            const d = parseUTCDate(iso);
+            if (!d || isNaN(d.getTime())) return iso;
+            return d.toLocaleString(undefined, tzOpts());
         }
 
         function esc(text) {

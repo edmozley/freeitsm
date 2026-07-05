@@ -78,6 +78,8 @@ $helpNav  = $helpNav ?? [];
             .syshelp-cards { grid-template-columns: 1fr; }
         }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include __DIR__ . '/../includes/header.php'; ?>

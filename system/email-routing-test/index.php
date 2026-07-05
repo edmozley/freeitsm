@@ -11,7 +11,9 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'email-routing-test';
 $path_prefix = '../../';
@@ -132,6 +134,8 @@ $translationNamespaces = ['common', 'system'];
     </div>
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js"></script>
     <script>
     const API = '<?php echo $path_prefix; ?>api/';

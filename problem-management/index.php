@@ -5,6 +5,8 @@
 session_start();
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/theme.php';
+require_once __DIR__ . '/../includes/timezone.php';
+Tz::init();
 
 $current_page = 'problems';
 $path_prefix = '../';
@@ -112,6 +114,8 @@ $path_prefix = '../';
         .search-btn { width: 100%; box-sizing: border-box; padding: 8px 12px; background: var(--surface, #fff); color: var(--text-muted, #374151); border: 1px solid var(--border, #cfd8dc); border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer; transition: border-color .15s, color .15s; }
         .search-btn:hover { border-color: var(--pm-accent, #dc2626); color: var(--pm-accent, #dc2626); }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=1"></script>
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
     <?php include __DIR__ . '/includes/header.php'; ?>
@@ -237,6 +241,6 @@ $path_prefix = '../';
 
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=15"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/problem-management.js?v=16"></script>
 </body>
 </html>

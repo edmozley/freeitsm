@@ -6,7 +6,9 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'settings';
 $path_prefix = '../../';
@@ -21,6 +23,8 @@ $translationNamespaces = ['common', 'asset-management'];
     <link rel="stylesheet" href="../../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js"></script>
     <script src="../../assets/js/chart.min.js"></script>
     <style>
@@ -1060,7 +1064,7 @@ $translationNamespaces = ['common', 'asset-management'];
                         return;
                     }
                     const when = job.finished_datetime || job.started_datetime;
-                    const date = when ? new Date(when + 'Z').toLocaleString('en-GB') : '';
+                    const date = when ? parseUTCDate(when).toLocaleString('en-GB', tzOpts()) : '';
                     last.textContent = window.t('asset-management.settings.last_sync', { date: date, status: job.status });
                 } else {
                     last.textContent = '';
@@ -1187,8 +1191,8 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <tr>
                                     <td>#${j.id}</td>
                                     <td><span class="intune-job-status ${escapeHtml(j.status)}">${escapeHtml(j.status)}</span></td>
-                                    <td>${j.started_datetime ? new Date(j.started_datetime + 'Z').toLocaleString('en-GB') : '-'}</td>
-                                    <td>${j.finished_datetime ? new Date(j.finished_datetime + 'Z').toLocaleString('en-GB') : '-'}</td>
+                                    <td>${j.started_datetime ? parseUTCDate(j.started_datetime).toLocaleString('en-GB', tzOpts()) : '-'}</td>
+                                    <td>${j.finished_datetime ? parseUTCDate(j.finished_datetime).toLocaleString('en-GB', tzOpts()) : '-'}</td>
                                     <td>${j.processed}/${j.total}${j.failed > 0 ? ` ${window.t('asset-management.settings.failed_count', { failed: j.failed })}` : ''}</td>
                                 </tr>
                             `).join('')}

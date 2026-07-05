@@ -311,7 +311,7 @@ const PM = (() => {
         }
         processList.innerHTML = filtered.map(p => {
             const active = p.id == currentProcessId ? ' active' : '';
-            const date = p.updated_datetime ? new Date(p.updated_datetime).toLocaleDateString() : '';
+            const date = p.updated_datetime ? parseUTCDate(p.updated_datetime).toLocaleDateString(undefined, tzOpts({})) : '';
             return `<div class="pm-process-item${active}" data-id="${p.id}" onclick="PM.openProcess(${p.id})">
                 <span class="pm-process-name">${esc(p.title)}</span>
                 <span class="pm-process-date">${date}</span>

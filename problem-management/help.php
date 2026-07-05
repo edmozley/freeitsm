@@ -6,7 +6,9 @@
 session_start();
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/theme.php';
+require_once __DIR__ . '/../includes/timezone.php';
 if (!isset($_SESSION['analyst_id'])) { header('Location: ' . BASE_URL . 'login.php'); exit; }
+Tz::init();
 $current_page = 'help';
 $path_prefix = '../';
 ?>
@@ -55,6 +57,8 @@ $path_prefix = '../';
         .tk-help-warn { font-size: 13px; color: var(--warning-text, #8a6d3b); background: var(--warning-bg, #fff8e1); padding: 10px 14px; border-radius: 8px; border-left: 3px solid var(--warning-border, #ffb300); margin: 4px 0 0; line-height: 1.6; }
         @media (max-width: 900px) { .tk-help-sidebar { display: none; } .tk-help-content { padding: 10px 24px 40px; } .tk-help-features-grid { grid-template-columns: 1fr; } }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include __DIR__ . '/includes/header.php'; ?>

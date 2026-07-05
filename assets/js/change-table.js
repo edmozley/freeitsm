@@ -21,7 +21,30 @@
     let priorities = [], impacts = [], types = [], analysts = [];
     let lookupsLoaded = false;
 
-    function fmt(raw) { return raw ? String(raw).replace('T', ' ').slice(0, 16) : ''; }
+    // Server-stamped UTC timestamp (created / modified) → analyst display zone,
+    // as 'YYYY-MM-DD HH:MM' (parseUTCDate / tzOpts from assets/js/tz.js, loaded
+    // before this file). Only the display text is zoned; the column's `value`
+    // (used for sorting) stays the raw UTC string so ordering is unaffected.
+    function fmt(raw) {
+        if (!raw) return '';
+        const d = parseUTCDate(raw);
+        if (!d || isNaN(d.getTime())) return String(raw).replace('T', ' ').slice(0, 16);
+        const datePart = d.toLocaleDateString('en-CA', tzOpts()); // YYYY-MM-DD
+        const timePart = d.toLocaleTimeString('en-GB', tzOpts({ hour: '2-digit', minute: '2-digit', hour12: false })); // HH:MM
+        return datePart + ' ' + timePart;
+    }
+
+    // NAIVE wall-clock scheduling datetime (planned work start / end) — shown
+    // exactly as typed for every analyst, NO zone conversion (parseNaiveDate
+    // from tz.js). Same 'YYYY-MM-DD HH:MM' shape as fmt().
+    function fmtNaive(raw) {
+        if (!raw) return '';
+        const d = parseNaiveDate(raw);
+        if (!d || isNaN(d.getTime())) return String(raw).replace('T', ' ').slice(0, 16);
+        const datePart = d.toLocaleDateString('en-CA'); // YYYY-MM-DD, as typed
+        const timePart = d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }); // HH:MM
+        return datePart + ' ' + timePart;
+    }
 
     const T = (k) => (window.t ? window.t('change-management.table.' + k) : k);
 
@@ -53,9 +76,9 @@
         { key: 'category', label: T('col_category'), type: 'string', defaultVisible: false, defaultOrder: 9,
           display: c => c.category || '' },
         { key: 'work_start_datetime', label: T('col_work_start'), type: 'date', defaultVisible: true, defaultOrder: 10,
-          value: c => c.work_start_datetime || '', display: c => fmt(c.work_start_datetime) },
+          value: c => c.work_start_datetime || '', display: c => fmtNaive(c.work_start_datetime) },
         { key: 'work_end_datetime', label: T('col_work_end'), type: 'date', defaultVisible: false, defaultOrder: 11,
-          value: c => c.work_end_datetime || '', display: c => fmt(c.work_end_datetime) },
+          value: c => c.work_end_datetime || '', display: c => fmtNaive(c.work_end_datetime) },
         { key: 'created_datetime', label: T('col_created'), type: 'date', defaultVisible: false, defaultOrder: 12,
           value: c => c.created_datetime || '', display: c => fmt(c.created_datetime) },
         { key: 'modified_datetime', label: T('col_modified'), type: 'date', defaultVisible: false, defaultOrder: 13,

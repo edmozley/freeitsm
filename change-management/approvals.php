@@ -6,7 +6,9 @@ session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -190,6 +192,8 @@ $translationNamespaces = ['common', 'change-management'];
         }
     </style>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
 </head>
 <body>
@@ -306,7 +310,7 @@ $translationNamespaces = ['common', 'change-management'];
                         <div class="approval-card-meta">
                             ${c.requester_name ? `<span><span class="meta-label">${window.t('change-management.approvals.requester')}</span> ${escapeHtml(c.requester_name)}</span>` : ''}
                             ${c.approver_name ? `<span><span class="meta-label">${window.t('change-management.approvals.approver')}</span> ${escapeHtml(c.approver_name)}</span>` : ''}
-                            ${c.work_start_datetime ? `<span><span class="meta-label">${window.t('change-management.approvals.work_start')}</span> ${formatDate(c.work_start_datetime)}</span>` : ''}
+                            ${c.work_start_datetime ? `<span><span class="meta-label">${window.t('change-management.approvals.work_start')}</span> ${formatNaiveDate(c.work_start_datetime)}</span>` : ''}
                             ${date ? `<span><span class="meta-label">${window.t('change-management.approvals.submitted')}</span> ${date}</span>` : ''}
                         </div>
                     </div>
@@ -318,12 +322,35 @@ $translationNamespaces = ['common', 'change-management'];
             window.location.href = '../change-management/?open=' + id;
         }
 
+        // "Submitted" = server-stamped UTC created timestamp → analyst zone.
+        // Read the wall-clock components as seen in that zone (parseUTCDate /
+        // tzOpts from tz.js) so the manual AM/PM format stays identical.
         function formatDate(dateStr) {
             if (!dateStr) return '';
-            const d = new Date(dateStr.replace(' ', 'T'));
+            const d = parseUTCDate(dateStr);
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const parts = new Intl.DateTimeFormat('en-US', tzOpts({
+                month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false
+            })).formatToParts(d);
+            const g = {};
+            parts.forEach(p => { if (p.type !== 'literal') g[p.type] = parseInt(p.value, 10); });
+            let hours = (g.hour % 24);
+            const mins = String(g.minute).padStart(2, '0');
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            return `${months[g.month - 1]} ${g.day}, ${hours}:${mins} ${ampm}`;
+        }
+
+        // "Work start" = NAIVE wall-clock scheduling value → shown exactly as
+        // typed, no zone conversion. parseNaiveDate (tz.js) yields a Date whose
+        // local components equal the typed values, so getHours()/etc read back
+        // as typed and the same manual AM/PM format is reused.
+        function formatNaiveDate(dateStr) {
+            if (!dateStr) return '';
+            const d = parseNaiveDate(dateStr);
             const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
             let hours = d.getHours();
-            const mins = d.getMinutes().toString().padStart(2, '0');
+            const mins = String(d.getMinutes()).padStart(2, '0');
             const ampm = hours >= 12 ? 'PM' : 'AM';
             hours = hours % 12 || 12;
             return `${months[d.getMonth()]} ${d.getDate()}, ${hours}:${mins} ${ampm}`;

@@ -11,7 +11,9 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'review';
 $path_prefix = '../../';
@@ -27,6 +29,8 @@ $translationNamespaces = ['common', 'knowledge'];
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <link rel="stylesheet" href="../../assets/css/knowledge.css?v=2">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js"></script>
     <style>
         /* Layout: the container takes the remaining viewport height and is
@@ -420,9 +424,12 @@ $translationNamespaces = ['common', 'knowledge'];
                     ? `<span class="owner-cell">${escapeHtml(article.owner_name)}</span>`
                     : `<span class="owner-cell unassigned">${escapeHtml(window.t('knowledge.review.unassigned'))}</span>`;
 
-                const modifiedDate = new Date(article.modified_datetime).toLocaleDateString('en-GB', {
+                // Server-stamped UTC — convert to the analyst's zone. The review
+                // due date (next_review_date_formatted) is a bare date, so it's
+                // rendered server-side and left unconverted.
+                const modifiedDate = parseUTCDate(article.modified_datetime).toLocaleDateString('en-GB', tzOpts({
                     day: 'numeric', month: 'short', year: 'numeric'
-                });
+                }));
 
                 html += `
                     <tr>

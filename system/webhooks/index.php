@@ -21,7 +21,9 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 require_once '../../includes/functions.php';
 
 $current_page = 'webhooks';
@@ -278,6 +280,8 @@ function whAgo($s) {
         .rate .pct { font-size: 11px; color: #607d8b; min-width: 30px; text-align: right; font-variant-numeric: tabular-nums; }
         .ov-empty { padding: 26px; text-align: center; color: #b0bec5; font-size: 12.5px; }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>
@@ -507,7 +511,14 @@ function whAgo($s) {
     let cache = [];
     const esc = s => { const d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; };
     const host = u => { try { return new URL(u).host; } catch (e) { return u; } };
-    const fmt = s => s ? s.replace('T', ' ').replace(/\.\d+Z?$/, '') + ' UTC' : '';
+    // Server-stamped UTC delivery timestamps (kind-1): render in the analyst's zone.
+    const fmt = s => {
+        const d = parseUTCDate(s);
+        return d ? d.toLocaleString('en-GB', tzOpts({
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hour12: false
+        })) : '';
+    };
 
     async function load() {
         const res = await fetch(API + '/deliveries.php' + (filter ? '?status=' + filter : ''), { credentials: 'same-origin' });

@@ -6,7 +6,9 @@ session_start();
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/i18n.php';
 require_once __DIR__ . '/../includes/theme.php';
+require_once __DIR__ . '/../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'changes';
 $path_prefix = '../';
@@ -22,6 +24,8 @@ $translationNamespaces = ['common', 'change-management'];
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=6">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=1"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/tinymce/tinymce.min.js"></script>
 </head>
@@ -461,6 +465,6 @@ $translationNamespaces = ['common', 'change-management'];
         window.openCreateOnLoad = true;
         <?php endif; ?>
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=12"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=13"></script>
 </body>
 </html>

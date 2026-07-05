@@ -6,7 +6,9 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'dashboard';
 $path_prefix = '../';
@@ -20,6 +22,8 @@ $translationNamespaces = ['common', 'watchtower'];
     <title>Service Desk - <?php echo htmlspecialchars(t('watchtower.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
     <style>
         /* ── Watchtower Layout ──────────────────────────────────────────────── */
@@ -446,9 +450,11 @@ $translationNamespaces = ['common', 'watchtower'];
         if (card) { card.querySelector('.wt-card-body').innerHTML = html; }
     }
 
+    // Calendar event start times are NAIVE wall-clock values (stored without a
+    // zone, by design). Show them exactly as typed — parse literally, no tzOpts.
     function formatTime(dt) {
         if (!dt) return '';
-        const d = new Date(dt);
+        const d = window.parseNaiveDate(dt);
         return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }
 
@@ -785,7 +791,7 @@ $translationNamespaces = ['common', 'watchtower'];
                 // Update timestamp
                 const now = new Date();
                 document.getElementById('wtLastRefresh').textContent =
-                    window.t('watchtower.dashboard.updated', { time: now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+                    window.t('watchtower.dashboard.updated', { time: now.toLocaleTimeString([], window.tzOpts({ hour: '2-digit', minute: '2-digit' })) });
             })
             .catch(err => {
                 console.error('Watchtower fetch error:', err);

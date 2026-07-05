@@ -6,7 +6,9 @@ session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'assets';
 $path_prefix = '../';
@@ -21,6 +23,8 @@ $translationNamespaces = ['common', 'asset-management'];
     <link rel="stylesheet" href="../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
     <style>
         .assets-container {
@@ -1785,15 +1789,17 @@ $translationNamespaces = ['common', 'asset-management'];
             return div.innerHTML;
         }
 
-        // Format date for display
+        // Format a stored UTC datetime as a date, in the analyst's display zone.
+        // Used for true audit/assignment timestamps (e.g. assigned_datetime,
+        // Intune enrolled_datetime) — NOT for date-only fields.
         function formatDate(dateString) {
             if (!dateString) return '-';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-GB', {
+            const date = parseUTCDate(dateString);
+            return date.toLocaleDateString('en-GB', tzOpts({
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric'
-            });
+            }));
         }
 
         // Close modal on outside click
@@ -1875,12 +1881,12 @@ $translationNamespaces = ['common', 'asset-management'];
 
         function formatDateTime(dateString) {
             if (!dateString) return '-';
-            const date = new Date(dateString + 'Z');
-            return date.toLocaleDateString('en-GB', {
+            const date = parseUTCDate(dateString);
+            return date.toLocaleDateString('en-GB', tzOpts({
                 day: '2-digit', month: 'short', year: 'numeric'
-            }) + ' ' + date.toLocaleTimeString('en-GB', {
+            })) + ' ' + date.toLocaleTimeString('en-GB', tzOpts({
                 hour: '2-digit', minute: '2-digit'
-            });
+            }));
         }
 
         function closeHistoryModal() {

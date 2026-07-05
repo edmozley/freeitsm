@@ -6,7 +6,9 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'logs';
 $path_prefix = '../../';
@@ -21,6 +23,8 @@ $translationNamespaces = ['common', 'reporting'];
     <link rel="stylesheet" href="../../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js"></script>
     <style>
         /* Module accent (rust-orange) — tabs, spinner, refresh button, focus. */
@@ -573,15 +577,15 @@ $translationNamespaces = ['common', 'reporting'];
 
         function formatDateTime(dateString) {
             if (!dateString) return '-';
-            const date = new Date(dateString);
-            return date.toLocaleString('en-GB', {
+            const date = parseUTCDate(dateString);
+            return date.toLocaleString('en-GB', tzOpts({
                 day: '2-digit',
                 month: 'short',
                 year: 'numeric',
                 hour: '2-digit',
                 minute: '2-digit',
                 second: '2-digit'
-            });
+            }));
         }
 
         function formatFileSize(bytes) {

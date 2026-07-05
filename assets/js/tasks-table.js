@@ -19,10 +19,12 @@
     let currentFilterAnalystId = null;
     let table = null;
 
+    // created_datetime is a stored UTC timestamp; render its date in the
+    // analyst's chosen display zone (parseUTCDate / tzOpts from assets/js/tz.js).
     function formatDate(iso) {
         if (!iso) return '';
-        const d = new Date(iso);
-        return isNaN(d.getTime()) ? iso : d.toLocaleDateString();
+        const d = parseUTCDate(iso);
+        return (!d || isNaN(d.getTime())) ? iso : d.toLocaleDateString(undefined, tzOpts());
     }
 
     const COLUMNS = [

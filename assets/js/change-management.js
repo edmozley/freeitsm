@@ -516,10 +516,10 @@ function renderChangeDetail() {
     if (v('assigned_to')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.assigned_to')}</span><span class="detail-meta-value">${c.assigned_to_name || window.t('change-management.detail.not_set')}</span></div>`;
     if (v('approver')) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.approver')}</span><span class="detail-meta-value">${c.approver_name || window.t('change-management.detail.not_set')}</span></div>`;
     if (v('approver') && c.approval_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.approved')}</span><span class="detail-meta-value">${formatDateTime(c.approval_datetime)}</span></div>`;
-    if (v('work_start') && c.work_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_start')}</span><span class="detail-meta-value">${formatDateTime(c.work_start_datetime)}</span></div>`;
-    if (v('work_end') && c.work_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_end')}</span><span class="detail-meta-value">${formatDateTime(c.work_end_datetime)}</span></div>`;
-    if (v('outage_start') && c.outage_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_start')}</span><span class="detail-meta-value">${formatDateTime(c.outage_start_datetime)}</span></div>`;
-    if (v('outage_end') && c.outage_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_end')}</span><span class="detail-meta-value">${formatDateTime(c.outage_end_datetime)}</span></div>`;
+    if (v('work_start') && c.work_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_start')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.work_start_datetime)}</span></div>`;
+    if (v('work_end') && c.work_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.work_end')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.work_end_datetime)}</span></div>`;
+    if (v('outage_start') && c.outage_start_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_start')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_start_datetime)}</span></div>`;
+    if (v('outage_end') && c.outage_end_datetime) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.outage_end')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.outage_end_datetime)}</span></div>`;
     if (v('risk') && c.risk_level) metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.risk_level')}</span><span class="detail-meta-value"><span class="risk-badge risk-${c.risk_level.toLowerCase().replace(/\s+/g, '-')}">${c.risk_level} (${c.risk_score})</span></span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.created')}</span><span class="detail-meta-value">${c.created_by_name ? window.t('change-management.detail.created_by', { datetime: formatDateTime(c.created_datetime), name: c.created_by_name }) : formatDateTime(c.created_datetime)}</span></div>`;
     metaItems += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.detail.last_modified')}</span><span class="detail-meta-value">${formatDateTime(c.modified_datetime)}</span></div>`;
@@ -739,10 +739,10 @@ function renderPirDetail(c) {
         html += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.pir.successful')}</span><span class="detail-meta-value ${successClass}">${successText}</span></div>`;
     }
     if (c.pir_actual_start) {
-        html += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.pir.actual_start')}</span><span class="detail-meta-value">${formatDateTime(c.pir_actual_start)}</span></div>`;
+        html += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.pir.actual_start')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.pir_actual_start)}</span></div>`;
     }
     if (c.pir_actual_end) {
-        html += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.pir.actual_end')}</span><span class="detail-meta-value">${formatDateTime(c.pir_actual_end)}</span></div>`;
+        html += `<div class="detail-meta-item"><span class="detail-meta-label">${window.t('change-management.pir.actual_end')}</span><span class="detail-meta-value">${formatNaiveDateTime(c.pir_actual_end)}</span></div>`;
     }
     html += '</div>';
 
@@ -1734,15 +1734,29 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+// NAIVE wall-clock scheduling date (only caller is work_start on the list card)
+// — shown exactly as typed, no zone conversion (parseNaiveDate from tz.js).
 function formatDate(dateStr) {
     if (!dateStr) return '';
-    const d = new Date(dateStr);
+    const d = parseNaiveDate(dateStr);
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+// Server-stamped UTC timestamp (created / modified / approved / CAB vote /
+// history "when") → analyst display zone (parseUTCDate / tzOpts from tz.js).
 function formatDateTime(dateStr) {
     if (!dateStr) return '';
-    const d = new Date(dateStr);
+    const d = parseUTCDate(dateStr);
+    return d.toLocaleDateString('en-GB', tzOpts({ day: '2-digit', month: 'short', year: 'numeric' })) +
+           ' ' + d.toLocaleTimeString('en-GB', tzOpts({ hour: '2-digit', minute: '2-digit' }));
+}
+
+// NAIVE wall-clock scheduling datetime (work / outage / PIR windows) — shown
+// exactly as typed for every analyst, no zone conversion. Same output shape as
+// formatDateTime so the two are drop-in interchangeable at each call site.
+function formatNaiveDateTime(dateStr) {
+    if (!dateStr) return '';
+    const d = parseNaiveDate(dateStr);
     return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
            ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
 }
@@ -1970,15 +1984,15 @@ function buildPdfContent() {
                 </tr>
                 ${c.work_start_datetime || c.work_end_datetime ? `<tr>
                     <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.work_start')}</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.work_start_datetime ? formatDateTime(c.work_start_datetime) : window.t('change-management.pdf.not_set')}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.work_start_datetime ? formatNaiveDateTime(c.work_start_datetime) : window.t('change-management.pdf.not_set')}</td>
                     <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.work_end')}</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.work_end_datetime ? formatDateTime(c.work_end_datetime) : window.t('change-management.pdf.not_set')}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.work_end_datetime ? formatNaiveDateTime(c.work_end_datetime) : window.t('change-management.pdf.not_set')}</td>
                 </tr>` : ''}
                 ${c.outage_start_datetime || c.outage_end_datetime ? `<tr>
                     <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.outage_start')}</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_start_datetime ? formatDateTime(c.outage_start_datetime) : window.t('change-management.pdf.not_set')}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_start_datetime ? formatNaiveDateTime(c.outage_start_datetime) : window.t('change-management.pdf.not_set')}</td>
                     <td style="padding: 8px; border: 1px solid #ddd; background: #f9f9f9;"><strong>${window.t('change-management.pdf.outage_end')}</strong></td>
-                    <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_end_datetime ? formatDateTime(c.outage_end_datetime) : window.t('change-management.pdf.not_set')}</td>
+                    <td style="padding: 8px; border: 1px solid #ddd;">${c.outage_end_datetime ? formatNaiveDateTime(c.outage_end_datetime) : window.t('change-management.pdf.not_set')}</td>
                 </tr>` : ''}
             </table>
     `;

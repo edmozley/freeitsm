@@ -12,7 +12,9 @@ if (session_status() === PHP_SESSION_NONE) session_start();
 require_once __DIR__ . '/../../../config.php';
 require_once __DIR__ . '/../../../includes/i18n.php';
 require_once __DIR__ . '/tools.php';
+require_once __DIR__ . '/../../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'debug-tools';
 $path_prefix  = '../../../';
@@ -146,6 +148,8 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
     </div>
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo $path_prefix; ?>assets/js/tz.js?v=1"></script>
     <script src="<?php echo $path_prefix; ?>assets/js/i18n.js"></script>
     <script>
     (function () {

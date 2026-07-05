@@ -13,7 +13,9 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../../login.php');
@@ -96,6 +98,8 @@ $emojis = ['', '😡', '🙁', '😐', '🙂', '😀'];
 <link rel="stylesheet" href="../../assets/css/theme.css?v=13">
 <link rel="stylesheet" href="../../assets/css/inbox.css">
 <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+<?php echo Tz::scriptTag(); ?>
+<script src="../../assets/js/tz.js?v=1"></script>
 <script src="../../assets/js/i18n.js"></script>
 <style>
 /* Theming: colours use var(--token, #original-light) so light mode is unchanged. */
@@ -236,7 +240,7 @@ table.analyst-table td.score { font-weight: 600; }
                     </div>
                     <div class="recent-meta">
                         <?= htmlspecialchars($r['analyst_name'] ?? t('tickets.csat.unassigned')) ?><br>
-                        <?= htmlspecialchars(date('d M Y H:i', strtotime($r['responded_datetime']))) ?>
+                        <?= htmlspecialchars(fmt_local($r['responded_datetime'], 'd M Y H:i')) ?>
                     </div>
                 </div>
             <?php endforeach; ?>

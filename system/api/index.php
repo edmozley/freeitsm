@@ -7,7 +7,9 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
@@ -107,6 +109,8 @@ $apiBaseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_UR
         .newkey-box code { display: block; background: #fff; border: 1px solid #ddd; border-radius: 4px; padding: 10px 12px; font-size: 13px; color: #333; word-break: break-all; margin: 8px 0; }
         .newkey-warning { font-size: 12px; color: #c62828; font-weight: 600; }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>
@@ -289,7 +293,12 @@ $apiBaseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_UR
                     : k.company_ids.map(id => (companies.find(c => c.id === id) || {name: '#' + id}).name).join(', ');
                 companyCell = `<td>${esc(names)}</td>`;
             }
-            const lastUsed = k.last_used_at ? esc(k.last_used_at.slice(0, 16)) + ' UTC' : 'Never';
+            // last_used_at is a server-stamped UTC timestamp (kind-1) — show in the analyst's zone.
+        const lu = parseUTCDate(k.last_used_at);
+        const lastUsed = lu ? esc(lu.toLocaleString('en-GB', tzOpts({
+            year: 'numeric', month: '2-digit', day: '2-digit',
+            hour: '2-digit', minute: '2-digit', hour12: false
+        }))) : 'Never';
             return `<tr>
                 <td><strong>${esc(k.name)}</strong></td>
                 <td class="key-prefix">${esc(k.key_prefix)}…</td>

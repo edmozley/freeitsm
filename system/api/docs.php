@@ -9,7 +9,9 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 require_once '../../includes/functions.php';
 
@@ -150,6 +152,8 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
         .send-hint { font-size: 11px; color: #90a4ae; }
         .resp-placeholder { padding: 14px; font-size: 12px; color: #78909c; line-height: 1.6; }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>

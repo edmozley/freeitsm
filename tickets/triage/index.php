@@ -7,7 +7,9 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'triage';
 $path_prefix = '../../';
@@ -146,6 +148,8 @@ $translationNamespaces = ['common', 'tickets'];
     </div>
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js"></script>
     <script>
     const API = '<?php echo $path_prefix; ?>api/';
@@ -154,7 +158,7 @@ $translationNamespaces = ['common', 'tickets'];
     let current = null; // the ticket being resolved
 
     function esc(s) { return (s ?? '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
-    function fmtDate(s) { if (!s) return ''; const d = new Date(s.replace(' ', 'T') + 'Z'); return isNaN(d) ? esc(s) : d.toLocaleString(); }
+    function fmtDate(s) { if (!s) return ''; const d = parseUTCDate(s); return (!d || isNaN(d)) ? esc(s) : d.toLocaleString(undefined, tzOpts()); }
 
     async function loadCompanies() {
         try {

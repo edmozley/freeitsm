@@ -1156,14 +1156,16 @@ function blobToBase64(blob) {
     setTimeout(() => clearInterval(checkAndLoad), 5000);
 })();
 
+// Server-stamped UTC timestamps (created/modified/archived). Parse as UTC and
+// render in the analyst's chosen zone so the calendar day is correct locally.
 function formatDate(dateStr) {
     if (!dateStr) return '';
-    const date = new Date(dateStr);
-    return date.toLocaleDateString('en-GB', {
+    const date = parseUTCDate(dateStr);
+    return date.toLocaleDateString('en-GB', tzOpts({
         day: 'numeric',
         month: 'short',
         year: 'numeric'
-    });
+    }));
 }
 
 // ===== AI Chat Functions =====

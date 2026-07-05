@@ -10,7 +10,9 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'orphaned-tickets';
 $path_prefix = '../../';
@@ -56,6 +58,8 @@ if (!isset($_SESSION['analyst_id'])) {
         .orph-error { color: #c0392b; }
         .orph-note { font-size: 12px; color: #999; margin-top: 10px; }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo $path_prefix; ?>assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>

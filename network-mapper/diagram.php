@@ -11,7 +11,9 @@ session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -1625,11 +1627,13 @@ $translationNamespaces = ['common', 'network-mapper'];
          Loaded eagerly because the editor is a heavy page already and lazy
          loading adds complexity for marginal gain. -->
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
     <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
     <script src="../assets/js/network-mapper-icons.js"></script>
-    <script src="../assets/js/network-mapper.js"></script>
+    <script src="../assets/js/network-mapper.js?v=2"></script>
     <script>
         NM.init(<?php echo $diagramId; ?>);
 

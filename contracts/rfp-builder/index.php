@@ -6,7 +6,9 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'rfp-builder';
 $path_prefix = '../../';
@@ -19,6 +21,8 @@ $translationNamespaces = ['common', 'contracts'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('contracts.rfp.list.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
@@ -426,9 +430,9 @@ $translationNamespaces = ['common', 'contracts'];
 
         function formatDate(s) {
             if (!s) return '-';
-            const d = new Date(s.replace(' ', 'T'));
+            const d = parseUTCDate(s);
             if (isNaN(d)) return s;
-            return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+            return d.toLocaleDateString('en-GB', tzOpts({ day: '2-digit', month: 'short', year: 'numeric' }));
         }
 
         function escapeHtml(str) {

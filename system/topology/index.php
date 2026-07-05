@@ -12,7 +12,9 @@ require_once '../../config.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'topology';
 $path_prefix = '../../';
@@ -73,6 +75,8 @@ if (!isset($_SESSION['analyst_id'])) {
         .topo-loading, .topo-error { color: #888; font-size: 13px; padding: 20px; }
         .topo-error { color: #c0392b; }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo $path_prefix; ?>assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include '../includes/header.php'; ?>

@@ -10,7 +10,9 @@ session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
@@ -273,6 +275,8 @@ $translationNamespaces = ['common', 'network-mapper'];
     </div>
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
     <script>
         const API = '../api/network-mapper/';
@@ -309,7 +313,7 @@ $translationNamespaces = ['common', 'network-mapper'];
 
         function diagramCardHtml(d) {
             const desc = d.description ? escapeHtml(d.description) : '<span class="empty">' + escapeHtml(t('network-mapper.index.no_description')) + '</span>';
-            const updated = d.updated_datetime ? new Date(d.updated_datetime.replace(' ', 'T') + 'Z').toLocaleString() : '';
+            const updated = d.updated_datetime ? parseUTCDate(d.updated_datetime).toLocaleString(undefined, tzOpts({})) : '';
             const author = d.author_name ? d.author_name : t('network-mapper.index.author_unknown');
             const versionLabel = d.version_label ? escapeHtml(d.version_label) : escapeHtml(t('network-mapper.index.version_unknown'));
             const versionCount = d.version_count > 1 ? escapeHtml(t('network-mapper.index.versions_suffix', { count: d.version_count })) : '';

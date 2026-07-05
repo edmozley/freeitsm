@@ -10,7 +10,9 @@ session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'workflow';
 $path_prefix = '../';
@@ -26,6 +28,8 @@ $translationNamespaces = ['common', 'workflow'];
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <link rel="stylesheet" href="../assets/css/workflow.css?v=4">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
     <style>
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
@@ -72,7 +76,8 @@ $translationNamespaces = ['common', 'workflow'];
 
         function fmtDate(s) {
             if (!s) return '<span style="color:#999;">' + esc(window.t('workflow.list.never_run')) + '</span>';
-            try { return esc(new Date(s.replace(' ', 'T') + 'Z').toLocaleString()); }
+            // last_run_datetime is a server-stamped UTC instant → show in the analyst's zone.
+            try { return esc(window.parseUTCDate(s).toLocaleString(undefined, window.tzOpts({}))); }
             catch (e) { return esc(s); }
         }
 

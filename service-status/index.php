@@ -6,7 +6,9 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'dashboard';
 $path_prefix = '../';
@@ -19,6 +21,8 @@ $translationNamespaces = ['common', 'service-status'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('service-status.title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
@@ -422,24 +426,16 @@ $translationNamespaces = ['common', 'service-status'];
             }).join('');
         }
 
-        // Datetimes come from the API as naive UTC strings ("YYYY-MM-DD HH:MM:SS",
-        // stamped with UTC_TIMESTAMP()). Mark them UTC so the browser renders them
-        // in the viewer's local time — otherwise JS parses "HH:MM" as local and
-        // shows the time an hour off wherever the offset isn't zero.
-        function parseUtc(s) {
-            if (!s) return null;
-            s = String(s).trim();
-            // Already carries a timezone (Z or ±hh:mm)? Parse as-is.
-            if (/([zZ]|[+-]\d{2}:?\d{2})$/.test(s)) return new Date(s);
-            return new Date(s.replace(' ', 'T') + 'Z');
-        }
-
+        // Incident timestamps come from the API as UTC strings ("YYYY-MM-DD HH:MM:SS",
+        // stamped with UTC_TIMESTAMP()). Render them in the analyst's chosen display
+        // zone via the shared tz.js helpers (parseUTCDate marks the value UTC; tzOpts
+        // injects window.USER_TIMEZONE, falling back to the browser zone when unset).
         function formatDate(dateStr) {
             try {
-                const d = parseUtc(dateStr);
+                const d = parseUTCDate(dateStr);
                 if (!d || isNaN(d.getTime())) return dateStr;
-                return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) +
-                       ' ' + d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                return d.toLocaleDateString('en-GB', tzOpts({ day: '2-digit', month: 'short', year: 'numeric' })) +
+                       ' ' + d.toLocaleTimeString('en-GB', tzOpts({ hour: '2-digit', minute: '2-digit' }));
             } catch (e) {
                 return dateStr;
             }

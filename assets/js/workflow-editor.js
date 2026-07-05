@@ -1151,7 +1151,8 @@ const WFE = (() => {
         };
         const fmtDate = s => {
             if (!s) return '';
-            try { return new Date(s.replace(' ', 'T') + 'Z').toLocaleString(); }
+            // started_datetime is a server-stamped UTC instant → show in the analyst's zone.
+            try { return window.parseUTCDate(s).toLocaleString(undefined, window.tzOpts({})); }
             catch (e) { return s; }
         };
         host.innerHTML = execs.map(e => {

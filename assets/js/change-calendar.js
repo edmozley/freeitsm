@@ -407,10 +407,16 @@ function formatDateForCompare(date) {
     return `${yyyy}-${mm}-${dd}`;
 }
 
-// Format event time for display
+// Format event time for display.
+// Change work / outage windows are NAIVE wall-clock scheduling values (typed
+// into datetime-local inputs, stored without a zone). They are shown EXACTLY
+// as typed for every analyst — never zone-converted — so they stay consistent
+// with the grid placement (getEventHour / getEventsForDate work off the same
+// raw string). parseNaiveDate (tz.js) builds a Date from the literal
+// components, so getHours()/getMinutes() read back the typed values.
 function formatEventTime(evt) {
-    const start = new Date(evt.start_datetime.replace(' ', 'T'));
-    const end = evt.end_datetime ? new Date(evt.end_datetime.replace(' ', 'T')) : null;
+    const start = parseNaiveDate(evt.start_datetime);
+    const end = evt.end_datetime ? parseNaiveDate(evt.end_datetime) : null;
 
     const formatTime = (d) => {
         let hours = d.getHours();
@@ -427,11 +433,12 @@ function formatEventTime(evt) {
     return formatTime(start);
 }
 
-// Format a datetime range for display in popup
+// Format a datetime range for display in popup (work / outage windows).
+// Naive wall-clock, shown as typed — see formatEventTime.
 function formatDatetimeRange(startStr, endStr) {
     if (!startStr) return '';
-    const start = new Date(startStr.replace(' ', 'T'));
-    const end = endStr ? new Date(endStr.replace(' ', 'T')) : null;
+    const start = parseNaiveDate(startStr);
+    const end = endStr ? parseNaiveDate(endStr) : null;
 
     const formatDt = (d) => {
         const month = MONTHS[d.getMonth()].slice(0, 3);

@@ -11,7 +11,9 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'browse';
 $translationNamespaces = ['common', 'cmdb'];
@@ -24,6 +26,8 @@ $translationNamespaces = ['common', 'cmdb'];
     <title>FreeITSM - <?php echo htmlspecialchars(t('cmdb.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js"></script>
     <style>
         body { background: #f5f5f5; }
@@ -754,6 +758,6 @@ $translationNamespaces = ['common', 'cmdb'];
         window.OBJECT_ID = <?php echo isset($_GET['id']) ? (int)$_GET['id'] : 0; ?>;
     </script>
     <script src="options-editor.js?v=1"></script>
-    <script src="object.js?v=5"></script>
+    <script src="object.js?v=6"></script>
 </body>
 </html>

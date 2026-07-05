@@ -8,7 +8,9 @@ require_once '../includes/i18n.php';
 require_once '../includes/functions.php';
 require_once '../includes/tenancy.php';
 require_once 'includes/areas.php';
+require_once '../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 // Some areas are gated on a runtime condition the registry can't evaluate.
 // 'multitenant' (e.g. the email routing test) stays invisible at N=1.
@@ -158,6 +160,8 @@ $translationNamespaces = ['common', 'system'];
         .system-card--help svg { color: #6366f1; }
         .system-card--help:hover { border-color: #6366f1; }
     </style>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="../assets/js/tz.js?v=1"></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

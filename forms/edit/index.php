@@ -20,7 +20,9 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
+require_once '../../includes/timezone.php';
 I18n::initFromSession();
+Tz::init();
 
 $current_page = 'forms';
 $path_prefix = '../../';
@@ -34,6 +36,8 @@ $translationNamespaces = ['common', 'forms'];
     <title><?php echo htmlspecialchars(t('forms.editor.page_title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js"></script>
+    <?php echo Tz::scriptTag(); ?>
+    <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=1"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=13">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
@@ -677,11 +681,13 @@ $translationNamespaces = ['common', 'forms'];
                 if (saveBtn) { saveBtn.disabled = false; saveBtn.title = ''; }
                 return;
             }
+            // created_date / modified_date are server-stamped UTC (kind 1):
+            // parse as UTC, show in the analyst's zone.
             const fmt = (s) => {
                 if (!s) return '—';
-                const d = new Date(s.replace(' ', 'T') + 'Z');
-                if (isNaN(d.getTime())) return s;
-                return d.toLocaleString();
+                const d = parseUTCDate(s);
+                if (!d || isNaN(d.getTime())) return s;
+                return d.toLocaleString(undefined, tzOpts());
             };
             const vLabel = 'v' + (form.version_number || 1);
             document.getElementById('formMetaVersion').textContent    = vLabel;
@@ -762,11 +768,13 @@ $translationNamespaces = ['common', 'forms'];
             const dd = document.getElementById('versionsDropdown');
             if (!dd) return;
             if (!versions.length) { dd.innerHTML = '<div class="vd-empty">' + esc(window.t('forms.versions.none')) + '</div>'; return; }
+            // modified_date is server-stamped UTC (kind 1): parse as UTC,
+            // show in the analyst's zone.
             const fmt = (s) => {
                 if (!s) return '';
-                const d = new Date(s.replace(' ', 'T') + 'Z');
-                if (isNaN(d.getTime())) return s;
-                return d.toLocaleString();
+                const d = parseUTCDate(s);
+                if (!d || isNaN(d.getTime())) return s;
+                return d.toLocaleString(undefined, tzOpts());
             };
             // Most recent first reads more naturally in a dropdown
             // (you'd expect "current" + recent forks at the top).

@@ -252,14 +252,14 @@ function pmRenderDetail(data) {
     const changes = `<table class="pm-table"><thead><tr><th>Reference</th><th>Title</th><th>Status</th><th></th></tr></thead>
         <tbody>${changeRows || '<tr class="pm-empty-row"><td colspan="4">No change linked yet.</td></tr>'}</tbody></table>`;
     const auditRows = (data.audit || []).map(a => {
-        const when = a.created_datetime ? new Date(a.created_datetime.replace(' ', 'T') + 'Z').toLocaleString() : '';
+        const when = a.created_datetime ? parseUTCDate(a.created_datetime).toLocaleString(undefined, tzOpts()) : '';
         const what = a.action_type === 'created' ? 'created the problem' : `changed ${pmEsc(a.field_name)}` + (a.new_value ? ` to “${pmEsc(a.new_value)}”` : '');
         return `<tr><td class="pm-when">${when}</td><td>${pmEsc(a.analyst_name || 'Someone')}</td><td>${what}</td></tr>`;
     }).join('');
     const audit = `<table class="pm-table"><thead><tr><th>When</th><th>Who</th><th>What</th></tr></thead>
         <tbody>${auditRows || '<tr class="pm-empty-row"><td colspan="3">No history.</td></tr>'}</tbody></table>`;
     const notes = (data.notes || []).map(n => {
-        const when = n.created_datetime ? new Date(n.created_datetime.replace(' ', 'T') + 'Z').toLocaleString() : '';
+        const when = n.created_datetime ? parseUTCDate(n.created_datetime).toLocaleString(undefined, tzOpts()) : '';
         return `<div class="pm-note">
             <div class="pm-note-head"><span class="pm-note-who">${pmEsc(n.analyst_name || 'Someone')}</span><span class="pm-note-when">${when}</span></div>
             <div class="pm-note-body">${pmEsc(n.note)}</div>
