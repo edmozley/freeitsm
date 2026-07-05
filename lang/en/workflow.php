@@ -150,7 +150,8 @@ return [
         'nav_variables'  => 'Variables',
         'nav_ai'         => 'AI co-author',
         'nav_testing'    => 'Saving and testing',
-        'nav_triggers'   => 'Wired triggers today',
+        'nav_triggers'   => 'The trigger catalogue',
+        'nav_webhooks_deepdive' => 'Webhooks guide',
         'nav_failures'   => 'Engine failures are isolated',
         'nav_ahead'      => 'What\'s still ahead',
 
@@ -183,7 +184,7 @@ return [
 
         // 4. Actions
         'actions_heading' => '4. Actions',
-        'actions_intro'   => 'Eight handlers ship today. Pick an action\'s type from the dropdown and a labelled form appears below with the right widget per arg (text input, textarea, number input, lookup dropdown):',
+        'actions_intro'   => 'Nine handlers ship today. Pick an action\'s type from the dropdown and a labelled form appears below with the right widget per arg (text input, textarea, number input, lookup dropdown):',
         'actions_th_type'     => 'Type',
         'actions_th_does'     => 'What it does',
         'actions_th_args'     => 'Key args',
@@ -206,6 +207,7 @@ return [
         'actions_row9_does' => 'POSTs a message to an external URL &mdash; push events into Slack, Teams, Discord, PagerDuty, Zapier/Make or any system that accepts an incoming webhook. Pick a chat preset, send the Full record (the whole object as JSON, same as the REST API), or template your own custom JSON body. Supports an optional HMAC signing secret, and a Send test button that shows the endpoint&rsquo;s real response before you save.',
         'actions_row9_args' => 'preset, url, message (presets), body (custom JSON), secret (optional)',
         'actions_note'    => 'Each action\'s required args are marked with a <code>*</code> in the form. Missing required args cause the action to fail at execution time &mdash; the engine logs the failure to the execution row and stops the rest of the chain.',
+        'actions_webhook_callout' => '<strong>The <code>send_webhook</code> action is a big topic of its own</strong> &mdash; chat presets, whole-object &ldquo;Full record&rdquo; payloads, HMAC signing, a Send-test button, background delivery with retries, and a health dashboard. It has a dedicated guide: <a href="help-webhooks.php"><strong>Webhooks guide &rarr;</strong></a>',
 
         // 5. Variables
         'variables_heading' => '5. Variables &mdash; <code>{{path.to.field}}</code>',
@@ -234,21 +236,12 @@ return [
         'testing_fire'    => '<strong>Test fire</strong> runs the workflow with a synthetic payload generated from its own conditions, so the action path actually executes. The result lands in <em>Recent runs</em> on the workflow detail panel with status (<em>success / failed / skipped</em>) and full step log.',
         'testing_real'    => 'To test against real data, just do the thing that triggers it &mdash; assign a ticket, change its priority, etc. The dispatch from the host module (Tickets) is live; the execution log shows every fire.',
 
-        // 8. Wired triggers
-        'triggers_heading' => '8. Wired triggers today',
-        'triggers_intro'   => 'The trigger catalogue lists seven events. Wiring from host modules is being rolled out incrementally:',
-        'triggers_th_trigger' => 'Trigger',
-        'triggers_th_wired'   => 'Wired?',
-        'triggers_th_notes'   => 'Notes',
-        'triggers_yes'        => 'Yes',
-        'triggers_soon'       => 'Soon',
-        'triggers_row1_notes' => 'Fires from manual ticket creation; mailbox-pulled tickets land via a separate path that doesn\'t dispatch yet.',
-        'triggers_row2_notes' => 'Fires whenever the status changes via any path that calls <code>assign_ticket.php</code>.',
-        'triggers_row3_notes' => 'Same dispatch path as status.',
-        'triggers_row4_notes' => 'Fires when the assignee changes (drag-to-folder, right-click menu, dropdown).',
-        'triggers_row5_notes' => 'Forms module dispatch wiring is next.',
-        'triggers_row6_notes' => 'Tasks module dispatch wiring is next.',
-        'triggers_row7_notes' => 'Changes module dispatch wiring is next.',
+        // 8. The trigger catalogue
+        'triggers_heading' => '8. The trigger catalogue',
+        'triggers_intro'   => 'The catalogue now spans <strong>every module &mdash; 138 triggers and counting</strong>, all wired and live. They come in two kinds:',
+        'triggers_family_domain' => '<strong>Rich domain events</strong> &mdash; meaningful lifecycle moments with a full typed payload: <code>ticket.created</code>, <code>ticket.status_changed</code>, <code>change.approved</code>, <code>problem.status_changed</code>, <code>task.completed</code>, <code>service_status.incident_resolved</code>, <code>software.application_discovered</code>, and many more.',
+        'triggers_family_crud'   => '<strong>Create / update / delete events</strong> &mdash; every reusable record and settings lookup emits <code>&lt;entity&gt;.created</code> / <code>.updated</code> / <code>.deleted</code>: tickets, assets, changes, problems, tasks, CMDB, contracts &amp; suppliers, calendar, software licences, network diagrams, and all their settings lists (statuses, priorities, types, tags&hellip;).',
+        'triggers_picker'  => 'Because the list is dozens deep, the editor\'s <strong>trigger picker is searchable</strong> &mdash; start typing (<code>resolved</code>, <code>contract</code>, <code>delete</code>&hellip;) to filter it. Each event fires from a <strong>single shared write path</strong>, so it behaves identically whether the change came from the browser, the REST API, or another workflow &mdash; it can\'t drift.',
 
         // 9. Failures
         'failures_heading' => '9. Engine failures are isolated',
@@ -257,8 +250,6 @@ return [
         // 10. What's still ahead
         'ahead_heading' => '10. What\'s still ahead',
         'ahead_li1' => '<strong>Tier 3 actions</strong> &mdash; Microsoft Graph: <code>graph_add_to_group</code>, <code>graph_assign_license</code>, <code>graph_disable_user</code>. The new-starter / leaver automations that justify the module\'s existence vs paid ITSM suites. Reuses the existing tenant OAuth scaffolding.',
-        'ahead_li2' => '<strong>Teams / Slack messages</strong> &mdash; channel pings on important events.',
-        'ahead_li3' => '<strong>Wire the remaining triggers</strong> &mdash; <code>form.submitted</code>, <code>task.completed</code>, <code>change.approved</code>.',
         'ahead_li4' => '<strong>Dry-run mode</strong> &mdash; run a workflow against a real event but <em>log</em> the actions rather than execute them. So you can see what would have happened before flipping it live.',
         'ahead_li5' => '<strong>Starter recipes</strong> &mdash; clonable templates for the common patterns: new-starter onboarding, P1 incident response, SLA-breach escalation, license-renewal reminder.',
         'ahead_li6' => '<strong>Watchtower integration</strong> &mdash; failed runs surface as attention cards.',

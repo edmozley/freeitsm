@@ -124,6 +124,9 @@ $translationNamespaces = ['common', 'workflow'];
             <a href="#ahead" class="wfh-nav-link" data-section="ahead">
                 <span class="wfh-nav-num">10</span> <?php echo htmlspecialchars(t('workflow.help.nav_ahead')); ?>
             </a>
+            <a href="help-webhooks.php" class="wfh-nav-link" style="margin-top:10px; border-top:1px solid #eee; padding-top:14px; color:#b45309;">
+                <span class="wfh-nav-num" style="background:#fff7ed; color:#b45309;">&#128279;</span> <?php echo htmlspecialchars(t('workflow.help.nav_webhooks_deepdive')); ?> &rarr;
+            </a>
         </aside>
 
         <main class="wfh-main">
@@ -174,6 +177,7 @@ $translationNamespaces = ['common', 'workflow'];
                 <tr><td><code>send_webhook</code></td><td><?php echo t('workflow.help.actions_row9_does'); ?></td><td><?php echo htmlspecialchars(t('workflow.help.actions_row9_args')); ?></td></tr>
             </table>
             <p><?php echo t('workflow.help.actions_note'); ?></p>
+            <div class="callout"><?php echo t('workflow.help.actions_webhook_callout'); ?></div>
 
             <h3 id="variables"><?php echo t('workflow.help.variables_heading'); ?></h3>
             <p><?php echo t('workflow.help.variables_intro'); ?></p>
@@ -205,16 +209,12 @@ $translationNamespaces = ['common', 'workflow'];
 
             <h3 id="triggers"><?php echo htmlspecialchars(t('workflow.help.triggers_heading')); ?></h3>
             <p><?php echo t('workflow.help.triggers_intro'); ?></p>
-            <table>
-                <tr><th><?php echo htmlspecialchars(t('workflow.help.triggers_th_trigger')); ?></th><th><?php echo htmlspecialchars(t('workflow.help.triggers_th_wired')); ?></th><th><?php echo htmlspecialchars(t('workflow.help.triggers_th_notes')); ?></th></tr>
-                <tr><td><code>ticket.created</code></td><td><?php echo htmlspecialchars(t('workflow.help.triggers_yes')); ?></td><td><?php echo t('workflow.help.triggers_row1_notes'); ?></td></tr>
-                <tr><td><code>ticket.status_changed</code></td><td><?php echo htmlspecialchars(t('workflow.help.triggers_yes')); ?></td><td><?php echo t('workflow.help.triggers_row2_notes'); ?></td></tr>
-                <tr><td><code>ticket.priority_changed</code></td><td><?php echo htmlspecialchars(t('workflow.help.triggers_yes')); ?></td><td><?php echo t('workflow.help.triggers_row3_notes'); ?></td></tr>
-                <tr><td><code>ticket.assigned</code></td><td><?php echo htmlspecialchars(t('workflow.help.triggers_yes')); ?></td><td><?php echo t('workflow.help.triggers_row4_notes'); ?></td></tr>
-                <tr><td><code>form.submitted</code></td><td><?php echo htmlspecialchars(t('workflow.help.triggers_soon')); ?></td><td><?php echo t('workflow.help.triggers_row5_notes'); ?></td></tr>
-                <tr><td><code>task.completed</code></td><td><?php echo htmlspecialchars(t('workflow.help.triggers_soon')); ?></td><td><?php echo t('workflow.help.triggers_row6_notes'); ?></td></tr>
-                <tr><td><code>change.approved</code></td><td><?php echo htmlspecialchars(t('workflow.help.triggers_soon')); ?></td><td><?php echo t('workflow.help.triggers_row7_notes'); ?></td></tr>
-            </table>
+            <ul>
+                <li><?php echo t('workflow.help.triggers_family_domain'); ?></li>
+                <li><?php echo t('workflow.help.triggers_family_crud'); ?></li>
+            </ul>
+            <p><?php echo t('workflow.help.triggers_picker'); ?></p>
+            <div class="callout"><?php echo t('workflow.help.actions_webhook_callout'); ?></div>
 
             <h3 id="failures"><?php echo htmlspecialchars(t('workflow.help.failures_heading')); ?></h3>
             <div class="callout"><?php echo t('workflow.help.failures_callout'); ?></div>
@@ -222,8 +222,6 @@ $translationNamespaces = ['common', 'workflow'];
             <h3 id="ahead"><?php echo htmlspecialchars(t('workflow.help.ahead_heading')); ?></h3>
             <ul>
                 <li><?php echo t('workflow.help.ahead_li1'); ?></li>
-                <li><?php echo t('workflow.help.ahead_li2'); ?></li>
-                <li><?php echo t('workflow.help.ahead_li3'); ?></li>
                 <li><?php echo t('workflow.help.ahead_li4'); ?></li>
                 <li><?php echo t('workflow.help.ahead_li5'); ?></li>
                 <li><?php echo t('workflow.help.ahead_li6'); ?></li>
