@@ -1,29 +1,26 @@
 <?php
 /**
- * API Endpoint: Assign a user to an asset
- * Creates a new users_assets record
+ * API Endpoint: Assign a user to an asset.
+ * Thin UI adapter over AssetsService::assignUser (creates the users_assets row,
+ * custody checkout, and audit trail). On a re-assign the UI passes
+ * `previous_user_id` so the audit records the "was X, now Y" transition.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/services/assets.php';
 
 header('Content-Type: application/json');
 
-// Check if user is logged in
 if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
 
-// Get POST data
-$data = json_decode(file_get_contents('php://input'), true);
+$data = json_decode(file_get_contents('php://input'), true) ?: [];
 
 $assetId = $data['asset_id'] ?? null;
 $userId = $data['user_id'] ?? null;
-$notes = $data['notes'] ?? null;
-$previousUserId = $data['previous_user_id'] ?? null;
-$expectedReturn = (isset($data['expected_return_date']) && $data['expected_return_date'] !== '') ? $data['expected_return_date'] : null;
-
 if (!$assetId || !$userId) {
     echo json_encode(['success' => false, 'error' => 'Asset ID and User ID are required']);
     exit;
@@ -31,75 +28,10 @@ if (!$assetId || !$userId) {
 
 try {
     $conn = connectToDatabase();
-
-    // Check if users_assets table exists
-    $tableCheck = $conn->prepare("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = ? AND table_name = 'users_assets'");
-    $tableCheck->execute([DB_NAME]);
-    $tableExists = (int)$tableCheck->fetch(PDO::FETCH_ASSOC)['cnt'] > 0;
-
-    if (!$tableExists) {
-        echo json_encode([
-            'success' => false,
-            'error' => 'The users_assets table has not been created yet. Please run the SQL script: database/create_users_assets_table.sql'
-        ]);
-        exit;
-    }
-
-    // Check if assignment already exists
-    $checkSql = "SELECT id FROM users_assets WHERE asset_id = ? AND user_id = ?";
-    $checkStmt = $conn->prepare($checkSql);
-    $checkStmt->execute([$assetId, $userId]);
-
-    if ($checkStmt->fetch()) {
-        echo json_encode(['success' => false, 'error' => 'User is already assigned to this asset']);
-        exit;
-    }
-
-    // Get the user's display name for the audit log
-    $userStmt = $conn->prepare("SELECT display_name FROM users WHERE id = ?");
-    $userStmt->execute([$userId]);
-    $userRow = $userStmt->fetch(PDO::FETCH_ASSOC);
-    $userName = $userRow ? $userRow['display_name'] : $userId;
-
-    // Insert the assignment
-    $sql = "INSERT INTO users_assets (asset_id, user_id, assigned_by_analyst_id, notes, expected_return_date, assigned_datetime)
-            VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->execute([$assetId, $userId, $_SESSION['analyst_id'], $notes, $expectedReturn]);
-
-    // Record the check-out in the custody trail (best-effort; the table may not
-    // exist until DB verification has run).
-    try {
-        $clog = $conn->prepare("INSERT INTO asset_checkout_log (asset_id, user_id, user_name, action, expected_return_date, analyst_id, notes, action_datetime)
-                                VALUES (?, ?, ?, 'checkout', ?, ?, ?, UTC_TIMESTAMP())");
-        $clog->execute([$assetId, $userId, $userName, $expectedReturn, $_SESSION['analyst_id'], $notes]);
-    } catch (Exception $clogEx) { /* custody log not critical to the assignment */ }
-
-    // Log to asset_history
-    $oldUserName = null;
-    if ($previousUserId) {
-        $prevStmt = $conn->prepare("SELECT display_name FROM users WHERE id = ?");
-        $prevStmt->execute([$previousUserId]);
-        $prevRow = $prevStmt->fetch(PDO::FETCH_ASSOC);
-        $oldUserName = $prevRow ? $prevRow['display_name'] : $previousUserId;
-    }
-    // Store a stable field key ('assigned_user') so the history view can localise
-    // it at render time via t('asset-management.field.assigned_user').
-    $auditSql = "INSERT INTO asset_history (asset_id, analyst_id, field_name, old_value, new_value, created_datetime)
-                 VALUES (?, ?, 'assigned_user', ?, ?, UTC_TIMESTAMP())";
-    $auditStmt = $conn->prepare($auditSql);
-    $auditStmt->execute([$assetId, $_SESSION['analyst_id'], $oldUserName, $userName]);
-
-    echo json_encode([
-        'success' => true,
-        'message' => 'User assigned successfully'
-    ]);
-
+    AssetsService::assignUser($conn, ActorContext::fromSession($conn), (int)$assetId, $data);
+    echo json_encode(['success' => true, 'message' => 'User assigned successfully']);
+} catch (ServiceError $e) {
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 } catch (Exception $e) {
-    echo json_encode([
-        'success' => false,
-        'error' => $e->getMessage()
-    ]);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>

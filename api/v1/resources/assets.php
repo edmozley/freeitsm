@@ -18,7 +18,15 @@
  *     deletes assets (they are agent-maintained records).
  *   - hostname is the de-facto identity every ingest path upserts on, so
  *     creating a duplicate hostname is a 409.
+ *
+ * The WRITES (create / field update / assign / unassign) are delegated to
+ * AssetsService — the same rules the UI's api/assets/*.php endpoints now call.
+ * The reads, serialisers, list filters, and reference lookups below are API-only
+ * and stay here.
  */
+
+require_once dirname(__DIR__, 3) . '/includes/service_context.php';
+require_once dirname(__DIR__, 3) . '/includes/services/assets.php';
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -126,15 +134,11 @@ function apiLoadAsset(PDO $conn, int $assetId): array {
     return $row;
 }
 
-function apiAssetAuditWrite(PDO $conn, int $assetId, int $analystId, string $fieldKey, ?string $old, ?string $new): void {
-    $stmt = $conn->prepare(
-        "INSERT INTO asset_history (asset_id, analyst_id, field_name, old_value, new_value, created_datetime)
-         VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-    );
-    $stmt->execute([$assetId, $analystId, $fieldKey, $old, $new]);
-}
-
-/** Validate a DATE field (YYYY-MM-DD); 422 naming the field on garbage. Null/'' clears. */
+/**
+ * Validate a DATE field (YYYY-MM-DD); 422 naming the field on garbage. Null/''
+ * clears. Kept here (not in AssetsService) because contracts.php + tasks.php
+ * share it as a generic API date-parameter validator.
+ */
 function apiParseDateOnly($value, string $field): ?string {
     if ($value === null || $value === '') {
         return null;
@@ -146,103 +150,9 @@ function apiParseDateOnly($value, string $field): ?string {
     return (string)$value;
 }
 
-/**
- * The editable columns, their audit field keys (SAME stable keys the UI's
- * update_asset_field.php stores, so the history view localises them), and how
- * to validate/resolve each. 'lookup' fields audit display NAMES, not ids.
- */
-function apiAssetFieldMap(): array {
-    return [
-        // Classification / lifecycle (the fields the UI edits)
-        'asset_type_id'    => ['audit' => 'type',            'kind' => 'lookup', 'table' => 'asset_types',        'label' => 'asset type'],
-        'asset_status_id'  => ['audit' => 'status',          'kind' => 'lookup', 'table' => 'asset_status_types', 'label' => 'asset status'],
-        'location_id'      => ['audit' => 'location',        'kind' => 'lookup', 'table' => 'asset_locations',    'label' => 'location'],
-        'supplier_id'      => ['audit' => 'supplier',        'kind' => 'supplier'],
-        'purchase_date'    => ['audit' => 'purchase_date',   'kind' => 'date'],
-        'purchase_cost'    => ['audit' => 'purchase_cost',   'kind' => 'decimal'],
-        'order_number'     => ['audit' => 'order_number',    'kind' => 'string', 'max' => 100],
-        'warranty_expiry'  => ['audit' => 'warranty_expiry', 'kind' => 'date'],
-        // Hardware / OS / identity (agent-maintained in the UI; writable here
-        // so a non-agent source can sync them — audited under the column name)
-        'hostname'         => ['audit' => 'hostname',         'kind' => 'string', 'max' => 50],
-        'manufacturer'     => ['audit' => 'manufacturer',     'kind' => 'string', 'max' => 50],
-        'model'            => ['audit' => 'model',            'kind' => 'string', 'max' => 50],
-        'service_tag'      => ['audit' => 'service_tag',      'kind' => 'string', 'max' => 50],
-        'memory'           => ['audit' => 'memory',           'kind' => 'int'],
-        'operating_system' => ['audit' => 'operating_system', 'kind' => 'string', 'max' => 50],
-        'feature_release'  => ['audit' => 'feature_release',  'kind' => 'string', 'max' => 10],
-        'build_number'     => ['audit' => 'build_number',     'kind' => 'string', 'max' => 50],
-        'cpu_name'         => ['audit' => 'cpu_name',         'kind' => 'string', 'max' => 250],
-        'speed'            => ['audit' => 'speed',            'kind' => 'int'],
-        'bios_version'     => ['audit' => 'bios_version',     'kind' => 'string', 'max' => 20],
-        'gpu_name'         => ['audit' => 'gpu_name',         'kind' => 'string', 'max' => 250],
-        'tpm_version'      => ['audit' => 'tpm_version',      'kind' => 'string', 'max' => 50],
-        'bitlocker_status' => ['audit' => 'bitlocker_status', 'kind' => 'string', 'max' => 20],
-        'domain'           => ['audit' => 'domain',           'kind' => 'string', 'max' => 100],
-        'logged_in_user'   => ['audit' => 'logged_in_user',   'kind' => 'string', 'max' => 100],
-    ];
-}
-
-/** Validate one incoming field value per its map entry. Returns the DB-ready value. */
-function apiAssetValidateField(PDO $conn, string $field, $value, array $def) {
-    if ($value === '' || $value === null) {
-        return null;
-    }
-    switch ($def['kind']) {
-        case 'lookup':
-            $stmt = $conn->prepare("SELECT id FROM {$def['table']} WHERE id = ?");
-            $stmt->execute([(int)$value]);
-            if (!$stmt->fetchColumn()) {
-                apiError(422, 'invalid_field', "Unknown {$def['label']} id: {$value}");
-            }
-            return (int)$value;
-        case 'supplier':
-            $stmt = $conn->prepare("SELECT id FROM suppliers WHERE id = ?");
-            $stmt->execute([(int)$value]);
-            if (!$stmt->fetchColumn()) {
-                apiError(422, 'invalid_field', "Unknown supplier id: {$value}");
-            }
-            return (int)$value;
-        case 'date':
-            return apiParseDateOnly($value, $field);
-        case 'int':
-            if (!is_numeric($value)) {
-                apiError(422, 'invalid_field', "'{$field}' must be a number.");
-            }
-            return (int)$value;
-        case 'decimal':
-            if (!is_numeric($value)) {
-                apiError(422, 'invalid_field', "'{$field}' must be a number.");
-            }
-            return (string)round((float)$value, 2);
-        default: // string
-            $v = trim((string)$value);
-            if (isset($def['max']) && mb_strlen($v) > $def['max']) {
-                apiError(422, 'invalid_field', "'{$field}' must be at most {$def['max']} characters.");
-            }
-            return $v === '' ? null : $v;
-    }
-}
-
-/** Resolve a lookup id to its display name for the audit trail (mirrors update_asset_field.php). */
-function apiAssetAuditDisplay(PDO $conn, string $field, $value, array $def): ?string {
-    if ($value === null) {
-        return null;
-    }
-    if ($def['kind'] === 'lookup') {
-        $stmt = $conn->prepare("SELECT name FROM {$def['table']} WHERE id = ?");
-        $stmt->execute([(int)$value]);
-        $name = $stmt->fetchColumn();
-        return $name !== false ? $name : (string)$value;
-    }
-    if ($def['kind'] === 'supplier') {
-        $stmt = $conn->prepare("SELECT COALESCE(NULLIF(TRIM(trading_name), ''), legal_name) FROM suppliers WHERE id = ?");
-        $stmt->execute([(int)$value]);
-        $name = $stmt->fetchColumn();
-        return $name !== false ? $name : (string)$value;
-    }
-    return (string)$value;
-}
+// The asset field map, per-field validation, and audit-display resolution now
+// live in AssetsService (includes/services/assets.php) — the single home shared
+// with the UI's api/assets/update_asset_field.php.
 
 // ---------------------------------------------------------------------------
 // GET /assets
@@ -361,49 +271,10 @@ function apiAssetsGet(PDO $conn, array $apiKey, array $params, array $body): voi
 // POST /assets
 // ---------------------------------------------------------------------------
 function apiAssetsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $hostname = trim((string)($body['hostname'] ?? ''));
-    if ($hostname === '') {
-        apiError(422, 'missing_field', "'hostname' is required.");
-    }
-    if (mb_strlen($hostname) > 50) {
-        apiError(422, 'invalid_field', "'hostname' must be at most 50 characters.");
-    }
-
-    // hostname is the identity every ingest path upserts on — duplicates would
-    // split an asset's records, so refuse rather than silently fork.
-    $dup = $conn->prepare("SELECT id FROM assets WHERE hostname = ?");
-    $dup->execute([$hostname]);
-    $existingId = $dup->fetchColumn();
-    if ($existingId !== false) {
-        apiError(409, 'conflict', "An asset with this hostname already exists (id {$existingId}). Use PATCH /assets/{$existingId} to update it.");
-    }
-
-    $map = apiAssetFieldMap();
-    unset($map['hostname']); // handled above
-    $columns = ['hostname'];
-    $values  = [$hostname];
-    foreach ($map as $field => $def) {
-        if (!array_key_exists($field, $body)) {
-            continue;
-        }
-        $columns[] = $field;
-        $values[]  = apiAssetValidateField($conn, $field, $body[$field], $def);
-    }
-
-    $placeholders = implode(', ', array_fill(0, count($columns), '?'));
-    $sql = "INSERT INTO assets (" . implode(', ', $columns) . ", first_seen, last_seen)
-            VALUES ($placeholders, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
-    $conn->prepare($sql)->execute($values);
-    $assetId = (int)$conn->lastInsertId();
-
-    apiAssetAuditWrite($conn, $assetId, (int)$apiKey['analyst_id'], 'asset_created', null,
-        'Created via API (key: ' . $apiKey['name'] . ')');
-
-    if (array_key_exists('warranty_expiry', $body) && $body['warranty_expiry']) {
-        require_once dirname(__DIR__, 3) . '/includes/asset_warranty_calendar.php';
-        try { syncAssetWarrantyCalendar($conn); } catch (Exception $syncEx) { /* non-critical */ }
-    }
-
+    try {
+        $assetId = AssetsService::createAsset($conn, ActorContext::fromApiKey($apiKey), $body,
+            'Created via API (key: ' . $apiKey['name'] . ')');
+    } catch (ServiceError $e) { apiFailFromService($e); }
     apiRespond(apiSerializeAsset($conn, apiLoadAsset($conn, $assetId)), 201);
 }
 
@@ -411,77 +282,10 @@ function apiAssetsCreate(PDO $conn, array $apiKey, array $params, array $body): 
 // PATCH /assets/{id}
 // ---------------------------------------------------------------------------
 function apiAssetsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $assetId = $params[0];
-    $current = apiLoadAsset($conn, $assetId);
-    if (!$body) {
-        apiError(422, 'missing_field', 'No fields to update.');
-    }
-
-    $map = apiAssetFieldMap();
-    $updates = [];
-    $args    = [];
-    $audits  = [];   // [fieldKey, oldDisplay, newDisplay]
-    $warrantyChanged = false;
-
-    foreach ($body as $field => $rawValue) {
-        if (!isset($map[$field])) {
-            continue; // unknown fields are ignored, like the internal endpoints
-        }
-        $def = $map[$field];
-        $newValue = apiAssetValidateField($conn, $field, $rawValue, $def);
-
-        if ($field === 'hostname') {
-            if ($newValue === null) {
-                apiError(422, 'invalid_field', "'hostname' cannot be blank.");
-            }
-            $dup = $conn->prepare("SELECT id FROM assets WHERE hostname = ? AND id != ?");
-            $dup->execute([$newValue, $assetId]);
-            if ($dup->fetchColumn()) {
-                apiError(409, 'conflict', 'Another asset already uses this hostname.');
-            }
-        }
-
-        // Normalise the current value the same way for change detection.
-        $oldValue = $current[$field];
-        if (in_array($def['kind'], ['lookup', 'supplier', 'int'], true) && $oldValue !== null) {
-            $oldValue = (int)$oldValue;
-        }
-        $comparableNew = ($def['kind'] === 'decimal' && $newValue !== null) ? (float)$newValue : $newValue;
-        $comparableOld = ($def['kind'] === 'decimal' && $oldValue !== null) ? (float)$oldValue : $oldValue;
-        if ($comparableNew === $comparableOld || (string)$comparableNew === (string)$comparableOld && $comparableNew !== null && $comparableOld !== null) {
-            continue; // no actual change
-        }
-
-        $updates[] = "$field = ?";
-        $args[]    = $newValue;
-        $audits[]  = [
-            $def['audit'],
-            apiAssetAuditDisplay($conn, $field, $oldValue, $def),
-            apiAssetAuditDisplay($conn, $field, $newValue, $def),
-        ];
-        if ($field === 'warranty_expiry') {
-            $warrantyChanged = true;
-        }
-    }
-
-    if (!$updates) {
-        apiRespond(apiSerializeAsset($conn, $current)); // idempotent PATCH
-    }
-
-    $args[] = $assetId;
-    $conn->prepare('UPDATE assets SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
-
-    foreach ($audits as [$fieldKey, $old, $new]) {
-        apiAssetAuditWrite($conn, $assetId, (int)$apiKey['analyst_id'], $fieldKey, $old, $new);
-    }
-
-    // Keep the calendar's warranty events in step (same hook as the UI).
-    if ($warrantyChanged) {
-        require_once dirname(__DIR__, 3) . '/includes/asset_warranty_calendar.php';
-        try { syncAssetWarrantyCalendar($conn); } catch (Exception $syncEx) { /* non-critical */ }
-    }
-
-    apiRespond(apiSerializeAsset($conn, apiLoadAsset($conn, $assetId)));
+    try {
+        AssetsService::updateFields($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond(apiSerializeAsset($conn, apiLoadAsset($conn, $params[0])));
 }
 
 // ---------------------------------------------------------------------------
@@ -512,92 +316,17 @@ function apiAssetAssignmentsList(PDO $conn, array $apiKey, array $params, array 
 }
 
 function apiAssetAssignmentsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $assetId = $params[0];
-    apiLoadAsset($conn, $assetId);
-    $actorId = (int)$apiKey['analyst_id'];
-
-    // Accept user_id or user_email (must be an existing requester — use
-    // POST /users with the users.create permission to add one first).
-    $userId = null;
-    if (isset($body['user_id']) && $body['user_id'] !== '') {
-        $userId = (int)$body['user_id'];
-        $u = $conn->prepare("SELECT id, display_name FROM users WHERE id = ?");
-        $u->execute([$userId]);
-    } elseif (isset($body['user_email']) && trim((string)$body['user_email']) !== '') {
-        $u = $conn->prepare("SELECT id, display_name FROM users WHERE email = ?");
-        $u->execute([strtolower(trim((string)$body['user_email']))]);
-    } else {
-        apiError(422, 'missing_field', "Provide 'user_id' or 'user_email'.");
-    }
-    $userRow = $u->fetch(PDO::FETCH_ASSOC);
-    if (!$userRow) {
-        apiError(422, 'invalid_field', 'Unknown requester. Create them first with POST /users.');
-    }
-    $userId   = (int)$userRow['id'];
-    $userName = $userRow['display_name'];
-
-    $notes = trim((string)($body['notes'] ?? '')) ?: null;
-    $expectedReturn = apiParseDateOnly($body['expected_return_date'] ?? null, 'expected_return_date');
-
-    $check = $conn->prepare("SELECT id FROM users_assets WHERE asset_id = ? AND user_id = ?");
-    $check->execute([$assetId, $userId]);
-    if ($check->fetchColumn()) {
-        apiError(409, 'conflict', 'This user is already assigned to this asset.');
-    }
-
-    $conn->prepare(
-        "INSERT INTO users_assets (asset_id, user_id, assigned_by_analyst_id, notes, expected_return_date, assigned_datetime)
-         VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-    )->execute([$assetId, $userId, $actorId, $notes, $expectedReturn]);
-
-    // Custody trail (best-effort, like the UI).
     try {
-        $conn->prepare(
-            "INSERT INTO asset_checkout_log (asset_id, user_id, user_name, action, expected_return_date, analyst_id, notes, action_datetime)
-             VALUES (?, ?, ?, 'checkout', ?, ?, ?, UTC_TIMESTAMP())"
-        )->execute([$assetId, $userId, $userName, $expectedReturn, $actorId, $notes]);
-    } catch (Exception $clogEx) { /* custody log not critical */ }
-
-    apiAssetAuditWrite($conn, $assetId, $actorId, 'assigned_user', null, $userName);
-
-    apiRespond([
-        'asset_id'             => $assetId,
-        'user_id'              => $userId,
-        'name'                 => $userName,
-        'expected_return_date' => $expectedReturn,
-        'notes'                => $notes,
-    ], 201);
+        $res = AssetsService::assignUser($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond($res, 201);
 }
 
 function apiAssetAssignmentsDelete(PDO $conn, array $apiKey, array $params, array $body): void {
-    [$assetId, $userId] = $params;
-    apiLoadAsset($conn, $assetId);
-    $actorId = (int)$apiKey['analyst_id'];
-
-    // Snapshot before removal, for the custody trail + audit (mirrors the UI).
-    $snap = $conn->prepare(
-        "SELECT u.display_name, ua.expected_return_date
-         FROM users_assets ua INNER JOIN users u ON u.id = ua.user_id
-         WHERE ua.asset_id = ? AND ua.user_id = ?"
-    );
-    $snap->execute([$assetId, $userId]);
-    $row = $snap->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
-        apiError(404, 'not_found', 'Assignment not found.');
-    }
-
-    $conn->prepare("DELETE FROM users_assets WHERE asset_id = ? AND user_id = ?")->execute([$assetId, $userId]);
-
     try {
-        $conn->prepare(
-            "INSERT INTO asset_checkout_log (asset_id, user_id, user_name, action, expected_return_date, analyst_id, action_datetime)
-             VALUES (?, ?, ?, 'checkin', ?, ?, UTC_TIMESTAMP())"
-        )->execute([$assetId, $userId, $row['display_name'], $row['expected_return_date'], $actorId]);
-    } catch (Exception $clogEx) { /* custody log not critical */ }
-
-    apiAssetAuditWrite($conn, $assetId, $actorId, 'assigned_user', $row['display_name'], null);
-
-    apiRespond(['asset_id' => $assetId, 'user_id' => $userId, 'unassigned' => true]);
+        AssetsService::unassignUser($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], (int)$params[1]);
+    } catch (ServiceError $e) { apiFailFromService($e); }
+    apiRespond(['asset_id' => (int)$params[0], 'user_id' => (int)$params[1], 'unassigned' => true]);
 }
 
 // ---------------------------------------------------------------------------
