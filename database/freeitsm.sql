@@ -1506,6 +1506,21 @@ CREATE TABLE IF NOT EXISTS `change_relations` (
     CONSTRAINT `fk_relations_created_by` FOREIGN KEY (`created_by_id`) REFERENCES `analysts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Incidents (tickets) linked to a change — the Change Management twin of
+-- problem_tickets. Right-click a ticket → "Link to change".
+CREATE TABLE IF NOT EXISTS `change_tickets` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `change_id`        INT NOT NULL,
+    `ticket_id`        INT NOT NULL,
+    `created_by_id`    INT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_change_ticket` (`change_id`, `ticket_id`),
+    KEY `ix_ctickets_ticket` (`ticket_id`),
+    CONSTRAINT `fk_ctickets_change` FOREIGN KEY (`change_id`) REFERENCES `changes` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ctickets_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `change_categories` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `name`              VARCHAR(100) NOT NULL,

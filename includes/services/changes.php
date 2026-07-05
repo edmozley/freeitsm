@@ -602,8 +602,92 @@ class ChangesService
     }
 
     // ======================================================================
+    //  Incident (ticket) linking  — twin of ProblemsService::linkTicket
+    // ======================================================================
+
+    /** Link an incident (ticket) to a change. Returns [change_id, ticket_id, ticket_number, linked]. */
+    public static function linkTicket(PDO $conn, ActorContext $ctx, int $changeId, array $in): array
+    {
+        $change = self::loadJoined($conn, $ctx, $changeId);   // 404 if gone / out of scope
+        $actorId = $ctx->actorId;
+
+        $ticketId = isset($in['ticket_id']) ? (int)$in['ticket_id'] : 0;
+        if ($ticketId <= 0) {
+            throw new ServiceError('validation', 'missing_field', "'ticket_id' is required.");
+        }
+        // The actor must be able to see the ticket too (its company scope).
+        if (!self::canAccessTenantRow($conn, $ctx, 'tickets', $ticketId)) {
+            throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+        }
+        $tStmt = $conn->prepare("SELECT ticket_number, tenant_id FROM tickets WHERE id = ? AND deleted_datetime IS NULL");
+        $tStmt->execute([$ticketId]);
+        $ticket = $tStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$ticket) {
+            throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+        }
+
+        // Same-company rule: NULL normalises to Default.
+        if (isMultiTenant($conn)) {
+            $default = getDefaultTenantId($conn);
+            $cTid = $change['tenant_id'] === null ? $default : (int)$change['tenant_id'];
+            $tTid = $ticket['tenant_id'] === null ? $default : (int)$ticket['tenant_id'];
+            if ($cTid !== $tTid) {
+                throw new ServiceError('validation', 'invalid_field', 'That incident belongs to a different company than this change.');
+            }
+        }
+
+        $dup = $conn->prepare("SELECT id FROM change_tickets WHERE change_id = ? AND ticket_id = ?");
+        $dup->execute([$changeId, $ticketId]);
+        if ($dup->fetchColumn()) {
+            throw new ServiceError('conflict', 'conflict', 'This incident is already linked to this change.');
+        }
+
+        $conn->prepare("INSERT INTO change_tickets (change_id, ticket_id, created_by_id, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$changeId, $ticketId, $actorId]);
+        self::auditWrite($conn, $changeId, $actorId, 'field_change', 'Linked incident', null, $ticket['ticket_number']);
+        $conn->prepare("UPDATE changes SET modified_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$changeId]);
+
+        return ['change_id' => $changeId, 'ticket_id' => $ticketId, 'ticket_number' => $ticket['ticket_number'], 'linked' => true];
+    }
+
+    /** Unlink an incident from a change. 404 if not linked. */
+    public static function unlinkTicket(PDO $conn, ActorContext $ctx, int $changeId, int $ticketId): void
+    {
+        self::loadJoined($conn, $ctx, $changeId);   // 404 if gone / out of scope
+        $stmt = $conn->prepare("DELETE FROM change_tickets WHERE change_id = ? AND ticket_id = ?");
+        $stmt->execute([$changeId, $ticketId]);
+        if ($stmt->rowCount() === 0) {
+            throw new ServiceError('not_found', 'not_found', 'Link not found.');
+        }
+        $conn->prepare("UPDATE changes SET modified_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$changeId]);
+    }
+
+    // ======================================================================
     //  Internals
     // ======================================================================
+
+    /**
+     * May the actor access this row of a tenant-scoped table (by its company)?
+     * Generic mirror of ProblemsService::canAccessTenantRow. $table is a
+     * developer literal, never user input.
+     */
+    private static function canAccessTenantRow(PDO $conn, ActorContext $ctx, string $table, int $rowId): bool
+    {
+        if ($rowId <= 0) {
+            return false;
+        }
+        $stmt = $conn->prepare("SELECT tenant_id FROM {$table} WHERE id = ?");
+        $stmt->execute([$rowId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+        if ($ctx->companyScope === null || !isMultiTenant($conn)) {
+            return true;
+        }
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int)$row['tenant_id'];
+        return in_array($tid, $ctx->companyScope, true);
+    }
 
     /**
      * Load the joined change row (with lookup + people display names), enforcing
