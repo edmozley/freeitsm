@@ -14,6 +14,11 @@ define('DB_PASSWORD', getenv('DB_PASSWORD') ?: 'freeitsm');
 $db_config_path = '/var/www/html/db_config.php';
 require_once($db_config_path);
 
+// Encryption key file location: set via the ENCRYPTION_KEY_PATH environment
+// variable in docker-compose.yml (defaults to /var/www/encryption_keys/freeitsm.key,
+// stored on a persistent volume). Leave it to the env var here — do NOT define
+// ENCRYPTION_KEY_PATH in this file, or it would override the compose setting.
+
 // Timezone
 date_default_timezone_set('UTC');
 
