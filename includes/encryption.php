@@ -3,21 +3,29 @@
  * AES-256-GCM Encryption Helper
  *
  * Provides encrypt/decrypt functions for sensitive database values.
- * Key file is stored outside the web root at D:\encryption_keys\sdtickets.key
+ * The key file is stored outside the web root. Its location is resolved (in
+ * order of precedence): a define('ENCRYPTION_KEY_PATH', ...) in config.php, then
+ * the ENCRYPTION_KEY_PATH environment variable (used by Docker), then an
+ * OS-specific default.
  *
  * Encrypted values are stored as: ENC: followed by base64(iv + tag + ciphertext)
  * The ENC: prefix allows gradual migration - unencrypted values pass through unchanged.
  */
 
-// Key path: check environment variable first, then fall back to default
-// Docker sets ENCRYPTION_KEY_PATH env var; manual installs use the default below
-$_encKeyPath = getenv('ENCRYPTION_KEY_PATH');
-if ($_encKeyPath === false || $_encKeyPath === '') {
-    $_encKeyPath = PHP_OS_FAMILY === 'Windows'
-        ? 'c:\\wamp64\\encryption_keys\\sdtickets.key'
-        : '/var/www/encryption_keys/freeitsm.key';
+// Key path precedence: config.php constant (if the admin set one) wins; else the
+// ENCRYPTION_KEY_PATH env var (Docker); else the OS-specific default. The guard
+// lets config.php pre-define the constant without a "constant already defined"
+// notice — and leaves Docker's env-var behaviour untouched (its config doesn't
+// define the constant, so the env var still applies).
+if (!defined('ENCRYPTION_KEY_PATH')) {
+    $_encKeyPath = getenv('ENCRYPTION_KEY_PATH');
+    if ($_encKeyPath === false || $_encKeyPath === '') {
+        $_encKeyPath = PHP_OS_FAMILY === 'Windows'
+            ? 'c:\\wamp64\\encryption_keys\\sdtickets.key'
+            : '/var/www/encryption_keys/freeitsm.key';
+    }
+    define('ENCRYPTION_KEY_PATH', $_encKeyPath);
 }
-define('ENCRYPTION_KEY_PATH', $_encKeyPath);
 define('ENCRYPTION_CIPHER', 'aes-256-gcm');
 define('ENCRYPTION_IV_LENGTH', 12);   // 96-bit nonce (recommended for GCM)
 define('ENCRYPTION_TAG_LENGTH', 16);  // 128-bit auth tag

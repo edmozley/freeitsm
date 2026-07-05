@@ -11,6 +11,15 @@
 $db_config_path = 'C:\wamp64\db_config.php';
 require_once($db_config_path);
 
+// Encryption key file location (optional override).
+// The AES key that protects sensitive values lives in a file outside the web
+// root. By default it is c:\wamp64\encryption_keys\sdtickets.key on Windows or
+// /var/www/encryption_keys/freeitsm.key on Linux. To store it elsewhere (e.g.
+// your web root isn't /var/www), uncomment the line below and set an absolute
+// path. This can also be set via the ENCRYPTION_KEY_PATH environment variable,
+// which Docker uses; the setting here takes precedence when both are present.
+// define('ENCRYPTION_KEY_PATH', '/your/path/encryption_keys/freeitsm.key');
+
 // Timezone
 date_default_timezone_set('America/New_York');
 

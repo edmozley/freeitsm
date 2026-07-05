@@ -159,6 +159,11 @@ Then open [http://localhost:8080/setup/](http://localhost:8080/setup/) to verify
    # Generate a random 256-bit key (64 hex characters)
    php -r "echo bin2hex(random_bytes(32));" > C:\wamp64\encryption_keys\sdtickets.key
    ```
+   The key file defaults to `c:\wamp64\encryption_keys\sdtickets.key` (Windows) or
+   `/var/www/encryption_keys/freeitsm.key` (Linux). To keep it elsewhere — e.g. your web
+   root isn't `/var/www` — set its path in `config.php`
+   (`define('ENCRYPTION_KEY_PATH', '/your/path/...')`) or via the `ENCRYPTION_KEY_PATH`
+   environment variable (used by the Docker image).
 
 5. **Configure web server**
    - Point your web server to the application root
