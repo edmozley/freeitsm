@@ -26,6 +26,16 @@ const RICH_TEXT_FIELDS = ['description', 'reason', 'risk', 'testplan', 'rollback
 // filter list, the editor's Status dropdown, and the updateCounts() loop.
 let changeStatuses = [];
 
+// Lookups for the right-click context menu submenus (active rows only). Loaded
+// once at init; the menu is rebuilt from these each time it opens so newly-added
+// entries + the current-value tick appear without a page refresh.
+let changePriorities = [];
+let changeTypes = [];
+let changeImpacts = [];
+// Companies this analyst can move a change into (multi-company installs only).
+let moveCompanies = [];
+let isMultiCompany = false;
+
 // TinyMCE editor instances
 const editorIds = ['editorDescription', 'editorReason', 'editorRisk', 'editorTestplan', 'editorRollback', 'editorPir'];
 let editorsReady = false;
@@ -36,6 +46,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const layoutReady = loadFormLayout();
     loadAnalysts();
     const statusesReady = loadStatuses();
+    // Context-menu lookups (priorities / types / impacts) + accessible companies.
+    loadChangePriorities();
+    loadChangeTypes();
+    loadChangeImpacts();
+    loadMoveCompanies();
     loadChanges();
     setupFileUpload();
 
@@ -326,6 +341,63 @@ async function loadStatuses() {
     }
 }
 
+// Context-menu lookups. Each endpoint returns {success, <key>:[{id,name,colour,
+// is_active,display_order,...}]}. We keep active rows only, sorted the same way
+// as the sidebar (display_order then name) so the submenus match Settings.
+function sortLookup(rows) {
+    return rows.sort((a, b) => {
+        const o = (a.display_order || 0) - (b.display_order || 0);
+        return o !== 0 ? o : String(a.name).localeCompare(String(b.name));
+    });
+}
+
+async function loadChangePriorities() {
+    try {
+        const res = await fetch(API_BASE + 'get_change_priorities.php');
+        const data = await res.json();
+        if (data.success) changePriorities = sortLookup((data.priorities || []).filter(p => p.is_active));
+    } catch (e) {
+        console.error('Error loading change priorities:', e);
+    }
+}
+
+async function loadChangeTypes() {
+    try {
+        const res = await fetch(API_BASE + 'get_change_types.php');
+        const data = await res.json();
+        if (data.success) changeTypes = sortLookup((data.types || []).filter(t => t.is_active));
+    } catch (e) {
+        console.error('Error loading change types:', e);
+    }
+}
+
+async function loadChangeImpacts() {
+    try {
+        const res = await fetch(API_BASE + 'get_change_impacts.php');
+        const data = await res.json();
+        if (data.success) changeImpacts = sortLookup((data.impacts || []).filter(i => i.is_active));
+    } catch (e) {
+        console.error('Error loading change impacts:', e);
+    }
+}
+
+// Companies this analyst can move a change into (multi-company installs only).
+// Same source as the tickets "Move to company" submenu; the "Move to company"
+// row stays hidden unless there's more than one accessible company.
+async function loadMoveCompanies() {
+    try {
+        const res = await fetch('../api/system/get_tenants.php?accessible=1');
+        const data = await res.json();
+        if (data.success) {
+            moveCompanies = data.companies || [];
+            isMultiCompany = moveCompanies.length > 1;
+        }
+    } catch (e) {
+        moveCompanies = [];
+        isMultiCompany = false;
+    }
+}
+
 function renderStatusFilters() {
     const container = document.getElementById('statusFilterList');
     if (!container) return;
@@ -453,7 +525,7 @@ function renderChangeList() {
         const workStart = c.work_start_datetime ? formatDate(c.work_start_datetime) : '';
 
         return `
-            <div class="change-card" onclick="viewChange(${c.id})">
+            <div class="change-card" data-id="${c.id}" onclick="viewChange(${c.id})" oncontextmenu="openChangeContextMenu(event, ${c.id}); return false;">
                 <div class="change-card-ref">${ref}</div>
                 <div class="change-card-info">
                     <div class="change-card-title">${escapeHtml(c.title)}</div>
@@ -628,6 +700,9 @@ function renderChangeDetail() {
         `;
     }
 
+    // Linked incidents section
+    html += renderLinkedIncidents(c);
+
     // Activity section (comments + audit trail)
     html += `
         <div class="activity-section">
@@ -646,6 +721,98 @@ function renderChangeDetail() {
 
     // Load activity timeline asynchronously
     loadActivityTimeline(c.id);
+}
+
+// ============ Linked incidents ============
+
+// Small inline icons for the linked-incidents rows.
+const CM_OPEN_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>';
+const CM_UNLINK_SVG = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+
+function renderLinkedIncidents(c) {
+    const incidents = c.incidents || [];
+    const rows = incidents.map(i => `
+        <tr>
+            <td><a href="../tickets/index.php?ticket_id=${i.id}" target="_blank" rel="noopener">${escapeHtml(i.ticket_number || ('#' + i.id))}</a></td>
+            <td>${escapeHtml(i.subject || '')}</td>
+            <td>${escapeHtml(i.status || '')}</td>
+            <td class="linked-incidents-actions">
+                <a class="linked-incident-btn" href="../tickets/index.php?ticket_id=${i.id}" target="_blank" rel="noopener" title="${escapeHtml(window.t('change-management.detail.open_incident'))}">${CM_OPEN_SVG}</a>
+                <button class="linked-incident-btn danger" onclick="unlinkChangeIncident(${i.id})" title="${escapeHtml(window.t('change-management.detail.unlink'))}">${CM_UNLINK_SVG}</button>
+            </td>
+        </tr>`).join('');
+    const body = rows || `<tr class="linked-incidents-empty"><td colspan="4">${window.t('change-management.detail.no_incidents')}</td></tr>`;
+    return `
+        <div class="linked-incidents-section">
+            <div class="linked-incidents-head">
+                <h3>${window.t('change-management.detail.linked_incidents')} (${incidents.length})</h3>
+                <button class="btn btn-secondary btn-sm" onclick="openLinkIncidentModal()">${window.t('change-management.detail.link_incident')}</button>
+            </div>
+            <table class="linked-incidents-table">
+                <tbody>${body}</tbody>
+            </table>
+        </div>
+    `;
+}
+
+let cmLinkIncidentSearchTimer = null;
+function openLinkIncidentModal() {
+    if (!currentChange) return;
+    const search = document.getElementById('linkIncidentSearch');
+    if (search) search.value = '';
+    document.getElementById('linkIncidentModal').classList.add('active');
+    loadLinkableIncidents();
+}
+function closeLinkIncidentModal() {
+    document.getElementById('linkIncidentModal').classList.remove('active');
+}
+function linkIncidentSearchDebounced() {
+    clearTimeout(cmLinkIncidentSearchTimer);
+    cmLinkIncidentSearchTimer = setTimeout(loadLinkableIncidents, 250);
+}
+async function loadLinkableIncidents() {
+    if (!currentChange) return;
+    const list = document.getElementById('linkIncidentList');
+    const q = (document.getElementById('linkIncidentSearch') || {}).value || '';
+    list.innerHTML = `<div class="link-incident-empty">${window.t('change-management.detail.loading')}</div>`;
+    try {
+        const res = await fetch(API_BASE + 'list_linkable_tickets.php?change_id=' + currentChange.id + '&q=' + encodeURIComponent(q.trim()));
+        const data = await res.json();
+        if (!data.success) { list.innerHTML = `<div class="link-incident-empty">${escapeHtml(data.error || '')}</div>`; return; }
+        if (!data.tickets.length) { list.innerHTML = `<div class="link-incident-empty">${window.t('change-management.detail.no_linkable')}</div>`; return; }
+        list.innerHTML = data.tickets.map(t => `
+            <button type="button" class="link-incident-row" onclick="linkChangeIncident(${t.id})">
+                <span class="link-incident-title">${escapeHtml(t.subject || '(no subject)')}</span>
+                <span class="link-incident-meta">${escapeHtml(t.ticket_number || '')}${t.status ? ' &middot; ' + escapeHtml(t.status) : ''}${t.requester ? ' &middot; ' + escapeHtml(t.requester) : ''}</span>
+            </button>`).join('');
+    } catch (e) {
+        list.innerHTML = `<div class="link-incident-empty">${window.t('change-management.toast.load_incidents_failed')}</div>`;
+    }
+}
+async function linkChangeIncident(ticketId) {
+    if (!currentChange) return;
+    try {
+        const res = await fetch(API_BASE + 'link_ticket.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ change_id: currentChange.id, ticket_id: ticketId }) });
+        const data = await res.json();
+        if (!data.success) { showToast(data.error || window.t('change-management.toast.link_failed'), 'error'); return; }
+        closeLinkIncidentModal();
+        showToast(window.t('change-management.toast.incident_linked'), 'success');
+        viewChange(currentChange.id);
+    } catch (e) { showToast(window.t('change-management.toast.link_failed'), 'error'); }
+}
+async function unlinkChangeIncident(ticketId) {
+    if (!currentChange) return;
+    const ok = window.showConfirm
+        ? await showConfirm({ title: window.t('change-management.detail.unlink'), message: window.t('change-management.detail.unlink_incident_confirm'), okLabel: window.t('change-management.detail.unlink'), okClass: 'danger' })
+        : confirm(window.t('change-management.detail.unlink_incident_confirm'));
+    if (!ok) return;
+    try {
+        const res = await fetch(API_BASE + 'unlink_ticket.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ change_id: currentChange.id, ticket_id: ticketId }) });
+        const data = await res.json();
+        if (!data.success) { showToast(data.error || window.t('change-management.toast.unlink_failed'), 'error'); return; }
+        showToast(window.t('change-management.toast.incident_unlinked'), 'success');
+        viewChange(currentChange.id);
+    } catch (e) { showToast(window.t('change-management.toast.unlink_failed'), 'error'); }
 }
 
 function renderDetailSection(title, content) {
@@ -836,6 +1003,10 @@ function renderActivityTimeline(timeline, container) {
                 description = `<strong>${escapeHtml(entry.field_name || 'CAB')}</strong>`;
                 if (entry.new_value) description += `: <span class="new-val">${escapeHtml(entry.new_value)}</span>`;
                 if (entry.old_value) description += ` <span class="old-val">(${escapeHtml(entry.old_value)})</span>`;
+            } else if (entry.field_name === 'Linked incident') {
+                description = entry.new_value
+                    ? `${window.t('change-management.detail.linked_incident')} <span class="new-val">${escapeHtml(entry.new_value)}</span>`
+                    : `${window.t('change-management.detail.unlinked_incident')} <span class="old-val">${escapeHtml(entry.old_value)}</span>`;
             } else {
                 description = `changed <strong>${escapeHtml(entry.field_name || '')}</strong>`;
                 if (entry.old_value && entry.new_value) {
@@ -2032,3 +2203,180 @@ function buildPdfContent() {
 
 // Deep-link handling (?change_id= and legacy aliases) lives in the
 // DOMContentLoaded handler near the top of this file.
+
+/* --- Right-click context menu for change cards ----------------------------
+ * Mirrors the tickets inbox context menu (openTicketContextMenu). Right-click
+ * a change card to set its Status / Priority / Type / Impact — or, on
+ * multi-company installs, move it to another company — without opening it.
+ * Submenus are rebuilt each open from the loaded lookups so newly-added
+ * entries + the current-value tick always reflect the latest data.
+ */
+let ctxTargetChangeId = null;
+
+function openChangeContextMenu(event, changeId) {
+    event.preventDefault();
+    ctxTargetChangeId = changeId;
+    const menu = document.getElementById('changeContextMenu');
+    if (!menu) return;
+
+    const ref = 'CHG-' + String(changeId).padStart(4, '0');
+    const header = document.getElementById('changeContextMenuHeader');
+    if (header) header.textContent = ref;
+
+    // Rebuild each submenu so newly-added lookups + the current tick appear.
+    populateContextChangeStatusSubmenu();
+    populateContextChangePrioritySubmenu();
+    populateContextChangeTypeSubmenu();
+    populateContextChangeImpactSubmenu();
+    populateContextChangeCompanySubmenu();
+
+    // Position at cursor — flip if it would overflow the viewport.
+    menu.classList.add('active');
+    const rect = menu.getBoundingClientRect();
+    let x = event.clientX;
+    let y = event.clientY;
+    if (x + rect.width  > window.innerWidth)  x = window.innerWidth  - rect.width  - 4;
+    if (y + rect.height > window.innerHeight) y = window.innerHeight - rect.height - 4;
+    menu.style.left = x + 'px';
+    menu.style.top  = y + 'px';
+
+    // Flip the submenu leftward when the parent menu sits near the right edge.
+    const SUBMENU_W = 220;
+    menu.classList.toggle('flip-sub', x + rect.width + SUBMENU_W > window.innerWidth);
+}
+
+function closeChangeContextMenu() {
+    const menu = document.getElementById('changeContextMenu');
+    if (menu) menu.classList.remove('active');
+}
+
+// The change record backing the current context target (for the ✓ tick).
+function ctxTargetChange() {
+    return changes.find(c => c.id == ctxTargetChangeId) || null;
+}
+
+// Shared submenu HTML builder. rows = active lookup rows; currentName = the
+// change's current value for this field (name string) so we can tick it.
+function renderCtxLookupSubmenu(sub, rows, currentName, emptyKey, onclickFn) {
+    if (!sub) return;
+    if (!rows.length) {
+        sub.innerHTML = '<div class="ticket-context-submenu-item" style="color:#999; font-style: italic; cursor: default;">' + escapeHtml(window.t('change-management.context.' + emptyKey)) + '</div>';
+        return;
+    }
+    sub.innerHTML = rows.map(r => {
+        const isCurrent = (r.name === currentName);
+        const swatch = r.colour
+            ? `<span class="ctx-status-swatch" style="background: ${escapeHtml(r.colour)};"></span>`
+            : '<span class="ctx-status-swatch" style="background:#ddd;"></span>';
+        const safeName = String(r.name).replace(/'/g, "\\'");
+        return `<div class="ticket-context-submenu-item" onclick="${onclickFn}('${safeName}')">
+            ${swatch}<span class="ctx-status-name">${escapeHtml(r.name)}</span>${isCurrent ? '<span class="ctx-status-check">&#10003;</span>' : ''}
+        </div>`;
+    }).join('');
+}
+
+function populateContextChangeStatusSubmenu() {
+    const c = ctxTargetChange();
+    renderCtxLookupSubmenu(document.getElementById('ctxChangeStatusSubmenu'), changeStatuses, c ? c.status : '', 'no_statuses', 'setChangeStatusFromContext');
+}
+
+function populateContextChangePrioritySubmenu() {
+    const c = ctxTargetChange();
+    renderCtxLookupSubmenu(document.getElementById('ctxChangePrioritySubmenu'), changePriorities, c ? c.priority : '', 'no_priorities', 'setChangePriorityFromContext');
+}
+
+function populateContextChangeTypeSubmenu() {
+    const c = ctxTargetChange();
+    renderCtxLookupSubmenu(document.getElementById('ctxChangeTypeSubmenu'), changeTypes, c ? c.change_type : '', 'no_types', 'setChangeTypeFromContext');
+}
+
+function populateContextChangeImpactSubmenu() {
+    const c = ctxTargetChange();
+    renderCtxLookupSubmenu(document.getElementById('ctxChangeImpactSubmenu'), changeImpacts, c ? c.impact : '', 'no_impacts', 'setChangeImpactFromContext');
+}
+
+// Build the Move-to-company submenu (multi-company installs only; hidden at N=1).
+function populateContextChangeCompanySubmenu() {
+    const parent = document.getElementById('ctxChangeCompanyParent');
+    const sub = document.getElementById('ctxChangeCompanySubmenu');
+    if (!parent || !sub) return;
+    if (!isMultiCompany || !moveCompanies.length) {
+        parent.style.display = 'none';
+        return;
+    }
+    parent.style.display = '';
+    const c = ctxTargetChange();
+    const currentTid = c ? (c.tenant_id ?? null) : null;
+    sub.innerHTML = moveCompanies.map(co => {
+        const isCurrent = (currentTid != null && String(co.id) === String(currentTid));
+        return `<div class="ticket-context-submenu-item" onclick="moveChangeToCompanyFromContext(${co.id})">
+            <span class="ctx-status-swatch" style="background:#ede7f6; border:none;"></span><span class="ctx-status-name">${escapeHtml(co.name)}</span>${isCurrent ? '<span class="ctx-status-check">&#10003;</span>' : ''}
+        </div>`;
+    }).join('');
+}
+
+// Field setters. All post to save.php with {id, <field>: <name>}; the change
+// service resolves the lookup by name and applies status side-effects.
+async function saveChangeFieldFromContext(field, value, toastKey) {
+    closeChangeContextMenu();
+    const id = ctxTargetChangeId;
+    if (!id) return;
+    try {
+        const res = await fetch(API_BASE + 'save.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id, [field]: value })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || window.t('change-management.context.update_error'), 'error');
+            return;
+        }
+        showToast(window.t('change-management.context.' + toastKey), 'success');
+        loadChanges();
+    } catch (e) {
+        showToast(window.t('change-management.context.update_error'), 'error');
+    }
+}
+
+function setChangeStatusFromContext(name)   { saveChangeFieldFromContext('status', name, 'status_set'); }
+function setChangePriorityFromContext(name) { saveChangeFieldFromContext('priority', name, 'priority_set'); }
+function setChangeTypeFromContext(name)     { saveChangeFieldFromContext('change_type', name, 'type_set'); }
+function setChangeImpactFromContext(name)   { saveChangeFieldFromContext('impact', name, 'impact_set'); }
+
+// Move a change to another company. The endpoint enforces access + writes the
+// audit entry server-side, then we reload the list and toast its message.
+async function moveChangeToCompanyFromContext(tenantId) {
+    closeChangeContextMenu();
+    const id = ctxTargetChangeId;
+    if (!id) return;
+    try {
+        const res = await fetch(API_BASE + 'move_to_company.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ change_id: id, tenant_id: tenantId })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || window.t('change-management.context.move_error'), 'error');
+            return;
+        }
+        showToast(data.message || window.t('change-management.context.move_error'), 'success');
+        loadChanges();
+    } catch (e) {
+        showToast(window.t('change-management.context.move_error'), 'error');
+    }
+}
+
+// Dismiss the menu on outside-click / scroll / Escape / resize (mirrors tickets).
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('changeContextMenu');
+    if (menu && menu.classList.contains('active') && !menu.contains(e.target)) {
+        closeChangeContextMenu();
+    }
+});
+document.addEventListener('scroll', closeChangeContextMenu, true);
+window.addEventListener('resize', closeChangeContextMenu);
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeChangeContextMenu();
+});

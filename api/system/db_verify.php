@@ -940,6 +940,7 @@ $schema = [
 
     'changes' => [
         'id'                            => 'INT NOT NULL AUTO_INCREMENT',
+        'tenant_id'                     => 'INT NULL',
         'title'                         => 'VARCHAR(255) NOT NULL',
         'change_type_id'                => 'INT NULL',
         'status_id'                     => 'INT NULL',
@@ -1130,6 +1131,15 @@ $schema = [
     'problem_tickets' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
         'problem_id'       => 'INT NOT NULL',
+        'ticket_id'        => 'INT NOT NULL',
+        'created_by_id'    => 'INT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // Incidents (tickets) linked to a change — twin of problem_tickets.
+    'change_tickets' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'change_id'        => 'INT NOT NULL',
         'ticket_id'        => 'INT NOT NULL',
         'created_by_id'    => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
@@ -3400,6 +3410,7 @@ try {
         ['changes',          'fk_changes_priority',    "ALTER TABLE changes ADD CONSTRAINT fk_changes_priority FOREIGN KEY (priority_id) REFERENCES change_priorities (id)"],
         ['changes',          'fk_changes_change_type', "ALTER TABLE changes ADD CONSTRAINT fk_changes_change_type FOREIGN KEY (change_type_id) REFERENCES change_types (id)"],
         ['changes',          'fk_changes_impact',      "ALTER TABLE changes ADD CONSTRAINT fk_changes_impact FOREIGN KEY (impact_id) REFERENCES change_impacts (id)"],
+        ['changes',          'fk_changes_tenant',      "ALTER TABLE changes ADD CONSTRAINT fk_changes_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"],
         ['change_templates', 'fk_template_change_type',"ALTER TABLE change_templates ADD CONSTRAINT fk_template_change_type FOREIGN KEY (change_type_id) REFERENCES change_types (id)"],
         ['change_templates', 'fk_template_priority',   "ALTER TABLE change_templates ADD CONSTRAINT fk_template_priority FOREIGN KEY (priority_id) REFERENCES change_priorities (id)"],
         ['change_templates', 'fk_template_impact',     "ALTER TABLE change_templates ADD CONSTRAINT fk_template_impact FOREIGN KEY (impact_id) REFERENCES change_impacts (id)"],
@@ -3414,6 +3425,7 @@ try {
         ['changes', 'ix_changes_priority_id',    'priority_id'],
         ['changes', 'ix_changes_change_type_id', 'change_type_id'],
         ['changes', 'ix_changes_impact_id',      'impact_id'],
+        ['changes', 'ix_changes_tenant_id',      'tenant_id'],
     ];
     foreach ($changeIndexes as [$tbl, $name, $col]) {
         if (!$tableExists($tbl) || $idxExists($tbl, $name)) continue;
@@ -3427,6 +3439,8 @@ try {
         ['problems',        'fk_problems_tenant',   "ALTER TABLE problems ADD CONSTRAINT fk_problems_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"],
         ['problem_tickets', 'fk_ptickets_problem',  "ALTER TABLE problem_tickets ADD CONSTRAINT fk_ptickets_problem FOREIGN KEY (problem_id) REFERENCES problems (id) ON DELETE CASCADE"],
         ['problem_tickets', 'fk_ptickets_ticket',   "ALTER TABLE problem_tickets ADD CONSTRAINT fk_ptickets_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"],
+        ['change_tickets',  'fk_ctickets_change',   "ALTER TABLE change_tickets ADD CONSTRAINT fk_ctickets_change FOREIGN KEY (change_id) REFERENCES changes (id) ON DELETE CASCADE"],
+        ['change_tickets',  'fk_ctickets_ticket',   "ALTER TABLE change_tickets ADD CONSTRAINT fk_ctickets_ticket FOREIGN KEY (ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"],
         ['problem_audit',   'fk_paudit_problem',    "ALTER TABLE problem_audit ADD CONSTRAINT fk_paudit_problem FOREIGN KEY (problem_id) REFERENCES problems (id) ON DELETE CASCADE"],
         ['problem_notes',   'fk_pnotes_problem',    "ALTER TABLE problem_notes ADD CONSTRAINT fk_pnotes_problem FOREIGN KEY (problem_id) REFERENCES problems (id) ON DELETE CASCADE"],
     ];
@@ -3438,6 +3452,7 @@ try {
         ['problems', 'ix_problems_status_id',  'status_id'],
         ['problems', 'ix_problems_tenant_id',  'tenant_id'],
         ['problem_tickets', 'ix_ptickets_ticket', 'ticket_id'],
+        ['change_tickets',  'ix_ctickets_ticket', 'ticket_id'],
         ['problem_notes', 'ix_pnotes_problem', 'problem_id'],
     ];
     foreach ($problemIndexes as [$tbl, $name, $col]) {
@@ -4160,6 +4175,7 @@ try {
         ['freemail_domains', 'uq_freemail_domains_domain', '(`domain`)'],
         ['tenant_channel_senders', 'uq_tenant_channel_sender_identifier', '(`identifier`)'],
         ['problem_tickets', 'uq_problem_ticket', '(`problem_id`, `ticket_id`)'],
+        ['change_tickets',  'uq_change_ticket',  '(`change_id`, `ticket_id`)'],
         ['api_keys', 'uq_api_keys_hash', '(`key_hash`)'],
         ['api_key_rate_limits', 'uq_api_key_window', '(`api_key_id`, `window_start`)'],
         ['contract_term_values', 'uq_ctv_contract_tab', '(`contract_id`, `term_tab_id`)'],

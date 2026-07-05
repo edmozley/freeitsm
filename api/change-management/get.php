@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -22,6 +23,12 @@ if (!$changeId) {
 
 try {
     $conn = connectToDatabase();
+
+    // Company isolation: a change outside the analyst's scope is "not found".
+    if (!analystCanAccessChange($conn, (int)$_SESSION['analyst_id'], $changeId)) {
+        echo json_encode(['success' => false, 'error' => 'Change not found']);
+        exit;
+    }
 
     $sql = "SELECT
                 c.*,
@@ -76,6 +83,20 @@ try {
     $commentStmt = $conn->prepare($commentSql);
     $commentStmt->execute([$changeId]);
     $change['comments'] = $commentStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Linked incidents (tickets). Degrades to [] if the table isn't present yet.
+    $change['incidents'] = [];
+    try {
+        $incSql = "SELECT t.id, t.ticket_number, t.subject, ts.name AS status
+                   FROM change_tickets ct
+                   JOIN tickets t ON t.id = ct.ticket_id
+                   LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
+                   WHERE ct.change_id = ? AND t.deleted_datetime IS NULL
+                   ORDER BY t.created_datetime DESC";
+        $incStmt = $conn->prepare($incSql);
+        $incStmt->execute([$changeId]);
+        $change['incidents'] = $incStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) { /* change_tickets not created yet */ }
 
     // Get CAB members
     $cabSql = "SELECT m.id, m.analyst_id, m.is_required, m.vote, m.vote_comment,

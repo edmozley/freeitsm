@@ -1184,12 +1184,24 @@ return array (
         array (
           'type' => 'integer',
         ),
-        'change_number' => 
+        'change_number' =>
         array (
           'type' => 'string',
           'example' => 'CHG-0001',
         ),
-        'title' => 
+        'company' =>
+        array (
+          'type' => 'object',
+          'allOf' =>
+          array (
+            0 =>
+            array (
+              '$ref' => '#/components/schemas/NamedRef',
+            ),
+          ),
+          'nullable' => true,
+        ),
+        'title' =>
         array (
           'type' => 'string',
         ),
@@ -1685,12 +1697,24 @@ return array (
         array (
           'type' => 'integer',
         ),
-        'change_number' => 
+        'change_number' =>
         array (
           'type' => 'string',
           'example' => 'CHG-0001',
         ),
-        'title' => 
+        'company' =>
+        array (
+          'type' => 'object',
+          'allOf' =>
+          array (
+            0 =>
+            array (
+              '$ref' => '#/components/schemas/NamedRef',
+            ),
+          ),
+          'nullable' => true,
+        ),
+        'title' =>
         array (
           'type' => 'string',
         ),

@@ -171,6 +171,22 @@ try {
         $email['problems'] = $pq->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) { /* module not installed yet */ }
 
+    // Change Management: changes this incident is linked to (badge + link in the
+    // reading pane). Degrades to [] if the module's tables aren't present yet.
+    // change_number is derived (CHG-####) from the id, so only id/title/status here.
+    $email['changes'] = [];
+    try {
+        $cq = $conn->prepare(
+            "SELECT c.id, c.title, cs.name AS status
+             FROM change_tickets ct
+             JOIN changes c ON c.id = ct.change_id
+             LEFT JOIN change_statuses cs ON cs.id = c.status_id
+             WHERE ct.ticket_id = ? ORDER BY c.created_datetime DESC"
+        );
+        $cq->execute([(int) $email['ticket_id']]);
+        $email['changes'] = $cq->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) { /* module not installed yet */ }
+
     // Screen recordings attached to the ticket
     $recordings = [];
     try {

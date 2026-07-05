@@ -1351,6 +1351,7 @@ function displayEmail(email, recordings) {
             <span>${escapeHtml(t('tickets.actions.loading_attachments'))}</span>
         </div>
         ${buildProblemStrip(email)}
+        ${buildChangeStrip(email)}
         ${buildRecordingsStrip(currentRecordings)}
         <div class="action-toolbar">
             <button class="action-btn" onclick="openNoteModal()">
@@ -1510,6 +1511,114 @@ async function unlinkTicketFromProblem(problemId) {
         const res = await fetch('../api/problem-management/unlink_ticket.php', {
             method: 'POST', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ problem_id: problemId, ticket_id: currentEmail.ticket_id })
+        });
+        const data = await res.json();
+        if (data.success) { showToast('Unlinked', 'success'); selectEmail(currentEmail.id); }
+        else showToast(data.error || 'Failed', 'error');
+    } catch (e) { showToast('Failed', 'error'); }
+}
+
+// Change Management strip: shows any changes this ticket is linked to, plus a
+// "Link to change" action. Reads email.changes from get_email_detail.
+function buildChangeStrip(email) {
+    const changes = email.changes || [];
+    const badges = changes.map(c => {
+        const ref = 'CHG-' + String(c.id).padStart(4, '0');
+        return `<a class="pm-ticket-badge" href="../change-management/index.php?id=${c.id}" target="_blank" title="${escapeHtml(c.title || '')}">
+            ⚠ ${escapeHtml(ref)}${c.status ? ' · ' + escapeHtml(c.status) : ''}
+            <span class="pm-ticket-unlink" onclick="event.preventDefault();event.stopPropagation();unlinkTicketFromChange(${c.id});">✕</span>
+        </a>`;
+    }).join('');
+    return `<div class="problem-strip">
+        <span class="problem-strip-label">${escapeHtml(t('tickets.reading_pane.change_label'))}</span>
+        ${badges || `<span style="color:#9ca3af;font-size:13px;">${escapeHtml(t('tickets.reading_pane.change_unlinked'))}</span>`}
+        <button class="problem-link-btn" onclick="linkTicketToChange()">${escapeHtml(t('tickets.reading_pane.change_link'))}</button>
+    </div>`;
+}
+
+// Reading-pane "Link to change" button — opens the picker for the open ticket.
+function linkTicketToChange() {
+    if (!currentEmail) return;
+    openLinkChangeModal(currentEmail.ticket_id, currentEmail.ticket_number, currentEmail.subject || '');
+}
+
+// Right-click "Link to change…" — targets whichever ticket was right-clicked,
+// even if a different one is open in the reading pane.
+function openContextLinkChange() {
+    closeTicketContextMenu();
+    if (!ctxTargetTicketId) return;
+    const subj = (currentEmail && currentEmail.ticket_id == ctxTargetTicketId) ? (currentEmail.subject || '') : '';
+    openLinkChangeModal(ctxTargetTicketId, ctxTargetTicketRef, subj);
+}
+
+let linkChangeTicketId = null;
+let linkChangeTicketRef = '';
+let linkChangeTicketSubject = '';
+let linkChangeSearchTimer = null;
+
+function openLinkChangeModal(ticketId, ticketRef, subject) {
+    linkChangeTicketId = ticketId;
+    linkChangeTicketRef = ticketRef || ('Ticket ' + ticketId);
+    linkChangeTicketSubject = subject || '';
+    document.getElementById('linkChangeTicketRef').textContent = linkChangeTicketRef;
+    const s = document.getElementById('linkChangeSearch'); if (s) s.value = '';
+    document.getElementById('linkChangeModal').classList.add('active');
+    loadLinkChangeList();
+}
+function closeLinkChangeModal() { document.getElementById('linkChangeModal').classList.remove('active'); }
+function linkChangeSearchDebounced() { clearTimeout(linkChangeSearchTimer); linkChangeSearchTimer = setTimeout(loadLinkChangeList, 250); }
+
+async function loadLinkChangeList() {
+    const list = document.getElementById('linkChangeList');
+    const q = (document.getElementById('linkChangeSearch') || {}).value || '';
+    list.innerHTML = '<div class="lp-empty">Loading…</div>';
+    try {
+        const data = await fetch('../api/change-management/list.php?search=' + encodeURIComponent(q.trim())).then(r => r.json());
+        if (!data.success) { list.innerHTML = '<div class="lp-empty">' + escapeHtml(data.error || 'Failed to load') + '</div>'; return; }
+        const createRow = `<div class="lp-row lp-create" onclick="createChangeFromIncident()">
+            <span class="lp-plus">＋</span><span>Create a new change from this ticket</span></div>`;
+        const rows = (data.changes || []).map(c => {
+            const ref = 'CHG-' + String(c.id).padStart(4, '0');
+            return `<div class="lp-row" onclick="pickChange(${c.id})">
+            <span class="lp-num">${escapeHtml(ref)}</span>
+            <span class="lp-title">${escapeHtml(c.title || '')}</span>
+            <span class="lp-status">${escapeHtml(c.status || '')}</span></div>`;
+        }).join('');
+        list.innerHTML = createRow + (rows || '<div class="lp-empty">' + (q.trim() ? 'No matching changes.' : 'No changes yet — create one above.') + '</div>');
+    } catch (e) { list.innerHTML = '<div class="lp-empty">Failed to load changes</div>'; }
+}
+function pickChange(changeId) { doLinkTicketChange(changeId); }
+async function createChangeFromIncident() {
+    try {
+        const title = linkChangeTicketSubject || ('Change from ' + linkChangeTicketRef);
+        const cr = await fetch('../api/change-management/save.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title: title })
+        }).then(r => r.json());
+        if (!cr.success) { showToast('Could not create change: ' + (cr.error || ''), 'error'); return; }
+        doLinkTicketChange(cr.change_id);
+    } catch (e) { showToast('Failed to create change', 'error'); }
+}
+async function doLinkTicketChange(changeId) {
+    try {
+        const res = await fetch('../api/change-management/link_ticket.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ change_id: changeId, ticket_id: linkChangeTicketId })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast('Linked to change', 'success');
+            closeLinkChangeModal();
+            if (currentEmail && currentEmail.ticket_id == linkChangeTicketId) selectEmail(currentEmail.id);
+        } else showToast('Could not link: ' + (data.error || 'unknown error'), 'error');
+    } catch (e) { showToast('Failed to link change', 'error'); }
+}
+async function unlinkTicketFromChange(changeId) {
+    if (!currentEmail) return;
+    try {
+        const res = await fetch('../api/change-management/unlink_ticket.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ change_id: changeId, ticket_id: currentEmail.ticket_id })
         });
         const data = await res.json();
         if (data.success) { showToast('Unlinked', 'success'); selectEmail(currentEmail.id); }

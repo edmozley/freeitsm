@@ -22,7 +22,7 @@ $translationNamespaces = ['common', 'change-management'];
     <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.changes')); ?></title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=13">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=6">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/change-management.css?v=7">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=1"></script>
@@ -390,6 +390,49 @@ $translationNamespaces = ['common', 'change-management'];
         </div>
     </div>
 
+    <!-- Right-click context menu for change cards. Positioned in JS at cursor.
+         Reuses the tickets menu's CSS classes (inbox.css is loaded above). Each
+         submenu is (re)populated at open time from the active lookups so newly
+         added entries + the current-value tick appear without a page refresh. -->
+    <div class="ticket-context-menu" id="changeContextMenu" role="menu">
+        <div class="ticket-context-menu-header" id="changeContextMenuHeader"></div>
+        <!-- Status submenu parent — populated from active change_statuses. -->
+        <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            <span><?php echo htmlspecialchars(t('change-management.context.set_status')); ?></span>
+            <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            <div class="ticket-context-submenu" id="ctxChangeStatusSubmenu" role="menu"></div>
+        </div>
+        <!-- Priority submenu parent — populated from active change_priorities. -->
+        <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+            <span><?php echo htmlspecialchars(t('change-management.context.set_priority')); ?></span>
+            <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            <div class="ticket-context-submenu" id="ctxChangePrioritySubmenu" role="menu"></div>
+        </div>
+        <!-- Type submenu parent — populated from active change_types. -->
+        <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+            <span><?php echo htmlspecialchars(t('change-management.context.set_type')); ?></span>
+            <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            <div class="ticket-context-submenu" id="ctxChangeTypeSubmenu" role="menu"></div>
+        </div>
+        <!-- Impact submenu parent — populated from active change_impacts. -->
+        <div class="ticket-context-menu-item ticket-context-menu-parent" role="menuitem" tabindex="0">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+            <span><?php echo htmlspecialchars(t('change-management.context.set_impact')); ?></span>
+            <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            <div class="ticket-context-submenu" id="ctxChangeImpactSubmenu" role="menu"></div>
+        </div>
+        <!-- Move-to-company submenu parent. Multi-company installs only; hidden at N=1. -->
+        <div class="ticket-context-menu-item ticket-context-menu-parent" id="ctxChangeCompanyParent" role="menuitem" tabindex="0" style="display:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M19 21V9a2 2 0 0 0-2-2h-2"/><path d="M9 7h2"/><path d="M9 11h2"/><path d="M9 15h2"/></svg>
+            <span><?php echo htmlspecialchars(t('change-management.context.move_company')); ?></span>
+            <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            <div class="ticket-context-submenu" id="ctxChangeCompanySubmenu" role="menu"></div>
+        </div>
+    </div>
+
     <!-- Toast -->
     <!-- Search Modal (Draggable) -->
     <div class="search-modal" id="searchModal">
@@ -455,6 +498,23 @@ $translationNamespaces = ['common', 'change-management'];
         </div>
     </div>
 
+    <!-- Link incident picker modal. Searches list_linkable_tickets.php
+         (company-scoped, excludes already-linked); clicking a result links it. -->
+    <div class="modal" id="linkIncidentModal">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-header">
+                <h3><?php echo htmlspecialchars(t('change-management.detail.link_incident')); ?></h3>
+            </div>
+            <div class="modal-body">
+                <input type="text" class="form-input" id="linkIncidentSearch" placeholder="<?php echo htmlspecialchars(t('change-management.detail.link_search_placeholder')); ?>" oninput="linkIncidentSearchDebounced()">
+                <div id="linkIncidentList" class="link-incident-list"><div class="link-incident-empty"><?php echo htmlspecialchars(t('change-management.detail.loading')); ?></div></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLinkIncidentModal()"><?php echo htmlspecialchars(t('change-management.editor.cancel')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- html2pdf for PDF generation -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <script>
@@ -465,6 +525,6 @@ $translationNamespaces = ['common', 'change-management'];
         window.openCreateOnLoad = true;
         <?php endif; ?>
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=13"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/change-management.js?v=15"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 require_once '../../includes/services/changes.php';
 
 header('Content-Type: application/json');
@@ -49,7 +50,10 @@ try {
     if ($changeId) {
         ChangesService::updateChange($conn, $ctx, $changeId, $in);
     } else {
-        $changeId = ChangesService::createChange($conn, $ctx, $in);
+        // Stamp the new change with the analyst's active company (auth-adjacent,
+        // resolved here and passed in). Default at N=1.
+        $tenantId = getActiveTenantId($conn, $ctx->actorId);
+        $changeId = ChangesService::createChange($conn, $ctx, $tenantId, $in);
     }
     echo json_encode(['success' => true, 'change_id' => $changeId, 'message' => 'Change saved successfully']);
 } catch (ServiceError $e) {

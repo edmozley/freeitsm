@@ -220,6 +220,34 @@ function analystCanAccessProblem(PDO $conn, int $analystId, $problemId): bool {
 }
 
 /**
+ * May this analyst access this *change* (by its owning company)? The Change
+ * Management twin of analystCanAccessProblem() — same rules (single-company →
+ * always true; NULL tenant treated as Default-owned; unknown id → false;
+ * part-migrated table → true).
+ */
+function analystCanAccessChange(PDO $conn, int $analystId, $changeId): bool {
+    if (!isMultiTenant($conn)) {
+        return true;
+    }
+    $changeId = (int) $changeId;
+    if ($changeId <= 0) {
+        return false;
+    }
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM changes WHERE id = ?");
+        $stmt->execute([$changeId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
+        return analystCanAccessTenant($conn, $analystId, $tid);
+    } catch (Exception $e) {
+        return true; // tenant_id column missing on a part-migrated install.
+    }
+}
+
+/**
  * The analyst's current working company context.
  *
  * - Single-company install → always the Default tenant.
@@ -282,6 +310,28 @@ function ticketTenantFilter(PDO $conn, int $analystId, string $alias = 't'): arr
         return [" AND ($col = ? OR $col IS NULL)", [$active]];
     }
     return [" AND $col = ?", [$active]];
+}
+
+/**
+ * Generic active-company list filter for any tenant-scoped table (Change
+ * Management onward). Same semantics as ticketTenantFilter but the table alias
+ * and column are parameterised so each Phase-3 module can reuse it: scopes to
+ * the analyst's ACTIVE company, and the Default company also owns NULL-tenant
+ * rows (so nothing is hidden at N=1 or from Default). Returns ['', []] at N=1.
+ *
+ * @return array [sqlFragment, params] — append to a WHERE/ON clause, merge params.
+ */
+function activeTenantFilter(PDO $conn, int $analystId, string $alias = 't', string $col = 'tenant_id'): array {
+    if (!isMultiTenant($conn)) {
+        return ['', []];
+    }
+    $active  = getActiveTenantId($conn, $analystId);
+    $default = getDefaultTenantId($conn);
+    $qualified = $alias === '' ? $col : "$alias.$col";
+    if ($active === $default) {
+        return [" AND ($qualified = ? OR $qualified IS NULL)", [$active]];
+    }
+    return [" AND $qualified = ?", [$active]];
 }
 
 /**

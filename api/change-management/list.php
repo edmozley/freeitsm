@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -30,8 +31,14 @@ try {
     $status = $_GET['status'] ?? '';
     $search = $_GET['search'] ?? '';
 
+    // Scope to the analyst's active company (no-op at N=1; Default also owns
+    // NULL-tenant changes). The fragment is appended right after WHERE 1=1, so
+    // its params lead the bound list.
+    [$tenantSql, $tenantParams] = activeTenantFilter($conn, (int)$_SESSION['analyst_id'], 'c');
+
     $sql = "SELECT
                 c.id,
+                c.tenant_id,
                 c.title,
                 ct.name AS change_type,
                 cs.name AS status,
@@ -54,9 +61,9 @@ try {
             LEFT JOIN change_impacts    ci ON ci.id = c.impact_id
             LEFT JOIN analysts assigned ON c.assigned_to_id = assigned.id
             LEFT JOIN analysts requester ON c.requester_id = requester.id
-            WHERE 1=1";
+            WHERE 1=1" . $tenantSql;
 
-    $params = [];
+    $params = $tenantParams;
 
     if ($status) {
         $sql .= " AND cs.name = ?";
@@ -75,13 +82,14 @@ try {
     $stmt->execute($params);
     $changes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get counts per status
+    // Get counts per status (same company scope as the list)
     $countsSql = "SELECT cs.name AS status, COUNT(*) as cnt
                   FROM changes c
                   LEFT JOIN change_statuses cs ON cs.id = c.status_id
+                  WHERE 1=1" . $tenantSql . "
                   GROUP BY cs.name";
     $countsStmt = $conn->prepare($countsSql);
-    $countsStmt->execute();
+    $countsStmt->execute($tenantParams);
     $countsRaw = $countsStmt->fetchAll(PDO::FETCH_ASSOC);
 
     $counts = ['total' => 0];

@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -47,7 +48,11 @@ try {
                 OR (c.work_start_datetime < ? AND c.work_end_datetime > ?)
               )";
 
-    $params = [$startDate, $endDate, $startDate, $endDate, $startDate, $endDate];
+    // Company scope (active company; Default also owns NULL-tenant changes). No-op at N=1.
+    [$tenantSql, $tenantParams] = activeTenantFilter($conn, (int)$_SESSION['analyst_id'], 'c');
+    $sql .= $tenantSql;
+
+    $params = array_merge([$startDate, $endDate, $startDate, $endDate, $startDate, $endDate], $tenantParams);
 
     // Filter by statuses if specified
     if ($statuses && count($statuses) > 0) {

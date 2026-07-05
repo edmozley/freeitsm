@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -61,6 +62,11 @@ $relativePath = $changeId . '/' . $fileName;
 
 try {
     $conn = connectToDatabase();
+
+    if (!analystCanAccessChange($conn, $analystId, $changeId)) {
+        echo json_encode(['success' => false, 'error' => 'Change not found']);
+        exit;
+    }
 
     $sql = "INSERT INTO change_attachments (change_id, file_name, file_path, file_size, file_type, uploaded_by_id, uploaded_datetime)
             VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())";

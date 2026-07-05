@@ -20,9 +20,11 @@
  *   - comments are append + delete (no edit), always internal — like the UI.
  *   - DELETE removes the change, its attachment files, and cascades children.
  *
- * Changes are NOT company-scoped (no tenant_id — matches the UI), so a key's
- * company scope does not restrict these routes. CHG-#### references are
- * derived from the id, exactly as the UI renders them.
+ * Changes ARE company-scoped (changes.tenant_id, Phase 3), so the key's company
+ * scope restricts every list + by-id read/write (apiKeyTenantFilter on the list,
+ * apiKeyCanAccessTenantRow via apiLoadChange). A change outside scope is a 404;
+ * NULL tenant_id normalises to the Default company. Invisible at N=1. CHG-####
+ * references are derived from the id, exactly as the UI renders them.
  *
  * The WRITES (create / update / delete / comments / CAB roster + vote) are
  * delegated to ChangesService — the same rules the UI's
@@ -52,7 +54,8 @@ function apiChangeSelect(): string {
                    rq.full_name AS requester_name,
                    asg.full_name AS assigned_to_name,
                    ap.full_name AS approver_name,
-                   cb.full_name AS created_by_name
+                   cb.full_name AS created_by_name,
+                   tn.name AS company_name
             FROM changes c
             LEFT JOIN change_types      ct  ON ct.id = c.change_type_id
             LEFT JOIN change_statuses   cs  ON cs.id = c.status_id
@@ -62,7 +65,8 @@ function apiChangeSelect(): string {
             LEFT JOIN analysts          rq  ON rq.id = c.requester_id
             LEFT JOIN analysts          asg ON asg.id = c.assigned_to_id
             LEFT JOIN analysts          ap  ON ap.id = c.approver_id
-            LEFT JOIN analysts          cb  ON cb.id = c.created_by_id";
+            LEFT JOIN analysts          cb  ON cb.id = c.created_by_id
+            LEFT JOIN tenants           tn  ON tn.id = c.tenant_id";
 }
 
 /** Summary shape (lists). Detail adds the longtext bodies, PIR, attachments, links. */
@@ -79,6 +83,7 @@ function apiSerializeChange(array $r): array {
     return [
         'id'            => (int)$r['id'],
         'change_number' => apiChangeNumber((int)$r['id']),
+        'company'       => $rel($r['tenant_id'], $r['company_name']),
         'title'         => $r['title'],
         'change_type'   => $rel($r['change_type_id'], $r['type_name']),
         'status'        => $rel($r['status_id'], $r['status_name'], ['is_closed' => (bool)($r['status_is_closed'] ?? false)]),
@@ -111,7 +116,11 @@ function apiSerializeChange(array $r): array {
     ];
 }
 
-function apiLoadChange(PDO $conn, int $changeId): array {
+function apiLoadChange(PDO $conn, array $apiKey, int $changeId): array {
+    // Company isolation: a change outside the key's scope is "not found".
+    if (!apiKeyCanAccessTenantRow($conn, $apiKey, 'changes', $changeId)) {
+        apiError(404, 'not_found', 'Change not found.');
+    }
     $stmt = $conn->prepare(apiChangeSelect() . " WHERE c.id = ?");
     $stmt->execute([$changeId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -132,6 +141,20 @@ function apiLoadChange(PDO $conn, int $changeId): array {
 function apiChangesList(PDO $conn, array $apiKey, array $params, array $body): void {
     $where = ['1=1'];
     $args  = [];
+
+    // Optional explicit company filter (must be within the key's scope).
+    if (isset($_GET['company_id']) && $_GET['company_id'] !== '') {
+        $cid = (int)$_GET['company_id'];
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $cid)) {
+            apiError(403, 'forbidden', 'This API key is not scoped to that company.');
+        }
+        if ($cid === getDefaultTenantId($conn)) {
+            $where[] = '(c.tenant_id = ? OR c.tenant_id IS NULL)';
+        } else {
+            $where[] = 'c.tenant_id = ?';
+        }
+        $args[] = $cid;
+    }
 
     $state = strtolower(trim($_GET['state'] ?? 'all'));
     if ($state === 'open')   $where[] = "(cs.is_closed IS NULL OR cs.is_closed = 0)";
@@ -206,7 +229,11 @@ function apiChangesList(PDO $conn, array $apiKey, array $params, array $body): v
     $orderSql = $sortable[$sortKey] . ($desc ? ' DESC' : ' ASC');
 
     [$page, $perPage, $offset] = apiPagination();
-    $whereSql = implode(' AND ', $where);
+
+    // Company scope (the key's accessible companies; Default also owns NULL). No-op at N=1.
+    [$scopeSql, $scopeArgs] = apiKeyTenantFilter($conn, $apiKey, 'c');
+    $whereSql = implode(' AND ', $where) . $scopeSql;
+    $args = array_merge($args, $scopeArgs);
 
     $countStmt = $conn->prepare(
         "SELECT COUNT(*) FROM changes c
@@ -235,7 +262,7 @@ function apiChangesList(PDO $conn, array $apiKey, array $params, array $body): v
 // GET /changes/{id} — detail incl. bodies, PIR, attachments, linked problems
 // ---------------------------------------------------------------------------
 function apiChangesGet(PDO $conn, array $apiKey, array $params, array $body): void {
-    $r = apiLoadChange($conn, $params[0]);
+    $r = apiLoadChange($conn, $apiKey, $params[0]);
     $change = apiSerializeChange($r);
 
     $change['description']        = $r['description'];
@@ -295,10 +322,23 @@ function apiChangesGet(PDO $conn, array $apiKey, array $params, array $body): vo
 // POST /changes
 // ---------------------------------------------------------------------------
 function apiChangesCreate(PDO $conn, array $apiKey, array $params, array $body): void {
+    // Company is auth-adjacent (like the acting analyst): an explicit company_id
+    // (validated + within the key's scope) or the key's default company.
+    if (isset($body['company_id']) && $body['company_id'] !== '' && $body['company_id'] !== null) {
+        $tenantId = (int)$body['company_id'];
+        if (!getTenantById($conn, $tenantId)) {
+            apiError(422, 'invalid_field', "Unknown company id: {$tenantId}");
+        }
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $tenantId)) {
+            apiError(403, 'forbidden', 'This API key is not scoped to that company.');
+        }
+    } else {
+        $tenantId = apiKeyDefaultTenantId($conn, $apiKey);
+    }
     try {
-        $changeId = ChangesService::createChange($conn, ActorContext::fromApiKey($apiKey), $body);
+        $changeId = ChangesService::createChange($conn, ActorContext::fromApiKey($apiKey), $tenantId, $body);
     } catch (ServiceError $e) { apiFailFromService($e); }
-    apiRespond(apiSerializeChange(apiLoadChange($conn, $changeId)), 201);
+    apiRespond(apiSerializeChange(apiLoadChange($conn, $apiKey, $changeId)), 201);
 }
 
 // ---------------------------------------------------------------------------
@@ -308,7 +348,7 @@ function apiChangesUpdate(PDO $conn, array $apiKey, array $params, array $body):
     try {
         ChangesService::updateChange($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
     } catch (ServiceError $e) { apiFailFromService($e); }
-    apiRespond(apiSerializeChange(apiLoadChange($conn, $params[0])));
+    apiRespond(apiSerializeChange(apiLoadChange($conn, $apiKey, $params[0])));
 }
 
 // ---------------------------------------------------------------------------
@@ -325,7 +365,7 @@ function apiChangesDelete(PDO $conn, array $apiKey, array $params, array $body):
 // Comments — append + delete (no edit), always internal, like the UI
 // ---------------------------------------------------------------------------
 function apiChangeCommentsList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadChange($conn, $params[0]);
+    apiLoadChange($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
         "SELECT cm.id, cm.comment_text, cm.created_datetime, cm.analyst_id, a.full_name AS analyst_name
          FROM change_comments cm LEFT JOIN analysts a ON a.id = cm.analyst_id
@@ -360,7 +400,7 @@ function apiChangeCommentsDelete(PDO $conn, array $apiKey, array $params, array 
 // GET /changes/{id}/audit
 // ---------------------------------------------------------------------------
 function apiChangeAuditList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadChange($conn, $params[0]);
+    apiLoadChange($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
         "SELECT au.id, au.action_type, au.field_name, au.old_value, au.new_value, au.created_datetime,
                 au.analyst_id, a.full_name AS analyst_name
@@ -385,7 +425,7 @@ function apiChangeAuditList(PDO $conn, array $apiKey, array $params, array $body
 // CAB — roster + votes
 // ---------------------------------------------------------------------------
 function apiChangeCabGet(PDO $conn, array $apiKey, array $params, array $body): void {
-    $change = apiLoadChange($conn, $params[0]);
+    $change = apiLoadChange($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
         "SELECT m.analyst_id, a.full_name, m.is_required, m.vote, m.vote_comment, m.vote_datetime
          FROM change_cab_members m LEFT JOIN analysts a ON a.id = m.analyst_id

@@ -273,6 +273,10 @@ $translationNamespaces = ['common', 'tickets'];
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <span><?php echo htmlspecialchars(t('tickets.context.link_problem')); ?></span>
         </button>
+        <button class="ticket-context-menu-item" type="button" onclick="openContextLinkChange()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            <span><?php echo htmlspecialchars(t('tickets.context.link_change')); ?></span>
+        </button>
         <button class="ticket-context-menu-item" type="button" onclick="openContextRecordTime()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <span><?php echo htmlspecialchars(t('tickets.context.record_time')); ?></span>
@@ -391,6 +395,22 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
+    <!-- Link-to-change modal (used by the right-click menu and the reading-pane button) -->
+    <div class="modal" id="linkChangeModal">
+        <div class="modal-content" style="max-width: 620px;">
+            <div class="modal-header">Link <span id="linkChangeTicketRef"></span> to a change</div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <input type="text" class="form-input" id="linkChangeSearch" placeholder="Search changes by reference or title…" autocomplete="off" oninput="linkChangeSearchDebounced()">
+                </div>
+                <div class="lp-list" id="linkChangeList"><div class="lp-empty">Loading…</div></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeLinkChangeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Context menu — Record Time modal -->
     <div class="modal" id="ctxTimeModal">
         <div class="modal-content" style="max-width: 480px;">
@@ -421,7 +441,7 @@ $translationNamespaces = ['common', 'tickets'];
         window.API_BASE = '../api/tickets/';
         window.CURRENT_ANALYST_ID = <?php echo (int)($_SESSION['analyst_id'] ?? 0); ?>;
     </script>
-    <script src="../assets/js/inbox.js?v=51"></script>
+    <script src="../assets/js/inbox.js?v=52"></script>
     <script>
     // Auto-check mailboxes every 60 seconds
     (function() {

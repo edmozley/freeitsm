@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -22,6 +23,11 @@ if (!$changeId) {
 
 try {
     $conn = connectToDatabase();
+
+    if (!analystCanAccessChange($conn, (int)$_SESSION['analyst_id'], $changeId)) {
+        echo json_encode(['success' => false, 'error' => 'Change not found']);
+        exit;
+    }
 
     $sql = "SELECT m.id, m.change_id, m.analyst_id, m.is_required, m.vote,
                    m.vote_comment, m.vote_datetime, m.added_by_id, m.added_datetime,

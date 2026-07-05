@@ -141,6 +141,11 @@ return [
         'problem_label'    => 'Problem:',
         'problem_unlinked' => 'not linked',
         'problem_link'     => 'Link to problem',
+
+        // Change strip (grey bar linking a ticket to a Change record)
+        'change_label'    => 'Change:',
+        'change_unlinked' => 'not linked',
+        'change_link'     => 'Link to change',
     ],
 
     // Right-click (context) menu on a ticket — top-level items live as static
@@ -149,6 +154,7 @@ return [
     'context' => [
         'link_cmdb'        => 'Link CMDB object…',
         'link_problem'     => 'Link to problem…',
+        'link_change'      => 'Link to change…',
         'record_time'      => 'Record time…',
         'set_status'       => 'Set status',
         'set_priority'     => 'Set priority',

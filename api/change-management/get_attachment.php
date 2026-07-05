@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 if (!isset($_SESSION['analyst_id'])) {
     http_response_code(403);
@@ -23,12 +24,19 @@ if (!$attachmentId) {
 try {
     $conn = connectToDatabase();
 
-    $sql = "SELECT file_name, file_path, file_type FROM change_attachments WHERE id = ?";
+    $sql = "SELECT change_id, file_name, file_path, file_type FROM change_attachments WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$attachmentId]);
     $attachment = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$attachment) {
+        http_response_code(404);
+        echo 'Attachment not found';
+        exit;
+    }
+
+    // Company isolation: don't serve a file on a change outside the analyst's scope.
+    if (!analystCanAccessChange($conn, (int)$_SESSION['analyst_id'], (int)$attachment['change_id'])) {
         http_response_code(404);
         echo 'Attachment not found';
         exit;

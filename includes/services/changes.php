@@ -25,11 +25,17 @@
  * (update_field.php) is just updateChange() with one key, and delete_comment.php
  * deletes unscoped (no change id) via the optional $changeId argument.
  *
- * Changes are NOT company-scoped (no tenant_id — matches the UI + API), so
- * companyScope is not consulted.
+ * TENANCY (Phase 3) — changes are company-scoped like problems. Every by-id
+ * write goes through loadJoined(), which gates on the actor's company scope
+ * (ctx->companyScope; null = all companies) and 404s a change outside scope
+ * (NULL tenant_id normalises to the Default company). The "acting company" for
+ * a create is resolved by the adapter (the API's explicit company_id / key
+ * default, the UI's active company) and passed in as $tenantId, like actorId.
+ * All no-ops at N=1 (isMultiTenant() false).
  */
 
 require_once __DIR__ . '/../service_context.php';
+require_once __DIR__ . '/../tenancy.php';
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class ChangesService
@@ -38,8 +44,11 @@ class ChangesService
     //  Changes
     // ======================================================================
 
-    /** Create a change. Returns the new id. */
-    public static function createChange(PDO $conn, ActorContext $ctx, array $in): int
+    /**
+     * Create a change in the given (adapter-resolved) company. Returns the new id.
+     * The adapter has already resolved + scope-checked $tenantId.
+     */
+    public static function createChange(PDO $conn, ActorContext $ctx, int $tenantId, array $in): int
     {
         $title = trim((string)($in['title'] ?? ''));
         if ($title === '') {
@@ -102,17 +111,17 @@ class ChangesService
 
         $ins = $conn->prepare(
             "INSERT INTO changes (
-                title, change_type_id, status_id, priority_id, impact_id, category, category_id,
+                tenant_id, title, change_type_id, status_id, priority_id, impact_id, category, category_id,
                 requester_id, assigned_to_id, approver_id,
                 work_start_datetime, work_end_datetime, outage_start_datetime, outage_end_datetime,
                 description, reason_for_change, risk_evaluation, test_plan, rollback_plan,
                 post_implementation_review, risk_likelihood, risk_impact_score, risk_score, risk_level,
                 pir_actual_start, pir_actual_end, pir_lessons_learned, pir_follow_up,
                 cab_required, cab_approval_type, created_by_id, created_datetime, modified_datetime
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
         );
         $ins->execute([
-            $title, $type[0], $status[0], $priority[0], $impact[0], $text('category'), $categoryId,
+            $tenantId, $title, $type[0], $status[0], $priority[0], $impact[0], $text('category'), $categoryId,
             $people['requester_id'], $people['assigned_to_id'], $people['approver_id'],
             $dates['work_start_datetime'], $dates['work_end_datetime'],
             $dates['outage_start_datetime'], $dates['outage_end_datetime'],
@@ -137,6 +146,7 @@ class ChangesService
                     'type_id'        => $type[0],
                     'risk'           => $riskLevel,
                     'assigned_to_id' => $people['assigned_to_id'],
+                    'company_id'     => $tenantId,
                 ],
             ]);
         } catch (Exception $wfEx) {
@@ -154,7 +164,7 @@ class ChangesService
      */
     public static function updateChange(PDO $conn, ActorContext $ctx, int $changeId, array $in): void
     {
-        $current = self::loadJoined($conn, $changeId);   // 404 if gone
+        $current = self::loadJoined($conn, $ctx, $changeId);   // 404 if gone
         if (!$in) {
             throw new ServiceError('validation', 'missing_field', 'No fields to update.');
         }
@@ -354,7 +364,7 @@ class ChangesService
 
         // change.approved on a genuine manual transition into Approved.
         if ($newStatusName === 'Approved' && !$wasApproved) {
-            $fresh = self::loadJoined($conn, $changeId);
+            $fresh = self::loadJoined($conn, $ctx, $changeId);
             self::approvedDispatch($changeId, $fresh['title'], $fresh['risk_level'],
                 $fresh['approver_id'] !== null ? (int)$fresh['approver_id'] : null);
         }
@@ -363,7 +373,7 @@ class ChangesService
     /** Delete a change permanently: attachment files + rows, cascade children. */
     public static function deleteChange(PDO $conn, ActorContext $ctx, int $changeId): void
     {
-        $row = self::loadJoined($conn, $changeId);   // 404 if gone
+        $row = self::loadJoined($conn, $ctx, $changeId);   // 404 if gone
 
         $att = $conn->prepare("SELECT file_path FROM change_attachments WHERE change_id = ?");
         $att->execute([$changeId]);
@@ -389,7 +399,7 @@ class ChangesService
     /** Append an internal comment to a change. Returns the comment id. */
     public static function createComment(PDO $conn, ActorContext $ctx, int $changeId, array $in): int
     {
-        self::loadJoined($conn, $changeId);   // 404 if gone
+        self::loadJoined($conn, $ctx, $changeId);   // 404 if gone
         $text = trim((string)($in['text'] ?? ''));
         if ($text === '') {
             throw new ServiceError('validation', 'missing_field', "'text' is required.");
@@ -413,13 +423,20 @@ class ChangesService
      */
     public static function deleteComment(PDO $conn, ActorContext $ctx, int $commentId, ?int $changeId = null): void
     {
-        if ($changeId !== null) {
-            $stmt = $conn->prepare("DELETE FROM change_comments WHERE id = ? AND change_id = ?");
-            $stmt->execute([$commentId, $changeId]);
-        } else {
-            $stmt = $conn->prepare("DELETE FROM change_comments WHERE id = ?");
-            $stmt->execute([$commentId]);
+        // Resolve the owning change so company scope is enforced even when the
+        // caller only has the comment id (the UI's delete_comment.php).
+        if ($changeId === null) {
+            $lk = $conn->prepare("SELECT change_id FROM change_comments WHERE id = ?");
+            $lk->execute([$commentId]);
+            $cid = $lk->fetchColumn();
+            if ($cid === false) {
+                throw new ServiceError('not_found', 'not_found', 'Comment not found.');
+            }
+            $changeId = (int)$cid;
         }
+        self::loadJoined($conn, $ctx, $changeId);   // 404 if the change is gone / out of scope
+        $stmt = $conn->prepare("DELETE FROM change_comments WHERE id = ? AND change_id = ?");
+        $stmt->execute([$commentId, $changeId]);
         if ($stmt->rowCount() === 0) {
             throw new ServiceError('not_found', 'not_found', 'Comment not found.');
         }
@@ -432,7 +449,7 @@ class ChangesService
     /** Replace the CAB roster (diff-sync add/remove/change-required + audit). */
     public static function saveCab(PDO $conn, ActorContext $ctx, int $changeId, $members): void
     {
-        self::loadJoined($conn, $changeId);   // 404 if gone
+        self::loadJoined($conn, $ctx, $changeId);   // 404 if gone
         $actorId = $ctx->actorId;
 
         if (!is_array($members)) {
@@ -492,7 +509,7 @@ class ChangesService
      */
     public static function voteCab(PDO $conn, ActorContext $ctx, int $changeId, array $in): array
     {
-        self::loadJoined($conn, $changeId);   // 404 if gone
+        self::loadJoined($conn, $ctx, $changeId);   // 404 if gone
         $actorId = $ctx->actorId;
 
         $vote = $in['vote'] ?? '';
@@ -585,11 +602,106 @@ class ChangesService
     }
 
     // ======================================================================
+    //  Incident (ticket) linking  — twin of ProblemsService::linkTicket
+    // ======================================================================
+
+    /** Link an incident (ticket) to a change. Returns [change_id, ticket_id, ticket_number, linked]. */
+    public static function linkTicket(PDO $conn, ActorContext $ctx, int $changeId, array $in): array
+    {
+        $change = self::loadJoined($conn, $ctx, $changeId);   // 404 if gone / out of scope
+        $actorId = $ctx->actorId;
+
+        $ticketId = isset($in['ticket_id']) ? (int)$in['ticket_id'] : 0;
+        if ($ticketId <= 0) {
+            throw new ServiceError('validation', 'missing_field', "'ticket_id' is required.");
+        }
+        // The actor must be able to see the ticket too (its company scope).
+        if (!self::canAccessTenantRow($conn, $ctx, 'tickets', $ticketId)) {
+            throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+        }
+        $tStmt = $conn->prepare("SELECT ticket_number, tenant_id FROM tickets WHERE id = ? AND deleted_datetime IS NULL");
+        $tStmt->execute([$ticketId]);
+        $ticket = $tStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$ticket) {
+            throw new ServiceError('not_found', 'not_found', 'Ticket not found.');
+        }
+
+        // Same-company rule: NULL normalises to Default.
+        if (isMultiTenant($conn)) {
+            $default = getDefaultTenantId($conn);
+            $cTid = $change['tenant_id'] === null ? $default : (int)$change['tenant_id'];
+            $tTid = $ticket['tenant_id'] === null ? $default : (int)$ticket['tenant_id'];
+            if ($cTid !== $tTid) {
+                throw new ServiceError('validation', 'invalid_field', 'That incident belongs to a different company than this change.');
+            }
+        }
+
+        $dup = $conn->prepare("SELECT id FROM change_tickets WHERE change_id = ? AND ticket_id = ?");
+        $dup->execute([$changeId, $ticketId]);
+        if ($dup->fetchColumn()) {
+            throw new ServiceError('conflict', 'conflict', 'This incident is already linked to this change.');
+        }
+
+        $conn->prepare("INSERT INTO change_tickets (change_id, ticket_id, created_by_id, created_datetime) VALUES (?, ?, ?, UTC_TIMESTAMP())")
+             ->execute([$changeId, $ticketId, $actorId]);
+        self::auditWrite($conn, $changeId, $actorId, 'field_change', 'Linked incident', null, $ticket['ticket_number']);
+        $conn->prepare("UPDATE changes SET modified_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$changeId]);
+
+        return ['change_id' => $changeId, 'ticket_id' => $ticketId, 'ticket_number' => $ticket['ticket_number'], 'linked' => true];
+    }
+
+    /** Unlink an incident from a change. 404 if not linked. Audited. */
+    public static function unlinkTicket(PDO $conn, ActorContext $ctx, int $changeId, int $ticketId): void
+    {
+        self::loadJoined($conn, $ctx, $changeId);   // 404 if gone / out of scope
+        // Ticket number for the audit trail (before the link is removed).
+        $tn = $conn->prepare("SELECT ticket_number FROM tickets WHERE id = ?");
+        $tn->execute([$ticketId]);
+        $ticketNumber = $tn->fetchColumn() ?: ('#' . $ticketId);
+
+        $stmt = $conn->prepare("DELETE FROM change_tickets WHERE change_id = ? AND ticket_id = ?");
+        $stmt->execute([$changeId, $ticketId]);
+        if ($stmt->rowCount() === 0) {
+            throw new ServiceError('not_found', 'not_found', 'Link not found.');
+        }
+        self::auditWrite($conn, $changeId, $ctx->actorId, 'field_change', 'Linked incident', $ticketNumber, null);
+        $conn->prepare("UPDATE changes SET modified_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$changeId]);
+    }
+
+    // ======================================================================
     //  Internals
     // ======================================================================
 
-    /** Load the joined change row (with lookup + people display names); 404 if unknown. */
-    private static function loadJoined(PDO $conn, int $changeId): array
+    /**
+     * May the actor access this row of a tenant-scoped table (by its company)?
+     * Generic mirror of ProblemsService::canAccessTenantRow. $table is a
+     * developer literal, never user input.
+     */
+    private static function canAccessTenantRow(PDO $conn, ActorContext $ctx, string $table, int $rowId): bool
+    {
+        if ($rowId <= 0) {
+            return false;
+        }
+        $stmt = $conn->prepare("SELECT tenant_id FROM {$table} WHERE id = ?");
+        $stmt->execute([$rowId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+        if ($ctx->companyScope === null || !isMultiTenant($conn)) {
+            return true;
+        }
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int)$row['tenant_id'];
+        return in_array($tid, $ctx->companyScope, true);
+    }
+
+    /**
+     * Load the joined change row (with lookup + people display names), enforcing
+     * the actor's company scope; 404 if the change is unknown OR outside scope
+     * (indistinguishable, by design). NULL tenant_id normalises to the Default
+     * company. No-op at N=1.
+     */
+    private static function loadJoined(PDO $conn, ActorContext $ctx, int $changeId): array
     {
         $stmt = $conn->prepare(
             "SELECT c.*,
@@ -616,6 +728,12 @@ class ChangesService
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         if (!$row) {
             throw new ServiceError('not_found', 'not_found', 'Change not found.');
+        }
+        if ($ctx->companyScope !== null && isMultiTenant($conn)) {
+            $tid = $row['tenant_id'] === null ? getDefaultTenantId($conn) : (int)$row['tenant_id'];
+            if (!in_array($tid, $ctx->companyScope, true)) {
+                throw new ServiceError('not_found', 'not_found', 'Change not found.');
+            }
         }
         return $row;
     }

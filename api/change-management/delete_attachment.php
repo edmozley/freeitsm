@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -24,13 +25,19 @@ if (!$attachmentId) {
 try {
     $conn = connectToDatabase();
 
-    // Get file path before deleting
-    $sql = "SELECT file_path FROM change_attachments WHERE id = ?";
+    // Get file path (+ owning change for the scope check) before deleting
+    $sql = "SELECT change_id, file_path FROM change_attachments WHERE id = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$attachmentId]);
     $attachment = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$attachment) {
+        echo json_encode(['success' => false, 'error' => 'Attachment not found']);
+        exit;
+    }
+
+    // Company isolation: can't delete an attachment on an out-of-scope change.
+    if (!analystCanAccessChange($conn, (int)$_SESSION['analyst_id'], (int)$attachment['change_id'])) {
         echo json_encode(['success' => false, 'error' => 'Attachment not found']);
         exit;
     }
