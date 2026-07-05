@@ -106,6 +106,20 @@ class TasksService
         if ($tagIds !== null) {
             self::syncTags($conn, $taskId, $tagIds);
         }
+
+        try {
+            WorkflowEngine::dispatch('task.created', [
+                'task' => [
+                    'id'          => $taskId,
+                    'title'       => $title,
+                    'status_id'   => $status[0],
+                    'priority_id' => $priority[0],
+                    'assignee_id' => $analystId,
+                ],
+            ]);
+        } catch (Exception $wfEx) {
+            error_log('Workflow dispatch error in task service (created): ' . $wfEx->getMessage());
+        }
         return $taskId;
     }
 

@@ -26,6 +26,7 @@
 
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../tenancy.php';
+require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class ProblemsService
 {
@@ -82,6 +83,23 @@ class ProblemsService
 
         self::auditWrite($conn, $problemId, $actorId, 'created', null, null, null);
 
+        try {
+            WorkflowEngine::dispatch('problem.created', [
+                'problem' => [
+                    'id'                  => $problemId,
+                    'problem_number'      => 'PRB-' . str_pad((string)$problemId, 5, '0', STR_PAD_LEFT),
+                    'title'               => $title,
+                    'status_id'           => $statusRes[0],
+                    'priority_id'         => $priorityRes[0],
+                    'assigned_analyst_id' => $analystId,
+                    'is_known_error'      => $isKnownError,
+                    'company_id'          => $tenantId,
+                ],
+            ]);
+        } catch (Exception $wfEx) {
+            error_log('Workflow dispatch error in problem service (created): ' . $wfEx->getMessage());
+        }
+
         return $problemId;
     }
 
@@ -120,6 +138,7 @@ class ProblemsService
 
         // Status — closed_datetime transitions mirror save.php.
         $oldIsClosed = (int)($current['status_is_closed'] ?? 0);
+        $statusChangedTo = null;
         $statusRes = self::resolveStatus($conn, $in);
         if ($statusRes !== null && $statusRes[0] !== (int)$current['status_id']) {
             [$newStatusId, $newStatusName, $newIsClosed] = $statusRes;
@@ -128,6 +147,7 @@ class ProblemsService
             if ($newIsClosed && !$oldIsClosed) $updates[] = 'closed_datetime = UTC_TIMESTAMP()';
             if (!$newIsClosed && $oldIsClosed) $updates[] = 'closed_datetime = NULL';
             $audits[] = ['status', $current['status_name'], $newStatusName];
+            $statusChangedTo = $newStatusId;
         }
 
         $priorityRes = self::resolvePriority($conn, $in);
@@ -183,6 +203,24 @@ class ProblemsService
 
         foreach ($audits as [$field, $old, $new]) {
             self::auditWrite($conn, $problemId, $actorId, 'modified', $field, $old, $new);
+        }
+
+        if ($statusChangedTo !== null) {
+            try {
+                WorkflowEngine::dispatch('problem.status_changed', [
+                    'problem' => [
+                        'id'                  => $problemId,
+                        'problem_number'      => $current['problem_number'],
+                        'title'               => array_key_exists('title', $in) ? trim((string)$in['title']) : $current['title'],
+                        'status_id'           => $statusChangedTo,
+                        'priority_id'         => $current['priority_id'] !== null ? (int)$current['priority_id'] : null,
+                        'assigned_analyst_id' => $current['assigned_analyst_id'] !== null ? (int)$current['assigned_analyst_id'] : null,
+                        'company_id'          => $current['tenant_id'] !== null ? (int)$current['tenant_id'] : null,
+                    ],
+                ]);
+            } catch (Exception $wfEx) {
+                error_log('Workflow dispatch error in problem service (status_changed): ' . $wfEx->getMessage());
+            }
         }
     }
 

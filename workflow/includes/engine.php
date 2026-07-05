@@ -95,8 +95,16 @@ class WorkflowEngine
             'ticket.priority_changed'  => 'A ticket\'s priority changes',
             'ticket.assigned'          => 'A ticket is assigned to an analyst',
             'form.submitted'           => 'A form submission is received',
+            'task.created'             => 'A task is created',
             'task.completed'           => 'A task is marked complete',
+            'change.created'           => 'A change request is created',
             'change.approved'          => 'A change request is approved',
+            'problem.created'          => 'A problem is created',
+            'problem.status_changed'   => 'A problem\'s status changes',
+            'asset.assigned'           => 'An asset is assigned to a user',
+            'asset.unassigned'         => 'An asset is unassigned from a user',
+            'cmdb.object.created'      => 'A CMDB object is created',
+            'knowledge.published'      => 'A knowledge article is published',
         ];
     }
 
@@ -125,11 +133,38 @@ class WorkflowEngine
             'form.submitted' => [
                 'form.id', 'form.name', 'submission.id', 'submission.email',
             ],
+            'task.created' => [
+                'task.id', 'task.title', 'task.status_id', 'task.priority_id', 'task.assignee_id',
+            ],
             'task.completed' => [
                 'task.id', 'task.title', 'task.priority_id', 'task.assignee_id',
             ],
+            'change.created' => [
+                'change.id', 'change.title', 'change.status_id', 'change.priority_id',
+                'change.type_id', 'change.risk', 'change.assigned_to_id',
+            ],
             'change.approved' => [
                 'change.id', 'change.title', 'change.risk', 'approver.id',
+            ],
+            'problem.created' => [
+                'problem.id', 'problem.problem_number', 'problem.title', 'problem.status_id',
+                'problem.priority_id', 'problem.assigned_analyst_id', 'problem.is_known_error', 'problem.company_id',
+            ],
+            'problem.status_changed' => [
+                'problem.id', 'problem.problem_number', 'problem.title', 'problem.status_id',
+                'problem.priority_id', 'problem.assigned_analyst_id', 'problem.company_id',
+            ],
+            'asset.assigned' => [
+                'asset.id', 'asset.hostname', 'user.id', 'user.name',
+            ],
+            'asset.unassigned' => [
+                'asset.id', 'asset.hostname', 'user.id', 'user.name',
+            ],
+            'cmdb.object.created' => [
+                'object.id', 'object.name', 'object.class_id', 'object.is_planned',
+            ],
+            'knowledge.published' => [
+                'article.id', 'article.title',
             ],
         ];
         return $byTrigger[$trigger] ?? [];
@@ -182,6 +217,14 @@ class WorkflowEngine
         'task.assignee_id'           => ['table' => 'analysts',          'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
         'form.id'                    => ['table' => 'forms',             'label_col' => 'name',      'order' => 'name'],
         'approver.id'                => ['table' => 'analysts',          'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
+        'change.status_id'           => ['table' => 'change_statuses',   'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
+        'change.priority_id'         => ['table' => 'change_priorities', 'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
+        'change.type_id'             => ['table' => 'change_types',      'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
+        'change.assigned_to_id'      => ['table' => 'analysts',          'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
+        'problem.status_id'          => ['table' => 'problem_statuses',  'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
+        'problem.priority_id'        => ['table' => 'problem_priorities','label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
+        'problem.assigned_analyst_id' => ['table' => 'analysts',         'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
+        'object.class_id'            => ['table' => 'cmdb_classes',      'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'name'],
     ];
 
     /**
@@ -207,6 +250,20 @@ class WorkflowEngine
         'change.id'              => 'numeric',
         'change.title'           => 'text',
         'change.risk'            => 'text',
+        'problem.id'             => 'numeric',
+        'problem.problem_number' => 'text',
+        'problem.title'          => 'text',
+        'problem.is_known_error' => 'numeric',
+        'problem.company_id'     => 'numeric',
+        'asset.id'               => 'numeric',
+        'asset.hostname'         => 'text',
+        'user.id'                => 'numeric',
+        'user.name'              => 'text',
+        'object.id'              => 'numeric',
+        'object.name'            => 'text',
+        'object.is_planned'      => 'numeric',
+        'article.id'             => 'numeric',
+        'article.title'          => 'text',
     ];
 
     /**

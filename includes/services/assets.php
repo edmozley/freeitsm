@@ -31,6 +31,7 @@
  */
 
 require_once __DIR__ . '/../service_context.php';
+require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class AssetsService
 {
@@ -257,6 +258,8 @@ class AssetsService
         }
         self::auditWrite($conn, $assetId, $actorId, 'assigned_user', $oldName, $userName);
 
+        self::dispatch('asset.assigned', $conn, $assetId, $userId, $userName);
+
         return [
             'asset_id'             => $assetId,
             'user_id'              => $userId,
@@ -301,7 +304,23 @@ class AssetsService
             self::auditWrite($conn, $assetId, $actorId, 'assigned_user', $row['display_name'], null);
         }
 
+        self::dispatch('asset.unassigned', $conn, $assetId, $userId, $row['display_name']);
+
         return ['asset_id' => $assetId, 'user_id' => $userId];
+    }
+
+    /** Fire an asset.* workflow event (best-effort; the engine swallows its own errors). */
+    private static function dispatch(string $event, PDO $conn, int $assetId, int $userId, ?string $userName): void
+    {
+        try {
+            $hostname = $conn->query("SELECT hostname FROM assets WHERE id = " . (int)$assetId)->fetchColumn();
+            WorkflowEngine::dispatch($event, [
+                'asset' => ['id' => $assetId, 'hostname' => $hostname !== false ? $hostname : null],
+                'user'  => ['id' => $userId, 'name' => $userName],
+            ]);
+        } catch (Exception $wfEx) {
+            error_log('Workflow dispatch error in asset service (' . $event . '): ' . $wfEx->getMessage());
+        }
     }
 
     // ======================================================================

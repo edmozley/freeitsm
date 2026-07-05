@@ -28,6 +28,7 @@
  */
 
 require_once __DIR__ . '/../service_context.php';
+require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class CmdbService
 {
@@ -91,6 +92,15 @@ class CmdbService
             if ($conn->inTransaction()) $conn->rollBack();
             throw $e;
         }
+
+        try {
+            WorkflowEngine::dispatch('cmdb.object.created', [
+                'object' => ['id' => $objectId, 'name' => $name, 'class_id' => $classId, 'is_planned' => $isPlanned],
+            ]);
+        } catch (Exception $wfEx) {
+            error_log('Workflow dispatch error in cmdb service (object.created): ' . $wfEx->getMessage());
+        }
+
         return $objectId;
     }
 

@@ -33,6 +33,7 @@
 
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../encryption.php';   // decryptValue() for the embedding step (safe: only reads the key file when actually called)
+require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class KnowledgeService
 {
@@ -142,6 +143,15 @@ class KnowledgeService
             throw $e;
         }
         $embGen = self::updateEmbedding($conn, $articleId, $title, $bodyHtml);
+
+        try {
+            WorkflowEngine::dispatch('knowledge.published', [
+                'article' => ['id' => $articleId, 'title' => $title],
+            ]);
+        } catch (Exception $wfEx) {
+            error_log('Workflow dispatch error in knowledge service (published): ' . $wfEx->getMessage());
+        }
+
         return ['id' => $articleId, 'created' => true, 'embedding_generated' => $embGen];
     }
 

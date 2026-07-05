@@ -127,6 +127,22 @@ class ChangesService
 
         self::auditWrite($conn, $changeId, $actorId, 'status_change', 'Status', null, 'Created as ' . ($status[1] ?? 'Draft'));
 
+        try {
+            WorkflowEngine::dispatch('change.created', [
+                'change' => [
+                    'id'             => $changeId,
+                    'title'          => $title,
+                    'status_id'      => $status[0],
+                    'priority_id'    => $priority[0],
+                    'type_id'        => $type[0],
+                    'risk'           => $riskLevel,
+                    'assigned_to_id' => $people['assigned_to_id'],
+                ],
+            ]);
+        } catch (Exception $wfEx) {
+            error_log('Workflow dispatch error in change service (created): ' . $wfEx->getMessage());
+        }
+
         return $changeId;
     }
 
