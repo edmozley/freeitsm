@@ -1,7 +1,9 @@
 <?php
+/** Thin UI adapter over ContractsService — delete a supplier (nullify referrers first). */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/services/contracts.php';
 
 header('Content-Type: application/json');
 
@@ -11,24 +13,9 @@ if (!isset($_SESSION['analyst_id'])) {
 }
 
 try {
-    $data = json_decode(file_get_contents('php://input'), true);
-    $id = $data['id'] ?? null;
-
-    if (!$id) {
-        throw new Exception('ID is required');
-    }
-
     $conn = connectToDatabase();
-
-    // Nullify foreign key references
-    $stmt = $conn->prepare("UPDATE contacts SET supplier_id = NULL WHERE supplier_id = ?");
-    $stmt->execute([$id]);
-    $stmt = $conn->prepare("UPDATE contracts SET supplier_id = NULL WHERE supplier_id = ?");
-    $stmt->execute([$id]);
-
-    $stmt = $conn->prepare("DELETE FROM suppliers WHERE id = ?");
-    $stmt->execute([$id]);
-
+    $data = json_decode(file_get_contents('php://input'), true) ?: [];
+    ContractsService::deleteSupplier($conn, ActorContext::fromSession($conn), (int)($data['id'] ?? 0));
     echo json_encode(['success' => true]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
