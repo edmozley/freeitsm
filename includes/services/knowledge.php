@@ -16,18 +16,23 @@
  * always created *published* — the product has no draft workflow. Bodies are
  * TinyMCE HTML stored verbatim (no sanitisation exists anywhere).
  *
- * ⚙️ Side effect: after a save, the OpenAI search embedding is regenerated
- * (best-effort, after commit, silent on any failure) so AI chat / vector search
- * keep working. It no-ops unless `decryptValue()` is loaded AND a
- * `knowledge_openai_api_key` is configured — so the UI (which loads
- * includes/encryption.php) regenerates, and the key-less API path stays a no-op,
- * exactly as before.
+ * ⚙️ Side effect: after a save, the OpenAI search embedding is regenerated so
+ * AI chat / vector search keep working. It is deliberately BEST-EFFORT — it runs
+ * *after* the article is committed, is wrapped in try/catch, and any failure
+ * (no key configured, an invalid key, a missing key file, an OpenAI error/
+ * timeout) is swallowed. The article is always saved regardless; the embedding
+ * just doesn't get updated. This service requires encryption.php so the step
+ * works on BOTH the UI and the API (the API path historically lacked
+ * decryptValue() and silently skipped embeddings — #727 fixed that so
+ * API-written articles are searchable too). No key configured → still a clean
+ * no-op.
  *
  * Canonical input keys: title, body_html, tags[], owner_id, next_review_date,
  * save_as_version. The UI adapter maps its `body` to `body_html`.
  */
 
 require_once __DIR__ . '/../service_context.php';
+require_once __DIR__ . '/../encryption.php';   // decryptValue() for the embedding step (safe: only reads the key file when actually called)
 
 class KnowledgeService
 {
