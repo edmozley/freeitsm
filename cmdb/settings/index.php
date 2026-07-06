@@ -32,7 +32,7 @@ $translationNamespaces = ['common', 'cmdb'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
-    <script src="../../assets/js/i18n.js"></script>
+    <script src="../../assets/js/i18n.js?v=2"></script>
     <style>
         body { background: var(--app-bg,#f5f5f5); --accent: var(--cmdb-accent); }
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; margin: 24px 0; padding: 0 20px; }
@@ -345,21 +345,18 @@ $translationNamespaces = ['common', 'cmdb'];
                         <input type="text" id="classKey" maxlength="100" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.class_key_placeholder')); ?>">
                         <small class="key-hint"><?php echo htmlspecialchars(t('cmdb.settings.class_key_help')); ?></small>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="classDisplayOrder"><?php echo htmlspecialchars(t('cmdb.settings.class_display_order')); ?></label>
-                            <input type="number" id="classDisplayOrder" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <label class="toggle-label">
-                                <span class="toggle-switch">
-                                    <input type="checkbox" id="classIsActive" checked>
-                                    <span class="toggle-slider"></span>
-                                </span>
-                                <?php echo htmlspecialchars(t('cmdb.settings.class_active')); ?>
-                            </label>
-                        </div>
+                    <div class="form-group">
+                        <label for="classDisplayOrder"><?php echo htmlspecialchars(t('cmdb.settings.class_display_order')); ?></label>
+                        <input type="number" id="classDisplayOrder" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <span class="toggle-switch">
+                                <input type="checkbox" id="classIsActive" checked>
+                                <span class="toggle-slider"></span>
+                            </span>
+                            <?php echo htmlspecialchars(t('cmdb.settings.class_active')); ?>
+                        </label>
                     </div>
                 </form>
             </div>
@@ -491,21 +488,18 @@ $translationNamespaces = ['common', 'cmdb'];
                         <label for="relTypeDescription"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_description')); ?></label>
                         <textarea id="relTypeDescription" rows="2" maxlength="500" placeholder="<?php echo htmlspecialchars(t('cmdb.settings.rel_type_description_placeholder')); ?>"></textarea>
                     </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="relTypeDisplayOrder"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_display_order')); ?></label>
-                            <input type="number" id="relTypeDisplayOrder" value="0">
-                        </div>
-                        <div class="form-group">
-                            <label>&nbsp;</label>
-                            <label class="toggle-label">
-                                <span class="toggle-switch">
-                                    <input type="checkbox" id="relTypeIsActive" checked>
-                                    <span class="toggle-slider"></span>
-                                </span>
-                                <?php echo htmlspecialchars(t('cmdb.settings.rel_type_active')); ?>
-                            </label>
-                        </div>
+                    <div class="form-group">
+                        <label for="relTypeDisplayOrder"><?php echo htmlspecialchars(t('cmdb.settings.rel_type_display_order')); ?></label>
+                        <input type="number" id="relTypeDisplayOrder" value="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="toggle-label">
+                            <span class="toggle-switch">
+                                <input type="checkbox" id="relTypeIsActive" checked>
+                                <span class="toggle-slider"></span>
+                            </span>
+                            <?php echo htmlspecialchars(t('cmdb.settings.rel_type_active')); ?>
+                        </label>
                     </div>
                 </form>
             </div>

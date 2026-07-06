@@ -15,6 +15,14 @@
     'use strict';
 
     function interpolate(s, params) {
+        // A translation authored with a literal "\n" (single-quoted PHP strings
+        // don't turn \n into a real newline) should still render as a line break.
+        // Consumers like the confirm dialog honour real newlines via
+        // white-space:pre-wrap, so normalise the two-character sequence here and
+        // both quote styles behave identically across every module and locale.
+        if (typeof s === 'string' && s.indexOf('\\n') !== -1) {
+            s = s.replace(/\\n/g, '\n');
+        }
         if (!params || typeof params !== 'object') return s;
         return s.replace(/\{(\w+)\}/g, function (_, k) {
             return Object.prototype.hasOwnProperty.call(params, k) ? String(params[k]) : '{' + k + '}';

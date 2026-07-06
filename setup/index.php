@@ -134,7 +134,7 @@ $translationNamespaces = ['common', 'setup'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('setup.title')); ?></title>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../assets/js/i18n.js"></script>
+    <script src="../assets/js/i18n.js?v=2"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 

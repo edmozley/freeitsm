@@ -298,7 +298,7 @@ if (isset($_SESSION['analyst_id'])) {
     </div>
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../../assets/js/i18n.js"></script>
+    <script src="../../assets/js/i18n.js?v=2"></script>
     <script>
         // Initial preference values pre-fetched server-side. The page
         // hydrates UI controls from these instead of localStorage.

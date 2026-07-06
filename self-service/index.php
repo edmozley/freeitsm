@@ -341,7 +341,7 @@ $translationNamespaces = ['common', 'self-service'];
     </div>
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../assets/js/i18n.js"></script>
+    <script src="../assets/js/i18n.js?v=2"></script>
     <script>
         const API_BASE = '../api/self-service/';
 
