@@ -45,7 +45,7 @@
                 <input type="text" class="cmdb-opt-val" value="${escapeHtmlAttr(value)}" placeholder="${escapeHtmlAttr(window.t('cmdb.options_editor.value_placeholder'))}" maxlength="255">
                 <label class="cmdb-opt-colour-wrap" title="${escapeHtmlAttr(window.t('cmdb.options_editor.colour_title'))}">
                     <input type="color" class="cmdb-opt-colour" value="${colourValue}" data-has-colour="${hasColour ? '1' : '0'}">
-                    <span class="cmdb-opt-colour-swatch" style="background:${hasColour ? colourValue : 'transparent'}; border-color:${hasColour ? colourValue : '#d1d5db'};"></span>
+                    <span class="cmdb-opt-colour-swatch" style="${hasColour ? `background:${colourValue}; border-color:${colourValue};` : ''}"></span>
                 </label>
                 <button type="button" class="cmdb-opt-clear-colour" title="${escapeHtmlAttr(window.t('cmdb.options_editor.remove_colour'))}">×</button>
                 <button type="button" class="cmdb-opt-up" title="${escapeHtmlAttr(window.t('cmdb.options_editor.move_up'))}">↑</button>
@@ -68,11 +68,13 @@
             }
             .cmdb-opt-val {
                 padding: 7px 10px;
-                border: 1px solid #d1d5db;
+                background: var(--surface, #ffffff);
+                color: var(--text, #1f2937);
+                border: 1px solid var(--border, #d1d5db);
                 border-radius: 4px;
                 font-size: 13px;
             }
-            .cmdb-opt-val:focus { outline: none; border-color: #be185d; }
+            .cmdb-opt-val:focus { outline: none; border-color: var(--cmdb-accent, #be185d); }
             .cmdb-opt-colour-wrap {
                 position: relative;
                 display: inline-flex;
@@ -82,22 +84,27 @@
             .cmdb-opt-colour {
                 position: absolute;
                 opacity: 0;
-                width: 26px;
-                height: 26px;
+                width: 28px;
+                height: 28px;
                 cursor: pointer;
             }
             .cmdb-opt-colour-swatch {
                 display: inline-block;
-                width: 26px;
-                height: 26px;
+                width: 28px;
+                height: 28px;
                 border-radius: 4px;
-                border: 1px solid #d1d5db;
-                background: transparent;
+                border: 1px solid var(--border, #d1d5db);
+                /* "No colour" state: a diagonal slash on the surface colour, so an
+                   unset swatch reads as empty rather than as a picked black — this
+                   is what looked almost-black on dark before. A chosen colour
+                   overrides this via an inline background (set in renderRow/oninput). */
+                background-color: var(--surface, #ffffff);
+                background-image: linear-gradient(to top right, transparent calc(50% - 1px), var(--border, #d1d5db) 50%, transparent calc(50% + 1px));
             }
             .cmdb-opt-clear-colour, .cmdb-opt-up, .cmdb-opt-down, .cmdb-opt-del {
-                background: white;
-                border: 1px solid #e5e7eb;
-                color: #6b7280;
+                background: var(--surface, #ffffff);
+                border: 1px solid var(--border, #e5e7eb);
+                color: var(--text-muted, #6b7280);
                 width: 28px;
                 height: 28px;
                 border-radius: 4px;
@@ -106,12 +113,13 @@
                 line-height: 1;
                 padding: 0;
             }
-            .cmdb-opt-clear-colour:hover { color: #b91c1c; border-color: #fecaca; }
-            .cmdb-opt-up:hover, .cmdb-opt-down:hover { color: #be185d; border-color: #fbcfe8; }
-            .cmdb-opt-del:hover { color: #b91c1c; border-color: #fecaca; }
+            .cmdb-opt-clear-colour:hover, .cmdb-opt-del:hover { color: var(--danger-text, #b91c1c); border-color: #fecaca; }
+            .cmdb-opt-up:hover, .cmdb-opt-down:hover { color: var(--cmdb-accent, #be185d); border-color: #fbcfe8; }
+            [data-theme-mode="dark"] .cmdb-opt-clear-colour:hover, [data-theme-mode="dark"] .cmdb-opt-del:hover { border-color: rgba(248,113,113,0.5); }
+            [data-theme-mode="dark"] .cmdb-opt-up:hover, [data-theme-mode="dark"] .cmdb-opt-down:hover { border-color: rgba(190,24,93,0.5); }
             .cmdb-opt-add {
                 background: #fdf2f8;
-                color: #be185d;
+                color: var(--cmdb-accent, #be185d);
                 border: 1px dashed #fbcfe8;
                 padding: 7px 12px;
                 border-radius: 4px;
@@ -122,6 +130,8 @@
                 width: 100%;
             }
             .cmdb-opt-add:hover { background: #fce7f3; border-style: solid; }
+            [data-theme-mode="dark"] .cmdb-opt-add { background: rgba(190,24,93,0.12); border-color: rgba(190,24,93,0.45); }
+            [data-theme-mode="dark"] .cmdb-opt-add:hover { background: rgba(190,24,93,0.2); }
         `;
         document.head.appendChild(style);
     }
@@ -168,8 +178,9 @@
                 const colourInput = row.querySelector('.cmdb-opt-colour');
                 const swatch = row.querySelector('.cmdb-opt-colour-swatch');
                 colourInput.dataset.hasColour = '0';
-                swatch.style.background = 'transparent';
-                swatch.style.borderColor = '#d1d5db';
+                // Clear the inline styles so the CSS "no colour" slash returns.
+                swatch.style.background = '';
+                swatch.style.borderColor = '';
             };
         });
     }
