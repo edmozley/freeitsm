@@ -803,7 +803,7 @@ $translationNamespaces = ['common', 'cmdb'];
     <script>
         window.OBJECT_ID = <?php echo isset($_GET['id']) ? (int)$_GET['id'] : 0; ?>;
     </script>
-    <script src="options-editor.js?v=2"></script>
+    <script src="options-editor.js?v=3"></script>
     <script src="object.js?v=6"></script>
 </body>
 </html>

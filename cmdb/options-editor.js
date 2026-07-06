@@ -45,7 +45,7 @@
                 <input type="text" class="cmdb-opt-val" value="${escapeHtmlAttr(value)}" placeholder="${escapeHtmlAttr(window.t('cmdb.options_editor.value_placeholder'))}" maxlength="255">
                 <label class="cmdb-opt-colour-wrap" title="${escapeHtmlAttr(window.t('cmdb.options_editor.colour_title'))}">
                     <input type="color" class="cmdb-opt-colour" value="${colourValue}" data-has-colour="${hasColour ? '1' : '0'}">
-                    <span class="cmdb-opt-colour-swatch" style="${hasColour ? `background:${colourValue}; border-color:${colourValue};` : ''}"></span>
+                    <span class="cmdb-opt-colour-swatch" style="${hasColour ? `background:${colourValue};` : ''}"></span>
                 </label>
                 <button type="button" class="cmdb-opt-clear-colour" title="${escapeHtmlAttr(window.t('cmdb.options_editor.remove_colour'))}">×</button>
                 <button type="button" class="cmdb-opt-up" title="${escapeHtmlAttr(window.t('cmdb.options_editor.move_up'))}">↑</button>
@@ -67,7 +67,9 @@
                 align-items: center;
             }
             .cmdb-opt-val {
-                padding: 7px 10px;
+                box-sizing: border-box;
+                height: 30px;
+                padding: 6px 10px;
                 background: var(--surface, #ffffff);
                 color: var(--text, #1f2937);
                 border: 1px solid var(--border, #d1d5db);
@@ -83,30 +85,36 @@
             }
             .cmdb-opt-colour {
                 position: absolute;
+                inset: 0;
                 opacity: 0;
-                width: 28px;
-                height: 28px;
+                width: 30px;
+                height: 30px;
                 cursor: pointer;
             }
             .cmdb-opt-colour-swatch {
+                box-sizing: border-box;
                 display: inline-block;
-                width: 28px;
-                height: 28px;
+                width: 30px;
+                height: 30px;
                 border-radius: 4px;
+                /* Always a neutral frame; the chosen colour is shown as the FILL
+                   only (set in renderRow/oninput), so a coloured chip and an empty
+                   one share the exact same footprint and line up in the column. */
                 border: 1px solid var(--border, #d1d5db);
                 /* "No colour" state: a diagonal slash on the surface colour, so an
                    unset swatch reads as empty rather than as a picked black — this
                    is what looked almost-black on dark before. A chosen colour
-                   overrides this via an inline background (set in renderRow/oninput). */
+                   overrides the surface fill via an inline background. */
                 background-color: var(--surface, #ffffff);
                 background-image: linear-gradient(to top right, transparent calc(50% - 1px), var(--border, #d1d5db) 50%, transparent calc(50% + 1px));
             }
             .cmdb-opt-clear-colour, .cmdb-opt-up, .cmdb-opt-down, .cmdb-opt-del {
+                box-sizing: border-box;
                 background: var(--surface, #ffffff);
                 border: 1px solid var(--border, #e5e7eb);
                 color: var(--text-muted, #6b7280);
-                width: 28px;
-                height: 28px;
+                width: 30px;
+                height: 30px;
                 border-radius: 4px;
                 cursor: pointer;
                 font-size: 13px;
@@ -167,7 +175,6 @@
                 input.dataset.hasColour = '1';
                 const swatch = input.parentElement.querySelector('.cmdb-opt-colour-swatch');
                 swatch.style.background = input.value;
-                swatch.style.borderColor = input.value;
             };
         });
         // Clear colour — back to "no colour set"
