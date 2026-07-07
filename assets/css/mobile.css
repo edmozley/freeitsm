@@ -1,0 +1,166 @@
+/* ============================================================================
+   mobile.css  —  Mobile-friendly overrides for the on-the-go analyst.
+
+   HARD RULE: every rule in this file lives inside a `@media (max-width: 768px)`
+   block. Above that breakpoint these rules do not exist, so the desktop render
+   is byte-identical — the same safety-net approach that let dark mode roll out
+   without touching light mode. New mobile-only affordances (back chevron, etc.)
+   ship `display:none` by default and are only revealed here.
+
+   Load this AFTER the module's own stylesheet so its @media rules win on ties.
+   Rollout is gradual/per-page (like theme.css): a page opts in by linking it.
+   ========================================================================== */
+
+@media (max-width: 768px) {
+
+    /* ====================================================================
+       LAYER 1 — App shell: top bar + module drawer + view strip
+       ==================================================================== */
+
+    /* The header is a flex row of three children:
+         .waffle-menu-container | .header-nav | .header-right
+       On mobile we wrap it: waffle + account share row 1 (space-between),
+       and the view nav drops to a full-width, horizontally-scrollable row 2. */
+    .header {
+        flex-wrap: wrap;
+        padding: 8px 10px;
+        gap: 6px 8px;
+    }
+    .waffle-menu-container { order: 1; min-width: 0; }
+    .header-right          { order: 2; }
+    .header-nav {
+        order: 3;
+        flex-basis: 100%;
+        width: 100%;
+        margin-left: 0;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;          /* Firefox */
+        padding-bottom: 2px;
+    }
+    .header-nav::-webkit-scrollbar { display: none; }   /* WebKit/Blink */
+
+    .nav-btn { flex-shrink: 0; padding: 7px 11px; font-size: 12px; }
+    .nav-btn svg { width: 18px; height: 18px; }
+
+    .waffle-btn { margin-right: 8px; }
+    .module-title {
+        font-size: 15px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Waffle panel: absolute dropdown → fixed, full-height slide-in drawer.
+       Kept in the DOM and slid in via transform; visibility:hidden while closed
+       so an off-screen panel can't be tapped or add horizontal scroll. */
+    .waffle-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        margin-top: 0;
+        height: 100vh;
+        height: 100dvh;                 /* accounts for mobile browser chrome */
+        width: 84vw;
+        max-width: 340px;
+        min-width: 0;
+        border-radius: 0;
+        padding: 16px;
+        overflow-y: auto;
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.35);
+        display: block;
+        visibility: hidden;
+        transform: translateX(-100%);
+        transition: transform 0.22s ease, visibility 0.22s;
+        z-index: 3000;
+    }
+    .waffle-panel.active {
+        visibility: visible;
+        transform: translateX(0);
+    }
+    .waffle-modules { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+    /* Dim backdrop behind the drawer (transparent click-catcher on desktop). */
+    .waffle-overlay { z-index: 2999; }
+    .waffle-overlay.active { background: rgba(0, 0, 0, 0.4); }
+
+    /* The user/account dropdown can overflow a narrow screen — clamp it. */
+    .user-menu {
+        right: 8px;
+        max-width: calc(100vw - 16px);
+    }
+
+    /* ====================================================================
+       LAYER 2 — Inbox master-detail: folders / list / conversation stack
+       (Outlook-style — one pane on screen at a time, slide between them.)
+       State lives in body[data-mobile-pane="list|folders|reading"], set by
+       mobile.js. On desktop that attribute is absent AND these rules don't
+       apply, so the desktop 3-pane split is entirely untouched.
+       ==================================================================== */
+
+    /* Column layout so the (taller, wrapped) header + sub-bar take their natural
+       height and the pane area flexes to fill the rest — no fragile calc(). */
+    body {
+        display: flex;
+        flex-direction: column;
+        height: 100dvh;                 /* dvh copes with mobile browser chrome */
+    }
+    .header { flex-shrink: 0; }
+
+    .main-container {
+        height: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* The three panes stack and fill the container; one shows at a time. */
+    .folder-container,
+    .email-list-container,
+    .reading-pane {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        max-width: none;
+        border-right: none;
+        transition: transform 0.25s ease;
+    }
+
+    /* Default = list. Folders parked off-left, reading parked off-right. */
+    .folder-container     { transform: translateX(-100%); z-index: 2; }
+    .email-list-container { transform: translateX(0);     z-index: 1; }
+    .reading-pane         { transform: translateX(100%);  z-index: 3; }
+
+    body[data-mobile-pane="folders"] .folder-container     { transform: translateX(0); }
+    body[data-mobile-pane="folders"] .email-list-container { transform: translateX(100%); }
+
+    body[data-mobile-pane="reading"] .email-list-container { transform: translateX(-100%); }
+    body[data-mobile-pane="reading"] .reading-pane         { transform: translateX(0); }
+
+    /* ---- Mobile sub-bar (Back / Folders) — injected by mobile.js ---- */
+    .mobile-subbar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 12px;
+        background: var(--surface, #fff);
+        border-bottom: 1px solid var(--border, #ddd);
+        flex-shrink: 0;
+    }
+    .mobile-subbar button {
+        background: none;
+        border: none;
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--accent, #0078d4);
+        cursor: pointer;
+        padding: 4px 6px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    /* Which control shows depends on the current pane. */
+    body[data-mobile-pane="list"] .msb-back { display: none; }
+    body:not([data-mobile-pane="list"]) .msb-folders { display: none; }
+}
