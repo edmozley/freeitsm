@@ -187,4 +187,22 @@
        1fr 1fr grid) stack to one column on a phone. !important beats the
        element's inline grid-template-columns. */
     .modal-content .form-row { grid-template-columns: 1fr !important; }
+
+    /* ====================================================================
+       LAYER 4 — Reading-pane density on mobile.
+       The ticket detail sections use a roomy 30px side padding for desktop;
+       on a phone that squeezes content into a narrow middle. Trim just the
+       horizontal padding (vertical rhythm preserved) and ease the big subject.
+       ==================================================================== */
+    .email-header,
+    .ticket-properties-header,
+    .ticket-toolbar,
+    .action-toolbar,
+    .problem-strip,
+    .attachment-info-bar,
+    .recordings-strip {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+    .email-subject-line { font-size: 20px; }
 }
