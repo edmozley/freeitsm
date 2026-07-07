@@ -11,6 +11,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -20,7 +21,7 @@ $path_prefix  = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -29,20 +30,22 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
+        body { --accent: var(--con-accent, #f59e0b); }
+        .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
-        .breadcrumb a { color: #666; text-decoration: none; }
-        .breadcrumb a:hover { color: #f59e0b; }
-        .breadcrumb span.sep { margin: 0 6px; color: #ccc; }
+        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
+        .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
 
         .page-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: #222; }
+        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -51,33 +54,33 @@ $translationNamespaces = ['common', 'contracts'];
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
         }
-        .btn-primary { background: #f59e0b; color: white; }
-        .btn-primary:hover:not(:disabled) { background: #d97706; }
+        .btn-primary { background: var(--con-accent, #f59e0b); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--con-accent-hover, #d97706); }
         .btn-primary:disabled { background: #fcd34d; cursor: not-allowed; }
-        .btn-secondary { background: white; color: #333; border-color: #ddd; }
-        .btn-secondary:hover { background: #f5f5f5; }
-        .btn-danger { background: white; color: #ef4444; border-color: #fca5a5; }
+        .btn-secondary { background: var(--surface, white); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
+        .btn-danger { background: var(--surface, white); color: #ef4444; border-color: #fca5a5; }
         .btn-danger:hover { background: #fef2f2; }
 
         .empty-card {
-            background: white; border-radius: 10px; padding: 40px 24px;
+            background: var(--surface, white); border-radius: 10px; padding: 40px 24px;
             text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .empty-card p { color: #666; margin: 6px 0; }
+        .empty-card p { color: var(--text-muted, #666); margin: 6px 0; }
 
         .supplier-list {
-            background: white; border-radius: 10px; overflow: hidden;
+            background: var(--surface, white); border-radius: 10px; overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .supplier-row {
-            padding: 14px 22px; border-bottom: 1px solid #f0f0f0;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #f0f0f0);
             display: grid; grid-template-columns: 1fr 160px 1fr auto;
             gap: 18px; align-items: start;
         }
         .supplier-row:last-child { border-bottom: none; }
-        .supplier-name { font-size: 15px; font-weight: 600; color: #222; }
+        .supplier-name { font-size: 15px; font-weight: 600; color: var(--text, #222); }
         .supplier-name .trading {
-            font-size: 12px; color: #888; font-weight: 400; margin-top: 2px;
+            font-size: 12px; color: var(--text-dim, #888); font-weight: 400; margin-top: 2px;
         }
         .supplier-name .status-pill {
             display: inline-block; padding: 1px 7px; border-radius: 9px;
@@ -87,23 +90,23 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .supplier-name .status-pill.prospective { background: #fef3c7; color: #92400e; }
         .supplier-name .invited-at {
-            font-size: 11px; color: #aaa; margin-top: 4px;
+            font-size: 11px; color: var(--text-faint, #aaa); margin-top: 4px;
         }
 
         .supplier-field label {
-            display: block; font-size: 11px; font-weight: 600; color: #555;
+            display: block; font-size: 11px; font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
             margin-bottom: 3px;
         }
         .supplier-field input[type="date"],
         .supplier-field textarea {
             width: 100%; padding: 6px 10px; font-size: 13px;
-            border: 1px solid #d1d5db; border-radius: 5px;
+            border: 1px solid var(--border, #d1d5db); border-radius: 5px;
             font-family: inherit;
         }
         .supplier-field textarea { resize: vertical; min-height: 38px; }
         .supplier-field .save-status {
-            font-size: 11px; color: #888; margin-top: 4px; min-height: 14px;
+            font-size: 11px; color: var(--text-dim, #888); margin-top: 4px; min-height: 14px;
         }
         .supplier-field .save-status.saving { color: #b45309; }
         .supplier-field .save-status.saved  { color: #047857; }
@@ -119,55 +122,58 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; align-items: center; justify-content: center; z-index: 1000;
         }
         .modal-shell {
-            background: white; border-radius: 12px; width: 600px; max-width: 92vw;
+            background: var(--surface, white); border-radius: 12px; width: 600px; max-width: 92vw;
             max-height: 86vh; display: flex; flex-direction: column;
             box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
         }
         .modal-header {
-            padding: 14px 22px; border-bottom: 1px solid #eee;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #222; }
+        .modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222); }
         .modal-header .close-x {
-            background: none; border: none; font-size: 22px; color: #888; cursor: pointer; padding: 0; line-height: 1;
+            background: none; border: none; font-size: 22px; color: var(--text-dim, #888); cursor: pointer; padding: 0; line-height: 1;
         }
         .modal-body { padding: 18px 22px; overflow-y: auto; flex: 1; }
         .modal-footer {
-            padding: 12px 22px; border-top: 1px solid #eee;
+            padding: 12px 22px; border-top: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: flex-end; gap: 8px;
         }
 
-        .modal-tabs { display: flex; gap: 0; border-bottom: 1px solid #eee; }
+        .modal-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border-soft, #eee); }
         .modal-tab {
             flex: 1; padding: 10px 14px; font-size: 13px; font-weight: 500;
-            color: #555; background: white; border: none; cursor: pointer;
+            color: var(--text-muted, #555); background: var(--surface, white); border: none; cursor: pointer;
             border-bottom: 2px solid transparent;
             font-family: inherit;
         }
-        .modal-tab:hover { background: #fafafa; }
-        .modal-tab.active { color: #f59e0b; border-bottom-color: #f59e0b; font-weight: 600; }
+        .modal-tab:hover { background: var(--surface-2, #fafafa); }
+        .modal-tab.active { color: var(--con-accent, #f59e0b); border-bottom-color: var(--con-accent, #f59e0b); font-weight: 600; }
 
         .form-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
         .form-row label {
-            font-size: 12px; font-weight: 600; color: #555;
+            font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
         }
-        .form-row .help { font-size: 12px; color: #888; }
+        .form-row .help { font-size: 12px; color: var(--text-dim, #888); }
         .form-row input[type="text"],
         .form-row input[type="date"],
         .form-row select,
         .form-row textarea {
             padding: 8px 10px; font-size: 14px; font-family: inherit;
-            border: 1px solid #d1d5db; border-radius: 6px;
-            color: #222; background: white;
+            border: 1px solid var(--border, #d1d5db); border-radius: 6px;
+            color: var(--text, #222); background: var(--surface, white);
         }
         .form-row textarea { resize: vertical; min-height: 60px; line-height: 1.5; }
         .form-row-grid {
             display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
         }
 
-        .loading, .error-state { text-align: center; padding: 40px; color: #999; }
+        .loading, .error-state { text-align: center; padding: 40px; color: var(--text-dim, #999); }
         .error-state { color: #d13438; }
+
+        /* Dark-mode wash for the danger-button hover (pale-tint override) */
+        [data-theme-mode="dark"] .btn-danger:hover { background: #3a1e1e; }
     </style>
 </head>
 <body>
@@ -241,7 +247,7 @@ $translationNamespaces = ['common', 'contracts'];
                         <label for="newComments"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.comments_optional')); ?></label>
                         <textarea id="newComments" rows="2" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.suppliers.comments_ph')); ?>"></textarea>
                     </div>
-                    <hr style="border:none; border-top:1px solid #eee; margin:14px 0;">
+                    <hr style="border:none; border-top:1px solid var(--border-soft, #eee); margin:14px 0;">
                     <div class="form-row-grid">
                         <div class="form-row">
                             <label for="newDemoDate"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.demo_date_optional')); ?></label>
@@ -252,7 +258,7 @@ $translationNamespaces = ['common', 'contracts'];
                         <label for="newNotes"><?php echo htmlspecialchars(t('contracts.rfp.suppliers.rfp_notes_optional')); ?></label>
                         <textarea id="newNotes" rows="2"></textarea>
                     </div>
-                    <div class="help" style="background:#fef3c7;border:1px solid #fde68a;border-radius:6px;padding:8px 12px;color:#92400e;font-size:12px;">
+                    <div class="help" style="background:var(--con-accent-soft, #fef3c7);border:1px solid #fde68a;border-radius:6px;padding:8px 12px;color:var(--con-accent-hover, #92400e);font-size:12px;">
                         <?php echo htmlspecialchars(t('contracts.rfp.suppliers.prospective_help')); ?>
                     </div>
                 </div>

@@ -27,7 +27,7 @@ $translationNamespaces = ['common', 'calendar'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('calendar.settings.title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=15">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=37">
     <style>
         /* Module accent — drives toggle, focus rings, button colours.

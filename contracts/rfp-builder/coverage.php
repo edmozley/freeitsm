@@ -15,6 +15,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -24,7 +25,7 @@ $path_prefix  = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -33,20 +34,22 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
+        body { --accent: var(--con-accent, #f59e0b); }
+        .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
-        .breadcrumb a { color: #666; text-decoration: none; }
-        .breadcrumb a:hover { color: #f59e0b; }
-        .breadcrumb span.sep { margin: 0 6px; color: #ccc; }
+        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
+        .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
 
         .page-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: #222; }
+        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -55,30 +58,30 @@ $translationNamespaces = ['common', 'contracts'];
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
         }
-        .btn-secondary { background: white; color: #333; border-color: #ddd; }
-        .btn-secondary:hover { background: #f5f5f5; }
+        .btn-secondary { background: var(--surface, #fff); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
 
         .stats-strip {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
             margin-bottom: 18px;
         }
         .stat-card {
-            background: white; border-radius: 8px; padding: 14px 18px;
+            background: var(--surface, #fff); border-radius: 8px; padding: 14px 18px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border-left: 4px solid #ddd;
+            border-left: 4px solid var(--border, #ddd);
         }
         .stat-card.total       { border-left-color: #6b7280; }
         .stat-card.multi       { border-left-color: #10b981; }
         .stat-card.single      { border-left-color: #f59e0b; }
         .stat-card.unsupported { border-left-color: #ef4444; }
-        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: #222; line-height: 1; }
+        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
         .stat-card .stat-label {
-            font-size: 12px; color: #888;
+            font-size: 12px; color: var(--text-dim, #888);
             text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px;
         }
 
         .matrix-card {
-            background: white; border-radius: 10px; overflow: hidden;
+            background: var(--surface, #fff); border-radius: 10px; overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
         .matrix-scroll {
@@ -90,12 +93,12 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .heatmap th, .heatmap td {
             padding: 8px 10px; text-align: center; vertical-align: middle;
-            border-bottom: 1px solid #f5f5f5;
+            border-bottom: 1px solid var(--border-soft, #f5f5f5);
             white-space: nowrap;
         }
         .heatmap thead th {
-            background: #fafbfc; border-bottom: 1px solid #eef0f2;
-            font-size: 11px; font-weight: 700; color: #555;
+            background: var(--surface-2, #fafbfc); border-bottom: 1px solid var(--border-soft, #eef0f2);
+            font-size: 11px; font-weight: 700; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
             position: sticky; top: 0; z-index: 2;
         }
@@ -107,34 +110,34 @@ $translationNamespaces = ['common', 'contracts'];
             border-radius: 50%; margin-right: 6px; vertical-align: middle;
         }
         .heatmap tbody td.col-cat {
-            text-align: left; font-weight: 600; color: #222;
+            text-align: left; font-weight: 600; color: var(--text, #222);
             padding-left: 16px; max-width: 280px;
         }
         .heatmap tbody td.col-cat .cat-meta {
-            font-size: 11px; font-weight: 400; color: #888; margin-top: 2px;
+            font-size: 11px; font-weight: 400; color: var(--text-dim, #888); margin-top: 2px;
         }
 
         .heat-cell {
             font-variant-numeric: tabular-nums; font-weight: 600;
             min-width: 64px;
         }
-        .heat-cell.zero { color: #d1d5db; font-weight: 400; }
+        .heat-cell.zero { color: var(--text-faint, #d1d5db); font-weight: 400; }
         /* The colour shades come from inline styles based on the row's
            max count, so high-traffic cells in any given row pop. */
 
         .heatmap tbody tr:last-child td { border-bottom: none; }
         .heatmap tbody tr.totals-row td {
-            background: #fafbfc; font-weight: 700;
-            border-top: 2px solid #e5e7eb;
+            background: var(--surface-2, #fafbfc); font-weight: 700;
+            border-top: 2px solid var(--border, #e5e7eb);
         }
         .heatmap td.row-total, .heatmap th.col-total {
-            background: #f3f4f6; color: #374151;
+            background: var(--surface-3, #f3f4f6); color: var(--text-muted, #374151);
         }
 
         .coverage-help {
-            font-size: 12px; color: #666;
-            padding: 12px 22px; border-top: 1px solid #f0f0f0;
-            background: #fafbfc;
+            font-size: 12px; color: var(--text-muted, #666);
+            padding: 12px 22px; border-top: 1px solid var(--border-soft, #f0f0f0);
+            background: var(--surface-2, #fafbfc);
             display: flex; gap: 18px; align-items: center; flex-wrap: wrap;
         }
         .coverage-help .legend-swatch {
@@ -143,12 +146,12 @@ $translationNamespaces = ['common', 'contracts'];
         }
 
         .empty-card, .loading, .error-state {
-            background: white; border-radius: 10px; padding: 40px 24px;
+            background: var(--surface, #fff); border-radius: 10px; padding: 40px 24px;
             text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            color: #888;
+            color: var(--text-dim, #888);
         }
         .error-state { color: #d13438; }
-        .empty-card a { color: #f59e0b; text-decoration: none; font-weight: 600; }
+        .empty-card a { color: var(--con-accent, #f59e0b); text-decoration: none; font-weight: 600; }
         .empty-card a:hover { text-decoration: underline; }
     </style>
 </head>
@@ -350,7 +353,7 @@ $translationNamespaces = ['common', 'contracts'];
                             <span class="legend-swatch" style="background:rgba(245,158,11,0.80);"></span>
                             ${escapeHtml(window.t('contracts.rfp.coverage.legend_darker'))}
                         </div>
-                        <div style="color:#888;">
+                        <div style="color:var(--text-dim, #888);">
                             ${escapeHtml(window.t('contracts.rfp.coverage.legend_note'))}
                         </div>
                     </div>

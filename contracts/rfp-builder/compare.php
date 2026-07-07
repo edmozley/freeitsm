@@ -12,6 +12,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -21,7 +22,7 @@ $path_prefix  = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,21 +31,23 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/chart.min.js"></script>
     <style>
-        .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
+        body { --accent: var(--con-accent, #f59e0b); }
+        .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
-        .breadcrumb a { color: #666; text-decoration: none; }
-        .breadcrumb a:hover { color: #f59e0b; }
-        .breadcrumb span.sep { margin: 0 6px; color: #ccc; }
+        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
+        .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
 
         .page-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: #222; }
+        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -53,8 +56,8 @@ $translationNamespaces = ['common', 'contracts'];
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
         }
-        .btn-secondary { background: white; color: #333; border-color: #ddd; }
-        .btn-secondary:hover { background: #f5f5f5; }
+        .btn-secondary { background: var(--surface, #fff); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
 
         /* ─── Big-number cards ──────────────────────────────────── */
 
@@ -63,52 +66,52 @@ $translationNamespaces = ['common', 'contracts'];
             gap: 14px; margin-bottom: 24px;
         }
         .supplier-card {
-            background: white; border-radius: 10px; padding: 18px 20px;
+            background: var(--surface, #fff); border-radius: 10px; padding: 18px 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-top: 4px solid #d1d5db;
+            border-top: 4px solid var(--border, #d1d5db);
             position: relative; min-height: 140px;
             display: flex; flex-direction: column;
         }
-        .supplier-card.rank-1 { border-top-color: #f59e0b; background: linear-gradient(180deg, #fffbeb 0%, white 30%); }
+        .supplier-card.rank-1 { border-top-color: var(--con-accent, #f59e0b); background: linear-gradient(180deg, #fffbeb 0%, white 30%); }
         .supplier-card.rank-2 { border-top-color: #9ca3af; background: linear-gradient(180deg, #f9fafb 0%, white 30%); }
-        .supplier-card.rank-3 { border-top-color: #b45309; }
+        .supplier-card.rank-3 { border-top-color: var(--con-accent-hover, #b45309); }
         .supplier-card .rank-pill {
             position: absolute; top: 12px; right: 14px;
-            font-size: 11px; font-weight: 700; color: #666;
-            background: #eef0f2; padding: 2px 9px; border-radius: 9px;
+            font-size: 11px; font-weight: 700; color: var(--text-muted, #666);
+            background: var(--surface-3, #eef0f2); padding: 2px 9px; border-radius: 9px;
             text-transform: uppercase; letter-spacing: 0.4px;
         }
-        .supplier-card.rank-1 .rank-pill { background: #fef3c7; color: #92400e; }
-        .supplier-card.rank-2 .rank-pill { background: #e5e7eb; color: #4b5563; }
+        .supplier-card.rank-1 .rank-pill { background: var(--con-accent-soft, #fef3c7); color: var(--con-accent-hover, #92400e); }
+        .supplier-card.rank-2 .rank-pill { background: var(--surface-3, #e5e7eb); color: var(--text-muted, #4b5563); }
         .supplier-card.rank-3 .rank-pill { background: #fed7aa; color: #9a3412; }
         .supplier-card .name {
-            font-size: 14px; color: #888; line-height: 1.3;
+            font-size: 14px; color: var(--text-dim, #888); line-height: 1.3;
             font-weight: 600;
             padding-right: 60px; /* clear of rank pill */
         }
         .supplier-card .big-score {
-            font-size: 44px; font-weight: 700; color: #111827;
+            font-size: 44px; font-weight: 700; color: var(--text, #111827);
             font-variant-numeric: tabular-nums;
             line-height: 1; margin-top: auto; padding-top: 14px;
         }
         .supplier-card .big-score .out-of {
-            font-size: 16px; color: #9ca3af; font-weight: 500;
+            font-size: 16px; color: var(--text-faint, #9ca3af); font-weight: 500;
         }
         .supplier-card .meta {
-            font-size: 11px; color: #999; margin-top: 8px;
+            font-size: 11px; color: var(--text-dim, #999); margin-top: 8px;
             display: flex; justify-content: space-between;
         }
 
         /* ─── Section card ──────────────────────────────────────── */
 
         .section-card {
-            background: white; border-radius: 10px;
+            background: var(--surface, #fff); border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             margin-bottom: 18px; overflow: hidden;
         }
         .section-card-header {
-            padding: 14px 22px; border-bottom: 1px solid #f0f0f0;
-            background: #fafbfc;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #f0f0f0);
+            background: var(--surface-2, #fafbfc);
         }
         .section-card-header h2 {
             margin: 0; font-size: 14px; font-weight: 700; color: #075985;
@@ -126,41 +129,45 @@ $translationNamespaces = ['common', 'contracts'];
             width: 100%; border-collapse: collapse; font-size: 13px;
         }
         .winners-table th, .winners-table td {
-            padding: 10px 12px; text-align: left; border-bottom: 1px solid #f5f5f5;
+            padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-soft, #f5f5f5);
             vertical-align: middle;
         }
         .winners-table thead th {
-            font-size: 11px; font-weight: 700; color: #888;
+            font-size: 11px; font-weight: 700; color: var(--text-dim, #888);
             text-transform: uppercase; letter-spacing: 0.4px;
-            background: #fafbfc; border-bottom: 1px solid #eef0f2;
+            background: var(--surface-2, #fafbfc); border-bottom: 1px solid var(--border-soft, #eef0f2);
         }
         .winners-table tbody tr:last-child td { border-bottom: none; }
-        .winners-table .cat-name { font-weight: 600; color: #222; }
+        .winners-table .cat-name { font-weight: 600; color: var(--text, #222); }
         .winners-table .score-cell {
             text-align: center; font-variant-numeric: tabular-nums;
-            color: #555; min-width: 80px;
+            color: var(--text-muted, #555); min-width: 80px;
         }
         .winners-table .score-cell.winner {
-            background: #ecfdf5; color: #047857; font-weight: 700;
+            background: var(--success-bg, #ecfdf5); color: var(--success-text, #047857); font-weight: 700;
             border-radius: 4px;
         }
-        .winners-table .score-cell.empty { color: #ccc; }
+        .winners-table .score-cell.empty { color: var(--text-faint, #ccc); }
         .winners-table .winner-col {
-            font-weight: 600; color: #047857;
+            font-weight: 600; color: var(--success-text, #047857);
         }
         .winners-table .winner-col .gap {
-            font-size: 11px; color: #888; margin-left: 6px; font-weight: 500;
+            font-size: 11px; color: var(--text-dim, #888); margin-left: 6px; font-weight: 500;
         }
-        .winners-table .tied { color: #b45309; font-weight: 600; }
+        .winners-table .tied { color: var(--con-accent-hover, #b45309); font-weight: 600; }
 
         .empty-card, .loading, .error-state {
-            background: white; border-radius: 10px; padding: 40px 24px;
+            background: var(--surface, #fff); border-radius: 10px; padding: 40px 24px;
             text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            color: #888;
+            color: var(--text-dim, #888);
         }
         .error-state { color: #d13438; }
-        .empty-card a { color: #f59e0b; text-decoration: none; font-weight: 600; }
+        .empty-card a { color: var(--con-accent, #f59e0b); text-decoration: none; font-weight: 600; }
         .empty-card a:hover { text-decoration: underline; }
+
+        [data-theme-mode="dark"] .supplier-card.rank-1 { background: linear-gradient(180deg, #3a2e12 0%, var(--surface, #1e2228) 30%); }
+        [data-theme-mode="dark"] .supplier-card.rank-2 { background: linear-gradient(180deg, #262b33 0%, var(--surface, #1e2228) 30%); }
+        [data-theme-mode="dark"] .section-card-header h2 { color: #38bdf8; }
     </style>
 </head>
 <body>
@@ -333,7 +340,7 @@ $translationNamespaces = ['common', 'contracts'];
                 return `
                     <div class="section-card">
                         <div class="section-card-header"><h2>${escapeHtml(window.t('contracts.rfp.compare.category_winners'))}</h2></div>
-                        <div class="section-card-body" style="color:#999;font-size:13px;text-align:center;padding:24px;">
+                        <div class="section-card-body" style="color:var(--text-dim, #999);font-size:13px;text-align:center;padding:24px;">
                             ${escapeHtml(window.t('contracts.rfp.compare.need_two'))}
                         </div>
                     </div>
@@ -449,6 +456,9 @@ $translationNamespaces = ['common', 'contracts'];
 
             if (radarChart) { radarChart.destroy(); radarChart = null; }
 
+            const isDark = (document.documentElement.getAttribute('data-theme-mode') || 'light') === 'dark';
+            if (isDark) { Chart.defaults.color = '#aab2bd'; Chart.defaults.borderColor = '#343b45'; }
+
             const canvas = document.getElementById('radarCanvas');
             radarChart = new Chart(canvas, {
                 type: 'radar',
@@ -459,9 +469,9 @@ $translationNamespaces = ['common', 'contracts'];
                     scales: {
                         r: {
                             min: 0, max: 5,
-                            ticks: { stepSize: 1, color: '#666', backdropColor: 'transparent' },
-                            angleLines: { color: '#ddd' },
-                            grid: { color: '#eee' },
+                            ticks: { stepSize: 1, color: isDark ? '#aab2bd' : '#666', backdropColor: 'transparent' },
+                            angleLines: { color: isDark ? '#343b45' : '#ddd' },
+                            grid: { color: isDark ? '#343b45' : '#eee' },
                             pointLabels: { font: { size: 12, family: 'Segoe UI, Tahoma, sans-serif' } }
                         }
                     },

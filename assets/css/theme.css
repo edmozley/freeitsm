@@ -99,6 +99,11 @@
     --tsk-accent:      #7c3aed;  --tsk-accent-hover: #6d28d9;
     --tsk-accent-soft: #f3f0ff;  --tsk-on-accent:    #ffffff;
 
+    /* Contracts module (amber) accents — contracts, suppliers, RFP builder.
+       Amber is the module's registered brand colour (module-colors.php). */
+    --con-accent:      #f59e0b;  --con-accent-hover: #d97706;
+    --con-accent-soft: #fef3c7;  --con-on-accent:    #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -181,6 +186,10 @@
     /* Tasks module (violet) — accent nudged lighter to read on dark */
     --tsk-accent:      #a78bfa;  --tsk-accent-hover: #c4b5fd;
     --tsk-accent-soft: #2a2145;  --tsk-on-accent:    #ffffff;
+
+    /* Contracts module (amber) — accent nudged lighter to read on dark */
+    --con-accent:      #fbbf24;  --con-accent-hover: #fcd34d;
+    --con-accent-soft: #3a2e12;  --con-on-accent:    #ffffff;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;

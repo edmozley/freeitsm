@@ -5,6 +5,7 @@
 session_start();
 require_once '../config.php';
 require_once __DIR__ . '/../includes/i18n.php';
+require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -15,7 +16,7 @@ $translationNamespaces = ['common', 'contracts'];
 $contract_id = $_GET['id'] ?? null;
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,19 +25,21 @@ $contract_id = $_GET['id'] ?? null;
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
     <style>
         /* Full-screen layout with sidebar - matches contracts dashboard */
+        body { --accent: var(--con-accent, #f59e0b); }
         .contracts-layout {
             display: flex;
             height: calc(100vh - 48px);
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
         }
         .contracts-sidebar {
             width: 260px;
-            background: white;
-            border-right: 1px solid #ddd;
+            background: var(--surface, white);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             overflow-y: auto;
             flex-shrink: 0;
@@ -49,24 +52,24 @@ $contract_id = $_GET['id'] ?? null;
 
         .sidebar-section { margin-bottom: 24px; }
         .sidebar-section h3 {
-            font-size: 14px; font-weight: 600; color: #333;
+            font-size: 14px; font-weight: 600; color: var(--text, #333);
             margin: 0 0 12px 0;
         }
         .sidebar-stat {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: #333; cursor: default; margin-bottom: 4px;
+            font-size: 14px; color: var(--text, #333); cursor: default; margin-bottom: 4px;
         }
         .sidebar-stat .stat-value { font-weight: 700; font-size: 16px; }
-        .sidebar-stat.warning .stat-value { color: #f59e0b; }
+        .sidebar-stat.warning .stat-value { color: var(--con-accent, #f59e0b); }
         .sidebar-links { display: flex; flex-direction: column; gap: 4px; }
         .sidebar-link {
             display: flex; align-items: center; gap: 10px;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: #333;
+            font-size: 14px; color: var(--text, #333);
             text-decoration: none; transition: all 0.15s;
         }
-        .sidebar-link:hover { background: #fff7ed; color: #f59e0b; }
+        .sidebar-link:hover { background: #fff7ed; color: var(--con-accent, #f59e0b); }
         .sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; }
         .sidebar-add-btn {
             display: block; width: 100%;
@@ -81,7 +84,7 @@ $contract_id = $_GET['id'] ?? null;
         .sidebar-add-btn:hover { background: #d97706; }
 
         .form-card {
-            background: #fff;
+            background: var(--surface, #fff);
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             overflow: hidden;
@@ -89,10 +92,10 @@ $contract_id = $_GET['id'] ?? null;
 
         .form-card-header {
             padding: 20px 30px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-soft, #eee);
         }
 
-        .form-card-header h2 { margin: 0; font-size: 20px; color: #333; }
+        .form-card-header h2 { margin: 0; font-size: 20px; color: var(--text, #333); }
 
         .form-card-body { padding: 30px; }
 
@@ -104,10 +107,10 @@ $contract_id = $_GET['id'] ?? null;
         }
 
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: #333; }
+        .form-group label { display: block; margin-bottom: 6px; font-weight: 500; font-size: 13px; color: var(--text, #333); }
 
         .form-group input, .form-group select, .form-group textarea {
-            width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 4px;
+            width: 100%; padding: 10px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px;
             font-size: 14px; box-sizing: border-box; font-family: inherit;
             transition: border-color 0.15s, box-shadow 0.15s;
         }
@@ -115,27 +118,27 @@ $contract_id = $_GET['id'] ?? null;
         .form-group textarea { height: 80px; resize: vertical; }
 
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
-            outline: none; border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
+            outline: none; border-color: var(--con-accent, #f59e0b); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1);
         }
 
         .form-section {
             font-size: 13px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-dim, #888);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             padding: 12px 0 6px 0;
             margin-top: 10px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border-soft, #eee);
         }
 
-        .form-hint { font-size: 12px; color: #888; margin-top: 4px; }
+        .form-hint { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; }
 
         .form-actions {
             position: sticky;
             bottom: 0;
-            background: #fff;
-            border-top: 1px solid #ddd;
+            background: var(--surface, #fff);
+            border-top: 1px solid var(--border, #ddd);
             box-shadow: 0 -2px 6px rgba(0,0,0,0.04);
             padding: 10px 16px 22px 16px;
             margin: 16px -30px 0 -30px;
@@ -148,8 +151,8 @@ $contract_id = $_GET['id'] ?? null;
         .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: all 0.2s; text-decoration: none; }
         .btn-primary { background-color: #f59e0b; color: white; }
         .btn-primary:hover { background-color: #d97706; }
-        .btn-secondary { background: #e0e0e0; color: #333; }
-        .btn-secondary:hover { background: #d0d0d0; }
+        .btn-secondary { background: var(--surface-3, #e0e0e0); color: var(--text, #333); }
+        .btn-secondary:hover { background: var(--surface-hover, #d0d0d0); }
 
 
         .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
@@ -157,28 +160,30 @@ $contract_id = $_GET['id'] ?? null;
         .toggle-slider {
             position: absolute; cursor: pointer;
             top: 0; left: 0; right: 0; bottom: 0;
-            background: #ccc; border-radius: 24px; transition: background 0.2s;
+            background: var(--surface-3, #ccc); border-radius: 24px; transition: background 0.2s;
         }
         .toggle-slider::before {
             content: ''; position: absolute;
             height: 18px; width: 18px; left: 3px; bottom: 3px;
             background: white; border-radius: 50%; transition: transform 0.2s;
         }
-        .toggle-switch input:checked + .toggle-slider { background: #f59e0b; }
+        .toggle-switch input:checked + .toggle-slider { background: var(--con-accent, #f59e0b); }
         .toggle-switch input:checked + .toggle-slider::before { transform: translateX(20px); }
         .toggle-row { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; margin-bottom: 15px; }
 
-        .terms-tabs { display: flex; gap: 0; border-bottom: 2px solid #e0e0e0; margin-bottom: 0; }
+        .terms-tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border, #e0e0e0); margin-bottom: 0; }
         .terms-tab {
-            padding: 10px 20px; font-size: 13px; font-weight: 500; color: #666; cursor: pointer;
+            padding: 10px 20px; font-size: 13px; font-weight: 500; color: var(--text-muted, #666); cursor: pointer;
             background: none; border: none; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
         }
-        .terms-tab:hover { color: #333; background: #f5f5f5; }
-        .terms-tab.active { color: #f59e0b; border-bottom-color: #f59e0b; font-weight: 600; }
+        .terms-tab:hover { color: var(--text, #333); background: var(--surface-hover, #f5f5f5); }
+        .terms-tab.active { color: var(--con-accent, #f59e0b); border-bottom-color: var(--con-accent, #f59e0b); font-weight: 600; }
         .terms-panel { display: none; padding-top: 16px; }
         .terms-panel.active { display: block; }
-        .terms-empty { color: #999; font-size: 13px; padding: 12px 0; }
-        .terms-empty a { color: #f59e0b; }
+        .terms-empty { color: var(--text-dim, #999); font-size: 13px; padding: 12px 0; }
+        .terms-empty a { color: var(--con-accent, #f59e0b); }
+
+        [data-theme-mode="dark"] .sidebar-link:hover { background: #3a2e12; }
     </style>
 </head>
 <body>
@@ -676,15 +681,18 @@ $contract_id = $_GET['id'] ?? null;
             let initialized = 0;
             const total = termEditorIds.length;
 
+            const tinyDark = (document.documentElement.getAttribute('data-theme-mode')||'light')==='dark';
             termEditorIds.forEach(id => {
                 tinymce.init({
                     selector: '#' + id,
                     license_key: 'gpl',
                     height: 300,
                     menubar: false,
+                    skin: tinyDark ? 'oxide-dark' : 'oxide',
+                    content_css: tinyDark ? 'dark' : 'default',
                     plugins: ['advlist', 'autolink', 'lists', 'link', 'table', 'wordcount'],
                     toolbar: 'undo redo | blocks | bold italic underline | bullist numlist | link table | removeformat',
-                    content_style: 'body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; }',
+                    content_style: 'body { font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; color: ' + (tinyDark ? '#e6e8eb' : '#333') + '; }',
                     setup: function(editor) {
                         editor.on('init', function() {
                             initialized++;

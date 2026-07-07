@@ -8,6 +8,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -17,7 +18,7 @@ $path_prefix  = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,20 +27,22 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
+        body { --accent: var(--con-accent, #f59e0b); }
+        .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
-        .breadcrumb a { color: #666; text-decoration: none; }
-        .breadcrumb a:hover { color: #f59e0b; }
-        .breadcrumb span.sep { margin: 0 6px; color: #ccc; }
+        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
+        .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
 
         .page-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: #222; }
+        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -48,11 +51,11 @@ $translationNamespaces = ['common', 'contracts'];
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
         }
-        .btn-primary { background: #f59e0b; color: white; }
-        .btn-primary:hover:not(:disabled) { background: #d97706; }
+        .btn-primary { background: var(--con-accent, #f59e0b); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--con-accent-hover, #d97706); }
         .btn-primary:disabled { background: #fcd34d; cursor: not-allowed; }
-        .btn-secondary { background: white; color: #333; border-color: #ddd; }
-        .btn-secondary:hover { background: #f5f5f5; }
+        .btn-secondary { background: var(--surface, #fff); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
 
         /* Stats strip */
         .stats-strip {
@@ -60,68 +63,68 @@ $translationNamespaces = ['common', 'contracts'];
             margin-bottom: 18px;
         }
         .stat-card {
-            background: white; border-radius: 8px; padding: 14px 18px;
+            background: var(--surface, #fff); border-radius: 8px; padding: 14px 18px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border-left: 4px solid #ddd;
+            border-left: 4px solid var(--border, #ddd);
         }
         .stat-card.total       { border-left-color: #6b7280; }
         .stat-card.requirement { border-left-color: #3b82f6; }
         .stat-card.pain_point  { border-left-color: #f59e0b; }
         .stat-card.challenge   { border-left-color: #8b5cf6; }
-        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: #222; line-height: 1; }
-        .stat-card .stat-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
+        .stat-card .stat-label { font-size: 12px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
 
         /* Filter bar */
         .card {
-            background: white; border-radius: 10px;
+            background: var(--surface, #fff); border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
             margin-bottom: 18px;
         }
         .filter-bar { display: flex; gap: 14px; align-items: end; padding: 16px 24px; flex-wrap: wrap; }
         .filter-bar .field { display: flex; flex-direction: column; }
         .filter-bar label {
-            font-size: 11px; font-weight: 600; color: #555;
+            font-size: 11px; font-weight: 600; color: var(--text-muted, #555);
             margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.4px;
         }
         .filter-bar select {
             padding: 7px 10px; font-size: 14px;
-            border: 1px solid #ddd; border-radius: 6px;
+            border: 1px solid var(--border, #ddd); border-radius: 6px;
             font-family: inherit; min-width: 180px;
         }
         .filter-bar .filter-spacer { flex: 1; }
         .filter-bar .clear-link {
-            font-size: 13px; color: #888; cursor: pointer; text-decoration: none;
+            font-size: 13px; color: var(--text-dim, #888); cursor: pointer; text-decoration: none;
             padding: 8px 0;
         }
-        .filter-bar .clear-link:hover { color: #f59e0b; }
+        .filter-bar .clear-link:hover { color: var(--con-accent, #f59e0b); }
 
         /* Table */
         table { width: 100%; border-collapse: collapse; }
         thead th {
             text-align: left; padding: 12px 24px; font-size: 12px; font-weight: 600;
-            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
-            border-bottom: 1px solid #eee; background: #fafafa;
+            color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafafa);
         }
         tbody td {
-            padding: 14px 24px; font-size: 14px; color: #333; border-bottom: 1px solid #f0f0f0;
+            padding: 14px 24px; font-size: 14px; color: var(--text, #333); border-bottom: 1px solid var(--border-soft, #f0f0f0);
             vertical-align: top;
         }
         tbody tr:last-child td { border-bottom: none; }
-        tbody tr:hover { background: #fafafa; }
+        tbody tr:hover { background: var(--surface-hover, #fafafa); }
 
-        .req-text { font-weight: 500; color: #222; line-height: 1.45; }
+        .req-text { font-weight: 500; color: var(--text, #222); line-height: 1.45; }
         .req-quote {
-            font-style: italic; color: #888; font-size: 13px;
+            font-style: italic; color: var(--text-dim, #888); font-size: 13px;
             margin-top: 6px; line-height: 1.4;
-            border-left: 2px solid #eee; padding-left: 10px;
+            border-left: 2px solid var(--border-soft, #eee); padding-left: 10px;
         }
-        .req-doc { font-size: 12px; color: #888; margin-top: 6px; }
+        .req-doc { font-size: 12px; color: var(--text-dim, #888); margin-top: 6px; }
 
         .dept-badge {
             display: inline-block; padding: 3px 10px; border-radius: 12px;
             font-size: 12px; font-weight: 500; color: white; white-space: nowrap;
         }
-        .dept-badge.empty { background: #e5e7eb; color: #6b7280; }
+        .dept-badge.empty { background: var(--surface-3, #e5e7eb); color: var(--text-dim, #6b7280); }
 
         .type-badge {
             display: inline-block; padding: 3px 10px; border-radius: 12px;
@@ -138,19 +141,19 @@ $translationNamespaces = ['common', 'contracts'];
         .conf-high { background: #d1fae5; color: #065f46; }
         .conf-mid  { background: #fef3c7; color: #92400e; }
         .conf-low  { background: #fee2e2; color: #991b1b; }
-        .conf-none { color: #bbb; }
+        .conf-none { color: var(--text-faint, #bbb); }
 
         .action-btn {
-            background: none; border: 1px solid #ddd; color: #666; cursor: pointer;
+            background: none; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); cursor: pointer;
             padding: 6px; margin-right: 4px; border-radius: 4px;
             display: inline-flex; align-items: center; justify-content: center;
             transition: all 0.2s;
         }
-        .action-btn:hover { background: #f0f0f0; border-color: #f59e0b; color: #f59e0b; }
+        .action-btn:hover { background: var(--surface-3, #f0f0f0); border-color: var(--con-accent, #f59e0b); color: var(--con-accent, #f59e0b); }
         .action-btn.danger:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
         .action-btn svg { width: 16px; height: 16px; }
 
-        .empty-state { text-align: center; padding: 48px; color: #999; }
+        .empty-state { text-align: center; padding: 48px; color: var(--text-dim, #999); }
 
         /* Modal */
         .modal-overlay {
@@ -160,41 +163,41 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .modal-overlay.active { display: flex; }
         .modal-card {
-            background: white; border-radius: 10px; width: 90%; max-width: 720px;
+            background: var(--surface, #fff); border-radius: 10px; width: 90%; max-width: 720px;
             max-height: 85vh; display: flex; flex-direction: column;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2); overflow: hidden;
         }
         .modal-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 24px; border-bottom: 1px solid #eee;
+            padding: 16px 24px; border-bottom: 1px solid var(--border-soft, #eee);
         }
         .modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
-        .modal-close { background: none; border: none; font-size: 24px; line-height: 1; cursor: pointer; color: #888; }
+        .modal-close { background: none; border: none; font-size: 24px; line-height: 1; cursor: pointer; color: var(--text-dim, #888); }
         .modal-body { padding: 20px 24px; overflow-y: auto; }
         .modal-footer {
             display: flex; justify-content: flex-end; gap: 8px;
-            padding: 14px 24px; border-top: 1px solid #eee; background: #fafafa;
+            padding: 14px 24px; border-top: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafafa);
         }
 
         .form-row { margin-bottom: 16px; }
         .form-row label {
-            display: block; font-size: 12px; font-weight: 600; color: #555;
+            display: block; font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
             margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px;
         }
         .form-row input, .form-row select, .form-row textarea {
             width: 100%; padding: 8px 10px; font-size: 14px;
-            border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
+            border: 1px solid var(--border, #ddd); border-radius: 6px; box-sizing: border-box;
             font-family: inherit;
         }
         .form-row textarea { min-height: 90px; resize: vertical; line-height: 1.5; }
         .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
-            outline: none; border-color: #f59e0b;
+            outline: none; border-color: var(--con-accent, #f59e0b);
         }
         .form-row .meta-row {
-            display: flex; gap: 12px; font-size: 13px; color: #666;
+            display: flex; gap: 12px; font-size: 13px; color: var(--text-muted, #666);
         }
         .form-row .meta-row .meta-item { display: flex; gap: 6px; }
-        .form-row .meta-row .meta-item span:first-child { color: #888; }
+        .form-row .meta-row .meta-item span:first-child { color: var(--text-dim, #888); }
     </style>
 </head>
 <body>
@@ -209,7 +212,7 @@ $translationNamespaces = ['common', 'contracts'];
         </div>
 
         <div class="page-header">
-            <h1><?php echo htmlspecialchars(t('contracts.rfp.extracted.heading')); ?> — <span id="rfpName" style="color:#f59e0b;"><?php echo htmlspecialchars(t('common.loading')); ?></span></h1>
+            <h1><?php echo htmlspecialchars(t('contracts.rfp.extracted.heading')); ?> — <span id="rfpName" style="color:var(--con-accent, #f59e0b);"><?php echo htmlspecialchars(t('common.loading')); ?></span></h1>
             <div class="page-actions">
                 <a href="view.php" id="backLink" class="btn btn-secondary">&larr; <?php echo htmlspecialchars(t('contracts.rfp.documents.rfp_overview')); ?></a>
                 <a href="documents.php" id="docsLink" class="btn btn-secondary"><?php echo htmlspecialchars(t('contracts.rfp.documents.documents')); ?></a>

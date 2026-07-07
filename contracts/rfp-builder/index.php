@@ -6,6 +6,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -15,7 +16,7 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,22 +25,25 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        .rfp-layout { display: flex; height: calc(100vh - 48px); background: #f5f5f5; }
+        body { --accent: var(--con-accent, #f59e0b); }
+
+        .rfp-layout { display: flex; height: calc(100vh - 48px); background: var(--app-bg, #f5f5f5); }
         .rfp-sidebar {
-            width: 260px; background: white; border-right: 1px solid #ddd;
+            width: 260px; background: var(--surface, white); border-right: 1px solid var(--border, #ddd);
             padding: 20px; overflow-y: auto; flex-shrink: 0;
         }
         .rfp-main { flex: 1; overflow-y: auto; padding: 30px; }
 
         .sidebar-section { margin-bottom: 24px; }
         .sidebar-section h3 {
-            font-size: 14px; font-weight: 600; color: #333; margin: 0 0 12px 0;
+            font-size: 14px; font-weight: 600; color: var(--text, #333); margin: 0 0 12px 0;
         }
         .sidebar-stat {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 10px 12px; border-radius: 6px; font-size: 14px; color: #333;
+            padding: 10px 12px; border-radius: 6px; font-size: 14px; color: var(--text, #333);
             margin-bottom: 4px;
         }
         .sidebar-stat .stat-value { font-weight: 700; font-size: 16px; }
@@ -47,44 +51,44 @@ $translationNamespaces = ['common', 'contracts'];
         .sidebar-link {
             display: flex; align-items: center; gap: 10px;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: #333;
+            font-size: 14px; color: var(--text, #333);
             text-decoration: none; transition: all 0.15s;
         }
-        .sidebar-link:hover { background: #fff7ed; color: #f59e0b; }
+        .sidebar-link:hover { background: #fff7ed; color: var(--con-accent, #f59e0b); }
         .sidebar-link svg { width: 18px; height: 18px; flex-shrink: 0; }
 
         .sidebar-add-btn {
             display: block; width: 100%; padding: 10px 16px;
-            background: #f59e0b; color: white; border: none; border-radius: 6px;
+            background: var(--con-accent, #f59e0b); color: white; border: none; border-radius: 6px;
             font-size: 14px; font-weight: 500; cursor: pointer;
             transition: background 0.2s; text-align: center;
         }
-        .sidebar-add-btn:hover { background: #d97706; }
+        .sidebar-add-btn:hover { background: var(--con-accent-hover, #d97706); }
 
         .section-card {
-            background: #fff; border-radius: 10px;
+            background: var(--surface, #fff); border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
         }
         .section-card .section-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 24px; border-bottom: 1px solid #eee;
+            padding: 18px 24px; border-bottom: 1px solid var(--border-soft, #eee);
         }
-        .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: #333; }
+        .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #333); }
 
         .section-card table { width: 100%; border-collapse: collapse; }
         .section-card table th {
             text-align: left; padding: 12px 24px; font-size: 12px; font-weight: 600;
-            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
-            border-bottom: 1px solid #eee; background: #fafafa;
+            color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafafa);
         }
         .section-card table td {
-            padding: 14px 24px; font-size: 14px; color: #333; border-bottom: 1px solid #f0f0f0;
+            padding: 14px 24px; font-size: 14px; color: var(--text, #333); border-bottom: 1px solid var(--border-soft, #f0f0f0);
         }
         .section-card table tr:last-child td { border-bottom: none; }
-        .section-card table tr:hover { background: #fafafa; }
+        .section-card table tr:hover { background: var(--surface-hover, #fafafa); }
 
-        .rfp-name-link { color: #333; font-weight: 600; text-decoration: none; }
-        .rfp-name-link:hover { color: #f59e0b; }
+        .rfp-name-link { color: var(--text, #333); font-weight: 600; text-decoration: none; }
+        .rfp-name-link:hover { color: var(--con-accent, #f59e0b); }
 
         .status-badge {
             display: inline-block; padding: 4px 8px; border-radius: 3px;
@@ -100,21 +104,21 @@ $translationNamespaces = ['common', 'contracts'];
 
         .pill-stat {
             display: inline-block; min-width: 24px; padding: 2px 8px;
-            background: #f3f4f6; border-radius: 10px; text-align: center;
-            font-size: 12px; font-weight: 600; color: #555;
+            background: var(--surface-3, #f3f4f6); border-radius: 10px; text-align: center;
+            font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
         }
 
         .action-btn {
-            background: none; border: 1px solid #ddd; color: #666; cursor: pointer;
+            background: none; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); cursor: pointer;
             padding: 6px; margin-right: 4px; border-radius: 4px;
             display: inline-flex; align-items: center; justify-content: center;
             transition: all 0.2s;
         }
-        .action-btn:hover { background: #f0f0f0; border-color: #f59e0b; color: #f59e0b; }
+        .action-btn:hover { background: var(--surface-hover, #f0f0f0); border-color: var(--con-accent, #f59e0b); color: var(--con-accent, #f59e0b); }
         .action-btn.danger:hover { border-color: #ef4444; color: #ef4444; background: #fef2f2; }
         .action-btn svg { width: 16px; height: 16px; }
 
-        .empty-state { text-align: center; padding: 40px; color: #999; }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-dim, #999); }
 
         /* Modal */
         .modal-overlay {
@@ -124,49 +128,53 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .modal-overlay.active { display: flex; }
         .modal-card {
-            background: white; border-radius: 10px; width: 100%; max-width: 560px;
+            background: var(--surface, white); border-radius: 10px; width: 100%; max-width: 560px;
             box-shadow: 0 10px 40px rgba(0,0,0,0.2); overflow: hidden;
         }
         .modal-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 16px 24px; border-bottom: 1px solid #eee;
+            padding: 16px 24px; border-bottom: 1px solid var(--border-soft, #eee);
         }
         .modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
         .modal-close {
             background: none; border: none; font-size: 24px; line-height: 1;
-            cursor: pointer; color: #888; padding: 0 4px;
+            cursor: pointer; color: var(--text-dim, #888); padding: 0 4px;
         }
         .modal-body { padding: 20px 24px; }
         .modal-footer {
             display: flex; justify-content: flex-end; gap: 8px;
-            padding: 14px 24px; border-top: 1px solid #eee; background: #fafafa;
+            padding: 14px 24px; border-top: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafafa);
         }
 
         .form-row { margin-bottom: 16px; }
         .form-row label {
-            display: block; font-size: 13px; font-weight: 600; color: #555;
+            display: block; font-size: 13px; font-weight: 600; color: var(--text-muted, #555);
             margin-bottom: 6px;
         }
         .form-row input, .form-row select, .form-row textarea {
             width: 100%; padding: 8px 10px; font-size: 14px;
-            border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box;
+            border: 1px solid var(--border, #ddd); border-radius: 6px; box-sizing: border-box;
             font-family: inherit;
         }
         .form-row textarea { min-height: 100px; resize: vertical; }
         .form-row input:focus, .form-row select:focus, .form-row textarea:focus {
-            outline: none; border-color: #f59e0b;
+            outline: none; border-color: var(--con-accent, #f59e0b);
         }
-        .form-help { font-size: 12px; color: #888; margin-top: 4px; }
+        .form-help { font-size: 12px; color: var(--text-dim, #888); margin-top: 4px; }
 
         .btn {
             padding: 8px 16px; font-size: 14px; font-weight: 500;
             border-radius: 6px; cursor: pointer; border: 1px solid transparent;
             transition: all 0.15s;
         }
-        .btn-primary { background: #f59e0b; color: white; }
-        .btn-primary:hover { background: #d97706; }
-        .btn-secondary { background: white; color: #333; border-color: #ddd; }
-        .btn-secondary:hover { background: #f5f5f5; }
+        .btn-primary { background: var(--con-accent, #f59e0b); color: white; }
+        .btn-primary:hover { background: var(--con-accent-hover, #d97706); }
+        .btn-secondary { background: var(--surface, white); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
+
+        /* Pale-tint dark overrides (light values differ from token light values) */
+        [data-theme-mode="dark"] .sidebar-link:hover { background: #3a2e12; }
+        [data-theme-mode="dark"] .action-btn.danger:hover { background: #3a1a1a; }
     </style>
 </head>
 <body>

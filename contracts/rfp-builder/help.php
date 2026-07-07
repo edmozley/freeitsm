@@ -10,6 +10,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -19,7 +20,7 @@ $path_prefix  = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,16 +29,19 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
+        body { --accent: var(--con-accent, #f59e0b); }
 
-        .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
-        .breadcrumb a { color: #666; text-decoration: none; }
-        .breadcrumb a:hover { color: #f59e0b; }
-        .breadcrumb span.sep { margin: 0 6px; color: #ccc; }
+        .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: #222; }
+        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
+        .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
+
+        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
         .page-header { margin-bottom: 20px; }
 
         .help-layout {
@@ -45,67 +49,67 @@ $translationNamespaces = ['common', 'contracts'];
             gap: 24px;
         }
         .help-sidebar {
-            background: white; border-radius: 10px; padding: 12px 0;
+            background: var(--surface, #fff); border-radius: 10px; padding: 12px 0;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             position: sticky; top: 16px; align-self: start;
             max-height: calc(100vh - 80px); overflow-y: auto;
         }
         .help-sidebar .sidebar-title {
-            font-size: 11px; color: #999; text-transform: uppercase;
+            font-size: 11px; color: var(--text-dim, #999); text-transform: uppercase;
             letter-spacing: 0.5px; padding: 12px 16px 6px; font-weight: 600;
         }
         .help-sidebar a {
             display: block; padding: 7px 16px; font-size: 13px;
-            color: #555; text-decoration: none;
+            color: var(--text-muted, #555); text-decoration: none;
             border-left: 3px solid transparent;
         }
-        .help-sidebar a:hover { color: #f59e0b; background: #fffbeb; }
+        .help-sidebar a:hover { color: var(--con-accent, #f59e0b); background: #fffbeb; }
 
         .help-main { display: flex; flex-direction: column; gap: 18px; }
         .help-card {
-            background: white; border-radius: 10px; padding: 22px 28px;
+            background: var(--surface, #fff); border-radius: 10px; padding: 22px 28px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             scroll-margin-top: 16px;
         }
         .help-card h2 {
-            margin: 0 0 12px 0; font-size: 18px; color: #222;
+            margin: 0 0 12px 0; font-size: 18px; color: var(--text, #222);
             display: flex; align-items: center; gap: 12px;
         }
         .help-card h2 .step-num {
-            background: #f59e0b; color: white;
+            background: var(--con-accent, #f59e0b); color: #fff;
             width: 28px; height: 28px; border-radius: 50%;
             display: inline-flex; align-items: center; justify-content: center;
             font-size: 14px; font-weight: 700; flex-shrink: 0;
         }
         .help-card h3 {
-            font-size: 14px; color: #92400e; margin: 16px 0 6px 0;
+            font-size: 14px; color: var(--con-accent-hover, #92400e); margin: 16px 0 6px 0;
             font-weight: 700;
         }
         .help-card p, .help-card li {
-            font-size: 14px; line-height: 1.65; color: #444;
+            font-size: 14px; line-height: 1.65; color: var(--text-muted, #444);
         }
         .help-card p { margin: 0 0 10px 0; }
         .help-card ul, .help-card ol { margin: 8px 0 14px 22px; }
         .help-card li { margin-bottom: 4px; }
         .help-card code {
-            background: #f3f4f6; padding: 1px 5px; border-radius: 3px;
-            font-size: 13px; color: #1f2937;
+            background: var(--surface-hover, #f3f4f6); padding: 1px 5px; border-radius: 3px;
+            font-size: 13px; color: var(--text, #1f2937);
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
         }
         .help-card .tip {
-            background: #ecfdf5; border-left: 4px solid #10b981;
+            background: var(--success-bg, #ecfdf5); border-left: 4px solid var(--success-accent, #10b981);
             padding: 10px 14px; border-radius: 4px;
-            margin: 12px 0; font-size: 13px; color: #065f46;
+            margin: 12px 0; font-size: 13px; color: var(--success-text, #065f46);
         }
         .help-card .warn {
-            background: #fff7ed; border-left: 4px solid #f59e0b;
+            background: var(--warning-bg, #fff7ed); border-left: 4px solid var(--warning-border, #f59e0b);
             padding: 10px 14px; border-radius: 4px;
-            margin: 12px 0; font-size: 13px; color: #92400e;
+            margin: 12px 0; font-size: 13px; color: var(--warning-text, #92400e);
         }
         .help-card .gotcha {
-            background: #fef2f2; border-left: 4px solid #ef4444;
+            background: var(--danger-bg, #fef2f2); border-left: 4px solid var(--danger-accent, #ef4444);
             padding: 10px 14px; border-radius: 4px;
-            margin: 12px 0; font-size: 13px; color: #991b1b;
+            margin: 12px 0; font-size: 13px; color: var(--danger-text, #991b1b);
         }
 
         .workflow-strip {
@@ -113,17 +117,17 @@ $translationNamespaces = ['common', 'contracts'];
             margin: 16px 0;
         }
         .workflow-strip .step {
-            background: #fafbfc; border: 1px solid #eef0f2; border-radius: 6px;
+            background: var(--surface-2, #fafbfc); border: 1px solid var(--border-soft, #eef0f2); border-radius: 6px;
             padding: 10px 12px; text-align: center;
-            font-size: 12px; color: #374151;
+            font-size: 12px; color: var(--text-muted, #374151);
         }
         .workflow-strip .step strong {
-            display: block; color: #f59e0b; font-size: 16px; margin-bottom: 4px;
+            display: block; color: var(--con-accent, #f59e0b); font-size: 16px; margin-bottom: 4px;
         }
 
         .cost-table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 8px 0; }
-        .cost-table th, .cost-table td { padding: 8px 10px; border-bottom: 1px solid #f0f0f0; text-align: left; }
-        .cost-table th { background: #fafbfc; color: #555; font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
+        .cost-table th, .cost-table td { padding: 8px 10px; border-bottom: 1px solid var(--border-soft, #f0f0f0); text-align: left; }
+        .cost-table th { background: var(--surface-2, #fafbfc); color: var(--text-muted, #555); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; font-weight: 600; }
         .cost-table tbody tr:last-child td { border-bottom: none; }
         .cost-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 
@@ -131,6 +135,9 @@ $translationNamespaces = ['common', 'contracts'];
             .help-layout { grid-template-columns: 1fr; }
             .help-sidebar { position: static; max-height: none; }
         }
+
+        /* Off-token pale amber sidebar-hover tint — dark override keeps light mode identical */
+        [data-theme-mode="dark"] .help-sidebar a:hover { background: #3a2e12; }
     </style>
 </head>
 <body>

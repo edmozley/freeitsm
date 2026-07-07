@@ -17,6 +17,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -26,7 +27,7 @@ $path_prefix  = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,21 +36,23 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/chart.min.js"></script>
     <style>
-        .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
+        body { --accent: var(--con-accent, #f59e0b); }
+        .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
-        .breadcrumb a { color: #666; text-decoration: none; }
-        .breadcrumb a:hover { color: #f59e0b; }
-        .breadcrumb span.sep { margin: 0 6px; color: #ccc; }
+        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
+        .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
 
         .page-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: #222; }
+        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -58,8 +61,8 @@ $translationNamespaces = ['common', 'contracts'];
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
         }
-        .btn-secondary { background: white; color: #333; border-color: #ddd; }
-        .btn-secondary:hover { background: #f5f5f5; }
+        .btn-secondary { background: var(--surface, #fff); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
 
         /* ─── Layout ─────────────────────────────────────────────── */
 
@@ -68,25 +71,25 @@ $translationNamespaces = ['common', 'contracts'];
             margin-bottom: 80px; /* clear of sticky bottom bar */
         }
         .scoring-sidebar {
-            background: white; border-radius: 10px;
+            background: var(--surface, #fff); border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             position: sticky; top: 16px; align-self: start;
             max-height: calc(100vh - 80px); overflow-y: auto;
         }
         .sidebar-section { padding: 14px 16px; }
-        .sidebar-section + .sidebar-section { border-top: 1px solid #eef0f2; }
+        .sidebar-section + .sidebar-section { border-top: 1px solid var(--border-soft, #eef0f2); }
         .sidebar-section h3 {
-            font-size: 11px; color: #888; text-transform: uppercase;
+            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase;
             letter-spacing: 0.5px; margin: 0 0 8px 0;
         }
 
         .supplier-link {
             display: block; padding: 7px 10px; border-radius: 5px;
-            font-size: 13px; color: #333; text-decoration: none;
+            font-size: 13px; color: var(--text, #333); text-decoration: none;
             margin-bottom: 2px; line-height: 1.3;
         }
-        .supplier-link:hover { background: #f5f5f5; }
-        .supplier-link.active { background: #fff7ed; color: #f59e0b; font-weight: 600; }
+        .supplier-link:hover { background: var(--surface-hover, #f5f5f5); }
+        .supplier-link.active { background: #fff7ed; color: var(--con-accent, #f59e0b); font-weight: 600; }
 
         .cat-score-row {
             display: flex; align-items: center; gap: 8px;
@@ -94,59 +97,59 @@ $translationNamespaces = ['common', 'contracts'];
             font-size: 13px; cursor: pointer; user-select: none;
             margin-bottom: 2px; line-height: 1.3;
         }
-        .cat-score-row:hover { background: #f5f5f5; }
-        .cat-score-row .cat-name { flex: 1; color: #333; min-width: 0;
+        .cat-score-row:hover { background: var(--surface-hover, #f5f5f5); }
+        .cat-score-row .cat-name { flex: 1; color: var(--text, #333); min-width: 0;
             white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
         }
         .cat-score-row .cat-avg {
             font-weight: 700; font-size: 13px; font-variant-numeric: tabular-nums;
-            color: #888; min-width: 32px; text-align: right;
+            color: var(--text-dim, #888); min-width: 32px; text-align: right;
         }
         .cat-score-row.has-score .cat-avg { color: #047857; }
         .cat-score-row .cat-count {
-            font-size: 11px; color: #aaa; font-variant-numeric: tabular-nums;
+            font-size: 11px; color: var(--text-faint, #aaa); font-variant-numeric: tabular-nums;
         }
 
         .scoring-main { display: flex; flex-direction: column; gap: 16px; }
 
         .supplier-banner {
-            background: white; border-radius: 10px; padding: 18px 22px;
+            background: var(--surface, #fff); border-radius: 10px; padding: 18px 22px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             display: flex; gap: 18px; align-items: center;
         }
         .supplier-banner .name { flex: 1; }
-        .supplier-banner .name .display { font-size: 18px; font-weight: 700; color: #222; }
-        .supplier-banner .name .legal { font-size: 12px; color: #888; margin-top: 2px; }
-        .supplier-banner .summary { display: flex; gap: 18px; font-size: 12px; color: #666; }
+        .supplier-banner .name .display { font-size: 18px; font-weight: 700; color: var(--text, #222); }
+        .supplier-banner .name .legal { font-size: 12px; color: var(--text-dim, #888); margin-top: 2px; }
+        .supplier-banner .summary { display: flex; gap: 18px; font-size: 12px; color: var(--text-muted, #666); }
         .supplier-banner .summary .sm-block strong {
-            display: block; color: #222; font-size: 18px; font-variant-numeric: tabular-nums;
+            display: block; color: var(--text, #222); font-size: 18px; font-variant-numeric: tabular-nums;
         }
 
         .category-card {
-            background: white; border-radius: 10px; overflow: hidden;
+            background: var(--surface, #fff); border-radius: 10px; overflow: hidden;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             scroll-margin-top: 16px;
         }
         .cat-header {
-            padding: 12px 22px; background: #fafbfc; border-bottom: 1px solid #f0f0f0;
+            padding: 12px 22px; background: var(--surface-2, #fafbfc); border-bottom: 1px solid var(--border-soft, #f0f0f0);
             display: flex; align-items: center; gap: 12px;
         }
         .cat-header h2 {
-            margin: 0; font-size: 15px; font-weight: 600; color: #222; flex: 1;
+            margin: 0; font-size: 15px; font-weight: 600; color: var(--text, #222); flex: 1;
         }
         .cat-header .cat-avg-inline {
-            font-size: 13px; color: #555; font-variant-numeric: tabular-nums;
+            font-size: 13px; color: var(--text-muted, #555); font-variant-numeric: tabular-nums;
         }
-        .cat-header .cat-avg-inline strong { color: #222; }
+        .cat-header .cat-avg-inline strong { color: var(--text, #222); }
 
         .req-row {
-            padding: 18px 22px; border-bottom: 1px solid #f5f5f5;
+            padding: 18px 22px; border-bottom: 1px solid var(--border-soft, #f5f5f5);
             display: flex; flex-direction: column; gap: 12px;
         }
         .req-row:last-child { border-bottom: none; }
 
         .req-text {
-            font-size: 14px; color: #222; line-height: 1.55;
+            font-size: 14px; color: var(--text, #222); line-height: 1.55;
         }
         .req-text .pills { display: flex; gap: 6px; margin-bottom: 6px; }
         .pill {
@@ -171,7 +174,7 @@ $translationNamespaces = ['common', 'contracts'];
 
         .score-row { display: flex; align-items: center; gap: 14px; }
         .score-row .score-label {
-            font-size: 11px; font-weight: 600; color: #555;
+            font-size: 11px; font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
             min-width: 50px;
         }
@@ -179,15 +182,15 @@ $translationNamespaces = ['common', 'contracts'];
         .score-box {
             width: 42px; height: 42px;
             display: flex; align-items: center; justify-content: center;
-            border: 2px solid #d1d5db; border-radius: 8px;
-            background: white; color: #6b7280;
+            border: 2px solid var(--border, #d1d5db); border-radius: 8px;
+            background: var(--surface, #fff); color: var(--text-dim, #6b7280);
             font-size: 16px; font-weight: 700;
             cursor: pointer; user-select: none;
             transition: all 0.12s;
             font-family: inherit;
         }
         .score-box:hover {
-            border-color: #9ca3af; color: #374151;
+            border-color: var(--text-faint, #9ca3af); color: var(--text-muted, #374151);
             transform: translateY(-1px);
         }
         /* Selected state: each score gets its own colour on the
@@ -201,7 +204,7 @@ $translationNamespaces = ['common', 'contracts'];
         .score-box.selected.s5 { background: #16a34a; border-color: #166534; color: white; box-shadow: 0 2px 6px rgba(22,163,74,0.5); }
 
         .score-row .save-status {
-            font-size: 11px; color: #888; min-width: 80px;
+            font-size: 11px; color: var(--text-dim, #888); min-width: 80px;
         }
         .score-row .save-status.saving { color: #b45309; }
         .score-row .save-status.saved  { color: #047857; }
@@ -211,12 +214,13 @@ $translationNamespaces = ['common', 'contracts'];
 
         .notes-block { display: flex; flex-direction: column; gap: 4px; }
         .notes-block label {
-            font-size: 11px; font-weight: 600; color: #555;
+            font-size: 11px; font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
         }
         .notes-block textarea {
             padding: 10px 12px; font-size: 13px; font-family: inherit;
-            border: 1px solid #d1d5db; border-radius: 6px;
+            border: 1px solid var(--border, #d1d5db); border-radius: 6px;
+            background: var(--surface, #fff); color: var(--text, #222);
             resize: vertical; min-height: 70px; line-height: 1.5;
             width: 100%; box-sizing: border-box;
         }
@@ -261,18 +265,18 @@ $translationNamespaces = ['common', 'contracts'];
             z-index: 1000;
         }
         .spider-modal {
-            background: white; border-radius: 12px;
+            background: var(--surface, #fff); border-radius: 12px;
             width: 90vw; height: 90vh; max-width: 1100px;
             display: flex; flex-direction: column;
             box-shadow: 0 20px 60px rgba(0,0,0,0.4); overflow: hidden;
         }
         .spider-header {
-            padding: 14px 22px; border-bottom: 1px solid #eee;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; align-items: center; gap: 12px;
         }
-        .spider-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #222; flex: 1; }
+        .spider-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222); flex: 1; }
         .spider-header .close-x {
-            background: none; border: none; font-size: 24px; color: #888;
+            background: none; border: none; font-size: 24px; color: var(--text-dim, #888);
             cursor: pointer; padding: 0; line-height: 1;
         }
         .spider-body {
@@ -282,18 +286,21 @@ $translationNamespaces = ['common', 'contracts'];
         .spider-body canvas { max-width: 100%; max-height: 100%; }
         .spider-footer {
             display: flex; justify-content: flex-end; gap: 10px;
-            padding: 12px 24px; border-top: 1px solid #eee; background: #fff;
+            padding: 12px 24px; border-top: 1px solid var(--border-soft, #eee); background: var(--surface, #fff);
         }
         .spider-empty {
-            color: #999; font-size: 14px; font-style: italic; text-align: center;
+            color: var(--text-dim, #999); font-size: 14px; font-style: italic; text-align: center;
         }
 
         .empty-card, .loading, .error-state {
-            background: white; border-radius: 10px; padding: 40px 24px;
+            background: var(--surface, #fff); border-radius: 10px; padding: 40px 24px;
             text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            color: #888;
+            color: var(--text-dim, #888);
         }
         .error-state { color: #d13438; }
+
+        /* Pale amber selected-supplier wash: keep light value, darken for dark mode */
+        [data-theme-mode="dark"] .supplier-link.active { background: #3a2e12; }
     </style>
 </head>
 <body>
@@ -391,6 +398,12 @@ $translationNamespaces = ['common', 'contracts'];
         let suppliersList = [];
         const noteSaveTimers = {};
         let spiderChart = null;
+
+        // Make Chart.js text/gridlines readable in dark mode (series colours unchanged)
+        if ((document.documentElement.getAttribute('data-theme-mode') || 'light') === 'dark') {
+            Chart.defaults.color = '#aab2bd';
+            Chart.defaults.borderColor = '#343b45';
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             if (!rfpId || !supplierId) {
@@ -774,6 +787,8 @@ $translationNamespaces = ['common', 'contracts'];
 
             if (spiderChart) { spiderChart.destroy(); spiderChart = null; }
 
+            const darkMode = (document.documentElement.getAttribute('data-theme-mode') || 'light') === 'dark';
+
             const datasets = [{
                 label: window.t('contracts.rfp.scoring.my_scores'),
                 data: myData,
@@ -805,9 +820,9 @@ $translationNamespaces = ['common', 'contracts'];
                     scales: {
                         r: {
                             min: 0, max: 5,
-                            ticks: { stepSize: 1, color: '#666', backdropColor: 'transparent' },
-                            angleLines: { color: '#ddd' },
-                            grid: { color: '#eee' },
+                            ticks: { stepSize: 1, color: darkMode ? '#aab2bd' : '#666', backdropColor: 'transparent' },
+                            angleLines: { color: darkMode ? '#343b45' : '#ddd' },
+                            grid: { color: darkMode ? '#343b45' : '#eee' },
                             pointLabels: { font: { size: 12, family: 'Segoe UI, Tahoma, sans-serif' } }
                         }
                     },

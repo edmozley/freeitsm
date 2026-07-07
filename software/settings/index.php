@@ -24,7 +24,7 @@ $translationNamespaces = ['common', 'software'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=15">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         /* Module accent (indigo) — tabs, toggles, focus rings, shared buttons. */

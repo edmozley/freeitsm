@@ -5,6 +5,7 @@
 session_start();
 require_once '../config.php';
 require_once __DIR__ . '/../includes/i18n.php';
+require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -19,7 +20,7 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -28,19 +29,22 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
+        body { --accent: var(--con-accent, #f59e0b); }
+
         .ct-help-container {
             display: flex;
             height: calc(100vh - 48px);
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
         }
 
         /* Left sidebar navigation */
         .ct-help-sidebar {
             width: 260px;
-            background: white;
-            border-right: 1px solid #ddd;
+            background: var(--surface, white);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -51,7 +55,7 @@ $translationNamespaces = ['common', 'contracts'];
         .ct-help-sidebar h3 {
             font-size: 12px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-dim, #888);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 0 0 12px;
@@ -64,19 +68,19 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 10px 12px;
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             text-decoration: none;
             transition: background 0.15s, color 0.15s;
         }
 
         .ct-help-nav-link:hover {
-            background: #f5f5f5;
-            color: #333;
+            background: var(--surface-hover, #f5f5f5);
+            color: var(--text, #333);
         }
 
         .ct-help-nav-link.active {
             background: #fffbeb;
-            color: #92400e;
+            color: var(--con-accent-hover, #92400e);
             font-weight: 600;
         }
 
@@ -87,15 +91,15 @@ $translationNamespaces = ['common', 'contracts'];
             min-width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: #eee;
-            color: #888;
+            background: var(--surface-3, #eee);
+            color: var(--text-dim, #888);
             font-weight: 700;
             font-size: 11px;
             flex-shrink: 0;
         }
 
         .ct-help-nav-link.active .ct-help-nav-num {
-            background: #f59e0b;
+            background: var(--con-accent, #f59e0b);
             color: white;
         }
 
@@ -135,7 +139,7 @@ $translationNamespaces = ['common', 'contracts'];
         /* Sections */
         .ct-help-section {
             padding: 28px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-soft, #eee);
             scroll-margin-top: 20px;
         }
 
@@ -154,19 +158,19 @@ $translationNamespaces = ['common', 'contracts'];
         .ct-help-section-header h3 {
             margin: 0;
             font-size: 18px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .ct-help-section-header p {
             margin: 6px 0 0;
             font-size: 14px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.6;
         }
 
         .ct-help-section > p {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin: 0 0 14px;
         }
@@ -179,14 +183,14 @@ $translationNamespaces = ['common', 'contracts'];
             height: 32px;
             border-radius: 50%;
             background: #fffbeb;
-            color: #92400e;
+            color: var(--con-accent-hover, #92400e);
             font-weight: 700;
             font-size: 14px;
             flex-shrink: 0;
         }
 
         .ct-help-section-num.highlight {
-            background: #f59e0b;
+            background: var(--con-accent, #f59e0b);
             color: white;
         }
 
@@ -200,8 +204,8 @@ $translationNamespaces = ['common', 'contracts'];
         .ct-help-feature-card {
             padding: 20px;
             border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            background: white;
+            border: 1px solid var(--border, #e0e0e0);
+            background: var(--surface, white);
             transition: transform 0.15s, box-shadow 0.15s;
         }
 
@@ -228,13 +232,13 @@ $translationNamespaces = ['common', 'contracts'];
         .ct-help-feature-card h4 {
             margin: 0 0 6px;
             font-size: 15px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .ct-help-feature-card p {
             margin: 0;
             font-size: 12.5px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.5;
         }
 
@@ -252,9 +256,9 @@ $translationNamespaces = ['common', 'contracts'];
             gap: 14px;
             padding: 10px 14px;
             border-radius: 8px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             font-size: 14px;
-            color: #444;
+            color: var(--text-muted, #444);
             line-height: 1.5;
         }
 
@@ -265,7 +269,7 @@ $translationNamespaces = ['common', 'contracts'];
             min-width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: #f59e0b;
+            background: var(--con-accent, #f59e0b);
             color: white;
             font-weight: 700;
             font-size: 13px;
@@ -283,7 +287,7 @@ $translationNamespaces = ['common', 'contracts'];
 
         .ct-help-intro {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin-bottom: 20px !important;
         }
@@ -298,10 +302,10 @@ $translationNamespaces = ['common', 'contracts'];
 
         .ct-help-fields div {
             padding: 8px 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
         }
 
         /* Data cards grid */
@@ -314,21 +318,21 @@ $translationNamespaces = ['common', 'contracts'];
 
         .ct-help-data-card {
             padding: 12px 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
-            border-left: 3px solid #f59e0b;
+            border-left: 3px solid var(--con-accent, #f59e0b);
         }
 
         .ct-help-data-card strong {
             display: block;
             font-size: 13px;
-            color: #333;
+            color: var(--text, #333);
             margin-bottom: 4px;
         }
 
         .ct-help-data-card span {
             font-size: 12px;
-            color: #777;
+            color: var(--text-muted, #777);
             line-height: 1.4;
         }
 
@@ -337,31 +341,31 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex;
             gap: 0;
             margin: 14px 0 0;
-            border-bottom: 2px solid #eee;
+            border-bottom: 2px solid var(--border-soft, #eee);
         }
 
         .ct-help-tab-demo {
             padding: 10px 20px;
             font-size: 13px;
             font-weight: 500;
-            color: #888;
+            color: var(--text-dim, #888);
             border-bottom: 2px solid transparent;
             margin-bottom: -2px;
         }
 
         .ct-help-tab-demo.active {
-            color: #f59e0b;
-            border-bottom-color: #f59e0b;
+            color: var(--con-accent, #f59e0b);
+            border-bottom-color: var(--con-accent, #f59e0b);
         }
 
         .ct-help-tab-body {
             padding: 16px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 0 0 8px 8px;
-            border: 1px solid #eee;
+            border: 1px solid var(--border-soft, #eee);
             border-top: none;
             font-size: 13px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.6;
             margin-bottom: 14px;
         }
@@ -369,11 +373,11 @@ $translationNamespaces = ['common', 'contracts'];
         /* Tip callout */
         .ct-help-tip {
             font-size: 13px !important;
-            color: #92400e !important;
+            color: var(--con-accent-hover, #92400e) !important;
             background: #fffbeb;
             padding: 10px 14px;
             border-radius: 8px;
-            border-left: 3px solid #f59e0b;
+            border-left: 3px solid var(--con-accent, #f59e0b);
             margin-top: 10px;
         }
 
@@ -388,10 +392,10 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex;
             gap: 12px;
             padding: 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.5;
         }
 
@@ -401,7 +405,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
 
         .ct-help-tip-card strong {
-            color: #333;
+            color: var(--text, #333);
         }
 
         /* Settings config cards */
@@ -414,15 +418,15 @@ $translationNamespaces = ['common', 'contracts'];
 
         .ct-help-config-card {
             padding: 16px;
-            background: white;
+            background: var(--surface, white);
             border-radius: 8px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border, #e0e0e0);
         }
 
         .ct-help-config-card h4 {
             margin: 0 0 6px;
             font-size: 14px;
-            color: #333;
+            color: var(--text, #333);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -444,7 +448,7 @@ $translationNamespaces = ['common', 'contracts'];
         .ct-help-config-card p {
             margin: 0;
             font-size: 12.5px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.5;
         }
 
@@ -461,6 +465,24 @@ $translationNamespaces = ['common', 'contracts'];
             .ct-help-data-grid { grid-template-columns: 1fr; }
             .ct-help-tips-grid { grid-template-columns: 1fr; }
             .ct-help-config-grid { grid-template-columns: 1fr; }
+        }
+
+        /* Dark-mode overrides for pale amber tints + hero gradient */
+        [data-theme-mode="dark"] .ct-help-hero {
+            background: linear-gradient(135deg, #92400e 0%, #78350f 50%, #5a2708 100%);
+        }
+        [data-theme-mode="dark"] .ct-help-nav-link.active {
+            background: #3a2e12;
+        }
+        [data-theme-mode="dark"] .ct-help-section-num {
+            background: #3a2e12;
+        }
+        [data-theme-mode="dark"] .ct-help-section-highlight {
+            background: #3a2e12;
+            border-top-color: #6b4a12;
+        }
+        [data-theme-mode="dark"] .ct-help-tip {
+            background: #3a2e12;
         }
     </style>
 </head>

@@ -5,6 +5,7 @@
 session_start();
 require_once '../../../config.php';
 require_once __DIR__ . '/../../../includes/i18n.php';
+require_once '../../../includes/theme.php';
 require_once '../../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -14,7 +15,7 @@ $path_prefix = '../../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,18 +24,20 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../../assets/js/tz.js?v=1"></script>
     <script src="../../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../../assets/css/inbox.css">
     <style>
+        body { --accent: var(--con-accent, #f59e0b); }
         /* Sidebar layout - matches suppliers list */
         .contracts-layout {
             display: flex;
             height: calc(100vh - 48px);
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
         }
         .contracts-sidebar {
             width: 260px;
-            background: white;
-            border-right: 1px solid #ddd;
+            background: var(--surface, #fff);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             overflow-y: auto;
             flex-shrink: 0;
@@ -47,11 +50,11 @@ $translationNamespaces = ['common', 'contracts'];
 
         .sidebar-section { margin-bottom: 24px; }
         .sidebar-section h3 {
-            font-size: 14px; font-weight: 600; color: #333;
+            font-size: 14px; font-weight: 600; color: var(--text, #333);
             margin: 0 0 12px 0;
         }
         .sidebar-section h4 {
-            font-size: 13px; font-weight: 600; color: #555;
+            font-size: 13px; font-weight: 600; color: var(--text-muted, #555);
             margin: 14px 0 6px 0;
         }
         .sidebar-section h4:first-of-type { margin-top: 0; }
@@ -59,54 +62,54 @@ $translationNamespaces = ['common', 'contracts'];
         .sidebar-stat {
             display: flex; justify-content: space-between; align-items: center;
             padding: 8px 12px; border-radius: 6px;
-            font-size: 13px; color: #555; cursor: default;
+            font-size: 13px; color: var(--text-muted, #555); cursor: default;
             margin-bottom: 2px;
         }
-        .sidebar-stat .stat-value { font-weight: 700; font-size: 14px; color: #333; }
+        .sidebar-stat .stat-value { font-weight: 700; font-size: 14px; color: var(--text, #333); }
         .sidebar-total {
             display: flex; justify-content: space-between; align-items: center;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 14px; color: #333; cursor: default;
-            margin-bottom: 4px; background: #fafafa;
+            font-size: 14px; color: var(--text, #333); cursor: default;
+            margin-bottom: 4px; background: var(--surface-2, #fafafa);
         }
         .sidebar-total .stat-value { font-weight: 700; font-size: 16px; }
 
         .sidebar-add-btn {
             display: block; width: 100%;
             padding: 10px 16px;
-            background: #f59e0b; color: white;
+            background: var(--con-accent, #f59e0b); color: white;
             border: none; border-radius: 6px;
             font-size: 14px; font-weight: 500;
             cursor: pointer; transition: background 0.2s;
             text-align: center; text-decoration: none;
             box-sizing: border-box;
         }
-        .sidebar-add-btn:hover { background: #d97706; }
+        .sidebar-add-btn:hover { background: var(--con-accent-hover, #d97706); }
 
         /* Main card */
         .section-card {
-            background: #fff; border-radius: 10px;
+            background: var(--surface, #fff); border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
         }
         .section-card .section-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 24px; border-bottom: 1px solid #eee;
+            padding: 18px 24px; border-bottom: 1px solid var(--border-soft, #eee);
         }
-        .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: #333; }
+        .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #333); }
         .section-card .section-header .header-actions { display: flex; align-items: center; gap: 10px; }
 
         .back-link {
             display: inline-flex; align-items: center; gap: 6px;
-            color: #888; text-decoration: none; font-size: 13px;
+            color: var(--text-dim, #888); text-decoration: none; font-size: 13px;
         }
-        .back-link:hover { color: #f59e0b; }
+        .back-link:hover { color: var(--con-accent, #f59e0b); }
 
         .action-btn {
-            background: none; border: 1px solid #ddd; color: #666; cursor: pointer;
+            background: none; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); cursor: pointer;
             padding: 6px; border-radius: 4px;
             display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
-        .action-btn:hover { background: #f0f0f0; border-color: #f59e0b; color: #f59e0b; }
+        .action-btn:hover { background: var(--surface-3, #f0f0f0); border-color: var(--con-accent, #f59e0b); color: var(--con-accent, #f59e0b); }
         .action-btn svg { width: 16px; height: 16px; }
 
         .status-badge { display: inline-block; padding: 4px 8px; border-radius: 3px; font-size: 12px; font-weight: 500; }
@@ -126,29 +129,29 @@ $translationNamespaces = ['common', 'contracts'];
         .view-field label {
             display: block;
             font-size: 12px; font-weight: 600;
-            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             margin-bottom: 6px;
         }
         .view-value {
-            font-size: 14px; color: #333;
+            font-size: 14px; color: var(--text, #333);
             min-height: 1.2em;
             word-wrap: break-word;
         }
-        .view-value.empty { color: #bbb; }
+        .view-value.empty { color: var(--text-faint, #bbb); }
         .view-value.multiline { white-space: pre-wrap; }
-        .view-value a { color: #b45309; text-decoration: none; }
-        .view-value a:hover { color: #d97706; text-decoration: underline; }
+        .view-value a { color: var(--con-accent-hover, #b45309); text-decoration: none; }
+        .view-value a:hover { color: var(--con-accent-hover, #d97706); text-decoration: underline; }
 
         .view-section {
             grid-column: span 2;
             font-size: 13px; font-weight: 600;
-            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             padding: 16px 0 4px 0;
             margin-top: 8px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border-soft, #eee);
         }
 
-        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-dim, #999); }
 
         /* Edit modal styles */
         .modal-content {
@@ -157,7 +160,7 @@ $translationNamespaces = ['common', 'contracts'];
             max-height: 80vh;
             overflow-y: auto;
         }
-        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #333; padding: 0; border-bottom: none; }
+        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
 
         .form-grid {
             display: grid;
@@ -169,31 +172,31 @@ $translationNamespaces = ['common', 'contracts'];
         .form-section {
             grid-column: span 2;
             font-size: 13px; font-weight: 600;
-            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             padding: 12px 0 6px 0;
             margin-top: 5px;
-            border-top: 1px solid #eee;
+            border-top: 1px solid var(--border-soft, #eee);
         }
         .form-section:first-child { border-top: none; margin-top: 0; padding-top: 0; }
 
         .modal .form-group { margin-bottom: 15px; }
-        .modal .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; color: #333; }
+        .modal .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; color: var(--text, #333); }
         .modal .form-group input,
         .modal .form-group select,
         .modal .form-group textarea {
-            width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px;
+            width: 100%; padding: 8px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px;
             font-size: 14px; box-sizing: border-box; font-family: inherit;
         }
         .modal .form-group textarea { height: 70px; resize: vertical; }
         .modal .form-group input:focus,
         .modal .form-group select:focus,
-        .modal .form-group textarea:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1); }
+        .modal .form-group textarea:focus { outline: none; border-color: var(--con-accent, #f59e0b); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1); }
         .modal .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
         .modal .checkbox-label input[type="checkbox"] { width: auto; }
         .modal-actions { margin-top: 20px; grid-column: span 2; }
 
-        .btn-primary { background-color: #f59e0b; color: white; }
-        .btn-primary:hover { background-color: #d97706; }
+        .btn-primary { background-color: var(--con-accent, #f59e0b); color: white; }
+        .btn-primary:hover { background-color: var(--con-accent-hover, #d97706); }
     </style>
 </head>
 <body>
@@ -212,7 +215,7 @@ $translationNamespaces = ['common', 'contracts'];
             </div>
 
             <div class="sidebar-section">
-                <a href="../" class="sidebar-add-btn" style="background:#fff;color:#333;border:1px solid #ddd;">← <?php echo htmlspecialchars(t('contracts.suppliers.back_to_list')); ?></a>
+                <a href="../" class="sidebar-add-btn" style="background:var(--surface, #fff);color:var(--text, #333);border:1px solid var(--border, #ddd);">← <?php echo htmlspecialchars(t('contracts.suppliers.back_to_list')); ?></a>
             </div>
         </div>
 
@@ -422,7 +425,7 @@ $translationNamespaces = ['common', 'contracts'];
 
             const container = document.getElementById('overviewBreakdown');
             if (typeOrder.length === 0) {
-                container.innerHTML = '<div style="font-size:13px;color:#999;padding:8px 12px;">' + escapeHtml(window.t('contracts.suppliers.no_suppliers_yet')) + '</div>';
+                container.innerHTML = '<div style="font-size:13px;color:var(--text-dim, #999);padding:8px 12px;">' + escapeHtml(window.t('contracts.suppliers.no_suppliers_yet')) + '</div>';
                 return;
             }
 

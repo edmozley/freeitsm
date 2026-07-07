@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -14,7 +15,7 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,18 +24,19 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
 
         /* Amber theme for Contracts tabs */
-        .tab:hover { color: #f59e0b; }
-        .tab.active { color: #f59e0b; border-bottom-color: #f59e0b; }
+        .tab:hover { color: var(--con-accent, #f59e0b); }
+        .tab.active { color: var(--con-accent, #f59e0b); border-bottom-color: var(--con-accent, #f59e0b); }
 
         .tab-content .action-btn {
             background: none;
-            border: 1px solid #ddd;
-            color: #666;
+            border: 1px solid var(--border, #ddd);
+            color: var(--text-muted, #666);
             cursor: pointer;
             padding: 6px;
             margin-right: 4px;
@@ -45,7 +47,7 @@ $translationNamespaces = ['common', 'contracts'];
             transition: all 0.2s;
         }
 
-        .tab-content .action-btn:hover { background: #f0f0f0; border-color: #f59e0b; color: #f59e0b; }
+        .tab-content .action-btn:hover { background: var(--surface-3, #f0f0f0); border-color: var(--con-accent, #f59e0b); color: var(--con-accent, #f59e0b); }
         .tab-content .action-btn.delete { color: #d13438; }
         .tab-content .action-btn.delete:hover { background: #fdf3f3; border-color: #d13438; color: #a00; }
         .tab-content .action-btn svg { width: 16px; height: 16px; }
@@ -55,15 +57,15 @@ $translationNamespaces = ['common', 'contracts'];
 
         /* Module accent — drives the shared toggle, focus rings and button
            colours defined in inbox.css. Modal form styling is all there too. */
-        body { --accent: #f59e0b; }
+        body { --accent: var(--con-accent, #f59e0b); }
 
         .modal-content { padding: 20px; max-width: 500px; }
-        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #333; padding: 0; border-bottom: none; }
+        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
         .modal-actions { margin-top: 20px; }
 
         .btn { padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.15s; }
-        .btn-primary { background-color: #f59e0b; color: white; }
-        .btn-primary:hover { background-color: #d97706; }
+        .btn-primary { background-color: var(--con-accent, #f59e0b); color: white; }
+        .btn-primary:hover { background-color: var(--con-accent-hover, #d97706); }
 
         .rfp-ai-ssl-warning {
             margin-top: 10px;
@@ -78,6 +80,11 @@ $translationNamespaces = ['common', 'contracts'];
             max-width: 640px;
         }
         .rfp-ai-ssl-warning strong { color: #b71c1c; }
+
+        /* Dark-mode overrides for pale semantic tints (keep light mode identical) */
+        [data-theme-mode="dark"] .tab-content .action-btn.delete:hover { background: #3a1e1e; }
+        [data-theme-mode="dark"] .rfp-ai-ssl-warning { background: #3a1e1e; border-color: #7a2b2b; color: #f3c4c4; }
+        [data-theme-mode="dark"] .rfp-ai-ssl-warning strong { color: #ff9d9d; }
     </style>
 </head>
 <body>
@@ -112,7 +119,7 @@ $translationNamespaces = ['common', 'contracts'];
                     </tr>
                 </thead>
                 <tbody id="supplier-types-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-dim, #999);"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -134,7 +141,7 @@ $translationNamespaces = ['common', 'contracts'];
                     </tr>
                 </thead>
                 <tbody id="supplier-statuses-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-dim, #999);"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -156,7 +163,7 @@ $translationNamespaces = ['common', 'contracts'];
                     </tr>
                 </thead>
                 <tbody id="contract-statuses-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-dim, #999);"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -178,7 +185,7 @@ $translationNamespaces = ['common', 'contracts'];
                     </tr>
                 </thead>
                 <tbody id="payment-schedules-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-dim, #999);"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -199,7 +206,7 @@ $translationNamespaces = ['common', 'contracts'];
                     </tr>
                 </thead>
                 <tbody id="contract-term-tabs-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-dim, #999);"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -210,7 +217,7 @@ $translationNamespaces = ['common', 'contracts'];
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_departments')); ?></h2>
                 <button class="add-btn" onclick="openAddRfpDept()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="color:#888; font-size:13px; margin: 0 0 16px 0;">
+            <p style="color:var(--text-dim, #888); font-size:13px; margin: 0 0 16px 0;">
                 <?php echo htmlspecialchars(t('contracts.settings.rfp_dept_intro')); ?>
             </p>
             <table>
@@ -224,7 +231,7 @@ $translationNamespaces = ['common', 'contracts'];
                     </tr>
                 </thead>
                 <tbody id="rfp-departments-list">
-                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: #999;"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
+                    <tr><td colspan="5" style="text-align: center; padding: 20px; color: var(--text-dim, #999);"><?php echo htmlspecialchars(t('common.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -234,7 +241,7 @@ $translationNamespaces = ['common', 'contracts'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_ai')); ?></h2>
             </div>
-            <p style="color:#888; font-size:13px; margin: 0 0 20px 0; max-width: 720px;">
+            <p style="color:var(--text-dim, #888); font-size:13px; margin: 0 0 20px 0; max-width: 720px;">
                 <?php echo t('contracts.settings.ai_intro'); ?>
             </p>
 
@@ -252,7 +259,7 @@ $translationNamespaces = ['common', 'contracts'];
                         <label for="aiModel"><?php echo htmlspecialchars(t('contracts.settings.ai_model')); ?></label>
                         <input type="text" id="aiModel" list="aiModelOptions" placeholder="<?php echo htmlspecialchars(t('contracts.settings.ai_model_ph')); ?>">
                         <datalist id="aiModelOptions"></datalist>
-                        <div style="font-size:12px; color:#888; margin-top:4px;" id="aiModelHelp">
+                        <div style="font-size:12px; color:var(--text-dim, #888); margin-top:4px;" id="aiModelHelp">
                             <?php echo htmlspecialchars(t('contracts.settings.ai_model_help')); ?>
                         </div>
                     </div>
@@ -260,10 +267,10 @@ $translationNamespaces = ['common', 'contracts'];
                     <div class="form-group">
                         <label for="aiApiKey"><?php echo htmlspecialchars(t('contracts.settings.ai_api_key')); ?></label>
                         <input type="text" id="aiApiKey" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('contracts.settings.ai_api_key_ph_none')); ?>">
-                        <div style="font-size:12px; color:#888; margin-top:4px;">
+                        <div style="font-size:12px; color:var(--text-dim, #888); margin-top:4px;">
                             <?php echo t('contracts.settings.ai_api_key_help'); ?>
-                            <?php echo htmlspecialchars(t('contracts.settings.ai_anthropic_keys')); ?> <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:#f59e0b;">console.anthropic.com</a>.
-                            <?php echo htmlspecialchars(t('contracts.settings.ai_openai_keys')); ?> <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:#f59e0b;">platform.openai.com</a>.
+                            <?php echo htmlspecialchars(t('contracts.settings.ai_anthropic_keys')); ?> <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener" style="color:var(--con-accent, #f59e0b);">console.anthropic.com</a>.
+                            <?php echo htmlspecialchars(t('contracts.settings.ai_openai_keys')); ?> <a href="https://platform.openai.com/api-keys" target="_blank" rel="noopener" style="color:var(--con-accent, #f59e0b);">platform.openai.com</a>.
                         </div>
                     </div>
 
@@ -275,7 +282,7 @@ $translationNamespaces = ['common', 'contracts'];
                             </span>
                             <?php echo htmlspecialchars(t('contracts.settings.ai_verify_ssl')); ?>
                         </label>
-                        <div style="font-size:12px; color:#888; margin-top:4px;">
+                        <div style="font-size:12px; color:var(--text-dim, #888); margin-top:4px;">
                             <?php echo htmlspecialchars(t('contracts.settings.ai_verify_ssl_help')); ?>
                         </div>
                         <div id="aiVerifySslWarning" class="rfp-ai-ssl-warning" style="display:none;">
@@ -286,14 +293,14 @@ $translationNamespaces = ['common', 'contracts'];
                     <div class="form-group">
                         <label for="aiDefaultStyleGuide"><?php echo htmlspecialchars(t('contracts.settings.ai_style_guide')); ?></label>
                         <textarea id="aiDefaultStyleGuide" rows="6" placeholder="<?php echo htmlspecialchars(t('contracts.settings.ai_style_guide_ph')); ?>"></textarea>
-                        <div style="font-size:12px; color:#888; margin-top:4px;">
+                        <div style="font-size:12px; color:var(--text-dim, #888); margin-top:4px;">
                             <?php echo htmlspecialchars(t('contracts.settings.ai_style_guide_help')); ?>
                         </div>
                     </div>
 
                     <div style="display:flex; gap:8px; align-items:center; margin-top: 20px;">
                         <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
-                        <button type="button" class="btn" id="aiTestBtn" onclick="testAiConnection()" style="background:white; border:1px solid #ddd; color:#333;"><?php echo htmlspecialchars(t('contracts.settings.ai_test')); ?></button>
+                        <button type="button" class="btn" id="aiTestBtn" onclick="testAiConnection()" style="background:var(--surface, #fff); border:1px solid var(--border, #ddd); color:var(--text, #333);"><?php echo htmlspecialchars(t('contracts.settings.ai_test')); ?></button>
                         <span id="aiTestStatus" style="font-size:13px; margin-left:8px;"></span>
                     </div>
                 </form>
@@ -305,22 +312,22 @@ $translationNamespaces = ['common', 'contracts'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_left_panel')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 20px;"><?php echo htmlspecialchars(t('contracts.settings.left_panel_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 20px;"><?php echo htmlspecialchars(t('contracts.settings.left_panel_intro')); ?></p>
 
             <form id="leftPanelForm" autocomplete="off" onsubmit="event.preventDefault();">
                 <div class="form-group">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;"><?php echo htmlspecialchars(t('contracts.settings.left_panel_visibility')); ?></label>
-                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: var(--text, #333);"><?php echo htmlspecialchars(t('contracts.settings.left_panel_visibility')); ?></label>
+                    <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="contractsSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('contracts.settings.left_panel_always')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('contracts.settings.left_panel_always_desc')); ?>
                         </span>
                     </label>
-                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                    <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="contractsSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('contracts.settings.left_panel_hover')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('contracts.settings.left_panel_hover_desc')); ?>
                         </span>
                     </label>
@@ -379,7 +386,7 @@ $translationNamespaces = ['common', 'contracts'];
                     <label for="rfpDeptColour"><?php echo htmlspecialchars(t('contracts.settings.col_colour')); ?></label>
                     <div style="display:flex; align-items:center; gap:10px;">
                         <input type="color" id="rfpDeptColour" value="#6c757d" style="width:60px; height:36px; padding:0; cursor:pointer;">
-                        <span id="rfpDeptColourHex" style="font-family:monospace; font-size:13px; color:#666;">#6c757d</span>
+                        <span id="rfpDeptColourHex" style="font-family:monospace; font-size:13px; color:var(--text-muted, #666);">#6c757d</span>
                     </div>
                 </div>
                 <div class="form-group">
@@ -487,7 +494,7 @@ $translationNamespaces = ['common', 'contracts'];
         function renderRfpDepartments(items) {
             const tbody = document.getElementById('rfp-departments-list');
             if (items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">' + escapeHtml(window.t('contracts.settings.rfp_dept_empty')) + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim, #999);">' + escapeHtml(window.t('contracts.settings.rfp_dept_empty')) + '</td></tr>';
                 return;
             }
             tbody.innerHTML = items.map(item => `
@@ -495,8 +502,8 @@ $translationNamespaces = ['common', 'contracts'];
                     <td><strong>${escapeHtml(item.name)}</strong></td>
                     <td>
                         <span style="display:inline-flex; align-items:center; gap:8px;">
-                            <span style="width:18px; height:18px; border-radius:4px; border:1px solid #ddd; background:${escapeHtml(item.colour)};"></span>
-                            <span style="font-family:monospace; font-size:12px; color:#666;">${escapeHtml(item.colour)}</span>
+                            <span style="width:18px; height:18px; border-radius:4px; border:1px solid var(--border, #ddd); background:${escapeHtml(item.colour)};"></span>
+                            <span style="font-family:monospace; font-size:12px; color:var(--text-muted, #666);">${escapeHtml(item.colour)}</span>
                         </span>
                     </td>
                     <td>${item.sort_order}</td>
@@ -820,7 +827,7 @@ $translationNamespaces = ['common', 'contracts'];
             const tbody = document.getElementById(ep.listId);
 
             if (items.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">' + escapeHtml(window.t('contracts.settings.items_empty')) + '</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-dim, #999);">' + escapeHtml(window.t('contracts.settings.items_empty')) + '</td></tr>';
                 return;
             }
 

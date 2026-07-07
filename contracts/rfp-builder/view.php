@@ -6,6 +6,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -15,7 +16,7 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -24,21 +25,23 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        .rfp-view-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
+        body { --accent: var(--con-accent, #f59e0b); }
+        .rfp-view-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
-        .breadcrumb a { color: #666; text-decoration: none; }
-        .breadcrumb a:hover { color: #f59e0b; }
-        .breadcrumb span { margin: 0 6px; color: #ccc; }
+        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
+        .breadcrumb span { margin: 0 6px; color: var(--text-faint, #ccc); }
 
         .rfp-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 24px;
         }
         .rfp-header h1 {
-            margin: 0; font-size: 24px; font-weight: 700; color: #222;
+            margin: 0; font-size: 24px; font-weight: 700; color: var(--text, #222);
             display: flex; align-items: center; gap: 12px;
         }
         .rfp-header .rfp-actions { display: flex; gap: 8px; }
@@ -61,11 +64,11 @@ $translationNamespaces = ['common', 'contracts'];
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s;
         }
-        .btn-primary { background: #f59e0b; color: white; }
-        .btn-primary:hover { background: #d97706; }
-        .btn-secondary { background: white; color: #333; border-color: #ddd; }
-        .btn-secondary:hover { background: #f5f5f5; }
-        .btn-danger { background: white; color: #ef4444; border-color: #fca5a5; }
+        .btn-primary { background: var(--con-accent, #f59e0b); color: white; }
+        .btn-primary:hover { background: var(--con-accent-hover, #d97706); }
+        .btn-secondary { background: var(--surface, white); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
+        .btn-danger { background: var(--surface, white); color: #ef4444; border-color: #fca5a5; }
         .btn-danger:hover { background: #fef2f2; }
 
         .phase-grid {
@@ -74,12 +77,12 @@ $translationNamespaces = ['common', 'contracts'];
         }
 
         .phase-tile {
-            background: white; border-radius: 10px; padding: 20px;
+            background: var(--surface, white); border-radius: 10px; padding: 20px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             display: flex; flex-direction: column; gap: 10px;
-            border-left: 4px solid #e5e7eb;
+            border-left: 4px solid var(--border, #e5e7eb);
         }
-        .phase-tile.ready { border-left-color: #f59e0b; }
+        .phase-tile.ready { border-left-color: var(--con-accent, #f59e0b); }
         .phase-tile.done  { border-left-color: #10b981; }
 
         .phase-tile-header {
@@ -87,63 +90,63 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .phase-tile-num {
             width: 28px; height: 28px; border-radius: 50%;
-            background: #f3f4f6; color: #555;
+            background: var(--surface-hover, #f3f4f6); color: var(--text-muted, #555);
             font-size: 13px; font-weight: 700;
             display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-        .phase-tile.ready .phase-tile-num { background: #fef3c7; color: #b45309; }
+        .phase-tile.ready .phase-tile-num { background: var(--con-accent-soft, #fef3c7); color: var(--con-accent-hover, #b45309); }
         .phase-tile.done  .phase-tile-num { background: #d1fae5; color: #065f46; }
         .phase-tile-title {
-            font-size: 15px; font-weight: 600; color: #222;
+            font-size: 15px; font-weight: 600; color: var(--text, #222);
         }
-        .phase-tile-desc { font-size: 13px; color: #666; line-height: 1.5; flex-grow: 1; }
+        .phase-tile-desc { font-size: 13px; color: var(--text-muted, #666); line-height: 1.5; flex-grow: 1; }
         .phase-tile-stats {
-            display: flex; gap: 14px; font-size: 13px; color: #555;
-            padding-top: 8px; border-top: 1px solid #f0f0f0;
+            display: flex; gap: 14px; font-size: 13px; color: var(--text-muted, #555);
+            padding-top: 8px; border-top: 1px solid var(--border-soft, #f0f0f0);
         }
-        .phase-tile-stats strong { color: #222; font-size: 16px; }
+        .phase-tile-stats strong { color: var(--text, #222); font-size: 16px; }
         .phase-tile-cta { margin-top: auto; }
         .phase-tile-cta .btn { width: 100%; justify-content: center; }
         .phase-tile-cta .placeholder {
-            font-size: 12px; color: #999; font-style: italic; text-align: center;
+            font-size: 12px; color: var(--text-dim, #999); font-style: italic; text-align: center;
             padding: 8px 0;
         }
 
         .meta-card {
-            background: white; border-radius: 10px; padding: 20px 24px;
+            background: var(--surface, white); border-radius: 10px; padding: 20px 24px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
             margin-bottom: 16px;
         }
         .meta-card h2 {
             margin: 0 0 14px 0; font-size: 14px; font-weight: 600;
-            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             display: flex; align-items: center; justify-content: space-between;
         }
         .meta-card h2 .h2-extra {
-            font-size: 12px; font-weight: 500; color: #aaa; text-transform: none; letter-spacing: 0;
+            font-size: 12px; font-weight: 500; color: var(--text-faint, #aaa); text-transform: none; letter-spacing: 0;
         }
         .meta-row {
             display: flex; gap: 16px; padding: 8px 0;
-            border-bottom: 1px solid #f5f5f5; font-size: 14px;
+            border-bottom: 1px solid var(--border-soft, #f5f5f5); font-size: 14px;
         }
         .meta-row:last-child { border-bottom: none; }
-        .meta-row .meta-label { color: #888; min-width: 160px; }
-        .meta-row .meta-value { color: #333; flex: 1; }
+        .meta-row .meta-label { color: var(--text-dim, #888); min-width: 160px; }
+        .meta-row .meta-value { color: var(--text, #333); flex: 1; }
 
         .ai-stats {
             display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 12px; margin-bottom: 14px;
         }
         .ai-stat {
-            background: #f9fafb; border-radius: 8px; padding: 12px 14px;
-            border: 1px solid #f0f0f0;
+            background: var(--surface-2, #f9fafb); border-radius: 8px; padding: 12px 14px;
+            border: 1px solid var(--border-soft, #f0f0f0);
         }
         .ai-stat .ai-stat-num {
-            font-size: 20px; font-weight: 700; color: #222; line-height: 1.1;
+            font-size: 20px; font-weight: 700; color: var(--text, #222); line-height: 1.1;
         }
         .ai-stat .ai-stat-label {
-            font-size: 11px; color: #888; text-transform: uppercase;
+            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase;
             letter-spacing: 0.5px; margin-top: 4px;
         }
         .ai-stat.error .ai-stat-num   { color: #b91c1c; }
@@ -154,17 +157,17 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .ai-log-table th {
             text-align: left; padding: 8px 10px; font-weight: 600;
-            color: #888; border-bottom: 1px solid #eee;
+            color: var(--text-dim, #888); border-bottom: 1px solid var(--border-soft, #eee);
             text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;
         }
         .ai-log-table td {
-            padding: 9px 10px; border-bottom: 1px solid #f5f5f5;
-            color: #333; vertical-align: top;
+            padding: 9px 10px; border-bottom: 1px solid var(--border-soft, #f5f5f5);
+            color: var(--text, #333); vertical-align: top;
         }
         .ai-log-table tr:last-child td { border-bottom: none; }
         .ai-log-table .num { text-align: right; font-variant-numeric: tabular-nums; }
-        .ai-log-table .target { color: #555; }
-        .ai-log-table .target em { color: #999; font-style: normal; }
+        .ai-log-table .target { color: var(--text-muted, #555); }
+        .ai-log-table .target em { color: var(--text-dim, #999); font-style: normal; }
         .ai-log-table .err {
             color: #b91c1c; font-size: 12px; margin-top: 3px;
             white-space: normal; overflow-wrap: anywhere;
@@ -177,14 +180,14 @@ $translationNamespaces = ['common', 'contracts'];
         .status-pill.error   { background: #fee2e2; color: #991b1b; }
         .action-pill {
             display: inline-block; padding: 2px 8px; border-radius: 10px;
-            background: #e5e7eb; color: #374151;
+            background: var(--surface-3, #e5e7eb); color: var(--text-muted, #374151);
             font-size: 11px; font-weight: 500;
         }
         .ai-empty {
-            text-align: center; padding: 28px 16px; color: #999; font-size: 13px;
+            text-align: center; padding: 28px 16px; color: var(--text-dim, #999); font-size: 13px;
         }
 
-        .loading, .error-state { text-align: center; padding: 60px; color: #999; }
+        .loading, .error-state { text-align: center; padding: 60px; color: var(--text-dim, #999); }
         .error-state { color: #d13438; }
     </style>
 </head>
@@ -282,7 +285,7 @@ $translationNamespaces = ['common', 'contracts'];
 
             document.getElementById('aiActivityLastRun').innerHTML =
                 (totals.last_run ? escapeHtml(window.t('contracts.rfp.view.last_run', { when: formatDateTime(totals.last_run) })) + ' · ' : '') +
-                '<a href="audit.php?id=' + encodeURIComponent(rfpId) + '" style="color:#888;">' + escapeHtml(window.t('contracts.rfp.view.view_audit')) + '</a>';
+                '<a href="audit.php?id=' + encodeURIComponent(rfpId) + '" style="color:var(--text-dim,#888);">' + escapeHtml(window.t('contracts.rfp.view.view_audit')) + '</a>';
 
             const cachePct = totals.tokens_in_recent > 0
                 ? Math.round((totals.cache_read_recent / totals.tokens_in_recent) * 100)
@@ -468,7 +471,7 @@ $translationNamespaces = ['common', 'contracts'];
                     <div class="phase-tile-desc">${p.desc}</div>
                     ${p.stats.length ? `
                         <div class="phase-tile-stats">
-                            ${p.stats.map(s => `<div><strong>${s.value}</strong> <span style="color:#888;">${s.label}</span></div>`).join('')}
+                            ${p.stats.map(s => `<div><strong>${s.value}</strong> <span style="color:var(--text-dim,#888);">${s.label}</span></div>`).join('')}
                         </div>
                     ` : ''}
                     <div class="phase-tile-cta">

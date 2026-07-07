@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -14,7 +15,7 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,19 +24,22 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
+        body { --accent: var(--con-accent, #f59e0b); }
+
         /* Sidebar layout - matches contracts dashboard */
         .contracts-layout {
             display: flex;
             height: calc(100vh - 48px);
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
         }
 
         .contracts-sidebar {
             width: 260px;
-            background: white;
-            border-right: 1px solid #ddd;
+            background: var(--surface, white);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             overflow-y: auto;
             flex-shrink: 0;
@@ -49,11 +53,11 @@ $translationNamespaces = ['common', 'contracts'];
 
         .sidebar-section { margin-bottom: 24px; }
         .sidebar-section h3 {
-            font-size: 14px; font-weight: 600; color: #333;
+            font-size: 14px; font-weight: 600; color: var(--text, #333);
             margin: 0 0 12px 0;
         }
         .sidebar-section h4 {
-            font-size: 13px; font-weight: 600; color: #555;
+            font-size: 13px; font-weight: 600; color: var(--text-muted, #555);
             margin: 14px 0 6px 0;
         }
         .sidebar-section h4:first-of-type { margin-top: 0; }
@@ -65,14 +69,14 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 8px 12px;
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             cursor: default;
             margin-bottom: 2px;
         }
         .sidebar-stat .stat-value {
             font-weight: 700;
             font-size: 14px;
-            color: #333;
+            color: var(--text, #333);
         }
         .sidebar-total {
             display: flex;
@@ -81,10 +85,10 @@ $translationNamespaces = ['common', 'contracts'];
             padding: 10px 12px;
             border-radius: 6px;
             font-size: 14px;
-            color: #333;
+            color: var(--text, #333);
             cursor: default;
             margin-bottom: 4px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
         }
         .sidebar-total .stat-value {
             font-weight: 700;
@@ -95,7 +99,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: block;
             width: 100%;
             padding: 10px 16px;
-            background: #f59e0b;
+            background: var(--con-accent, #f59e0b);
             color: white;
             border: none;
             border-radius: 6px;
@@ -107,41 +111,41 @@ $translationNamespaces = ['common', 'contracts'];
             text-decoration: none;
             box-sizing: border-box;
         }
-        .sidebar-add-btn:hover { background: #d97706; }
+        .sidebar-add-btn:hover { background: var(--con-accent-hover, #d97706); }
 
         /* Main content - matches contracts dashboard */
         .section-card {
-            background: #fff; border-radius: 10px;
+            background: var(--surface, #fff); border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
         }
         .section-card .section-header {
             display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 24px; border-bottom: 1px solid #eee;
+            padding: 18px 24px; border-bottom: 1px solid var(--border-soft, #eee);
         }
-        .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: #333; }
+        .section-card .section-header h2 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #333); }
 
         .section-card table { width: 100%; border-collapse: collapse; }
         .section-card table th {
             text-align: left; padding: 12px 24px; font-size: 12px; font-weight: 600;
-            color: #888; text-transform: uppercase; letter-spacing: 0.5px;
-            border-bottom: 1px solid #eee; background: #fafafa;
+            color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafafa);
         }
         .section-card table td {
-            padding: 14px 24px; font-size: 14px; color: #333; border-bottom: 1px solid #f0f0f0;
+            padding: 14px 24px; font-size: 14px; color: var(--text, #333); border-bottom: 1px solid var(--border-soft, #f0f0f0);
         }
         .section-card table tr:last-child td { border-bottom: none; }
-        .section-card table tr:hover { background: #fafafa; }
-        .section-card table td a { color: #b45309; text-decoration: none; }
-        .section-card table td a:hover { color: #d97706; text-decoration: underline; }
+        .section-card table tr:hover { background: var(--surface-2, #fafafa); }
+        .section-card table td a { color: var(--con-accent-hover, #b45309); text-decoration: none; }
+        .section-card table td a:hover { color: var(--con-accent-hover, #d97706); text-decoration: underline; }
 
-        .empty-state { text-align: center; padding: 40px; color: #999; }
+        .empty-state { text-align: center; padding: 40px; color: var(--text-dim, #999); }
 
         .action-btn {
-            background: none; border: 1px solid #ddd; color: #666; cursor: pointer;
+            background: none; border: 1px solid var(--border, #ddd); color: var(--text-muted, #666); cursor: pointer;
             padding: 6px; margin-right: 4px; border-radius: 4px;
             display: inline-flex; align-items: center; justify-content: center; transition: all 0.2s;
         }
-        .action-btn:hover { background: #f0f0f0; border-color: #f59e0b; color: #f59e0b; }
+        .action-btn:hover { background: var(--surface-3, #f0f0f0); border-color: var(--con-accent, #f59e0b); color: var(--con-accent, #f59e0b); }
         .action-btn.delete { color: #d13438; }
         .action-btn.delete:hover { background: #fdf3f3; border-color: #d13438; color: #a00; }
         .action-btn svg { width: 16px; height: 16px; }
@@ -152,17 +156,17 @@ $translationNamespaces = ['common', 'contracts'];
 
         /* Modal */
         .modal-content { padding: 20px; max-width: 500px; }
-        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #333; padding: 0; border-bottom: none; }
+        .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
         .modal .form-group { margin-bottom: 15px; }
-        .modal .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; color: #333; }
-        .modal .form-group input, .modal .form-group select { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; box-sizing: border-box; }
-        .modal .form-group input:focus, .modal .form-group select:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1); }
+        .modal .form-group label { display: block; margin-bottom: 5px; font-weight: 500; font-size: 13px; color: var(--text, #333); }
+        .modal .form-group input, .modal .form-group select { width: 100%; padding: 8px 12px; border: 1px solid var(--border, #ddd); border-radius: 4px; font-size: 14px; box-sizing: border-box; }
+        .modal .form-group input:focus, .modal .form-group select:focus { outline: none; border-color: var(--con-accent, #f59e0b); box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.1); }
         .modal .checkbox-label { display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
         .modal .checkbox-label input[type="checkbox"] { width: auto; }
         .modal-actions { margin-top: 20px; }
 
-        .btn-primary { background-color: #f59e0b; color: white; }
-        .btn-primary:hover { background-color: #d97706; }
+        .btn-primary { background-color: var(--con-accent, #f59e0b); color: white; }
+        .btn-primary:hover { background-color: var(--con-accent-hover, #d97706); }
     </style>
 </head>
 <body>
@@ -326,7 +330,7 @@ $translationNamespaces = ['common', 'contracts'];
 
             const container = document.getElementById('overviewBreakdown');
             if (supplierOrder.length === 0) {
-                container.innerHTML = '<div style="font-size:13px;color:#999;padding:8px 12px;">' + escapeHtml(window.t('contracts.contacts.no_contacts_yet')) + '</div>';
+                container.innerHTML = '<div style="font-size:13px;color:var(--text-dim, #999);padding:8px 12px;">' + escapeHtml(window.t('contracts.contacts.no_contacts_yet')) + '</div>';
                 return;
             }
 

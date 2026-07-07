@@ -122,7 +122,7 @@ require_once $path_prefix . 'includes/waffle-menu.php';
     width: 3px;
     height: 36px;
     border-radius: 2px;
-    background: #bbb;
+    background: var(--border, #bbb);
     transition: opacity 0.18s;
     pointer-events: none;
 }

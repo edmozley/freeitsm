@@ -9,6 +9,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -18,7 +19,7 @@ $path_prefix  = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,20 +28,22 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
-        .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
+        body { --accent: var(--con-accent, #f59e0b); }
+        .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
-        .breadcrumb a { color: #666; text-decoration: none; }
-        .breadcrumb a:hover { color: #f59e0b; }
-        .breadcrumb span.sep { margin: 0 6px; color: #ccc; }
+        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
+        .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
 
         .page-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: #222; }
+        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -49,11 +52,11 @@ $translationNamespaces = ['common', 'contracts'];
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
         }
-        .btn-primary { background: #f59e0b; color: white; }
-        .btn-primary:hover:not(:disabled) { background: #d97706; }
+        .btn-primary { background: var(--con-accent, #f59e0b); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--con-accent-hover, #d97706); }
         .btn-primary:disabled { background: #fcd34d; cursor: not-allowed; }
-        .btn-secondary { background: white; color: #333; border-color: #ddd; }
-        .btn-secondary:hover { background: #f5f5f5; }
+        .btn-secondary { background: var(--surface, white); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
         .btn-link {
             background: none; color: #2563eb; border: none; padding: 0;
             font-size: 13px; cursor: pointer; font-family: inherit;
@@ -65,44 +68,44 @@ $translationNamespaces = ['common', 'contracts'];
             margin-bottom: 18px;
         }
         .stat-card {
-            background: white; border-radius: 8px; padding: 14px 18px;
+            background: var(--surface, white); border-radius: 8px; padding: 14px 18px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border-left: 4px solid #ddd;
+            border-left: 4px solid var(--border, #ddd);
         }
         .stat-card.cats     { border-left-color: #6b7280; }
         .stat-card.cons     { border-left-color: #3b82f6; }
         .stat-card.conf     { border-left-color: #ef4444; }
         .stat-card.linked   { border-left-color: #10b981; }
-        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: #222; line-height: 1; }
-        .stat-card .stat-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
+        .stat-card .stat-label { font-size: 12px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
 
         .empty-card {
-            background: white; border-radius: 10px; padding: 40px 24px;
+            background: var(--surface, white); border-radius: 10px; padding: 40px 24px;
             text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .empty-card p { color: #666; margin: 6px 0; }
-        .empty-card .hint { font-size: 13px; color: #999; margin-top: 14px; }
+        .empty-card p { color: var(--text-muted, #666); margin: 6px 0; }
+        .empty-card .hint { font-size: 13px; color: var(--text-dim, #999); margin-top: 14px; }
 
         .category-card {
-            background: white; border-radius: 10px; margin-bottom: 16px;
+            background: var(--surface, white); border-radius: 10px; margin-bottom: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
         }
         .category-header {
-            padding: 14px 22px; border-bottom: 1px solid #f0f0f0;
-            background: #fafbfc;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #f0f0f0);
+            background: var(--surface-2, #fafbfc);
         }
         .category-header h2 {
-            margin: 0; font-size: 16px; font-weight: 600; color: #222;
+            margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222);
             display: flex; align-items: center; gap: 10px;
         }
         .category-header h2 .req-count {
-            font-size: 12px; color: #888; font-weight: 500;
-            background: #eef0f2; padding: 2px 8px; border-radius: 10px;
+            font-size: 12px; color: var(--text-dim, #888); font-weight: 500;
+            background: var(--surface-3, #eef0f2); padding: 2px 8px; border-radius: 10px;
         }
-        .category-desc { font-size: 13px; color: #666; margin-top: 4px; }
+        .category-desc { font-size: 13px; color: var(--text-muted, #666); margin-top: 4px; }
 
         .req-row {
-            padding: 14px 22px; border-bottom: 1px solid #f5f5f5;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #f5f5f5);
             position: relative;
         }
         .req-row:last-child { border-bottom: none; }
@@ -111,9 +114,9 @@ $translationNamespaces = ['common', 'contracts'];
         .req-select {
             margin-top: 4px; cursor: pointer; flex-shrink: 0;
         }
-        .req-row-text { flex: 1; font-size: 14px; color: #222; line-height: 1.5; }
+        .req-row-text { flex: 1; font-size: 14px; color: var(--text, #222); line-height: 1.5; }
         .req-row-rationale {
-            font-size: 12px; color: #888; font-style: italic;
+            font-size: 12px; color: var(--text-dim, #888); font-style: italic;
             margin-top: 6px; line-height: 1.5;
         }
         .req-row-actions {
@@ -122,11 +125,11 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .req-row:hover .req-row-actions { opacity: 1; }
         .req-row-actions .icon-btn {
-            background: white; border: 1px solid #ddd; border-radius: 5px;
-            padding: 3px 8px; font-size: 12px; color: #555; cursor: pointer;
+            background: var(--surface, white); border: 1px solid var(--border, #ddd); border-radius: 5px;
+            padding: 3px 8px; font-size: 12px; color: var(--text-muted, #555); cursor: pointer;
             font-family: inherit;
         }
-        .req-row-actions .icon-btn:hover { background: #f5f5f5; color: #222; }
+        .req-row-actions .icon-btn:hover { background: var(--surface-hover, #f5f5f5); color: var(--text, #222); }
         .req-row-actions .icon-btn.danger:hover { background: #fef2f2; color: #b91c1c; border-color: #fca5a5; }
 
         .pill {
@@ -145,82 +148,82 @@ $translationNamespaces = ['common', 'contracts'];
         .source-toggle { margin-top: 8px; }
         .source-list {
             margin-top: 10px; padding: 10px 14px;
-            background: #fafbfc; border: 1px solid #eef0f2; border-radius: 6px;
+            background: var(--surface-2, #fafbfc); border: 1px solid var(--border-soft, #eef0f2); border-radius: 6px;
             display: none;
         }
         .source-list.open { display: block; }
-        .source-item { padding: 6px 0; border-bottom: 1px dashed #e5e7eb; font-size: 13px; }
+        .source-item { padding: 6px 0; border-bottom: 1px dashed var(--border, #e5e7eb); font-size: 13px; }
         .source-item:last-child { border-bottom: none; }
         .source-dept {
             display: inline-block; padding: 1px 7px; border-radius: 9px;
             font-size: 11px; font-weight: 600; margin-right: 6px;
-            background: #e5e7eb; color: #374151;
+            background: var(--surface-3, #e5e7eb); color: var(--text-muted, #374151);
         }
         .source-quote {
-            color: #555; font-style: italic; margin-top: 3px;
-            border-left: 2px solid #ddd; padding-left: 8px;
+            color: var(--text-muted, #555); font-style: italic; margin-top: 3px;
+            border-left: 2px solid var(--border, #ddd); padding-left: 8px;
         }
-        .source-doc { font-size: 11px; color: #999; margin-top: 2px; }
+        .source-doc { font-size: 11px; color: var(--text-dim, #999); margin-top: 2px; }
 
         .conflicts-card {
-            background: white; border-radius: 10px; margin-top: 24px;
+            background: var(--surface, white); border-radius: 10px; margin-top: 24px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
             border-left: 4px solid #ef4444;
         }
         .conflicts-card .conflicts-header {
-            padding: 14px 22px; background: #fef2f2; border-bottom: 1px solid #fee2e2;
+            padding: 14px 22px; background: var(--danger-bg, #fef2f2); border-bottom: 1px solid #fee2e2;
         }
         .conflicts-card h2 {
-            margin: 0; font-size: 16px; font-weight: 600; color: #991b1b;
+            margin: 0; font-size: 16px; font-weight: 600; color: var(--danger-text, #991b1b);
         }
-        .conflict-row { padding: 14px 22px; border-bottom: 1px solid #f5f5f5; }
+        .conflict-row { padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #f5f5f5); }
         .conflict-row:last-child { border-bottom: none; }
         .conflict-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .conflict-side {
-            background: #fafbfc; border: 1px solid #eef0f2; border-radius: 6px;
+            background: var(--surface-2, #fafbfc); border: 1px solid var(--border-soft, #eef0f2); border-radius: 6px;
             padding: 10px 12px;
         }
         .conflict-side .side-label {
-            font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             margin-bottom: 4px;
         }
-        .conflict-side .side-text { font-size: 13px; color: #222; line-height: 1.5; }
+        .conflict-side .side-text { font-size: 13px; color: var(--text, #222); line-height: 1.5; }
         .conflict-explanation {
             margin-top: 10px; padding: 10px 12px;
-            background: #fff7ed; border-left: 3px solid #f59e0b; border-radius: 4px;
-            font-size: 13px; color: #555; line-height: 1.5;
+            background: #fff7ed; border-left: 3px solid var(--con-accent, #f59e0b); border-radius: 4px;
+            font-size: 13px; color: var(--text-muted, #555); line-height: 1.5;
         }
         .conflict-resolution {
-            margin-top: 8px; font-size: 12px; color: #888;
+            margin-top: 8px; font-size: 12px; color: var(--text-dim, #888);
         }
         .conflict-resolution.resolved { color: #047857; }
         .conflict-actions {
             margin-top: 12px; display: flex; gap: 6px; flex-wrap: wrap;
         }
         .conflict-actions .btn-resolve {
-            background: white; border: 1px solid #d1d5db; border-radius: 6px;
-            padding: 5px 10px; font-size: 12px; color: #374151; cursor: pointer;
+            background: var(--surface, white); border: 1px solid var(--border, #d1d5db); border-radius: 6px;
+            padding: 5px 10px; font-size: 12px; color: var(--text-muted, #374151); cursor: pointer;
             font-family: inherit;
         }
-        .conflict-actions .btn-resolve:hover { background: #f5f5f5; color: #111827; }
+        .conflict-actions .btn-resolve:hover { background: var(--surface-hover, #f5f5f5); color: var(--text, #111827); }
         .conflict-actions .btn-resolve.choose-a { border-color: #93c5fd; color: #1e40af; }
         .conflict-actions .btn-resolve.choose-a:hover { background: #eff6ff; }
         .conflict-actions .btn-resolve.choose-b { border-color: #c4b5fd; color: #5b21b6; }
         .conflict-actions .btn-resolve.choose-b:hover { background: #f5f3ff; }
         .conflict-actions .btn-resolve.merge    { border-color: #86efac; color: #047857; }
         .conflict-actions .btn-resolve.merge:hover    { background: #ecfdf5; }
-        .conflict-actions .btn-resolve.dismiss  { border-color: #d1d5db; color: #6b7280; }
+        .conflict-actions .btn-resolve.dismiss  { border-color: var(--border, #d1d5db); color: #6b7280; }
         .conflict-actions .btn-resolve.reopen   { border-color: #fbbf24; color: #b45309; }
 
         .resolved-section {
-            margin-top: 18px; border-top: 1px dashed #e5e7eb; padding-top: 12px;
+            margin-top: 18px; border-top: 1px dashed var(--border, #e5e7eb); padding-top: 12px;
         }
         .resolved-section-label {
-            font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;
+            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
             padding: 0 22px; margin-bottom: 6px;
         }
         .conflict-row.resolved-row { opacity: 0.65; }
-        .conflict-row.resolved-row .conflict-pair { background: #fafbfc; }
+        .conflict-row.resolved-row .conflict-pair { background: var(--surface-2, #fafbfc); }
         .resolution-badge {
             display: inline-block; padding: 1px 8px; border-radius: 9px;
             font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px;
@@ -233,12 +236,12 @@ $translationNamespaces = ['common', 'contracts'];
         .resolution-badge.dismissed { background: #e5e7eb; color: #4b5563; }
 
         .conflict-resolution-notes {
-            margin-top: 6px; padding: 6px 10px; background: #f9fafb;
+            margin-top: 6px; padding: 6px 10px; background: var(--surface-2, #f9fafb);
             border-left: 3px solid #6b7280; border-radius: 4px;
-            font-size: 12px; color: #555;
+            font-size: 12px; color: var(--text-muted, #555);
         }
 
-        .loading, .error-state { text-align: center; padding: 40px; color: #999; }
+        .loading, .error-state { text-align: center; padding: 40px; color: var(--text-dim, #999); }
         .error-state { color: #d13438; }
 
         /* Streaming progress modal */
@@ -248,7 +251,7 @@ $translationNamespaces = ['common', 'contracts'];
             z-index: 1000;
         }
         .stream-modal {
-            background: white; border-radius: 12px; width: 720px; max-width: 92vw;
+            background: var(--surface, white); border-radius: 12px; width: 720px; max-width: 92vw;
             /* Fixed height (not max-height) so the modal doesn't jitter
                as the streaming text preview grows — the inner body
                scrolls on overflow instead. */
@@ -256,10 +259,10 @@ $translationNamespaces = ['common', 'contracts'];
             box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
         }
         .stream-modal-header {
-            padding: 16px 22px; border-bottom: 1px solid #eee;
+            padding: 16px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; align-items: center; gap: 12px;
         }
-        .stream-modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #222; flex: 1; }
+        .stream-modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222); flex: 1; }
         .stream-modal-header .spinner {
             width: 16px; height: 16px; border: 2px solid #fed7aa;
             border-top-color: #9a3412; border-radius: 50%;
@@ -276,19 +279,19 @@ $translationNamespaces = ['common', 'contracts'];
         .stream-phase.error   { background: #fef2f2; color: #991b1b; border-bottom-color: #fecaca; }
 
         .progress-tracker {
-            padding: 12px 22px; border-bottom: 1px solid #eee;
+            padding: 12px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; flex-direction: column; gap: 7px;
-            background: white;
+            background: var(--surface, white);
         }
         .ptask {
             display: flex; align-items: center; gap: 12px;
-            font-size: 13px; color: #555;
+            font-size: 13px; color: var(--text-muted, #555);
         }
         .ptask .pico {
             width: 18px; height: 18px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 11px; font-weight: 700; flex-shrink: 0;
-            background: #f3f4f6; color: #aaa; border: 1px solid #e5e7eb;
+            background: var(--surface-hover, #f3f4f6); color: var(--text-faint, #aaa); border: 1px solid var(--border, #e5e7eb);
         }
         .ptask.active .pico {
             background: #fef3c7; color: #b45309; border-color: #fcd34d;
@@ -297,13 +300,13 @@ $translationNamespaces = ['common', 'contracts'];
         .ptask.done .pico {
             background: #d1fae5; color: #047857; border-color: #6ee7b7;
         }
-        .ptask.active .plabel { color: #222; font-weight: 600; }
+        .ptask.active .plabel { color: var(--text, #222); font-weight: 600; }
         .ptask.done   .plabel { color: #047857; }
         .ptask .pcount {
             margin-left: auto; font-variant-numeric: tabular-nums;
-            color: #888; font-size: 12px;
+            color: var(--text-dim, #888); font-size: 12px;
         }
-        .ptask.active .pcount, .ptask.done .pcount { color: #444; }
+        .ptask.active .pcount, .ptask.done .pcount { color: var(--text-muted, #444); }
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
             50% { transform: scale(1.15); }
@@ -312,20 +315,20 @@ $translationNamespaces = ['common', 'contracts'];
         .stream-body {
             flex: 1; overflow-y: auto; padding: 14px 22px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 12px; line-height: 1.55; color: #333;
+            font-size: 12px; line-height: 1.55; color: var(--text, #333);
             white-space: pre-wrap; word-break: break-word;
-            background: #fafbfc; min-height: 200px;
+            background: var(--surface-2, #fafbfc); min-height: 200px;
         }
 
         .stream-meta {
-            padding: 10px 22px; border-top: 1px solid #eee; background: #fafbfc;
-            display: flex; gap: 18px; font-size: 12px; color: #666;
+            padding: 10px 22px; border-top: 1px solid var(--border-soft, #eee); background: var(--surface-2, #fafbfc);
+            display: flex; gap: 18px; font-size: 12px; color: var(--text-muted, #666);
             justify-content: space-between; flex-wrap: wrap;
         }
-        .stream-meta .meta-item strong { color: #222; font-variant-numeric: tabular-nums; }
+        .stream-meta .meta-item strong { color: var(--text, #222); font-variant-numeric: tabular-nums; }
 
         .stream-modal-footer {
-            padding: 12px 22px; border-top: 1px solid #eee;
+            padding: 12px 22px; border-top: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: flex-end; gap: 8px;
         }
 
@@ -342,31 +345,31 @@ $translationNamespaces = ['common', 'contracts'];
             font-weight: 600; font-size: 14px;
         }
         .merge-bar .spacer { flex: 1; }
-        .merge-bar .btn-primary { background: #f59e0b; }
+        .merge-bar .btn-primary { background: var(--con-accent, #f59e0b); }
         .merge-bar .btn-secondary { background: transparent; color: white; border-color: rgba(255,255,255,0.3); }
         .merge-bar .btn-secondary:hover { background: rgba(255,255,255,0.1); }
 
         /* Generic edit/add/split/merge modal */
         .edit-modal {
-            background: white; border-radius: 12px; width: 640px; max-width: 92vw;
+            background: var(--surface, white); border-radius: 12px; width: 640px; max-width: 92vw;
             max-height: 86vh; display: flex; flex-direction: column;
             box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
         }
         .edit-modal.wide { width: 820px; }
         .edit-modal-header {
-            padding: 14px 22px; border-bottom: 1px solid #eee;
-            font-size: 16px; font-weight: 600; color: #222;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
+            font-size: 16px; font-weight: 600; color: var(--text, #222);
             display: flex; align-items: center; justify-content: space-between;
         }
         .edit-modal-header .close-x {
-            background: none; border: none; font-size: 22px; color: #888;
+            background: none; border: none; font-size: 22px; color: var(--text-dim, #888);
             cursor: pointer; padding: 0; line-height: 1;
         }
         .edit-modal-body {
             padding: 18px 22px; overflow-y: auto; flex: 1;
         }
         .edit-modal-footer {
-            padding: 12px 22px; border-top: 1px solid #eee;
+            padding: 12px 22px; border-top: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: flex-end; gap: 8px;
         }
         .form-row {
@@ -374,17 +377,17 @@ $translationNamespaces = ['common', 'contracts'];
             margin-bottom: 14px;
         }
         .form-row label {
-            font-size: 12px; font-weight: 600; color: #555;
+            font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
         }
         .form-row input, .form-row select, .form-row textarea {
             padding: 8px 10px; font-size: 14px; font-family: inherit;
-            border: 1px solid #d1d5db; border-radius: 6px;
-            color: #222; background: white;
+            border: 1px solid var(--border, #d1d5db); border-radius: 6px;
+            color: var(--text, #222); background: var(--surface, white);
         }
         .form-row textarea { resize: vertical; min-height: 70px; line-height: 1.5; }
         .form-row .form-help {
-            font-size: 12px; color: #888;
+            font-size: 12px; color: var(--text-dim, #888);
         }
         .form-row-grid {
             display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;
@@ -394,31 +397,31 @@ $translationNamespaces = ['common', 'contracts'];
 
         .source-pick-list {
             max-height: 260px; overflow-y: auto;
-            border: 1px solid #e5e7eb; border-radius: 6px;
-            background: #fafbfc;
+            border: 1px solid var(--border, #e5e7eb); border-radius: 6px;
+            background: var(--surface-2, #fafbfc);
         }
         .source-pick-row {
-            padding: 9px 12px; border-bottom: 1px solid #eef0f2;
+            padding: 9px 12px; border-bottom: 1px solid var(--border-soft, #eef0f2);
             display: flex; align-items: flex-start; gap: 10px;
             font-size: 13px;
         }
         .source-pick-row:last-child { border-bottom: none; }
         .source-pick-row .source-pick-info { flex: 1; min-width: 0; }
         .source-pick-row .source-pick-info .source-text {
-            color: #333; line-height: 1.45;
+            color: var(--text, #333); line-height: 1.45;
         }
         .source-pick-row .source-pick-info .source-meta {
-            font-size: 11px; color: #888; margin-top: 2px;
+            font-size: 11px; color: var(--text-dim, #888); margin-top: 2px;
         }
         .source-pick-row select {
             flex-shrink: 0; padding: 4px 8px; font-size: 12px;
-            border: 1px solid #d1d5db; border-radius: 5px;
-            font-family: inherit; background: white;
+            border: 1px solid var(--border, #d1d5db); border-radius: 5px;
+            font-family: inherit; background: var(--surface, white);
         }
 
         .split-row-card {
-            border: 1px solid #e5e7eb; border-radius: 8px;
-            padding: 12px 14px; margin-bottom: 12px; background: #fafbfc;
+            border: 1px solid var(--border, #e5e7eb); border-radius: 8px;
+            padding: 12px 14px; margin-bottom: 12px; background: var(--surface-2, #fafbfc);
             position: relative;
         }
         .split-row-card .split-row-num {
@@ -428,7 +431,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .split-row-card .split-row-remove {
             position: absolute; top: 8px; right: 10px;
-            background: none; border: none; color: #999; cursor: pointer;
+            background: none; border: none; color: var(--text-dim, #999); cursor: pointer;
             font-size: 18px; line-height: 1;
         }
         .split-row-card .split-row-remove:hover { color: #b91c1c; }
@@ -436,10 +439,16 @@ $translationNamespaces = ['common', 'contracts'];
         .merge-summary {
             margin-bottom: 14px; padding: 10px 12px;
             background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px;
-            font-size: 13px; color: #92400e;
+            font-size: 13px; color: var(--con-accent-hover, #92400e);
         }
         .merge-summary ul { margin: 6px 0 0 18px; padding: 0; }
         .merge-summary li { margin-bottom: 3px; }
+
+        /* Dark-mode overrides for pale amber tints whose light value differs
+           from the --con-accent-soft token (so light mode stays unshifted). */
+        [data-theme-mode="dark"] .req-row.selected      { background: #3a2e12; }
+        [data-theme-mode="dark"] .conflict-explanation  { background: #3a2e12; }
+        [data-theme-mode="dark"] .merge-summary         { background: #3a2e12; border-color: #5a4a1e; }
     </style>
 </head>
 <body>
@@ -464,7 +473,7 @@ $translationNamespaces = ['common', 'contracts'];
             </div>
         </div>
 
-        <div id="lockedBanner" style="display:none;background:#ecfdf5;border:1px solid #a7f3d0;color:#065f46;padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
+        <div id="lockedBanner" style="display:none;background:var(--success-bg,#ecfdf5);border:1px solid #a7f3d0;color:var(--success-text,#065f46);padding:10px 16px;border-radius:8px;margin-bottom:16px;font-size:13px;">
             <?php echo t('contracts.rfp.consolidate.locked_banner'); ?>
         </div>
 
@@ -592,7 +601,7 @@ $translationNamespaces = ['common', 'contracts'];
             <div class="edit-modal-body">
                 <div class="form-row">
                     <label><?php echo htmlspecialchars(t('contracts.rfp.consolidate.split_original')); ?></label>
-                    <div id="splitOriginalText" style="padding:10px 12px;background:#f3f4f6;border-radius:6px;font-size:13px;color:#555;line-height:1.5;"></div>
+                    <div id="splitOriginalText" style="padding:10px 12px;background:var(--surface-hover,#f3f4f6);border-radius:6px;font-size:13px;color:var(--text-muted,#555);line-height:1.5;"></div>
                 </div>
 
                 <div class="form-row">
@@ -621,7 +630,7 @@ $translationNamespaces = ['common', 'contracts'];
                 <span id="resolveModalTitle"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve_conflict')); ?></span>
             </div>
             <div class="edit-modal-body">
-                <div id="resolveContext" style="margin-bottom:14px;font-size:13px;color:#555;"></div>
+                <div id="resolveContext" style="margin-bottom:14px;font-size:13px;color:var(--text-muted,#555);"></div>
                 <div class="form-row">
                     <label for="resolveNotes"><?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve_notes')); ?></label>
                     <textarea id="resolveNotes" rows="3" placeholder="<?php echo htmlspecialchars(t('contracts.rfp.consolidate.resolve_notes_ph')); ?>"></textarea>
@@ -863,7 +872,7 @@ $translationNamespaces = ['common', 'contracts'];
                                 <span class="source-dept" style="${s.department_colour ? 'background:' + escapeHtml(s.department_colour) + '20; color:' + escapeHtml(s.department_colour) : ''}">
                                     ${escapeHtml(s.department_name || window.t('contracts.rfp.documents.unassigned'))}
                                 </span>
-                                <span style="color:#555;">${escapeHtml(s.requirement_text)}</span>
+                                <span style="color:var(--text-muted,#555);">${escapeHtml(s.requirement_text)}</span>
                                 ${s.source_quote ? `<div class="source-quote">"${escapeHtml(s.source_quote)}"</div>` : ''}
                                 <div class="source-doc">${escapeHtml(s.document_filename || '')} · ${escapeHtml(window.t('contracts.rfp.consolidate.extracted_n', { n: s.extracted_id }))}</div>
                             </div>
@@ -1589,13 +1598,13 @@ $translationNamespaces = ['common', 'contracts'];
             let context;
             if (resolution === 'chose_a') {
                 context = '<strong>' + escapeHtml(window.t('contracts.rfp.consolidate.going_a')) + '</strong> ' + escapeHtml(aText) +
-                          '<br><br><span style="color:#888;">' + escapeHtml(window.t('contracts.rfp.consolidate.side_b_remains')) + '</span>';
+                          '<br><br><span style="color:var(--text-dim,#888);">' + escapeHtml(window.t('contracts.rfp.consolidate.side_b_remains')) + '</span>';
             } else if (resolution === 'chose_b') {
                 context = '<strong>' + escapeHtml(window.t('contracts.rfp.consolidate.going_b')) + '</strong> ' + escapeHtml(bText) +
-                          '<br><br><span style="color:#888;">' + escapeHtml(window.t('contracts.rfp.consolidate.side_a_remains')) + '</span>';
+                          '<br><br><span style="color:var(--text-dim,#888);">' + escapeHtml(window.t('contracts.rfp.consolidate.side_a_remains')) + '</span>';
             } else {
                 context = '<strong>' + escapeHtml(window.t('contracts.rfp.consolidate.dismissing')) + '</strong><br><br>' +
-                          '<span style="color:#888;">' + escapeHtml(window.t('contracts.rfp.consolidate.dismissing_note')) + '</span>';
+                          '<span style="color:var(--text-dim,#888);">' + escapeHtml(window.t('contracts.rfp.consolidate.dismissing_note')) + '</span>';
             }
             document.getElementById('resolveContext').innerHTML = context;
             document.getElementById('resolveNotes').value = '';

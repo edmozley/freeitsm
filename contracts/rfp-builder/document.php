@@ -14,6 +14,7 @@
 session_start();
 require_once '../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -23,7 +24,7 @@ $path_prefix  = '../../';
 $translationNamespaces = ['common', 'contracts'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -32,21 +33,23 @@ $translationNamespaces = ['common', 'contracts'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=16">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script src="../../assets/js/tinymce/tinymce.min.js"></script>
     <style>
-        .page-wrap { padding: 30px 40px; background: #f5f5f5; height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
+        body { --accent: var(--con-accent, #f59e0b); }
+        .page-wrap { padding: 30px 40px; background: var(--app-bg, #f5f5f5); height: calc(100vh - 48px); overflow-y: auto; box-sizing: border-box; }
 
-        .breadcrumb { font-size: 13px; color: #888; margin-bottom: 8px; }
-        .breadcrumb a { color: #666; text-decoration: none; }
-        .breadcrumb a:hover { color: #f59e0b; }
-        .breadcrumb span.sep { margin: 0 6px; color: #ccc; }
+        .breadcrumb { font-size: 13px; color: var(--text-dim, #888); margin-bottom: 8px; }
+        .breadcrumb a { color: var(--text-muted, #666); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--con-accent, #f59e0b); }
+        .breadcrumb span.sep { margin: 0 6px; color: var(--text-faint, #ccc); }
 
         .page-header {
             display: flex; justify-content: space-between; align-items: center;
             margin-bottom: 20px;
         }
-        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: #222; }
+        .page-header h1 { margin: 0; font-size: 22px; font-weight: 700; color: var(--text, #222); }
         .page-actions { display: flex; gap: 8px; }
 
         .btn {
@@ -55,30 +58,30 @@ $translationNamespaces = ['common', 'contracts'];
             text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
             transition: all 0.15s; font-family: inherit;
         }
-        .btn-primary { background: #f59e0b; color: white; }
-        .btn-primary:hover:not(:disabled) { background: #d97706; }
+        .btn-primary { background: var(--con-accent, #f59e0b); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--con-accent-hover, #d97706); }
         .btn-primary:disabled { background: #fcd34d; cursor: not-allowed; }
-        .btn-secondary { background: white; color: #333; border-color: #ddd; }
-        .btn-secondary:hover { background: #f5f5f5; }
+        .btn-secondary { background: var(--surface, white); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-secondary:hover { background: var(--surface-hover, #f5f5f5); }
 
         .stats-strip {
             display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
             margin-bottom: 18px;
         }
         .stat-card {
-            background: white; border-radius: 8px; padding: 14px 18px;
+            background: var(--surface, white); border-radius: 8px; padding: 14px 18px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            border-left: 4px solid #ddd;
+            border-left: 4px solid var(--border, #ddd);
         }
         .stat-card.cats     { border-left-color: #6b7280; }
         .stat-card.gen      { border-left-color: #10b981; }
         .stat-card.pending  { border-left-color: #f59e0b; }
         .stat-card.edited   { border-left-color: #8b5cf6; }
-        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: #222; line-height: 1; }
-        .stat-card .stat-label { font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
+        .stat-card .stat-value { font-size: 22px; font-weight: 700; color: var(--text, #222); line-height: 1; }
+        .stat-card .stat-label { font-size: 12px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 6px; }
 
         .gate-banner {
-            background: #fef3c7; border: 1px solid #fcd34d; color: #92400e;
+            background: var(--warning-bg, #fef3c7); border: 1px solid var(--warning-border, #fcd34d); color: var(--warning-text, #92400e);
             padding: 14px 18px; border-radius: 8px; margin-bottom: 16px; font-size: 14px;
             display: flex; align-items: center; gap: 14px;
         }
@@ -86,14 +89,14 @@ $translationNamespaces = ['common', 'contracts'];
         .gate-banner .gate-msg  { flex: 1; }
 
         .empty-card {
-            background: white; border-radius: 10px; padding: 40px 24px;
+            background: var(--surface, white); border-radius: 10px; padding: 40px 24px;
             text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
         }
-        .empty-card p { color: #666; margin: 6px 0; }
+        .empty-card p { color: var(--text-muted, #666); margin: 6px 0; }
 
         /* Document framing panel — sits above the category cards */
         .framing-panel {
-            background: white; border-radius: 10px; margin-bottom: 24px;
+            background: var(--surface, white); border-radius: 10px; margin-bottom: 24px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
             border-left: 4px solid #0ea5e9;
         }
@@ -108,31 +111,31 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .framing-panel-header .header-actions { display: flex; gap: 8px; }
         .framing-context-block {
-            padding: 12px 22px; background: #fafbfc; font-size: 13px;
-            color: #444; line-height: 1.5; border-bottom: 1px solid #eef0f2;
+            padding: 12px 22px; background: var(--surface-2, #fafbfc); font-size: 13px;
+            color: var(--text-muted, #444); line-height: 1.5; border-bottom: 1px solid var(--border-soft, #eef0f2);
         }
         .framing-context-block .ctx-label {
-            font-size: 11px; color: #888; text-transform: uppercase;
+            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase;
             letter-spacing: 0.5px; margin-bottom: 4px;
         }
-        .framing-context-block .ctx-empty { color: #999; font-style: italic; }
+        .framing-context-block .ctx-empty { color: var(--text-dim, #999); font-style: italic; }
         .framing-card {
-            padding: 14px 22px; border-bottom: 1px solid #f0f0f0;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #f0f0f0);
         }
         .framing-card:last-child { border-bottom: none; }
         .framing-card-header {
             display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px;
         }
         .framing-card-header h3 {
-            margin: 0; font-size: 14px; font-weight: 700; color: #222;
+            margin: 0; font-size: 14px; font-weight: 700; color: var(--text, #222);
             flex: 1;
         }
         .framing-card-header .meta {
-            font-size: 11px; color: #999;
+            font-size: 11px; color: var(--text-dim, #999);
             display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
         }
         .framing-card-header .meta .badge {
-            padding: 1px 7px; border-radius: 8px; background: #eef0f2; color: #555;
+            padding: 1px 7px; border-radius: 8px; background: var(--surface-3, #eef0f2); color: var(--text-muted, #555);
         }
         .framing-card-header .meta .badge.edited { background: #ede9fe; color: #5b21b6; }
         .framing-card-header .meta .badge.fresh  { background: #d1fae5; color: #047857; }
@@ -140,81 +143,81 @@ $translationNamespaces = ['common', 'contracts'];
         .framing-card-header .actions {
             display: flex; gap: 6px; flex-shrink: 0;
         }
-        .framing-card-body { font-size: 13px; line-height: 1.55; color: #333; }
+        .framing-card-body { font-size: 13px; line-height: 1.55; color: var(--text, #333); }
         .framing-card-body h3 {
-            font-size: 13px; font-weight: 700; color: #1f2937;
+            font-size: 13px; font-weight: 700; color: var(--text, #1f2937);
             margin: 12px 0 6px 0;
         }
         .framing-card-body p { margin: 0 0 8px 0; }
         .framing-card-body ul, .framing-card-body ol { margin: 0 0 8px 22px; }
         .framing-card-body li { margin-bottom: 3px; }
         .framing-card-body.empty {
-            color: #999; font-style: italic;
-            padding: 14px 0; text-align: center; background: #fafbfc;
+            color: var(--text-dim, #999); font-style: italic;
+            padding: 14px 0; text-align: center; background: var(--surface-2, #fafbfc);
             border-radius: 6px;
         }
 
         /* Generic edit modal (re-used for context note and framing edit) */
         .modal-edit-shell {
-            background: white; border-radius: 12px; width: 720px; max-width: 92vw;
+            background: var(--surface, white); border-radius: 12px; width: 720px; max-width: 92vw;
             max-height: 86vh; display: flex; flex-direction: column;
             box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
         }
         .modal-edit-header {
-            padding: 14px 22px; border-bottom: 1px solid #eee;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; align-items: center; justify-content: space-between;
         }
-        .modal-edit-header h3 { margin: 0; font-size: 15px; font-weight: 600; color: #222; }
+        .modal-edit-header h3 { margin: 0; font-size: 15px; font-weight: 600; color: var(--text, #222); }
         .modal-edit-header .close-x {
-            background: none; border: none; font-size: 22px; color: #888; cursor: pointer; padding: 0; line-height: 1;
+            background: none; border: none; font-size: 22px; color: var(--text-dim, #888); cursor: pointer; padding: 0; line-height: 1;
         }
         .modal-edit-body { padding: 18px 22px; overflow-y: auto; flex: 1; }
         .modal-edit-footer {
-            padding: 12px 22px; border-top: 1px solid #eee;
+            padding: 12px 22px; border-top: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: flex-end; gap: 8px;
         }
         .form-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
         .form-row label {
-            font-size: 12px; font-weight: 600; color: #555;
+            font-size: 12px; font-weight: 600; color: var(--text-muted, #555);
             text-transform: uppercase; letter-spacing: 0.4px;
         }
-        .form-row .help { font-size: 12px; color: #888; }
+        .form-row .help { font-size: 12px; color: var(--text-dim, #888); }
         .form-row textarea {
             padding: 10px 12px; font-size: 13px; font-family: inherit;
-            border: 1px solid #d1d5db; border-radius: 6px; line-height: 1.5;
+            border: 1px solid var(--border, #d1d5db); border-radius: 6px; line-height: 1.5;
             resize: vertical; min-height: 100px;
         }
         .form-row textarea.tall { min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; }
 
         /* Version history modal */
         .modal-history-shell {
-            background: white; border-radius: 12px; width: 820px; max-width: 92vw;
+            background: var(--surface, white); border-radius: 12px; width: 820px; max-width: 92vw;
             height: 86vh; display: flex; flex-direction: column;
             box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
         }
         .history-list-empty {
-            padding: 28px 20px; text-align: center; color: #999; font-size: 13px;
+            padding: 28px 20px; text-align: center; color: var(--text-dim, #999); font-size: 13px;
         }
         .history-row {
-            border: 1px solid #e5e7eb; border-radius: 8px;
+            border: 1px solid var(--border, #e5e7eb); border-radius: 8px;
             margin-bottom: 10px; overflow: hidden;
         }
         .history-row.current { border-color: #6ee7b7; background: #f0fdf4; }
         .history-row-header {
             padding: 10px 14px; display: flex; align-items: center; gap: 12px;
             cursor: pointer; user-select: none;
-            background: #fafbfc; border-bottom: 1px solid #eef0f2;
+            background: var(--surface-2, #fafbfc); border-bottom: 1px solid var(--border-soft, #eef0f2);
         }
         .history-row.current .history-row-header { background: #ecfdf5; }
-        .history-row-header:hover { background: #f3f4f6; }
+        .history-row-header:hover { background: var(--surface-hover, #f3f4f6); }
         .history-row-header .ver-pill {
-            background: #e5e7eb; color: #374151;
+            background: var(--surface-3, #e5e7eb); color: var(--text-muted, #374151);
             padding: 2px 9px; border-radius: 10px;
             font-size: 12px; font-weight: 700;
         }
         .history-row.current .ver-pill { background: #d1fae5; color: #047857; }
         .history-row-header .ver-meta {
-            font-size: 12px; color: #666; flex: 1;
+            font-size: 12px; color: var(--text-muted, #666); flex: 1;
         }
         .history-row-header .ver-meta .edited-tag {
             background: #ede9fe; color: #5b21b6;
@@ -226,9 +229,9 @@ $translationNamespaces = ['common', 'contracts'];
         }
         .history-row-body {
             display: none;
-            padding: 12px 14px; font-size: 13px; line-height: 1.55; color: #333;
+            padding: 12px 14px; font-size: 13px; line-height: 1.55; color: var(--text, #333);
             max-height: 320px; overflow-y: auto;
-            background: white;
+            background: var(--surface, white);
         }
         .history-row.open .history-row-body { display: block; }
         .history-row-body h3 { font-size: 13px; font-weight: 700; margin: 10px 0 6px 0; }
@@ -241,26 +244,26 @@ $translationNamespaces = ['common', 'contracts'];
         .cat-header .cat-actions .btn { white-space: nowrap; }
 
         .category-card {
-            background: white; border-radius: 10px; margin-bottom: 16px;
+            background: var(--surface, white); border-radius: 10px; margin-bottom: 16px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06); overflow: hidden;
         }
         .cat-header {
-            padding: 14px 22px; border-bottom: 1px solid #f0f0f0;
-            background: #fafbfc;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #f0f0f0);
+            background: var(--surface-2, #fafbfc);
             display: flex; align-items: flex-start; gap: 12px;
         }
         .cat-header .cat-info { flex: 1; min-width: 0; }
         .cat-header h2 {
-            margin: 0; font-size: 17px; font-weight: 600; color: #222;
+            margin: 0; font-size: 17px; font-weight: 600; color: var(--text, #222);
         }
-        .cat-header .cat-desc { font-size: 13px; color: #666; margin-top: 4px; line-height: 1.45; }
+        .cat-header .cat-desc { font-size: 13px; color: var(--text-muted, #666); margin-top: 4px; line-height: 1.45; }
         .cat-header .cat-meta {
-            font-size: 11px; color: #999; margin-top: 6px;
+            font-size: 11px; color: var(--text-dim, #999); margin-top: 6px;
             display: flex; gap: 12px; flex-wrap: wrap;
         }
         .cat-header .cat-meta .badge {
             display: inline-block; padding: 1px 7px; border-radius: 8px;
-            background: #eef0f2; color: #555;
+            background: var(--surface-3, #eef0f2); color: var(--text-muted, #555);
         }
         .cat-header .cat-meta .badge.edited { background: #ede9fe; color: #5b21b6; }
         .cat-header .cat-meta .badge.fresh  { background: #d1fae5; color: #047857; }
@@ -270,14 +273,14 @@ $translationNamespaces = ['common', 'contracts'];
         }
 
         .section-body {
-            padding: 18px 28px; line-height: 1.6; color: #222;
+            padding: 18px 28px; line-height: 1.6; color: var(--text, #222);
         }
         .section-body h3 {
-            font-size: 15px; font-weight: 700; color: #1f2937;
+            font-size: 15px; font-weight: 700; color: var(--text, #1f2937);
             margin: 18px 0 8px 0;
         }
         .section-body h3:first-child { margin-top: 0; }
-        .section-body h4 { font-size: 13px; font-weight: 700; color: #374151; margin: 12px 0 6px 0; }
+        .section-body h4 { font-size: 13px; font-weight: 700; color: var(--text-muted, #374151); margin: 12px 0 6px 0; }
         .section-body p  { margin: 0 0 10px 0; font-size: 14px; }
         .section-body ul, .section-body ol { margin: 0 0 10px 22px; font-size: 14px; }
         .section-body li { margin-bottom: 4px; }
@@ -285,12 +288,12 @@ $translationNamespaces = ['common', 'contracts'];
             border-collapse: collapse; margin: 10px 0; width: 100%; font-size: 13px;
         }
         .section-body th, .section-body td {
-            border: 1px solid #e5e7eb; padding: 6px 10px; text-align: left;
+            border: 1px solid var(--border, #e5e7eb); padding: 6px 10px; text-align: left;
         }
-        .section-body th { background: #f9fafb; font-weight: 600; }
+        .section-body th { background: var(--surface-2, #f9fafb); font-weight: 600; }
 
         .section-empty {
-            padding: 22px 28px; color: #999; font-size: 14px; font-style: italic;
+            padding: 22px 28px; color: var(--text-dim, #999); font-size: 14px; font-style: italic;
         }
 
         /* ─── Generate-all batch modal ─────────────────────────────── */
@@ -300,7 +303,7 @@ $translationNamespaces = ['common', 'contracts'];
             display: flex; align-items: center; justify-content: center; z-index: 1000;
         }
         .batch-modal {
-            background: white; border-radius: 12px; width: 820px; max-width: 92vw;
+            background: var(--surface, white); border-radius: 12px; width: 820px; max-width: 92vw;
             /* Fixed height (not max-height) so the modal doesn't jitter
                as the streaming text preview grows and resets between
                sections — internal panes scroll on overflow. */
@@ -308,28 +311,28 @@ $translationNamespaces = ['common', 'contracts'];
             box-shadow: 0 16px 48px rgba(0,0,0,0.25); overflow: hidden;
         }
         .batch-modal-header {
-            padding: 14px 22px; border-bottom: 1px solid #eee;
+            padding: 14px 22px; border-bottom: 1px solid var(--border-soft, #eee);
             display: flex; align-items: center; gap: 12px;
         }
-        .batch-modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: #222; flex: 1; }
+        .batch-modal-header h3 { margin: 0; font-size: 16px; font-weight: 600; color: var(--text, #222); flex: 1; }
 
         .batch-summary {
-            padding: 12px 22px; border-bottom: 1px solid #eee;
-            display: flex; gap: 18px; font-size: 12px; color: #666; flex-wrap: wrap;
+            padding: 12px 22px; border-bottom: 1px solid var(--border-soft, #eee);
+            display: flex; gap: 18px; font-size: 12px; color: var(--text-muted, #666); flex-wrap: wrap;
         }
-        .batch-summary strong { color: #222; font-variant-numeric: tabular-nums; }
+        .batch-summary strong { color: var(--text, #222); font-variant-numeric: tabular-nums; }
 
         .batch-tasks { padding: 8px 22px 6px 22px; max-height: 280px; overflow-y: auto; }
         .batch-task {
             display: flex; align-items: center; gap: 10px;
-            padding: 8px 0; font-size: 13px; border-bottom: 1px solid #f5f5f5;
+            padding: 8px 0; font-size: 13px; border-bottom: 1px solid var(--border-soft, #f5f5f5);
         }
         .batch-task:last-child { border-bottom: none; }
         .batch-task .pico {
             width: 18px; height: 18px; border-radius: 50%;
             display: flex; align-items: center; justify-content: center;
             font-size: 11px; font-weight: 700; flex-shrink: 0;
-            background: #f3f4f6; color: #aaa; border: 1px solid #e5e7eb;
+            background: var(--surface-3, #f3f4f6); color: var(--text-faint, #aaa); border: 1px solid var(--border, #e5e7eb);
         }
         .batch-task.active .pico {
             background: #fef3c7; color: #b45309; border-color: #fcd34d;
@@ -338,12 +341,12 @@ $translationNamespaces = ['common', 'contracts'];
         .batch-task.done   .pico { background: #d1fae5; color: #047857; border-color: #6ee7b7; }
         .batch-task.skip   .pico { background: #e5e7eb; color: #4b5563; border-color: #d1d5db; }
         .batch-task.error  .pico { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
-        .batch-task .plabel { flex: 1; color: #555; }
+        .batch-task .plabel { flex: 1; color: var(--text-muted, #555); }
         .batch-task.active .plabel,
-        .batch-task.done   .plabel { color: #222; }
+        .batch-task.done   .plabel { color: var(--text, #222); }
         .batch-task.error  .plabel { color: #991b1b; }
         .batch-task .pcount {
-            font-variant-numeric: tabular-nums; color: #888; font-size: 12px;
+            font-variant-numeric: tabular-nums; color: var(--text-dim, #888); font-size: 12px;
         }
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
@@ -353,18 +356,18 @@ $translationNamespaces = ['common', 'contracts'];
         .batch-stream {
             flex: 1; overflow-y: auto; padding: 12px 22px;
             font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-            font-size: 12px; line-height: 1.55; color: #333;
+            font-size: 12px; line-height: 1.55; color: var(--text, #333);
             white-space: pre-wrap; word-break: break-word;
-            background: #fafbfc; min-height: 160px;
-            border-top: 1px solid #eee;
+            background: var(--surface-2, #fafbfc); min-height: 160px;
+            border-top: 1px solid var(--border-soft, #eee);
         }
         .batch-stream-label {
-            font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.5px;
-            padding: 6px 22px 0 22px; background: #fafbfc;
+            font-size: 11px; color: var(--text-dim, #888); text-transform: uppercase; letter-spacing: 0.5px;
+            padding: 6px 22px 0 22px; background: var(--surface-2, #fafbfc);
         }
 
         .batch-modal-footer {
-            padding: 12px 22px; border-top: 1px solid #eee;
+            padding: 12px 22px; border-top: 1px solid var(--border-soft, #eee);
             display: flex; justify-content: space-between; gap: 8px;
         }
         .batch-modal-footer .right-actions { display: flex; gap: 8px; }
@@ -377,8 +380,17 @@ $translationNamespaces = ['common', 'contracts'];
         .spinner.done { display: none; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .loading, .error-state { text-align: center; padding: 40px; color: #999; }
+        .loading, .error-state { text-align: center; padding: 40px; color: var(--text-dim, #999); }
         .error-state { color: #d13438; }
+
+        /* Dark-mode overrides for the pale-blue framing-panel header
+           (kept hardcoded in light so light mode is unchanged). */
+        [data-theme-mode="dark"] .framing-panel-header { background: #10222e; border-bottom-color: #16394d; }
+        [data-theme-mode="dark"] .framing-panel-header h2 { color: #7dd3fc; }
+        /* Green "current version" row highlight — kept as a light green
+           tint in light; darkened here so it isn't a near-white block. */
+        [data-theme-mode="dark"] .history-row.current { background: #0f241b; }
+        [data-theme-mode="dark"] .history-row.current .history-row-header { background: #102c20; }
     </style>
 </head>
 <body>
@@ -609,7 +621,7 @@ $translationNamespaces = ['common', 'contracts'];
                 banner.style.display = 'flex';
                 document.getElementById('gateMsg').innerHTML =
                     window.t('contracts.rfp.document.gate_not_locked') + ' ' +
-                    '<a href="consolidate.php?id=' + encodeURIComponent(rfpId) + '" style="color:#92400e;text-decoration:underline;">' + window.t('contracts.rfp.document.open_consolidation') + '</a> ' + window.t('contracts.rfp.document.to_lock');
+                    '<a href="consolidate.php?id=' + encodeURIComponent(rfpId) + '" style="color:var(--warning-text, #92400e);text-decoration:underline;">' + window.t('contracts.rfp.document.open_consolidation') + '</a> ' + window.t('contracts.rfp.document.to_lock');
                 generateBtn.style.display = 'none';
                 previewLink.style.display = 'none';
             } else {
@@ -1055,10 +1067,13 @@ $translationNamespaces = ['common', 'contracts'];
             // to whichever textarea you tell it to but we want a clean
             // editor each time.
             destroyAllTiny();
+            const tinyDark = (document.documentElement.getAttribute('data-theme-mode') || 'light') === 'dark';
             return new Promise((resolve) => {
                 tinymce.init({
                     target: document.getElementById(textareaId),
                     license_key: 'gpl',
+                    skin: tinyDark ? 'oxide-dark' : 'oxide',
+                    content_css: 'default',
                     menubar: false,
                     statusbar: false,
                     height: 460,
