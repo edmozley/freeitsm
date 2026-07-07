@@ -205,4 +205,82 @@
         padding-right: 14px;
     }
     .email-subject-line { font-size: 20px; }
+
+    /* ====================================================================
+       LAYER 5 — Reading-pane action toolbar: icon-only, wrapping.
+       The 8 actions (note/reply/forward/schedule/AI/audit/feedback/delete)
+       can't show their words on a phone — drop the labels, keep the emoji
+       icons, and let them wrap onto a second row.
+       ==================================================================== */
+    .action-toolbar { flex-wrap: wrap; }
+    .action-toolbar .action-btn { flex: 0 0 auto; padding: 9px 13px; }
+    .action-toolbar .action-btn span:not(.action-btn-icon) { display: none; }
+    .action-toolbar .action-btn-icon { font-size: 18px; }
+
+    /* ====================================================================
+       LAYER 6 — Collapsible ticket header (Gmail-app style).
+       On a phone the From/To/Date/Cc meta starts collapsed behind the subject;
+       tap the subject row (chevron) to reveal it. mobile.js toggles .meta-open.
+       The desktop-only fullscreen popout toggle is hidden (the reading pane is
+       already full-screen here).
+       ==================================================================== */
+    .ticket-popout-toggle { display: none; }
+    .email-subject-line { cursor: pointer; }
+    .email-subject-line::after {
+        content: '\25BE';               /* ▾ */
+        margin-left: auto;
+        font-size: 14px;
+        color: var(--text-dim, #888);
+        flex-shrink: 0;
+        transition: transform 0.2s ease;
+    }
+    .email-header.meta-open .email-subject-line::after { transform: rotate(180deg); }
+    .email-header .email-meta { display: none; }
+    .email-header.meta-open .email-meta { display: block; }
+
+    /* ====================================================================
+       LAYER 7 — "Links" sheet: problem + change linking on its own panel.
+       mobile.js relocates the inline .problem-strip nodes in here and adds a
+       🔗 Links button to the toolbar. Shown/hidden by JS (display none/flex).
+       ==================================================================== */
+    .mobile-links-sheet {
+        position: fixed;
+        inset: 0;
+        z-index: 1500;
+        background: var(--surface, #fff);
+        flex-direction: column;         /* display toggled in JS */
+    }
+    .mls-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border, #ddd);
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--text, #333);
+        flex-shrink: 0;
+    }
+    .mls-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: var(--text-muted, #555);
+        padding: 4px 8px;
+    }
+    .mls-body { flex: 1; overflow-y: auto; padding: 8px 16px 24px; }
+    /* Relocated strips: give the label its own line, badges + link button room. */
+    .mls-body .problem-strip {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px;
+        padding: 16px 0;
+        background: none;
+        border: none;
+        border-bottom: 1px solid var(--border-soft, #eee);
+    }
+    .mls-body .problem-strip-label { width: 100%; font-weight: 600; }
+    .mls-body .problem-link-btn { margin-left: auto; }
 }
