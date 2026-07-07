@@ -163,4 +163,28 @@
     /* Which control shows depends on the current pane. */
     body[data-mobile-pane="list"] .msb-back { display: none; }
     body:not([data-mobile-pane="list"]) .msb-folders { display: none; }
+
+    /* ====================================================================
+       LAYER 3 — Modals become full-screen sheets on mobile.
+       Targets the canonical .modal-content (used app-wide) so the reply /
+       compose editor (#emailModal + TinyMCE), the note modal, the new-ticket
+       form, pickers etc. get the whole screen instead of a cramped centred
+       box. !important beats per-page .modal-content width/max-width rules,
+       since a page's own <style> loads after mobile.css.
+       ==================================================================== */
+    .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
+    }
+    .modal-header { padding: 14px 16px; font-size: 18px; }
+    .modal-body   { padding: 16px; }
+    .modal-footer { padding: 12px 16px; }
+
+    /* Two-column form rows inside modals (e.g. reply To/Cc, set inline as a
+       1fr 1fr grid) stack to one column on a phone. !important beats the
+       element's inline grid-template-columns. */
+    .modal-content .form-row { grid-template-columns: 1fr !important; }
 }
