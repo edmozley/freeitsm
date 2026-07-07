@@ -5,6 +5,7 @@
 session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -19,11 +20,12 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'tasks'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tasks.help.page_title')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=15">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -33,13 +35,13 @@ $translationNamespaces = ['common', 'tasks'];
         body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
         .header { flex-shrink: 0; }
 
-        .thp-container { display: flex; flex: 1; min-height: 0; background: #f5f5f5; }
+        .thp-container { display: flex; flex: 1; min-height: 0; background: var(--app-bg, #f5f5f5); }
 
         /* Left sidebar navigation */
         .thp-sidebar {
             width: 260px;
-            background: #fff;
-            border-right: 1px solid #ddd;
+            background: var(--surface, #fff);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -50,7 +52,7 @@ $translationNamespaces = ['common', 'tasks'];
         .thp-sidebar h3 {
             font-size: 12px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-dim, #888);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 0 0 12px;
@@ -62,12 +64,12 @@ $translationNamespaces = ['common', 'tasks'];
             padding: 10px 12px;
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             text-decoration: none;
             transition: background 0.15s, color 0.15s;
         }
-        .thp-nav-link:hover { background: #f5f5f5; color: #333; }
-        .thp-nav-link.active { background: #f3f0ff; color: #6d28d9; font-weight: 600; }
+        .thp-nav-link:hover { background: var(--surface-hover, #f5f5f5); color: var(--text, #333); }
+        .thp-nav-link.active { background: var(--tsk-accent-soft, #f3f0ff); color: var(--tsk-accent-hover, #6d28d9); font-weight: 600; }
         .thp-nav-num {
             display: flex;
             align-items: center;
@@ -75,13 +77,13 @@ $translationNamespaces = ['common', 'tasks'];
             min-width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: #eee;
-            color: #888;
+            background: var(--surface-3, #eee);
+            color: var(--text-dim, #888);
             font-weight: 700;
             font-size: 11px;
             flex-shrink: 0;
         }
-        .thp-nav-link.active .thp-nav-num { background: #7c3aed; color: #fff; }
+        .thp-nav-link.active .thp-nav-num { background: var(--tsk-accent, #7c3aed); color: #fff; }
 
         /* Main content */
         .thp-main { flex: 1; overflow-y: auto; }
@@ -98,12 +100,12 @@ $translationNamespaces = ['common', 'tasks'];
         .thp-content { max-width: 1120px; margin: 0 auto; padding: 10px 48px 48px; }
 
         /* Sections */
-        .thp-section { padding: 28px 0; border-bottom: 1px solid #eee; scroll-margin-top: 20px; }
+        .thp-section { padding: 28px 0; border-bottom: 1px solid var(--border-soft, #eee); scroll-margin-top: 20px; }
         .thp-section:last-child { border-bottom: none; padding-bottom: 0; }
         .thp-section-header { display: flex; align-items: flex-start; gap: 14px; margin-bottom: 16px; }
-        .thp-section-header h3 { margin: 0; font-size: 18px; color: #333; }
-        .thp-section-header p { margin: 6px 0 0; font-size: 14px; color: #666; line-height: 1.6; }
-        .thp-section > p { font-size: 14px; color: #555; line-height: 1.7; margin: 0 0 14px; }
+        .thp-section-header h3 { margin: 0; font-size: 18px; color: var(--text, #333); }
+        .thp-section-header p { margin: 6px 0 0; font-size: 14px; color: var(--text-muted, #666); line-height: 1.6; }
+        .thp-section > p { font-size: 14px; color: var(--text-muted, #555); line-height: 1.7; margin: 0 0 14px; }
         .thp-section-num {
             display: flex;
             align-items: center;
@@ -111,21 +113,21 @@ $translationNamespaces = ['common', 'tasks'];
             min-width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #f3f0ff;
-            color: #6d28d9;
+            background: var(--tsk-accent-soft, #f3f0ff);
+            color: var(--tsk-accent-hover, #6d28d9);
             font-weight: 700;
             font-size: 14px;
             flex-shrink: 0;
         }
-        .thp-section h4 { margin: 22px 0 8px; font-size: 14.5px; color: #333; }
+        .thp-section h4 { margin: 22px 0 8px; font-size: 14.5px; color: var(--text, #333); }
 
         /* Feature cards grid */
         .thp-features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
         .thp-feature-card {
             padding: 20px;
             border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            background: #fff;
+            border: 1px solid var(--border, #e0e0e0);
+            background: var(--surface, #fff);
             transition: transform 0.15s, box-shadow 0.15s;
         }
         .thp-feature-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
@@ -138,6 +140,7 @@ $translationNamespaces = ['common', 'tasks'];
             justify-content: center;
             margin-bottom: 12px;
         }
+        /* Type-coded icon tiles — encode meaning, left as data (read on both modes) */
         .thp-feature-icon.purple { background: #f3e8ff; color: #7c3aed; }
         .thp-feature-icon.blue   { background: #e3f2fd; color: #0078d4; }
         .thp-feature-icon.green  { background: #e8f5e9; color: #2e7d32; }
@@ -145,8 +148,8 @@ $translationNamespaces = ['common', 'tasks'];
         .thp-feature-icon.indigo { background: #e0e7ff; color: #4338ca; }
         .thp-feature-icon.teal   { background: #e0f2f1; color: #00695c; }
         .thp-feature-icon.red    { background: #fce4ec; color: #c62828; }
-        .thp-feature-card h4 { margin: 0 0 6px; font-size: 15px; color: #333; }
-        .thp-feature-card p { margin: 0; font-size: 12.5px; color: #666; line-height: 1.5; }
+        .thp-feature-card h4 { margin: 0 0 6px; font-size: 15px; color: var(--text, #333); }
+        .thp-feature-card p { margin: 0; font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; }
 
         /* Numbered steps */
         .thp-steps { display: flex; flex-direction: column; gap: 12px; margin-left: 46px; }
@@ -156,9 +159,9 @@ $translationNamespaces = ['common', 'tasks'];
             gap: 14px;
             padding: 10px 14px;
             border-radius: 8px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             font-size: 14px;
-            color: #444;
+            color: var(--text-muted, #444);
             line-height: 1.5;
         }
         .thp-step-num {
@@ -168,7 +171,7 @@ $translationNamespaces = ['common', 'tasks'];
             min-width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: #7c3aed;
+            background: var(--tsk-accent, #7c3aed);
             color: #fff;
             font-weight: 700;
             font-size: 13px;
@@ -179,22 +182,22 @@ $translationNamespaces = ['common', 'tasks'];
         .thp-fields { display: flex; flex-direction: column; gap: 8px; }
         .thp-fields > div {
             font-size: 13.5px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.6;
             padding: 8px 12px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 6px;
         }
-        .thp-fields strong { color: #333; }
+        .thp-fields strong { color: var(--text, #333); }
 
         /* Tip callout */
         .thp-tip {
             font-size: 13px !important;
-            color: #6d28d9 !important;
-            background: #f3f0ff;
+            color: var(--tsk-accent-hover, #6d28d9) !important;
+            background: var(--tsk-accent-soft, #f3f0ff);
             padding: 10px 14px;
             border-radius: 8px;
-            border-left: 3px solid #7c3aed;
+            border-left: 3px solid var(--tsk-accent, #7c3aed);
             margin-top: 12px !important;
         }
 
@@ -204,14 +207,19 @@ $translationNamespaces = ['common', 'tasks'];
             display: flex;
             gap: 12px;
             padding: 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.5;
         }
         .thp-tip-icon { font-size: 22px; flex-shrink: 0; }
-        .thp-tip-card strong { color: #333; }
+        .thp-tip-card strong { color: var(--text, #333); }
+
+        /* Hero darkens in dark mode so it doesn't glare */
+        [data-theme-mode="dark"] .thp-hero {
+            background: linear-gradient(135deg, #4c257f 0%, #3f1d6e 50%, #331761 100%);
+        }
 
         @media (max-width: 900px) {
             .thp-sidebar { display: none; }

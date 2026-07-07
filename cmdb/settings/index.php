@@ -27,7 +27,7 @@ $translationNamespaces = ['common', 'cmdb'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FreeITSM - <?php echo htmlspecialchars(t('cmdb.title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=14">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=15">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>

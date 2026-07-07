@@ -956,15 +956,22 @@ function renderDetailPanel(task) {
 
     // Init TinyMCE for description
     if (tinyEditor) { tinyEditor.destroy(); tinyEditor = null; }
+    // TinyMCE renders in an iframe with its own skin files, so it can't read
+    // our CSS tokens — swap its bundled oxide-dark UI skin + dark content CSS
+    // by the palette's declared mode (data-theme-mode on <html>). Any new
+    // palette works with no change here.
+    const tinyDark = (document.documentElement.getAttribute('data-theme-mode') || 'light') === 'dark';
     tinymce.init({
         target: document.getElementById('descriptionEditor'),
         license_key: 'gpl',
         menubar: false,
         statusbar: false,
         height: 200,
+        skin: tinyDark ? 'oxide-dark' : 'oxide',
+        content_css: tinyDark ? 'dark' : 'default',
         plugins: 'lists link',
         toolbar: 'bold italic underline | bullist numlist | link',
-        content_style: 'body { font-family: Segoe UI, sans-serif; font-size: 13px; color: #333; }',
+        content_style: 'body { font-family: Segoe UI, sans-serif; font-size: 13px; color: ' + (tinyDark ? '#e6e8eb' : '#333') + '; }',
         setup: editor => {
             tinyEditor = editor;
             editor.on('change keyup', () => {

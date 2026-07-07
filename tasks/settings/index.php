@@ -5,6 +5,7 @@
 session_start();
 require_once '../../config.php';
 require_once '../../includes/i18n.php';
+require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -20,75 +21,83 @@ $path_prefix = '../../';
 $translationNamespaces = ['common', 'tasks'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('tasks.title') . ' ' . t('tasks.nav.settings')); ?></title>
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=15">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
-    <link rel="stylesheet" href="../../assets/css/tasks.css?v=10">
+    <link rel="stylesheet" href="../../assets/css/tasks.css?v=15">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=1"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
     <style>
-        body { display: block; --accent: #9333ea; }
+        body { display: block; --accent: var(--tsk-accent, #7c3aed); }
 
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; margin: 0; padding: 30px; }
 
-        /* Tasks-purple theme for tabs */
-        .tab:hover { color: #9333ea; }
-        .tab.active { color: #9333ea; border-bottom-color: #9333ea; }
+        /* Tasks-violet theme for tabs */
+        .tab:hover { color: var(--tsk-accent, #7c3aed); }
+        .tab.active { color: var(--tsk-accent, #7c3aed); border-bottom-color: var(--tsk-accent, #7c3aed); }
 
-        .section-header h2 { margin: 0 0 8px; font-size: 18px; color: #333; }
+        .section-header h2 { margin: 0 0 8px; font-size: 18px; color: var(--text, #333); }
         .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
 
         .lookup-table { width: 100%; border-collapse: collapse; }
-        .lookup-table th, .lookup-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #f0f0f0; font-size: 14px; }
-        .lookup-table th { font-weight: 600; color: #666; background: #fafafa; }
+        .lookup-table th, .lookup-table td { padding: 10px 8px; text-align: left; border-bottom: 1px solid var(--border-soft, #f0f0f0); font-size: 14px; }
+        .lookup-table th { font-weight: 600; color: var(--text-muted, #666); background: var(--surface-2, #fafafa); }
         .badge-yes { display: inline-block; padding: 2px 8px; border-radius: 10px; background: #f3e8ff; color: #7e22ce; font-size: 11px; font-weight: 600; }
-        .badge-no { color: #999; }
+        .badge-no { color: var(--text-dim, #999); }
         /* Active/Inactive uses the shared .status-badge / .status-active / .status-inactive classes from inbox.css (canonical green/red). */
-        .swatch { display: inline-block; width: 18px; height: 18px; border-radius: 3px; vertical-align: middle; border: 1px solid #ddd; margin-right: 6px; }
-        .action-btn { background: none; border: none; cursor: pointer; padding: 4px; color: #666; }
-        .action-btn:hover { color: #9333ea; }
-        .action-btn.delete:hover { color: #c62828; }
+        .swatch { display: inline-block; width: 18px; height: 18px; border-radius: 3px; vertical-align: middle; border: 1px solid var(--border, #ddd); margin-right: 6px; }
+        .action-btn { background: none; border: none; cursor: pointer; padding: 4px; color: var(--text-muted, #666); }
+        .action-btn:hover { color: var(--tsk-accent, #7c3aed); }
+        .action-btn.delete:hover { color: var(--danger-accent, #c62828); }
         .actions-cell { white-space: nowrap; }
         .actions-cell .action-btn { display: inline-flex; vertical-align: middle; }
-        .add-btn { background: #9333ea; color: white; padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
-        .add-btn:hover { background: #7e22ce; }
+        .add-btn { background: var(--tsk-accent, #7c3aed); color: #fff; padding: 8px 16px; border: none; border-radius: 4px; font-size: 13px; cursor: pointer; }
+        .add-btn:hover { background: var(--tsk-accent-hover, #6d28d9); }
 
         /* Modal sizing — base modal / form CSS lives in inbox.css. */
         .modal-content { padding: 20px; max-width: 500px; }
-        .modal-header { padding: 0; border-bottom: none; margin-bottom: 20px; font-size: 20px; font-weight: 600; color: #333; }
+        .modal-header { padding: 0; border-bottom: none; margin-bottom: 20px; font-size: 20px; font-weight: 600; color: var(--text, #333); }
         .modal-actions { margin-top: 20px; }
         .btn { padding: 10px 20px; border-radius: 4px; font-size: 14px; cursor: pointer; border: none; transition: all 0.2s; }
-        .btn-primary { background: #9333ea; color: white; }
-        .btn-primary:hover { background: #7e22ce; }
-        .btn-secondary { background: #e0e0e0; color: #333; }
-        .btn-secondary:hover { background: #bdbdbd; }
+        .btn-primary { background: var(--tsk-accent, #7c3aed); color: #fff; }
+        .btn-primary:hover { background: var(--tsk-accent-hover, #6d28d9); }
+        .btn-secondary { background: var(--surface-3, #e0e0e0); color: var(--text, #333); }
+        .btn-secondary:hover { background: var(--surface-hover, #bdbdbd); }
 
-        /* Toast */
-        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: white; padding: 10px 18px; border-radius: 4px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1100; }
+        /* Toast — dark pill, reads on both modes */
+        .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 18px; border-radius: 4px; font-size: 14px; opacity: 0; pointer-events: none; transition: opacity 0.3s; z-index: 1100; }
         .toast.show { opacity: 1; }
-        .toast.toast-error { background: #c62828; }
+        .toast.toast-error { background: var(--danger-accent, #c62828); }
 
         /* Calendar span-mode options */
         .span-mode-options { display: flex; flex-direction: column; gap: 10px; max-width: 640px; }
-        .span-mode-card { display: flex; gap: 12px; padding: 14px 16px; border: 1px solid #ddd; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
-        .span-mode-card:hover { border-color: #9333ea; }
-        .span-mode-card.selected { border-color: #9333ea; background: #faf5ff; }
-        .span-mode-card input { margin-top: 2px; accent-color: #9333ea; width: 16px; height: 16px; cursor: pointer; }
-        .span-mode-name { font-weight: 600; font-size: 14px; color: #333; margin-bottom: 3px; }
-        .span-mode-desc { font-size: 13px; color: #777; line-height: 1.45; }
+        .span-mode-card { display: flex; gap: 12px; padding: 14px 16px; border: 1px solid var(--border, #ddd); border-radius: 8px; cursor: pointer; transition: all 0.15s; }
+        .span-mode-card:hover { border-color: var(--tsk-accent, #7c3aed); }
+        .span-mode-card.selected { border-color: var(--tsk-accent, #7c3aed); background: #faf5ff; }
+        .span-mode-card input { margin-top: 2px; accent-color: var(--tsk-accent, #7c3aed); width: 16px; height: 16px; cursor: pointer; }
+        .span-mode-name { font-weight: 600; font-size: 14px; color: var(--text, #333); margin-bottom: 3px; }
+        .span-mode-desc { font-size: 13px; color: var(--text-muted, #777); line-height: 1.45; }
 
         /* Card field toggles */
         .card-field-options { display: flex; flex-direction: column; gap: 2px; max-width: 640px; }
         .card-field-row { display: flex; align-items: flex-start; gap: 12px; padding: 11px 14px; border-radius: 8px; cursor: pointer; transition: background 0.12s; }
         .card-field-row:hover { background: #faf5ff; }
-        .card-field-row input { margin-top: 1px; accent-color: #9333ea; width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
-        .card-field-name { font-weight: 600; font-size: 14px; color: #333; }
-        .card-field-desc { font-size: 13px; color: #888; margin-top: 2px; line-height: 1.4; }
+        .card-field-row input { margin-top: 1px; accent-color: var(--tsk-accent, #7c3aed); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+        .card-field-name { font-weight: 600; font-size: 14px; color: var(--text, #333); }
+        .card-field-desc { font-size: 13px; color: var(--text-dim, #888); margin-top: 2px; line-height: 1.4; }
+
+        /* Dark-mode overrides for the pale-violet tints (yes-badge + selected/hover
+           cards) — their light values differ from --tsk-accent-soft, so they stay
+           hardcoded above and flip here to avoid glowing on the dark surface. */
+        [data-theme-mode="dark"] .badge-yes { background: #2a2145; color: #c4b5fd; }
+        [data-theme-mode="dark"] .span-mode-card.selected { background: #241b3d; }
+        [data-theme-mode="dark"] .card-field-row:hover { background: #241b3d; }
     </style>
 </head>
 <body>
@@ -110,7 +119,7 @@ $translationNamespaces = ['common', 'tasks'];
                 <h2><?php echo htmlspecialchars(t('tasks.settings.statuses_heading')); ?></h2>
                 <button class="add-btn" onclick="openLookupModal('status')"><?php echo htmlspecialchars(t('tasks.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.statuses_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.statuses_intro')); ?></p>
             <table class="lookup-table">
                 <thead><tr>
                     <th><?php echo htmlspecialchars(t('tasks.settings.col_name')); ?></th>
@@ -131,7 +140,7 @@ $translationNamespaces = ['common', 'tasks'];
                 <h2><?php echo htmlspecialchars(t('tasks.settings.priorities_heading')); ?></h2>
                 <button class="add-btn" onclick="openLookupModal('priority')"><?php echo htmlspecialchars(t('tasks.settings.add')); ?></button>
             </div>
-            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.priorities_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.priorities_intro')); ?></p>
             <table class="lookup-table">
                 <thead><tr>
                     <th><?php echo htmlspecialchars(t('tasks.settings.col_name')); ?></th>
@@ -150,7 +159,7 @@ $translationNamespaces = ['common', 'tasks'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tasks.settings.calendar_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.calendar_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.calendar_intro')); ?></p>
             <div class="span-mode-options">
                 <label class="span-mode-card">
                     <input type="radio" name="spanMode" value="deadline" onchange="saveSpanMode(this.value)">
@@ -181,7 +190,7 @@ $translationNamespaces = ['common', 'tasks'];
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tasks.settings.card_heading')); ?></h2>
             </div>
-            <p style="color: #666; margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.card_intro')); ?></p>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.card_intro')); ?></p>
             <div class="card-field-options">
                 <label class="card-field-row">
                     <input type="checkbox" data-field="priority" onchange="saveCardFields()">
@@ -249,7 +258,7 @@ $translationNamespaces = ['common', 'tasks'];
                     <h3><?php echo htmlspecialchars(t('tasks.settings.tags_heading')); ?></h3>
                     <button class="add-btn" onclick="openLookupModal('tag')"><?php echo htmlspecialchars(t('tasks.settings.add')); ?></button>
                 </div>
-                <p style="color: #666; margin-bottom: 14px;"><?php echo htmlspecialchars(t('tasks.settings.tags_intro')); ?></p>
+                <p style="color: var(--text-muted, #666); margin-bottom: 14px;"><?php echo htmlspecialchars(t('tasks.settings.tags_intro')); ?></p>
                 <table class="lookup-table">
                     <thead><tr>
                         <th><?php echo htmlspecialchars(t('tasks.settings.col_name')); ?></th>
@@ -309,20 +318,20 @@ $translationNamespaces = ['common', 'tasks'];
                 <div class="section-header">
                     <h3><?php echo htmlspecialchars(t('common.left_panel.tab')); ?></h3>
                 </div>
-                <p style="color: #666; margin-bottom: 14px;"><?php echo htmlspecialchars(t('tasks.settings.left_panel_intro')); ?></p>
+                <p style="color: var(--text-muted, #666); margin-bottom: 14px;"><?php echo htmlspecialchars(t('tasks.settings.left_panel_intro')); ?></p>
                 <form id="leftPanelForm" autocomplete="off" onsubmit="event.preventDefault();">
-                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: #333;"><?php echo htmlspecialchars(t('common.left_panel.visibility')); ?></label>
-                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
+                    <label style="display: block; margin-bottom: 10px; font-weight: 500; color: var(--text, #333);"><?php echo htmlspecialchars(t('common.left_panel.visibility')); ?></label>
+                    <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; margin-bottom: 8px; cursor: pointer;">
                         <input type="radio" name="tasksSidebarMode" value="always" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.always')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('tasks.settings.left_panel_always_desc')); ?>
                         </span>
                     </label>
-                    <label style="display: block; padding: 10px 14px; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                    <label style="display: block; padding: 10px 14px; border: 1px solid var(--border, #ddd); border-radius: 6px; cursor: pointer;">
                         <input type="radio" name="tasksSidebarMode" value="hover" onchange="saveSidebarMode(this.value)">
                         <strong><?php echo htmlspecialchars(t('common.left_panel.hover')); ?></strong>
-                        <span style="display: block; font-size: 12px; color: #777; margin-top: 4px; margin-left: 22px;">
+                        <span style="display: block; font-size: 12px; color: var(--text-muted, #777); margin-top: 4px; margin-left: 22px;">
                             <?php echo htmlspecialchars(t('tasks.settings.left_panel_hover_desc')); ?>
                         </span>
                     </label>

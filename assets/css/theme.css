@@ -94,6 +94,11 @@
     --cmdb-accent:      #be185d;  --cmdb-accent-hover: #9d174d;
     --cmdb-accent-soft: #fce4ec;  --cmdb-on-accent:    #ffffff;
 
+    /* Tasks module (violet) accents — board, list, timeline, calendar.
+       Violet is the module's registered brand colour (module-colors.php). */
+    --tsk-accent:      #7c3aed;  --tsk-accent-hover: #6d28d9;
+    --tsk-accent-soft: #f3f0ff;  --tsk-on-accent:    #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -172,6 +177,10 @@
     /* CMDB module (pink/magenta) — accent nudged lighter to read on dark */
     --cmdb-accent:      #ec4899;  --cmdb-accent-hover: #f472b6;
     --cmdb-accent-soft: #3a1826;  --cmdb-on-accent:    #ffffff;
+
+    /* Tasks module (violet) — accent nudged lighter to read on dark */
+    --tsk-accent:      #a78bfa;  --tsk-accent-hover: #c4b5fd;
+    --tsk-accent-soft: #2a2145;  --tsk-on-accent:    #ffffff;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;
