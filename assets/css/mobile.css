@@ -19,30 +19,72 @@
 
     /* The header is a flex row of three children:
          .waffle-menu-container | .header-nav | .header-right
-       On mobile we wrap it: waffle + account share row 1 (space-between),
-       and the view nav drops to a full-width, horizontally-scrollable row 2. */
+       On mobile: the waffle (left) switches MODULES; an injected hamburger
+       (right) opens the tickets VIEWS as a right-side drawer (.header-nav).
+       waffle gets margin-right:auto so account + hamburger sit at the right. */
     .header {
-        flex-wrap: wrap;
         padding: 8px 10px;
-        gap: 6px 8px;
+        gap: 8px;
     }
-    .waffle-menu-container { order: 1; min-width: 0; }
+    .waffle-menu-container { order: 1; min-width: 0; margin-right: auto; }
     .header-right          { order: 2; }
-    .header-nav {
+    .mobile-views-btn {
         order: 3;
-        flex-basis: 100%;
-        width: 100%;
-        margin-left: 0;
-        flex-wrap: nowrap;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        scrollbar-width: none;          /* Firefox */
-        padding-bottom: 2px;
+        background: none;
+        border: none;
+        color: inherit;
+        font-size: 22px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 4px 6px;
     }
-    .header-nav::-webkit-scrollbar { display: none; }   /* WebKit/Blink */
 
-    .nav-btn { flex-shrink: 0; padding: 7px 11px; font-size: 12px; }
-    .nav-btn svg { width: 18px; height: 18px; }
+    /* .header-nav (the 8 tickets views) -> right-side slide-in drawer. */
+    .header-nav {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: auto;
+        margin-left: 0;
+        height: 100dvh;
+        width: 74vw;
+        max-width: 300px;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+        background: var(--surface, #fff);
+        box-shadow: -4px 0 30px rgba(0, 0, 0, 0.35);
+        padding: 58px 12px 16px;        /* top pad clears the top bar */
+        overflow-y: auto;
+        z-index: 3000;
+        transform: translateX(100%);
+        visibility: hidden;
+        transition: transform 0.22s ease, visibility 0.22s;
+    }
+    body.mobile-views-open .header-nav { transform: translateX(0); visibility: visible; }
+    /* In the white drawer the nav buttons need dark text (they're light-on-accent
+       in the header) and a full-width, left-aligned list layout. */
+    .header-nav .nav-btn,
+    .header-nav .nav-btn:link,
+    .header-nav .nav-btn:visited {
+        color: var(--text, #333) !important;
+        background: none !important;
+        border: none !important;
+        justify-content: flex-start;
+        padding: 12px 14px;
+        font-size: 15px;
+    }
+    .header-nav .nav-btn.active { background: var(--surface-hover, #f0f0f0) !important; }
+    .header-nav .nav-btn svg { width: 20px; height: 20px; }
+
+    /* Dim backdrop behind the views drawer (injected by mobile.js). */
+    .mobile-views-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 2999;
+        display: none;
+    }
+    body.mobile-views-open .mobile-views-overlay { display: block; background: rgba(0, 0, 0, 0.4); }
 
     .waffle-btn { margin-right: 8px; }
     .module-title {
@@ -207,12 +249,23 @@
     .email-subject-line { font-size: 20px; }
 
     /* ====================================================================
-       LAYER 5 — Reading-pane action toolbar: icon-only, wrapping.
-       The 8 actions (note/reply/forward/schedule/AI/audit/feedback/delete)
-       can't show their words on a phone — drop the labels, keep the emoji
-       icons, and let them wrap onto a second row.
+       LAYER 5 — Reading-pane action toolbar: icon-only, pinned to the BOTTOM.
+       The actions (note/reply/forward/schedule/AI/audit/feedback/delete +
+       the injected Links/Properties/Time/Objects sheet buttons) drop their
+       words to emoji icons and wrap onto two rows. Flex `order` moves the bar
+       below the scrolling email body so it sits at the bottom of the screen.
        ==================================================================== */
-    .action-toolbar { flex-wrap: wrap; }
+    .email-body { order: 5; }        /* fills the space above the bar (already scrolls) */
+    .action-toolbar {
+        order: 10;                   /* pin to the bottom of the reading pane */
+        flex-wrap: wrap;             /* two rows of icon buttons */
+        flex-shrink: 0;
+        gap: 6px;
+        border-top: 1px solid var(--border, #e0e0e0);
+        border-bottom: none;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
     .action-toolbar .action-btn { flex: 0 0 auto; padding: 9px 13px; }
     .action-toolbar .action-btn span:not(.action-btn-icon) { display: none; }
     .action-toolbar .action-btn-icon { font-size: 18px; }
@@ -239,18 +292,19 @@
     .email-header.meta-open .email-meta { display: block; }
 
     /* ====================================================================
-       LAYER 7 — "Links" sheet: problem + change linking on its own panel.
-       mobile.js relocates the inline .problem-strip nodes in here and adds a
-       🔗 Links button to the toolbar. Shown/hidden by JS (display none/flex).
+       LAYER 7 — Section sheets: crowded reading-pane sections on their own
+       panel. mobile.js relocates the nodes (links / properties / time entries /
+       affected CMDB objects) into these full-screen sheets and adds a button
+       for each to the action toolbar. Shown/hidden by JS (display none/flex).
        ==================================================================== */
-    .mobile-links-sheet {
+    .mobile-sheet {
         position: fixed;
         inset: 0;
         z-index: 1500;
         background: var(--surface, #fff);
         flex-direction: column;         /* display toggled in JS */
     }
-    .mls-head {
+    .ms-head {
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -261,7 +315,7 @@
         color: var(--text, #333);
         flex-shrink: 0;
     }
-    .mls-close {
+    .ms-close {
         background: none;
         border: none;
         font-size: 20px;
@@ -269,9 +323,10 @@
         color: var(--text-muted, #555);
         padding: 4px 8px;
     }
-    .mls-body { flex: 1; overflow-y: auto; padding: 8px 16px 24px; }
-    /* Relocated strips: give the label its own line, badges + link button room. */
-    .mls-body .problem-strip {
+    .ms-body { flex: 1; overflow-y: auto; padding: 12px 16px 24px; }
+
+    /* Links sheet: give each strip's label its own line, badges + button room. */
+    .ms-body .problem-strip {
         display: flex;
         flex-wrap: wrap;
         align-items: center;
@@ -281,6 +336,20 @@
         border: none;
         border-bottom: 1px solid var(--border-soft, #eee);
     }
-    .mls-body .problem-strip-label { width: 100%; font-weight: 600; }
-    .mls-body .problem-link-btn { margin-left: auto; }
+    .ms-body .problem-strip-label { width: 100%; font-weight: 600; }
+    .ms-body .problem-link-btn { margin-left: auto; }
+
+    /* Properties sheet: the panel is an absolute collapsible dropdown on desktop;
+       in the sheet render it inline and fully expanded (no toggle needed). */
+    .ms-body .ticket-properties-container { z-index: auto; }
+    .ms-body .ticket-properties-header { cursor: default; padding-left: 0; padding-right: 0; }
+    .ms-body .ticket-properties-panel {
+        position: static !important;
+        max-height: none !important;
+        opacity: 1 !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        border-bottom: none !important;
+        background: none !important;
+    }
 }
