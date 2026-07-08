@@ -308,6 +308,80 @@ $modules = [
     [data-theme="dark"] .header {
         box-shadow: inset 0 0 0 2000px rgba(0, 0, 0, 0.55), 0 2px 4px rgba(0, 0, 0, 0.4);
     }
+
+    /* Drawer close button — desktop hidden, revealed on mobile below. */
+    .waffle-close { display: none; }
+
+    /* ====================================================================
+       Mobile: the waffle DROPDOWN becomes a full-height left slide-in DRAWER,
+       on every page that uses the shared header (not just the tickets inbox,
+       where mobile.css used to carry these rules). Above 768px none of this
+       applies, so the desktop dropdown is unchanged. Kept in the DOM and slid
+       in via transform; visibility:hidden while closed so the off-screen panel
+       can't be tapped or add horizontal scroll.
+       ==================================================================== */
+    @media (max-width: 768px) {
+        .waffle-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            margin-top: 0;
+            height: 100vh;
+            height: 100dvh;             /* accounts for mobile browser chrome */
+            width: 86vw;
+            max-width: 360px;
+            min-width: 0;
+            border-radius: 0;
+            padding: 14px 14px calc(16px + env(safe-area-inset-bottom, 0px));
+            overflow-y: auto;
+            box-shadow: 4px 0 30px rgba(0, 0, 0, 0.35);
+            display: block;
+            visibility: hidden;
+            transform: translateX(-100%);
+            transition: transform 0.24s ease, visibility 0.24s;
+            z-index: 3000;
+        }
+        .waffle-panel.active { visibility: visible; transform: translateX(0); }
+
+        /* Header becomes a row with the title + a tap-friendly close button. */
+        .waffle-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+        }
+        .waffle-close {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            margin: -6px -6px -6px 0;
+            border: none;
+            background: none;
+            font-size: 26px;
+            line-height: 1;
+            color: #666;
+            cursor: pointer;
+            border-radius: 8px;
+        }
+        .waffle-close:hover { background: #f0f0f0; }
+
+        /* Adaptive columns + roomier tap targets. */
+        .waffle-modules {
+            grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+            gap: 6px;
+        }
+        .waffle-module-link { padding: 12px 6px; border-radius: 12px; }
+        .waffle-module-icon { width: 44px; height: 44px; }
+        .waffle-module-name { font-size: 12px; }
+
+        /* Dim backdrop behind the drawer (transparent click-catcher on desktop). */
+        .waffle-overlay { z-index: 2999; }
+        .waffle-overlay.active { background: rgba(0, 0, 0, 0.4); }
+    }
 </style>
 
 <div class="waffle-overlay" id="waffleOverlay" onclick="closeWaffleMenu()"></div>
@@ -333,7 +407,10 @@ function renderWaffleMenuPanel($modules, $current_module, $path_prefix) {
     $allowed = $_SESSION['allowed_modules'] ?? null;
     ?>
     <div class="waffle-panel" id="wafflePanel">
-        <div class="waffle-panel-header"><?php echo htmlspecialchars(t('common.waffle.title')); ?></div>
+        <div class="waffle-panel-header">
+            <span><?php echo htmlspecialchars(t('common.waffle.title')); ?></span>
+            <button type="button" class="waffle-close" onclick="closeWaffleMenu()" aria-label="Close">&times;</button>
+        </div>
         <div class="waffle-modules">
             <?php foreach ($modules as $key => $module):
                 if ($allowed !== null && !in_array($key, $allowed)) continue;
