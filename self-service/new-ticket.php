@@ -357,9 +357,26 @@ $translationNamespaces = ['common', 'self-service'];
                 <div class="form-group">
                     <label for="priority"><?php echo htmlspecialchars(t('self-service.new_ticket.priority')); ?></label>
                     <select id="priority">
-                        <option value="Low"><?php echo htmlspecialchars(t('self-service.new_ticket.priority_low')); ?></option>
-                        <option value="Normal" selected><?php echo htmlspecialchars(t('self-service.new_ticket.priority_normal')); ?></option>
-                        <option value="High"><?php echo htmlspecialchars(t('self-service.new_ticket.priority_high')); ?></option>
+                        <?php
+                        // Populate from the configured active priorities (consistent
+                        // with the analyst New Ticket form, #40) rather than a fixed
+                        // Low/Normal/High list. Requesters can pick any priority; the
+                        // analyst re-triages if it's not appropriate.
+                        try {
+                            $ssPrioConn = connectToDatabase();
+                            $ssPrios = $ssPrioConn->query("SELECT name, is_default FROM ticket_priorities WHERE is_active = 1 ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC);
+                        } catch (Exception $e) { $ssPrios = []; }
+                        if (!$ssPrios) {
+                            // Fallback keeps the form usable if the table isn't reachable.
+                            $ssPrios = [['name' => 'Low', 'is_default' => 0], ['name' => 'Normal', 'is_default' => 1], ['name' => 'High', 'is_default' => 0]];
+                        }
+                        $ssHasDefault = false;
+                        foreach ($ssPrios as $p) { if ((int)$p['is_default'] === 1) { $ssHasDefault = true; break; } }
+                        foreach ($ssPrios as $p):
+                            $sel = ((int)$p['is_default'] === 1) || (!$ssHasDefault && $p['name'] === 'Normal');
+                        ?>
+                        <option value="<?php echo htmlspecialchars($p['name']); ?>"<?php echo $sel ? ' selected' : ''; ?>><?php echo htmlspecialchars($p['name']); ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="form-group">

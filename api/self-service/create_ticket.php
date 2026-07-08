@@ -34,13 +34,21 @@ if (empty($subject)) {
     exit;
 }
 
-$allowedPriorities = ['Low', 'Normal', 'High'];
-if (!in_array($priority, $allowedPriorities)) {
-    $priority = 'Normal';
-}
-
 try {
     $conn = connectToDatabase();
+
+    // Validate the submitted priority against the CONFIGURED active priorities
+    // (not a hardcoded Low/Normal/High list) so custom priorities like
+    // Urgent/Critical are accepted (#40). Fall back to the default priority,
+    // then Normal, then the first available, if the submitted one isn't valid.
+    $activePrios = $conn->query("SELECT name, is_default FROM ticket_priorities WHERE is_active = 1")->fetchAll(PDO::FETCH_ASSOC);
+    $prioNames = array_column($activePrios, 'name');
+    if (!in_array($priority, $prioNames, true)) {
+        $default = '';
+        foreach ($activePrios as $p) { if ((int)$p['is_default'] === 1) { $default = $p['name']; break; } }
+        $priority = $default !== '' ? $default : (in_array('Normal', $prioNames, true) ? 'Normal' : ($prioNames[0] ?? 'Normal'));
+    }
+
     $conn->beginTransaction();
 
     // Get user details

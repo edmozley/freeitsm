@@ -3264,7 +3264,6 @@ function openNewTicketModal() {
     document.getElementById('newTicketFromEmail').value = '';
     document.getElementById('newTicketSubject').value = '';
     document.getElementById('newTicketBody').value = '';
-    document.getElementById('newTicketPriority').value = 'Normal';
 
     // Populate department dropdown
     const deptSelect = document.getElementById('newTicketDepartment');
@@ -3275,6 +3274,21 @@ function openNewTicketModal() {
     const typeSelect = document.getElementById('newTicketType');
     typeSelect.innerHTML = '<option value="">-- Select --</option>' +
         ticketTypes.map(t => `<option value="${t.id}">${escapeHtml(t.name)}</option>`).join('');
+
+    // Populate priority dropdown from the CONFIGURED priorities (active only) so
+    // custom ones like Urgent/Critical appear instead of a hardcoded Low/Normal/High
+    // subset (#40). The value is the priority NAME — createTicket resolves name→id.
+    const prioSelect = document.getElementById('newTicketPriority');
+    if (ticketPriorities.length) {
+        prioSelect.innerHTML = ticketPriorities
+            .map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`)
+            .join('');
+        const def = ticketPriorities.find(p => p.is_default) || ticketPriorities.find(p => p.name === 'Normal');
+        if (def) prioSelect.value = def.name;
+    } else {
+        // Fallback if priorities haven't loaded yet — keeps the form usable.
+        prioSelect.innerHTML = '<option value="Normal">Normal</option>';
+    }
 
     // Populate the "Send replies from" mailbox dropdown for the active company.
     loadNewTicketMailboxes();

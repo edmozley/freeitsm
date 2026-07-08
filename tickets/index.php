@@ -187,11 +187,8 @@ $translationNamespaces = ['common', 'tickets'];
                     </div>
                     <div class="form-group">
                         <label class="form-label"><?php echo htmlspecialchars(t('tickets.new_ticket_modal.priority')); ?></label>
-                        <select class="form-select" id="newTicketPriority">
-                            <option value="Normal"><?php echo htmlspecialchars(t('tickets.new_ticket_modal.priority_normal')); ?></option>
-                            <option value="Low"><?php echo htmlspecialchars(t('tickets.new_ticket_modal.priority_low')); ?></option>
-                            <option value="High"><?php echo htmlspecialchars(t('tickets.new_ticket_modal.priority_high')); ?></option>
-                        </select>
+                        <!-- Populated from the configured priorities in openNewTicketModal() (#40) -->
+                        <select class="form-select" id="newTicketPriority"></select>
                     </div>
                 </div>
                 <div class="form-group">
@@ -442,7 +439,7 @@ $translationNamespaces = ['common', 'tickets'];
         window.API_BASE = '../api/tickets/';
         window.CURRENT_ANALYST_ID = <?php echo (int)($_SESSION['analyst_id'] ?? 0); ?>;
     </script>
-    <script src="../assets/js/inbox.js?v=53"></script>
+    <script src="../assets/js/inbox.js?v=54"></script>
     <script src="../assets/js/mobile.js?v=9"></script>
     <script>
     // Auto-check mailboxes every 60 seconds
