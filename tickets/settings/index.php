@@ -262,7 +262,6 @@ $translationNamespaces = ['common', 'tickets'];
     <div class="container">
         <div class="tabs">
             <button class="tab active" data-tab="departments" onclick="switchTab('departments')"><?php echo htmlspecialchars(t('tickets.settings.tabs.departments')); ?></button>
-            <button class="tab" data-tab="teams" onclick="switchTab('teams')"><?php echo htmlspecialchars(t('tickets.settings.tabs.teams')); ?></button>
             <button class="tab" data-tab="ticket-types" onclick="switchTab('ticket-types')"><?php echo htmlspecialchars(t('tickets.settings.tabs.ticket_types')); ?></button>
             <button class="tab" data-tab="ticket-origins" onclick="switchTab('ticket-origins')"><?php echo htmlspecialchars(t('tickets.settings.tabs.ticket_origins')); ?></button>
             <button class="tab" data-tab="statuses" onclick="switchTab('statuses')"><?php echo htmlspecialchars(t('tickets.settings.tabs.statuses')); ?></button>
@@ -273,7 +272,6 @@ $translationNamespaces = ['common', 'tickets'];
             <button class="tab" data-tab="messaging" onclick="switchTab('messaging')"><?php echo htmlspecialchars(t('tickets.settings.tab_messaging')); ?></button>
             <button class="tab" data-tab="email-templates" onclick="switchTab('email-templates')"><?php echo htmlspecialchars(t('tickets.settings.tabs.email_templates')); ?></button>
             <button class="tab" data-tab="rota" onclick="switchTab('rota')"><?php echo htmlspecialchars(t('tickets.settings.tabs.rota')); ?></button>
-            <button class="tab" data-tab="analysts" onclick="switchTab('analysts')"><?php echo htmlspecialchars(t('tickets.settings.tabs.analysts')); ?></button>
             <button class="tab" data-tab="general" onclick="switchTab('general')"><?php echo htmlspecialchars(t('tickets.settings.tabs.general')); ?></button>
             <button class="tab" data-tab="reply-cleanup" onclick="switchTab('reply-cleanup')"><?php echo htmlspecialchars(t('tickets.settings.tabs.reply_cleanup')); ?></button>
             <button class="tab" data-tab="csat" onclick="switchTab('csat')"><?php echo htmlspecialchars(t('tickets.settings.tabs.csat')); ?></button>
@@ -299,31 +297,6 @@ $translationNamespaces = ['common', 'tickets'];
                 </thead>
                 <tbody id="departments-list">
                     <tr><td colspan="6" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Teams Tab -->
-        <div class="tab-content" id="teams-tab">
-            <div class="section-header">
-                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.teams')); ?></h2>
-                <button class="add-btn" onclick="openAddModal('team')"><?php echo htmlspecialchars(t('common.add')); ?></button>
-            </div>
-            <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.teams'); ?></p>
-            <table>
-                <thead>
-                    <tr>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.name')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.description')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.departments')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.analysts')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.order')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.status')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.actions')); ?></th>
-                    </tr>
-                </thead>
-                <tbody id="teams-list">
-                    <tr><td colspan="7" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -864,31 +837,6 @@ $translationNamespaces = ['common', 'tickets'];
                     <?php echo htmlspecialchars(t('tickets.settings.rota_weekends')); ?>
                 </label>
             </div>
-        </div>
-
-        <!-- Analysts Tab -->
-        <div class="tab-content" id="analysts-tab">
-            <div class="section-header">
-                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.analysts')); ?></h2>
-                <button class="add-btn" onclick="openAnalystModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
-            </div>
-            <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.analysts'); ?></p>
-            <table>
-                <thead>
-                    <tr>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.username')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.full_name')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.email')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.teams')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.status')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.last_login')); ?></th>
-                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.actions')); ?></th>
-                    </tr>
-                </thead>
-                <tbody id="analysts-list">
-                    <tr><td colspan="7" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
-                </tbody>
-            </table>
         </div>
 
         <!-- General Tab -->
@@ -1447,111 +1395,6 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
-    <!-- Analyst Modal -->
-    <div class="modal" id="analystModal">
-        <div class="modal-content">
-            <div class="modal-header" id="analystModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.add_title')); ?></div>
-            <form id="analystForm">
-                <input type="hidden" id="analystId">
-
-                <div class="form-group">
-                    <label for="analystUsername"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.username')); ?> *</label>
-                    <input type="text" id="analystUsername" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.username_placeholder')); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label for="analystFullName"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.full_name')); ?> *</label>
-                    <input type="text" id="analystFullName" required placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.full_name_placeholder')); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label for="analystEmail"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.email')); ?></label>
-                    <input type="email" id="analystEmail" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.email_placeholder')); ?>">
-                </div>
-
-                <div class="form-group" id="analystPasswordGroup">
-                    <label for="analystPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password')); ?> *</label>
-                    <input type="password" id="analystPassword" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password_placeholder')); ?>">
-                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.password_help')); ?></small>
-                </div>
-
-                <div class="form-group">
-                    <label for="analystAuthProvider"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.signin_method')); ?></label>
-                    <select id="analystAuthProvider">
-                        <option value=""><?php echo t('tickets.settings.analyst_extra.signin_local'); ?></option>
-                        <?php
-                        // Single sign-on providers — assigning one makes this analyst an SSO user
-                        // (strict isolation: they can only sign in via the chosen provider).
-                        try {
-                            $apConn = connectToDatabase();
-                            foreach ($apConn->query("SELECT id, display_name FROM auth_providers ORDER BY sort_order, display_name") as $ap) {
-                                echo '<option value="' . (int)$ap['id'] . '">' . htmlspecialchars($ap['display_name']) . '</option>';
-                            }
-                        } catch (Exception $e) { /* table may not exist yet */ }
-                        ?>
-                    </select>
-                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.signin_help')); ?></small>
-                </div>
-
-                <!-- Multi-tenancy: company access. Hidden on a single-company install
-                     (shown by JS only when more than one company exists). -->
-                <div class="form-group" id="analystAccessGroup" style="display: none;">
-                    <label class="toggle-label">
-                        <span class="toggle-switch">
-                            <input type="checkbox" id="analystAllAccess" checked onchange="syncAnalystAccess()">
-                            <span class="toggle-slider"></span>
-                        </span>
-                        <?php echo htmlspecialchars(t('tickets.settings.analyst_extra.access_all')); ?>
-                    </label>
-                    <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.access_all_help')); ?></small>
-                    <div id="analystCompanyList" style="display: none; margin-top: 8px; max-height: 180px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; padding: 8px;"></div>
-                </div>
-
-                <div class="form-group">
-                    <label class="toggle-label">
-                        <span class="toggle-switch">
-                            <input type="checkbox" id="analystActive" checked>
-                            <span class="toggle-slider"></span>
-                        </span>
-                        <?php echo htmlspecialchars(t('tickets.settings.modals.analyst.active')); ?>
-                    </label>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeAnalystModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Password Reset Modal -->
-    <div class="modal" id="passwordResetModal">
-        <div class="modal-content">
-            <div class="modal-header"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.title')); ?></div>
-            <form id="passwordResetForm">
-                <input type="hidden" id="resetAnalystId">
-
-                <p style="margin-bottom: 20px;"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.resetting_for')); ?> <strong id="resetAnalystName"></strong></p>
-
-                <div class="form-group">
-                    <label for="newPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.new_password')); ?> *</label>
-                    <input type="password" id="newPassword" required minlength="6" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.new_password_placeholder')); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label for="confirmPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.confirm_password')); ?> *</label>
-                    <input type="password" id="confirmPassword" required minlength="6" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.confirm_password_placeholder')); ?>">
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closePasswordResetModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
-                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('tickets.settings.modals.password_reset.submit')); ?></button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- Team Assignment Modal -->
     <div class="modal" id="teamAssignmentModal">
         <div class="modal-content">
@@ -1765,9 +1608,11 @@ $translationNamespaces = ['common', 'tickets'];
 
         // Load data on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // loadTeams still runs — it populates the `teams` global the
+            // Departments tab's team-assignment picker reads. Team and analyst
+            // management moved to System → Teams / System → Analysts.
             loadTeams().then(() => {
                 loadDepartments();
-                loadAnalysts();
             });
             loadTicketTypes();
             loadTicketOrigins();
@@ -2025,14 +1870,16 @@ $translationNamespaces = ['common', 'tickets'];
                     return teams;
                 } else {
                     console.error('Error loading teams:', data.error);
-                    document.getElementById('teams-list').innerHTML =
-                        '<tr><td colspan="7" style="text-align: center; color: red;">Error: ' + data.error + '</td></tr>';
+                    // No teams table on this page anymore (moved to System → Teams);
+                    // loadTeams still runs only to feed the Departments team-picker.
+                    const el = document.getElementById('teams-list');
+                    if (el) el.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Error: ' + data.error + '</td></tr>';
                     return [];
                 }
             } catch (error) {
                 console.error('Error loading teams:', error);
-                document.getElementById('teams-list').innerHTML =
-                    '<tr><td colspan="7" style="text-align: center; color: red;">Failed to load teams.</td></tr>';
+                const el = document.getElementById('teams-list');
+                if (el) el.innerHTML = '<tr><td colspan="7" style="text-align: center; color: red;">Failed to load teams.</td></tr>';
                 return [];
             }
         }
@@ -2276,6 +2123,10 @@ $translationNamespaces = ['common', 'tickets'];
         // Render teams
         async function renderTeams(teamsList) {
             const tbody = document.getElementById('teams-list');
+            // The Teams tab moved to System → Teams; there's no table to paint
+            // here anymore. loadTeams() still runs to populate the `teams` global
+            // for the Departments team-assignment picker, so just bail out.
+            if (!tbody) return;
 
             if (teamsList.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No teams found. Click "Add" to create your first team.</td></tr>';
@@ -2452,7 +2303,6 @@ $translationNamespaces = ['common', 'tickets'];
                     } else if (type === 'team') {
                         loadTeams().then(() => {
                             loadDepartments();
-                            loadAnalysts();
                         });
                     } else if (type === 'status') {
                         loadTicketStatuses();
@@ -2562,15 +2412,11 @@ $translationNamespaces = ['common', 'tickets'];
                 if (data.success) {
                     closeTeamAssignmentModal();
                     showToast('Saved', 'success');
-                    // Clear cache and reload
-                    if (entityType === 'department') {
-                        delete departmentTeams[entityId];
-                        loadDepartments();
-                    } else {
-                        delete analystTeams[entityId];
-                        loadAnalysts();
-                    }
-                    // Also reload teams to update counts
+                    // Clear cache and reload. Only department assignment happens
+                    // here now — analyst→team assignment moved to System → Analysts.
+                    delete departmentTeams[entityId];
+                    loadDepartments();
+                    // Also reload teams to keep the picker's `teams` global fresh.
                     loadTeams();
                 } else {
                     showToast('Error saving team assignments: ' + data.error, 'error');
@@ -2649,7 +2495,6 @@ $translationNamespaces = ['common', 'tickets'];
                     } else if (type === 'team') {
                         loadTeams().then(() => {
                             loadDepartments();
-                            loadAnalysts();
                         });
                     } else if (type === 'status') {
                         loadTicketStatuses();
@@ -3807,305 +3652,10 @@ $translationNamespaces = ['common', 'tickets'];
             }
         }
 
-        // Analyst Functions
-        let analysts = [];
 
-        async function loadAnalysts() {
-            try {
-                const response = await fetch(API_BASE + 'get_analysts.php');
-                const data = await response.json();
-
-                if (data.success) {
-                    analysts = data.analysts;
-                    renderAnalysts(analysts);
-                } else {
-                    console.error('Error loading analysts:', data.error);
-                    document.getElementById('analysts-list').innerHTML =
-                        '<tr><td colspan="6" style="text-align: center; color: red;">Error: ' + data.error + '</td></tr>';
-                }
-            } catch (error) {
-                console.error('Error loading analysts:', error);
-                document.getElementById('analysts-list').innerHTML =
-                    '<tr><td colspan="6" style="text-align: center; color: red;">Failed to load analysts.</td></tr>';
-            }
-        }
-
-        async function renderAnalysts(analystsList) {
-            const tbody = document.getElementById('analysts-list');
-
-            if (analystsList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No analysts found.</td></tr>';
-                return;
-            }
-
-            // Load team assignments for all analysts
-            for (const analyst of analystsList) {
-                if (!analystTeams[analyst.id]) {
-                    try {
-                        const response = await fetch(`${API_BASE}get_analyst_teams.php?analyst_id=${analyst.id}`);
-                        const data = await response.json();
-                        analystTeams[analyst.id] = data.success ? data.teams : [];
-                    } catch (e) {
-                        analystTeams[analyst.id] = [];
-                    }
-                }
-            }
-
-            tbody.innerHTML = analystsList.map(a => {
-                const statusBadge = a.is_active
-                    ? '<span class="status-badge status-active">Active</span>'
-                    : '<span class="status-badge status-inactive">Inactive</span>';
-
-                const lastLogin = a.last_login_datetime
-                    ? new Date(a.last_login_datetime).toLocaleString()
-                    : 'Never';
-
-                const aTeams = analystTeams[a.id] || [];
-                const teamsText = aTeams.length > 0
-                    ? aTeams.map(t => `<span class="status-badge" style="background: #e8f5e9; color: #2e7d32; margin-right: 4px;">${escapeHtml(t.name)}</span>`).join('')
-                    : '<span style="color: var(--text-faint, #999);">None</span>';
-
-                const safeName = escapeHtml(a.full_name).replace(/'/g, "\\'");
-                const safeUsername = escapeHtml(a.username).replace(/'/g, "\\'");
-
-                // Multi-tenancy: flag analysts restricted to specific companies.
-                // All-access analysts (and every analyst on a single-company install)
-                // show nothing.
-                const grantCount = (a.tenant_ids || []).length;
-                const accessChip = a.can_access_all_tenants ? '' :
-                    `<span class="status-badge" style="background:#fff3e0; color:#e65100; margin-left:6px;" title="Access limited to ${grantCount} compan${grantCount === 1 ? 'y' : 'ies'}">${grantCount} compan${grantCount === 1 ? 'y' : 'ies'}</span>`;
-
-                return `
-                    <tr>
-                        <td><strong>${escapeHtml(a.username)}</strong></td>
-                        <td>${escapeHtml(a.full_name)}${accessChip}</td>
-                        <td>${escapeHtml(a.email || '')}</td>
-                        <td>${teamsText}</td>
-                        <td>${statusBadge}</td>
-                        <td>${lastLogin}</td>
-                        <td>
-                            <button class="action-btn" onclick="editAnalyst(${a.id})" title="${t('common.edit')}">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            </button>
-                            <button class="action-btn" onclick="openTeamAssignment('analyst', ${a.id}, '${safeName}')" title="${t('tickets.settings.tooltips.assign_teams')}">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-                            </button>
-                            <button class="action-btn" onclick="openPasswordResetModal(${a.id}, '${safeName}')" title="${t('tickets.settings.tooltips.reset_password')}">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"></path></svg>
-                            </button>
-                            <button class="action-btn delete" onclick="deleteAnalyst(${a.id}, '${safeUsername}')" title="${t('common.delete')}">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        // Multi-tenancy: companies for the analyst access control (cached, active only).
-        let analystCompaniesCache = null;
-        async function loadAnalystCompanies() {
-            if (analystCompaniesCache !== null) return analystCompaniesCache;
-            try {
-                const r = await fetch('../../api/system/get_tenants.php');
-                const d = await r.json();
-                analystCompaniesCache = (d.success ? d.companies : []).filter(c => c.is_active);
-            } catch (e) { analystCompaniesCache = []; }
-            return analystCompaniesCache;
-        }
-        function syncAnalystAccess() {
-            const all = document.getElementById('analystAllAccess').checked;
-            document.getElementById('analystCompanyList').style.display = all ? 'none' : '';
-        }
-        function renderAnalystCompanyList(companies, grantedIds) {
-            const granted = new Set((grantedIds || []).map(Number));
-            document.getElementById('analystCompanyList').innerHTML = companies.map(c => `
-                <label style="display:flex; align-items:center; gap:8px; padding:4px 2px; font-size:13px; cursor:pointer;">
-                    <input type="checkbox" class="analyst-company-cb" value="${c.id}" ${granted.has(Number(c.id)) ? 'checked' : ''}>
-                    ${escapeHtml(c.name)}
-                </label>`).join('');
-        }
-
-        function openAnalystModal(analyst = null) {
-            document.getElementById('analystModalTitle').textContent = analyst ? t('tickets.settings.modals.analyst.edit_title') : t('tickets.settings.modals.analyst.add_title');
-            document.getElementById('analystId').value = analyst ? analyst.id : '';
-            document.getElementById('analystUsername').value = analyst ? analyst.username : '';
-            document.getElementById('analystFullName').value = analyst ? analyst.full_name : '';
-            document.getElementById('analystEmail').value = analyst ? (analyst.email || '') : '';
-            document.getElementById('analystPassword').value = '';
-            document.getElementById('analystActive').checked = analyst ? analyst.is_active : true;
-            document.getElementById('analystAuthProvider').value = (analyst && analyst.auth_provider_id) ? String(analyst.auth_provider_id) : '';
-
-            // Password is required only for new analysts
-            const passwordInput = document.getElementById('analystPassword');
-            const passwordGroup = document.getElementById('analystPasswordGroup');
-            if (analyst) {
-                passwordInput.removeAttribute('required');
-                passwordGroup.querySelector('small').textContent = 'Leave blank to keep existing password.';
-            } else {
-                passwordInput.setAttribute('required', 'required');
-                passwordGroup.querySelector('small').textContent = 'Required for new analysts.';
-            }
-
-            // Multi-tenancy company access — shown only when more than one company exists.
-            const accessGroup = document.getElementById('analystAccessGroup');
-            loadAnalystCompanies().then(companies => {
-                if (companies.length > 1) {
-                    accessGroup.style.display = '';
-                    // New analysts default to all-access (matches the install default).
-                    document.getElementById('analystAllAccess').checked = analyst ? !!analyst.can_access_all_tenants : true;
-                    renderAnalystCompanyList(companies, analyst ? (analyst.tenant_ids || []) : []);
-                    syncAnalystAccess();
-                } else {
-                    accessGroup.style.display = 'none';
-                }
-            });
-
-            document.getElementById('analystModal').classList.add('active');
-        }
-
-        function closeAnalystModal() {
-            document.getElementById('analystModal').classList.remove('active');
-        }
-
-        function editAnalyst(id) {
-            const analyst = analysts.find(a => a.id == id);
-            if (analyst) {
-                openAnalystModal(analyst);
-            } else {
-                showToast('Analyst not found.', 'error');
-            }
-        }
-
-        async function deleteAnalyst(id, username) {
-            const ok = await showConfirm({
-                title: 'Delete analyst',
-                message: `Are you sure you want to delete the analyst "${username}"?`,
-                okLabel: 'Delete',
-                okClass: 'danger'
-            });
-            if (!ok) return;
-
-            try {
-                const response = await fetch(API_BASE + 'delete_analyst.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: id })
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    showToast('Analyst deleted', 'success');
-                    loadAnalysts();
-                } else {
-                    showToast('Error deleting analyst: ' + data.error, 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Failed to delete analyst', 'error');
-            }
-        }
-
-        function openPasswordResetModal(id, name) {
-            document.getElementById('resetAnalystId').value = id;
-            document.getElementById('resetAnalystName').textContent = name;
-            document.getElementById('newPassword').value = '';
-            document.getElementById('confirmPassword').value = '';
-            document.getElementById('passwordResetModal').classList.add('active');
-        }
-
-        function closePasswordResetModal() {
-            document.getElementById('passwordResetModal').classList.remove('active');
-        }
-
-        // Analyst form submission
-        document.getElementById('analystForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const formData = {
-                id: document.getElementById('analystId').value || null,
-                username: document.getElementById('analystUsername').value,
-                full_name: document.getElementById('analystFullName').value,
-                email: document.getElementById('analystEmail').value || null,
-                password: document.getElementById('analystPassword').value || null,
-                is_active: document.getElementById('analystActive').checked,
-                auth_provider_id: document.getElementById('analystAuthProvider').value || null
-            };
-
-            // Multi-tenancy: send company access only when the control is shown
-            // (more than one company). Omitting it on N=1 leaves the default intact.
-            const accessGroup = document.getElementById('analystAccessGroup');
-            if (accessGroup.style.display !== 'none') {
-                const allAccess = document.getElementById('analystAllAccess').checked;
-                formData.can_access_all_tenants = allAccess ? 1 : 0;
-                formData.tenant_ids = allAccess ? [] :
-                    Array.from(document.querySelectorAll('.analyst-company-cb:checked')).map(cb => parseInt(cb.value, 10));
-            }
-
-            try {
-                const response = await fetch(API_BASE + 'save_analyst.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(formData)
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    closeAnalystModal();
-                    showToast('Analyst saved', 'success');
-                    loadAnalysts();
-                } else {
-                    showToast('Error saving analyst: ' + data.error, 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Failed to save analyst', 'error');
-            }
-        });
-
-        // Password reset form submission
-        document.getElementById('passwordResetForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const newPassword = document.getElementById('newPassword').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-
-            if (newPassword !== confirmPassword) {
-                showToast('Passwords do not match.', 'error');
-                return;
-            }
-
-            if (newPassword.length < 6) {
-                showToast('Password must be at least 6 characters.', 'error');
-                return;
-            }
-
-            try {
-                const response = await fetch(API_BASE + 'reset_analyst_password.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        id: document.getElementById('resetAnalystId').value,
-                        password: newPassword
-                    })
-                });
-                const data = await response.json();
-
-                if (data.success) {
-                    closePasswordResetModal();
-                    showToast('Password reset successfully.', 'success');
-                } else {
-                    showToast('Error resetting password: ' + data.error, 'error');
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                showToast('Failed to reset password', 'error');
-            }
-        });
-
-        // Load analysts on page load
+        // Load remaining settings on page load (analyst management moved to
+        // System → Analysts).
         document.addEventListener('DOMContentLoaded', function() {
-            loadAnalysts();
             loadGeneralSettings();
             loadReplyCleanupSettings();
             loadCsatSettings();

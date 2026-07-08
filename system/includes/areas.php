@@ -26,6 +26,20 @@ function getSystemAreas() {
             'keywords' => 'system.landing.encryption_keywords',
         ],
         [
+            'icon'     => 'analysts',
+            'url'      => 'analysts/',
+            'title'    => 'system.landing.analysts_title',
+            'desc'     => 'system.landing.analysts_desc',
+            'keywords' => 'system.landing.analysts_keywords',
+        ],
+        [
+            'icon'     => 'teams',
+            'url'      => 'teams/',
+            'title'    => 'system.landing.teams_title',
+            'desc'     => 'system.landing.teams_desc',
+            'keywords' => 'system.landing.teams_keywords',
+        ],
+        [
             'icon'     => 'modules',
             'url'      => 'modules/',
             'title'    => 'system.landing.modules_title',
@@ -143,6 +157,8 @@ function systemAreaIcon($key) {
     $icons = [
         'encryption'  => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>',
         'modules'     => '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>',
+        'analysts'    => '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><polyline points="15 11 17 13 21 9"></polyline>',
+        'teams'       => '<circle cx="8" cy="8" r="3.5"></circle><circle cx="17.5" cy="10" r="2.5"></circle><path d="M2 19v-1a5.5 5.5 0 0 1 11 0v1"></path><path d="M15 13.2A4 4 0 0 1 21 17v1"></path>',
         'db_verify'   => '<ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>',
         'colours'     => '<circle cx="13.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="10.5" r="2.5"></circle><circle cx="8.5" cy="7.5" r="2.5"></circle><circle cx="6.5" cy="12.5" r="2.5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"></path>',
         'branding'    => '<path d="M12 19l7-7 3 3-7 7-3-3z"></path><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"></path><path d="M2 2l7.586 7.586"></path><circle cx="11" cy="11" r="2"></circle>',

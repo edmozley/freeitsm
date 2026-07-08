@@ -316,7 +316,7 @@ sdtickets/
 │   ├── users.php                     # User directory & their tickets
 │   ├── calendar.php                  # Ticket scheduling calendar
 │   ├── rota.php                      # Staff rota weekly grid
-│   ├── settings/                     # Departments, types, origins, mailboxes, analysts, teams, rota shifts
+│   ├── settings/                     # Departments, types, origins, statuses, priorities, SLA, mailboxes, rota shifts
 │   ├── includes/                     # Module header
 │   └── attachments/                  # Email attachment storage
 │
@@ -376,6 +376,10 @@ sdtickets/
 │
 ├── system/                           # System Module
 │   ├── index.php                     # System landing page (area selection)
+│   ├── analysts/
+│   │   └── index.php                 # Analyst accounts (create/edit, passwords, SSO, teams, per-company access)
+│   ├── teams/
+│   │   └── index.php                 # Team management (used across tickets, tasks, contracts, workflows)
 │   ├── encryption/
 │   │   └── index.php                 # Encryption key management
 │   ├── modules/
@@ -728,6 +732,8 @@ System administration and configuration.
   - One-click key generation — writes directly to `c:\wamp64\encryption_keys\sdtickets.key`
   - Instructions on key placement, backup importance, and what data is encrypted
   - No regenerate button to prevent accidental key destruction
+- **Analysts** (`system/analysts/`): Manage analyst accounts — create/edit/deactivate users, reset passwords, assign a single sign-on provider, set per-analyst team membership, and (on multi-company installs) grant access to specific companies. Promoted here from Tickets → Settings because analysts are the app's users and work across every module; the endpoints still live under `api/tickets/`, so the move is UI-only. Company access controls are shown only when more than one company exists (invisible at N=1).
+- **Teams** (`system/teams/`): Manage the teams analysts belong to — create/edit/deactivate teams, and configure a team fully from one screen via per-row **Manage departments** and **Manage members** pickers (which departments the team serves + which analysts belong to it), with live department/analyst counts. Teams are a shared entity consumed by Tickets, Tasks, Contracts and the Workflow engine (assignment + access), so they live at the install level rather than inside one module's settings. Teams are global by design (no per-company scoping), so no company filter is needed even on a multi-company install. The department↔team and analyst↔team links are **many-to-many, editable from either side** — here on the team side, or from the analyst side on **System → Analysts** and the department side on **Tickets → Settings → Departments** (departments are a ticket concept and stay there); every side writes the same join tables (`department_teams` / `analyst_teams`).
 - **Module Access** (`system/modules/`): Control which modules each analyst can see
   - Toggle matrix: analysts as rows, modules as columns
   - "All Access" toggle per analyst (default state — backward compatible)
@@ -1263,7 +1269,7 @@ Controls which modules an analyst can access. No rows = full access to all modul
 ### Single Sign-On (SSO / OIDC)
 - **Generic OpenID Connect** — one implementation works for any compliant identity provider (Keycloak, Microsoft Entra/Azure AD, Okta, Auth0, Google Workspace, Authentik, …). Configuration is driven by the provider's discovery document (`/.well-known/openid-configuration`), so the admin only supplies a display name, issuer URL, client ID and client secret.
 - **Multiple providers at once** — each provider is a row in `auth_providers` with its own enable switch, so different cohorts of users can be migrated to different IdPs in parallel (e.g. a phased rollout or side-by-side pilots).
-- **Configured under System → Single Sign-On** — add/edit providers (with a discovery *Test* button), copy the redirect URI to register in the IdP, and set two global break-glass switches: a master *Enable single sign-on* kill switch and *Allow local login*. Existing analysts are assigned to a provider via a *Sign-in method* dropdown in Tickets → Settings → Analysts (this is how pre-existing users are migrated to SSO; brand-new users can be auto-created by JIT instead).
+- **Configured under System → Single Sign-On** — add/edit providers (with a discovery *Test* button), copy the redirect URI to register in the IdP, and set two global break-glass switches: a master *Enable single sign-on* kill switch and *Allow local login*. Existing analysts are assigned to a provider via a *Sign-in method* dropdown in System → Analysts (this is how pre-existing users are migrated to SSO; brand-new users can be auto-created by JIT instead).
 - **Login flow** — the login page leads with an **email-first** router (type your email → routed to your provider automatically, or fall back to the local form), with provider buttons as a shortcut. The sign-in itself is Authorization Code + PKCE (S256), with `state` (CSRF) and `nonce` (replay) protection. The ID token's signature is validated against the provider's JWKS using the vendored `firebase/php-jwt` library; issuer, audience, nonce and expiry are all checked.
 - **Account mapping** — an IdP identity is matched to an analyst by a stored identity link (`provider`+`subject`) or by email. **Just-in-time provisioning** (per-provider toggle) can auto-create the analyst on first login, granting a configurable set of default modules (blank = full access). **Strict isolation**: an analyst may only sign in via the provider they're assigned to, so an SSO login can never silently take over another account.
 - **Email verification** — an explicit `email_verified: false` from the IdP is always refused. Providers that omit the claim entirely (e.g. Okta's org authorization server, which never sends it; Keycloak/Entra do) are accepted by default, so sign-in works out of the box. A per-provider **Require a verified-email claim** toggle (off by default) lets admins demand an explicit `email_verified: true` for IdPs where users can self-register with unverified addresses.

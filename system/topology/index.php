@@ -196,7 +196,7 @@ if (!isset($_SESSION['analyst_id'])) {
         // Analysts with access (restricted analysts granted to this company)
         cats.push(node('users', 'Analysts (restricted, with access)', {
             count: c.analysts.length,
-            link: { href: BASE + 'tickets/settings/', text: 'manage' },
+            link: { href: BASE + 'system/analysts/', text: 'manage' },
             children: c.analysts.length
                 ? c.analysts.map(a => leaf('user', esc(a.name)))
                 : [leaf('user', '<span class="tree-label muted">none restricted here — all-access analysts can work in every company (see Global)</span>')]
@@ -235,7 +235,7 @@ if (!isset($_SESSION['analyst_id'])) {
         }));
         kids.push(node('users', 'All-access analysts', {
             count: g.all_access_analysts.length,
-            link: { href: BASE + 'tickets/settings/', text: 'manage' },
+            link: { href: BASE + 'system/analysts/', text: 'manage' },
             children: g.all_access_analysts.length ? g.all_access_analysts.map(a => leaf('user', esc(a.name))) : [leaf('user', '<span class="tree-label muted">none</span>')]
         }));
         return node('globe', '<strong>Global / shared</strong> <span class="tree-label muted">— serves every company</span>', { open: true, children: kids });
