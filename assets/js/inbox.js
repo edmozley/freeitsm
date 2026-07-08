@@ -1354,9 +1354,11 @@ function displayEmail(email, recordings) {
         <div class="attachment-info-bar" id="attachmentInfoBar" onclick="showAttachmentList()" style="display: none;">
             <span>${escapeHtml(t('tickets.actions.loading_attachments'))}</span>
         </div>
-        ${buildProblemStrip(email)}
-        ${buildChangeStrip(email)}
-        ${buildLinkedTicketsStrip(email)}
+        <div class="link-strips-row">
+            ${buildProblemStrip(email)}
+            ${buildChangeStrip(email)}
+            ${buildLinkedTicketsStrip(email)}
+        </div>
         ${buildRecordingsStrip(currentRecordings)}
         <div class="action-toolbar">
             <button class="action-btn" onclick="openNoteModal()">

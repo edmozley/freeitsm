@@ -1013,6 +1013,16 @@ body.ticket-popout .ticket-toolbar {
 }
 
 /* Problem Management strip in the ticket reading pane */
+/* The three link strips (Problem / Change / Linked tickets) sit side by side on
+   a desktop-width reading pane and fall back to stacked rows when it's narrow. */
+.link-strips-row { display: block; }
+@media (min-width: 769px) {
+    .link-strips-row { display: flex; flex-wrap: wrap; align-items: stretch; }
+    .link-strips-row > .problem-strip { flex: 1 1 240px; min-width: 0; padding-left: 16px; padding-right: 16px; }
+    /* Keep the first strip aligned to the 30px header gutter. */
+    .link-strips-row > .problem-strip:first-child { padding-left: 30px; }
+}
+
 .problem-strip {
     display: flex;
     align-items: center;
