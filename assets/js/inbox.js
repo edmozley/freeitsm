@@ -1354,11 +1354,7 @@ function displayEmail(email, recordings) {
         <div class="attachment-info-bar" id="attachmentInfoBar" onclick="showAttachmentList()" style="display: none;">
             <span>${escapeHtml(t('tickets.actions.loading_attachments'))}</span>
         </div>
-        <div class="link-strips-row">
-            ${buildProblemStrip(email)}
-            ${buildChangeStrip(email)}
-            ${buildLinkedTicketsStrip(email)}
-        </div>
+        ${buildLinksSection(email)}
         ${buildRecordingsStrip(currentRecordings)}
         <div class="action-toolbar">
             <button class="action-btn" onclick="openNoteModal()">
@@ -1421,27 +1417,9 @@ function displayEmail(email, recordings) {
 // toolbar. Returns the empty string when the ticket has no recordings, so the
 // gap collapses cleanly. Stream URL is the same endpoint the self-service portal
 // uses — auth check inside accepts either a session analyst or the ticket owner.
-// Problem Management strip: shows any problems this incident is linked to, plus a
-// "Link to problem" action. Reads email.problems from get_email_detail.
-function buildProblemStrip(email) {
-    const probs = email.problems || [];
-    const badges = probs.map(p =>
-        `<a class="pm-ticket-badge" href="../problem-management/index.php?id=${p.id}" target="_blank" title="${escapeHtml(p.title || '')}">
-            ⚠ ${escapeHtml(p.problem_number || ('#' + p.id))}${p.status ? ' · ' + escapeHtml(p.status) : ''}
-            <span class="pm-ticket-unlink" onclick="event.preventDefault();event.stopPropagation();unlinkTicketFromProblem(${p.id});">✕</span>
-        </a>`).join('');
-    return `<div class="problem-strip">
-        <span class="problem-strip-label">${escapeHtml(t('tickets.reading_pane.problem_label'))}</span>
-        ${badges || `<span style="color:#9ca3af;font-size:13px;">${escapeHtml(t('tickets.reading_pane.problem_unlinked'))}</span>`}
-        <button class="problem-link-btn" onclick="linkTicketToProblem()">${escapeHtml(t('tickets.reading_pane.problem_link'))}</button>
-    </div>`;
-}
-
-// Reading-pane "Link to problem" button — opens the picker for the open ticket.
-function linkTicketToProblem() {
-    if (!currentEmail) return;
-    openLinkProblemModal(currentEmail.ticket_id, currentEmail.ticket_number, currentEmail.subject || '');
-}
+// The linked-items section (problems + changes + tickets combined) is rendered
+// by buildLinksSection() further down; the link/unlink + modal helpers below are
+// shared by it and the right-click context menu.
 
 // Right-click "Link to problem…" — targets whichever ticket was right-clicked,
 // even if a different one is open in the reading pane.
@@ -1523,30 +1501,6 @@ async function unlinkTicketFromProblem(problemId) {
         if (data.success) { showToast('Unlinked', 'success'); selectEmail(currentEmail.id); }
         else showToast(data.error || 'Failed', 'error');
     } catch (e) { showToast('Failed', 'error'); }
-}
-
-// Change Management strip: shows any changes this ticket is linked to, plus a
-// "Link to change" action. Reads email.changes from get_email_detail.
-function buildChangeStrip(email) {
-    const changes = email.changes || [];
-    const badges = changes.map(c => {
-        const ref = 'CHG-' + String(c.id).padStart(4, '0');
-        return `<a class="pm-ticket-badge" href="../change-management/index.php?id=${c.id}" target="_blank" title="${escapeHtml(c.title || '')}">
-            ⚠ ${escapeHtml(ref)}${c.status ? ' · ' + escapeHtml(c.status) : ''}
-            <span class="pm-ticket-unlink" onclick="event.preventDefault();event.stopPropagation();unlinkTicketFromChange(${c.id});">✕</span>
-        </a>`;
-    }).join('');
-    return `<div class="problem-strip">
-        <span class="problem-strip-label">${escapeHtml(t('tickets.reading_pane.change_label'))}</span>
-        ${badges || `<span style="color:#9ca3af;font-size:13px;">${escapeHtml(t('tickets.reading_pane.change_unlinked'))}</span>`}
-        <button class="problem-link-btn" onclick="linkTicketToChange()">${escapeHtml(t('tickets.reading_pane.change_link'))}</button>
-    </div>`;
-}
-
-// Reading-pane "Link to change" button — opens the picker for the open ticket.
-function linkTicketToChange() {
-    if (!currentEmail) return;
-    openLinkChangeModal(currentEmail.ticket_id, currentEmail.ticket_number, currentEmail.subject || '');
 }
 
 // Right-click "Link to change…" — targets whichever ticket was right-clicked,
@@ -1634,33 +1588,80 @@ async function unlinkTicketFromChange(changeId) {
 }
 
 // ============================================================
-// Ticket-to-ticket links (#38): related / duplicate / parent-child.
-// Reads email.linked_tickets (grouped) from get_email_detail.
+// Unified "Links" section (#38): one strip with pills for every linked
+// problem / change / ticket, plus a single "Link to…" menu. Replaces the three
+// separate strips — far better use of space on a wide reading pane.
 // ============================================================
-function buildLinkedTicketsStrip(email) {
+function buildLinksSection(email) {
+    const pills = [];
+
+    // Problems (⚠) — open in the Problem module.
+    (email.problems || []).forEach(p => {
+        pills.push(`<a class="pm-ticket-badge" href="../problem-management/index.php?id=${p.id}" target="_blank" title="Problem: ${escapeHtml(p.title || '')}">
+            ⚠ ${escapeHtml(p.problem_number || ('#' + p.id))}${p.status ? ' · ' + escapeHtml(p.status) : ''}
+            <span class="pm-ticket-unlink" onclick="event.preventDefault();event.stopPropagation();unlinkTicketFromProblem(${p.id});">✕</span>
+        </a>`);
+    });
+
+    // Changes (🔁) — open in the Change module.
+    (email.changes || []).forEach(c => {
+        const ref = 'CHG-' + String(c.id).padStart(4, '0');
+        pills.push(`<a class="pm-ticket-badge" href="../change-management/index.php?id=${c.id}" target="_blank" title="Change: ${escapeHtml(c.title || '')}">
+            🔁 ${escapeHtml(ref)}${c.status ? ' · ' + escapeHtml(c.status) : ''}
+            <span class="pm-ticket-unlink" onclick="event.preventDefault();event.stopPropagation();unlinkTicketFromChange(${c.id});">✕</span>
+        </a>`);
+    });
+
+    // Linked tickets (🔗) — grouped by relation, open in-place.
     const L = email.linked_tickets || {};
-    const badge = (item, prefix) => `<a class="pm-ticket-badge" href="#" onclick="event.preventDefault();loadTicketById(${item.ticket_id});" title="${escapeHtml(item.subject || '')}">
+    const tp = (item, prefix) => `<a class="pm-ticket-badge" href="#" onclick="event.preventDefault();loadTicketById(${item.ticket_id});" title="${escapeHtml(item.subject || '')}">
         🔗 ${escapeHtml(prefix)} ${escapeHtml(item.ticket_number || ('#' + item.ticket_id))}${item.status ? ' · ' + escapeHtml(item.status) : ''}
         <span class="pm-ticket-unlink" onclick="event.preventDefault();event.stopPropagation();unlinkTicketLink(${item.link_id});">✕</span>
     </a>`;
-    const parts = [];
-    if (L.parent) parts.push(badge(L.parent, 'Parent:'));
-    (L.children || []).forEach(c => parts.push(badge(c, 'Child:')));
-    if (L.duplicate_of) parts.push(badge(L.duplicate_of, 'Duplicate of:'));
-    (L.duplicates || []).forEach(d => parts.push(badge(d, 'Duplicate:')));
-    (L.related || []).forEach(r => parts.push(badge(r, 'Related:')));
-    const badges = parts.join('');
-    return `<div class="problem-strip">
-        <span class="problem-strip-label">Linked tickets</span>
-        ${badges || `<span style="color:#9ca3af;font-size:13px;">No linked tickets</span>`}
-        <button class="problem-link-btn" onclick="linkTicketToTicket()">Link to ticket</button>
+    if (L.parent) pills.push(tp(L.parent, 'Parent:'));
+    (L.children || []).forEach(c => pills.push(tp(c, 'Child:')));
+    if (L.duplicate_of) pills.push(tp(L.duplicate_of, 'Duplicate of:'));
+    (L.duplicates || []).forEach(d => pills.push(tp(d, 'Duplicate:')));
+    (L.related || []).forEach(r => pills.push(tp(r, 'Related:')));
+
+    const body = pills.length
+        ? pills.join('')
+        : `<span style="color:#9ca3af;font-size:13px;">Not linked to anything yet</span>`;
+
+    return `<div class="problem-strip links-strip">
+        <span class="problem-strip-label">Links</span>
+        ${body}
+        <div class="link-add-wrap">
+            <button class="problem-link-btn" onclick="toggleLinkAddMenu(event)">Link to… ▾</button>
+            <div class="link-add-menu" id="linkAddMenu">
+                <button type="button" onclick="linkAddChoose('problem')">Problem</button>
+                <button type="button" onclick="linkAddChoose('change')">Change</button>
+                <button type="button" onclick="linkAddChoose('ticket')">Ticket</button>
+            </div>
+        </div>
     </div>`;
 }
 
-// Reading-pane "Link to ticket" button — opens the picker for the open ticket.
-function linkTicketToTicket() {
+// "Link to…" popover: pick Problem / Change / Ticket, then open its picker for
+// the open ticket. Closes on the next click anywhere.
+function toggleLinkAddMenu(e) {
+    e.stopPropagation();
+    const m = document.getElementById('linkAddMenu');
+    if (!m) return;
+    const open = m.classList.toggle('open');
+    if (open) setTimeout(() => document.addEventListener('click', closeLinkAddMenu, { once: true }), 0);
+}
+function closeLinkAddMenu() {
+    const m = document.getElementById('linkAddMenu');
+    if (m) m.classList.remove('open');
+}
+function linkAddChoose(kind) {
+    closeLinkAddMenu();
     if (!currentEmail) return;
-    openLinkTicketModal(currentEmail.ticket_id, currentEmail.ticket_number, currentEmail.subject || '');
+    const id = currentEmail.ticket_id, ref = currentEmail.ticket_number, subj = currentEmail.subject || '';
+    if (kind === 'problem') openLinkProblemModal(id, ref, subj);
+    else if (kind === 'change') openLinkChangeModal(id, ref, subj);
+    else openLinkTicketModal(id, ref, subj);
 }
 
 // Right-click "Link to ticket…" — targets whichever ticket was right-clicked.
