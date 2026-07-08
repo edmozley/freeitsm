@@ -228,6 +228,48 @@
         font-size: 16px;
     }
 
+    /* Reply / forward: the same full-panel treatment. The To/Cc row already
+       stacks to one column (LAYER 3) and those inputs are 16px (above); here the
+       rich-text editor grows to fill the sheet between the fields and the Send
+       bar, so there's a proper composing area instead of a short fixed box with
+       dead space. The message form-group is found via its (hidden-once-TinyMCE-
+       -mounts but still present) #emailBody textarea. */
+    #emailModal .modal-body { display: flex; flex-direction: column; }
+    #emailModal .modal-body > .form-group:has(#emailBody) {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+    }
+    #emailModal .modal-body > .form-group:has(#emailBody) .tox-tinymce {
+        flex: 1 1 auto;
+        min-height: 0;
+        height: auto !important;        /* beat TinyMCE's inline fixed height */
+    }
+
+    /* Native date/time inputs (e.g. the schedule panel) get an intrinsic width
+       from iOS Safari that ignores width:100% (the grey field spills off the
+       right of the sheet). -webkit-appearance:none makes iOS honour the box
+       model; the ::-webkit-date-and-time-value reset removes its default margin
+       that also pushes width. The native picker still opens on tap. */
+    .modal-content input[type="date"],
+    .modal-content input[type="time"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    .modal-content input[type="date"]::-webkit-date-and-time-value,
+    .modal-content input[type="time"]::-webkit-date-and-time-value {
+        margin: 0;
+        text-align: left;
+    }
+    #scheduleModal .modal-body { overflow-x: hidden; }
+    /* Small gap between the ticket subject line and the first "Date" field. */
+    #scheduleModal .schedule-ticket-info { margin-bottom: 12px; }
+
     /* ====================================================================
        LAYER 4 — Reading-pane density on mobile.
        The ticket detail sections use a roomy 30px side padding for desktop;
@@ -469,4 +511,19 @@
     body.ticket-popout .folder-container,
     body.ticket-popout .email-list-container { display: block; }
     body.ticket-popout .reading-pane { position: absolute; padding-right: 0; }
+
+    /* ====================================================================
+       LAYER 9 — Ask-AI chat panel. A right-side 420px slide-in on desktop;
+       on a phone it goes full-width (the 420px panel is wider than the screen
+       and would sit off-centre) and its input is 16px so focusing it doesn't
+       trigger the iOS auto-zoom. It's already a flex column, so the message
+       list scrolls and the input bar stays pinned at the bottom.
+       ==================================================================== */
+    .ai-chat-panel {
+        width: 100%;
+        right: -100%;               /* fully off-screen when closed */
+        height: 100dvh;
+    }
+    .ai-chat-panel.active { right: 0; }
+    .ai-chat-input-area textarea { font-size: 16px; }
 }

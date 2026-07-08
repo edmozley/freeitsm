@@ -324,7 +324,11 @@ function initTinyMCE() {
             'bold italic forecolor backcolor | alignleft aligncenter ' +
             'alignright alignjustify | bullist numlist outdent indent | ' +
             'link | removeformat | help',
-        content_style: 'body { font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; }',
+        // 14px on desktop; 16px on touch devices (pointer: coarse) so iOS Safari
+        // doesn't auto-zoom when you tap into the reply/forward editor on a phone
+        // — the same <16px focus-zoom that broke the note sheet. Mouse users
+        // (pointer: fine) are unchanged.
+        content_style: 'body { font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; } @media (pointer: coarse) { body { font-size: 16px; } }',
         extended_valid_elements: 'div[style|data-reply-marker]',
         setup: function(editor) {
             emailEditor = editor;
