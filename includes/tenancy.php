@@ -120,9 +120,14 @@ function getTenantById(PDO $conn, int $tenantId): ?array {
 }
 
 /**
- * The tenant ids an analyst may access. An analyst flagged
- * can_access_all_tenants sees every tenant; otherwise only those granted via
- * analyst_tenant_access. (Cached per analyst per request.)
+ * The tenant ids an analyst may access. Company access is ADDITIVE from two
+ * sources, unioned:
+ *   1. the analyst's own grant (can_access_all_tenants flag / analyst_tenant_access);
+ *   2. the teams they belong to (a team flagged can_access_all_tenants grants
+ *      every company; otherwise its team_tenant_access rows).
+ * So an analyst can reach a company if their own access OR any of their teams
+ * grants it. A team grants nothing until explicitly configured, so this only
+ * ever widens access once an admin sets it up. (Cached per analyst per request.)
  */
 function getAccessibleTenantIds(PDO $conn, int $analystId): array {
     static $cache = [];
@@ -132,19 +137,49 @@ function getAccessibleTenantIds(PDO $conn, int $analystId): array {
         return $cache[$analystId] = [TENANCY_FALLBACK_TENANT_ID];
     }
 
-    // All-access flag → every tenant.
+    $allTenantIds = function () use ($conn) {
+        return array_map('intval', $conn->query("SELECT id FROM tenants")->fetchAll(PDO::FETCH_COLUMN));
+    };
+
+    // Analyst all-access flag → every tenant.
     $stmt = $conn->prepare("SELECT can_access_all_tenants FROM analysts WHERE id = ?");
     $stmt->execute([$analystId]);
-    $all = (int) $stmt->fetchColumn();
-    if ($all === 1) {
-        $ids = array_map('intval', $conn->query("SELECT id FROM tenants")->fetchAll(PDO::FETCH_COLUMN));
-        return $cache[$analystId] = $ids;
+    if ((int) $stmt->fetchColumn() === 1) {
+        return $cache[$analystId] = $allTenantIds();
     }
 
-    // Otherwise only explicitly granted tenants.
-    $stmt = $conn->prepare("SELECT tenant_id FROM analyst_tenant_access WHERE analyst_id = ?");
-    $stmt->execute([$analystId]);
-    return $cache[$analystId] = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    // Member of an all-access team → every tenant. (Guarded: teams may predate
+    // the can_access_all_tenants column on an un-verified DB.)
+    try {
+        $stmt = $conn->prepare(
+            "SELECT 1 FROM analyst_teams at
+             JOIN teams t ON at.team_id = t.id
+             WHERE at.analyst_id = ? AND t.can_access_all_tenants = 1 LIMIT 1"
+        );
+        $stmt->execute([$analystId]);
+        if ($stmt->fetchColumn()) {
+            return $cache[$analystId] = $allTenantIds();
+        }
+    } catch (Exception $e) { /* column not migrated yet — ignore team all-access */ }
+
+    // Otherwise: the analyst's own granted tenants, unioned with the specific
+    // companies granted by any team they belong to.
+    try {
+        $stmt = $conn->prepare(
+            "SELECT tenant_id FROM analyst_tenant_access WHERE analyst_id = :aid
+             UNION
+             SELECT tta.tenant_id FROM team_tenant_access tta
+               JOIN analyst_teams at ON at.team_id = tta.team_id
+              WHERE at.analyst_id = :aid"
+        );
+        $stmt->execute([':aid' => $analystId]);
+        return $cache[$analystId] = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    } catch (Exception $e) {
+        // team_tenant_access not migrated yet — fall back to analyst-only grants.
+        $stmt = $conn->prepare("SELECT tenant_id FROM analyst_tenant_access WHERE analyst_id = ?");
+        $stmt->execute([$analystId]);
+        return $cache[$analystId] = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+    }
 }
 
 /**

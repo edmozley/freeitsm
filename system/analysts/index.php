@@ -171,6 +171,7 @@ $translationNamespaces = ['common', 'tickets'];
                     </label>
                     <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.settings.analyst_extra.access_all_help')); ?></small>
                     <div id="analystCompanyList" style="display: none; margin-top: 8px; max-height: 180px; overflow-y: auto; border: 1px solid #eee; border-radius: 6px; padding: 8px;"></div>
+                    <div id="analystTeamAccessNote" style="display: none; margin-top: 8px; font-size: 12px; color: var(--text-muted, #666); line-height: 1.5;"></div>
                 </div>
 
                 <div class="form-group">
@@ -254,6 +255,13 @@ $translationNamespaces = ['common', 'tickets'];
         let teams = [];                 // for the team-assignment picker
         let analystTeams = {};          // cache: analyst id -> teams
 
+        // Map a company (tenant) id to its name for the effective-access chips.
+        // Reads the companies cache populated by loadAnalystCompanies() on load.
+        function companyName(id) {
+            const c = (analystCompaniesCache || []).find(x => Number(x.id) === Number(id));
+            return c ? c.name : ('#' + id);
+        }
+
         // Populate the teams global (no render) so the assignment picker has data.
         async function loadTeams() {
             try {
@@ -317,10 +325,27 @@ $translationNamespaces = ['common', 'tickets'];
                 const safeName = escapeHtml(a.full_name).replace(/'/g, "\\'");
                 const safeUsername = escapeHtml(a.username).replace(/'/g, "\\'");
 
-                // Multi-tenancy: flag analysts restricted to specific companies.
-                const grantCount = (a.tenant_ids || []).length;
-                const accessChip = a.can_access_all_tenants ? '' :
-                    `<span class="status-badge" style="background:#fff3e0; color:#e65100; margin-left:6px;" title="Access limited to ${grantCount} compan${grantCount === 1 ? 'y' : 'ies'}">${grantCount} compan${grantCount === 1 ? 'y' : 'ies'}</span>`;
+                // Multi-tenancy: show EFFECTIVE company access — the analyst's own
+                // grants unioned with any they inherit from a team. All-access via
+                // their own flag shows nothing (unrestricted, as before).
+                let accessChip = '';
+                if (!a.can_access_all_tenants) {
+                    const direct = (a.tenant_ids || []).map(Number);
+                    const viaTeam = (a.team_tenant_ids || []).map(Number);
+                    if (a.team_all_access) {
+                        accessChip = `<span class="status-badge" style="background:#fff3e0; color:#e65100; margin-left:6px;" title="All companies — via team membership">All companies (via team)</span>`;
+                    } else {
+                        const eff = Array.from(new Set([...direct, ...viaTeam]));
+                        if (eff.length) {
+                            const names = eff.map(companyName).join(', ');
+                            const viaOnly = viaTeam.filter(id => !direct.includes(id)).length;
+                            const suffix = viaOnly ? ` (${viaOnly} via team)` : '';
+                            accessChip = `<span class="status-badge" style="background:#fff3e0; color:#e65100; margin-left:6px;" title="${escapeHtml(names)}">${eff.length} compan${eff.length === 1 ? 'y' : 'ies'}${suffix}</span>`;
+                        } else {
+                            accessChip = `<span class="status-badge" style="background:#ffebee; color:#c62828; margin-left:6px;" title="This analyst has no company access — they won't see any tickets on a multi-company install">no companies</span>`;
+                        }
+                    }
+                }
 
                 return `
                     <tr>
@@ -402,6 +427,23 @@ $translationNamespaces = ['common', 'tickets'];
                     document.getElementById('analystAllAccess').checked = analyst ? !!analyst.can_access_all_tenants : true;
                     renderAnalystCompanyList(companies, analyst ? (analyst.tenant_ids || []) : []);
                     syncAnalystAccess();
+
+                    // Read-only note: company access inherited via team membership,
+                    // which can't be edited here (it's set on System → Teams). Makes
+                    // clear that unticking a box won't remove team-granted access.
+                    const note = document.getElementById('analystTeamAccessNote');
+                    const direct = new Set((analyst && analyst.tenant_ids ? analyst.tenant_ids : []).map(Number));
+                    const viaOnly = (analyst && analyst.team_tenant_ids ? analyst.team_tenant_ids : []).map(Number).filter(id => !direct.has(id));
+                    if (analyst && analyst.team_all_access) {
+                        note.style.display = '';
+                        note.innerHTML = 'This analyst is in a team with access to <strong>all companies</strong>, so they can reach every company regardless of the selection above.';
+                    } else if (viaOnly.length) {
+                        note.style.display = '';
+                        note.innerHTML = 'Also reachable via team membership: <strong>' + viaOnly.map(id => escapeHtml(companyName(id))).join(', ') + '</strong> — manage that on System → Teams.';
+                    } else {
+                        note.style.display = 'none';
+                        note.innerHTML = '';
+                    }
                 } else {
                     accessGroup.style.display = 'none';
                 }
@@ -614,8 +656,9 @@ $translationNamespaces = ['common', 'tickets'];
             }
         });
 
-        document.addEventListener('DOMContentLoaded', function() {
-            loadTeams();      // populate teams global for the assignment picker
+        document.addEventListener('DOMContentLoaded', async function() {
+            loadTeams();                  // populate teams global for the assignment picker
+            await loadAnalystCompanies(); // company names for the effective-access chips
             loadAnalysts();
         });
     </script>

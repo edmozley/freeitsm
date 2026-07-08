@@ -175,6 +175,32 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
+    <!-- Team company-access modal (multi-company installs only) -->
+    <div class="modal" id="teamCompaniesModal">
+        <div class="modal-content">
+            <div class="modal-header" id="teamCompaniesTitle">Company access</div>
+            <form id="teamCompaniesForm">
+                <input type="hidden" id="companiesTeamId">
+                <p style="margin-bottom: 15px; color: var(--text-muted, #666);">Choose which companies this team can access. It's <strong>added to</strong> each member's own access — it never removes access they already have.</p>
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="teamAllCompanies" onchange="syncTeamCompanies()">
+                            <span class="toggle-slider"></span>
+                        </span>
+                        Access all companies
+                    </label>
+                    <small style="color: var(--text-muted, #666); display:block; margin-top:4px;">On = members can access every company (now and any added later). Off = only the companies you tick below.</small>
+                </div>
+                <div id="teamCompanyList" style="max-height: 260px; overflow-y: auto; border: 1px solid var(--border, #ddd); border-radius: 6px; padding: 8px;"></div>
+                <div class="modal-actions" style="margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeTeamCompanies()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // Endpoints stay under api/tickets/ — shared with the Departments team-picker.
         const API_BASE = '../../api/tickets/';
@@ -187,6 +213,17 @@ $translationNamespaces = ['common', 'tickets'];
         }
 
         let teams = [];
+        let allCompanies = [];      // active companies, for the "Manage companies" picker
+        let isMultiCompany = false; // company controls only appear when > 1 company
+
+        async function loadCompanies() {
+            try {
+                const r = await fetch('../../api/system/get_tenants.php');
+                const d = await r.json();
+                allCompanies = (d.success ? d.companies : []).filter(c => c.is_active);
+            } catch (e) { allCompanies = []; }
+            isMultiCompany = allCompanies.length > 1;
+        }
 
         async function loadTeams() {
             const tbody = document.getElementById('teams-list');
@@ -212,10 +249,10 @@ $translationNamespaces = ['common', 'tickets'];
                 return;
             }
 
-            // Per-team department/analyst counts, edited in place via the
-            // "Manage departments" / "Manage members" row actions.
+            // Per-team department/analyst counts (and company grants on a
+            // multi-company install), edited in place via the row actions.
             const teamsWithCounts = await Promise.all(teamsList.map(async (team) => {
-                let deptCount = 0, analystCount = 0;
+                let deptCount = 0, analystCount = 0, companyChip = '';
                 try {
                     const r = await fetch(`${API_BASE}get_team_departments.php?team_id=${team.id}`);
                     const d = await r.json();
@@ -226,12 +263,26 @@ $translationNamespaces = ['common', 'tickets'];
                     const d = await r.json();
                     analystCount = d.success ? d.analysts.length : 0;
                 } catch (e) { }
-                return { ...team, deptCount, analystCount };
+                if (isMultiCompany) {
+                    try {
+                        const r = await fetch(`${API_BASE}get_team_companies.php?team_id=${team.id}`);
+                        const d = await r.json();
+                        if (d.success) {
+                            if (Number(d.can_access_all_tenants)) {
+                                companyChip = '<span class="status-badge" style="background:#fff3e0;color:#e65100;margin-left:8px;">All companies</span>';
+                            } else if (d.tenant_ids.length) {
+                                const n = d.tenant_ids.length;
+                                companyChip = `<span class="status-badge" style="background:#fff3e0;color:#e65100;margin-left:8px;">${n} compan${n === 1 ? 'y' : 'ies'}</span>`;
+                            }
+                        }
+                    } catch (e) { }
+                }
+                return { ...team, deptCount, analystCount, companyChip };
             }));
 
             tbody.innerHTML = teamsWithCounts.map(team => `
                 <tr>
-                    <td><strong>${escapeHtml(team.name)}</strong></td>
+                    <td><strong>${escapeHtml(team.name)}</strong>${team.companyChip}</td>
                     <td>${escapeHtml(team.description || '')}</td>
                     <td>${team.deptCount} department(s)</td>
                     <td>${team.analystCount} analyst(s)</td>
@@ -247,6 +298,9 @@ $translationNamespaces = ['common', 'tickets'];
                         <button class="action-btn" onclick="openTeamAssign('analysts', ${team.id}, '${escapeHtml(team.name).replace(/'/g, "\\'")}')" title="Manage members">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                         </button>
+                        ${isMultiCompany ? `<button class="action-btn" onclick="openTeamCompanies(${team.id}, '${escapeHtml(team.name).replace(/'/g, "\\'")}')" title="Manage company access">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"></path><path d="M9 8h1M9 12h1M9 16h1M14 8h1M14 12h1M14 16h1"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path></svg>
+                        </button>` : ''}
                         <button class="action-btn delete" onclick="deleteTeam(${team.id}, '${escapeHtml(team.name).replace(/'/g, "\\'")}')" title="${t('common.delete')}">
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                         </button>
@@ -352,6 +406,65 @@ $translationNamespaces = ['common', 'tickets'];
             }
         });
 
+        // Team → company access picker (multi-company installs). Writes the team
+        // side of company access; it's unioned with each member's own grants.
+        function syncTeamCompanies() {
+            const all = document.getElementById('teamAllCompanies').checked;
+            document.getElementById('teamCompanyList').style.display = all ? 'none' : '';
+        }
+
+        async function openTeamCompanies(teamId, teamName) {
+            document.getElementById('companiesTeamId').value = teamId;
+            document.getElementById('teamCompaniesTitle').textContent = `Company access — "${teamName}"`;
+
+            let allAccess = 0, granted = [];
+            try {
+                const r = await fetch(`${API_BASE}get_team_companies.php?team_id=${teamId}`);
+                const d = await r.json();
+                if (d.success) { allAccess = Number(d.can_access_all_tenants); granted = (d.tenant_ids || []).map(Number); }
+            } catch (e) { }
+
+            document.getElementById('teamAllCompanies').checked = !!allAccess;
+            const grantedSet = new Set(granted);
+            document.getElementById('teamCompanyList').innerHTML = allCompanies.map(c => `
+                <label style="display:flex; align-items:center; gap:8px; padding:4px 2px; font-size:13px; cursor:pointer;">
+                    <input type="checkbox" class="team-company-cb" value="${c.id}" ${grantedSet.has(Number(c.id)) ? 'checked' : ''}>
+                    ${escapeHtml(c.name)}
+                </label>`).join('');
+            syncTeamCompanies();
+            document.getElementById('teamCompaniesModal').classList.add('active');
+        }
+
+        function closeTeamCompanies() {
+            document.getElementById('teamCompaniesModal').classList.remove('active');
+        }
+
+        document.getElementById('teamCompaniesForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const teamId = document.getElementById('companiesTeamId').value;
+            const allAccess = document.getElementById('teamAllCompanies').checked ? 1 : 0;
+            const tenantIds = allAccess ? [] :
+                Array.from(document.querySelectorAll('.team-company-cb:checked')).map(cb => parseInt(cb.value, 10));
+            try {
+                const r = await fetch(API_BASE + 'save_team_companies.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ team_id: teamId, can_access_all_tenants: allAccess, tenant_ids: tenantIds })
+                });
+                const d = await r.json();
+                if (d.success) {
+                    closeTeamCompanies();
+                    showToast('Saved', 'success');
+                    loadTeams(); // refresh the company chip
+                } else {
+                    showToast('Error saving: ' + d.error, 'error');
+                }
+            } catch (err) {
+                console.error('Error:', err);
+                showToast('Failed to save', 'error');
+            }
+        });
+
         function editTeam(id) {
             const team = teams.find(t => t.id == id);
             if (team) openTeamModal(team);
@@ -414,7 +527,10 @@ $translationNamespaces = ['common', 'tickets'];
             }
         });
 
-        document.addEventListener('DOMContentLoaded', loadTeams);
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadCompanies();  // sets isMultiCompany before the first render
+            loadTeams();
+        });
     </script>
 </body>
 </html>

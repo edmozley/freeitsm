@@ -112,6 +112,14 @@ CREATE TABLE IF NOT EXISTS `teams` (
     `description`       VARCHAR(500) NULL,
     `display_order`     INT NULL DEFAULT 0,
     `is_active`         TINYINT(1) NULL DEFAULT 1,
+    -- Team company access (multi-tenant). Team grants are ADDITIVE to an
+    -- analyst's own access: an analyst can reach a company if their own grants
+    -- OR any team they're in grants it. Unlike analysts (which default to
+    -- all-access so N=1 installs stay invisible), a team defaults to granting
+    -- NOTHING (0) — else every existing team would silently hand all-company
+    -- access to its members on upgrade. When 0, team_tenant_access lists the
+    -- specific companies the team grants; when 1, the team grants every company.
+    `can_access_all_tenants` TINYINT(1) NOT NULL DEFAULT 0,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
@@ -559,6 +567,20 @@ CREATE TABLE IF NOT EXISTS `analyst_tenant_access` (
     UNIQUE KEY `uq_analyst_tenant` (`analyst_id`, `tenant_id`),
     CONSTRAINT `fk_ata_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE,
     CONSTRAINT `fk_ata_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Which companies a TEAM grants its members (only consulted when the team is
+-- NOT flagged can_access_all_tenants). Team grants are unioned with each
+-- member's own analyst_tenant_access — see getAccessibleTenantIds().
+CREATE TABLE IF NOT EXISTS `team_tenant_access` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `team_id`           INT NOT NULL,
+    `tenant_id`         INT NOT NULL,
+    `created_datetime`  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_team_tenant` (`team_id`, `tenant_id`),
+    CONSTRAINT `fk_tta_team` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_tta_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------

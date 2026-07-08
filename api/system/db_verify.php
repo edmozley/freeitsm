@@ -85,6 +85,9 @@ $schema = [
         'description'       => 'VARCHAR(500) NULL',
         'display_order'     => 'INT NULL DEFAULT 0',
         'is_active'         => 'TINYINT(1) NULL DEFAULT 1',
+        // Team company access. Defaults to 0 (grants nothing) — NOT 1 — so
+        // existing teams don't silently widen their members' access on upgrade.
+        'can_access_all_tenants' => 'TINYINT(1) NOT NULL DEFAULT 0',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
@@ -422,6 +425,16 @@ $schema = [
     'analyst_tenant_access' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
         'analyst_id'       => 'INT NOT NULL',
+        'tenant_id'        => 'INT NOT NULL',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // Which companies a TEAM grants its members (only consulted when the team
+    // is NOT flagged can_access_all_tenants). Unioned with each member's own
+    // analyst_tenant_access in getAccessibleTenantIds().
+    'team_tenant_access' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'team_id'          => 'INT NOT NULL',
         'tenant_id'        => 'INT NOT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
@@ -2681,6 +2694,17 @@ try {
         }
         if (!$fkExists('analyst_tenant_access', 'fk_ata_tenant')) {
             try { $conn->exec("ALTER TABLE analyst_tenant_access ADD CONSTRAINT fk_ata_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+    if ($tableExists('team_tenant_access') && $tableExists('teams') && $tableExists('tenants')) {
+        if (!$idxExists('team_tenant_access', 'uq_team_tenant')) {
+            try { $conn->exec("ALTER TABLE team_tenant_access ADD UNIQUE KEY uq_team_tenant (team_id, tenant_id)"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('team_tenant_access', 'fk_tta_team')) {
+            try { $conn->exec("ALTER TABLE team_tenant_access ADD CONSTRAINT fk_tta_team FOREIGN KEY (team_id) REFERENCES teams (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('team_tenant_access', 'fk_tta_tenant')) {
+            try { $conn->exec("ALTER TABLE team_tenant_access ADD CONSTRAINT fk_tta_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
         }
     }
     // tickets.tenant_id — index + FK + a ONE-TIME backfill of existing tickets to
