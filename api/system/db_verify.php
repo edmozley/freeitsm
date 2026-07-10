@@ -451,6 +451,13 @@ $schema = [
         'imap_server'             => 'TEXT NOT NULL',
         'imap_port'               => 'INT NOT NULL DEFAULT 993',
         'imap_encryption'         => 'VARCHAR(10) NOT NULL DEFAULT \'ssl\'',
+        // Basic IMAP / SMTP mailboxes: username + password auth (no OAuth). Encrypted
+        // columns are TEXT NULL (empty on Microsoft/Google mailboxes).
+        'imap_username'           => 'TEXT NULL',
+        'imap_password'           => 'TEXT NULL',
+        'smtp_server'             => 'TEXT NULL',
+        'smtp_port'               => 'INT NULL DEFAULT 587',
+        'smtp_encryption'         => 'VARCHAR(10) NULL DEFAULT \'tls\'',
         'target_mailbox'          => 'TEXT NOT NULL',
         // 'delegated' = OAuth sign-in (acts as the signed-in user, /me); 'app_only' =
         // client-credentials (the app reads the specific /users/<target_mailbox>).

@@ -230,13 +230,16 @@ function gmailGetMessage(string $accessToken, string $messageId): ?array {
     $dateStr = $headers['date'] ?? '';
     $receivedDateTime = $dateStr ? date('Y-m-d\TH:i:s\Z', strtotime($dateStr)) : date('Y-m-d\TH:i:s\Z');
 
-    $hasAttachments = false;
-    if (isset($msg['payload']['parts'])) {
-        foreach ($msg['payload']['parts'] as $part) {
-            if (!empty($part['filename'])) {
-                $hasAttachments = true;
-                break;
-            }
+    // Pull attachments now (in Graph shape) and pass them along inline — the importer
+    // stores whatever a message carries in 'attachments_inline' rather than making a
+    // second, provider-specific fetch. (Previously Gmail attachments were missed
+    // because the importer only knew how to re-fetch from Microsoft Graph.)
+    $inlineAttachments = [];
+    if (!empty($msg['payload'])) {
+        try {
+            $inlineAttachments = gmailGetAttachmentsGraphShape($accessToken, $messageId, $msg['payload']);
+        } catch (Exception $e) {
+            error_log('Gmail attachment fetch failed for ' . $messageId . ': ' . $e->getMessage());
         }
     }
 
@@ -258,10 +261,78 @@ function gmailGetMessage(string $accessToken, string $messageId): ?array {
             'contentType' => 'html',
             'content' => $body
         ],
-        'hasAttachments' => $hasAttachments,
+        'hasAttachments' => !empty($inlineAttachments),
+        'attachments_inline' => $inlineAttachments,
         'importance' => 'normal',
         'isRead' => false
     ];
+}
+
+/**
+ * Fetch Gmail attachments for a message and return them in the Graph fileAttachment
+ * shape the importer (saveAttachment) expects. Walks nested multiparts.
+ */
+function gmailGetAttachmentsGraphShape(string $accessToken, string $messageId, array $payload): array {
+    $out = [];
+    $walk = function ($parts) use (&$walk, &$out, $accessToken, $messageId) {
+        foreach ($parts as $part) {
+            if (!empty($part['parts'])) {
+                $walk($part['parts']);
+            }
+            if (empty($part['filename'])) {
+                continue;
+            }
+            $attId = $part['body']['attachmentId'] ?? null;
+            if (!$attId) {
+                continue;
+            }
+
+            $url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/' . $messageId . '/attachments/' . $attId;
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Authorization: Bearer ' . $accessToken]);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            if ($httpCode !== 200) {
+                continue;
+            }
+
+            $attData = json_decode($response, true);
+            if (!isset($attData['data'])) {
+                continue;
+            }
+            $bytes = base64_decode(strtr($attData['data'], '-_', '+/'));
+
+            // Content-ID (for inline images referenced by cid:)
+            $contentId = null;
+            $isInline = false;
+            foreach ($part['headers'] ?? [] as $h) {
+                $hn = strtolower($h['name'] ?? '');
+                if ($hn === 'content-id') {
+                    $contentId = trim($h['value'] ?? '', '<>');
+                } elseif ($hn === 'content-disposition' && stripos($h['value'] ?? '', 'inline') !== false) {
+                    $isInline = true;
+                }
+            }
+
+            $out[] = [
+                '@odata.type' => '#microsoft.graph.fileAttachment',
+                'id' => $attId,
+                'name' => $part['filename'],
+                'contentType' => $part['mimeType'] ?? 'application/octet-stream',
+                'contentBytes' => base64_encode($bytes),
+                'isInline' => $isInline,
+                'contentId' => $contentId,
+                'size' => strlen($bytes),
+            ];
+        }
+    };
+    $walk($payload['parts'] ?? []);
+    return $out;
 }
 
 /**

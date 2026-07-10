@@ -52,7 +52,14 @@ try {
     // /me (whoever signed in); app-only reads the specific /users/<target_mailbox>.
     mailboxResolveGraphBase($mailbox);
 
-    if ($provider === 'microsoft' && $authMode === 'app_only') {
+    if ($provider === 'imap') {
+        // Basic IMAP: no OAuth / stored token — the connection authenticates with the
+        // stored username + password each time. Use a placeholder token so the shared
+        // downstream guards (which expect a truthy access token) pass; IMAP never makes
+        // a Graph/Gmail call.
+        require_once dirname(dirname(__DIR__)) . '/includes/mailbox_imap.php';
+        $accessToken = 'imap-session';
+    } elseif ($provider === 'microsoft' && $authMode === 'app_only') {
         // App-only (client credentials): no interactive sign-in / stored token needed —
         // the app authenticates itself and reads the exact target mailbox.
         try {
@@ -128,7 +135,9 @@ try {
     }
 
     // Fetch emails — branch by provider
-    if ($provider === 'google') {
+    if ($provider === 'imap') {
+        $emails = imapGetEmails($mailbox);
+    } elseif ($provider === 'google') {
         $emails = gmailGetEmails($accessToken, $mailbox);
     } else {
         $emails = getEmails($accessToken, $mailbox);
@@ -189,7 +198,7 @@ try {
             // Reject: handle according to rejected_action setting
             $postAction = ['step' => 'post_action', 'action' => $rejectedAction];
             try {
-                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $rejectedAction, null, $provider);
+                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $rejectedAction, null, $provider, $mailbox);
                 $postAction['result'] = 'success';
                 $postAction['http_code'] = $httpCode;
             } catch (Exception $delEx) {
@@ -241,7 +250,7 @@ try {
                 $postAction['folder'] = $importedFolder;
             }
             try {
-                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $importedAction, $importedFolder, $provider);
+                $httpCode = handleEmailAfterProcessing($accessToken, $email['id'], $importedAction, $importedFolder, $provider, $mailbox);
                 $postAction['result'] = 'success';
                 $postAction['http_code'] = $httpCode;
             } catch (Exception $delEx) {
@@ -655,7 +664,12 @@ function markEmailAsRead($accessToken, $messageId) {
  * Handle email after processing based on action setting
  * Actions: 'delete' (permanent), 'move_to_deleted' (Deleted Items), 'mark_read' (leave in inbox), 'move_to_folder' (custom folder)
  */
-function handleEmailAfterProcessing($accessToken, $messageId, $action, $folderName = null, $provider = 'microsoft') {
+function handleEmailAfterProcessing($accessToken, $messageId, $action, $folderName = null, $provider = 'microsoft', $mailbox = null) {
+    if ($provider === 'imap') {
+        // $messageId is the IMAP UID for basic mailboxes.
+        return imapHandleAfterProcessing($mailbox, (int) $messageId, $action, $folderName);
+    }
+
     if ($provider === 'google') {
         switch ($action) {
             case 'mark_read':
@@ -909,18 +923,24 @@ function rewriteCidReferences($bodyContent, $dbEmailId, $attachments) {
  * Save email to database
  */
 function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId) {
+    // De-dup / stored message id. Providers whose native message id isn't globally
+    // unique (IMAP UIDs collide across mailboxes) supply an 'internet_message_id'
+    // (the Message-ID header) to key on instead.
+    $emailId = $email['internet_message_id'] ?? $email['id'] ?? null;
+
     // Check if email already exists
     $checkSql = "SELECT id FROM emails WHERE exchange_message_id = ?";
     $checkStmt = $conn->prepare($checkSql);
-    $checkStmt->execute([$email['id']]);
+    $checkStmt->execute([$emailId]);
     $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
 
     if ($existing) {
         return false;
     }
 
-    // Extract email data
-    $emailId = $email['id'] ?? null;
+    // The provider-native id (Graph/Gmail message id, or IMAP UID) — used only for
+    // the second attachment fetch on Microsoft.
+    $providerMessageId = $email['id'] ?? null;
     $subject = $email['subject'] ?? '(No Subject)';
     $fromAddress = $email['from']['emailAddress']['address'] ?? '';
     $fromName = $email['from']['emailAddress']['name'] ?? '';
@@ -1028,10 +1048,17 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId) {
     $hasCidReferences = preg_match('/cid:/i', $bodyContent);
     $attachmentInfo = [];
 
-    // Fetch attachments if hasAttachments is true OR if body contains cid: references
-    if (($hasAttachments || $hasCidReferences) && $accessToken) {
+    // Attachments come one of two ways:
+    //  - Pre-loaded inline by the connector (IMAP / Gmail), already Graph-shaped —
+    //    IMAP can't re-fetch a part after disconnecting, so they ride along with the
+    //    message. (This also fixes Gmail, whose attachments a Graph-only fetch missed.)
+    //  - Fetched on demand from Microsoft Graph via a second call.
+    $preloadedAttachments = $email['attachments_inline'] ?? null;
+    if (($hasAttachments || $hasCidReferences) && ($preloadedAttachments !== null || $accessToken)) {
         try {
-            $graphAttachments = fetchEmailAttachments($accessToken, $emailId);
+            $graphAttachments = ($preloadedAttachments !== null)
+                ? $preloadedAttachments
+                : fetchEmailAttachments($accessToken, $providerMessageId);
             $savedAttachments = [];
 
             foreach ($graphAttachments as $attachment) {

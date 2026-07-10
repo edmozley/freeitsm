@@ -77,7 +77,12 @@ try {
     $authMode = $mailbox['auth_mode'] ?? 'delegated';
     mailboxResolveGraphBase($mailbox);
 
-    if ($provider === 'microsoft' && $authMode === 'app_only') {
+    if ($provider === 'imap') {
+        // Basic IMAP mailboxes send via SMTP with the stored username + password —
+        // no OAuth token. A placeholder keeps the shared "got a token?" guard happy.
+        require_once dirname(dirname(__DIR__)) . '/includes/mailbox_imap.php';
+        $accessToken = 'imap-session';
+    } elseif ($provider === 'microsoft' && $authMode === 'app_only') {
         // App-only: the app authenticates itself; we send as /users/<target_mailbox>.
         $accessToken = mailboxAppOnlyToken($conn, $mailbox);
     } else {
@@ -121,7 +126,11 @@ try {
         $bodyForSending = buildFullEmailBody($conn, $ticketId, $body, $type);
     }
 
-    if ($provider === 'google') {
+    if ($provider === 'imap') {
+        // Send via SMTP (username/password). HTML body only — outbound attachments
+        // aren't supported on the basic-IMAP path (parity with the Gmail path).
+        imapSmtpSend($mailbox, $to, $cc, $subject, $bodyForSending);
+    } elseif ($provider === 'google') {
         // Send via Gmail API
         $fromAddress = $mailbox['target_mailbox'] ?? '';
         gmailSendEmail($accessToken, $to, $subject, $bodyForSending, $fromAddress);

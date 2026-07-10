@@ -108,6 +108,10 @@ define('ENCRYPTED_MAILBOX_COLUMNS', [
     'oauth_redirect_uri',
     'imap_server',
     'target_mailbox',
+    // Basic IMAP / SMTP mailboxes (username + password auth).
+    'imap_username',
+    'imap_password',
+    'smtp_server',
 ]);
 
 /**

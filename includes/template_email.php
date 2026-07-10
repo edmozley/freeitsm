@@ -43,30 +43,36 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger, array
             return; // Manual ticket or no mailbox — skip silently
         }
 
-        if (empty($mailbox['token_data'])) {
-            error_log("Template email: mailbox {$mailbox['id']} has no token data");
-            return;
-        }
-
-        // Parse and validate token
-        $cleanedTokenData = preg_replace('/[\x00-\x1F\x7F]/', '', $mailbox['token_data']);
-        $tokenData = json_decode($cleanedTokenData, true);
-        if (!$tokenData || !isset($tokenData['access_token'])) {
-            error_log("Template email: invalid token data for mailbox {$mailbox['id']}");
-            return;
-        }
-
-        // Get valid access token (refresh if needed)
         $provider = $mailbox['provider'] ?? 'microsoft';
-        if ($provider === 'google') {
-            require_once __DIR__ . '/gmail.php';
-            $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
+        $accessToken = null;
+        if ($provider === 'imap') {
+            // Basic IMAP sends via SMTP — no OAuth token to validate/refresh.
+            require_once __DIR__ . '/mailbox_imap.php';
         } else {
-            $accessToken = templateGetValidAccessToken($conn, $mailbox, $tokenData);
-        }
-        if (!$accessToken) {
-            error_log("Template email: failed to get access token for mailbox {$mailbox['id']}");
-            return;
+            if (empty($mailbox['token_data'])) {
+                error_log("Template email: mailbox {$mailbox['id']} has no token data");
+                return;
+            }
+
+            // Parse and validate token
+            $cleanedTokenData = preg_replace('/[\x00-\x1F\x7F]/', '', $mailbox['token_data']);
+            $tokenData = json_decode($cleanedTokenData, true);
+            if (!$tokenData || !isset($tokenData['access_token'])) {
+                error_log("Template email: invalid token data for mailbox {$mailbox['id']}");
+                return;
+            }
+
+            // Get valid access token (refresh if needed)
+            if ($provider === 'google') {
+                require_once __DIR__ . '/gmail.php';
+                $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
+            } else {
+                $accessToken = templateGetValidAccessToken($conn, $mailbox, $tokenData);
+            }
+            if (!$accessToken) {
+                error_log("Template email: failed to get access token for mailbox {$mailbox['id']}");
+                return;
+            }
         }
 
         // Get recipient (the ticket requester)
@@ -85,7 +91,9 @@ function sendTemplateEmail(PDO $conn, int $ticketId, string $eventTrigger, array
         $fullBody = buildTemplateEmailBody($body, $ticketNumber);
 
         // Send via appropriate API
-        if ($provider === 'google') {
+        if ($provider === 'imap') {
+            imapSmtpSend($mailbox, $recipientEmail, '', $fullSubject, $fullBody);
+        } elseif ($provider === 'google') {
             $fromAddress = $mailbox['target_mailbox'] ?? '';
             gmailSendEmail($accessToken, $recipientEmail, $fullSubject, $fullBody, $fromAddress);
         } else {

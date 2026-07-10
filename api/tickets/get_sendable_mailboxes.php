@@ -35,12 +35,14 @@ try {
         $tenantName = $ts->fetchColumn() ?: null;
     }
 
-    // Only mailboxes that can actually send: active + holding an OAuth token.
+    // Only mailboxes that can actually send: active + either holding an OAuth token
+    // (Microsoft/Google) or a basic IMAP mailbox (sends via stored SMTP credentials).
+    $canSend = "(provider = 'imap' OR (token_data IS NOT NULL AND token_data <> ''))";
     if ($multi) {
         // Pinned to this company first, then shared intake.
         $sql = "SELECT id, name, tenant_id
                   FROM target_mailboxes
-                 WHERE is_active = 1 AND token_data IS NOT NULL AND token_data <> ''
+                 WHERE is_active = 1 AND $canSend
                    AND (tenant_id = ? OR tenant_id IS NULL)
                  ORDER BY (tenant_id IS NULL), name";
         $st = $conn->prepare($sql);
@@ -48,7 +50,7 @@ try {
     } else {
         $sql = "SELECT id, name, tenant_id
                   FROM target_mailboxes
-                 WHERE is_active = 1 AND token_data IS NOT NULL AND token_data <> ''
+                 WHERE is_active = 1 AND $canSend
                  ORDER BY name";
         $st = $conn->prepare($sql);
         $st->execute();

@@ -25,15 +25,22 @@ if (!$data) {
 
 // Validate required fields — tenant ID only required for Microsoft.
 $provider = $data['provider'] ?? 'microsoft';
+// Basic IMAP authenticates with a username + password (no OAuth), so it needs none
+// of the Azure/Google client id/secret/redirect fields.
+$isImap = ($provider === 'imap');
 // App-only (client credentials) doesn't use the interactive sign-in flow, so it
 // needs no redirect URI / OAuth scopes — only the client id/secret + target mailbox.
 $isAppOnly = ($provider === 'microsoft') && (($data['auth_mode'] ?? 'delegated') === 'app_only');
-$requiredFields = ['name', 'azure_client_id', 'target_mailbox'];
-if (!$isAppOnly) {
-    $requiredFields[] = 'oauth_redirect_uri';
-}
-if ($provider === 'microsoft') {
-    $requiredFields[] = 'azure_tenant_id';
+if ($isImap) {
+    $requiredFields = ['name', 'target_mailbox', 'imap_server', 'imap_username', 'smtp_server'];
+} else {
+    $requiredFields = ['name', 'azure_client_id', 'target_mailbox'];
+    if (!$isAppOnly) {
+        $requiredFields[] = 'oauth_redirect_uri';
+    }
+    if ($provider === 'microsoft') {
+        $requiredFields[] = 'azure_tenant_id';
+    }
 }
 foreach ($requiredFields as $field) {
     if (empty($data[$field])) {
@@ -51,8 +58,8 @@ try {
     $oauth_redirect_uri_plain = trim($data['oauth_redirect_uri'] ?? '');
     $redirectPath = parse_url($oauth_redirect_uri_plain, PHP_URL_PATH) ?: '';
     // The redirect URI only matters for the interactive sign-in flow — skip the
-    // callback checks for app-only mailboxes (they never redirect anywhere).
-    if (!$isAppOnly) {
+    // callback checks for app-only and basic-IMAP mailboxes (neither redirects anywhere).
+    if (!$isAppOnly && !$isImap) {
         if ($provider === 'google' && !preg_match('#(^|/)google_oauth_callback\.php$#i', $redirectPath)) {
             echo json_encode([
                 'success' => false,
@@ -77,6 +84,12 @@ try {
     $imap_server = encryptValue($data['imap_server'] ?? 'outlook.office365.com');
     $imap_port = $data['imap_port'] ?? 993;
     $imap_encryption = $data['imap_encryption'] ?? 'ssl';
+    // Basic IMAP / SMTP credentials + transport (empty/defaults for OAuth providers).
+    $imap_username = encryptValue($data['imap_username'] ?? '');
+    $imap_password_plain = $data['imap_password'] ?? '';
+    $smtp_server = encryptValue($data['smtp_server'] ?? '');
+    $smtp_port = $data['smtp_port'] ?? 587;
+    $smtp_encryption = $data['smtp_encryption'] ?? 'tls';
     $target_mailbox = encryptValue($data['target_mailbox']);
     $email_folder = $data['email_folder'] ?? 'INBOX';
     $max_emails_per_check = $data['max_emails_per_check'] ?? 10;
@@ -129,46 +142,51 @@ try {
         }
     }
 
-    if ($id) {
-        // Update existing mailbox
-        // If azure_client_secret is empty or just asterisks, don't update it
-        if (empty($azure_client_secret) || preg_match('/^\*+/', $azure_client_secret)) {
-            $sql = "UPDATE target_mailboxes SET
-                        name = ?, provider = ?, azure_tenant_id = ?, azure_client_id = ?,
-                        oauth_redirect_uri = ?, oauth_scopes = ?, imap_server = ?,
-                        imap_port = ?, imap_encryption = ?, target_mailbox = ?,
-                        email_folder = ?, max_emails_per_check = ?, mark_as_read = ?,
-                        rejected_action = ?, imported_action = ?, imported_folder = ?,
-                        is_active = ?, tenant_id = ?, auth_mode = ?
-                    WHERE id = ?";
-            $params = [
-                $name, $provider, $azure_tenant_id, $azure_client_id,
-                $oauth_redirect_uri, $oauth_scopes, $imap_server,
-                $imap_port, $imap_encryption, $target_mailbox,
-                $email_folder, $max_emails_per_check, $mark_as_read,
-                $rejected_action, $imported_action, $imported_folder,
-                $is_active, $tenant_id, $auth_mode, $id
-            ];
-        } else {
-            $azure_client_secret = encryptValue($azure_client_secret);
-            $sql = "UPDATE target_mailboxes SET
-                        name = ?, provider = ?, azure_tenant_id = ?, azure_client_id = ?,
-                        azure_client_secret = ?, oauth_redirect_uri = ?, oauth_scopes = ?,
-                        imap_server = ?, imap_port = ?, imap_encryption = ?,
-                        target_mailbox = ?, email_folder = ?, max_emails_per_check = ?,
-                        mark_as_read = ?, rejected_action = ?, imported_action = ?,
-                        imported_folder = ?, is_active = ?, tenant_id = ?, auth_mode = ?
-                    WHERE id = ?";
-            $params = [
-                $name, $provider, $azure_tenant_id, $azure_client_id,
-                $azure_client_secret, $oauth_redirect_uri, $oauth_scopes,
-                $imap_server, $imap_port, $imap_encryption,
-                $target_mailbox, $email_folder, $max_emails_per_check,
-                $mark_as_read, $rejected_action, $imported_action,
-                $imported_folder, $is_active, $tenant_id, $auth_mode, $id
-            ];
-        }
+    // All columns except the two credential secrets (client secret / IMAP password),
+    // which are only written when a real new value was supplied — a blank or masked
+    // (****) value means "leave the stored one untouched".
+    $cols = [
+        'name'                 => $name,
+        'provider'             => $provider,
+        'azure_tenant_id'      => $azure_tenant_id,
+        'azure_client_id'      => $azure_client_id,
+        'oauth_redirect_uri'   => $oauth_redirect_uri,
+        'oauth_scopes'         => $oauth_scopes,
+        'imap_server'          => $imap_server,
+        'imap_port'            => $imap_port,
+        'imap_encryption'      => $imap_encryption,
+        'imap_username'        => $imap_username,
+        'smtp_server'          => $smtp_server,
+        'smtp_port'            => $smtp_port,
+        'smtp_encryption'      => $smtp_encryption,
+        'target_mailbox'       => $target_mailbox,
+        'email_folder'         => $email_folder,
+        'max_emails_per_check' => $max_emails_per_check,
+        'mark_as_read'         => $mark_as_read,
+        'rejected_action'      => $rejected_action,
+        'imported_action'      => $imported_action,
+        'imported_folder'      => $imported_folder,
+        'is_active'            => $is_active,
+        'tenant_id'            => $tenant_id,
+        'auth_mode'            => $auth_mode,
+    ];
 
+    $secretProvided   = !(empty($azure_client_secret)  || preg_match('/^\*+/', $azure_client_secret));
+    $passwordProvided = !(empty($imap_password_plain)   || preg_match('/^\*+/', $imap_password_plain));
+    if ($secretProvided)   $cols['azure_client_secret'] = encryptValue($azure_client_secret);
+    if ($passwordProvided) $cols['imap_password']        = encryptValue($imap_password_plain);
+
+    if ($id) {
+        // Update existing mailbox — write every provided column.
+        $setParts = [];
+        $params = [];
+        foreach ($cols as $col => $val) {
+            $setParts[] = "$col = ?";
+            $params[] = $val;
+        }
+        $params[] = $id;
+
+        $sql = "UPDATE target_mailboxes SET " . implode(', ', $setParts) . " WHERE id = ?";
         $stmt = $conn->prepare($sql);
         $stmt->execute($params);
 
@@ -184,30 +202,27 @@ try {
             'reauth_required' => $invalidateAuth
         ]);
     } else {
-        // Insert new mailbox
-        if (empty($azure_client_secret)) {
+        // Insert new mailbox — require the relevant credential up front.
+        if ($isImap) {
+            if (!$passwordProvided) {
+                echo json_encode(['success' => false, 'error' => 'IMAP password is required for new mailboxes']);
+                exit;
+            }
+        } elseif (!$secretProvided) {
             echo json_encode(['success' => false, 'error' => 'Client secret is required for new mailboxes']);
             exit;
         }
 
-        $azure_client_secret = encryptValue($azure_client_secret);
+        // azure_client_secret is NOT NULL — always give it a value (empty for IMAP).
+        if (!isset($cols['azure_client_secret'])) {
+            $cols['azure_client_secret'] = encryptValue('');
+        }
 
-        $sql = "INSERT INTO target_mailboxes (
-                    name, provider, azure_tenant_id, azure_client_id, azure_client_secret,
-                    oauth_redirect_uri, oauth_scopes, imap_server, imap_port,
-                    imap_encryption, target_mailbox, email_folder, max_emails_per_check,
-                    mark_as_read, rejected_action, imported_action, imported_folder,
-                    is_active, tenant_id, auth_mode
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
+        $columns = array_keys($cols);
+        $placeholders = implode(', ', array_fill(0, count($columns), '?'));
+        $sql = "INSERT INTO target_mailboxes (" . implode(', ', $columns) . ") VALUES ($placeholders)";
         $stmt = $conn->prepare($sql);
-        $stmt->execute([
-            $name, $provider, $azure_tenant_id, $azure_client_id, $azure_client_secret,
-            $oauth_redirect_uri, $oauth_scopes, $imap_server, $imap_port,
-            $imap_encryption, $target_mailbox, $email_folder, $max_emails_per_check,
-            $mark_as_read, $rejected_action, $imported_action, $imported_folder,
-            $is_active, $tenant_id, $auth_mode
-        ]);
+        $stmt->execute(array_values($cols));
 
         $newId = $conn->lastInsertId();
 

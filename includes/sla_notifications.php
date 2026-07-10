@@ -208,20 +208,26 @@ function sla_send_breach_email(PDO $conn, int $ticketId, array $state, string $t
         throw new Exception("no mailbox available to send from");
     }
 
-    $tokenData = json_decode(preg_replace('/[\x00-\x1F\x7F]/', '', $mailbox['token_data'] ?? ''), true);
-    if (!$tokenData || !isset($tokenData['access_token'])) {
-        throw new Exception("invalid token data on mailbox {$mailbox['id']}");
-    }
-
     $provider = $mailbox['provider'] ?? 'microsoft';
-    if ($provider === 'google') {
-        require_once __DIR__ . '/gmail.php';
-        $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
+    $accessToken = null;
+    if ($provider === 'imap') {
+        // Basic IMAP sends via SMTP — no OAuth token to validate/refresh.
+        require_once __DIR__ . '/mailbox_imap.php';
     } else {
-        $accessToken = templateGetValidAccessToken($conn, $mailbox, $tokenData);
-    }
-    if (!$accessToken) {
-        throw new Exception("failed to refresh access token for mailbox {$mailbox['id']}");
+        $tokenData = json_decode(preg_replace('/[\x00-\x1F\x7F]/', '', $mailbox['token_data'] ?? ''), true);
+        if (!$tokenData || !isset($tokenData['access_token'])) {
+            throw new Exception("invalid token data on mailbox {$mailbox['id']}");
+        }
+
+        if ($provider === 'google') {
+            require_once __DIR__ . '/gmail.php';
+            $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
+        } else {
+            $accessToken = templateGetValidAccessToken($conn, $mailbox, $tokenData);
+        }
+        if (!$accessToken) {
+            throw new Exception("failed to refresh access token for mailbox {$mailbox['id']}");
+        }
     }
 
     $target = $state[$targetType];
@@ -242,7 +248,9 @@ function sla_send_breach_email(PDO $conn, int $ticketId, array $state, string $t
     $body = sla_build_breach_email_body($merge, $target, $targetLabel, $headline, $trigger);
 
     foreach ($recipients as $to) {
-        if ($provider === 'google') {
+        if ($provider === 'imap') {
+            imapSmtpSend($mailbox, $to, '', $subject, $body);
+        } elseif ($provider === 'google') {
             $from = $mailbox['target_mailbox'] ?? '';
             gmailSendEmail($accessToken, $to, $subject, $body, $from);
         } else {

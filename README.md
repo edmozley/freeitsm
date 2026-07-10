@@ -211,7 +211,7 @@ Then open [http://localhost:8080/setup/](http://localhost:8080/setup/) to verify
 | Database | MySQL 8.0+ (PDO MySQL) |
 | Frontend | Vanilla JavaScript, HTML5, CSS3 (no frameworks) |
 | Rich Text Editor | TinyMCE 6+ |
-| Email Integration | Microsoft Graph API + Gmail API (OAuth 2.0) |
+| Email Integration | Microsoft Graph API + Gmail API (OAuth 2.0), or basic IMAP + SMTP (username/password) |
 | Encryption | AES-256-GCM (sensitive data at rest) |
 | Web Server | Apache (WAMP/XAMPP/LAMP) or any PHP-capable server |
 
@@ -287,6 +287,7 @@ sdtickets/
 │   ├── encryption.php                # AES-256-GCM encryption/decryption
 │   ├── totp.php                      # Pure PHP TOTP (RFC 6238) for MFA
 │   ├── gmail.php                     # Gmail API helper (send, read, refresh tokens)
+│   ├── mailbox_imap.php              # Basic IMAP read + SMTP send helper (username/password mailboxes)
 │   ├── template_email.php            # Automated email templates for ticket events
 │   └── module-colors.php             # Module colour definitions
 │
@@ -499,6 +500,7 @@ Of those, the true secrets (`vcenter_password`, `knowledge_ai_api_key`, `knowled
 Currently encrypted in `target_mailboxes`:
 - `azure_tenant_id`, `azure_client_id`, `azure_client_secret`
 - `oauth_redirect_uri`, `imap_server`, `target_mailbox`
+- `imap_username`, `imap_password`, `smtp_server` (basic IMAP/SMTP mailboxes)
 
 ### Functions (`includes/functions.php`)
 Contains `connectToDatabase()` which returns a PDO MySQL connection using the credentials from `db_config.php`. Also contains `getAnalystAllowedModules()` which loads module access permissions for an analyst.
@@ -580,7 +582,7 @@ The primary module. Three-panel Outlook-style interface.
 - **Drag-and-drop triage**: Drag any ticket from the list onto a folder to update it. In **Department view**: drop on a department folder to reassign, drop on a department + status subfolder to update both, drop on Unassigned to clear the department. In **Analyst view**: drop on an analyst folder to assign that analyst as the owner (sets both `assigned_analyst_id` and `owner_id` so the right-pane Owner field stays in sync), drop on an analyst + status subfolder to update both, drop on Unassigned to clear the analyst. Hovering a collapsed folder during a drag auto-expands it (Outlook-style spring-loaded folders) so any nested status is reachable
 - **User management**: The Users page (`tickets/users.php`) lists every end user with their ticket history. Analysts can **Add** a new user (email required, display name / preferred name optional, password optional &mdash; leaving it blank creates a passwordless account the user can later claim via the self-service portal's register flow), **Edit** an existing user, or **Delete** one. Delete is FK-safe: refused with a clear message if the user is the requester on any tickets or has any asset assignments, so audit history can never silently break
 - **CSAT surveys**: 1&ndash;5 customer satisfaction survey emailed on ticket closure (auto mode) or on-demand via a *Request feedback* button (manual mode). User clicks the tokenised one-shot URL, lands on a no-login page with a star or emoji picker plus optional comment, response is recorded against the closing analyst. Dedicated CSAT analytics page (`tickets/csat/`) with KPI tiles (avg rating, response count, response rate), score distribution, per-analyst leaderboard, and recent responses with comments. Configurable under **Tickets &rarr; Settings &rarr; CSAT** (off / auto / manual, scale = stars or emojis, one-per-ticket toggle). Survey email content comes from **Tickets &rarr; Settings &rarr; Email templates** with a new `csat_request` event trigger and `[csat_link]` merge code
-- **Settings**: Departments, ticket types, origins, mailboxes (Microsoft 365 + Google Workspace), messaging channels (WhatsApp), email templates, analysts, teams
+- **Settings**: Departments, ticket types, origins, mailboxes (Microsoft 365, Google Workspace, or basic IMAP/SMTP), messaging channels (WhatsApp), email templates, analysts, teams
 - **Mailbox authentication (Microsoft 365)**: Two modes per mailbox. **Delegated** (interactive sign-in) — you sign in once *as the mailbox account*; the app reads `/me`. **App-only** (client credentials) — no sign-in; the app reads the target mailbox directly via Graph `/users/{address}` using its own client ID + secret (requires Azure **Application** permissions Mail.ReadWrite + Mail.Send with admin consent). App-only is ideal when the target mailbox isn't an analyst's own account. **"Reading from the right inbox" safeguards** apply to delegated mode: on sign-in the app records the **full set of addresses the mailbox owns** (primary SMTP, UPN and all aliases, via Graph `proxyAddresses`) and checks the configured target against that set on every read/send — so an **alias** is accepted while a genuinely different mailbox is blocked with a clear message. Changing a mailbox's target address invalidates the stored sign-in so a stale token can't keep reading the old inbox. The settings list shows a plain-language status per mailbox (*Reading from X ✓* / *Wrong account ⚠* / *Unverified* / *App-only*)
 - **Mailbox whitelist**: Per-mailbox domain and email address whitelisting — non-whitelisted senders are rejected
 - **Email actions**: Configurable per-mailbox actions for rejected emails (delete, move to Deleted Items, mark as read) and imported emails (delete, move to folder) with folder verification

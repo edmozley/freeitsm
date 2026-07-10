@@ -1069,6 +1069,7 @@ $translationNamespaces = ['common', 'tickets'];
                         <select id="mailboxProvider" onchange="toggleProviderFields()">
                             <option value="microsoft"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.provider_microsoft')); ?></option>
                             <option value="google"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.provider_google')); ?></option>
+                            <option value="imap"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.provider_imap')); ?></option>
                         </select>
                     </div>
 
@@ -1103,18 +1104,18 @@ $translationNamespaces = ['common', 'tickets'];
                         <input type="text" id="mailboxTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                     </div>
 
-                    <div class="form-group" id="clientIdGroup">
+                    <div class="form-group provider-oauth" id="clientIdGroup">
                         <label for="mailboxClientId" id="clientIdLabel"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_id')); ?> *</label>
                         <input type="text" id="mailboxClientId" required placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                     </div>
 
-                    <div class="form-group" style="grid-column: span 2;">
+                    <div class="form-group provider-oauth" style="grid-column: span 2;">
                         <label for="mailboxClientSecret" id="clientSecretLabel"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret')); ?> *</label>
                         <input type="password" id="mailboxClientSecret" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret_placeholder')); ?>">
                         <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.client_secret_help')); ?></small>
                     </div>
 
-                    <div class="form-group" style="grid-column: span 2;">
+                    <div class="form-group provider-oauth" style="grid-column: span 2;">
                         <label for="mailboxRedirectUri"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.oauth_redirect_uri')); ?> *</label>
                         <input type="url" id="mailboxRedirectUri" required placeholder="https://yoursite.com/oauth_callback.php">
                     </div>
@@ -1124,14 +1125,55 @@ $translationNamespaces = ['common', 'tickets'];
                         <input type="text" id="mailboxScopes" value="openid email offline_access User.Read Mail.Read Mail.ReadWrite Mail.Send">
                     </div>
 
-                    <div class="form-group">
-                        <label for="mailboxImapServer"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_server')); ?></label>
-                        <input type="text" id="mailboxImapServer" value="outlook.office365.com">
+                    <!-- IMAP receive settings (basic mailboxes only) -->
+                    <div class="form-group provider-imap">
+                        <label for="mailboxImapServer"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_server')); ?> *</label>
+                        <input type="text" id="mailboxImapServer" value="outlook.office365.com" placeholder="imap.example.com">
                     </div>
 
-                    <div class="form-group">
+                    <div class="form-group provider-imap">
                         <label for="mailboxImapPort"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_port')); ?></label>
                         <input type="number" id="mailboxImapPort" value="993">
+                    </div>
+
+                    <div class="form-group provider-imap">
+                        <label for="mailboxImapEncryption"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_encryption')); ?></label>
+                        <select id="mailboxImapEncryption">
+                            <option value="ssl"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.encryption_ssl')); ?></option>
+                            <option value="tls"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.encryption_tls')); ?></option>
+                            <option value="none"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.encryption_none')); ?></option>
+                        </select>
+                    </div>
+
+                    <div class="form-group provider-imap">
+                        <label for="mailboxImapUsername"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_username')); ?> *</label>
+                        <input type="text" id="mailboxImapUsername" autocomplete="off" placeholder="you@example.com">
+                    </div>
+
+                    <div class="form-group provider-imap" style="grid-column: span 2;">
+                        <label for="mailboxImapPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_password')); ?> *</label>
+                        <input type="password" id="mailboxImapPassword" autocomplete="new-password" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_password_placeholder')); ?>">
+                        <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.imap_password_help')); ?></small>
+                    </div>
+
+                    <!-- SMTP send settings (basic mailboxes only) -->
+                    <div class="form-group provider-imap">
+                        <label for="mailboxSmtpServer"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_server')); ?> *</label>
+                        <input type="text" id="mailboxSmtpServer" placeholder="smtp.example.com">
+                    </div>
+
+                    <div class="form-group provider-imap">
+                        <label for="mailboxSmtpPort"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_port')); ?></label>
+                        <input type="number" id="mailboxSmtpPort" value="587">
+                    </div>
+
+                    <div class="form-group provider-imap">
+                        <label for="mailboxSmtpEncryption"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_encryption')); ?></label>
+                        <select id="mailboxSmtpEncryption">
+                            <option value="tls"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.encryption_starttls')); ?></option>
+                            <option value="ssl"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.encryption_ssl')); ?></option>
+                            <option value="none"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.encryption_none')); ?></option>
+                        </select>
                     </div>
 
                     <div class="form-group">
@@ -2932,6 +2974,9 @@ $translationNamespaces = ['common', 'tickets'];
                     case 'app_only':
                         statusBadge = '<span class="status-badge" style="background:#e3f2fd;color:#1565c0;">App-only</span>';
                         break;
+                    case 'imap':
+                        statusBadge = '<span class="status-badge status-active">Connected</span>';
+                        break;
                     case 'mismatch':
                         statusBadge = '<span class="status-badge" style="background:#ffebee;color:#c62828;">⚠ Wrong account</span>';
                         break;
@@ -2964,9 +3009,10 @@ $translationNamespaces = ['common', 'tickets'];
                 const checkEmailsBtn = `<button class="action-btn" onclick="checkMailboxEmails(${mb.id})" title="${t('tickets.settings.tooltips.check_emails')}">
                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                     </button>`;
-                // App-only mailboxes never use the interactive sign-in flow — they read the
-                // target directly via client credentials, so no Authenticate / Logout buttons.
-                if (mb.auth_mode === 'app_only') {
+                // App-only and Basic-IMAP mailboxes never use the interactive sign-in flow —
+                // they read the target directly (client credentials / stored password), so
+                // there's no Authenticate / Logout button, just Check emails.
+                if (mb.auth_mode === 'app_only' || mb.provider === 'imap') {
                     actions += checkEmailsBtn;
                 } else if (mb.is_authenticated) {
                     actions += checkEmailsBtn;
@@ -2984,9 +3030,14 @@ $translationNamespaces = ['common', 'tickets'];
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>`;
 
-                const providerBadge = (mb.provider === 'google')
-                    ? ' <span class="status-badge" style="background:#e8f5e9;color:#2e7d32;">Google</span>'
-                    : ' <span class="status-badge" style="background:#e3f2fd;color:#1565c0;">Microsoft</span>';
+                let providerBadge;
+                if (mb.provider === 'google') {
+                    providerBadge = ' <span class="status-badge" style="background:#e8f5e9;color:#2e7d32;">Google</span>';
+                } else if (mb.provider === 'imap') {
+                    providerBadge = ' <span class="status-badge" style="background:#ede7f6;color:#5e35b1;">IMAP</span>';
+                } else {
+                    providerBadge = ' <span class="status-badge" style="background:#e3f2fd;color:#1565c0;">Microsoft</span>';
+                }
 
                 // Multi-tenancy: show the routing target — pinned company, or shared intake.
                 let companyBadge = '';
@@ -3003,6 +3054,8 @@ $translationNamespaces = ['common', 'tickets'];
                 let authLine = '';
                 if (mb.auth_status === 'ok') {
                     authLine = `<div style="font-size:12px;color:#2e7d32;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.reading_from', {addr: mb.target_mailbox}))}</div>`;
+                } else if (mb.auth_status === 'imap') {
+                    authLine = `<div style="font-size:12px;color:#5e35b1;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.status_imap', {addr: mb.target_mailbox}))}</div>`;
                 } else if (mb.auth_status === 'app_only') {
                     authLine = `<div style="font-size:12px;color:#1565c0;margin-top:3px;">✓ ${escapeHtml(t('tickets.settings.modals.mailbox.status_app_only', {addr: mb.target_mailbox}))}</div>`;
                 } else if (mb.auth_status === 'unverified') {
@@ -3067,6 +3120,18 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('mailboxScopes').value = mailbox ? mailbox.oauth_scopes : 'openid email offline_access User.Read Mail.Read Mail.ReadWrite Mail.Send';
             document.getElementById('mailboxImapServer').value = mailbox ? mailbox.imap_server : 'outlook.office365.com';
             document.getElementById('mailboxImapPort').value = mailbox ? mailbox.imap_port : 993;
+            // Basic IMAP / SMTP fields.
+            document.getElementById('mailboxImapEncryption').value = mailbox ? (mailbox.imap_encryption || 'ssl') : 'ssl';
+            document.getElementById('mailboxImapUsername').value = mailbox ? (mailbox.imap_username || '') : '';
+            document.getElementById('mailboxImapPassword').value = '';
+            // Show a masked hint when a password is already stored (edit) so it's clear
+            // that leaving it blank keeps the existing one.
+            document.getElementById('mailboxImapPassword').placeholder = (mailbox && mailbox.imap_password_set)
+                ? '••••••••  (' + t('tickets.settings.modals.mailbox.imap_password_kept') + ')'
+                : t('tickets.settings.modals.mailbox.imap_password_placeholder');
+            document.getElementById('mailboxSmtpServer').value = mailbox ? (mailbox.smtp_server || '') : '';
+            document.getElementById('mailboxSmtpPort').value = mailbox ? (mailbox.smtp_port || 587) : 587;
+            document.getElementById('mailboxSmtpEncryption').value = mailbox ? (mailbox.smtp_encryption || 'tls') : 'tls';
             toggleProviderFields();
             toggleAuthModeFields();
             document.getElementById('mailboxFolder').value = mailbox ? mailbox.email_folder : 'INBOX';
@@ -3104,6 +3169,9 @@ $translationNamespaces = ['common', 'tickets'];
         // Delegated vs app-only: the redirect URI + delegated scopes only apply to the
         // interactive sign-in flow, so hide them for app-only and update the help text.
         function toggleAuthModeFields() {
+            // Basic IMAP has no OAuth redirect / scopes at all — toggleProviderFields
+            // already hides them; don't let this function re-show them.
+            if (document.getElementById('mailboxProvider').value === 'imap') return;
             // App-only is Microsoft-only — for Google it never applies, so the redirect
             // URI / scopes must stay visible regardless of the (hidden) selector's value.
             const isMicrosoft = document.getElementById('mailboxProvider').value === 'microsoft';
@@ -3128,19 +3196,50 @@ $translationNamespaces = ['common', 'tickets'];
         function toggleProviderFields() {
             const provider = document.getElementById('mailboxProvider').value;
             const isMicrosoft = provider === 'microsoft';
+            const isImap = provider === 'imap';
             const mailboxId = document.getElementById('mailboxId').value;
 
-            // Show/hide Microsoft-only fields
+            // Microsoft-only fields (auth mode, tenant, scopes).
             document.querySelectorAll('.provider-microsoft').forEach(el => {
                 el.style.display = isMicrosoft ? '' : 'none';
             });
+            // OAuth fields (client id/secret/redirect) — Microsoft AND Google, not IMAP.
+            document.querySelectorAll('.provider-oauth').forEach(el => {
+                el.style.display = isImap ? 'none' : '';
+            });
+            // Basic-IMAP fields (host/login/SMTP).
+            document.querySelectorAll('.provider-imap').forEach(el => {
+                el.style.display = isImap ? '' : 'none';
+            });
+
+            // A hidden `required` input still blocks form submit — toggle required to match
+            // visibility so, e.g., an IMAP mailbox can save without OAuth client id/secret.
+            const clientIdInput = document.getElementById('mailboxClientId');
+            clientIdInput.required = !isImap;
+            document.getElementById('mailboxImapServer').required = isImap;
+            document.getElementById('mailboxImapUsername').required = isImap;
+            document.getElementById('mailboxSmtpServer').required = isImap;
+            // Password required only when creating a new IMAP mailbox (blank = keep on edit).
+            document.getElementById('mailboxImapPassword').required = isImap && !mailboxId;
+
+            if (isImap) {
+                // Clear the Microsoft IMAP-server default when switching to a real IMAP box.
+                const imapServer = document.getElementById('mailboxImapServer');
+                if (imapServer.value === 'outlook.office365.com') imapServer.value = '';
+                // The redirect URI is hidden for IMAP — clear its required flag + any custom
+                // validity so a hidden field can't block submit. (Don't call
+                // toggleAuthModeFields here: it would re-show the OAuth redirect/scopes.)
+                const redirectInput = document.getElementById('mailboxRedirectUri');
+                redirectInput.required = false;
+                redirectInput.setCustomValidity('');
+                return;
+            }
 
             // Update labels
             document.getElementById('clientIdLabel').textContent = isMicrosoft ? 'Azure Client ID *' : 'Google Client ID *';
             document.getElementById('clientSecretLabel').textContent = isMicrosoft ? 'Azure Client Secret *' : 'Google Client Secret *';
 
             // Update placeholders
-            const clientIdInput = document.getElementById('mailboxClientId');
             clientIdInput.placeholder = isMicrosoft
                 ? 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
                 : 'xxxxxxxxxx-xxxxxxxxx.apps.googleusercontent.com';
@@ -3448,6 +3547,12 @@ $translationNamespaces = ['common', 'tickets'];
                 oauth_scopes: document.getElementById('mailboxScopes').value,
                 imap_server: document.getElementById('mailboxImapServer').value,
                 imap_port: parseInt(document.getElementById('mailboxImapPort').value),
+                imap_encryption: document.getElementById('mailboxImapEncryption').value,
+                imap_username: document.getElementById('mailboxImapUsername').value,
+                imap_password: document.getElementById('mailboxImapPassword').value,
+                smtp_server: document.getElementById('mailboxSmtpServer').value,
+                smtp_port: parseInt(document.getElementById('mailboxSmtpPort').value) || 587,
+                smtp_encryption: document.getElementById('mailboxSmtpEncryption').value,
                 email_folder: document.getElementById('mailboxFolder').value,
                 max_emails_per_check: parseInt(document.getElementById('mailboxMaxEmails').value),
                 rejected_action: document.getElementById('mailboxRejectedAction').value,
