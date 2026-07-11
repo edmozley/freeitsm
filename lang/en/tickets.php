@@ -346,6 +346,7 @@ return [
             'analysts'     => 'Analysts',
             'order'        => 'Order',
             'status'       => 'Status',
+            'is_admin'     => 'Admin',
             'actions'      => 'Actions',
             'colour'       => 'Colour',
             'closed'       => 'Closed',

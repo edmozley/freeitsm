@@ -78,8 +78,21 @@ $translationNamespaces = ['common', 'tickets'];
         .settings-scroll .action-btn svg { width: 16px; height: 16px; }
 
         /* Canonical settings-modal overrides (match tickets/settings). */
-        .modal-content { padding: 20px; max-width: 500px; }
+        .modal-content { padding: 20px 20px 0; max-width: 500px; }
         .modal-header { font-size: 20px; font-weight: 600; margin-bottom: 20px; color: var(--text, #333); padding: 0; border-bottom: none; }
+        /* The Save/Cancel bar is sticky; make it a full-width opaque strip flush to
+           the modal's bottom (bleeding over the modal-content side/bottom padding),
+           so once a modal grows tall enough to scroll, fields never show through or
+           beneath the pinned buttons. */
+        .modal-actions {
+            position: sticky;
+            bottom: 0;
+            margin: 16px -20px 0;
+            padding: 14px 20px;
+            background: var(--surface, #fff);
+            border-top: 1px solid var(--border, #e0e0e0);
+            z-index: 2;
+        }
     </style>
 </head>
 <body>
@@ -102,6 +115,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <th><?php echo htmlspecialchars(t('tickets.settings.columns.email')); ?></th>
                     <th><?php echo htmlspecialchars(t('tickets.settings.columns.teams')); ?></th>
                     <th><?php echo htmlspecialchars(t('tickets.settings.columns.status')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.columns.is_admin')); ?></th>
                     <th><?php echo htmlspecialchars(t('tickets.settings.columns.last_login')); ?></th>
                     <th><?php echo htmlspecialchars(t('tickets.settings.columns.actions')); ?></th>
                 </tr>
@@ -303,7 +317,7 @@ $translationNamespaces = ['common', 'tickets'];
         async function renderAnalysts(analystsList) {
             const tbody = document.getElementById('analysts-list');
             if (analystsList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center;">No analysts found.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="8" style="text-align: center;">No analysts found.</td></tr>';
                 return;
             }
 
@@ -323,6 +337,10 @@ $translationNamespaces = ['common', 'tickets'];
                 const statusBadge = a.is_active
                     ? '<span class="status-badge status-active">Active</span>'
                     : '<span class="status-badge status-inactive">Inactive</span>';
+
+                const adminBadge = a.is_admin
+                    ? '<span class="status-badge" style="background:#ede7f6; color:#5e35b1;" title="Can access the System module">Admin</span>'
+                    : '<span style="color: var(--text-faint, #999);">&mdash;</span>';
 
                 const lastLogin = a.last_login_datetime
                     ? new Date(a.last_login_datetime).toLocaleString()
@@ -365,6 +383,7 @@ $translationNamespaces = ['common', 'tickets'];
                         <td>${escapeHtml(a.email || '')}</td>
                         <td>${teamsText}</td>
                         <td>${statusBadge}</td>
+                        <td>${adminBadge}</td>
                         <td>${lastLogin}</td>
                         <td>
                             <button class="action-btn" onclick="editAnalyst(${a.id})" title="${t('common.edit')}">

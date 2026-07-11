@@ -301,6 +301,7 @@ return [
             'analysts' => 'Analistas',
             'order' => 'Ordem',
             'status' => 'Status',
+            'is_admin' => 'Admin',
             'actions' => 'Ações',
             'colour' => 'Cor',
             'closed' => 'Fechado',
