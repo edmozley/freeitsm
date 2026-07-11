@@ -101,12 +101,12 @@ $translationNamespaces = ['common', 'system'];
         </div>
     </div>
 
-    <!-- Per-module edit modal -->
+    <!-- Per-module edit modal — canonical 3-pane modal (header / body / footer) -->
     <div class="modal" id="moduleModal">
         <div class="modal-content" style="max-width: 640px;">
             <div class="modal-header" id="moduleModalTitle"></div>
-            <div class="modal-body" id="moduleModalBody" style="max-height: 58vh; overflow-y: auto;"></div>
-            <div class="modal-actions">
+            <div class="modal-body" id="moduleModalBody"></div>
+            <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModuleModal()">Cancel</button>
                 <button type="button" class="btn btn-primary" onclick="saveModuleModal()">Save</button>
             </div>
