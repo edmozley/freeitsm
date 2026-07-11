@@ -184,6 +184,17 @@ $translationNamespaces = ['common', 'tickets'];
                     </label>
                 </div>
 
+                <div class="form-group">
+                    <label class="toggle-label">
+                        <span class="toggle-switch">
+                            <input type="checkbox" id="analystIsAdmin">
+                            <span class="toggle-slider"></span>
+                        </span>
+                        <?php echo htmlspecialchars(t('tickets.settings.modals.analyst.is_admin')); ?>
+                    </label>
+                    <small style="display:block;color:var(--text-muted,#666);margin-top:4px;"><?php echo htmlspecialchars(t('tickets.settings.modals.analyst.is_admin_help')); ?></small>
+                </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeAnalystModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
@@ -406,6 +417,7 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('analystEmail').value = analyst ? (analyst.email || '') : '';
             document.getElementById('analystPassword').value = '';
             document.getElementById('analystActive').checked = analyst ? analyst.is_active : true;
+            document.getElementById('analystIsAdmin').checked = analyst ? !!analyst.is_admin : false;
             document.getElementById('analystAuthProvider').value = (analyst && analyst.auth_provider_id) ? String(analyst.auth_provider_id) : '';
 
             // Password is required only for new analysts
@@ -586,6 +598,7 @@ $translationNamespaces = ['common', 'tickets'];
                 email: document.getElementById('analystEmail').value || null,
                 password: document.getElementById('analystPassword').value || null,
                 is_active: document.getElementById('analystActive').checked,
+                is_admin: document.getElementById('analystIsAdmin').checked,
                 auth_provider_id: document.getElementById('analystAuthProvider').value || null
             };
 

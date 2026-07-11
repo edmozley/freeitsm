@@ -15,6 +15,10 @@ $path_prefix = $path_prefix ?? '../';
 $current_module = $current_module ?? '';
 $analyst_name = $analyst_name ?? ($_SESSION['analyst_name'] ?? 'Analyst');
 
+// The waffle renders on every module's header, so guarantee the admin helper is
+// available (used below to hide the System launcher from non-admins).
+require_once __DIR__ . '/functions.php';
+
 require_once __DIR__ . '/module-colors.php';
 
 // Bootstrap i18n so every module that includes this header gets t() for free.
@@ -413,7 +417,14 @@ function renderWaffleMenuPanel($modules, $current_module, $path_prefix) {
         </div>
         <div class="waffle-modules">
             <?php foreach ($modules as $key => $module):
-                if ($allowed !== null && !in_array($key, $allowed)) continue;
+                // System visibility is governed by admin status alone (not the per-analyst
+                // module list) — so an admin with module restrictions still sees it, and a
+                // non-admin never does. All other modules honour the allowed-modules list.
+                if ($key === 'system') {
+                    if (!sessionIsAdmin()) continue;
+                } elseif ($allowed !== null && !in_array($key, $allowed)) {
+                    continue;
+                }
             ?>
             <a href="<?php echo BASE_URL . $module['path']; ?>" class="waffle-module-link <?php echo $key === $current_module ? 'current' : ''; ?>">
                 <div class="waffle-module-icon <?php echo $key; ?>">

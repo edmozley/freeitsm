@@ -448,6 +448,8 @@ return [
                 'password_placeholder' => 'Digite a senha',
                 'password_help' => 'Obrigatório para novos analistas.',
                 'active' => 'Ativo',
+                'is_admin' => 'Administrador',
+                'is_admin_help' => 'Administradores podem abrir o módulo Sistema (gerenciar analistas, equipes, acesso a empresas, SSO, segurança e mais). Deixe desativado para analistas comuns.',
             ],
             'password_reset' => [
                 'title' => 'Redefinir senha',

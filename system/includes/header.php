@@ -7,9 +7,22 @@ $path_prefix = $path_prefix ?? '../';
 $current_module = 'system';
 $module_title = function_exists('t') ? t('system.title') : 'System';
 
+// Guarantee the admin helper is available for the gate below, regardless of what
+// the including page has loaded.
+require_once $path_prefix . 'includes/functions.php';
+
 // Ensure user is logged in
 if (!isset($_SESSION['analyst_id'])) {
     header('Location: ' . BASE_URL . 'login.php');
+    exit;
+}
+
+// The System module is administrators-only — EXCEPT per-user Preferences, which
+// every analyst manages for themselves. Non-admins are bounced to the landing.
+// (Hard enforcement still lives on each System API via requireAdminJson(); this
+// page gate is the UX layer so non-admins never see the admin screens.)
+if (($current_page ?? '') !== 'preferences' && !sessionIsAdmin()) {
+    header('Location: ' . BASE_URL);
     exit;
 }
 

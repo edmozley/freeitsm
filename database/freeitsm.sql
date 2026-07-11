@@ -33,6 +33,9 @@ CREATE TABLE IF NOT EXISTS `analysts` (
     `locked_until`              DATETIME NULL,
     `auth_provider_id`          INT NULL,
     `can_access_all_tenants`    TINYINT(1) NOT NULL DEFAULT 1,
+    -- Only administrators may enter the System module (analyst/team/company mgmt,
+    -- SSO, security, DB verify, etc.). New analysts default to non-admin.
+    `is_admin`                  TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_analysts_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -3351,7 +3354,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 -- ----------------------------------------------------------
 -- Username: admin  |  Password: freeitsm
 -- IMPORTANT: Change this password after first login!
-INSERT INTO `analysts` (`username`, `password_hash`, `full_name`, `email`, `is_active`, `created_datetime`)
-SELECT 'admin', '$2y$12$z9jzs9Sqol4i.ThVE/wwL.EzvbYtZrU0GHpzUJX7UC6ODp5h.q2U2', 'Administrator', 'admin@localhost', 1, UTC_TIMESTAMP()
+INSERT INTO `analysts` (`username`, `password_hash`, `full_name`, `email`, `is_active`, `is_admin`, `created_datetime`)
+SELECT 'admin', '$2y$12$z9jzs9Sqol4i.ThVE/wwL.EzvbYtZrU0GHpzUJX7UC6ODp5h.q2U2', 'Administrator', 'admin@localhost', 1, 1, UTC_TIMESTAMP()
 FROM DUAL
 WHERE NOT EXISTS (SELECT 1 FROM `analysts` LIMIT 1);

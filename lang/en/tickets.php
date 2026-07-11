@@ -511,6 +511,8 @@ return [
                 'password_placeholder'  => 'Enter password',
                 'password_help'         => 'Required for new analysts.',
                 'active'                => 'Active',
+                'is_admin'              => 'Administrator',
+                'is_admin_help'         => 'Administrators can open the System module (managing analysts, teams, company access, SSO, security and more). Leave off for regular analysts.',
             ],
 
             // Password reset modal

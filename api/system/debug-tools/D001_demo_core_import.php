@@ -134,6 +134,12 @@ try {
 } catch (Throwable $e) {
     $cfg[] = "config.php include      : FAILED — " . $e->getMessage();
 }
+
+// Debug tools are administrators-only (issue #34). Fail closed.
+require_once __DIR__ . '/../../../includes/functions.php';
+try { $__dbgAdmin = !empty($_SESSION['analyst_id']) && analystIsAdmin(connectToDatabase(), (int)$_SESSION['analyst_id']); } catch (Throwable $e) { $__dbgAdmin = false; }
+if (!$__dbgAdmin) { http_response_code(403); if (!headers_sent()) header('Content-Type: text/plain; charset=utf-8'); echo "Administrator access required.\n"; exit; }
+
 $cfg[] = "config.php include      : " . ($includeOk ? 'OK' : 'NOT ATTEMPTED');
 $cfg[] = "DB_SERVER defined       : " . bool_str(defined('DB_SERVER'))   . (defined('DB_SERVER')   ? ' = ' . DB_SERVER : '');
 $cfg[] = "DB_NAME defined         : " . bool_str(defined('DB_NAME'))     . (defined('DB_NAME')     ? ' = ' . DB_NAME : '');

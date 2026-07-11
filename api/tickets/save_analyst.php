@@ -4,6 +4,7 @@
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
+require_once '../../includes/admin_api_guard.php'; // System admins only (issue #34)
 require_once '../../includes/functions.php';
 
 header('Content-Type: application/json');
@@ -30,6 +31,9 @@ $password = $data['password'] ?? null;
 $isActive = $data['is_active'] ?? true;
 // Which sign-in method: NULL/empty = local password, otherwise an auth_providers.id (SSO).
 $authProviderId = !empty($data['auth_provider_id']) ? (int)$data['auth_provider_id'] : null;
+// Administrator flag. Only admins reach this endpoint (see admin_api_guard), so the
+// real safeguard is refusing to remove the LAST admin (below) — not who may set it.
+$isAdmin = !empty($data['is_admin']) ? 1 : 0;
 
 // Validation
 if (empty($username)) {
@@ -60,6 +64,20 @@ try {
         exit;
     }
 
+    // Never allow the last administrator to be demoted (or deactivated) — it would
+    // lock everyone out of the System module with no way back in.
+    if ($id) {
+        $wasAdmin = (int)($conn->query("SELECT is_admin FROM analysts WHERE id = " . (int)$id)->fetchColumn()) === 1;
+        $losingAdmin = $wasAdmin && (!$isAdmin || !$isActive);
+        if ($losingAdmin) {
+            $otherAdmins = (int)$conn->query("SELECT COUNT(*) FROM analysts WHERE is_admin = 1 AND is_active = 1 AND id <> " . (int)$id)->fetchColumn();
+            if ($otherAdmins === 0) {
+                echo json_encode(['success' => false, 'error' => 'This is the last active administrator — grant admin to another analyst before removing or deactivating this one.']);
+                exit;
+            }
+        }
+    }
+
     if ($id) {
         // Update existing analyst
         if (!empty($password)) {
@@ -72,10 +90,11 @@ try {
                     password_hash = ?,
                     is_active = ?,
                     auth_provider_id = ?,
+                    is_admin = ?,
                     last_modified_datetime = UTC_TIMESTAMP()
                     WHERE id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->execute([$username, $fullName, $email, $passwordHash, $isActive ? 1 : 0, $authProviderId, $id]);
+            $stmt->execute([$username, $fullName, $email, $passwordHash, $isActive ? 1 : 0, $authProviderId, $isAdmin, $id]);
         } else {
             // Update without changing password
             $sql = "UPDATE analysts SET
@@ -84,10 +103,11 @@ try {
                     email = ?,
                     is_active = ?,
                     auth_provider_id = ?,
+                    is_admin = ?,
                     last_modified_datetime = UTC_TIMESTAMP()
                     WHERE id = ?";
             $stmt = $conn->prepare($sql);
-            $stmt->execute([$username, $fullName, $email, $isActive ? 1 : 0, $authProviderId, $id]);
+            $stmt->execute([$username, $fullName, $email, $isActive ? 1 : 0, $authProviderId, $isAdmin, $id]);
         }
         $analystId = (int)$id;
         $message = 'Analyst updated successfully';
@@ -95,10 +115,10 @@ try {
         // Create new analyst
         $passwordHash = password_hash($password, PASSWORD_DEFAULT);
 
-        $sql = "INSERT INTO analysts (username, password_hash, full_name, email, is_active, auth_provider_id, created_datetime, last_modified_datetime)
-                VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
+        $sql = "INSERT INTO analysts (username, password_hash, full_name, email, is_active, auth_provider_id, is_admin, created_datetime, last_modified_datetime)
+                VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
         $stmt = $conn->prepare($sql);
-        $stmt->execute([$username, $passwordHash, $fullName, $email, $isActive ? 1 : 0, $authProviderId]);
+        $stmt->execute([$username, $passwordHash, $fullName, $email, $isActive ? 1 : 0, $authProviderId, $isAdmin]);
         $analystId = (int)$conn->lastInsertId();
         $message = 'Analyst created successfully';
     }

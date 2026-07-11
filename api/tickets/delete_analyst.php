@@ -4,6 +4,7 @@
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
+require_once '../../includes/admin_api_guard.php'; // System admins only (issue #34)
 require_once '../../includes/functions.php';
 
 header('Content-Type: application/json');
@@ -42,6 +43,16 @@ try {
     if (!$analyst) {
         echo json_encode(['success' => false, 'error' => 'Analyst not found']);
         exit;
+    }
+
+    // Never delete the last active administrator — it would lock everyone out of System.
+    $isTargetAdmin = (int)$conn->query("SELECT is_admin FROM analysts WHERE id = " . (int)$id)->fetchColumn() === 1;
+    if ($isTargetAdmin) {
+        $otherAdmins = (int)$conn->query("SELECT COUNT(*) FROM analysts WHERE is_admin = 1 AND is_active = 1 AND id <> " . (int)$id)->fetchColumn();
+        if ($otherAdmins === 0) {
+            echo json_encode(['success' => false, 'error' => 'This is the last active administrator and cannot be deleted. Grant admin to another analyst first.']);
+            exit;
+        }
     }
 
     // Delete the analyst

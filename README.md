@@ -239,7 +239,7 @@ The platform is organised into 16 modules, accessible from a landing page (`inde
 | **LMS** | `lms/` | Blue `#2563eb` | Learning Management System with SCORM 1.1/1.2/2004 course player, learning groups, assignments, deadlines, and progress tracking |
 | **Processes** | `process-mapper/` | Indigo `#6366f1` | Visual flowchart builder with dot-grid canvas, snap-to-grid, connectors, and slide-in detail panel |
 | **Workflows** | `workflow/` | Amber `#f59e0b` | Cross-module automation engine — triggers, conditions, actions. Stage 1: engine foundation + form-based editor |
-| **System** | `system/` | Blue-grey `#546e7a` | Encryption key management, security settings, and module access control |
+| **System** | `system/` | Blue-grey `#546e7a` | Encryption key management, security settings, and module access control. **Administrators only** — restricted to analysts flagged `is_admin`; enforced on every System page and API. Per-user Preferences stays open to all |
 
 ---
 
@@ -378,7 +378,7 @@ sdtickets/
 ├── system/                           # System Module
 │   ├── index.php                     # System landing page (area selection)
 │   ├── analysts/
-│   │   └── index.php                 # Analyst accounts (create/edit, passwords, SSO, teams, per-company access)
+│   │   └── index.php                 # Analyst accounts (create/edit, passwords, SSO, teams, per-company access, admin role)
 │   ├── teams/
 │   │   └── index.php                 # Team management (used across tickets, tasks, contracts, workflows)
 │   ├── encryption/

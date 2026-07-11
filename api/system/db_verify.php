@@ -40,6 +40,10 @@ $schema = [
         'locked_until'           => 'DATETIME NULL',
         'auth_provider_id'       => 'INT NULL',
         'can_access_all_tenants' => 'TINYINT(1) NOT NULL DEFAULT 1',
+        // Only administrators may enter the System module. New analysts default to
+        // non-admin; existing analysts are grandfathered to admin on first upgrade
+        // (see the one-time backfill below) so nobody is locked out.
+        'is_admin'               => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 
     'auth_providers' => [
@@ -2337,6 +2341,17 @@ try {
         $ticketsTenantColWasMissing = ((int)$tkProbe->fetchColumn() === 0);
     } catch (Exception $e) {}
 
+    // Was analysts.is_admin absent *before* this run added it? If so, every existing
+    // analyst predates the admin/non-admin split and must be grandfathered to admin
+    // (below) so an upgrade never locks anyone out of System. Once the column exists
+    // the flag is managed deliberately, so this backfill must run only this once.
+    $analystIsAdminColWasMissing = false;
+    try {
+        $iaProbe = $conn->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = ? AND table_name = 'analysts' AND column_name = 'is_admin'");
+        $iaProbe->execute([$dbName]);
+        $analystIsAdminColWasMissing = ((int)$iaProbe->fetchColumn() === 0);
+    } catch (Exception $e) {}
+
     foreach ($schema as $tableName => $columns) {
         $tableResult = ['table' => $tableName, 'status' => 'ok', 'details' => []];
 
@@ -2461,12 +2476,25 @@ try {
         ];
     }
 
+    // One-time grandfather: if is_admin was just added, promote every existing
+    // analyst to admin so the upgrade preserves today's behaviour (all analysts
+    // could reach System) rather than locking everyone out. Admins then demote
+    // people deliberately. Runs only on the run that first adds the column.
+    if ($analystIsAdminColWasMissing) {
+        $graduated = $conn->exec("UPDATE analysts SET is_admin = 1");
+        $results[] = [
+            'table' => 'analysts',
+            'status' => 'updated',
+            'details' => ['Granted admin to ' . (int)$graduated . ' existing analyst(s) (one-time upgrade — demote non-admins in System → Analysts)']
+        ];
+    }
+
     // Seed default admin account if no analysts exist
     $countStmt = $conn->query("SELECT COUNT(*) FROM analysts");
     $analystCount = (int) $countStmt->fetchColumn();
     if ($analystCount === 0) {
         $defaultHash = password_hash('freeitsm', PASSWORD_DEFAULT);
-        $seedStmt = $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active, created_datetime) VALUES (?, ?, ?, ?, 1, UTC_TIMESTAMP())");
+        $seedStmt = $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active, is_admin, created_datetime) VALUES (?, ?, ?, ?, 1, 1, UTC_TIMESTAMP())");
         $seedStmt->execute(['admin', $defaultHash, 'Administrator', 'admin@localhost']);
         $results[] = [
             'table' => 'analysts',

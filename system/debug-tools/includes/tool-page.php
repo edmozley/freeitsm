@@ -25,6 +25,13 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// Debug tools are part of the administrators-only System module.
+require_once __DIR__ . '/../../../includes/functions.php';
+if (!sessionIsAdmin()) {
+    header('Location: ' . $path_prefix);
+    exit;
+}
+
 $tool = isset($DEBUG_TOOL_SLUG) ? getDebugToolBySlug($DEBUG_TOOL_SLUG) : null;
 if (!$tool) {
     http_response_code(404);

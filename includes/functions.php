@@ -37,12 +37,54 @@ function getAnalystAllowedModules($conn, $analyst_id) {
         return null; // No restrictions — full access
     }
 
-    // Always include system module
-    if (!in_array('system', $rows)) {
-        $rows[] = 'system';
-    }
-
     return $rows;
+}
+
+/**
+ * Is this analyst an administrator? Admins are the only accounts allowed into the
+ * System module (analyst/team/company management, SSO, security, DB verify, etc.).
+ * Authoritative DB check — use this for server-side enforcement (no session lag).
+ */
+function analystIsAdmin(PDO $conn, int $analystId): bool {
+    if ($analystId <= 0) return false;
+    $stmt = $conn->prepare("SELECT is_admin FROM analysts WHERE id = ?");
+    $stmt->execute([$analystId]);
+    return (int) $stmt->fetchColumn() === 1;
+}
+
+/**
+ * Cosmetic (UI-layer) admin check for pages: "should this analyst see System?".
+ * Reads $_SESSION['is_admin']; if absent (e.g. a session created before this
+ * upgrade) it self-heals by looking the flag up once and caching it in the
+ * session, so no login-path changes are needed and no admin is ever locked out.
+ * Requires a writable session (not read_and_close). For hard enforcement on APIs
+ * use requireAdminJson() instead, which re-checks the DB every call.
+ */
+function sessionIsAdmin(): bool {
+    if (!isset($_SESSION['analyst_id'])) return false;
+    if (!array_key_exists('is_admin', $_SESSION)) {
+        try {
+            $conn = connectToDatabase();
+            $_SESSION['is_admin'] = analystIsAdmin($conn, (int) $_SESSION['analyst_id']) ? 1 : 0;
+        } catch (Throwable $e) {
+            return false; // fail closed
+        }
+    }
+    return !empty($_SESSION['is_admin']);
+}
+
+/**
+ * Hard gate for System JSON APIs: refuse non-admins with a 403. Authoritative
+ * (DB-checked) so a just-demoted analyst can't keep acting on a stale session.
+ * Call right after connecting, e.g. requireAdminJson($conn);
+ */
+function requireAdminJson(PDO $conn): void {
+    $id = (int) ($_SESSION['analyst_id'] ?? 0);
+    if (!$id || !analystIsAdmin($conn, $id)) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'error' => 'Administrator access required']);
+        exit;
+    }
 }
 
 /**

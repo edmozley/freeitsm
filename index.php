@@ -5,6 +5,7 @@
  */
 session_start();
 require_once 'config.php';
+require_once 'includes/functions.php'; // sessionIsAdmin() — gates the System card below
 
 // Check if user is logged in
 if (!isset($_SESSION['analyst_id'])) {
@@ -483,7 +484,7 @@ $allowed_modules = $_SESSION['allowed_modules'] ?? null;
             </a>
             <?php endif; ?>
 
-            <?php if ($allowed_modules === null || in_array('system', $allowed_modules)): ?>
+            <?php if (sessionIsAdmin()): /* System is administrators-only */ ?>
             <a href="system/" class="module-card system" title="<?php echo htmlspecialchars(t('common.modules.system.description')); ?>">
                 <div class="module-icon system">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
