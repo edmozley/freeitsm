@@ -180,7 +180,7 @@ $translationNamespaces = ['common', 'system'];
             const restricted = !Number(e.all_modules);
             return `<div class="lvl-row">
                 <span class="lvl-name">${escapeHtml(e.name)}${restricted ? ' <span class="lvl-tag">restricted</span>' : ''}</span>
-                <span class="toggle-switch"><input type="checkbox" ${restricted ? '' : 'checked'} onchange="toggleAllAccess('${kind}', ${e.id}, this.checked)"><span class="toggle-slider"></span></span>
+                <label class="toggle-switch"><input type="checkbox" ${restricted ? '' : 'checked'} onchange="toggleAllAccess('${kind}', ${e.id}, this.checked)"><span class="toggle-slider"></span></label>
             </div>`;
         };
         const fill = (id, arr, kind, empty) => {
