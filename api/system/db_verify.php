@@ -2613,6 +2613,36 @@ try {
         }
     }
 
+    // Seed default ticket types if table is empty. Parity with statuses/priorities
+    // above (GitHub #42): a fresh install landed with an empty Type dropdown because
+    // types were only ever created by the demo data. Global defaults (tenant_id NULL);
+    // only ever seeded into an empty table, so a deliberately-cleared list is respected.
+    if ($tableExists('ticket_types')) {
+        $cnt = (int) $conn->query("SELECT COUNT(*) FROM ticket_types")->fetchColumn();
+        if ($cnt === 0) {
+            $conn->exec("INSERT INTO ticket_types (name, description, is_active, display_order, tenant_id) VALUES
+                ('Incident',        'Something is broken or not working as expected',   1, 10, NULL),
+                ('Service Request', 'A request for something new or a standard change',  1, 20, NULL),
+                ('Question',        'A general query or how-to',                         1, 30, NULL)");
+            $results[] = ['table' => 'ticket_types', 'status' => 'seeded', 'details' => ['Inserted 3 default ticket types']];
+        }
+    }
+
+    // Seed default ticket origins if table is empty (GitHub #42). WhatsApp is
+    // deliberately excluded here — the WhatsApp origin is owned by its own seeder
+    // further down (which adds it whether or not this base set exists).
+    if ($tableExists('ticket_origins')) {
+        $cnt = (int) $conn->query("SELECT COUNT(*) FROM ticket_origins")->fetchColumn();
+        if ($cnt === 0) {
+            $conn->exec("INSERT INTO ticket_origins (name, description, display_order, is_active, tenant_id) VALUES
+                ('Email',   'Received by email',                     10, 1, NULL),
+                ('Phone',   'Logged from a phone call',              20, 1, NULL),
+                ('Portal',  'Raised via the self-service portal',    30, 1, NULL),
+                ('Walk-up', 'Reported in person',                    40, 1, NULL)");
+            $results[] = ['table' => 'ticket_origins', 'status' => 'seeded', 'details' => ['Inserted 4 default ticket origins']];
+        }
+    }
+
     // ----------------------------------------------------------
     // Multi-tenancy foundation — unique keys + FKs for the tenant tables
     // (the $schema loop builds columns + PK only). Added idempotently.
