@@ -61,6 +61,17 @@ $translationNamespaces = ['common', 'system'];
         .chk-row input { margin-right: 8px; }
         #moduleModalBody h4 { margin: 14px 0 4px; font-size: 13px; color: var(--text-muted, #667); text-transform: uppercase; letter-spacing: 0.4px; }
 
+        .lvl-filter { width: 100%; max-width: 320px; padding: 7px 10px; border: 1px solid var(--border, #ddd); border-radius: 6px; font-size: 13px; margin: 4px 0 14px; box-sizing: border-box; }
+        .lvl-cols { display: flex; gap: 20px; flex-wrap: wrap; }
+        .lvl-col { flex: 1; min-width: 260px; }
+        .lvl-col h4 { margin: 0 0 6px; font-size: 12px; color: var(--text-muted, #667); text-transform: uppercase; letter-spacing: 0.4px; }
+        .lvl-list { max-height: 260px; overflow-y: auto; border: 1px solid var(--border, #eee); border-radius: 8px; }
+        .lvl-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 12px; border-bottom: 1px solid var(--border, #f2f2f2); }
+        .lvl-row:last-child { border-bottom: none; }
+        .lvl-name { font-size: 13px; color: var(--text, #333); }
+        .lvl-tag { font-size: 11px; color: #c62828; margin-left: 6px; }
+        .lvl-empty { padding: 14px; text-align: center; color: var(--text-faint, #999); font-size: 13px; }
+
         .loading-spinner { text-align: center; color: var(--text-muted, #666); padding: 30px; }
         .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(120px); background: #333; color: #fff; padding: 12px 22px; border-radius: 8px; font-size: 14px; z-index: 3000; transition: transform 0.3s; }
         .toast.show { transform: translateX(-50%) translateY(0); }
@@ -82,6 +93,23 @@ $translationNamespaces = ['common', 'system'];
                 <label class="mode-opt"><input type="radio" name="permMode" value="least" onchange="setMode('least')"> <strong>Least permissive (strict)</strong> &mdash; an analyst can use a module only if their own access <em>and every team they're in</em> grant it.</label>
                 <div id="strictExplainer" class="strict-explainer" style="display:none;">
                     <strong>&#9888; Strict mode is ON.</strong> An analyst can open a module <strong>only if their own access and every team they belong to allow it</strong>. Granting a module to a person will <strong>not</strong> give them access if any of their teams lacks it &mdash; and a team with <strong>no modules</strong> granted removes access to <strong>everything</strong> for its members. Use the effective-access checker below to see exactly what anyone can reach.
+                </div>
+            </div>
+
+            <!-- Access level: grant / revoke all-module access without leaving this screen -->
+            <div class="panel">
+                <h2>Access level</h2>
+                <p style="color:var(--text-muted,#666);font-size:13px;margin:0 0 8px;">Turn <strong>all modules</strong> on or off for a team or analyst right here. <strong>Off</strong> = restrict them to specific modules, which you then grant in the table below.</p>
+                <input type="text" id="lvlFilter" class="lvl-filter" placeholder="Filter by name&hellip;" onkeyup="renderAccessLevels()">
+                <div class="lvl-cols">
+                    <div class="lvl-col">
+                        <h4>Teams</h4>
+                        <div class="lvl-list" id="lvlTeams"></div>
+                    </div>
+                    <div class="lvl-col">
+                        <h4>Analysts</h4>
+                        <div class="lvl-list" id="lvlAnalysts"></div>
+                    </div>
                 </div>
             </div>
 
@@ -133,6 +161,7 @@ $translationNamespaces = ['common', 'system'];
             document.getElementById('effAnalyst').innerHTML =
                 '<option value="">— choose an analyst —</option>' +
                 d.analysts.map(a => `<option value="${a.id}">${escapeHtml(a.name)}</option>`).join('');
+            renderAccessLevels();
             renderSummary();
             document.getElementById('loading').style.display = 'none';
             document.getElementById('summaryTable').style.display = '';
@@ -142,6 +171,41 @@ $translationNamespaces = ['common', 'system'];
     }
 
     function grantedBy(list, key) { return list.filter(e => e.all_modules || (e.modules || []).includes(key)); }
+
+    // Access-level lists: an all-modules toggle per team / analyst, editable in place.
+    function renderAccessLevels() {
+        const q = (document.getElementById('lvlFilter').value || '').toLowerCase();
+        const row = (e, kind) => {
+            if (q && !(e.name || '').toLowerCase().includes(q)) return '';
+            const restricted = !Number(e.all_modules);
+            return `<div class="lvl-row">
+                <span class="lvl-name">${escapeHtml(e.name)}${restricted ? ' <span class="lvl-tag">restricted</span>' : ''}</span>
+                <span class="toggle-switch"><input type="checkbox" ${restricted ? '' : 'checked'} onchange="toggleAllAccess('${kind}', ${e.id}, this.checked)"><span class="toggle-slider"></span></span>
+            </div>`;
+        };
+        const fill = (id, arr, kind, empty) => {
+            const html = arr.map(e => row(e, kind)).join('');
+            document.getElementById(id).innerHTML = arr.length
+                ? (html || '<div class="lvl-empty">No matches</div>')
+                : `<div class="lvl-empty">${empty}</div>`;
+        };
+        fill('lvlTeams', DATA.teams, 'team', 'No teams');
+        fill('lvlAnalysts', DATA.analysts, 'analyst', 'No analysts');
+    }
+
+    async function toggleAllAccess(kind, id, checked) {
+        const d = await (await fetch(API + 'set_module_all_access.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ kind, id, all_modules: checked })
+        })).json();
+        if (!d.success) { showToast('Failed: ' + (d.error || ''), 'error'); renderAccessLevels(); return; }
+        const e = (kind === 'team' ? DATA.teams : DATA.analysts).find(x => Number(x.id) === Number(id));
+        if (e) e.all_modules = checked ? 1 : 0;
+        renderSummary();
+        renderAccessLevels();
+        if (document.getElementById('effAnalyst').value) loadEffective();
+        showToast(checked ? 'Granted all modules' : 'Restricted — grant modules in the table below', 'success');
+    }
 
     function pills(items) {
         if (!items.length) return '<span class="pill-none">None</span>';
@@ -182,7 +246,7 @@ $translationNamespaces = ['common', 'system'];
             return `<label class="chk-row"><input type="checkbox" data-kind="${kind}" data-id="${e.id}" ${has ? 'checked' : ''} ${e.all_modules ? 'disabled' : ''}> ${escapeHtml(e.name)}${note}</label>`;
         }).join('') : '<p class="pill-none">None</p>');
         document.getElementById('moduleModalBody').innerHTML =
-            `<p style="color:var(--text-muted,#666);font-size:13px;margin:0 0 6px;">Tick the teams and analysts that can use <strong>${escapeHtml(m.name)}</strong>. Anyone with <em>all modules</em> always has access &mdash; change that with the Module-access toggle on the Analysts / Teams screens.</p>
+            `<p style="color:var(--text-muted,#666);font-size:13px;margin:0 0 6px;">Tick the teams and analysts that can use <strong>${escapeHtml(m.name)}</strong>. Anyone with <em>all modules</em> always has access &mdash; flip that with the <strong>Access level</strong> toggles above.</p>
              <h4>Teams</h4>${rows(DATA.teams, 'team')}
              <h4>Analysts</h4>${rows(DATA.analysts, 'analyst')}`;
         document.getElementById('moduleModal').classList.add('active');
