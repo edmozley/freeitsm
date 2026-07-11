@@ -14,6 +14,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('cmdb');
+
 const VALID_PROPERTY_TYPES = ['text', 'number', 'date', 'boolean', 'dropdown', 'object_ref'];
 
 function slugifyProp($name) {

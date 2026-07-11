@@ -11,6 +11,7 @@ require_once '../../includes/services/problems.php';
 
 header('Content-Type: application/json');
 if (!isset($_SESSION['analyst_id'])) { echo json_encode(['success' => false, 'error' => 'Not authenticated']); exit; }
+requireModuleAccessJson('problems');
 
 try {
     $data = json_decode(file_get_contents('php://input'), true);

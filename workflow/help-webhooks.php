@@ -21,6 +21,8 @@ Tz::init();
 
 if (!isset($_SESSION['analyst_id'])) { header('Location: ../login.php'); exit; }
 
+requireModuleAccess('workflow');
+
 $current_page = 'help';
 $path_prefix = '../';
 $translationNamespaces = ['common', 'workflow'];

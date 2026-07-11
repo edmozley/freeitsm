@@ -13,6 +13,7 @@ require_once '../../api/cmdb/_ai_helpers.php';
 
 header('Content-Type: application/json');
 if (!isset($_SESSION['analyst_id'])) { echo json_encode(['success' => false, 'error' => 'Not authenticated']); exit; }
+requireModuleAccessJson('problems');
 
 try {
     $conn = connectToDatabase();

@@ -16,6 +16,7 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+requireModuleAccessJson('tickets');
 
 const VALID_TONES = ['Friendly', 'Formal', 'Brief'];
 

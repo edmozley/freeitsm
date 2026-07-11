@@ -14,6 +14,7 @@ require_once '../../includes/services/tickets.php';
 
 header('Content-Type: application/json');
 if (!isset($_SESSION['analyst_id'])) { echo json_encode(['success' => false, 'error' => 'Not authenticated']); exit; }
+requireModuleAccessJson('tickets');
 
 $data = json_decode(file_get_contents('php://input'), true);
 if (!$data || !isset($data['ticket_id'])) { echo json_encode(['success' => false, 'error' => 'Invalid request data']); exit; }

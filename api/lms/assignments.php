@@ -27,6 +27,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
+requireModuleAccessJson('lms');
+
 // POST: create assignment
 $input = json_decode(file_get_contents('php://input'), true);
 $courseId = (int)($input['course_id'] ?? 0);

@@ -11,6 +11,8 @@ require_once '../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
 
+requireModuleAccess('tickets');
+
 $current_page = 'calendar';
 
 // Namespaces the JS bridge needs (calendar.js looks up months, weekdays, modal labels).

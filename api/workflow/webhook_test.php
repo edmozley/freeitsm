@@ -25,6 +25,7 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+requireModuleAccessJson('workflow');
 
 $in = json_decode(file_get_contents('php://input'), true);
 if (!is_array($in)) $in = [];

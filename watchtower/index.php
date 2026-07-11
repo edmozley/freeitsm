@@ -5,8 +5,10 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/timezone.php';
+requireModuleAccess('watchtower');
 I18n::initFromSession();
 Tz::init();
 

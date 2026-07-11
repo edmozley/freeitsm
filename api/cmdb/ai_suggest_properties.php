@@ -20,6 +20,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('cmdb');
+
 function slugifyProp($name) {
     $slug = strtolower(trim($name));
     $slug = preg_replace('/[^a-z0-9]+/', '_', $slug);

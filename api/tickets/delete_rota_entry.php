@@ -12,6 +12,7 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+requireModuleAccessJson('tickets');
 
 $input = json_decode(file_get_contents('php://input'), true);
 $id = !empty($input['id']) ? (int)$input['id'] : null;

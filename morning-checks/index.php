@@ -16,6 +16,7 @@ if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
     exit;
 }
+requireModuleAccess('morning-checks');
 
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $analyst_email = $_SESSION['analyst_email'] ?? '';

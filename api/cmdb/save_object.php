@@ -16,6 +16,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('cmdb');
+
 try {
     $conn = connectToDatabase();
     $data = json_decode(file_get_contents('php://input'), true) ?: [];

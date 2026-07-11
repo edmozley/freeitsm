@@ -20,6 +20,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     exit;
 }
 
+requireModuleAccessJson('lms');
+
 // POST: upload SCORM package
 if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
     echo json_encode(['success' => false, 'error' => 'No file uploaded or upload error']);

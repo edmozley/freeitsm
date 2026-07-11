@@ -4,9 +4,11 @@
  */
 session_start();
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/i18n.php';
 require_once __DIR__ . '/../includes/theme.php';
 require_once __DIR__ . '/../includes/timezone.php';
+requireModuleAccess('changes');
 I18n::initFromSession();
 Tz::init();
 

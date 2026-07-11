@@ -47,6 +47,7 @@ if (!isset($_SESSION['analyst_id'])) {
     sse_send('error', ['message' => 'Not authenticated']);
     exit;
 }
+requireModuleAccessJson('tickets');
 
 $input     = json_decode(file_get_contents('php://input'), true);
 $ticketId  = (int)($input['ticket_id'] ?? 0);

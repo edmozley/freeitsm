@@ -50,6 +50,7 @@ if (!isset($_SESSION['analyst_id'])) {
     sse_send('error', ['message' => 'Not authenticated']);
     exit;
 }
+requireModuleAccessJson('forms');
 
 $rawBody = file_get_contents('php://input');
 $input   = json_decode($rawBody, true);

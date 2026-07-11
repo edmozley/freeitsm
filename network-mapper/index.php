@@ -20,6 +20,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccess('network-mapper');
+
 $current_page = 'diagrams';
 $path_prefix = '../';
 $translationNamespaces = ['common', 'network-mapper'];

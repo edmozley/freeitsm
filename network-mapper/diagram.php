@@ -21,6 +21,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccess('network-mapper');
+
 $diagramId = (int)($_GET['id'] ?? 0);
 if ($diagramId <= 0) {
     header('Location: index.php');

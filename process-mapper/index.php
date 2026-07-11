@@ -10,6 +10,8 @@ require_once '../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
 
+requireModuleAccess('process-mapper');
+
 $current_page = 'process-mapper';
 $path_prefix = '../';
 

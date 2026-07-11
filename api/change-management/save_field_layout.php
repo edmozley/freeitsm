@@ -33,6 +33,7 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+requireModuleAccessJson('changes');
 
 $body = json_decode(file_get_contents('php://input'), true);
 if (!is_array($body)) {

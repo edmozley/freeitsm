@@ -18,6 +18,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('assets');
+
 try {
     $conn = connectToDatabase();
     echo json_encode(syncAssetWarrantyCalendar($conn));

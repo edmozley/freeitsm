@@ -17,6 +17,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('assets');
+
 $data = json_decode(file_get_contents('php://input'), true) ?: [];
 
 $assetId = $data['asset_id'] ?? null;

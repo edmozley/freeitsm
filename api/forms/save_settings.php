@@ -12,6 +12,7 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+requireModuleAccessJson('forms');
 
 $input = json_decode(file_get_contents('php://input'), true);
 $settings = $input['settings'] ?? null;

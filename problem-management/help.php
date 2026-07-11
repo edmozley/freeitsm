@@ -5,9 +5,11 @@
  */
 session_start();
 require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/functions.php';
 require_once __DIR__ . '/../includes/theme.php';
 require_once __DIR__ . '/../includes/timezone.php';
 if (!isset($_SESSION['analyst_id'])) { header('Location: ' . BASE_URL . 'login.php'); exit; }
+requireModuleAccess('problems');
 Tz::init();
 $current_page = 'help';
 $path_prefix = '../';

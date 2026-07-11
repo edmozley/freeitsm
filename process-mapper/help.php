@@ -15,6 +15,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccess('process-mapper');
+
 $current_page = 'help';
 $path_prefix = '../';
 $translationNamespaces = ['common', 'process-mapper'];

@@ -11,6 +11,8 @@ require_once '../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
 
+requireModuleAccess('knowledge');
+
 $current_page = 'knowledge';
 $path_prefix = '../';
 $translationNamespaces = ['common', 'knowledge'];

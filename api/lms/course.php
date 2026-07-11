@@ -24,6 +24,8 @@ if ($method === 'GET') {
     exit;
 }
 
+requireModuleAccessJson('lms');
+
 $input = json_decode(file_get_contents('php://input'), true);
 $id = (int)($input['id'] ?? 0);
 

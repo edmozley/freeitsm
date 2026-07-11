@@ -16,6 +16,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccess('lms');
+
 $courseId = (int)($_GET['course_id'] ?? 0);
 if (!$courseId) {
     die('Missing course ID');

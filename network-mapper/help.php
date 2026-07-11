@@ -19,6 +19,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccess('network-mapper');
+
 $current_page = 'help';
 $path_prefix = '../';
 $translationNamespaces = ['common', 'network-mapper'];

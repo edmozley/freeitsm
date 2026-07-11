@@ -14,6 +14,7 @@ require_once '../../includes/services/tickets.php';
 
 header('Content-Type: application/json');
 if (!isset($_SESSION['analyst_id'])) { echo json_encode(['success' => false, 'error' => 'Not authenticated']); exit; }
+requireModuleAccessJson('tickets');
 
 $analystId = (int)$_SESSION['analyst_id'];
 $analystName = $_SESSION['analyst_name'] ?? 'Unknown';

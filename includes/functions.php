@@ -190,6 +190,75 @@ function requireAdminJson(PDO $conn): void {
 }
 
 /**
+ * Module access — the enforcement half of issue #30. Mirrors the admin gate above.
+ * True if $analystId may use $moduleKey under the current most/least policy.
+ *
+ * 'system' is NOT one of these modules — it's governed by is_admin — so passing
+ * 'system' here defers to analystIsAdmin(), and any unknown key is denied. The
+ * heavy lifting (union/intersection across the analyst + their teams) lives in the
+ * single choke-point getAnalystAllowedModules(), which this just consults.
+ */
+function analystCanAccessModule(PDO $conn, int $analystId, string $moduleKey): bool {
+    if ($analystId <= 0) return false;
+    if ($moduleKey === 'system') return analystIsAdmin($conn, $analystId);
+    $allowed = getAnalystAllowedModules($conn, $analystId); // null = all modules
+    if ($allowed === null) return true;
+    return in_array($moduleKey, $allowed, true);
+}
+
+/**
+ * Page gate: bounce an analyst who can't use $moduleKey back to the launcher, so
+ * a restricted user can't simply type the module's URL and walk in. Authoritative
+ * (DB-checked) — a just-restricted analyst is stopped even on a stale session.
+ * Call near the top of a module's page after functions.php is loaded and the
+ * "are you logged in?" check. Passes $conn if you already have one, else connects.
+ */
+function requireModuleAccess(string $moduleKey, ?PDO $conn = null): void {
+    if (!isset($_SESSION['analyst_id'])) {
+        header('Location: ' . BASE_URL . 'login.php');
+        exit;
+    }
+    try {
+        if ($conn === null) $conn = connectToDatabase();
+        $ok = analystCanAccessModule($conn, (int) $_SESSION['analyst_id'], $moduleKey);
+    } catch (Throwable $e) {
+        $ok = false; // fail closed
+    }
+    if (!$ok) {
+        header('Location: ' . BASE_URL . '?denied=' . urlencode($moduleKey));
+        exit;
+    }
+}
+
+/**
+ * Hard gate for a module's JSON write APIs: refuse a denied analyst with a 403.
+ * Authoritative (DB-checked). The API twin of requireModuleAccess(). Call right
+ * after connecting, e.g. requireModuleAccessJson('assets', $conn);
+ * Shared READ endpoints that other modules or the login page depend on must NOT
+ * call this — guarding those would break normal cross-module flows.
+ */
+function requireModuleAccessJson(string $moduleKey, ?PDO $conn = null): void {
+    if (!isset($_SESSION['analyst_id'])) {
+        http_response_code(401);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+        exit;
+    }
+    try {
+        if ($conn === null) $conn = connectToDatabase();
+        $ok = analystCanAccessModule($conn, (int) $_SESSION['analyst_id'], $moduleKey);
+    } catch (Throwable $e) {
+        $ok = false; // fail closed
+    }
+    if (!$ok) {
+        http_response_code(403);
+        header('Content-Type: application/json');
+        echo json_encode(['success' => false, 'error' => 'You do not have access to this module']);
+        exit;
+    }
+}
+
+/**
  * Fire a settings/CRUD workflow event ({entity}.{created|updated|deleted}) from a
  * UI settings endpoint, without each file having to require the workflow engine.
  * Lazily loads the engine and is fully self-safe — swallows any Throwable

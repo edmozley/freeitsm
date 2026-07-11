@@ -9,6 +9,8 @@ require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
 I18n::initFromSession();
 
+requireModuleAccess('tickets');
+
 $current_page = 'users';
 
 // Namespaces the inline JS needs for translated strings (count / labels / table headers etc.)

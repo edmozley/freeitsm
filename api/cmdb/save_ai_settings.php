@@ -17,6 +17,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('cmdb');
+
 try {
     $input = json_decode(file_get_contents('php://input'), true) ?: [];
     $customInstructions = (string)($input['custom_instructions'] ?? '');

@@ -14,6 +14,7 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+requireModuleAccessJson('forms');
 
 try {
     $conn = connectToDatabase();

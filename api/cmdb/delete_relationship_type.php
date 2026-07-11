@@ -14,6 +14,8 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('cmdb');
+
 try {
     $data = json_decode(file_get_contents('php://input'), true) ?: [];
     $id = isset($data['id']) ? (int)$data['id'] : 0;

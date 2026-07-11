@@ -9,6 +9,7 @@
  */
 session_start();
 require_once '../config.php';
+require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
@@ -19,6 +20,8 @@ if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
     exit;
 }
+
+requireModuleAccess('assets');
 
 $current_page = 'table';
 $path_prefix = '../';

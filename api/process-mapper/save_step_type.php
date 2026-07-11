@@ -15,6 +15,7 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+requireModuleAccessJson('process-mapper');
 
 $VALID_SHAPES = ['rectangle', 'rounded', 'pill', 'circle', 'diamond', 'parallelogram',
                  'trapezoid', 'hexagon', 'document', 'cylinder', 'cloud', 'subroutine'];

@@ -15,6 +15,7 @@ if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../login.php');
     exit;
 }
+requireModuleAccess('tickets');
 
 $current_page = 'rota';
 

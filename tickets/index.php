@@ -12,6 +12,8 @@ require_once '../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
 
+requireModuleAccess('tickets');
+
 $current_page = 'inbox';
 // Module id for per-module theme/palette resolution (account-menu picker).
 $theme_module = 'tickets';
