@@ -64,6 +64,53 @@ function safeEmailHtml(html) {
     }
 }
 
+/*
+ * Email bodies are arbitrary third-party HTML. Injecting them into the page as
+ * normal DOM means the app's own stylesheet cascades INTO them — most visibly
+ * the global `* { box-sizing: border-box }` reset, but also link/table/list
+ * rules — distorting layouts the sender authored for a bare browser. Rather
+ * than keep patching individual leaks, we render each body inside a Shadow DOM:
+ * outer-page selectors (including `*`) do not match elements inside a shadow
+ * tree, so NO app CSS reaches the email. Inherited properties (font, colour)
+ * still cross the boundary from the host, which is what we want — plain-text
+ * replies keep the app's readable font while designed emails override inline.
+ *
+ * Flow: emailBodyHost() emits an empty host <div> carrying a token; the body
+ * HTML is stashed by token. After the container's innerHTML is set, the caller
+ * calls hydrateEmailBodies(root) to attach a shadow root to each host and inject
+ * the (already sanitised) HTML. Hydration runs synchronously right after render,
+ * so there's no flash and no stranded map entries.
+ */
+let _emailBodySeq = 0;
+const _emailBodyPending = new Map();
+
+function emailBodyHost(rawHtml, cls) {
+    const token = 'eb' + (++_emailBodySeq);
+    _emailBodyPending.set(token, safeEmailHtml(rawHtml));
+    return `<div class="${cls}" data-email-body="${token}"></div>`;
+}
+
+function hydrateEmailBodies(root) {
+    if (!root || !root.querySelectorAll) return;
+    root.querySelectorAll('[data-email-body]').forEach(host => {
+        const token = host.getAttribute('data-email-body');
+        host.removeAttribute('data-email-body');
+        if (!_emailBodyPending.has(token)) return;
+        const bodyHtml = _emailBodyPending.get(token);
+        _emailBodyPending.delete(token);
+        try {
+            const shadow = host.attachShadow({ mode: 'open' });
+            // Belt-and-braces content-box (the app's `*` reset can't reach in here,
+            // but keep it explicit); everything else the email brings itself.
+            shadow.innerHTML = '<style>*{box-sizing:content-box}</style>' + bodyHtml;
+        } catch (e) {
+            // Shadow DOM unsupported (very old browser): fall back to inline render
+            // — already sanitised, just without the CSS isolation.
+            host.innerHTML = bodyHtml;
+        }
+    });
+}
+
 let departments = [];
 let ticketTypes = [];
 let ticketOrigins = [];
@@ -1406,7 +1453,7 @@ function displayEmail(email, recordings) {
         </div>
         <div class="email-body">
             <div id="threadContainer">
-                <div class="email-body-content">${safeEmailHtml(email.body_content)}</div>
+                ${emailBodyHost(email.body_content, 'email-body-content')}
             </div>
             <div id="cmdbObjectsContainer"></div>
             <div id="slaContainer"></div>
@@ -1414,6 +1461,9 @@ function displayEmail(email, recordings) {
             <div id="notesContainer"></div>
         </div>
     ` + (isTrashed ? '</div>' : '');
+
+    // Isolate the just-rendered email body in a shadow root (see emailBodyHost).
+    hydrateEmailBodies(readingPane);
 
     // Load full correspondence thread, notes, attachments and linked CMDB objects after rendering
     loadCorrespondenceThread(email.ticket_id);
@@ -1811,9 +1861,11 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                         <strong>${escapeHtml(e.from_name || e.from_address)}</strong>
                         &lt;${escapeHtml(e.from_address)}&gt; &mdash; ${formatFullDateTime(e.received_datetime)}
                     </div>
-                    <div class="thread-message-body">${safeEmailHtml(e.body_content)}</div>
+                    ${emailBodyHost(e.body_content, 'thread-message-body')}
                 `;
             }).join('');
+            // Isolate each thread body in a shadow root (see emailBodyHost).
+            hydrateEmailBodies(container);
         }
     } catch (error) {
         console.error('Error loading thread:', error);
