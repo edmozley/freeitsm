@@ -39,13 +39,9 @@ try {
     $delStmt = $conn->prepare($delSql);
     $delStmt->execute([$analyst_id]);
 
-    // If modules array is not empty, insert new assignments
+    // If modules array is not empty, insert new assignments. (System is no longer a
+    // module grant — it's gated by is_admin, issue #34 — so it's never force-added.)
     if (!empty($modules)) {
-        // Always ensure system is included
-        if (!in_array('system', $modules)) {
-            $modules[] = 'system';
-        }
-
         $insSql = "INSERT INTO analyst_modules (analyst_id, module_key) VALUES (?, ?)";
         $insStmt = $conn->prepare($insSql);
         foreach ($modules as $moduleKey) {

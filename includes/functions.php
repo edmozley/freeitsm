@@ -28,6 +28,22 @@ function connectToDatabase() {
  * @return array|null Null means all access; array of module_key strings if restricted
  */
 /**
+ * Canonical list of user-facing modules for access control (issue #30), key => name.
+ * System is deliberately excluded — it's gated by is_admin, not module access.
+ * Keys match the waffle launcher / landing page module keys.
+ */
+function getModuleRegistry(): array {
+    $keys = ['watchtower','tickets','assets','knowledge','changes','problems','calendar',
+             'morning-checks','reporting','software','forms','contracts','service-status',
+             'wiki','lms','process-mapper','tasks','cmdb','network-mapper','workflow'];
+    $out = [];
+    foreach ($keys as $k) {
+        $out[$k] = function_exists('t') ? t("common.modules.$k.name") : ucfirst($k);
+    }
+    return $out;
+}
+
+/**
  * Site-wide policy for combining module grants from several sources (issue #30):
  *   'most'  (default) — an analyst may use a module if ANY source grants it (union).
  *   'least'           — only if their own access AND every team allow it (intersection).
