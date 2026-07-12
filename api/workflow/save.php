@@ -66,15 +66,22 @@ try {
     // to that channel) and the signing secret is a true secret — a reader of the
     // database could otherwise forge our signature.
     //
-    // DELIBERATE DIVERGENCE from the API-key convention (encrypt + mask in the UI):
-    // these are NOT masked back to the editor. Masking would require mapping a
-    // "leave unchanged" placeholder onto the right action across a save — and the
-    // canvas RE-SORTS actions by their Y position on every save, so any positional
-    // mapping is wrong the moment someone drags a node. Getting that mapping wrong
-    // silently attaches the wrong secret to the wrong endpoint, which is far worse
-    // than the exposure masking would have prevented. The threat model encryption
-    // at rest addresses is a stolen database or backup, not an authenticated admin
-    // reading a workflow they own and could edit anyway.
+    // DELIBERATE DIVERGENCE from the API-key convention (encrypt + mask in the UI).
+    // These are NOT masked back to the editor, and it is not an oversight:
+    //
+    // Masking means the browser posts back a "****" placeholder meaning "keep what
+    // you already have" — so the server must work out WHICH stored secret that
+    // refers to. On a settings page with one API key that's trivial. Here it isn't:
+    // workflow actions are boxes on a canvas, and the engine orders them by their
+    // vertical position, so an action's position IS its identity. Drag a box and
+    // "action 1" becomes a different action. Restore secrets by position and you
+    // hand Slack's secret to the Discord webhook — breaking both, silently, because
+    // someone moved a node.
+    //
+    // Returning them decrypted leaves nothing to map, so nothing to get wrong.
+    // Encryption at rest still does its job: it defends against a stolen database
+    // or backup, not against an admin reading a workflow they own and could edit
+    // anyway. If masking is ever wanted, give actions a STABLE ID first.
     foreach ($actions as $i => $a) {
         if (($a['type'] ?? '') !== 'send_webhook') continue;
         foreach (['url', 'secret'] as $k) {
