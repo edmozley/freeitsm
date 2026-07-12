@@ -12,6 +12,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once __DIR__ . '/../../workflow/includes/engine.php';
+require_once __DIR__ . '/../../includes/webhook_delivery.php';   // webhookEncrypt()
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -59,6 +60,31 @@ foreach ($actions as $a) {
 
 try {
     $conn = connectToDatabase();
+
+    // Webhook credentials are encrypted at rest (see includes/webhook_delivery.php).
+    // The URL is a bearer credential (anyone holding a Slack/Discord URL can post
+    // to that channel) and the signing secret is a true secret — a reader of the
+    // database could otherwise forge our signature.
+    //
+    // DELIBERATE DIVERGENCE from the API-key convention (encrypt + mask in the UI):
+    // these are NOT masked back to the editor. Masking would require mapping a
+    // "leave unchanged" placeholder onto the right action across a save — and the
+    // canvas RE-SORTS actions by their Y position on every save, so any positional
+    // mapping is wrong the moment someone drags a node. Getting that mapping wrong
+    // silently attaches the wrong secret to the wrong endpoint, which is far worse
+    // than the exposure masking would have prevented. The threat model encryption
+    // at rest addresses is a stolen database or backup, not an authenticated admin
+    // reading a workflow they own and could edit anyway.
+    foreach ($actions as $i => $a) {
+        if (($a['type'] ?? '') !== 'send_webhook') continue;
+        foreach (['url', 'secret'] as $k) {
+            if (isset($a['args'][$k]) && $a['args'][$k] !== '') {
+                // encryptValue() won't double-encrypt an already-"ENC:" value.
+                $actions[$i]['args'][$k] = webhookEncrypt((string)$a['args'][$k]);
+            }
+        }
+    }
+
     $condJson = json_encode($conditions);
     $actJson  = json_encode($actions);
     if ($id) {

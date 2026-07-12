@@ -2894,10 +2894,15 @@ CREATE TABLE IF NOT EXISTS `webhook_deliveries` (
     `workflow_id`        INT NULL,                       -- source workflow (SET NULL if deleted)
     `execution_id`       INT NULL,                       -- the workflow_executions row that enqueued it
     `preset`             VARCHAR(20) NULL,               -- 'custom' | 'slack' | 'teams' | 'discord'
-    `url`                VARCHAR(1000) NOT NULL,
+    -- 2000, not 1000: the URL is ENCRYPTED at rest (AES-256-GCM, ENC: prefix),
+    -- which inflates it by ~1/3 + 28 bytes. A max-length 1000-char URL becomes
+    -- ~1377 chars — at VARCHAR(1000) MySQL would silently truncate it, and a
+    -- truncated ciphertext can never be decrypted again.
+    `url`                VARCHAR(2000) NOT NULL,
     `method`             VARCHAR(10) NOT NULL DEFAULT 'POST',
     `request_headers`    TEXT NULL,                      -- JSON array of header lines (Content-Type + optional signature; NO secret)
-    `request_body`       MEDIUMTEXT NULL,                -- the rendered JSON payload
+    `request_body`       MEDIUMTEXT NULL,                -- the rendered JSON payload; purged per the payload-retention setting
+    `payload_purged`     TINYINT(1) NOT NULL DEFAULT 0,  -- 1 = body scrubbed by retention (so "empty" != "never had one"); blocks Replay
     `status`             VARCHAR(20) NOT NULL DEFAULT 'pending', -- pending | delivering | delivered | failed | dead
     `attempts`           INT NOT NULL DEFAULT 0,
     `max_attempts`       INT NOT NULL DEFAULT 6,

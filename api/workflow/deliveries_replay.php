@@ -25,7 +25,13 @@ if (!$id) {
 try {
     $conn = connectToDatabase();
     $ok = webhookReplay($conn, $id);
-    echo json_encode(['success' => $ok, 'error' => $ok ? null : 'Delivery not found or not replayable']);
+    // Replay re-sends the STORED body. If retention purged it there is nothing to
+    // send, and re-queueing would POST an empty payload to a live endpoint — so
+    // say why rather than failing vaguely.
+    echo json_encode([
+        'success' => $ok,
+        'error'   => $ok ? null : (webhookReplayBlockedReason($conn, $id) ?? 'Delivery not found or not replayable'),
+    ]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }

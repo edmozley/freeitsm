@@ -1465,6 +1465,16 @@ class WorkflowEngine
         require_once dirname(__DIR__, 2) . '/includes/webhook_delivery.php';
         $conn = connectToDatabase();
 
+        // The URL and signing secret are stored ENCRYPTED in workflows.actions.
+        // Decrypt them here, at the point of use — otherwise we'd sign with the
+        // ciphertext and POST to a URL that is a base64 blob. Values written
+        // before encryption was introduced pass through untouched.
+        foreach (['url', 'secret'] as $k) {
+            if (isset($args[$k]) && $args[$k] !== '') {
+                $args[$k] = webhookDecrypt((string)$args[$k]);
+            }
+        }
+
         // If the body embeds a full object ({{ticket.full}}) or the Full record
         // format is chosen, load + serialise the record (reusing the REST API
         // serialisers) so the same rich, typed shape the API returns is sent.

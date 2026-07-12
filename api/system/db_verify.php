@@ -1505,10 +1505,11 @@ $schema = [
         'workflow_id'        => 'INT NULL',
         'execution_id'       => 'INT NULL',
         'preset'             => 'VARCHAR(20) NULL',
-        'url'                => 'VARCHAR(1000) NOT NULL',
+        'url'                => 'VARCHAR(2000) NOT NULL',
         'method'             => "VARCHAR(10) NOT NULL DEFAULT 'POST'",
         'request_headers'    => 'TEXT NULL',
         'request_body'       => 'MEDIUMTEXT NULL',
+        'payload_purged'     => 'TINYINT(1) NOT NULL DEFAULT 0',
         'status'             => "VARCHAR(20) NOT NULL DEFAULT 'pending'",
         'attempts'           => 'INT NOT NULL DEFAULT 0',
         'max_attempts'       => 'INT NOT NULL DEFAULT 6',
@@ -3794,6 +3795,23 @@ try {
             $col = $conn->query("SHOW COLUMNS FROM webhook_deliveries LIKE 'response_snippet'")->fetch(PDO::FETCH_ASSOC);
             if ($col && stripos($col['Type'], 'mediumtext') === false) {
                 $conn->exec("ALTER TABLE webhook_deliveries MODIFY `response_snippet` MEDIUMTEXT NULL");
+            }
+        } catch (Exception $e) { /* shrug */ }
+    }
+    // url was VARCHAR(1000). It is now ENCRYPTED at rest, and AES-256-GCM +
+    // base64 inflates a string by ~1/3 + 28 bytes — so a max-length 1000-char
+    // URL becomes ~1377 chars. At VARCHAR(1000) MySQL would silently TRUNCATE
+    // the ciphertext, and a truncated ciphertext can never be decrypted again.
+    // This widen MUST happen before anything is encrypted. No-op once widened.
+    if ($tableExists('webhook_deliveries')) {
+        try {
+            $col = $conn->query("SHOW COLUMNS FROM webhook_deliveries LIKE 'url'")->fetch(PDO::FETCH_ASSOC);
+            if ($col && !preg_match('/varchar\((\d+)\)/i', $col['Type'], $m0)) {
+                // not a varchar at all — leave it alone
+            } elseif ($col && isset($m0[1]) && (int)$m0[1] < 2000) {
+                $conn->exec("ALTER TABLE webhook_deliveries MODIFY `url` VARCHAR(2000) NOT NULL");
+                $results[] = ['table' => 'webhook_deliveries', 'status' => 'altered',
+                              'details' => ['Widened url to VARCHAR(2000) — required headroom for encryption at rest']];
             }
         } catch (Exception $e) { /* shrug */ }
     }

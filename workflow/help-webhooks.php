@@ -98,6 +98,7 @@ $translationNamespaces = ['common', 'workflow'];
             <a href="#reliability" class="wfh-nav-link" data-section="reliability"><span class="wfh-nav-num">8</span> Reliable delivery</a>
             <a href="#dashboard"   class="wfh-nav-link" data-section="dashboard"><span class="wfh-nav-num">9</span> The dashboard</a>
             <a href="#catalogue"   class="wfh-nav-link" data-section="catalogue"><span class="wfh-nav-num">10</span> Event catalogue</a>
+            <a href="#dataprotection" class="wfh-nav-link" data-section="dataprotection"><span class="wfh-nav-num">&#128274;</span> What&rsquo;s stored</a>
             <a href="#troubleshoot" class="wfh-nav-link" data-section="troubleshoot"><span class="wfh-nav-num">11</span> Troubleshooting</a>
             <a href="#recipes"     class="wfh-nav-link" data-section="recipes"><span class="wfh-nav-num">12</span> Recipes</a>
         </aside>
@@ -223,6 +224,16 @@ $event = json_decode($body, true);   // trusted from here</code></pre>
             <div class="tip">Every event fires from a <strong>single</strong> shared write path, so it behaves identically whether the change was made by an analyst in the browser, by a script hitting the REST API, or by another workflow &mdash; it can&rsquo;t drift. The full, always-current list lives in the <a href="https://github.com/edmozley/freeitsm/wiki/Webhooks#event-catalogue" target="_blank" rel="noopener">Webhooks wiki</a>.</div>
 
             <!-- 11 -->
+            <h3 id="dataprotection">What FreeITSM stores, and for how long</h3>
+            <p>Three things about a webhook end up on disk, and it&rsquo;s worth knowing what happens to each.</p>
+            <h4>The URL and the signing secret &mdash; encrypted</h4>
+            <p>A webhook URL is a <strong>credential in its own right</strong>: anyone holding your Discord or Slack URL can post into that channel. The signing secret is a true secret &mdash; its whole job is proving a message really came from you, which anyone who could read it could forge. Both are <strong>encrypted at rest</strong> (AES-256-GCM), in the workflow itself and in the delivery queue, and the URL is <strong>redacted in the delivery log</strong> so the token isn&rsquo;t sitting in a screen any analyst can open.</p>
+            <p>This depends on an encryption key being configured. If your install has none, FreeITSM stores them as-is rather than breaking your webhooks &mdash; and says so plainly, in a warning at the top of <strong>System &rarr; Webhooks</strong>. It never pretends to a protection it isn&rsquo;t providing.</p>
+            <h4>The payload &mdash; kept only as long as you choose</h4>
+            <p>The delivery log stores <em>the exact payload that was sent</em>, so you can see what went out. With the <strong>Full record</strong> format that is an <strong>entire ticket</strong> &mdash; subject, requester, the lot &mdash; copied into the queue table in plain text. That is a real data-at-rest question, so it gets an explicit answer rather than an accidental one: <strong>System &rarr; Webhooks &rarr; Data protection</strong> sets how long payload bodies are kept (default <strong>7 days</strong>; you can also choose never to store them at all).</p>
+            <p>When the window passes, the payload and response bodies are scrubbed but the <strong>delivery record is kept</strong> &mdash; endpoint, status, timing, errors &mdash; so your dashboard and your audit trail survive intact. The whole row is eventually removed by the separate log-retention setting.</p>
+            <div class="callout"><strong>The trade-off, stated plainly.</strong> <em>Replay</em> re-sends the stored payload. Once a payload has been scrubbed there is nothing left to re-send, so that delivery can no longer be replayed &mdash; FreeITSM tells you exactly that, rather than quietly POSTing an empty body to a live endpoint. In practice you replay a webhook within hours of it failing, not weeks, which is why the payload window is shorter than the record&rsquo;s.</div>
+
             <h3 id="troubleshoot">11. Troubleshooting</h3>
             <table>
                 <tr><th>Symptom</th><th>Likely cause &amp; fix</th></tr>

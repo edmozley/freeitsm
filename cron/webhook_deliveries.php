@@ -68,11 +68,17 @@ try {
     // ---- Deliver due rows ----
     $counts = webhookRunQueue($conn, 100);
 
-    // ---- Prune old terminal rows ----
+    // ---- Scrub payload bodies past the payload-retention window ----
+    // Runs BEFORE the row prune, and on a shorter clock: the rendered payload can
+    // contain a whole ticket (Full-record preset), so it's dropped early while the
+    // delivery record itself lives on for audit.
+    $scrubbed = webhookPurgePayloads($conn);
+
+    // ---- Prune old terminal rows entirely ----
     $prune = $conn->prepare("DELETE FROM webhook_deliveries WHERE status IN ('delivered','dead') AND updated_datetime < UTC_TIMESTAMP() - INTERVAL ? DAY");
     $prune->execute([$retentionDays]);
 
-    echo "OK — attempted {$counts['attempted']}, delivered {$counts['delivered']}, failed {$counts['failed']}, dead {$counts['dead']}, pruned {$prune->rowCount()}.\n";
+    echo "OK — attempted {$counts['attempted']}, delivered {$counts['delivered']}, failed {$counts['failed']}, dead {$counts['dead']}, payloads scrubbed {$scrubbed}, pruned {$prune->rowCount()}.\n";
 } catch (Throwable $e) {
     http_response_code(500);
     error_log('webhook_deliveries cron failed: ' . $e->getMessage());

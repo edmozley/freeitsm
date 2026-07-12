@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once __DIR__ . '/../../includes/webhook_delivery.php';   // webhookDecrypt()
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -32,6 +33,20 @@ try {
     // Decode JSON columns for the client.
     $wf['conditions'] = json_decode($wf['conditions'] ?: '[]', true) ?: [];
     $wf['actions']    = json_decode($wf['actions']    ?: '[]', true) ?: [];
+
+    // Webhook URL + signing secret are encrypted at rest — decrypt for the editor,
+    // which needs to show the analyst the endpoint their workflow posts to and the
+    // secret it signs with. (Plaintext values written before encryption was added
+    // pass straight through.) See the divergence note in save.php for why these
+    // are not masked the way API keys are.
+    foreach ($wf['actions'] as $i => $a) {
+        if (($a['type'] ?? '') !== 'send_webhook') continue;
+        foreach (['url', 'secret'] as $k) {
+            if (isset($a['args'][$k]) && $a['args'][$k] !== '') {
+                $wf['actions'][$i]['args'][$k] = webhookDecrypt((string)$a['args'][$k]);
+            }
+        }
+    }
 
     // Last 20 executions, newest first. step_log comes along so the editor can
     // expand a run — it's what makes a dry run readable ("this is what it

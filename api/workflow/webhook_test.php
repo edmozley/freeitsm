@@ -37,6 +37,12 @@ $args = [
     'body'    => (string)($in['body'] ?? ''),
     'secret'  => (string)($in['secret'] ?? ''),
 ];
+// The editor holds these in plaintext (get.php decrypts on load), so they normally
+// arrive plain. Decrypt defensively anyway: a stale client could post back a stored
+// "ENC:" value, and we'd otherwise POST to a base64 blob and sign with ciphertext.
+foreach (['url', 'secret'] as $k) {
+    if ($args[$k] !== '') $args[$k] = webhookDecrypt($args[$k]);
+}
 
 // A representative sample payload so {{ticket.*}} / {{event}} variables render
 // to realistic values in the test send. We prefer the most recent REAL ticket

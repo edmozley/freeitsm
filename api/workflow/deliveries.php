@@ -39,7 +39,7 @@ try {
     $stmt = $conn->prepare(
         "SELECT d.id, d.workflow_id, w.name AS workflow_name, d.preset, d.url, d.method,
                 d.status, d.attempts, d.max_attempts, d.last_status_code, d.last_error,
-                d.response_snippet, d.request_headers, d.request_body,
+                d.response_snippet, d.request_headers, d.request_body, d.payload_purged,
                 d.created_datetime, d.delivered_datetime, d.next_attempt_at
          FROM webhook_deliveries d
          LEFT JOIN workflows w ON w.id = d.workflow_id
@@ -53,7 +53,11 @@ try {
             'id'             => (int)$r['id'],
             'workflow'       => $r['workflow_name'] ?: ($r['workflow_id'] ? '#' . $r['workflow_id'] : '(deleted)'),
             'preset'         => $r['preset'],
-            'url'            => $r['url'],
+            // Encrypted at rest, and REDACTED for display: the tail of a webhook
+            // URL is the token that lets you post to the channel. Printing it in
+            // a log any analyst can open would undo encrypting it in the first
+            // place. Keep enough to recognise the endpoint, hide the credential.
+            'url'            => webhookRedactUrl(webhookDecrypt($r['url'])),
             'method'         => $r['method'],
             'status'         => $r['status'],
             'attempts'       => (int)$r['attempts'],
@@ -63,6 +67,7 @@ try {
             // Diagnosed at render time from the stored error, so historic rows
             // benefit too — no column, nothing to backfill.
             'diagnosis'      => webhookDiagnoseError($r['last_error']),
+            'purged'         => (int)($r['payload_purged'] ?? 0),
             'response'       => $r['response_snippet'],
             'headers'        => json_decode($r['request_headers'] ?: '[]', true) ?: [],
             'body'           => $r['request_body'],

@@ -37,12 +37,19 @@ $settings = [];
 foreach ($conn->query(
     "SELECT setting_key, setting_value FROM system_settings
      WHERE setting_key IN ('webhook_cron_token','webhook_cron_last_run',
-                           'webhook_cron_min_interval_seconds','webhook_delivery_retention_days')"
+                           'webhook_cron_min_interval_seconds','webhook_delivery_retention_days',
+                           'webhook_payload_retention_days')"
 ) as $r) {
     $settings[$r['setting_key']] = $r['setting_value'];
 }
 $cronToken     = $settings['webhook_cron_token'] ?? '';
 $retentionDays = (int)($settings['webhook_delivery_retention_days'] ?? 30);
+
+// Data protection: payload-body retention (distinct from the row retention above)
+// and whether webhook credentials are actually being encrypted at rest.
+require_once __DIR__ . '/../../includes/webhook_delivery.php';
+$payloadRetention = webhookPayloadRetentionDays($conn);
+$encryptionOn     = webhookEncryptionAvailable();
 
 // Age of the last cron run, computed in the DB so UTC comparison is exact.
 $lastRun    = $settings['webhook_cron_last_run'] ?? null;
@@ -373,6 +380,56 @@ function whAgo($s) {
             </div>
         </div>
 
+        <!-- ============ DATA PROTECTION ============ -->
+        <div class="card">
+            <h3>Data protection</h3>
+            <p class="desc">What FreeITSM keeps on disk about your webhooks, and for how long.</p>
+
+            <?php if ($encryptionOn): ?>
+                <div class="wf-diagnosis" style="background:var(--success-bg,#e6f4ea); color:var(--success-text,#1e7e34); border-color:var(--success-border,#b7e1c4);">
+                    <strong>Webhook URLs and signing secrets are encrypted at rest</strong>
+                    <div class="wf-diagnosis-body">
+                        Stored with AES-256-GCM, in the workflow and in the delivery queue. A webhook URL is a
+                        credential in its own right &mdash; anyone holding it can post to your channel &mdash; and the
+                        signing secret is what proves a message really came from you.
+                    </div>
+                </div>
+            <?php else: ?>
+                <div class="wf-diagnosis">
+                    <strong>No encryption key is configured &mdash; webhook URLs and signing secrets are stored in plain text</strong>
+                    <div class="wf-diagnosis-body">
+                        FreeITSM encrypts these when an encryption key file is present, but this install has none, so
+                        they are being saved as-is rather than failing your webhooks outright. Anyone who can read the
+                        database or a backup of it can post to your channels and forge your signatures. Configure the
+                        encryption key (<code>ENCRYPTION_KEY_PATH</code>) and re-save each webhook workflow to encrypt
+                        the stored values.
+                    </div>
+                </div>
+            <?php endif; ?>
+
+            <div class="form-group" style="max-width: 520px; margin-top: 16px;">
+                <label for="payloadRetention" style="display:block; font-weight:600; font-size:13px; margin-bottom:4px;">Keep sent payloads for</label>
+                <select id="payloadRetention" class="form-input" onchange="savePayloadRetention(this.value)">
+                    <option value="0"  <?php echo $payloadRetention === 0  ? 'selected' : ''; ?>>Don't store them at all</option>
+                    <option value="1"  <?php echo $payloadRetention === 1  ? 'selected' : ''; ?>>1 day</option>
+                    <option value="7"  <?php echo $payloadRetention === 7  ? 'selected' : ''; ?>>7 days (recommended)</option>
+                    <option value="30" <?php echo $payloadRetention === 30 ? 'selected' : ''; ?>>30 days</option>
+                    <option value="-1" <?php echo $payloadRetention === -1 ? 'selected' : ''; ?>>As long as the delivery record lasts</option>
+                </select>
+                <span id="payloadRetentionStatus" style="display:block; font-size:12px; margin-top:6px; min-height:16px;"></span>
+                <small style="display:block; color:var(--text-muted,#666); margin-top:6px; line-height:1.55;">
+                    The delivery log stores the exact payload that was sent. With the <strong>Full record</strong> format
+                    that is an <strong>entire ticket</strong> &mdash; subject, requester, the lot &mdash; copied here in plain
+                    text. After this many days the payload and response bodies are scrubbed, while the delivery
+                    <em>record</em> (endpoint, status, timing, errors) is kept for audit until the log retention above
+                    (<?php echo $retentionDays; ?> days) removes the row entirely.
+                    <br><br>
+                    <strong>Trade-off:</strong> <em>Replay</em> re-sends the stored payload, so a delivery whose payload
+                    has been scrubbed can no longer be replayed. Replay is normally used within hours of a failure, not weeks.
+                </small>
+            </div>
+        </div>
+
         <!-- ============ OVERVIEW DASHBOARD ============ -->
         <div class="card">
             <h3>Overview</h3>
@@ -569,7 +626,13 @@ function whAgo($s) {
         document.getElementById('pmBody').innerHTML =
             '<p style="font-size:12px;color:#667;margin:0 0 8px;">' + esc(r.method) + ' ' + esc(r.url) + '</p>'
             + '<strong style="font-size:12px;">Request headers</strong><pre>' + esc((r.headers || []).join('\n')) + '</pre>'
-            + '<strong style="font-size:12px;">Request body (sent)</strong><pre>' + esc(r.body || '') + '</pre>'
+            + '<strong style="font-size:12px;">Request body (sent)</strong>'
+            // An empty body here would otherwise look like a bug. Say why it's gone.
+            + (r.purged
+                ? '<div class="wf-diagnosis"><strong>Payload scrubbed by retention</strong>'
+                  + '<div class="wf-diagnosis-body">The exact payload that was sent is no longer stored, '
+                  + 'per the payload-retention setting on this page. This delivery can no longer be replayed.</div></div>'
+                : '<pre>' + esc(r.body || '') + '</pre>')
             + (r.response ? '<strong style="font-size:12px;">Response' + (r.last_status ? ' (HTTP ' + r.last_status + ')' : '') + '</strong><pre>' + esc(r.response) + '</pre>' : '')
             + (r.last_error ? '<strong style="font-size:12px;color:#c0392b;">Last error</strong><pre>' + esc(r.last_error) + '</pre>' : '')
             // The raw cURL error says what broke, not what to do about it. Where the
@@ -590,6 +653,34 @@ function whAgo($s) {
             h += '<a class="wf-diagnosis-link" href="' + esc(dg.help) + '" target="_blank" rel="noopener">How to fix this &rarr;</a>';
         }
         return h + '</div>';
+    }
+
+    /** Persist the payload-retention choice; applies immediately, not on next cron. */
+    async function savePayloadRetention(days) {
+        const el = document.getElementById('payloadRetentionStatus');
+        el.style.color = 'var(--text-muted, #666)';
+        el.textContent = 'Saving…';
+        try {
+            const res = await fetch(API + '/save_payload_retention.php', {
+                method: 'POST', credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ days: parseInt(days, 10) })
+            });
+            const d = await res.json();
+            if (!d.success) {
+                el.style.color = 'var(--danger-text, #c0392b)';
+                el.textContent = d.error || 'Could not save.';
+                return;
+            }
+            el.style.color = 'var(--success-text, #1e7e34)';
+            el.textContent = d.scrubbed > 0
+                ? 'Saved — ' + d.scrubbed + ' stored payload' + (d.scrubbed === 1 ? '' : 's') + ' scrubbed now.'
+                : 'Saved.';
+            load();   // refresh the log: purged rows lose their payload + Replay
+        } catch (e) {
+            el.style.color = 'var(--danger-text, #c0392b)';
+            el.textContent = 'Could not save.';
+        }
     }
 
     async function replay(id) {
