@@ -294,6 +294,72 @@ class WorkflowEngine
     ];
 
     /**
+     * Records whose human-facing REFERENCE differs from their internal id.
+     *
+     * `{{ticket.id}}` is the database row id (83). The thing a requester quotes
+     * back at you — and the thing that belongs in an email subject or a chat
+     * alert — is the ticket NUMBER ("ETC-623-64409"). They are not the same, and
+     * only one of them means anything outside the database.
+     *
+     * Exposed as `{{<object>.number}}`. Deliberately NOT "ref": the app and the
+     * schema both call this a number (`tickets.ticket_number`), and inventing a
+     * third word for it would just add a synonym to learn.
+     *
+     * Changes and tasks have no reference column, so they get nothing here —
+     * their id IS their identity today.
+     */
+    private const RECORD_REFERENCE_COLUMNS = [
+        'ticket'  => ['table' => 'tickets',  'column' => 'ticket_number'],
+        'problem' => ['table' => 'problems', 'column' => 'problem_number'],
+    ];
+
+    /**
+     * Add `{{<object>.number}}` beside `{{<object>.id}}` wherever the record has
+     * a human-facing reference. Cached; never clobbers a value the host module
+     * already supplied (problem.* triggers ship `problem.problem_number`
+     * themselves, and that stays authoritative).
+     */
+    public static function enrichWithReferences(PDO $conn, array $payload): array
+    {
+        static $cache = [];
+        foreach (self::RECORD_REFERENCE_COLUMNS as $obj => $spec) {
+            $id = self::dotGet($payload, $obj . '.id');
+            if ($id === null || $id === '' || !is_numeric($id)) continue;
+            if (self::dotGet($payload, $obj . '.number') !== null) continue;
+
+            $key = $spec['table'] . ':' . (int)$id;
+            if (!array_key_exists($key, $cache)) {
+                try {
+                    $stmt = $conn->prepare(sprintf(
+                        'SELECT %s FROM `%s` WHERE id = ? LIMIT 1', $spec['column'], $spec['table']
+                    ));
+                    $stmt->execute([(int)$id]);
+                    $v = $stmt->fetchColumn();
+                    $cache[$key] = ($v === false || $v === null) ? null : (string)$v;
+                } catch (Exception $e) {
+                    $cache[$key] = null;
+                }
+            }
+            if ($cache[$key] !== null) self::dotSet($payload, $obj . '.number', $cache[$key]);
+        }
+        return $payload;
+    }
+
+    /**
+     * Everything a merge code might need that the raw event payload doesn't
+     * carry: readable lookup names, and human-facing record references.
+     *
+     * ONE entry point, called by the engine at run time AND by the Send-test
+     * preview — so the preview cannot drift from what production actually sends
+     * (the failure that made the old hand-written sample payload a liability).
+     */
+    public static function enrichPayloadForTemplates(PDO $conn, array $payload): array
+    {
+        $payload = self::enrichWithLookupNames($conn, $payload);
+        return self::enrichWithReferences($conn, $payload);
+    }
+
+    /**
      * The `_name` merge code that pairs with a lookup id field.
      *
      *   ticket.priority_id        → ticket.priority_name
@@ -404,6 +470,20 @@ class WorkflowEngine
         ]];
 
         $fields = self::availableFields($trigger);
+
+        // {{<object>.number}} — the reference a human quotes, e.g. ETC-623-64409,
+        // as opposed to {{ticket.id}} which is the database row id (83). Offered
+        // wherever the trigger carries that object's id.
+        foreach (self::RECORD_REFERENCE_COLUMNS as $obj => $spec) {
+            if (!in_array($obj . '.id', $fields, true)) continue;
+            if (in_array($obj . '.number', $fields, true)) continue;   // host already ships one
+            $vars[] = [
+                'path'  => $obj . '.number',
+                'label' => self::humaniseSegment($obj) . ' · Number',
+                'note'  => 'The reference people actually quote, e.g. ETC-623-64409 — not the internal id.',
+            ];
+        }
+
         foreach ($fields as $path) {
             $human    = self::humaniseFieldPath($path);
             $hasTwin  = isset(self::FIELD_LOOKUP_TABLES[$path]);
@@ -974,11 +1054,12 @@ class WorkflowEngine
             $payload['event'] = $event;
         }
 
-        // Add a readable `_name` beside every lookup id the payload carries, so
-        // {{ticket.priority_name}} → "Critical" rather than {{ticket.priority_id}}
-        // → "4". Done here, once, before conditions and actions — so the step log,
-        // the dry-run preview and every action see the same enriched payload.
-        $payload = self::enrichWithLookupNames($conn, $payload);
+        // Add everything a merge code might want that the raw event doesn't carry:
+        // readable lookup names ({{ticket.priority_name}} → "Critical", not "4")
+        // and human-facing references ({{ticket.number}} → "ETC-623-64409", not
+        // the row id). Done here, once, before conditions and actions — so the
+        // step log, the dry-run preview and every action see the same payload.
+        $payload = self::enrichPayloadForTemplates($conn, $payload);
 
         // Insert a "running" execution row so we have an id to update. The
         // workflow name is snapshotted so the run stays attributable after

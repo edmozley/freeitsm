@@ -59,8 +59,8 @@ class WorkflowTemplates
                         'type' => 'send_email',
                         'args' => [
                             'ticket_id' => '{{ticket.id}}',
-                            'subject'   => 'We have received your request [{{ticket.id}}]',
-                            'body'      => "Hello,\n\nThanks for getting in touch — we have logged your request and the service desk will pick it up shortly.\n\nReference: {{ticket.id}}\nSubject: {{ticket.subject}}\n\nYou can simply reply to this email to add more detail.\n\nThe Service Desk",
+                            'subject'   => 'We have received your request [{{ticket.number}}]',
+                            'body'      => "Hello,\n\nThanks for getting in touch — we have logged your request and the service desk will pick it up shortly.\n\nReference: {{ticket.number}}\nSubject: {{ticket.subject}}\n\nYou can simply reply to this email to add more detail.\n\nThe Service Desk",
                         ],
                     ],
                 ],
@@ -83,7 +83,7 @@ class WorkflowTemplates
                         'type' => 'send_email',
                         'args' => [
                             'ticket_id' => '{{ticket.id}}',
-                            'subject'   => 'Your request is now closed [{{ticket.id}}]',
+                            'subject'   => 'Your request is now closed [{{ticket.number}}]',
                             'body'      => "Hello,\n\nWe have closed your request:\n\n{{ticket.subject}}\n\nIf this is not resolved after all, just reply to this email and it will be reopened.\n\nThe Service Desk",
                         ],
                     ],
@@ -111,7 +111,7 @@ class WorkflowTemplates
                         'args' => [
                             'preset'  => 'slack',
                             'url'     => ['$configure' => 'Your Slack incoming-webhook URL'],
-                            'message' => ':rotating_light: *{{ticket.priority_name}} raised* — {{ticket.subject}} (ticket {{ticket.id}}). Requester: {{ticket.requester_email}}',
+                            'message' => ':rotating_light: *{{ticket.priority_name}} raised* — {{ticket.subject}} ({{ticket.number}}). Requester: {{ticket.requester_email}}',
                         ],
                     ],
                     [
@@ -142,7 +142,7 @@ class WorkflowTemplates
                         'args' => [
                             'preset'  => 'slack',
                             'url'     => ['$configure' => 'Your Slack incoming-webhook URL'],
-                            'message' => ':arrow_up: *Escalated to {{ticket.priority_name}}* — {{ticket.subject}} (ticket {{ticket.id}})',
+                            'message' => ':arrow_up: *Escalated to {{ticket.priority_name}}* — {{ticket.subject}} ({{ticket.number}})',
                         ],
                     ],
                     [

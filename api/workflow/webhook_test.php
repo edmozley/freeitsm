@@ -62,6 +62,10 @@ $sample = [
     'event'  => (string)($in['trigger_event'] ?? 'ticket.updated'),
     'ticket' => [
         'id'                  => 1024,
+        // Synthetic fallback only (used when the install has no tickets yet).
+        // With a real ticket, enrichPayloadForTemplates() fills this from
+        // tickets.ticket_number and this placeholder is never seen.
+        'number'              => 'ABC-123-45678',
         'subject'             => 'Sample ticket — webhook test',
         'priority_id'         => 1,
         'status_id'           => 1,
@@ -103,10 +107,11 @@ try {
     }
 } catch (Throwable $e) { /* keep the synthetic sample */ }
 
-// Resolve the readable `_name` twins exactly as the engine does at run time, so
-// {{ticket.priority_name}} previews as "Critical" here and renders "Critical"
-// in production. This is the whole point of the sample mirroring the real shape.
-$sample = WorkflowEngine::enrichWithLookupNames($conn, $sample);
+// Enrich exactly as the engine does at run time — same single entry point — so
+// {{ticket.priority_name}} previews as "Critical" and {{ticket.number}} as the
+// real reference, and both render identically in production. The preview cannot
+// drift from the real thing because they call the same function.
+$sample = WorkflowEngine::enrichPayloadForTemplates($conn, $sample);
 
 // 1) Build the request the same way a real send would (validates url, renders
 //    templates, builds the preset/custom body, signs if a secret is set).
