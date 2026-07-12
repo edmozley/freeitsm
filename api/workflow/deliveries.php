@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once __DIR__ . '/../../includes/webhook_delivery.php';   // webhookDiagnoseError()
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -59,6 +60,9 @@ try {
             'max_attempts'   => (int)$r['max_attempts'],
             'last_status'    => $r['last_status_code'] !== null ? (int)$r['last_status_code'] : null,
             'last_error'     => $r['last_error'],
+            // Diagnosed at render time from the stored error, so historic rows
+            // benefit too — no column, nothing to backfill.
+            'diagnosis'      => webhookDiagnoseError($r['last_error']),
             'response'       => $r['response_snippet'],
             'headers'        => json_decode($r['request_headers'] ?: '[]', true) ?: [],
             'body'           => $r['request_body'],

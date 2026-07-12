@@ -3328,3 +3328,32 @@ body.ticket-popout .ticket-toolbar {
 .cmdb-picker-result:hover, .cmdb-picker-result.highlighted { background: #fdf2f8; color: #be185d; }
 .cmdb-picker-result .cmdb-picker-class { color: var(--text-faint, #9ca3af); font-size: 11px; }
 .cmdb-picker-empty { padding: 10px; color: var(--text-faint, #9ca3af); font-size: 12px; text-align: center; }
+
+/* =========================================================
+   Webhook transport-failure diagnosis — shown in the workflow editor's
+   Send-test panel AND in the System > Webhooks delivery log. Both get the
+   same server-side diagnosis (webhookDiagnoseError), so they render alike.
+   Lives here rather than workflow.css because System > Webhooks doesn't
+   load the workflow stylesheet.
+   ========================================================= */
+.wf-diagnosis {
+    margin: 8px 0;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    background: var(--warning-bg, #fef3c7);
+    color: var(--warning-text, #92400e);
+    border: 1px solid var(--warning-border, #fcd34d);
+}
+.wf-diagnosis strong { display: block; margin-bottom: 3px; }
+.wf-diagnosis-body { opacity: 0.92; }
+.wf-diagnosis-link {
+    display: inline-block;
+    margin-top: 7px;
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--warning-text, #92400e);
+    border-bottom: 1px solid currentColor;
+}
+.wf-diagnosis-link:hover { opacity: 0.75; }

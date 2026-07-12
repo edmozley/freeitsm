@@ -1063,6 +1063,23 @@ const WFE = (() => {
             + (heading ? '<strong>' + esc(heading) + '</strong><br>' : '') + esc(msg) + '</div>';
     }
 
+    /**
+     * The plain-English explanation of a transport failure, plus a link to the
+     * fix where one exists. Shared shape with the delivery log in
+     * System → Webhooks (both get it from webhookDiagnoseError() server-side).
+     */
+    function renderDiagnosis(dg) {
+        const esc = wfEsc;
+        let h = '<div class="wf-diagnosis">';
+        h += '<strong>' + esc(dg.title) + '</strong>';
+        h += '<div class="wf-diagnosis-body">' + esc(dg.summary) + '</div>';
+        if (dg.help) {
+            h += '<a class="wf-diagnosis-link" href="' + esc(dg.help) + '" target="_blank" rel="noopener">'
+               + esc(window.t('workflow.diagnosis.fix_link')) + ' &rarr;</a>';
+        }
+        return h + '</div>';
+    }
+
     function renderWebhookTestResult(d) {
         const esc = wfEsc;
         const ok = d.delivered;
@@ -1078,6 +1095,9 @@ const WFE = (() => {
         let html = '<div style="border-left:3px solid ' + barColor + '; background:#f8fafb; padding:10px 12px; border-radius:4px;">';
         html += '<div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">' + pill
             + '<span style="font-size:12px; color:#55606a;">' + statusLine + '</span></div>';
+        // A raw cURL error tells you what broke, not what to do. Where the server
+        // recognised the cause, show the plain-English version and a link to the fix.
+        if (d.diagnosis) html += renderDiagnosis(d.diagnosis);
         html += '<div style="font-size:11px; color:#78909c; text-transform:uppercase; letter-spacing:.4px; margin:8px 0 3px;">Sent (sample data)</div>';
         html += '<pre style="background:#263238; color:#eceff1; border-radius:5px; padding:10px; font-size:11px; overflow:auto; max-height:160px; white-space:pre-wrap; word-break:break-word; margin:0;">' + esc(req.body || '') + '</pre>';
         if (resp.body) {

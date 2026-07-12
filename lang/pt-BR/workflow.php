@@ -95,6 +95,9 @@ return [
         'running' => 'Em execução',
         'aborted' => 'Abortado (proteção contra loop)',
     ],
+    'diagnosis' => [
+        'fix_link' => 'Como corrigir isto',
+    ],
     'vars' => [
         'open' => 'Editar com variáveis',
         'title' => 'Editar texto',
@@ -159,6 +162,7 @@ return [
         'intro' => 'Os workflows automatizam as coisas que você acaba fazendo manualmente depois que um ticket chega: etiquetar, escalar, atribuir, notificar, distribuir para outros sistemas. Um workflow escuta um evento, opcionalmente filtra com condições e então executa uma ou mais ações em ordem.',
         'guide' => 'Guia',
         'nav_templates' => 'Comece a partir de um modelo',
+        'nav_ssl' => 'Certificados HTTPS',
         'nav_anatomy' => 'Anatomia de um workflow',
         'nav_canvas' => 'O canvas visual',
         'nav_conditions' => 'Condições',

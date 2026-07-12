@@ -19,6 +19,83 @@ function webhookBackoffSeconds(int $failedAttempt): int {
 }
 
 /**
+ * Turn a raw cURL transport error into something a human can act on.
+ *
+ * A message like "SSL certificate problem: unable to get local issuer
+ * certificate" is perfectly accurate and completely useless to most people —
+ * it says what failed, not what to DO. Worse, its cause usually isn't the
+ * webhook at all: it's that PHP has no CA bundle configured, which on a stock
+ * Windows/WAMP install is the default state. Every outbound HTTPS call in the
+ * product fails the same way, so it's worth naming explicitly.
+ *
+ * Returns null when we've nothing useful to add (the raw error stands on its
+ * own), otherwise a diagnosis the UI renders in place of a shrug:
+ *   ['code', 'title', 'summary', 'help' => absolute URL | null]
+ *
+ * Called at RENDER time against the stored last_error, so old rows get the
+ * benefit too — no schema column, nothing to backfill.
+ */
+function webhookDiagnoseError(?string $err): ?array {
+    $e = trim((string)$err);
+    if ($e === '') return null;
+    $l = strtolower($e);
+
+    // Wording differs by platform and cURL build — Windows/OpenSSL says
+    // "SSL certificate problem: unable to get local issuer certificate",
+    // Linux/GnuTLS says "server certificate verification failed. CAfile: none".
+    // Match all the variants that mean "I can't establish trust".
+    $isTlsTrust = str_contains($l, 'unable to get local issuer certificate')
+        || str_contains($l, 'certificate verify failed')
+        || str_contains($l, 'certificate verification failed')
+        || str_contains($l, 'ssl certificate problem')
+        || str_contains($l, 'self-signed certificate')
+        || str_contains($l, 'self signed certificate')
+        || str_contains($l, 'unable to get issuer certificate')
+        || str_contains($l, 'cafile: none');
+
+    if ($isTlsTrust) {
+        return [
+            'code'    => 'tls_trust',
+            'title'   => 'This server can\'t verify the endpoint\'s HTTPS certificate',
+            'summary' => 'Almost always this means PHP has no list of trusted certificate authorities '
+                       . '(a "CA bundle") configured — not that anything is wrong with the webhook or with '
+                       . 'the endpoint. It affects every outbound HTTPS call, not just this one. '
+                       . 'It is a one-time server fix and takes a couple of minutes.',
+            'help'    => (defined('BASE_URL') ? BASE_URL : '/') . 'workflow/help-ssl.php',
+        ];
+    }
+
+    if (str_contains($l, 'could not resolve host') || str_contains($l, 'name or service not known')) {
+        return [
+            'code'    => 'dns',
+            'title'   => 'The hostname in the webhook URL could not be found',
+            'summary' => 'DNS could not resolve it. Check the URL for a typo, and that this server is allowed to reach the internet.',
+            'help'    => null,
+        ];
+    }
+
+    if (str_contains($l, 'connection refused') || str_contains($l, 'failed to connect')) {
+        return [
+            'code'    => 'refused',
+            'title'   => 'The endpoint refused the connection',
+            'summary' => 'The host was found but nothing accepted the connection — the service may be down, or a firewall may be blocking this server.',
+            'help'    => null,
+        ];
+    }
+
+    if (str_contains($l, 'timed out') || str_contains($l, 'timeout')) {
+        return [
+            'code'    => 'timeout',
+            'title'   => 'The endpoint took too long to respond',
+            'summary' => 'The request was abandoned after the timeout. If the endpoint is simply slow this will usually succeed on a retry.',
+            'help'    => null,
+        ];
+    }
+
+    return null;
+}
+
+/**
  * Queue a webhook for asynchronous delivery. $d keys: workflow_id, execution_id,
  * preset, url, method, headers (array of header lines), body (string), max_attempts.
  * Returns the new delivery id.

@@ -107,6 +107,10 @@ return [
         'aborted' => 'Aborted (loop protection)',
     ],
 
+    'diagnosis' => [
+        'fix_link' => 'How to fix this',
+    ],
+
     'vars' => [
         'open'              => 'Edit with variables',
         'title'             => 'Edit text',
@@ -177,6 +181,7 @@ return [
         'guide'      => 'Guide',
 
         'nav_templates'  => 'Start from a template',
+        'nav_ssl'        => 'HTTPS certificates',
         'nav_anatomy'    => 'Anatomy of a workflow',
         'nav_canvas'     => 'The visual canvas',
         'nav_conditions' => 'Conditions',

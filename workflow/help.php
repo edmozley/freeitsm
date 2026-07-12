@@ -150,6 +150,9 @@ $translationNamespaces = ['common', 'workflow'];
             <a href="help-webhooks.php" class="wfh-nav-link" style="margin-top:10px; border-top:1px solid var(--border-soft, #eee); padding-top:14px; color:var(--warning-text, #b45309);">
                 <span class="wfh-nav-num" style="background:var(--wf-accent-soft, #fff7ed); color:var(--warning-text, #b45309);">&#128279;</span> <?php echo htmlspecialchars(t('workflow.help.nav_webhooks_deepdive')); ?> &rarr;
             </a>
+            <a href="help-ssl.php" class="wfh-nav-link" style="color:var(--warning-text, #b45309);">
+                <span class="wfh-nav-num" style="background:var(--wf-accent-soft, #fff7ed); color:var(--warning-text, #b45309);">&#128274;</span> <?php echo htmlspecialchars(t('workflow.help.nav_ssl')); ?> &rarr;
+            </a>
         </aside>
 
         <main class="wfh-main">

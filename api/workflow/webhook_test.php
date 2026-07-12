@@ -129,4 +129,8 @@ echo json_encode([
         'error'  => $res['error'],
         'body'   => $res['body'] === false ? null : mb_substr((string)$res['body'], 0, 20000),
     ],
+    // A raw transport error ("unable to get local issuer certificate") says what
+    // broke, not what to do about it. Where we can recognise the cause, send the
+    // client a plain-English explanation and a link to the fix.
+    'diagnosis' => webhookDiagnoseError($res['error']),
 ]);

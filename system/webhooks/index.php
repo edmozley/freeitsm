@@ -565,13 +565,31 @@ function whAgo($s) {
         const r = cache.find(x => x.id === id);
         if (!r) return;
         document.getElementById('pmTitle').textContent = 'Delivery #' + r.id + ' — ' + (r.preset || 'custom');
+        // (diagnosisHtml is defined below — same shape the workflow editor renders.)
         document.getElementById('pmBody').innerHTML =
             '<p style="font-size:12px;color:#667;margin:0 0 8px;">' + esc(r.method) + ' ' + esc(r.url) + '</p>'
             + '<strong style="font-size:12px;">Request headers</strong><pre>' + esc((r.headers || []).join('\n')) + '</pre>'
             + '<strong style="font-size:12px;">Request body (sent)</strong><pre>' + esc(r.body || '') + '</pre>'
             + (r.response ? '<strong style="font-size:12px;">Response' + (r.last_status ? ' (HTTP ' + r.last_status + ')' : '') + '</strong><pre>' + esc(r.response) + '</pre>' : '')
-            + (r.last_error ? '<strong style="font-size:12px;color:#c0392b;">Last error</strong><pre>' + esc(r.last_error) + '</pre>' : '');
+            + (r.last_error ? '<strong style="font-size:12px;color:#c0392b;">Last error</strong><pre>' + esc(r.last_error) + '</pre>' : '')
+            // The raw cURL error says what broke, not what to do about it. Where the
+            // server recognised the cause, show the plain-English version + the fix.
+            + (r.diagnosis ? diagnosisHtml(r.diagnosis) : '');
         document.getElementById('payloadModal').style.display = 'flex';
+    }
+
+    /**
+     * Plain-English explanation of a transport failure + a link to the fix.
+     * Server-diagnosed (webhookDiagnoseError) so this is just presentation.
+     */
+    function diagnosisHtml(dg) {
+        let h = '<div class="wf-diagnosis">';
+        h += '<strong>' + esc(dg.title) + '</strong>';
+        h += '<div class="wf-diagnosis-body">' + esc(dg.summary) + '</div>';
+        if (dg.help) {
+            h += '<a class="wf-diagnosis-link" href="' + esc(dg.help) + '" target="_blank" rel="noopener">How to fix this &rarr;</a>';
+        }
+        return h + '</div>';
     }
 
     async function replay(id) {

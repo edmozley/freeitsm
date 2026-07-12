@@ -226,6 +226,7 @@ $event = json_decode($body, true);   // trusted from here</code></pre>
             <h3 id="troubleshoot">11. Troubleshooting</h3>
             <table>
                 <tr><th>Symptom</th><th>Likely cause &amp; fix</th></tr>
+                <tr><td><em>&ldquo;unable to get local issuer certificate&rdquo;</em> / any SSL certificate error</td><td>Your server has no list of trusted certificate authorities, so it can&rsquo;t confirm it&rsquo;s really talking to Slack or Discord. Extremely common on a fresh Windows/WAMP install, and <strong>not a problem with your webhook</strong>. Full explanation and the five-minute fix: <a href="help-ssl.php" style="font-weight:600;">HTTPS certificate verification &rarr;</a></td></tr>
                 <tr><td>Nothing arrives, log shows deliveries <em>queued</em></td><td>The background worker isn&rsquo;t running. Check the red banner on <strong>System &rarr; Webhooks</strong> and schedule the command it shows.</td></tr>
                 <tr><td>Delivery is <em>failed</em> / <em>retrying</em></td><td>Open it in the log &mdash; the response body and last error are captured. Usually a 4xx/5xx from the receiver (bad URL, auth, or payload shape). Fix and <strong>Replay</strong>.</td></tr>
                 <tr><td>&ldquo;the rendered body is not valid JSON&rdquo;</td><td>A Custom body didn&rsquo;t parse after variables were filled in &mdash; often an empty variable breaking quotes. Use <strong>Send test</strong> to see the rendered body, or switch to the Full-record preset.</td></tr>
