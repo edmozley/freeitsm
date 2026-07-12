@@ -164,6 +164,7 @@ $translationNamespaces = ['common', 'workflow'];
             <h3 id="templates"><?php echo htmlspecialchars(t('workflow.help.templates_heading')); ?></h3>
             <p><?php echo t('workflow.help.templates_intro'); ?></p>
             <p><?php echo t('workflow.help.templates_lookups'); ?></p>
+            <div class="callout"><?php echo t('workflow.help.templates_scheduled'); ?></div>
             <div class="callout"><?php echo t('workflow.help.templates_callout'); ?></div>
 
             <h3 id="anatomy"><?php echo htmlspecialchars(t('workflow.help.anatomy_heading')); ?></h3>
