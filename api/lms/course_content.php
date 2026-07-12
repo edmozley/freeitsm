@@ -12,6 +12,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/lms_access.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -25,6 +26,9 @@ $conn = connectToDatabase();
 try {
     $courseId = (int)($_GET['course_id'] ?? 0);
     if (!$courseId) throw new Exception('Missing course_id');
+    // A learner may only load content for a course assigned to them; managers
+    // may load any (Preview). Same rule as the player.
+    requireLmsCourseAccessJson($conn, $courseId);
 
     $stmt = $conn->prepare("SELECT id, title, description, content_type, pass_mark FROM lms_courses WHERE id = ? AND is_active = 1");
     $stmt->execute([$courseId]);

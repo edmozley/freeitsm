@@ -19,6 +19,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/lms_access.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -71,6 +72,7 @@ try {
     // ---- GET: starting (or resuming) an attempt ----
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if (!$courseId) throw new Exception('Missing course_id');
+        requireLmsCourseAccessJson($conn, $courseId);   // assigned-to-me, or a manager
         $row = lmsProgressRow($conn, $analystId, $courseId);
 
         $conn->prepare("UPDATE lms_progress SET attempt_count = attempt_count + 1, last_access = UTC_TIMESTAMP(), updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
@@ -83,6 +85,7 @@ try {
     $input    = json_decode(file_get_contents('php://input'), true) ?: [];
     $courseId = (int)($input['course_id'] ?? 0);
     if (!$courseId) throw new Exception('Missing course_id');
+    requireLmsCourseAccessJson($conn, $courseId);   // can't post progress for an unassigned course
 
     $cs = $conn->prepare("SELECT id, pass_mark, content_type FROM lms_courses WHERE id = ? AND is_active = 1");
     $cs->execute([$courseId]);

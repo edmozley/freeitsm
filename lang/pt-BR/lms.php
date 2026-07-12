@@ -7,9 +7,23 @@ return [
     'title' => 'LMS',
 
     'nav' => [
-        'dashboard' => 'Painel',
-        'settings'  => 'Configurações',
-        'help'      => 'Ajuda',
+        'my_courses' => 'Meus cursos',
+        'dashboard'  => 'Painel',
+        'settings'   => 'Configurações',
+        'help'       => 'Ajuda',
+    ],
+
+    'my' => [
+        'title'       => 'Meus cursos',
+        'heading'     => 'Meus cursos',
+        'lead'        => 'Treinamentos atribuídos a você. Abra um curso para fazê-lo — seu progresso é salvo automaticamente.',
+        'loading'     => 'Carregando…',
+        'empty_title' => 'Nada atribuído ainda',
+        'empty_body'  => 'Quando alguém atribuir um curso a você, ele aparecerá aqui.',
+        'due'         => 'Prazo',
+        'start'       => 'Iniciar',
+        'resume'      => 'Continuar',
+        'review'      => 'Revisar',
     ],
 
     'tabs' => [

@@ -15,6 +15,12 @@ if (!isset($_SESSION['analyst_id'])) {
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = $current_page ?? '';
 
+// Which LMS nav a viewer sees depends on whether they can manage it. Learners
+// get My Courses + Help; managers additionally get the Dashboard and Settings.
+// Resolved here so every LMS page's header is consistent, using the RBAC helper.
+require_once $path_prefix . 'includes/rbac.php';
+$lmsCanManage = analystHasCapability(connectToDatabase(), (int) $_SESSION['analyst_id'], 'lms.manage');
+
 require_once $path_prefix . 'includes/waffle-menu.php';
 ?>
 
@@ -25,6 +31,14 @@ require_once $path_prefix . 'includes/waffle-menu.php';
         <span class="module-title"><?php echo htmlspecialchars($module_title); ?></span>
     </div>
     <nav class="header-nav">
+        <a href="<?php echo BASE_URL; ?>lms/my-courses.php" class="nav-btn <?php echo $current_page === 'my-courses' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('lms.nav.my_courses') : 'My courses'); ?>">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+            </svg>
+            <span><?php echo htmlspecialchars(function_exists('t') ? t('lms.nav.my_courses') : 'My courses'); ?></span>
+        </a>
+        <?php if ($lmsCanManage): ?>
         <a href="<?php echo BASE_URL; ?>lms/" class="nav-btn <?php echo $current_page === 'lms' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('lms.nav.dashboard') : 'Dashboard'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
@@ -39,6 +53,7 @@ require_once $path_prefix . 'includes/waffle-menu.php';
             </svg>
             <span><?php echo htmlspecialchars(function_exists('t') ? t('lms.nav.settings') : 'Settings'); ?></span>
         </a>
+        <?php endif; ?>
         <a href="<?php echo BASE_URL; ?>lms/help.php" class="nav-btn <?php echo $current_page === 'help' ? 'active' : ''; ?>" title="<?php echo htmlspecialchars(function_exists('t') ? t('lms.nav.help') : 'Help'); ?>">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="10"></circle>

@@ -8,6 +8,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/lms_access.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -25,6 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         echo json_encode(['success' => false, 'error' => 'Missing course_id']);
         exit;
     }
+    // A learner may only run a course assigned to them; managers may run any.
+    requireLmsCourseAccessJson($conn, $courseId);
 
     // Get or create progress record
     $stmt = $conn->prepare("SELECT id, status, bookmark, suspend_data, total_time, attempt_count FROM lms_progress WHERE analyst_id = ? AND course_id = ?");
@@ -70,6 +73,7 @@ if (!$courseId) {
     echo json_encode(['success' => false, 'error' => 'Missing course_id']);
     exit;
 }
+requireLmsCourseAccessJson($conn, $courseId);
 
 try {
     // Get progress record

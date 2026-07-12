@@ -13,10 +13,12 @@ require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
+require_once '../includes/rbac.php';
 I18n::initFromSession();
 Tz::init();
 
 requireModuleAccess('lms');
+requireCapability('lms.manage');   // authoring is a manager job
 
 $courseId = (int)($_GET['course_id'] ?? 0);
 $conn     = connectToDatabase();

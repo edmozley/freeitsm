@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
 require_once '../../includes/lms_package.php';
 header('Content-Type: application/json');
 
@@ -12,6 +13,9 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+// The whole-catalogue list AND the upload are management functions — a learner
+// sees only their assigned courses, via api/lms/my_courses.php. Gate both branches.
+requireCapabilityJson('lms.manage');
 
 $conn = connectToDatabase();
 
@@ -20,8 +24,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
     exit;
 }
-
-requireModuleAccessJson('lms');
 
 // POST: upload SCORM package
 if (empty($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {

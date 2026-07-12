@@ -33,6 +33,15 @@ if (!$course) {
     die('Course not found');
 }
 
+// Playback gate: a learner may only open a course assigned to them; a manager
+// (or admin) may open any, which is how Preview works. Enforced here so it can't
+// be bypassed by typing the player URL for an unassigned course.
+require_once '../includes/lms_access.php';
+if (!lmsCanAccessCourse($conn, (int)$_SESSION['analyst_id'], $courseId)) {
+    header('Location: my-courses.php?denied=1');
+    exit;
+}
+
 // An authored course has no package and no launch URL — it is rendered by our
 // own player from the database. Hand off before the SCORM checks below, which
 // would (correctly) reject it.

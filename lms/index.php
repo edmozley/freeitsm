@@ -9,10 +9,19 @@ require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/timezone.php';
 require_once '../includes/theme.php';
+require_once '../includes/rbac.php';
 I18n::initFromSession();
 Tz::init();
 
 requireModuleAccess('lms');
+
+// This is the management dashboard. A learner (module access but not lms.manage)
+// has no business here — send them to their own courses. Managers and admins
+// stay. This is what makes the waffle "LMS" link land everyone in the right place.
+if (!analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_id'], 'lms.manage')) {
+    header('Location: my-courses.php');
+    exit;
+}
 
 $current_page = 'lms';
 $path_prefix = '../';

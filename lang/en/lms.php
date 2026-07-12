@@ -15,9 +15,23 @@ return [
     'title' => 'LMS',
 
     'nav' => [
-        'dashboard' => 'Dashboard',
-        'settings'  => 'Settings',
-        'help'      => 'Help',
+        'my_courses' => 'My courses',
+        'dashboard'  => 'Dashboard',
+        'settings'   => 'Settings',
+        'help'       => 'Help',
+    ],
+
+    'my' => [
+        'title'       => 'My courses',
+        'heading'     => 'My courses',
+        'lead'        => 'Training assigned to you. Open a course to take it — your progress is saved as you go.',
+        'loading'     => 'Loading…',
+        'empty_title' => 'Nothing assigned yet',
+        'empty_body'  => 'When someone assigns you a course, it will appear here.',
+        'due'         => 'Due',
+        'start'       => 'Start',
+        'resume'      => 'Resume',
+        'review'      => 'Review',
     ],
 
     'tabs' => [

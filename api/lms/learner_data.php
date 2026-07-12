@@ -6,12 +6,15 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+// This reads ANOTHER analyst's answers and results — strictly a manager view.
+requireCapabilityJson('lms.manage');
 
 $analystId = (int)($_GET['analyst_id'] ?? 0);
 $courseId = (int)($_GET['course_id'] ?? 0);
