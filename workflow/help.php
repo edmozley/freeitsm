@@ -153,6 +153,12 @@ $translationNamespaces = ['common', 'workflow'];
             <a href="help-ssl.php" class="wfh-nav-link" style="color:var(--warning-text, #b45309);">
                 <span class="wfh-nav-num" style="background:var(--wf-accent-soft, #fff7ed); color:var(--warning-text, #b45309);">&#128274;</span> <?php echo htmlspecialchars(t('workflow.help.nav_ssl')); ?> &rarr;
             </a>
+            <!-- The wiki carries the design reasoning this page deliberately
+                 leaves out (why the fire-once ledger exists, what it cost). -->
+            <a href="https://github.com/edmozley/freeitsm/wiki/Workflows" target="_blank" rel="noopener noreferrer"
+               class="wfh-nav-link" style="margin-top:10px; border-top:1px solid var(--border-soft, #eee); padding-top:14px;">
+                <span class="wfh-nav-num">&#128214;</span> <?php echo htmlspecialchars(t('workflow.help.nav_wiki')); ?> &#8599;
+            </a>
         </aside>
 
         <main class="wfh-main">
