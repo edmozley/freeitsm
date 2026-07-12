@@ -33,6 +33,14 @@ if (!$course) {
     die('Course not found');
 }
 
+// An authored course has no package and no launch URL — it is rendered by our
+// own player from the database. Hand off before the SCORM checks below, which
+// would (correctly) reject it.
+if (($course['content_type'] ?? 'scorm') === 'native') {
+    require __DIR__ . '/native-player.php';
+    exit;
+}
+
 if (empty($course['launch_url'])) {
     die('Course has no launch URL. The SCORM package may not have been parsed correctly.');
 }
@@ -51,7 +59,7 @@ $translationNamespaces = ['common', 'lms'];
     <title><?php echo htmlspecialchars($course['title']); ?> - <?php echo htmlspecialchars(t('lms.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=22">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/lms.css?v=3">
+    <link rel="stylesheet" href="../assets/css/lms.css?v=4">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>

@@ -21,8 +21,41 @@ const LMS = (() => {
         loadAnalysts();
 
         document.getElementById('uploadForm').addEventListener('submit', uploadCourse);
+        document.getElementById('createForm').addEventListener('submit', createCourse);
         document.getElementById('groupForm').addEventListener('submit', saveGroup);
         document.getElementById('assignForm').addEventListener('submit', saveAssignment);
+    }
+
+    // =========================================================
+    //  Creating an authored course
+    //  Only the shell is made here — the title, the blurb and the pass mark.
+    //  The lessons are written in the editor, so we go straight there.
+    // =========================================================
+    function openCreateModal() {
+        document.getElementById('newCourseTitle').value = '';
+        document.getElementById('newCourseDescription').value = '';
+        document.getElementById('newCoursePassMark').value = '';
+        openModal('createModal');
+    }
+
+    async function createCourse(e) {
+        e.preventDefault();
+        const pm = document.getElementById('newCoursePassMark').value;
+
+        const r = await fetch(API_BASE + 'course.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                _method: 'CREATE_NATIVE',
+                title: document.getElementById('newCourseTitle').value.trim(),
+                description: document.getElementById('newCourseDescription').value.trim(),
+                pass_mark: pm === '' ? null : parseInt(pm, 10)
+            })
+        });
+        const d = await r.json();
+        if (!d.success) { showToast(d.error, 'error'); return; }
+
+        window.location.href = 'editor.php?course_id=' + d.id;
     }
 
     // =========================================================
@@ -37,6 +70,7 @@ const LMS = (() => {
         if (tab === 'groups') loadGroups();
         if (tab === 'assignments') loadAssignments();
         if (tab === 'progress') loadProgress();
+        // 'settings' is a static panel — the AI settings panel loads itself.
     }
 
     // =========================================================
@@ -60,8 +94,24 @@ const LMS = (() => {
             return;
         }
         tbody.innerHTML = courses.map(c => {
-            const version = c.scorm_version ? `<span class="scorm-badge">SCORM ${esc(c.scorm_version)}</span>` : `<span style="color:#999;">${esc(window.t('lms.courses.version_unknown'))}</span>`;
+            const isNative = (c.content_type || 'scorm') === 'native';
+
+            // An authored course has no SCORM version — that column shows what KIND
+            // of course it is instead, which is the more useful thing to know here.
+            const version = isNative
+                ? `<span class="native-badge">${esc(window.t('lms.courses.authored'))}</span>`
+                : (c.scorm_version
+                    ? `<span class="scorm-badge">SCORM ${esc(c.scorm_version)}</span>`
+                    : `<span style="color:#999;">${esc(window.t('lms.courses.version_unknown'))}</span>`);
+
             const date = c.created_datetime ? parseUTCDate(c.created_datetime).toLocaleDateString(undefined, tzOpts({})) : '';
+
+            // Only authored courses can be edited here; a SCORM package is edited in
+            // whatever tool built it, so it gets no pencil rather than a broken one.
+            const edit = isNative
+                ? `<a class="table-action-btn" href="editor.php?course_id=${c.id}" title="${esc(window.t('lms.courses.edit'))}">${ICON_EDIT}</a>`
+                : '';
+
             return `<tr>
                 <td><strong>${esc(c.title)}</strong>${c.description ? '<br><small style="color:#888;">' + esc(c.description).substring(0, 80) + '</small>' : ''}</td>
                 <td>${version}</td>
@@ -69,6 +119,7 @@ const LMS = (() => {
                 <td>${c.is_active == 1 ? '<span class="lms-status completed">' + esc(window.t('lms.courses.active')) + '</span>' : '<span class="lms-status not_started">' + esc(window.t('lms.courses.inactive')) + '</span>'}</td>
                 <td class="lms-actions">
                     <a class="table-action-btn" href="player.php?course_id=${c.id}" title="${esc(window.t('lms.courses.launch'))}">${ICON_LAUNCH}</a>
+                    ${edit}
                     <button class="table-action-btn delete" onclick="LMS.deleteCourse(${c.id})" title="${esc(window.t('lms.courses.delete'))}">${ICON_DELETE}</button>
                 </td>
             </tr>`;
@@ -620,7 +671,7 @@ const LMS = (() => {
     document.addEventListener('DOMContentLoaded', init);
 
     return {
-        switchTab, openUploadModal, deleteCourse,
+        switchTab, openUploadModal, openCreateModal, deleteCourse,
         openGroupModal, editGroup, deleteGroup,
         openAssignModal, deleteAssignment,
         loadProgress, viewLearnerData, closeModal

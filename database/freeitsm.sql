@@ -2652,10 +2652,17 @@ CREATE TABLE IF NOT EXISTS `rfp_processing_log` (
 -- LMS (Learning Management System)
 -- ----------------------------------------------------------
 
+-- A course is either an uploaded SCORM package ('scorm' — rendered by the
+-- package itself inside an iframe) or authored here ('native' — lessons and
+-- questions in the tables below, rendered by our own player). content_type is
+-- the discriminator both player.php and the Courses tab branch on. Existing
+-- rows default to 'scorm', which is what they are.
 CREATE TABLE IF NOT EXISTS `lms_courses` (
     `id`                    INT NOT NULL AUTO_INCREMENT,
     `title`                 VARCHAR(255) NOT NULL,
     `description`           LONGTEXT NULL,
+    `content_type`          VARCHAR(10) NOT NULL DEFAULT 'scorm',
+    `pass_mark`             INT NULL,
     `scorm_version`         VARCHAR(20) NULL,
     `manifest_identifier`   VARCHAR(255) NULL,
     `launch_url`            VARCHAR(500) NULL,
@@ -2665,6 +2672,54 @@ CREATE TABLE IF NOT EXISTS `lms_courses` (
     `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---- Native course content (content_type = 'native') ----
+
+-- An ordered lesson within a course. `body` is TinyMCE HTML, exactly as
+-- knowledge_articles.body is — including inline base64 images, so a lesson is
+-- entirely self-contained with nothing on disk to lose or leak.
+CREATE TABLE IF NOT EXISTS `lms_lessons` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `course_id`             INT NOT NULL,
+    `title`                 VARCHAR(255) NOT NULL,
+    `body`                  LONGTEXT NULL,
+    `display_order`         INT NOT NULL DEFAULT 0,
+    `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_lms_lessons_course` (`course_id`),
+    CONSTRAINT `fk_lms_lessons_course` FOREIGN KEY (`course_id`) REFERENCES `lms_courses` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A question asked at the end of a lesson. question_type is one of
+-- 'single' (one right answer), 'multiple' (several) or 'truefalse'.
+CREATE TABLE IF NOT EXISTS `lms_questions` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `lesson_id`             INT NOT NULL,
+    `question_text`         TEXT NOT NULL,
+    `question_type`         VARCHAR(20) NOT NULL DEFAULT 'single',
+    `explanation`           TEXT NULL,
+    `display_order`         INT NOT NULL DEFAULT 0,
+    `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_lms_questions_lesson` (`lesson_id`),
+    CONSTRAINT `fk_lms_questions_lesson` FOREIGN KEY (`lesson_id`) REFERENCES `lms_lessons` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One option of a question. `is_correct` is the answer key and is NEVER sent to
+-- a learner — api/lms/course_content.php strips it (see the comment there).
+CREATE TABLE IF NOT EXISTS `lms_answers` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `question_id`           INT NOT NULL,
+    `answer_text`           VARCHAR(500) NOT NULL,
+    `is_correct`            TINYINT(1) NOT NULL DEFAULT 0,
+    `display_order`         INT NOT NULL DEFAULT 0,
+    `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_lms_answers_question` (`question_id`),
+    CONSTRAINT `fk_lms_answers_question` FOREIGN KEY (`question_id`) REFERENCES `lms_questions` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `lms_learning_groups` (

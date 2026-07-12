@@ -1337,6 +1337,10 @@ $schema = [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'title'                 => 'VARCHAR(255) NOT NULL',
         'description'           => 'LONGTEXT NULL',
+        // 'scorm' (uploaded package) or 'native' (authored here). Defaulting to
+        // 'scorm' is what silently classifies every pre-existing course correctly.
+        'content_type'          => "VARCHAR(10) NOT NULL DEFAULT 'scorm'",
+        'pass_mark'             => 'INT NULL',
         'scorm_version'         => 'VARCHAR(20) NULL',
         'manifest_identifier'   => 'VARCHAR(255) NULL',
         'launch_url'            => 'VARCHAR(500) NULL',
@@ -1399,6 +1403,38 @@ $schema = [
         'value'                 => 'LONGTEXT NULL',
         'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // Native course content. Lesson bodies are TinyMCE HTML (as knowledge
+    // articles are); answers carry the key, which never leaves the server.
+    'lms_lessons' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'course_id'             => 'INT NOT NULL',
+        'title'                 => 'VARCHAR(255) NOT NULL',
+        'body'                  => 'LONGTEXT NULL',
+        'display_order'         => 'INT NOT NULL DEFAULT 0',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'lms_questions' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'lesson_id'             => 'INT NOT NULL',
+        'question_text'         => 'TEXT NOT NULL',
+        'question_type'         => "VARCHAR(20) NOT NULL DEFAULT 'single'",
+        'explanation'           => 'TEXT NULL',
+        'display_order'         => 'INT NOT NULL DEFAULT 0',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    'lms_answers' => [
+        'id'                    => 'INT NOT NULL AUTO_INCREMENT',
+        'question_id'           => 'INT NOT NULL',
+        'answer_text'           => 'VARCHAR(500) NOT NULL',
+        'is_correct'            => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'display_order'         => 'INT NOT NULL DEFAULT 0',
+        'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     'processes' => [
@@ -2744,6 +2780,25 @@ try {
     // Multi-tenancy foundation — unique keys + FKs for the tenant tables
     // (the $schema loop builds columns + PK only). Added idempotently.
     // ----------------------------------------------------------
+    // Native LMS content. The cascades are the point: deleting a course takes its
+    // lessons, their questions and those questions' answers with it, so a deleted
+    // course can't leave an orphaned answer key behind.
+    if ($tableExists('lms_lessons') && $tableExists('lms_courses')) {
+        if (!$fkExists('lms_lessons', 'fk_lms_lessons_course')) {
+            try { $conn->exec("ALTER TABLE lms_lessons ADD CONSTRAINT fk_lms_lessons_course FOREIGN KEY (course_id) REFERENCES lms_courses (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+    if ($tableExists('lms_questions') && $tableExists('lms_lessons')) {
+        if (!$fkExists('lms_questions', 'fk_lms_questions_lesson')) {
+            try { $conn->exec("ALTER TABLE lms_questions ADD CONSTRAINT fk_lms_questions_lesson FOREIGN KEY (lesson_id) REFERENCES lms_lessons (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+    if ($tableExists('lms_answers') && $tableExists('lms_questions')) {
+        if (!$fkExists('lms_answers', 'fk_lms_answers_question')) {
+            try { $conn->exec("ALTER TABLE lms_answers ADD CONSTRAINT fk_lms_answers_question FOREIGN KEY (question_id) REFERENCES lms_questions (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+
     if ($tableExists('tenant_domains') && $tableExists('tenants')) {
         if (!$idxExists('tenant_domains', 'uq_tenant_domains_domain')) {
             try { $conn->exec("ALTER TABLE tenant_domains ADD UNIQUE KEY uq_tenant_domains_domain (domain)"); } catch (Exception $e) {}

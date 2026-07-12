@@ -49,6 +49,12 @@ define('ENCRYPTED_SETTING_KEYS', [
     'cmdb_ai_api_key',
     'workflow_ai_api_key',
     'forms_ai_api_key',
+    // problem_ai shipped without being listed here, so its key was being stored
+    // in the clear. decryptValue() passes an unencrypted value straight through,
+    // so adding it now is safe: the existing value still reads, and re-encrypts
+    // the next time it is saved.
+    'problem_ai_api_key',
+    'lms_ai_api_key',
 ]);
 
 /**
@@ -70,6 +76,8 @@ define('MASKED_SETTING_KEYS', [
     'cmdb_ai_api_key',
     'workflow_ai_api_key',
     'forms_ai_api_key',
+    'problem_ai_api_key',
+    'lms_ai_api_key',
 ]);
 
 /**

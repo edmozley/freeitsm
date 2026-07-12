@@ -289,29 +289,32 @@ $translationNamespaces = ['common', 'lms'];
             <a href="#overview" class="lh-nav-link active" data-section="overview">
                 <span class="lh-nav-num">1</span> <?php echo htmlspecialchars(t('lms.help.nav_overview')); ?>
             </a>
+            <a href="#authoring" class="lh-nav-link" data-section="authoring">
+                <span class="lh-nav-num">2</span> <?php echo htmlspecialchars(t('lms.help.nav_authoring')); ?>
+            </a>
             <a href="#uploading" class="lh-nav-link" data-section="uploading">
-                <span class="lh-nav-num">2</span> <?php echo htmlspecialchars(t('lms.help.nav_uploading')); ?>
+                <span class="lh-nav-num">3</span> <?php echo htmlspecialchars(t('lms.help.nav_uploading')); ?>
             </a>
             <a href="#groups" class="lh-nav-link" data-section="groups">
-                <span class="lh-nav-num">3</span> <?php echo htmlspecialchars(t('lms.help.nav_groups')); ?>
+                <span class="lh-nav-num">4</span> <?php echo htmlspecialchars(t('lms.help.nav_groups')); ?>
             </a>
             <a href="#assigning" class="lh-nav-link" data-section="assigning">
-                <span class="lh-nav-num">4</span> <?php echo htmlspecialchars(t('lms.help.nav_assigning')); ?>
+                <span class="lh-nav-num">5</span> <?php echo htmlspecialchars(t('lms.help.nav_assigning')); ?>
             </a>
             <a href="#launching" class="lh-nav-link" data-section="launching">
-                <span class="lh-nav-num">5</span> <?php echo htmlspecialchars(t('lms.help.nav_launching')); ?>
+                <span class="lh-nav-num">6</span> <?php echo htmlspecialchars(t('lms.help.nav_launching')); ?>
             </a>
             <a href="#progress" class="lh-nav-link" data-section="progress">
-                <span class="lh-nav-num">6</span> <?php echo htmlspecialchars(t('lms.help.nav_progress')); ?>
+                <span class="lh-nav-num">7</span> <?php echo htmlspecialchars(t('lms.help.nav_progress')); ?>
             </a>
             <a href="#learner-data" class="lh-nav-link" data-section="learner-data">
-                <span class="lh-nav-num">7</span> <?php echo htmlspecialchars(t('lms.help.nav_learner_data')); ?>
+                <span class="lh-nav-num">8</span> <?php echo htmlspecialchars(t('lms.help.nav_learner_data')); ?>
             </a>
             <a href="#scorm" class="lh-nav-link" data-section="scorm">
-                <span class="lh-nav-num">8</span> <?php echo htmlspecialchars(t('lms.help.nav_scorm')); ?>
+                <span class="lh-nav-num">9</span> <?php echo htmlspecialchars(t('lms.help.nav_scorm')); ?>
             </a>
             <a href="#tips" class="lh-nav-link" data-section="tips">
-                <span class="lh-nav-num">9</span> <?php echo htmlspecialchars(t('lms.help.nav_tips')); ?>
+                <span class="lh-nav-num">10</span> <?php echo htmlspecialchars(t('lms.help.nav_tips')); ?>
             </a>
         </div>
 
@@ -376,10 +379,50 @@ $translationNamespaces = ['common', 'lms'];
                     </div>
                 </div>
 
-                <!-- 2. Uploading a course -->
-                <div class="lh-section" id="uploading">
+                <!-- 2. Writing your own course -->
+                <div class="lh-section" id="authoring">
                     <div class="lh-section-header">
                         <span class="lh-section-num highlight">2</span>
+                        <div>
+                            <h3><?php echo htmlspecialchars(t('lms.help.authoring_heading')); ?></h3>
+                            <p><?php echo t('lms.help.authoring_intro'); ?></p>
+                        </div>
+                    </div>
+
+                    <div class="lh-steps">
+                        <div class="lh-step-item"><span class="lh-step-num">1</span><div><?php echo t('lms.help.authoring_step1'); ?></div></div>
+                        <div class="lh-step-item"><span class="lh-step-num">2</span><div><?php echo t('lms.help.authoring_step2'); ?></div></div>
+                        <div class="lh-step-item"><span class="lh-step-num">3</span><div><?php echo t('lms.help.authoring_step3'); ?></div></div>
+                        <div class="lh-step-item"><span class="lh-step-num">4</span><div><?php echo t('lms.help.authoring_step4'); ?></div></div>
+                    </div>
+
+                    <p style="margin-top: 18px;"><?php echo t('lms.help.authoring_quiz'); ?></p>
+                    <p><?php echo t('lms.help.authoring_passmark'); ?></p>
+
+                    <div class="lh-features-grid" style="margin-top: 16px;">
+                        <div class="lh-feature-card">
+                            <h4><?php echo htmlspecialchars(t('lms.help.authoring_ai1_title')); ?></h4>
+                            <p><?php echo t('lms.help.authoring_ai1_body'); ?></p>
+                        </div>
+                        <div class="lh-feature-card">
+                            <h4><?php echo htmlspecialchars(t('lms.help.authoring_ai2_title')); ?></h4>
+                            <p><?php echo t('lms.help.authoring_ai2_body'); ?></p>
+                        </div>
+                        <div class="lh-feature-card">
+                            <h4><?php echo htmlspecialchars(t('lms.help.authoring_ai3_title')); ?></h4>
+                            <p><?php echo t('lms.help.authoring_ai3_body'); ?></p>
+                        </div>
+                        <div class="lh-feature-card">
+                            <h4><?php echo htmlspecialchars(t('lms.help.authoring_ai4_title')); ?></h4>
+                            <p><?php echo t('lms.help.authoring_ai4_body'); ?></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Uploading a course -->
+                <div class="lh-section" id="uploading">
+                    <div class="lh-section-header">
+                        <span class="lh-section-num highlight">3</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('lms.help.uploading_heading')); ?></h3>
                             <p><?php echo t('lms.help.uploading_intro'); ?></p>
@@ -401,7 +444,7 @@ $translationNamespaces = ['common', 'lms'];
                 <!-- 3. Learning groups -->
                 <div class="lh-section" id="groups">
                     <div class="lh-section-header">
-                        <span class="lh-section-num">3</span>
+                        <span class="lh-section-num">4</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('lms.help.groups_heading')); ?></h3>
                             <p><?php echo t('lms.help.groups_intro'); ?></p>
@@ -421,7 +464,7 @@ $translationNamespaces = ['common', 'lms'];
                 <!-- 4. Assigning courses -->
                 <div class="lh-section" id="assigning">
                     <div class="lh-section-header">
-                        <span class="lh-section-num">4</span>
+                        <span class="lh-section-num">5</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('lms.help.assigning_heading')); ?></h3>
                             <p><?php echo t('lms.help.assigning_intro'); ?></p>
@@ -442,7 +485,7 @@ $translationNamespaces = ['common', 'lms'];
                 <!-- 5. Launching a course -->
                 <div class="lh-section lh-section-highlight" id="launching">
                     <div class="lh-section-header">
-                        <span class="lh-section-num highlight">5</span>
+                        <span class="lh-section-num highlight">6</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('lms.help.launching_heading')); ?></h3>
                             <p><?php echo t('lms.help.launching_intro'); ?></p>
@@ -479,7 +522,7 @@ $translationNamespaces = ['common', 'lms'];
                 <!-- 6. Tracking progress -->
                 <div class="lh-section" id="progress">
                     <div class="lh-section-header">
-                        <span class="lh-section-num">6</span>
+                        <span class="lh-section-num">7</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('lms.help.progress_heading')); ?></h3>
                             <p><?php echo t('lms.help.progress_intro'); ?></p>
@@ -517,7 +560,7 @@ $translationNamespaces = ['common', 'lms'];
                 <!-- 7. Learner data drill-down -->
                 <div class="lh-section" id="learner-data">
                     <div class="lh-section-header">
-                        <span class="lh-section-num">7</span>
+                        <span class="lh-section-num">8</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('lms.help.learner_heading')); ?></h3>
                             <p><?php echo t('lms.help.learner_intro'); ?></p>
@@ -563,7 +606,7 @@ $translationNamespaces = ['common', 'lms'];
                 <!-- 8. SCORM support -->
                 <div class="lh-section" id="scorm">
                     <div class="lh-section-header">
-                        <span class="lh-section-num">8</span>
+                        <span class="lh-section-num">9</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('lms.help.scorm_heading')); ?></h3>
                             <p><?php echo t('lms.help.scorm_intro'); ?></p>
@@ -601,7 +644,7 @@ $translationNamespaces = ['common', 'lms'];
                 <!-- 9. Quick tips -->
                 <div class="lh-section" id="tips">
                     <div class="lh-section-header">
-                        <span class="lh-section-num">9</span>
+                        <span class="lh-section-num">10</span>
                         <div>
                             <h3><?php echo htmlspecialchars(t('lms.help.tips_heading')); ?></h3>
                         </div>

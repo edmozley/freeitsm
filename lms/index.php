@@ -26,7 +26,7 @@ $translationNamespaces = ['common', 'lms'];
     <title>Service Desk - <?php echo htmlspecialchars(t('lms.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=22">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/lms.css?v=3">
+    <link rel="stylesheet" href="../assets/css/lms.css?v=4">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
@@ -48,7 +48,10 @@ $translationNamespaces = ['common', 'lms'];
         <div class="lms-panel" id="panel-courses">
             <div class="lms-panel-header">
                 <h2><?php echo htmlspecialchars(t('lms.courses.heading')); ?></h2>
-                <button class="btn btn-primary" onclick="LMS.openUploadModal()"><?php echo htmlspecialchars(t('lms.courses.upload')); ?></button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-secondary" onclick="LMS.openUploadModal()"><?php echo htmlspecialchars(t('lms.courses.upload')); ?></button>
+                    <button class="btn btn-primary" onclick="LMS.openCreateModal()"><?php echo htmlspecialchars(t('lms.courses.create')); ?></button>
+                </div>
             </div>
             <table class="lms-table">
                 <thead>
@@ -149,6 +152,33 @@ $translationNamespaces = ['common', 'lms'];
                 </tbody>
             </table>
         </div>
+
+    </div>
+
+    <!-- Create an authored course -->
+    <div class="modal" id="createModal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header"><?php echo htmlspecialchars(t('lms.create_modal.title')); ?></div>
+            <form id="createForm" style="padding: 20px 24px;">
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('lms.create_modal.field_title')); ?> *</label>
+                    <input type="text" id="newCourseTitle" required>
+                </div>
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('lms.create_modal.field_description')); ?></label>
+                    <textarea id="newCourseDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('lms.create_modal.field_pass_mark')); ?></label>
+                    <input type="number" id="newCoursePassMark" min="0" max="100" placeholder="<?php echo htmlspecialchars(t('lms.create_modal.pass_mark_placeholder')); ?>">
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('lms.create_modal.pass_mark_hint')); ?></small>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="LMS.closeModal('createModal')"><?php echo htmlspecialchars(t('lms.create_modal.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('lms.create_modal.create')); ?></button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Upload Course Modal -->
@@ -248,6 +278,6 @@ $translationNamespaces = ['common', 'lms'];
 
     <!-- Toast -->
     <script>window.API_BASE = '../api/lms/';</script>
-    <script src="../assets/js/lms.js?v=2"></script>
+    <script src="../assets/js/lms.js?v=3"></script>
 </body>
 </html>

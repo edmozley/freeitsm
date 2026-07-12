@@ -821,14 +821,25 @@ End-user portal allowing ticket requesters to register, log in, and interact wit
 - **Multi-Factor Authentication**: TOTP-based MFA using the same core libraries (`includes/totp.php`, `includes/encryption.php`) as the analyst system. Users can enable/disable MFA from their account menu.
 
 ### LMS (`lms/`)
-Learning Management System with SCORM course player and progress tracking.
+Learning Management System: **write your own courses** or upload SCORM packages, then assign and track them. A course is one of two kinds, and the `content_type` column on `lms_courses` is the discriminator that `player.php` dispatches on — everything downstream (groups, assignments, progress, the learner drill-down) is shared.
 
+**Authoring (`content_type = 'native'`)** — no external tool required
+- **Course editor** (`editor.php`): A course is ordered **lessons** (`lms_lessons`), each written in TinyMCE exactly as a knowledge article is, drag-to-reorder. Any lesson can carry **questions** (`lms_questions` / `lms_answers`) — choose-one, choose-several or true/false — with a per-question explanation shown to the learner afterwards.
+- **Pass mark** owned by FreeITSM (`lms_courses.pass_mark`), not by the package: score is the percentage of questions correct across the course, and the learner is marked `passed` / `failed` against it. No pass mark means the course is simply `completed` at the end.
+- **Grading is server-side and authoritative** (`api/lms/native_progress.php`). The learner's content feed (`api/lms/course_content.php`) never selects `is_correct`, so **the answer key is never sent to the browser** — closing the hole that makes a SCORM quiz trivially cheatable. A forged POST can change which answers it claims were picked, but not whether they were right.
+- **Native player** (`native-player.php`): lesson-by-lesson with a contents list, progress bar, resume-where-you-left-off, and an answer review at the end showing what was wrong and why. Themed, dark-mode aware — unlike an iframe'd SCORM package.
+- **Reuses the SCORM plumbing rather than duplicating it**: answers are written into `lms_cmi_data` under SCORM's own `cmi.interactions.*` element names, so an authored course appears in the admin Progress tab and the learner drill-down **with no new admin UI at all**.
+- **Three AI helpers** (`api/lms/ai_author.php`, provider configured on **LMS → Settings**): turn a **knowledge-base article into a lesson** (grounded in an article you already know to be true — your documented fixes become your training), draft a **course outline** from a topic, and write **quiz questions** from a lesson you have written. Every helper produces a *draft in the editor* — the AI never writes to the database, and generated questions go through the same validation a hand-typed one does, so a malformed answer key is rejected before it can reach a learner. Unconfigured, the editor still works; you just author by hand.
+- *Planned:* **Export as SCORM** — the database is the source of truth, so a package can be generated on demand for portability to another LMS. Deliberately not the runtime.
+
+**SCORM (`content_type = 'scorm'`)** — for content authored elsewhere
 - **Course Management**: Upload SCORM 1.1, 1.2, and 2004 ZIP packages. Manifest is auto-parsed to detect version and launch URL.
 - **SCORM Player** (`player.php`): Full-viewport iframe with dual JavaScript API bridge — exposes both `window.API` (SCORM 1.x) and `window.API_1484_11` (SCORM 2004) so courses find whichever they look for.
 - **Progress Tracking**: Per-user status (not started, incomplete, completed, passed, failed), scores, bookmarks, suspend data, and resume support. All CMI data stored as key/value pairs.
 - **Learning Groups**: Create groups of analysts with many-to-many membership. Assign courses to groups with optional deadlines.
-- **Admin Dashboard**: Four tabs — Courses, Groups, Assignments, Progress. Progress tab shows every assigned analyst's completion status with overdue highlighting. Filterable by course, group, or status.
-- **Learner Data Viewer**: View button per learner showing quiz responses with correct/incorrect badges, objectives, scores, suspend data with syntax-highlighted JSON, and all raw CMI elements.
+- **Admin Dashboard**: Four tabs — Courses, Groups, Assignments, Progress. Progress tab shows every assigned analyst's completion status with overdue highlighting. Filterable by course, group, or status. Works identically for both kinds of course.
+- **Learner Data Viewer**: View button per learner showing quiz responses with correct/incorrect badges, objectives, scores, suspend data with syntax-highlighted JSON, and all raw CMI elements. Authored courses populate this too, because they write the same CMI elements.
+- **Settings** (`lms/settings/`): the AI provider used by the course editor (`lms_ai` namespace, key encrypted at rest).
 
 ### Process Mapper (`process-mapper/`)
 Visual flowchart builder for documenting processes and workflows.
