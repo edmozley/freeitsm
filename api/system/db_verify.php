@@ -1522,6 +1522,14 @@ $schema = [
         'delivered_datetime' => 'DATETIME NULL',
     ],
 
+    'workflow_scheduled_emissions' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'trigger_event'    => 'VARCHAR(100) NOT NULL',
+        'entity_key'       => 'VARCHAR(120) NOT NULL',
+        'fingerprint'      => 'VARCHAR(64) NOT NULL',
+        'emitted_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'webhook_message_formats' => [
         'id'               => 'INT NOT NULL AUTO_INCREMENT',
         'format_key'       => 'VARCHAR(40) NOT NULL',
@@ -3018,6 +3026,12 @@ try {
             'webhook_cron_token'              => bin2hex(random_bytes(16)),
             'webhook_cron_min_interval_seconds' => '20',
             'webhook_delivery_retention_days' => '30',
+            // Time-based workflow triggers (cron/workflow_scheduled.php): emits
+            // contract.expiring / asset.warranty_expiring. Expiry windows move once
+            // a day, so a 5-minute floor is generous — hourly scheduling is plenty.
+            // (sla.warning / sla.breached come from the SLA cron instead.)
+            'workflow_cron_token'             => bin2hex(random_bytes(16)),
+            'workflow_cron_min_interval_seconds' => '300',
             // Watchtower: flag tickets stuck in a paused-SLA status longer than this
             // (wall-clock hours since last status change). Guardrail against analysts
             // parking tickets in On Hold to escape the SLA clock.
@@ -4356,6 +4370,10 @@ try {
     // Ensure unique indexes exist on LMS tables (db_verify only creates columns, not indexes)
     $uniqueIndexes = [
         ['webhook_message_formats', 'uq_wmf_key', '(`format_key`)'],
+        // THE fire-once guarantee for time-based triggers. Without this UNIQUE key
+        // the INSERT IGNORE is meaningless and a breached SLA would re-escalate on
+        // every cron run, forever. It is not an optimisation — it is the feature.
+        ['workflow_scheduled_emissions', 'uq_wse_once', '(`trigger_event`, `entity_key`, `fingerprint`)'],
         ['lms_cmi_data', 'uq_lcd_progress_element', '(`progress_id`, `element`)'],
         ['lms_progress', 'uq_lp_analyst_course', '(`analyst_id`, `course_id`)'],
         ['lms_learning_group_members', 'uq_lgm_group_analyst', '(`group_id`, `analyst_id`)'],

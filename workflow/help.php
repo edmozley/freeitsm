@@ -257,6 +257,12 @@ $translationNamespaces = ['common', 'workflow'];
                 <li><?php echo t('workflow.help.triggers_family_crud'); ?></li>
             </ul>
             <p><?php echo t('workflow.help.triggers_picker'); ?></p>
+
+            <h4><?php echo htmlspecialchars(t('workflow.help.triggers_time_heading')); ?></h4>
+            <p><?php echo t('workflow.help.triggers_time_body'); ?></p>
+            <div class="callout"><?php echo t('workflow.help.triggers_time_cron'); ?></div>
+            <p><?php echo t('workflow.help.triggers_time_once'); ?></p>
+
             <div class="callout"><?php echo t('workflow.help.actions_webhook_callout'); ?></div>
 
             <h3 id="failures"><?php echo htmlspecialchars(t('workflow.help.failures_heading')); ?></h3>

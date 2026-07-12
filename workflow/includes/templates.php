@@ -224,6 +224,101 @@ class WorkflowTemplates
             ],
 
             // ---------------------------------------------------------
+            //  Time-based (need the SLA / scheduled-trigger cron running)
+            // ---------------------------------------------------------
+            'sla_escalation' => [
+                'name'        => 'Escalate before the SLA breaches',
+                'category'    => 'SLA',
+                'description' => 'The one every service desk wants: shout BEFORE you miss the target, not after. Fires when a ticket\'s SLA clock crosses the warning threshold — alerting the team in chat and stamping the ticket, while there is still time to save it. Needs the SLA breach-check cron scheduled.',
+                'trigger_event' => 'sla.warning',
+                'conditions'  => [
+                    // Resolution only — a response-SLA warning on every new ticket
+                    // would be noise, and it's the resolution clock people miss.
+                    ['field' => 'sla.target', 'op' => 'equals', 'value' => 'resolution'],
+                ],
+                'actions'     => [
+                    [
+                        'type' => 'send_webhook',
+                        'args' => [
+                            'preset'  => 'slack',
+                            'url'     => ['$configure' => 'Your Slack incoming-webhook URL'],
+                            'message' => ':hourglass_flowing_sand: *SLA warning* — {{ticket.number}} ({{ticket.priority_name}}) is at {{sla.percent}}% of its resolution target, {{sla.remaining_minutes}} minutes left. {{ticket.subject}}',
+                        ],
+                    ],
+                    [
+                        'type' => 'add_ticket_note',
+                        'args' => [
+                            'ticket_id' => '{{ticket.id}}',
+                            'note'      => 'SLA warning: {{sla.percent}}% of the resolution target used, {{sla.remaining_minutes}} minutes remaining. The team has been alerted.',
+                        ],
+                    ],
+                ],
+            ],
+
+            'sla_breach_alert' => [
+                'name'        => 'Alert when an SLA is breached',
+                'category'    => 'SLA',
+                'description' => 'The backstop. When a target is actually missed, say so loudly and record it on the ticket, so a breach is never something you discover in a report a month later. Needs the SLA breach-check cron scheduled.',
+                'trigger_event' => 'sla.breached',
+                'conditions'  => [],
+                'actions'     => [
+                    [
+                        'type' => 'send_webhook',
+                        'args' => [
+                            'preset'  => 'slack',
+                            'message' => ':rotating_light: *SLA BREACHED* — {{ticket.number}} missed its {{sla.target}} target by {{sla.overdue_minutes}} minutes. {{ticket.subject}}',
+                            'url'     => ['$configure' => 'Your Slack incoming-webhook URL'],
+                        ],
+                    ],
+                    [
+                        'type' => 'add_ticket_note',
+                        'args' => [
+                            'ticket_id' => '{{ticket.id}}',
+                            'note'      => 'SLA BREACHED: the {{sla.target}} target was missed by {{sla.overdue_minutes}} minutes.',
+                        ],
+                    ],
+                ],
+            ],
+
+            'contract_renewal_reminder' => [
+                'name'        => 'Contract renewal reminder',
+                'category'    => 'Contracts',
+                'description' => 'Raises a ticket 30 days before a contract ends, so a renewal is a decision you make rather than a deadline you discover. Fires at 90, 30, 7 and 1 days out — this recipe filters to the 30-day reminder; change the condition, or drop it, to get all four. Needs the scheduled-trigger cron.',
+                'trigger_event' => 'contract.expiring',
+                'conditions'  => [
+                    ['field' => 'window_days', 'op' => 'equals', 'value' => '30'],
+                ],
+                'actions'     => [
+                    [
+                        'type' => 'create_ticket',
+                        'args' => [
+                            'subject' => 'Contract renewal due: {{contract.title}} ({{contract.number}})',
+                            'body'    => "This contract ends on {{contract.end_date}} — {{contract.days_remaining}} days away.\n\nSupplier: {{contract.supplier_name}}\n\nDecide whether to renew, renegotiate or let it lapse, and action it before the end date.",
+                        ],
+                    ],
+                ],
+            ],
+
+            'warranty_expiry_reminder' => [
+                'name'        => 'Asset warranty expiry reminder',
+                'category'    => 'Assets',
+                'description' => 'Raises a ticket 30 days before an asset\'s warranty runs out, so you can extend it or plan the replacement while the machine is still covered. Needs the scheduled-trigger cron.',
+                'trigger_event' => 'asset.warranty_expiring',
+                'conditions'  => [
+                    ['field' => 'window_days', 'op' => 'equals', 'value' => '30'],
+                ],
+                'actions'     => [
+                    [
+                        'type' => 'create_ticket',
+                        'args' => [
+                            'subject' => 'Warranty expiring: {{asset.hostname}}',
+                            'body'    => "The warranty on {{asset.hostname}} expires on {{asset.warranty_end}} — {{asset.days_remaining}} days away.\n\nExtend the cover, or plan the replacement while it is still under warranty.",
+                        ],
+                    ],
+                ],
+            ],
+
+            // ---------------------------------------------------------
             //  Change management
             // ---------------------------------------------------------
             'change_approved_implementation_task' => [

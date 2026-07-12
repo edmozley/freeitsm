@@ -2889,6 +2889,33 @@ CREATE TABLE IF NOT EXISTS `workflow_executions` (
 -- dead endpoint never blocks the host request. The signing secret is NOT
 -- stored — the signature header is computed at enqueue time and kept in
 -- request_headers, so retries reuse it without persisting the secret.
+-- Time-based workflow triggers: the fire-once ledger.
+--
+-- Every other trigger hangs off a write path (someone saved a ticket), so there
+-- is a moment to dispatch from. "The SLA is about to breach" is not an event —
+-- nothing happened, TIME PASSED — so a cron has to go looking. And the condition
+-- it finds STAYS TRUE: a breached SLA is still breached on the next run. Without
+-- this ledger the escalation would re-fire every few minutes, forever.
+--
+-- `fingerprint` is the state the emission was recorded against (an SLA target,
+-- a contract end date). If that changes — priority changed, contract renewed —
+-- the fingerprint changes, and the new deadline is allowed to fire again. Without
+-- it, "fire once" would silently mean "fire once ever, even if the thing you were
+-- watching changed underneath you".
+--
+-- The UNIQUE key is what makes it atomic: INSERT IGNORE, and only the insert that
+-- actually created a row dispatches. Two overlapping cron runs cannot double-fire.
+CREATE TABLE IF NOT EXISTS `workflow_scheduled_emissions` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `trigger_event`     VARCHAR(100) NOT NULL,   -- e.g. 'sla.breached'
+    `entity_key`        VARCHAR(120) NOT NULL,   -- WHAT: 'ticket:183:response'
+    `fingerprint`       VARCHAR(64)  NOT NULL,   -- the STATE it fired against
+    `emitted_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_wse_once` (`trigger_event`, `entity_key`, `fingerprint`),
+    KEY `idx_wse_emitted` (`emitted_datetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Webhook message formats. A chat "preset" is just a JSON body template with a
 -- {{message}} slot — Slack is {"text": "{{message}}"}, Discord is
 -- {"content": "{{message}}"} — so they live as DATA rather than a PHP switch,

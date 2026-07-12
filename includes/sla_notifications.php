@@ -76,6 +76,23 @@ function sla_run_breach_check(PDO $conn): array {
                 }
 
                 foreach (array_unique($triggers) as $trigger) {
+                    // ---- Workflow event -------------------------------------
+                    // Emitted BEFORE the email-rule lookup, and gated by its OWN
+                    // fire-once ledger, deliberately:
+                    //
+                    //  * A workflow must fire whether or not anyone configured an
+                    //    email rule. Notification rules are about who gets an
+                    //    email; they have nothing to say about automation.
+                    //  * sla_notifications_sent is only written when an email
+                    //    actually goes out (see below — "no matching rule" leaves
+                    //    it unmarked), so reusing it as the workflow ledger would
+                    //    mean a workflow re-fires forever on any install with no
+                    //    notification rules. Which is most of them.
+                    //
+                    // Free to compute: we're already holding this ticket's SLA
+                    // state, so the emitter can't drift from what the emails think.
+                    sla_emit_workflow_event($conn, (int)$ticketId, $targetType, $trigger, $target);
+
                     if (sla_notification_already_sent($conn, (int)$ticketId, $targetType, $trigger)) {
                         continue;
                     }
@@ -100,6 +117,67 @@ function sla_run_breach_check(PDO $conn): array {
     }
 
     return $summary;
+}
+
+/**
+ * Emit the time-based workflow event for an SLA warning / breach.
+ *
+ * `$trigger` is the SLA module's own vocabulary ('warning' / 'breach'); the
+ * workflow trigger names are `sla.warning` / `sla.breached`.
+ *
+ * FINGERPRINT = the SLA target in minutes. That is what makes this re-arm
+ * correctly: change a ticket's priority and its SLA target changes with it, so
+ * the new deadline is a new fingerprint and is allowed to breach and fire again.
+ * Fingerprinting on the ticket alone would suppress the second escalation
+ * forever — the workflow would go quiet exactly when the ticket got more urgent.
+ *
+ * The full ticket is loaded into the payload so an escalation can act on the
+ * ticket itself (reassign, reprioritise, message about it) — not just announce
+ * that a number went red.
+ */
+function sla_emit_workflow_event(PDO $conn, int $ticketId, string $targetType, string $trigger, array $target): void
+{
+    try {
+        require_once __DIR__ . '/workflow_scheduled.php';
+
+        $event = $trigger === 'breach' ? 'sla.breached' : 'sla.warning';
+
+        $t = $conn->prepare(
+            "SELECT id, subject, priority_id, status_id, department_id, type_id,
+                    assigned_analyst_id, owner_id, origin_id, created_by
+               FROM tickets WHERE id = ? LIMIT 1"
+        );
+        $t->execute([$ticketId]);
+        $ticket = $t->fetch(PDO::FETCH_ASSOC);
+        if (!$ticket) return;
+
+        // Requester email lives on the ticket's originating email row.
+        $r = $conn->prepare("SELECT from_email FROM emails WHERE ticket_id = ? ORDER BY id ASC LIMIT 1");
+        $r->execute([$ticketId]);
+        $ticket['requester_email'] = $r->fetchColumn() ?: null;
+
+        $sla = [
+            'target'         => $targetType,                       // 'response' | 'resolution'
+            'target_minutes' => (int)($target['target_minutes'] ?? 0),
+            'percent'        => (float)($target['percent'] ?? 0),
+        ];
+        if ($event === 'sla.breached') {
+            $sla['overdue_minutes'] = max(0, (int)($target['elapsed_minutes'] ?? 0) - (int)($target['target_minutes'] ?? 0));
+        } else {
+            $sla['remaining_minutes'] = (int)($target['remaining_minutes'] ?? 0);
+        }
+
+        workflowEmitOnce(
+            $conn,
+            $event,
+            'ticket:' . $ticketId . ':' . $targetType,
+            (string)($target['target_minutes'] ?? 0),   // re-arms if the SLA target changes
+            ['ticket' => $ticket, 'sla' => $sla]
+        );
+    } catch (Exception $e) {
+        // Never let workflow emission break the SLA email run.
+        error_log('[sla_emit_workflow_event] ticket ' . $ticketId . ': ' . $e->getMessage());
+    }
 }
 
 /**

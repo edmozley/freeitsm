@@ -121,6 +121,17 @@ class WorkflowEngine
             'service_status.incident_deleted'  => 'A status-page incident is deleted',
             'morning_check.recorded'   => 'A morning check result is recorded',
             'software.application_discovered' => 'A new software application is discovered',
+
+            // ---- TIME-BASED events ----
+            // These don't fire from a write path — nothing happened, TIME PASSED.
+            // A scheduled job goes looking for them (cron/workflow_scheduled.php
+            // and the SLA breach-check cron), and a fire-once ledger stops the
+            // same still-true condition re-firing every few minutes. If those
+            // crons aren't scheduled, these triggers never fire at all.
+            'sla.warning'              => 'A ticket\'s SLA is approaching its deadline (time-based)',
+            'sla.breached'             => 'A ticket\'s SLA has been breached (time-based)',
+            'contract.expiring'        => 'A contract is approaching its end date (time-based)',
+            'asset.warranty_expiring'  => 'An asset\'s warranty is approaching expiry (time-based)',
         ];
         // ---- Explicit created / updated / deleted for every CRUD + settings
         // entity. Generated from crudEntities() so the list stays maintainable,
@@ -266,6 +277,30 @@ class WorkflowEngine
             'service_status.incident_deleted'  => ['incident.id', 'incident.title'],
             'morning_check.recorded' => ['check.id', 'check.name', 'result.status_id', 'result.status_name', 'result.date'],
             'software.application_discovered' => ['application.id', 'application.name', 'application.publisher'],
+
+            // ---- Time-based ----
+            // SLA events carry the FULL ticket (so an escalation can reassign,
+            // reprioritise or message about the ticket itself) plus the SLA state.
+            // `sla.target` is 'response' or 'resolution' — condition on it if you
+            // only care about one.
+            'sla.warning' => array_merge($fullTicket, [
+                'sla.target', 'sla.percent', 'sla.remaining_minutes', 'sla.target_minutes',
+            ]),
+            'sla.breached' => array_merge($fullTicket, [
+                'sla.target', 'sla.overdue_minutes', 'sla.target_minutes',
+            ]),
+            // `window_days` is which reminder this is (90 / 30 / 7 / 1). One
+            // emission per window, so "only tell me at 30 days" is a condition
+            // rather than something the workflow has to schedule for itself.
+            'contract.expiring' => [
+                'contract.id', 'contract.number', 'contract.title', 'contract.end_date',
+                'contract.days_remaining', 'contract.supplier_id', 'contract.supplier_name',
+                'window_days',
+            ],
+            'asset.warranty_expiring' => [
+                'asset.id', 'asset.hostname', 'asset.warranty_end', 'asset.days_remaining',
+                'window_days',
+            ],
         ];
         if (isset($byTrigger[$trigger])) {
             return $byTrigger[$trigger];
