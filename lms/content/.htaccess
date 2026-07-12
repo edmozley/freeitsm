@@ -1,0 +1,14 @@
+# Course content is uploaded data, not application code. Nothing in this tree may
+# ever execute — this is defence in depth behind the extension allowlist in
+# includes/lms_package.php. Do not remove.
+php_flag engine off
+
+<IfModule mod_mime.c>
+    RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phar .cgi .pl .py .asp .aspx .jsp .sh
+    RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phar
+    AddType text/plain .php .phtml .phar .cgi .pl .py .sh
+</IfModule>
+
+<FilesMatch "\.(php[0-9]?|phtml|phar|cgi|pl|py|asp|aspx|jsp|sh|htaccess)$">
+    Require all denied
+</FilesMatch>

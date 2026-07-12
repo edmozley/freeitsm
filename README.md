@@ -834,6 +834,7 @@ Learning Management System: **write your own courses** or upload SCORM packages,
 
 **SCORM (`content_type = 'scorm'`)** — for content authored elsewhere
 - **Course Management**: Upload SCORM 1.1, 1.2, and 2004 ZIP packages. Manifest is auto-parsed to detect version and launch URL.
+- **Safe extraction** (`includes/lms_package.php`): the package is served from a directory Apache can execute, so every entry is vetted before anything is written — an allowlist of course file types (never `.php`), rejection of paths that escape the folder (zip-slip), and size/entry/ratio caps against zip bombs. Only vetted entries are extracted, and a committed `.htaccess` in `lms/content/` disables code execution for the whole tree as defence in depth.
 - **SCORM Player** (`player.php`): Full-viewport iframe with dual JavaScript API bridge — exposes both `window.API` (SCORM 1.x) and `window.API_1484_11` (SCORM 2004) so courses find whichever they look for.
 - **Progress Tracking**: Per-user status (not started, incomplete, completed, passed, failed), scores, bookmarks, suspend data, and resume support. All CMI data stored as key/value pairs.
 - **Learning Groups**: Create groups of analysts with many-to-many membership. Assign courses to groups with optional deadlines.

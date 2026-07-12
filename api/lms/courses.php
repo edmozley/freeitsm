@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/lms_package.php';
 header('Content-Type: application/json');
 
 if (!isset($_SESSION['analyst_id'])) {
@@ -44,23 +45,37 @@ if ($ext !== 'zip') {
 }
 
 try {
-    // Create course record to get an ID
+    // Open and VET the archive before anything is written to disk or to the
+    // database. A package that fails the checks in includes/lms_package.php is
+    // refused whole — so a rejected upload leaves no files and no stray course
+    // row behind, and nothing dangerous ever reaches the web-served directory.
+    $zip = new ZipArchive();
+    if ($zip->open($file['tmp_name']) !== true) {
+        throw new Exception('That file could not be opened as a ZIP archive.');
+    }
+
+    try {
+        $safeEntries = lmsValidatePackage($zip);
+    } catch (Exception $e) {
+        $zip->close();
+        throw $e;
+    }
+
+    // Only now is the package known to be safe — create the course record.
     $stmt = $conn->prepare("INSERT INTO lms_courses (title, description, original_filename, created_by_id) VALUES (?, ?, ?, ?)");
     $stmt->execute([$title, $description, $file['name'], $_SESSION['analyst_id']]);
     $courseId = (int)$conn->lastInsertId();
 
-    // Create content directory
-    $contentDir = dirname(dirname(__DIR__)) . '/lms/content/' . $courseId;
+    $contentRoot = dirname(dirname(__DIR__)) . '/lms/content';
+    lmsHardenContentDir($contentRoot);          // no-op once the .htaccess exists
+
+    $contentDir = $contentRoot . '/' . $courseId;
     if (!is_dir($contentDir)) {
         mkdir($contentDir, 0755, true);
     }
 
-    // Extract ZIP
-    $zip = new ZipArchive();
-    if ($zip->open($file['tmp_name']) !== true) {
-        throw new Exception('Failed to open ZIP file');
-    }
-    $zip->extractTo($contentDir);
+    // Extract ONLY the vetted entries — never the whole archive.
+    lmsExtractPackage($zip, $contentDir, $safeEntries);
     $zip->close();
 
     // Parse imsmanifest.xml

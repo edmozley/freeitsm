@@ -99,7 +99,12 @@ uploads/*
 # Module-specific runtime content (attachments, uploaded LMS courses, etc.)
 # These are populated by the running app and are tenant-specific — never commit.
 change-management/attachments/
-lms/content/
+# Ignore uploaded course content, but DO ship the guard that stops that
+# directory ever executing code. Ignoring the CONTENTS (/*) rather than the
+# directory itself is what lets the negation work — git won't re-include a file
+# whose parent directory is ignored.
+lms/content/*
+!lms/content/.htaccess
 tickets/attachments/
 contracts/rfp-builder/uploads/*
 !contracts/rfp-builder/uploads/.htaccess
