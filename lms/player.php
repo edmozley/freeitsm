@@ -7,6 +7,7 @@ session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
 require_once '../includes/timezone.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 Tz::init();
 require_once '../includes/functions.php';
@@ -43,13 +44,14 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'lms'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($course['title']); ?> - <?php echo htmlspecialchars(t('lms.title')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=21">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/lms.css">
+    <link rel="stylesheet" href="../assets/css/lms.css?v=3">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
@@ -62,7 +64,7 @@ $translationNamespaces = ['common', 'lms'];
         <div class="lms-player-toolbar">
             <span class="course-title"><?php echo htmlspecialchars($course['title']); ?></span>
             <div style="display: flex; gap: 8px; align-items: center;">
-                <span style="font-size: 12px; color: #666;"><?php echo htmlspecialchars(t('lms.player.scorm_version', ['version' => $course['scorm_version'] ?? '?'])); ?></span>
+                <span style="font-size: 12px; color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('lms.player.scorm_version', ['version' => $course['scorm_version'] ?? '?'])); ?></span>
                 <a href="./" class="btn btn-secondary" style="font-size: 12px; padding: 5px 12px;"><?php echo htmlspecialchars(t('lms.player.back')); ?></a>
             </div>
         </div>

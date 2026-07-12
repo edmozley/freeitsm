@@ -8,6 +8,7 @@ require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/timezone.php';
+require_once '../includes/theme.php';
 requireModuleAccess('watchtower');
 I18n::initFromSession();
 Tz::init();
@@ -17,22 +18,27 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'watchtower'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('watchtower.title')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=21">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js?v=2"></script>
     <style>
+        /* Pin the shared accent to the Watchtower slate so inbox.css components
+           (modals, buttons, tabs) pick up the module colour. */
+        body { --accent: var(--wt-accent, #1e293b); }
+
         /* ── Watchtower Layout ──────────────────────────────────────────────── */
         .wt-container {
             height: calc(100vh - 48px);
             overflow-y: auto;
-            background: #f0f2f5;
+            background: var(--app-bg, #f0f2f5);
             padding: 24px;
         }
         .wt-top-bar {
@@ -44,22 +50,22 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-title {
             font-size: 20px;
             font-weight: 600;
-            color: #1e293b;
+            color: var(--text, #1e293b);
         }
         .wt-refresh-info {
             font-size: 12px;
-            color: #94a3b8;
+            color: var(--text-faint, #94a3b8);
             display: flex;
             align-items: center;
             gap: 8px;
         }
         .wt-refresh-btn {
             background: none;
-            border: 1px solid #cbd5e1;
+            border: 1px solid var(--border, #cbd5e1);
             border-radius: 6px;
             padding: 4px 10px;
             font-size: 12px;
-            color: #64748b;
+            color: var(--text-muted, #64748b);
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -80,19 +86,19 @@ $translationNamespaces = ['common', 'watchtower'];
 
         /* ── Attention Card ─────────────────────────────────────────────────── */
         .wt-card {
-            background: #fff;
+            background: var(--surface, #fff);
             border-radius: 10px;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border, #e2e8f0);
             overflow: hidden;
             transition: box-shadow 0.15s;
         }
-        .wt-card:hover { box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+        .wt-card:hover { box-shadow: 0 2px 12px var(--shadow, rgba(0,0,0,0.08)); }
         .wt-card-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 14px 16px 10px;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--border-soft, #f1f5f9);
         }
         .wt-card-header-left {
             display: flex;
@@ -112,7 +118,7 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-card-name {
             font-size: 14px;
             font-weight: 600;
-            color: #334155;
+            color: var(--text, #334155);
         }
         .wt-card-name a {
             color: inherit;
@@ -138,14 +144,14 @@ $translationNamespaces = ['common', 'watchtower'];
             align-items: center;
             justify-content: center;
             min-height: 80px;
-            color: #94a3b8;
+            color: var(--text-faint, #94a3b8);
             font-size: 13px;
         }
         .wt-card-loading .wt-spinner {
             width: 20px;
             height: 20px;
-            border: 2px solid #e2e8f0;
-            border-top-color: #64748b;
+            border: 2px solid var(--border, #e2e8f0);
+            border-top-color: var(--text-muted, #64748b);
             border-radius: 50%;
             animation: wt-spin 0.6s linear infinite;
         }
@@ -170,7 +176,7 @@ $translationNamespaces = ['common', 'watchtower'];
         }
         .wt-metric-label {
             font-size: 11px;
-            color: #94a3b8;
+            color: var(--text-faint, #94a3b8);
             text-transform: uppercase;
             letter-spacing: 0.3px;
             margin-top: 2px;
@@ -189,8 +195,10 @@ $translationNamespaces = ['common', 'watchtower'];
             padding: 6px 10px;
             border-radius: 6px;
             font-size: 13px;
-            color: #334155;
+            color: var(--text, #334155);
         }
+        /* Severity washes = DATA (red/amber/green signalling). Light values kept
+           verbatim; the dark equivalents live in the override block below. */
         .wt-attention-item.red    { background: #fef2f2; color: #991b1b; }
         .wt-attention-item.amber  { background: #fffbeb; color: #92400e; }
         .wt-attention-item.green  { background: #f0fdf4; color: #166534; }
@@ -224,11 +232,11 @@ $translationNamespaces = ['common', 'watchtower'];
             background: #f8fafc;
             border-radius: 6px;
             font-size: 12px;
-            color: #475569;
+            color: var(--text-muted, #475569);
         }
         .wt-event-time {
             font-weight: 600;
-            color: #334155;
+            color: var(--text, #334155);
             white-space: nowrap;
             min-width: 50px;
         }
@@ -250,7 +258,7 @@ $translationNamespaces = ['common', 'watchtower'];
             background: #f8fafc;
             border-radius: 6px;
             font-size: 12px;
-            color: #475569;
+            color: var(--text-muted, #475569);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
@@ -273,6 +281,7 @@ $translationNamespaces = ['common', 'watchtower'];
             border-radius: 10px;
             white-space: nowrap;
         }
+        /* Impact pills = DATA — same reading in both modes (dark washes below). */
         .wt-impact-major    { background: #fef2f2; color: #991b1b; }
         .wt-impact-partial  { background: #fff7ed; color: #9a3412; }
         .wt-impact-degraded { background: #fffbeb; color: #92400e; }
@@ -318,6 +327,30 @@ $translationNamespaces = ['common', 'watchtower'];
             color: var(--text-muted, #64748b);
             word-break: break-word;
         }
+
+        /* ── Dark mode ──────────────────────────────────────────────────────────
+           Watchtower is a health dashboard: the red/amber/green signal is DATA and
+           must read the same in both modes. The saturated dots, metric colours and
+           icon tiles are left alone. What CAN'T survive dark is the pale severity
+           WASHES — near-white tints that would glow on a dark card — so each one is
+           sunk to a dark-tinted equivalent of the same hue, with the text lifted. */
+        [data-theme-mode="dark"] .wt-refresh-btn:hover { background: var(--surface-hover, #2a3039); border-color: #64748b; }
+
+        [data-theme-mode="dark"] .wt-attention-item.red     { background: #3a1a1d; color: #fca5a5; }
+        [data-theme-mode="dark"] .wt-attention-item.amber   { background: #3a2e12; color: #fcd34d; }
+        [data-theme-mode="dark"] .wt-attention-item.green   { background: #16331f; color: #86efac; }
+        [data-theme-mode="dark"] .wt-attention-item.blue    { background: #1d3346; color: #93c5fd; }
+        [data-theme-mode="dark"] .wt-attention-item.neutral { background: #22293a; color: #cbd5e1; }
+
+        [data-theme-mode="dark"] .wt-event,
+        [data-theme-mode="dark"] .wt-article { background: #22293a; }
+
+        [data-theme-mode="dark"] .wt-all-clear { background: #16331f; color: #86efac; }
+
+        [data-theme-mode="dark"] .wt-impact-major    { background: #3a1a1d; color: #fca5a5; }
+        [data-theme-mode="dark"] .wt-impact-partial  { background: #3a2312; color: #fdba74; }
+        [data-theme-mode="dark"] .wt-impact-degraded { background: #3a2e12; color: #fcd34d; }
+        [data-theme-mode="dark"] .wt-impact-maint    { background: #1d3346; color: #93c5fd; }
     </style>
 </head>
 <body>
@@ -506,8 +539,11 @@ $translationNamespaces = ['common', 'watchtower'];
         return `<div class="wt-attention-item ${level}"><div class="wt-attention-dot"></div><span>${text}</span></div>`;
     }
 
+    // The colour passed in is DATA (green = done, amber = warning, red = fail) and
+    // is used as given. The DEFAULT is chrome — plain text — so it must follow the
+    // theme, or a neutral metric would be dark slate on a dark card.
     function metric(value, label, color) {
-        return `<div class="wt-metric"><div class="wt-metric-value" style="color:${color || '#334155'}">${value}</div><div class="wt-metric-label">${label}</div></div>`;
+        return `<div class="wt-metric"><div class="wt-metric-value" style="color:${color || 'var(--text, #334155)'}">${value}</div><div class="wt-metric-label">${label}</div></div>`;
     }
 
     function renderMorningChecks(d) {
@@ -567,7 +603,7 @@ $translationNamespaces = ['common', 'watchtower'];
         }
 
         let html = '<div class="wt-metrics">';
-        html += metric(totalOpen, window.t('watchtower.tickets.metric_open'), '#334155');
+        html += metric(totalOpen, window.t('watchtower.tickets.metric_open'), 'var(--text, #334155)');
         html += metric(tk.open, window.t('watchtower.tickets.metric_new'), '#3b82f6');
         html += metric(tk.in_progress, window.t('watchtower.tickets.metric_active'), '#f59e0b');
         html += metric(tk.on_hold, window.t('watchtower.tickets.metric_hold'), '#94a3b8');
@@ -602,7 +638,7 @@ $translationNamespaces = ['common', 'watchtower'];
         }
 
         let html = '<div class="wt-metrics">';
-        html += metric(ch.upcoming_7d, window.t('watchtower.changes.metric_next_7d'), '#334155');
+        html += metric(ch.upcoming_7d, window.t('watchtower.changes.metric_next_7d'), 'var(--text, #334155)');
         html += metric(ch.in_progress_today, window.t('watchtower.changes.metric_active'), ch.in_progress_today > 0 ? '#f59e0b' : '#94a3b8');
         html += metric(ch.unapproved, window.t('watchtower.changes.metric_pending'), ch.unapproved > 0 ? '#ef4444' : '#94a3b8');
         html += '</div>';
@@ -632,7 +668,7 @@ $translationNamespaces = ['common', 'watchtower'];
 
         let html = '<div class="wt-metrics">';
         html += metric(cal.today_count, window.t('watchtower.calendar.metric_today'), cal.today_count > 0 ? '#ef6c00' : '#94a3b8');
-        html += metric(cal.week_count, window.t('watchtower.calendar.metric_week'), '#334155');
+        html += metric(cal.week_count, window.t('watchtower.calendar.metric_week'), 'var(--text, #334155)');
         html += '</div>';
 
         if (cal.today_events && cal.today_events.length > 0) {
@@ -729,7 +765,7 @@ $translationNamespaces = ['common', 'watchtower'];
         html += '</div>';
 
         if (kb.recent_articles && kb.recent_articles.length > 0) {
-            html += '<div style="font-size:11px;color:#94a3b8;margin-top:8px;text-transform:uppercase;letter-spacing:0.3px;">' + window.t('watchtower.knowledge.published_week') + '</div>';
+            html += '<div style="font-size:11px;color:var(--text-faint, #94a3b8);margin-top:8px;text-transform:uppercase;letter-spacing:0.3px;">' + window.t('watchtower.knowledge.published_week') + '</div>';
             html += '<div class="wt-article-list">';
             kb.recent_articles.forEach(function(art) {
                 html += `<div class="wt-article">${art.title}</div>`;
@@ -757,7 +793,7 @@ $translationNamespaces = ['common', 'watchtower'];
         }
 
         let html = '<div class="wt-metrics">';
-        html += metric(as.total, window.t('watchtower.assets.metric_total'), '#334155');
+        html += metric(as.total, window.t('watchtower.assets.metric_total'), 'var(--text, #334155)');
         html += metric(as.not_seen_7d, window.t('watchtower.assets.metric_offline'), as.not_seen_7d > 0 ? '#f59e0b' : '#94a3b8');
         if (as.warranty_show) {
             html += metric(as.warranty_soon, window.t('watchtower.assets.metric_warranty'), as.warranty_soon > 0 ? '#d13438' : '#94a3b8');
@@ -850,7 +886,7 @@ $translationNamespaces = ['common', 'watchtower'];
         }
 
         let html = '<div class="wt-metrics">';
-        html += metric(t.todo, window.t('watchtower.tasks.metric_todo'), '#334155');
+        html += metric(t.todo, window.t('watchtower.tasks.metric_todo'), 'var(--text, #334155)');
         html += metric(t.in_progress, window.t('watchtower.tasks.metric_active'), '#0078d4');
         html += '</div>';
 

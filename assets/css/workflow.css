@@ -854,3 +854,28 @@ body { --accent: var(--wf-accent, #f59e0b); }
     background: #263238;
     color: #eceff1;
 }
+
+/* =========================================================
+   Summary-panel box tints — JS-injected (workflow-editor.js)
+   =========================================================
+   workflow-editor.js builds the workflow-summary boxes (trigger / condition /
+   action) and the send-test result panel with INLINE styles. An inline style
+   beats a [data-theme-mode="dark"] rule, so these can't be overridden the usual
+   way — the JS reads these tokens via var(--token, #fallback) instead.
+
+   The three summary tints are TYPE-CODED (amber = trigger, orange = condition,
+   blue = action): the hue carries meaning, so dark keeps the hue and sinks the
+   wash rather than replacing it. */
+:root,
+[data-theme="default"] {
+    --wf-sum-trigger:      #fef3c7;  --wf-sum-trigger-text: inherit;
+    --wf-sum-condition:    #ffedd5;  --wf-sum-condition-text: inherit;
+    --wf-sum-action:       #dbeafe;  --wf-sum-action-text:  inherit;
+    --wf-test-surface:     #f8fafb;
+}
+[data-theme-mode="dark"] {
+    --wf-sum-trigger:      #3a2e12;  --wf-sum-trigger-text: #fcd34d;
+    --wf-sum-condition:    #3a2312;  --wf-sum-condition-text: #fdba74;
+    --wf-sum-action:       #1d3346;  --wf-sum-action-text:  #93c5fd;
+    --wf-test-surface:     #22293a;
+}

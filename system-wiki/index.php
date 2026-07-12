@@ -7,6 +7,7 @@ require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/timezone.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -18,7 +19,7 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'system-wiki'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -27,6 +28,7 @@ $translationNamespaces = ['common', 'system-wiki'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=21">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
         .wiki-container {

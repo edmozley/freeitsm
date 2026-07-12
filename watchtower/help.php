@@ -7,6 +7,7 @@ require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/timezone.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -21,28 +22,32 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'watchtower'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('watchtower.help.page_title')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=21">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js?v=2"></script>
     <style>
+        /* Watchtower accent (slate) — pin the generic accent to this module's token */
+        body { --accent: var(--wt-accent, #1e293b); }
+
         .wt-help-container {
             display: flex;
             height: calc(100vh - 48px);
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
         }
 
         /* Left sidebar navigation */
         .wt-help-sidebar {
             width: 260px;
-            background: white;
-            border-right: 1px solid #ddd;
+            background: var(--surface, #fff);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -53,7 +58,7 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-sidebar h3 {
             font-size: 12px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-dim, #888);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 0 0 12px;
@@ -66,19 +71,20 @@ $translationNamespaces = ['common', 'watchtower'];
             padding: 10px 12px;
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             text-decoration: none;
             transition: background 0.15s, color 0.15s;
         }
 
         .wt-help-nav-link:hover {
-            background: #f5f5f5;
-            color: #333;
+            background: var(--surface-hover, #f5f5f5);
+            color: var(--text, #333);
         }
 
+        /* Pale active wash — kept light, darkened in the override block below */
         .wt-help-nav-link.active {
             background: #e2e8f0;
-            color: #1e293b;
+            color: var(--wt-accent, #1e293b);
             font-weight: 600;
         }
 
@@ -90,15 +96,15 @@ $translationNamespaces = ['common', 'watchtower'];
             height: 24px;
             border-radius: 50%;
             background: #eee;
-            color: #888;
+            color: var(--text-dim, #888);
             font-weight: 700;
             font-size: 11px;
             flex-shrink: 0;
         }
 
         .wt-help-nav-link.active .wt-help-nav-num {
-            background: #1e293b;
-            color: white;
+            background: var(--wt-accent, #1e293b);
+            color: var(--wt-on-accent, #fff);
         }
 
 
@@ -108,7 +114,8 @@ $translationNamespaces = ['common', 'watchtower'];
             overflow-y: auto;
         }
 
-        /* Hero banner */
+        /* Hero banner — fixed dark slate gradient; white text reads in both modes.
+           Dark mode just dims it (see override block). */
         .wt-help-hero {
             background: linear-gradient(135deg, #1e293b 0%, #152238 50%, #0f172a 100%);
             color: white;
@@ -138,7 +145,7 @@ $translationNamespaces = ['common', 'watchtower'];
         /* Sections */
         .wt-help-section {
             padding: 28px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-soft, #eee);
             scroll-margin-top: 20px;
         }
 
@@ -157,19 +164,19 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-section-header h3 {
             margin: 0;
             font-size: 18px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .wt-help-section-header p {
             margin: 6px 0 0;
             font-size: 14px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.6;
         }
 
         .wt-help-section > p {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin: 0 0 14px;
         }
@@ -181,16 +188,16 @@ $translationNamespaces = ['common', 'watchtower'];
             min-width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #e2e8f0;
-            color: #1e293b;
+            background: #e2e8f0; /* pale wash — darkened in the override block */
+            color: var(--wt-accent, #1e293b);
             font-weight: 700;
             font-size: 14px;
             flex-shrink: 0;
         }
 
         .wt-help-section-num.highlight {
-            background: #1e293b;
-            color: white;
+            background: var(--wt-accent, #1e293b);
+            color: var(--wt-on-accent, #fff);
         }
 
         /* Feature cards grid */
@@ -203,14 +210,14 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-feature-card {
             padding: 20px;
             border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            background: white;
+            border: 1px solid var(--border, #e0e0e0);
+            background: var(--surface, #fff);
             transition: transform 0.15s, box-shadow 0.15s;
         }
 
         .wt-help-feature-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px var(--shadow, rgba(0,0,0,0.08));
         }
 
         .wt-help-feature-icon {
@@ -223,6 +230,7 @@ $translationNamespaces = ['common', 'watchtower'];
             margin-bottom: 12px;
         }
 
+        /* Type-coded feature tiles — DATA, left hardcoded in both modes */
         .wt-help-feature-icon.slate { background: #e2e8f0; color: #475569; }
         .wt-help-feature-icon.blue { background: #dbeafe; color: #2563eb; }
         .wt-help-feature-icon.emerald { background: #d1fae5; color: #059669; }
@@ -231,13 +239,13 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-feature-card h4 {
             margin: 0 0 6px;
             font-size: 15px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .wt-help-feature-card p {
             margin: 0;
             font-size: 12.5px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.5;
         }
 
@@ -255,8 +263,8 @@ $translationNamespaces = ['common', 'watchtower'];
             gap: 12px;
             padding: 16px;
             border-radius: 8px;
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e0e0e0);
         }
 
         .wt-help-status-dot {
@@ -267,6 +275,7 @@ $translationNamespaces = ['common', 'watchtower'];
             margin-top: 2px;
         }
 
+        /* Traffic-light dots — DATA, identical in both modes */
         .wt-help-status-dot.green { background: #22c55e; box-shadow: 0 0 0 3px rgba(34,197,94,0.2); }
         .wt-help-status-dot.amber { background: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.2); }
         .wt-help-status-dot.red { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.2); }
@@ -274,20 +283,20 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-status-card strong {
             display: block;
             font-size: 14px;
-            color: #333;
+            color: var(--text, #333);
             margin-bottom: 4px;
         }
 
         .wt-help-status-card span {
             font-size: 12.5px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.4;
         }
 
         .wt-help-status-examples {
             margin-top: 6px;
             font-size: 12px;
-            color: #888;
+            color: var(--text-dim, #888);
             line-height: 1.5;
         }
 
@@ -305,9 +314,9 @@ $translationNamespaces = ['common', 'watchtower'];
             gap: 14px;
             padding: 10px 14px;
             border-radius: 8px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             font-size: 14px;
-            color: #444;
+            color: var(--text, #444);
             line-height: 1.5;
         }
 
@@ -318,8 +327,8 @@ $translationNamespaces = ['common', 'watchtower'];
             min-width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: #1e293b;
-            color: white;
+            background: var(--wt-accent, #1e293b);
+            color: var(--wt-on-accent, #fff);
             font-weight: 700;
             font-size: 13px;
             flex-shrink: 0;
@@ -327,7 +336,7 @@ $translationNamespaces = ['common', 'watchtower'];
 
         /* Highlighted section */
         .wt-help-section-highlight {
-            background: #f1f5f9;
+            background: var(--wt-accent-soft, #f1f5f9);
             margin: 0 -48px;
             padding: 28px 48px !important;
             border-bottom: none !important;
@@ -336,7 +345,7 @@ $translationNamespaces = ['common', 'watchtower'];
 
         .wt-help-intro {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin-bottom: 20px !important;
         }
@@ -351,10 +360,10 @@ $translationNamespaces = ['common', 'watchtower'];
 
         .wt-help-fields div {
             padding: 8px 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
         }
 
         /* Module card descriptions */
@@ -371,8 +380,8 @@ $translationNamespaces = ['common', 'watchtower'];
             gap: 14px;
             padding: 14px 16px;
             border-radius: 8px;
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e0e0e0);
         }
 
         .wt-help-module-icon {
@@ -385,6 +394,7 @@ $translationNamespaces = ['common', 'watchtower'];
             flex-shrink: 0;
         }
 
+        /* Icon sits on the module's saturated brand colour (inline style) — white stroke stays */
         .wt-help-module-icon svg {
             width: 18px;
             height: 18px;
@@ -396,27 +406,27 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-module-card h4 {
             margin: 0 0 4px;
             font-size: 14px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .wt-help-module-card p {
             margin: 0;
             font-size: 12.5px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.5;
         }
 
         .wt-help-module-card .wt-help-module-triggers {
             margin-top: 4px;
             font-size: 11.5px;
-            color: #94a3b8;
+            color: var(--text-dim, #94a3b8);
         }
 
         /* Tip callout */
         .wt-help-tip {
             font-size: 13px !important;
-            color: #1e293b !important;
-            background: #f1f5f9;
+            color: var(--wt-accent, #1e293b) !important;
+            background: var(--wt-accent-soft, #f1f5f9);
             padding: 10px 14px;
             border-radius: 8px;
             border-left: 3px solid #334155;
@@ -434,10 +444,10 @@ $translationNamespaces = ['common', 'watchtower'];
             display: flex;
             gap: 12px;
             padding: 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.5;
         }
 
@@ -447,13 +457,13 @@ $translationNamespaces = ['common', 'watchtower'];
         }
 
         .wt-help-tip-card strong {
-            color: #333;
+            color: var(--text, #333);
         }
 
         /* Card structure illustration */
         .wt-help-card-diagram {
-            background: white;
-            border: 1px solid #e0e0e0;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e0e0e0);
             border-radius: 10px;
             overflow: hidden;
             margin: 14px 0;
@@ -465,7 +475,7 @@ $translationNamespaces = ['common', 'watchtower'];
             align-items: center;
             justify-content: space-between;
             padding: 12px 14px 10px;
-            border-bottom: 1px solid #f1f5f9;
+            border-bottom: 1px solid var(--border-soft, #f1f5f9);
         }
 
         .wt-help-card-diagram-left {
@@ -484,7 +494,7 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-card-diagram-name {
             font-size: 13px;
             font-weight: 600;
-            color: #334155;
+            color: var(--text, #334155);
         }
 
         .wt-help-card-diagram-dot {
@@ -512,15 +522,16 @@ $translationNamespaces = ['common', 'watchtower'];
         .wt-help-card-diagram-metric-value {
             font-size: 18px;
             font-weight: 700;
-            color: #334155;
+            color: var(--text, #334155);
         }
 
         .wt-help-card-diagram-metric-label {
             font-size: 10px;
-            color: #94a3b8;
+            color: var(--text-dim, #94a3b8);
             text-transform: uppercase;
         }
 
+        /* Pale green wash — kept light, swapped for the success tokens in dark */
         .wt-help-card-diagram-attention {
             display: flex;
             align-items: center;
@@ -551,6 +562,17 @@ $translationNamespaces = ['common', 'watchtower'];
             .wt-help-features-grid { grid-template-columns: 1fr; }
             .wt-help-status-grid { grid-template-columns: 1fr; }
             .wt-help-tips-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ---- Dark mode: pale washes that would otherwise glow, plus the hero ---- */
+        [data-theme-mode="dark"] .wt-help-hero { filter: brightness(0.82); }
+        [data-theme-mode="dark"] .wt-help-nav-link.active { background: var(--wt-accent-soft, #22293a); }
+        [data-theme-mode="dark"] .wt-help-nav-num { background: var(--surface-3, #20242b); }
+        [data-theme-mode="dark"] .wt-help-section-num { background: var(--wt-accent-soft, #22293a); }
+        [data-theme-mode="dark"] .wt-help-tip { color: var(--text, #e6e8eb) !important; }
+        [data-theme-mode="dark"] .wt-help-card-diagram-attention {
+            background: var(--success-bg, #16331f);
+            color: var(--success-text, #86efac);
         }
     </style>
 </head>

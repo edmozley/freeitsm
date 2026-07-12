@@ -655,7 +655,7 @@ const WFE = (() => {
         const op = n.op;
 
         if (op === 'is_empty' || op === 'is_not_empty') {
-            host.innerHTML = '<div style="font-size:12px; color:#888; padding: 6px 0;"><em>No value needed — this operator just checks presence.</em></div>';
+            host.innerHTML = '<div style="font-size:12px; color:var(--text-dim, #888); padding: 6px 0;"><em>No value needed — this operator just checks presence.</em></div>';
             return;
         }
 
@@ -668,16 +668,16 @@ const WFE = (() => {
                              ? n.value.split(',').map(s => s.trim())
                              : (n.value != null && n.value !== '' ? [String(n.value)] : []);
             host.innerHTML =
-                '<div style="border:1px solid #ddd; border-radius:4px; padding:8px 10px; max-height:200px; overflow-y:auto; background:#fafafa;">' +
+                '<div style="border:1px solid var(--border, #ddd); border-radius:4px; padding:8px 10px; max-height:200px; overflow-y:auto; background:var(--surface-2, #fafafa);">' +
                 lookup.map(v => {
                     const isOn = selected.includes(String(v.id));
-                    return `<label style="display:flex; align-items:center; gap:8px; padding:4px 0; cursor:pointer; font-size: 13px; color: #333;">
+                    return `<label style="display:flex; align-items:center; gap:8px; padding:4px 0; cursor:pointer; font-size: 13px; color: var(--text, #333);">
                         <input type="checkbox" value="${escAttr(v.id)}" ${isOn ? 'checked' : ''} onchange="WFE.onConditionMultiToggle()">
-                        ${escAttr(v.label)} <span style="color:#999; font-size:11px;">(id ${escAttr(v.id)})</span>
+                        ${escAttr(v.label)} <span style="color:var(--text-faint, #999); font-size:11px;">(id ${escAttr(v.id)})</span>
                     </label>`;
                 }).join('') +
                 '</div>' +
-                '<small style="display:block; color:#888; margin-top:4px;">Tick one for an exact match, or several for an "any of" match.</small>';
+                '<small style="display:block; color:var(--text-dim, #888); margin-top:4px;">Tick one for an exact match, or several for an "any of" match.</small>';
             return;
         }
 
@@ -688,7 +688,7 @@ const WFE = (() => {
                        : [];
             host.innerHTML =
                 '<input type="text" id="wfCondValue" autocomplete="off" oninput="WFE.updateConditionFromDetail()" value="' + escAttr(arr.join(', ')) + '" placeholder="comma-separated values">' +
-                '<small style="display:block; color:#888; margin-top:4px;">Comma-separate the values.</small>';
+                '<small style="display:block; color:var(--text-dim, #888); margin-top:4px;">Comma-separate the values.</small>';
             return;
         }
 
@@ -920,10 +920,10 @@ const WFE = (() => {
     function appendWebhookTest(host, n) {
         const wrap = document.createElement('div');
         wrap.className = 'form-group';
-        wrap.style.cssText = 'border-top: 1px solid #eceff1; margin-top: 14px; padding-top: 14px;';
+        wrap.style.cssText = 'border-top: 1px solid var(--border-soft, #eceff1); margin-top: 14px; padding-top: 14px;';
         wrap.innerHTML =
             '<button type="button" class="add-btn" id="wfWebhookTestBtn" style="margin:0;">Send test</button>'
-            + '<small style="display:block; color:#6b7280; margin-top:6px; font-size:11.5px;">Sends this webhook now, with sample ticket data, and shows what the endpoint returns. Nothing is saved.</small>'
+            + '<small style="display:block; color:var(--text-muted, #6b7280); margin-top:6px; font-size:11.5px;">Sends this webhook now, with sample ticket data, and shows what the endpoint returns. Nothing is saved.</small>'
             + '<div id="wfWebhookTestResult" style="margin-top:12px;"></div>';
         host.appendChild(wrap);
 
@@ -938,7 +938,7 @@ const WFE = (() => {
         btn.disabled = true;
         const original = btn.textContent;
         btn.textContent = 'Sending…';
-        out.innerHTML = '<em style="color:#6b7280; font-size:12.5px;">Sending…</em>';
+        out.innerHTML = '<em style="color:var(--text-muted, #6b7280); font-size:12.5px;">Sending…</em>';
         try {
             const r = await fetch(window.WF_API + 'webhook_test.php', {
                 method: 'POST',
@@ -1124,7 +1124,7 @@ const WFE = (() => {
 
     function webhookTestError(msg, heading) {
         const esc = wfEsc;
-        return '<div style="border-left:3px solid #c0392b; background:#fdf0f0; padding:10px 12px; border-radius:4px; font-size:12.5px; color:#8a2020;">'
+        return '<div style="border-left:3px solid var(--danger-accent, #c0392b); background:var(--danger-bg, #fdf0f0); padding:10px 12px; border-radius:4px; font-size:12.5px; color:var(--danger-text, #8a2020);">'
             + (heading ? '<strong>' + esc(heading) + '</strong><br>' : '') + esc(msg) + '</div>';
     }
 
@@ -1152,21 +1152,21 @@ const WFE = (() => {
         const req = d.request || {};
         const barColor = ok ? '#1e7e34' : '#b26a00';
         const pill = ok
-            ? '<span style="background:#e6f4ea; color:#1e7e34; padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600;">Delivered</span>'
-            : '<span style="background:#fdf0e2; color:#b26a00; padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600;">Not delivered</span>';
+            ? '<span style="background:var(--success-bg, #e6f4ea); color:var(--success-text, #1e7e34); padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600;">Delivered</span>'
+            : '<span style="background:var(--warning-bg, #fdf0e2); color:var(--warning-text, #b26a00); padding:2px 9px; border-radius:10px; font-size:11px; font-weight:600;">Not delivered</span>';
         const statusLine = resp.error
             ? 'Transport error: ' + esc(resp.error)
             : 'HTTP ' + esc(resp.status) + ' · ' + esc(resp.ms) + ' ms' + (req.signed ? ' · signed' : '');
-        let html = '<div style="border-left:3px solid ' + barColor + '; background:#f8fafb; padding:10px 12px; border-radius:4px;">';
+        let html = '<div style="border-left:3px solid ' + barColor + '; background:var(--wf-test-surface, #f8fafb); padding:10px 12px; border-radius:4px;">';
         html += '<div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">' + pill
-            + '<span style="font-size:12px; color:#55606a;">' + statusLine + '</span></div>';
+            + '<span style="font-size:12px; color:var(--text-muted, #55606a);">' + statusLine + '</span></div>';
         // A raw cURL error tells you what broke, not what to do. Where the server
         // recognised the cause, show the plain-English version and a link to the fix.
         if (d.diagnosis) html += renderDiagnosis(d.diagnosis);
-        html += '<div style="font-size:11px; color:#78909c; text-transform:uppercase; letter-spacing:.4px; margin:8px 0 3px;">Sent (sample data)</div>';
+        html += '<div style="font-size:11px; color:var(--text-dim, #78909c); text-transform:uppercase; letter-spacing:.4px; margin:8px 0 3px;">Sent (sample data)</div>';
         html += '<pre style="background:#263238; color:#eceff1; border-radius:5px; padding:10px; font-size:11px; overflow:auto; max-height:160px; white-space:pre-wrap; word-break:break-word; margin:0;">' + esc(req.body || '') + '</pre>';
         if (resp.body) {
-            html += '<div style="font-size:11px; color:#78909c; text-transform:uppercase; letter-spacing:.4px; margin:10px 0 3px;">Response</div>';
+            html += '<div style="font-size:11px; color:var(--text-dim, #78909c); text-transform:uppercase; letter-spacing:.4px; margin:10px 0 3px;">Response</div>';
             html += '<pre style="background:#263238; color:#eceff1; border-radius:5px; padding:10px; font-size:11px; overflow:auto; max-height:160px; white-space:pre-wrap; word-break:break-word; margin:0;">' + esc(resp.body) + '</pre>';
         }
         html += '</div>';
@@ -1635,19 +1635,19 @@ const WFE = (() => {
         const w = d.workflow || {};
         const trigLabel = window.WF_TRIGGERS[w.trigger_event] || w.trigger_event || '?';
         const parts = [];
-        parts.push('<div style="padding: 6px 10px; background: #fef3c7; border-radius: 4px; margin-bottom: 6px;"><strong>Trigger:</strong> ' + escHtml(trigLabel) + '</div>');
+        parts.push('<div style="padding: 6px 10px; background: var(--wf-sum-trigger, #fef3c7); color: var(--wf-sum-trigger-text, inherit); border-radius: 4px; margin-bottom: 6px;"><strong>Trigger:</strong> ' + escHtml(trigLabel) + '</div>');
         (w.conditions || []).forEach((c, i) => {
             const op = window.WF_OPS[c.op] || c.op;
-            parts.push('<div style="padding: 6px 10px; background: #ffedd5; border-radius: 4px; margin-bottom: 6px;"><strong>If</strong> ' + escHtml(c.field) + ' <em style="color:#888;">' + escHtml(op) + '</em> ' + escHtml(c.value) + '</div>');
+            parts.push('<div style="padding: 6px 10px; background: var(--wf-sum-condition, #ffedd5); color: var(--wf-sum-condition-text, inherit); border-radius: 4px; margin-bottom: 6px;"><strong>If</strong> ' + escHtml(c.field) + ' <em style="color:var(--text-dim, #888);">' + escHtml(op) + '</em> ' + escHtml(c.value) + '</div>');
         });
         (w.actions || []).forEach((a, i) => {
             const def = window.WF_ACTION_DEFS[a.type];
             const label = def ? def.label : a.type;
             const args = JSON.stringify(a.args || {});
-            parts.push('<div style="padding: 6px 10px; background: #dbeafe; border-radius: 4px; margin-bottom: 6px;"><strong>' + escHtml(label) + '</strong>: <code style="font-size: 11.5px;">' + escHtml(args) + '</code></div>');
+            parts.push('<div style="padding: 6px 10px; background: var(--wf-sum-action, #dbeafe); color: var(--wf-sum-action-text, inherit); border-radius: 4px; margin-bottom: 6px;"><strong>' + escHtml(label) + '</strong>: <code style="font-size: 11.5px;">' + escHtml(args) + '</code></div>');
         });
         if (w.name) {
-            parts.unshift('<div style="margin-bottom: 8px;"><strong>' + escHtml(w.name) + '</strong>' + (w.description ? ' <span style="color:#777;">— ' + escHtml(w.description) + '</span>' : '') + '</div>');
+            parts.unshift('<div style="margin-bottom: 8px;"><strong>' + escHtml(w.name) + '</strong>' + (w.description ? ' <span style="color:var(--text-dim, #777);">— ' + escHtml(w.description) + '</span>' : '') + '</div>');
         }
         document.getElementById('wfAiPreview').innerHTML = parts.join('');
 

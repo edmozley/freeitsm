@@ -8,6 +8,7 @@ require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
 require_once '../includes/timezone.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -18,13 +19,14 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'lms'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('lms.title')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=21">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/lms.css">
+    <link rel="stylesheet" href="../assets/css/lms.css?v=3">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
@@ -165,13 +167,13 @@ $translationNamespaces = ['common', 'lms'];
                 <div class="form-group">
                     <label><?php echo htmlspecialchars(t('lms.upload_modal.field_package')); ?></label>
                     <input type="file" id="courseFile" accept=".zip" required>
-                    <small style="color: #666;"><?php echo htmlspecialchars(t('lms.upload_modal.package_hint')); ?></small>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('lms.upload_modal.package_hint')); ?></small>
                 </div>
                 <div id="uploadProgress" style="display:none; margin-bottom: 12px;">
-                    <div style="background: #e0e0e0; border-radius: 4px; overflow: hidden;">
-                        <div id="uploadBar" style="height: 6px; background: #2563eb; width: 0%; transition: width 0.3s;"></div>
+                    <div style="background: var(--border, #e0e0e0); border-radius: 4px; overflow: hidden;">
+                        <div id="uploadBar" style="height: 6px; background: var(--lms-accent, #2563eb); width: 0%; transition: width 0.3s;"></div>
                     </div>
-                    <small id="uploadStatus" style="color: #666;"><?php echo htmlspecialchars(t('lms.upload_modal.uploading')); ?></small>
+                    <small id="uploadStatus" style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('lms.upload_modal.uploading')); ?></small>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="LMS.closeModal('uploadModal')"><?php echo htmlspecialchars(t('lms.upload_modal.cancel')); ?></button>
@@ -197,7 +199,7 @@ $translationNamespaces = ['common', 'lms'];
                 </div>
                 <div class="form-group">
                     <label><?php echo htmlspecialchars(t('lms.group_modal.field_members')); ?></label>
-                    <div id="membersList" style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 8px;"></div>
+                    <div id="membersList" style="max-height: 200px; overflow-y: auto; border: 1px solid var(--border, #ddd); border-radius: 4px; padding: 8px;"></div>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="LMS.closeModal('groupModal')"><?php echo htmlspecialchars(t('lms.group_modal.cancel')); ?></button>
@@ -223,7 +225,7 @@ $translationNamespaces = ['common', 'lms'];
                 <div class="form-group">
                     <label><?php echo htmlspecialchars(t('lms.assign_modal.field_deadline')); ?></label>
                     <input type="date" id="assignDeadline">
-                    <small style="color: #666;"><?php echo htmlspecialchars(t('lms.assign_modal.deadline_hint')); ?></small>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('lms.assign_modal.deadline_hint')); ?></small>
                 </div>
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="LMS.closeModal('assignModal')"><?php echo htmlspecialchars(t('lms.assign_modal.cancel')); ?></button>
@@ -238,7 +240,7 @@ $translationNamespaces = ['common', 'lms'];
         <div class="modal-content" style="max-width: 800px; max-height: 90vh;">
             <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center;">
                 <span id="learnerDataTitle"><?php echo htmlspecialchars(t('lms.learner_modal.title')); ?></span>
-                <button style="background:none;border:none;font-size:22px;cursor:pointer;color:#999;" onclick="LMS.closeModal('learnerDataModal')">&times;</button>
+                <button style="background:none;border:none;font-size:22px;cursor:pointer;color:var(--text-faint, #999);" onclick="LMS.closeModal('learnerDataModal')">&times;</button>
             </div>
             <div id="learnerDataBody" style="padding: 20px 24px; overflow-y: auto; flex: 1;"></div>
         </div>

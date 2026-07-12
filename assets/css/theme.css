@@ -126,6 +126,22 @@
     --pmap-accent:      #6366f1;  --pmap-accent-hover: #4f46e5;
     --pmap-accent-soft: #eef2ff;  --pmap-on-accent:    #ffffff;
 
+    /* System Wiki — red (module-colors.php 'wiki') */
+    --wiki-accent:      #c62828;  --wiki-accent-hover: #b71c1c;
+    --wiki-accent-soft: #fdecea;  --wiki-on-accent:    #ffffff;
+
+    /* LMS — blue (module-colors.php 'lms') */
+    --lms-accent:       #2563eb;  --lms-accent-hover:  #1d4ed8;
+    --lms-accent-soft:  #eff6ff;  --lms-on-accent:     #ffffff;
+
+    /* Watchtower — slate (module-colors.php 'watchtower') */
+    --wt-accent:        #1e293b;  --wt-accent-hover:   #0f172a;
+    --wt-accent-soft:   #f1f5f9;  --wt-on-accent:      #ffffff;
+
+    /* System — blue-grey (module-colors.php 'system') */
+    --sys-accent:       #546e7a;  --sys-accent-hover:  #37474f;
+    --sys-accent-soft:  #eceff1;  --sys-on-accent:     #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -228,6 +244,24 @@
     /* Process Mapper module (indigo) — accent nudged lighter to read on dark */
     --pmap-accent:      #818cf8;  --pmap-accent-hover: #a5b4fc;
     --pmap-accent-soft: #262a45;  --pmap-on-accent:    #ffffff;
+
+    /* System Wiki — red, lifted so it reads on a dark surface */
+    --wiki-accent:      #ef5350;  --wiki-accent-hover: #f77c7a;
+    --wiki-accent-soft: #3a1d1c;  --wiki-on-accent:    #ffffff;
+
+    /* LMS — blue, lifted */
+    --lms-accent:       #60a5fa;  --lms-accent-hover:  #93c5fd;
+    --lms-accent-soft:  #1b2a45;  --lms-on-accent:     #ffffff;
+
+    /* Watchtower — slate. The registered brand (#1e293b) is near-black: fine as a
+       header gradient, invisible as an accent on a dark surface. So dark lifts it
+       to a readable mid-slate rather than nudging the brand value. */
+    --wt-accent:        #94a3b8;  --wt-accent-hover:   #cbd5e1;
+    --wt-accent-soft:   #22293a;  --wt-on-accent:      #0f172a;
+
+    /* System — blue-grey, lifted */
+    --sys-accent:       #90a4ae;  --sys-accent-hover:  #b0bec5;
+    --sys-accent-soft:  #263238;  --sys-on-accent:     #263238;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;

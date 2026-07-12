@@ -10,6 +10,7 @@ session_start();
 require_once '../config.php';
 require_once '../includes/i18n.php';
 require_once '../includes/timezone.php';
+require_once '../includes/theme.php';
 I18n::initFromSession();
 Tz::init();
 require_once '../includes/functions.php';
@@ -26,7 +27,7 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'lms'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -35,15 +36,19 @@ $translationNamespaces = ['common', 'lms'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js?v=2"></script>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=21">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <style>
-        .lh-container { display: flex; height: calc(100vh - 48px); background: #f5f5f5; }
+        /* Pin the module accent for shared components */
+        body { --accent: var(--lms-accent, #2563eb); }
+
+        .lh-container { display: flex; height: calc(100vh - 48px); background: var(--app-bg, #f5f5f5); }
 
         /* ---- Sidebar nav ---- */
         .lh-sidebar {
             width: 260px;
-            background: white;
-            border-right: 1px solid #ddd;
+            background: var(--surface, #fff);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -52,27 +57,27 @@ $translationNamespaces = ['common', 'lms'];
         }
         .lh-sidebar h3 {
             font-size: 12px; font-weight: 600;
-            color: #888; text-transform: uppercase;
+            color: var(--text-dim, #888); text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 0 0 12px;
         }
         .lh-nav-link {
             display: flex; align-items: center; gap: 10px;
             padding: 10px 12px; border-radius: 6px;
-            font-size: 13px; color: #555;
+            font-size: 13px; color: var(--text-muted, #555);
             text-decoration: none;
             transition: background 0.15s, color 0.15s;
         }
-        .lh-nav-link:hover { background: #f5f5f5; color: #333; }
+        .lh-nav-link:hover { background: var(--surface-hover, #f5f5f5); color: var(--text, #333); }
         .lh-nav-link.active { background: #dbeafe; color: #1e40af; font-weight: 600; }
         .lh-nav-num {
             display: flex; align-items: center; justify-content: center;
             min-width: 22px; height: 22px;
             border-radius: 50%;
-            background: #f5f5f5; color: #888;
+            background: var(--surface-3, #f5f5f5); color: var(--text-dim, #888);
             font-size: 11px; font-weight: 700;
         }
-        .lh-nav-link.active .lh-nav-num { background: #2563eb; color: white; }
+        .lh-nav-link.active .lh-nav-num { background: var(--lms-accent, #2563eb); color: white; }
 
         /* ---- Main content ---- */
         .lh-main { flex: 1; overflow-y: auto; }
@@ -87,16 +92,16 @@ $translationNamespaces = ['common', 'lms'];
         .lh-content { max-width: 1120px; margin: 0 auto; padding: 10px 48px 48px; }
 
         /* ---- Sections ---- */
-        .lh-section { padding: 28px 0; border-bottom: 1px solid #eee; scroll-margin-top: 20px; }
+        .lh-section { padding: 28px 0; border-bottom: 1px solid var(--border-soft, #eee); scroll-margin-top: 20px; }
         .lh-section:last-child { border-bottom: 0; padding-bottom: 0; }
         .lh-section-header {
             display: flex; align-items: flex-start; gap: 14px;
             margin-bottom: 16px;
         }
-        .lh-section-header h3 { margin: 0; font-size: 18px; color: #333; }
-        .lh-section-header p  { margin: 6px 0 0; font-size: 14px; color: #666; line-height: 1.6; }
+        .lh-section-header h3 { margin: 0; font-size: 18px; color: var(--text, #333); }
+        .lh-section-header p  { margin: 6px 0 0; font-size: 14px; color: var(--text-muted, #666); line-height: 1.6; }
         .lh-section > p {
-            font-size: 14px; color: #555; line-height: 1.7;
+            font-size: 14px; color: var(--text-muted, #555); line-height: 1.7;
             margin: 0 0 14px;
         }
         .lh-section-num {
@@ -107,18 +112,18 @@ $translationNamespaces = ['common', 'lms'];
             font-weight: 700; font-size: 14px;
             flex-shrink: 0;
         }
-        .lh-section-num.highlight { background: #2563eb; color: white; }
+        .lh-section-num.highlight { background: var(--lms-accent, #2563eb); color: white; }
 
         /* ---- Feature card grid ---- */
         .lh-features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
         .lh-feature-card {
             padding: 20px;
             border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            background: white;
+            border: 1px solid var(--border, #e0e0e0);
+            background: var(--surface, #fff);
             transition: transform 0.15s, box-shadow 0.15s;
         }
-        .lh-feature-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
+        .lh-feature-card:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--shadow, rgba(0,0,0,0.08)); }
         .lh-feature-icon {
             width: 44px; height: 44px;
             border-radius: 10px;
@@ -129,22 +134,22 @@ $translationNamespaces = ['common', 'lms'];
         .lh-feature-icon.indigo { background: #e0e7ff; color: #4338ca; }
         .lh-feature-icon.green  { background: #e8f5e9; color: #2e7d32; }
         .lh-feature-icon.amber  { background: #fff7ed; color: #c2410c; }
-        .lh-feature-card h4 { margin: 0 0 6px; font-size: 15px; color: #333; }
-        .lh-feature-card p  { margin: 0; font-size: 12.5px; color: #666; line-height: 1.5; }
+        .lh-feature-card h4 { margin: 0 0 6px; font-size: 15px; color: var(--text, #333); }
+        .lh-feature-card p  { margin: 0; font-size: 12.5px; color: var(--text-muted, #666); line-height: 1.5; }
 
         /* ---- Numbered steps ---- */
         .lh-steps { display: flex; flex-direction: column; gap: 12px; margin-left: 46px; }
         .lh-step-item {
             display: flex; align-items: flex-start; gap: 14px;
             padding: 10px 14px; border-radius: 8px;
-            background: #fafafa;
-            font-size: 14px; color: #444; line-height: 1.5;
+            background: var(--surface-2, #fafafa);
+            font-size: 14px; color: var(--text, #444); line-height: 1.5;
         }
         .lh-step-num {
             display: flex; align-items: center; justify-content: center;
             min-width: 28px; height: 28px;
             border-radius: 50%;
-            background: #2563eb; color: white;
+            background: var(--lms-accent, #2563eb); color: white;
             font-weight: 700; font-size: 13px;
             flex-shrink: 0;
         }
@@ -176,7 +181,7 @@ $translationNamespaces = ['common', 'lms'];
         .lh-flow-step.s2 { background: #e0e7ff; color: #4338ca; }
         .lh-flow-step.s3 { background: #e8f5e9; color: #2e7d32; }
         .lh-flow-step.s4 { background: #fff3e0; color: #c2410c; }
-        .lh-flow-arrow { padding: 0 8px; color: #bbb; font-size: 18px; }
+        .lh-flow-arrow { padding: 0 8px; color: var(--text-faint, #bbb); font-size: 18px; }
 
         /* ---- Callouts ---- */
         .lh-tip {
@@ -185,7 +190,7 @@ $translationNamespaces = ['common', 'lms'];
             background: #dbeafe;
             padding: 10px 14px;
             border-radius: 8px;
-            border-left: 3px solid #2563eb;
+            border-left: 3px solid var(--lms-accent, #2563eb);
             margin-top: 10px;
         }
         .lh-warn {
@@ -203,12 +208,12 @@ $translationNamespaces = ['common', 'lms'];
             display: inline-block;
             padding: 1px 6px;
             border-radius: 4px;
-            background: white;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #cbd5e1);
+            box-shadow: 0 1px 0 var(--shadow, rgba(0,0,0,0.04));
             font-family: ui-monospace, Menlo, Consolas, monospace;
             font-size: 11.5px;
-            color: #334155;
+            color: var(--text, #334155);
         }
 
         /* ---- Tips grid ---- */
@@ -216,14 +221,14 @@ $translationNamespaces = ['common', 'lms'];
         .lh-tip-card {
             display: flex; gap: 12px;
             padding: 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.5;
         }
         .lh-tip-icon { font-size: 24px; flex-shrink: 0; line-height: 1; }
-        .lh-tip-card strong { color: #333; }
+        .lh-tip-card strong { color: var(--text, #333); }
 
         /* ---- Status pills used in copy ---- */
         .lh-pill {
@@ -253,6 +258,24 @@ $translationNamespaces = ['common', 'lms'];
         @media (max-width: 700px) {
             .lh-features-grid { grid-template-columns: 1fr; }
             .lh-tips-grid { grid-template-columns: 1fr; }
+        }
+
+        /* ---- Dark mode: pale washes that would otherwise glow ---- */
+        [data-theme-mode="dark"] .lh-hero { filter: brightness(0.82); }
+        [data-theme-mode="dark"] .lh-nav-link.active { background: #1b2a45; color: #93c5fd; }
+        [data-theme-mode="dark"] .lh-section-num { background: #1b2a45; color: #93c5fd; }
+        [data-theme-mode="dark"] .lh-section-highlight {
+            background: #1b2a45;
+            border-top-color: #2f4a76;
+        }
+        [data-theme-mode="dark"] .lh-tip {
+            background: #1b2a45;
+            color: #93c5fd !important;
+        }
+        [data-theme-mode="dark"] .lh-warn {
+            background: #3a2412;
+            color: #fdba74 !important;
+            border-left-color: #b45309;
         }
     </style>
 </head>

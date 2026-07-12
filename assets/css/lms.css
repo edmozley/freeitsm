@@ -2,6 +2,12 @@
    LMS Module Styles
    ============================================================= */
 
+/* This stylesheet is LMS-only (loaded by lms/index.php + lms/player.php),
+   so it is safe to pin the shared --accent to the LMS blue here. */
+body {
+    --accent: var(--lms-accent, #2563eb);
+}
+
 .lms-container {
     padding: 20px;
 }
@@ -10,7 +16,7 @@
 .lms-tabs {
     display: flex;
     gap: 0;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid var(--border, #e0e0e0);
     margin-bottom: 20px;
 }
 
@@ -20,18 +26,18 @@
     background: none;
     font-size: 14px;
     font-weight: 500;
-    color: #666;
+    color: var(--text-muted, #666);
     cursor: pointer;
     border-bottom: 2px solid transparent;
     margin-bottom: -2px;
     transition: all 0.15s;
 }
 
-.lms-tab:hover { color: #333; }
+.lms-tab:hover { color: var(--text, #333); }
 
 .lms-tab.active {
-    color: #2563eb;
-    border-bottom-color: #2563eb;
+    color: var(--lms-accent, #2563eb);
+    border-bottom-color: var(--lms-accent, #2563eb);
 }
 
 /* --- Panel -------------------------------------------------- */
@@ -45,7 +51,7 @@
 .lms-panel-header h2 {
     font-size: 18px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
     margin: 0;
 }
 
@@ -56,30 +62,31 @@
 
 .lms-filters select {
     padding: 7px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-size: 13px;
-    background: #fff;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
 }
 
 /* --- Table -------------------------------------------------- */
 .lms-table {
     width: 100%;
     border-collapse: collapse;
-    background: #fff;
+    background: var(--surface, #fff);
     border-radius: 8px;
     overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08));
 }
 
 .lms-table thead th {
-    background: #f8f9fa;
+    background: var(--surface-3, #f8f9fa);
     padding: 10px 14px;
     font-size: 12px;
     font-weight: 600;
-    color: #555;
+    color: var(--text-muted, #555);
     text-align: left;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border, #e0e0e0);
     text-transform: uppercase;
     letter-spacing: 0.3px;
 }
@@ -87,13 +94,13 @@
 .lms-table tbody td {
     padding: 10px 14px;
     font-size: 13px;
-    color: #333;
-    border-bottom: 1px solid #f0f0f0;
+    color: var(--text, #333);
+    border-bottom: 1px solid var(--border-soft, #f0f0f0);
     vertical-align: middle;
 }
 
 .lms-table tbody tr:hover {
-    background: #f8f9fa;
+    background: var(--surface-hover, #f8f9fa);
 }
 
 .lms-table tbody tr:last-child td {
@@ -102,11 +109,13 @@
 
 .lms-empty {
     text-align: center;
-    color: #999;
+    color: var(--text-faint, #999);
     padding: 30px 14px !important;
 }
 
 /* --- Status badges ----------------------------------------- */
+/* DATA: these encode learner outcome — light values stay exact,
+   dark equivalents live in the override block at the end. */
 .lms-status {
     display: inline-block;
     padding: 3px 10px;
@@ -142,9 +151,9 @@
     transition: all 0.15s;
 }
 
-.btn-primary { background: #2563eb; color: #fff; }
-.btn-primary:hover { background: #1d4ed8; }
-.btn-secondary { background: #e0e0e0; color: #333; }
+.btn-primary { background: var(--lms-accent, #2563eb); color: var(--lms-on-accent, #fff); }
+.btn-primary:hover { background: var(--lms-accent-hover, #1d4ed8); }
+.btn-secondary { background: var(--border, #e0e0e0); color: var(--text, #333); }
 .btn-secondary:hover { background: #d0d0d0; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
@@ -157,7 +166,7 @@
     display: block;
     font-size: 12px;
     font-weight: 600;
-    color: #555;
+    color: var(--text-muted, #555);
     margin-bottom: 4px;
 }
 
@@ -166,17 +175,19 @@
 .form-group select {
     width: 100%;
     padding: 8px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-size: 13px;
     font-family: inherit;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
     outline: none;
-    border-color: #2563eb;
+    border-color: var(--lms-accent, #2563eb);
 }
 
 /* --- Modal ------------------------------------------------- */
@@ -198,7 +209,8 @@
 }
 
 .modal-content {
-    background: #fff;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
     border-radius: 10px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.2);
     width: 100%;
@@ -211,7 +223,7 @@
     padding: 16px 24px;
     font-size: 16px;
     font-weight: 600;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border, #e0e0e0);
 }
 
 .modal-actions {
@@ -230,7 +242,7 @@
     font-size: 13px;
 }
 
-.member-item:hover { background: #f8f9fa; }
+.member-item:hover { background: var(--surface-hover, #f8f9fa); }
 
 .member-item input[type="checkbox"] {
     width: auto;
@@ -238,6 +250,7 @@
 }
 
 /* --- Toast ------------------------------------------------- */
+/* DATA: toast pills keep their solid saturated fills + white text. */
 .toast {
     position: fixed;
     bottom: 20px;
@@ -268,7 +281,7 @@
 }
 
 .ld-stat {
-    background: #f8f9fa;
+    background: var(--surface-3, #f8f9fa);
     border-radius: 8px;
     padding: 14px 16px;
     text-align: center;
@@ -277,13 +290,13 @@
 .ld-stat .ld-stat-value {
     font-size: 22px;
     font-weight: 700;
-    color: #333;
+    color: var(--text, #333);
     margin-bottom: 2px;
 }
 
 .ld-stat .ld-stat-label {
     font-size: 11px;
-    color: #888;
+    color: var(--text-dim, #888);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
@@ -295,26 +308,26 @@
 .ld-section-title {
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
     margin-bottom: 10px;
     padding-bottom: 6px;
-    border-bottom: 2px solid #e0e0e0;
+    border-bottom: 2px solid var(--border, #e0e0e0);
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
 .ld-section-title .ld-count {
-    background: #2563eb;
-    color: #fff;
+    background: var(--lms-accent, #2563eb);
+    color: var(--lms-on-accent, #fff);
     font-size: 11px;
     padding: 1px 8px;
     border-radius: 10px;
 }
 
 .ld-interaction {
-    background: #fff;
-    border: 1px solid #e8e8e8;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e8e8e8);
     border-radius: 8px;
     padding: 14px 16px;
     margin-bottom: 10px;
@@ -322,7 +335,7 @@
 }
 
 .ld-interaction:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    box-shadow: 0 2px 8px var(--shadow, rgba(0,0,0,0.06));
 }
 
 .ld-interaction-header {
@@ -335,9 +348,11 @@
 .ld-interaction-id {
     font-size: 12px;
     font-weight: 600;
-    color: #555;
+    color: var(--text-muted, #555);
 }
 
+/* DATA: correct / wrong / neutral answer results — dark values in the
+   override block at the end. */
 .ld-result {
     display: inline-block;
     padding: 2px 10px;
@@ -359,19 +374,19 @@
 }
 
 .ld-field-label {
-    color: #888;
+    color: var(--text-dim, #888);
     min-width: 100px;
     flex-shrink: 0;
 }
 
 .ld-field-value {
-    color: #333;
+    color: var(--text, #333);
     word-break: break-word;
 }
 
 .ld-suspend {
-    background: #f8f9fa;
-    border: 1px solid #e0e0e0;
+    background: var(--surface-3, #f8f9fa);
+    border: 1px solid var(--border, #e0e0e0);
     border-radius: 6px;
     padding: 12px 14px;
     font-family: 'Consolas', 'Courier New', monospace;
@@ -380,7 +395,7 @@
     word-break: break-all;
     max-height: 300px;
     overflow-y: auto;
-    color: #333;
+    color: var(--text, #333);
     line-height: 1.6;
 }
 
@@ -390,6 +405,8 @@
     line-height: 1.6;
 }
 
+/* DATA: JSON syntax highlighting — light palette here, dark palette in
+   the override block (these are too dark to read on a dark surface). */
 .ld-suspend-json .ld-json-key { color: #881391; }
 .ld-suspend-json .ld-json-string { color: #0451a5; }
 .ld-suspend-json .ld-json-number { color: #098658; }
@@ -404,7 +421,7 @@
 .ld-kv-table td {
     padding: 6px 10px;
     font-size: 12px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-soft, #f0f0f0);
     vertical-align: top;
 }
 
@@ -416,15 +433,16 @@
 }
 
 .ld-kv-table td:last-child {
-    color: #333;
+    color: var(--text, #333);
     word-break: break-word;
 }
 
 .ld-kv-table tr:hover {
-    background: #fafafa;
+    background: var(--surface-2, #fafafa);
 }
 
 /* --- SCORM version badge ----------------------------------- */
+/* DATA: type-coded chip (SCORM 1.2 / 2004) — dark value in override block. */
 .scorm-badge {
     display: inline-block;
     padding: 2px 8px;
@@ -447,14 +465,14 @@
     align-items: center;
     justify-content: space-between;
     padding: 8px 16px;
-    background: #fff;
-    border-bottom: 1px solid #e0e0e0;
+    background: var(--surface, #fff);
+    border-bottom: 1px solid var(--border, #e0e0e0);
 }
 
 .lms-player-toolbar .course-title {
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
 }
 
 .lms-player-frame {
@@ -462,3 +480,35 @@
     border: none;
     width: 100%;
 }
+
+/* =============================================================
+   Dark mode overrides
+   Only for colours that must stay hardcoded in light mode:
+   data badges, syntax highlighting, and the one pale-tint chip.
+   ============================================================= */
+[data-theme-mode="dark"] .btn-secondary:hover { background: #414954; }
+
+/* Status badges (learner outcome) */
+[data-theme-mode="dark"] .lms-status.not_started { background: #2a3039; color: #b6bdc7; }
+[data-theme-mode="dark"] .lms-status.incomplete  { background: #3a2e12; color: #fcd34d; }
+[data-theme-mode="dark"] .lms-status.completed   { background: #16331f; color: #86efac; }
+[data-theme-mode="dark"] .lms-status.passed      { background: #16331f; color: #4ade80; }
+[data-theme-mode="dark"] .lms-status.failed      { background: #3a1a1d; color: #fca5a5; }
+[data-theme-mode="dark"] .lms-status.overdue     { background: #3a1a1d; color: #fca5a5; }
+
+/* Interaction results */
+[data-theme-mode="dark"] .ld-result.correct   { background: #16331f; color: #86efac; }
+[data-theme-mode="dark"] .ld-result.wrong,
+[data-theme-mode="dark"] .ld-result.incorrect { background: #3a1a1d; color: #fca5a5; }
+[data-theme-mode="dark"] .ld-result.neutral   { background: #2a3039; color: #b6bdc7; }
+
+/* SCORM version chip (pale blue tint, NOT --lms-accent-soft's #eff6ff) */
+[data-theme-mode="dark"] .scorm-badge { background: #1b2a45; color: #93c5fd; }
+
+/* JSON syntax highlighting — dark palette */
+[data-theme-mode="dark"] .ld-suspend-json .ld-json-key { color: #d980d4; }
+[data-theme-mode="dark"] .ld-suspend-json .ld-json-string { color: #9cdcfe; }
+[data-theme-mode="dark"] .ld-suspend-json .ld-json-number { color: #b5cea8; }
+[data-theme-mode="dark"] .ld-suspend-json .ld-json-bool { color: #569cd6; }
+[data-theme-mode="dark"] .ld-suspend-json .ld-json-null { color: #808a96; }
+[data-theme-mode="dark"] .ld-kv-table td:first-child { color: #d980d4; }
