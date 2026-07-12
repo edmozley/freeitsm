@@ -26,7 +26,7 @@ $translationNamespaces = ['common', 'change-management'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.settings')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/theme.css?v=19">
+    <link rel="stylesheet" href="../../assets/css/theme.css?v=20">
     <link rel="stylesheet" href="../../assets/css/inbox.css">
     <style>
         .container {

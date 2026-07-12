@@ -5,6 +5,16 @@
 /* Nav width/centring rules live in assets/css/inbox.css alongside the
    other module-header overrides — keep this file focused on layout. */
 
+/* Pin the generic accent tokens to this module's indigo brand so the editor
+   CHROME (toolbar, detail panel, modals, context menu) reads on-brand. The
+   canvas worksheet stays a light drawing surface in both modes. */
+body {
+    --accent:        var(--pmap-accent);
+    --accent-hover:  var(--pmap-accent-hover);
+    --accent-soft:   var(--pmap-accent-soft);
+    --on-accent:     var(--pmap-on-accent);
+}
+
 /* --- Layout ------------------------------------------------- */
 .pm-layout {
     display: flex;
@@ -62,7 +72,7 @@
     width: 3px;
     height: 36px;
     border-radius: 2px;
-    background: #bbb;
+    background: var(--border, #bbb);
     transition: opacity 0.18s;
     pointer-events: none;
 }
@@ -72,33 +82,33 @@
 .pm-sidebar {
     width: 260px;
     min-width: 260px;
-    background: #fff;
-    border-right: 1px solid #e0e0e0;
+    background: var(--surface, #fff);
+    border-right: 1px solid var(--border, #e0e0e0);
     display: flex;
     flex-direction: column;
 }
 
 .pm-sidebar-header {
     padding: 12px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border, #e0e0e0);
 }
 
 .pm-sidebar-search {
     padding: 8px 12px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-soft, #f0f0f0);
 }
 
 .pm-sidebar-search input {
     width: 100%;
     padding: 7px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-size: 13px;
 }
 
 .pm-sidebar-search input:focus {
     outline: none;
-    border-color: #0078d4;
+    border-color: var(--accent, #0078d4);
 }
 
 .pm-process-list {
@@ -118,12 +128,12 @@
 }
 
 .pm-process-item:hover {
-    background: #f5f5f5;
+    background: var(--surface-hover, #f5f5f5);
 }
 
 .pm-process-item.active {
-    background: #e8f4fd;
-    border-left-color: #0078d4;
+    background: var(--accent-soft, #e8f4fd);
+    border-left-color: var(--accent, #0078d4);
     font-weight: 500;
 }
 
@@ -136,7 +146,7 @@
 
 .pm-process-item .pm-process-date {
     font-size: 11px;
-    color: #999;
+    color: var(--text-faint, #999);
     margin-left: 8px;
     flex-shrink: 0;
 }
@@ -158,7 +168,7 @@
 }
 
 .pm-empty {
-    color: #999;
+    color: var(--text-faint, #999);
     font-size: 13px;
     text-align: center;
     padding: 24px;
@@ -179,8 +189,8 @@
     justify-content: space-between;
     align-items: center;
     padding: 6px 12px;
-    background: #fff;
-    border-bottom: 1px solid #e0e0e0;
+    background: var(--surface, #fff);
+    border-bottom: 1px solid var(--border, #e0e0e0);
     gap: 8px;
     min-height: 44px;
 }
@@ -202,32 +212,32 @@
     background: none;
     cursor: pointer;
     font-size: 12px;
-    color: #444;
+    color: var(--text-muted, #444);
     transition: all 0.15s;
 }
 
 .pm-tool-btn:hover {
-    background: #f0f0f0;
-    border-color: #ddd;
+    background: var(--surface-hover, #f0f0f0);
+    border-color: var(--border, #ddd);
 }
 
 .pm-tool-btn.active {
-    background: #e8f4fd;
-    border-color: #0078d4;
-    color: #0078d4;
+    background: var(--accent-soft, #e8f4fd);
+    border-color: var(--accent, #0078d4);
+    color: var(--accent, #0078d4);
 }
 
 .pm-tool-sep {
     width: 1px;
     height: 24px;
-    background: #ddd;
+    background: var(--border, #ddd);
     margin: 0 6px;
 }
 
 /* --- Save status indicator + autosave toggle -------------- */
 .pm-status {
     font-size: 12px;
-    color: #888;
+    color: var(--text-dim, #888);
     margin-right: 8px;
     min-width: 110px;
     display: inline-flex;
@@ -240,7 +250,7 @@
 .pm-status-saving  { color: #0078d4; }
 .pm-status-saved   { color: #2e7d32; }
 .pm-status-failed  { color: #c62828; }
-.pm-status-off     { color: #999; font-style: italic; }
+.pm-status-off     { color: var(--text-faint, #999); font-style: italic; }
 .pm-status-failed a { color: #c62828; text-decoration: underline; }
 .pm-status-tick    { color: #2e7d32; font-weight: 700; }
 .pm-status-warn    { font-weight: 700; }
@@ -250,7 +260,7 @@
     width: 10px;
     height: 10px;
     border: 2px solid rgba(0,120,212,0.25);
-    border-top-color: #0078d4;
+    border-top-color: var(--accent, #0078d4);
     border-radius: 50%;
     animation: pm-status-spin 0.7s linear infinite;
 }
@@ -262,17 +272,17 @@
     gap: 6px;
     cursor: pointer;
     font-size: 12px;
-    color: #444;
+    color: var(--text-muted, #444);
     padding: 4px 8px;
     border-radius: 4px;
     user-select: none;
 }
-.pm-autosave-toggle:hover { background: #f0f0f0; }
+.pm-autosave-toggle:hover { background: var(--surface-hover, #f0f0f0); }
 .pm-autosave-toggle input { display: none; }
 .pm-autosave-switch {
     width: 26px;
     height: 14px;
-    background: #ccc;
+    background: var(--border-soft, #ccc);
     border-radius: 7px;
     position: relative;
     transition: background 0.2s;
@@ -288,10 +298,10 @@
     background: white;
     border-radius: 50%;
     transition: transform 0.2s;
-    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    box-shadow: 0 1px 2px var(--shadow, rgba(0,0,0,0.2));
 }
 .pm-autosave-toggle input:checked + .pm-autosave-switch {
-    background: #0078d4;
+    background: var(--accent, #0078d4);
 }
 .pm-autosave-toggle input:checked + .pm-autosave-switch::after {
     transform: translateX(12px);
@@ -337,9 +347,9 @@
     justify-content: center;
 }
 .pm-modal {
-    background: white;
+    background: var(--surface, #fff);
     border-radius: 10px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    box-shadow: 0 10px 40px var(--shadow, rgba(0,0,0,0.25));
     width: 90%;
     max-width: 720px;
     max-height: 85vh;
@@ -352,24 +362,24 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 20px;
-    border-bottom: 1px solid #eee;
-    background: #fafafa;
+    border-bottom: 1px solid var(--border-soft, #eee);
+    background: var(--surface-2, #fafafa);
 }
 .pm-modal-header h3 {
     margin: 0;
     font-size: 16px;
-    color: #333;
+    color: var(--text, #333);
 }
 .pm-modal-close {
     background: none;
     border: none;
     font-size: 24px;
     line-height: 1;
-    color: #888;
+    color: var(--text-dim, #888);
     cursor: pointer;
     padding: 0 4px;
 }
-.pm-modal-close:hover { color: #333; }
+.pm-modal-close:hover { color: var(--text, #333); }
 .pm-modal-body {
     padding: 16px 20px 20px;
     display: flex;
@@ -380,11 +390,11 @@
 .pm-modal-hint {
     margin: 0;
     font-size: 13px;
-    color: #555;
+    color: var(--text-muted, #555);
     line-height: 1.5;
 }
 .pm-modal-hint code {
-    background: #f0f0f0;
+    background: var(--surface-hover, #f0f0f0);
     padding: 1px 5px;
     border-radius: 3px;
     font-size: 12px;
@@ -396,18 +406,18 @@
     font-family: 'Consolas', 'Courier New', monospace;
     font-size: 12.5px;
     line-height: 1.5;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 6px;
     padding: 12px;
     resize: vertical;
     box-sizing: border-box;
-    background: #f8f9fa;
-    color: #222;
+    background: var(--surface-2, #f8f9fa);
+    color: var(--text, #222);
 }
 .pm-modal-textarea:focus {
     outline: none;
-    border-color: #0078d4;
-    background: white;
+    border-color: var(--accent, #0078d4);
+    background: var(--surface, #fff);
 }
 .pm-modal-actions {
     display: flex;
@@ -416,9 +426,9 @@
     margin-top: 4px;
 }
 .pm-modal-btn {
-    background: #f5f5f5;
-    color: #333;
-    border: 1px solid #ddd;
+    background: var(--surface-hover, #f5f5f5);
+    color: var(--text, #333);
+    border: 1px solid var(--border, #ddd);
     padding: 8px 18px;
     border-radius: 5px;
     font-size: 13px;
@@ -426,13 +436,13 @@
     cursor: pointer;
     transition: background 0.15s, color 0.15s;
 }
-.pm-modal-btn:hover { background: #eee; }
+.pm-modal-btn:hover { background: var(--border-soft, #eee); }
 .pm-modal-btn-primary {
-    background: #0078d4;
-    color: white;
-    border-color: #0078d4;
+    background: var(--accent, #0078d4);
+    color: var(--on-accent, #fff);
+    border-color: var(--accent, #0078d4);
 }
-.pm-modal-btn-primary:hover { background: #106ebe; }
+.pm-modal-btn-primary:hover { background: var(--accent-hover, #106ebe); }
 /* Format chooser tiles inside the export modal — three side-by-side
    cards, click one to download (PNG / PDF) or reveal the Mermaid markup. */
 .pm-export-options {
@@ -447,8 +457,8 @@
     text-align: center;
     gap: 6px;
     padding: 18px 12px 14px;
-    background: #fafafa;
-    border: 2px solid #eee;
+    background: var(--surface-2, #fafafa);
+    border: 2px solid var(--border-soft, #eee);
     border-radius: 8px;
     cursor: pointer;
     transition: border-color 0.15s, background 0.15s;
@@ -458,17 +468,17 @@
     background: #f5f7fb;
 }
 .pm-export-icon {
-    color: #0078d4;
+    color: var(--accent, #0078d4);
     line-height: 0;
 }
 .pm-export-name {
     font-size: 14px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
 }
 .pm-export-sub {
     font-size: 11.5px;
-    color: #777;
+    color: var(--text-muted, #777);
     line-height: 1.35;
 }
 
@@ -587,7 +597,7 @@
     align-items: center;
     gap: 6px;
     font-size: 12px;
-    color: #555;
+    color: var(--text-muted, #555);
     cursor: pointer;
     user-select: none;
 }
@@ -862,8 +872,8 @@
 .pm-detail-panel {
     width: 0;
     min-width: 0;
-    background: #fff;
-    border-left: 1px solid #e0e0e0;
+    background: var(--surface, #fff);
+    border-left: 1px solid var(--border, #e0e0e0);
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -880,13 +890,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 14px 16px;
-    border-bottom: 1px solid #e0e0e0;
+    border-bottom: 1px solid var(--border, #e0e0e0);
 }
 
 .pm-detail-header h3 {
     font-size: 15px;
     font-weight: 600;
-    color: #333;
+    color: var(--text, #333);
     margin: 0;
 }
 
@@ -894,14 +904,14 @@
     background: none;
     border: none;
     font-size: 22px;
-    color: #999;
+    color: var(--text-faint, #999);
     cursor: pointer;
     padding: 0 4px;
     line-height: 1;
 }
 
 .pm-detail-close:hover {
-    color: #333;
+    color: var(--text, #333);
 }
 
 .pm-detail-body {
@@ -918,21 +928,21 @@
     display: block;
     font-size: 12px;
     font-weight: 600;
-    color: #555;
+    color: var(--text-muted, #555);
     margin-bottom: 4px;
 }
 
 .pm-detail-body .form-input {
     width: 100%;
     padding: 7px 10px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 4px;
     font-size: 13px;
 }
 
 .pm-detail-body .form-input:focus {
     outline: none;
-    border-color: #0078d4;
+    border-color: var(--accent, #0078d4);
 }
 
 .pm-detail-body textarea.form-input {
@@ -947,20 +957,20 @@
     gap: 6px;
     margin-bottom: 8px;
     font-size: 12px;
-    color: #555;
+    color: var(--text-muted, #555);
 }
 
 .pm-detail-connector input {
     flex: 1;
     padding: 4px 8px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--border, #ddd);
     border-radius: 3px;
     font-size: 12px;
 }
 
 .pm-detail-connector input:focus {
     outline: none;
-    border-color: #0078d4;
+    border-color: var(--accent, #0078d4);
 }
 
 .pm-detail-connector .pm-conn-delete {
@@ -1019,14 +1029,14 @@
 .pm-context-menu {
     position: fixed;
     z-index: 3000;
-    background: #fff;
-    border: 1px solid #d4d4d4;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #d4d4d4);
     border-radius: 7px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    box-shadow: 0 6px 24px var(--shadow, rgba(0,0,0,0.18));
     padding: 4px;
     min-width: 168px;
     font-size: 13px;
-    color: #333;
+    color: var(--text, #333);
     user-select: none;
 }
 
@@ -1042,11 +1052,11 @@
 }
 
 .pm-ctx-item:hover {
-    background: #e8f4fd;
+    background: var(--accent-soft, #e8f4fd);
 }
 
 .pm-ctx-item svg {
-    color: #555;
+    color: var(--text-muted, #555);
     flex-shrink: 0;
 }
 
@@ -1054,7 +1064,7 @@
 
 .pm-ctx-arrow {
     margin-left: 6px;
-    color: #999;
+    color: var(--text-faint, #999);
 }
 
 .pm-ctx-submenu {
@@ -1062,10 +1072,10 @@
     position: absolute;
     left: 100%;
     top: -5px;            /* align the first submenu item with the parent row */
-    background: #fff;
-    border: 1px solid #d4d4d4;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #d4d4d4);
     border-radius: 7px;
-    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    box-shadow: 0 6px 24px var(--shadow, rgba(0,0,0,0.18));
     padding: 4px;
     min-width: 158px;
 }
@@ -1083,7 +1093,7 @@
 /* Thin separator between menu groups. */
 .pm-ctx-separator {
     height: 1px;
-    background: #e0e0e0;
+    background: var(--border, #e0e0e0);
     margin: 4px 6px;
     pointer-events: none;
 }
@@ -1095,12 +1105,12 @@
 /* Disabled menu item — greyed and unclickable. Used for "Reverse connection"
    and "Delete all connections" on a step with no connectors. */
 .pm-ctx-item.pm-ctx-disabled {
-    color: #b0b0b0;
+    color: var(--text-faint, #b0b0b0);
     cursor: default;
     opacity: 0.65;
 }
 .pm-ctx-item.pm-ctx-disabled:hover { background: none; }
-.pm-ctx-item.pm-ctx-disabled .pm-ctx-arrow { color: #d0d0d0; }
+.pm-ctx-item.pm-ctx-disabled .pm-ctx-arrow { color: var(--text-faint, #d0d0d0); }
 .pm-ctx-item.pm-ctx-disabled:hover > .pm-ctx-submenu { display: none; }
 
 /* Destructive action — red text so Delete jumps out from the rest of the menu. */
@@ -1194,4 +1204,22 @@
     width: 20px;
     height: 14px;
     flex-shrink: 0;
+}
+
+/* =============================================================
+   Dark-mode overrides
+   -------------------------------------------------------------
+   A handful of pale washes are intentionally left hardcoded above
+   (their light value doesn't match any token, so tokenising would
+   shift the light look). On the dark chrome those pale tints would
+   glow, so re-point just their backgrounds/borders here. The light
+   worksheet/canvas content is deliberately NOT touched — the drawing
+   surface stays light in both modes (draw.io style).
+   ============================================================= */
+[data-theme-mode="dark"] .pm-ctx-item.pm-ctx-danger:hover {
+    background: #3a1e1e;   /* dark-red tint replacing the light #fdf3f3 wash */
+}
+[data-theme-mode="dark"] .pm-export-opt:hover {
+    border-color: var(--accent, #6366f1);
+    background: var(--surface-hover, #2a2a2a);
 }

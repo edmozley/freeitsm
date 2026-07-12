@@ -120,6 +120,12 @@
     --wf-accent:       #f59e0b;  --wf-accent-hover:  #d97706;
     --wf-accent-soft:  #fef3c7;  --wf-on-accent:     #ffffff;
 
+    /* Process Mapper module (indigo) accents — editor CHROME only; the flowchart
+       canvas + steps stay a light worksheet. Indigo is the registered brand.
+       (--pm-* is Problem Management; process-mapper uses --pmap-*.) */
+    --pmap-accent:      #6366f1;  --pmap-accent-hover: #4f46e5;
+    --pmap-accent-soft: #eef2ff;  --pmap-on-accent:    #ffffff;
+
     /* Messaging-channel (WhatsApp etc.) composer — green-tinted surface */
     --channel-bg:        #f7fdf9;  --channel-border: #d6e9d8;
 
@@ -218,6 +224,10 @@
     /* Workflows module (amber) — accent nudged lighter to read on dark */
     --wf-accent:       #fbbf24;  --wf-accent-hover:  #fcd34d;
     --wf-accent-soft:  #3a2e12;  --wf-on-accent:     #ffffff;
+
+    /* Process Mapper module (indigo) — accent nudged lighter to read on dark */
+    --pmap-accent:      #818cf8;  --pmap-accent-hover: #a5b4fc;
+    --pmap-accent-soft: #262a45;  --pmap-on-accent:    #ffffff;
 
     /* Messaging-channel (WhatsApp etc.) composer — dark green-tinted surface */
     --channel-bg:        #15231b;  --channel-border: #2b3d31;

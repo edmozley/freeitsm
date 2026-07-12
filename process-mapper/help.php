@@ -6,6 +6,7 @@ session_start();
 require_once '../config.php';
 require_once '../includes/functions.php';
 require_once '../includes/i18n.php';
+require_once '../includes/theme.php';
 require_once '../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
@@ -22,28 +23,33 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'process-mapper'];
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active('process-mapper')); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode('process-mapper')); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('process-mapper.help.page_title')); ?></title>
+    <link rel="stylesheet" href="../assets/css/theme.css?v=20">
     <link rel="stylesheet" href="../assets/css/inbox.css">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=1"></script>
     <script src="../assets/js/i18n.js?v=2"></script>
     <style>
+        /* Pin the generic accent tokens to this module's indigo so shared
+           components + the help chrome read on-brand (matches every module). */
+        body { --accent: var(--pmap-accent); --accent-hover: var(--pmap-accent-hover); --accent-soft: var(--pmap-accent-soft); --on-accent: var(--pmap-on-accent); }
+
         .pm-help-container {
             display: flex;
             height: calc(100vh - 48px);
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
         }
 
         /* Left sidebar navigation */
         .pm-help-sidebar {
             width: 260px;
-            background: white;
-            border-right: 1px solid #ddd;
+            background: var(--surface, white);
+            border-right: 1px solid var(--border, #ddd);
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -54,7 +60,7 @@ $translationNamespaces = ['common', 'process-mapper'];
         .pm-help-sidebar h3 {
             font-size: 12px;
             font-weight: 600;
-            color: #888;
+            color: var(--text-dim, #888);
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 0 0 12px;
@@ -67,19 +73,19 @@ $translationNamespaces = ['common', 'process-mapper'];
             padding: 10px 12px;
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             text-decoration: none;
             transition: background 0.15s, color 0.15s;
         }
 
         .pm-help-nav-link:hover {
-            background: #f5f5f5;
-            color: #333;
+            background: var(--surface-hover, #f5f5f5);
+            color: var(--text, #333);
         }
 
         .pm-help-nav-link.active {
-            background: #eef2ff;
-            color: #3730a3;
+            background: var(--accent-soft, #eef2ff);
+            color: var(--accent-hover, #3730a3);
             font-weight: 600;
         }
 
@@ -90,16 +96,16 @@ $translationNamespaces = ['common', 'process-mapper'];
             min-width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: #eee;
-            color: #888;
+            background: var(--border-soft, #eee);
+            color: var(--text-dim, #888);
             font-weight: 700;
             font-size: 11px;
             flex-shrink: 0;
         }
 
         .pm-help-nav-link.active .pm-help-nav-num {
-            background: #6366f1;
-            color: white;
+            background: var(--accent, #6366f1);
+            color: var(--on-accent, white);
         }
 
 
@@ -111,8 +117,8 @@ $translationNamespaces = ['common', 'process-mapper'];
 
         /* Hero banner */
         .pm-help-hero {
-            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 50%, #4338ca 100%);
-            color: white;
+            background: linear-gradient(135deg, var(--accent, #6366f1) 0%, var(--accent-hover, #4f46e5) 50%, #4338ca 100%);
+            color: var(--on-accent, white);
             padding: 40px 48px 36px;
             text-align: center;
         }
@@ -139,7 +145,7 @@ $translationNamespaces = ['common', 'process-mapper'];
         /* Sections */
         .pm-help-section {
             padding: 28px 0;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-soft, #eee);
             scroll-margin-top: 20px;
         }
 
@@ -158,19 +164,19 @@ $translationNamespaces = ['common', 'process-mapper'];
         .pm-help-section-header h3 {
             margin: 0;
             font-size: 18px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .pm-help-section-header p {
             margin: 6px 0 0;
             font-size: 14px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.6;
         }
 
         .pm-help-section > p {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin: 0 0 14px;
         }
@@ -182,16 +188,16 @@ $translationNamespaces = ['common', 'process-mapper'];
             min-width: 32px;
             height: 32px;
             border-radius: 50%;
-            background: #eef2ff;
-            color: #3730a3;
+            background: var(--accent-soft, #eef2ff);
+            color: var(--accent-hover, #3730a3);
             font-weight: 700;
             font-size: 14px;
             flex-shrink: 0;
         }
 
         .pm-help-section-num.highlight {
-            background: #6366f1;
-            color: white;
+            background: var(--accent, #6366f1);
+            color: var(--on-accent, white);
         }
 
         /* Feature cards grid */
@@ -204,14 +210,14 @@ $translationNamespaces = ['common', 'process-mapper'];
         .pm-help-feature-card {
             padding: 20px;
             border-radius: 10px;
-            border: 1px solid #e0e0e0;
-            background: white;
+            border: 1px solid var(--border, #e0e0e0);
+            background: var(--surface, white);
             transition: transform 0.15s, box-shadow 0.15s;
         }
 
         .pm-help-feature-card:hover {
             transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            box-shadow: 0 4px 15px var(--shadow, rgba(0,0,0,0.08));
         }
 
         .pm-help-feature-icon {
@@ -224,7 +230,7 @@ $translationNamespaces = ['common', 'process-mapper'];
             margin-bottom: 12px;
         }
 
-        .pm-help-feature-icon.indigo { background: #eef2ff; color: #4f46e5; }
+        .pm-help-feature-icon.indigo { background: var(--accent-soft, #eef2ff); color: var(--accent-hover, #4f46e5); }
         .pm-help-feature-icon.blue   { background: #e3f2fd; color: #1565c0; }
         .pm-help-feature-icon.green  { background: #e8f5e9; color: #2e7d32; }
         .pm-help-feature-icon.orange { background: #fff3e0; color: #e65100; }
@@ -232,13 +238,13 @@ $translationNamespaces = ['common', 'process-mapper'];
         .pm-help-feature-card h4 {
             margin: 0 0 6px;
             font-size: 15px;
-            color: #333;
+            color: var(--text, #333);
         }
 
         .pm-help-feature-card p {
             margin: 0;
             font-size: 12.5px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.5;
         }
 
@@ -256,9 +262,9 @@ $translationNamespaces = ['common', 'process-mapper'];
             gap: 14px;
             padding: 10px 14px;
             border-radius: 8px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             font-size: 14px;
-            color: #444;
+            color: var(--text-muted, #444);
             line-height: 1.5;
         }
 
@@ -269,8 +275,8 @@ $translationNamespaces = ['common', 'process-mapper'];
             min-width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: #6366f1;
-            color: white;
+            background: var(--accent, #6366f1);
+            color: var(--on-accent, white);
             font-weight: 700;
             font-size: 13px;
             flex-shrink: 0;
@@ -278,7 +284,7 @@ $translationNamespaces = ['common', 'process-mapper'];
 
         /* Highlighted section */
         .pm-help-section-highlight {
-            background: #eef2ff;
+            background: var(--accent-soft, #eef2ff);
             margin: 0 -48px;
             padding: 28px 48px !important;
             border-bottom: none !important;
@@ -287,7 +293,7 @@ $translationNamespaces = ['common', 'process-mapper'];
 
         .pm-help-intro {
             font-size: 14px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.7;
             margin-bottom: 20px !important;
         }
@@ -302,10 +308,10 @@ $translationNamespaces = ['common', 'process-mapper'];
 
         .pm-help-fields div {
             padding: 8px 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 6px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
         }
 
         /* Data cards */
@@ -318,21 +324,21 @@ $translationNamespaces = ['common', 'process-mapper'];
 
         .pm-help-data-card {
             padding: 12px 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
-            border-left: 3px solid #6366f1;
+            border-left: 3px solid var(--accent, #6366f1);
         }
 
         .pm-help-data-card strong {
             display: block;
             font-size: 13px;
-            color: #333;
+            color: var(--text, #333);
             margin-bottom: 4px;
         }
 
         .pm-help-data-card span {
             font-size: 12px;
-            color: #777;
+            color: var(--text-faint, #777);
             line-height: 1.4;
         }
 
@@ -344,7 +350,7 @@ $translationNamespaces = ['common', 'process-mapper'];
             width: 22px;
             height: 22px;
             margin-right: 8px;
-            color: #4f46e5;
+            color: var(--accent-hover, #4f46e5);
             vertical-align: middle;
         }
 
@@ -369,25 +375,25 @@ $translationNamespaces = ['common', 'process-mapper'];
             text-align: center;
         }
 
-        .pm-help-flow-step.create { background: #eef2ff; color: #3730a3; }
+        .pm-help-flow-step.create { background: var(--accent-soft, #eef2ff); color: var(--accent-hover, #3730a3); }
         .pm-help-flow-step.draw   { background: #e3f2fd; color: #1565c0; }
         .pm-help-flow-step.connect{ background: #e8f5e9; color: #2e7d32; }
         .pm-help-flow-step.save   { background: #fff3e0; color: #e65100; }
 
         .pm-help-flow-arrow {
             padding: 0 8px;
-            color: #bbb;
+            color: var(--text-faint, #bbb);
             font-size: 18px;
         }
 
         /* Tip callout */
         .pm-help-tip {
             font-size: 13px !important;
-            color: #3730a3 !important;
-            background: #eef2ff;
+            color: var(--accent-hover, #3730a3) !important;
+            background: var(--accent-soft, #eef2ff);
             padding: 10px 14px;
             border-radius: 8px;
-            border-left: 3px solid #6366f1;
+            border-left: 3px solid var(--accent, #6366f1);
             margin-top: 10px;
         }
 
@@ -396,12 +402,12 @@ $translationNamespaces = ['common', 'process-mapper'];
             display: inline-block;
             padding: 1px 6px;
             border-radius: 4px;
-            background: white;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 1px 0 rgba(0,0,0,0.04);
+            background: var(--surface, white);
+            border: 1px solid var(--border, #cbd5e1);
+            box-shadow: 0 1px 0 var(--shadow, rgba(0,0,0,0.04));
             font-family: ui-monospace, Menlo, Consolas, monospace;
             font-size: 11.5px;
-            color: #334155;
+            color: var(--text-muted, #334155);
         }
 
         /* Quick tips grid */
@@ -415,10 +421,10 @@ $translationNamespaces = ['common', 'process-mapper'];
             display: flex;
             gap: 12px;
             padding: 14px;
-            background: #fafafa;
+            background: var(--surface-2, #fafafa);
             border-radius: 8px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             line-height: 1.5;
         }
 
@@ -428,7 +434,7 @@ $translationNamespaces = ['common', 'process-mapper'];
         }
 
         .pm-help-tip-card strong {
-            color: #333;
+            color: var(--text, #333);
         }
 
         /* Responsive */
@@ -444,6 +450,20 @@ $translationNamespaces = ['common', 'process-mapper'];
             .pm-help-data-grid { grid-template-columns: 1fr; }
             .pm-help-tips-grid { grid-template-columns: 1fr; }
         }
+
+        /* Dark mode: darken the hero + the pale type-coded tiles/band so they
+           recede instead of glowing bright on the dark page. The coloured icons
+           stay as data (they encode meaning) — only their washes are darkened. */
+        [data-theme-mode="dark"] .pm-help-hero {
+            background: linear-gradient(135deg, #2a2f6b 0%, #232a5a 50%, #1a1f47 100%);
+        }
+        [data-theme-mode="dark"] .pm-help-section-highlight { border-top-color: #3a3f6b; }
+        [data-theme-mode="dark"] .pm-help-feature-icon.blue,
+        [data-theme-mode="dark"] .pm-help-flow-step.draw    { background: #14283b; color: #64b5f6; }
+        [data-theme-mode="dark"] .pm-help-feature-icon.green,
+        [data-theme-mode="dark"] .pm-help-flow-step.connect { background: #16281c; color: #66bb6a; }
+        [data-theme-mode="dark"] .pm-help-feature-icon.orange,
+        [data-theme-mode="dark"] .pm-help-flow-step.save    { background: #2e2013; color: #ffb74d; }
     </style>
 </head>
 <body>
@@ -620,7 +640,7 @@ $translationNamespaces = ['common', 'process-mapper'];
                         </div>
                     </div>
 
-                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: #333;"><?php echo htmlspecialchars(t('process-mapper.help.step_types_custom_heading')); ?></h4>
+                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: var(--text, #333);"><?php echo htmlspecialchars(t('process-mapper.help.step_types_custom_heading')); ?></h4>
                     <p><?php echo t('process-mapper.help.step_types_custom_body'); ?></p>
 
                     <p class="pm-help-tip"><?php echo t('process-mapper.help.step_types_tip'); ?></p>
@@ -634,7 +654,7 @@ $translationNamespaces = ['common', 'process-mapper'];
                     </div>
                     <p><?php echo t('process-mapper.help.connectors_intro'); ?></p>
 
-                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: #333;"><?php echo htmlspecialchars(t('process-mapper.help.connectors_drawing_heading')); ?></h4>
+                    <h4 style="margin: 22px 0 8px; font-size: 15px; color: var(--text, #333);"><?php echo htmlspecialchars(t('process-mapper.help.connectors_drawing_heading')); ?></h4>
                     <div class="pm-help-steps">
                         <div class="pm-help-step-item">
                             <div class="pm-help-step-num">1</div>
@@ -662,7 +682,7 @@ $translationNamespaces = ['common', 'process-mapper'];
                         </div>
                     </div>
 
-                    <h4 style="margin: 26px 0 8px; font-size: 15px; color: #333;"><?php echo htmlspecialchars(t('process-mapper.help.connectors_menu_heading')); ?></h4>
+                    <h4 style="margin: 26px 0 8px; font-size: 15px; color: var(--text, #333);"><?php echo htmlspecialchars(t('process-mapper.help.connectors_menu_heading')); ?></h4>
                     <p><?php echo t('process-mapper.help.connectors_menu_intro'); ?></p>
                     <div class="pm-help-data-grid">
                         <div class="pm-help-data-card">

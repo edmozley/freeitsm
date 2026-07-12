@@ -24,7 +24,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.calendar.page_title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/theme.css?v=19">
+    <link rel="stylesheet" href="../assets/css/theme.css?v=20">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=37">
     <link rel="stylesheet" href="../assets/css/calendar-grid.css?v=1">
     <link rel="stylesheet" href="../assets/css/calendar.css?v=5">

@@ -32,7 +32,7 @@ $translationNamespaces = ['common', 'forms'];
     <script src="<?php echo BASE_URL; ?>assets/js/i18n.js?v=2"></script>
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=1"></script>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=19">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=20">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/forms.css?v=<?= time() ?>">
     <style>
