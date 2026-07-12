@@ -1,10 +1,14 @@
 <?php
 session_start();
 require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../includes/functions.php';
 require_once __DIR__ . '/../../includes/ai_settings_panel.php';
 require_once __DIR__ . '/../../includes/theme.php';
 require_once __DIR__ . '/../../includes/timezone.php';
 Tz::init();
+
+requireModuleAccess('problems');
+
 $current_page = 'settings';
 $path_prefix = '../../';
 ?>

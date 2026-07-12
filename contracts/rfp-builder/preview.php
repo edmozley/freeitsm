@@ -20,6 +20,7 @@ if (!isset($_SESSION['analyst_id'])) {
     echo 'Not authenticated';
     exit;
 }
+requireModuleAccess('contracts');
 
 $rfpId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 if ($rfpId <= 0) {

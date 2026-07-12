@@ -4,6 +4,7 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/functions.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
 require_once '../../includes/ai_settings_panel.php';
@@ -15,6 +16,7 @@ if (!isset($_SESSION['analyst_id'])) {
     header('Location: ../../login.php');
     exit;
 }
+requireModuleAccess('forms');
 
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = 'settings';

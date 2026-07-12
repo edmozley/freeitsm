@@ -4,11 +4,14 @@
  */
 session_start();
 require_once '../../config.php';
+require_once '../../includes/functions.php';
 require_once '../../includes/i18n.php';
 require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
+
+requireModuleAccess('tasks');
 
 $current_page = 'timeline';
 $path_prefix = '../../';

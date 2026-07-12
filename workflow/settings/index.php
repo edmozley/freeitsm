@@ -22,6 +22,8 @@ require_once '../../includes/timezone.php';
 I18n::initFromSession();
 Tz::init();
 
+requireModuleAccess('workflow');
+
 $current_page = 'settings';
 $path_prefix  = '../../';
 
