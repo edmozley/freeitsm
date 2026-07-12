@@ -3,17 +3,7 @@
  * System Help — API.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'API';
-$helpSub  = 'FreeITSM has a REST API so other systems — monitoring tools, scripts, portals, RMM platforms — can create and work tickets programmatically. You create keys here in System, decide exactly what each key may do, and test everything from the built-in documentation page.';
-$helpNav  = [
-    ['id' => 'overview',    'label' => 'Overview'],
-    ['id' => 'keys',        'label' => 'Creating keys'],
-    ['id' => 'permissions', 'label' => 'Permissions'],
-    ['id' => 'companies',   'label' => 'Company scope'],
-    ['id' => 'using',       'label' => 'Using the API'],
-    ['id' => 'docs',        'label' => 'Docs & testing'],
-    ['id' => 'safety',      'label' => 'Good practice'],
-];
+$helpSlug = 'api';
 require __DIR__ . '/_top.php';
 ?>
 <!-- 1. Overview -->

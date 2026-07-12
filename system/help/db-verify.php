@@ -3,15 +3,7 @@
  * System Help — Database verification.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Database verification';
-$helpSub  = 'Check that every table, column, key and index FreeITSM expects is present — and create anything that is missing — without touching your existing data.';
-$helpNav  = [
-    ['id' => 'overview', 'label' => 'Overview'],
-    ['id' => 'checks',   'label' => 'What it checks'],
-    ['id' => 'running',  'label' => 'Running a check'],
-    ['id' => 'results',  'label' => 'Reading the results'],
-    ['id' => 'pending',  'label' => 'Pending rows & Fix'],
-];
+$helpSlug = 'db-verify';
 require __DIR__ . '/_top.php';
 ?>
 

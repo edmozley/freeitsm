@@ -9,17 +9,7 @@ require __DIR__ . '/_init.php';
 $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
 $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_URL . 'api/auth/oidc_callback.php';
 
-$helpHero = 'Single Sign-On (SSO)';
-$helpSub  = 'Let people sign in with their existing identity provider — Microsoft Entra, Google, Okta, Keycloak and any other OpenID Connect provider — for both analysts and the self-service portal. Local passwords keep working as a fallback.';
-$helpNav  = [
-    ['id' => 'overview',   'label' => 'Overview'],
-    ['id' => 'which',      'label' => 'Single or multi-company?'],
-    ['id' => 'single',     'label' => 'Single-company setup'],
-    ['id' => 'multi',      'label' => 'Multi-company (MSP) setup'],
-    ['id' => 'experience', 'label' => 'What people see'],
-    ['id' => 'breakglass', 'label' => 'Break-glass & safety'],
-    ['id' => 'faq',        'label' => 'Troubleshooting'],
-];
+$helpSlug = 'sso';
 require __DIR__ . '/_top.php';
 ?>
 

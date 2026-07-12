@@ -3,14 +3,7 @@
  * System Help — Email routing test.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Email routing test';
-$helpSub  = 'A safe dry-run tool: type in a sender address (and pick a mailbox) and see which company an inbound email would land in — and exactly which rule decided it. Nothing is created or sent.';
-$helpNav  = [
-    ['id' => 'overview', 'label' => 'Overview'],
-    ['id' => 'use',      'label' => 'Running a test'],
-    ['id' => 'trace',    'label' => 'Reading the trace'],
-    ['id' => 'single',   'label' => 'Single-company installs'],
-];
+$helpSlug = 'email-routing-test';
 require __DIR__ . '/_top.php';
 ?>
 

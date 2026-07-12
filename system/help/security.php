@@ -3,15 +3,7 @@
  * System Help — Security.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Security';
-$helpSub  = 'Harden local sign-in with trusted-device, password-expiry, account-lockout and IP-ban controls. These settings only affect local password accounts — people who sign in through an identity provider are governed by that provider instead.';
-$helpNav  = [
-    ['id' => 'overview', 'label' => 'Overview'],
-    ['id' => 'trusted',  'label' => 'Trusted device'],
-    ['id' => 'password', 'label' => 'Password expiry'],
-    ['id' => 'lockout',  'label' => 'Account lockout'],
-    ['id' => 'ipban',    'label' => 'IP ban'],
-];
+$helpSlug = 'security';
 require __DIR__ . '/_top.php';
 ?>
 

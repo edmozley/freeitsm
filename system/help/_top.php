@@ -1,13 +1,15 @@
 <?php
 /**
  * Shared chrome for a System help topic page (head + CSS + header + hero +
- * sidebar, then opens the content area). Expects $helpHero (string),
- * $helpSub (string) and $helpNav (array of ['id'=>…,'label'=>…]) to be set.
+ * sidebar, then opens the content area). Expects $helpSlug — the page's key in
+ * _registry.php — from which the hero, standfirst and sidebar nav are resolved.
+ * A page can still set $helpHero / $helpSub / $helpNav itself to override.
  * Must be included at top-level scope (see _init.php). Pair with _bottom.php.
  */
-$helpHero = $helpHero ?? 'System help';
-$helpSub  = $helpSub ?? '';
-$helpNav  = $helpNav ?? [];
+$helpTopic = isset($helpSlug) ? getHelpTopic($helpSlug) : null;
+$helpHero  = $helpHero ?? ($helpTopic['hero'] ?? 'System help');
+$helpSub   = $helpSub  ?? ($helpTopic['sub'] ?? '');
+$helpNav   = $helpNav  ?? ($helpTopic['sections'] ?? []);
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">

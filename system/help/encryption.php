@@ -3,15 +3,7 @@
  * System Help — Encryption.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Encryption';
-$helpSub  = 'Generate and look after the AES-256-GCM key that encrypts the sensitive credentials FreeITSM stores — vCenter logins, AI API keys and mailbox OAuth secrets.';
-$helpNav  = [
-    ['id' => 'overview',  'label' => 'Overview'],
-    ['id' => 'status',    'label' => 'Key status'],
-    ['id' => 'setup',     'label' => 'Generating a key'],
-    ['id' => 'whats',     'label' => "What's encrypted"],
-    ['id' => 'backup',    'label' => 'Backups & recovery'],
-];
+$helpSlug = 'encryption';
 require __DIR__ . '/_top.php';
 ?>
 <!-- 1. Overview -->

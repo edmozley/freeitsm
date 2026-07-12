@@ -3,14 +3,7 @@
  * System Help — Modules.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Modules';
-$helpSub  = 'Control which modules each analyst can open, by ticking the ones they need in a per-analyst access matrix.';
-$helpNav  = [
-    ['id' => 'overview',  'label' => 'Overview'],
-    ['id' => 'matrix',    'label' => 'The access matrix'],
-    ['id' => 'effect',    'label' => 'What analysts see'],
-    ['id' => 'notes',     'label' => 'Good to know'],
-];
+$helpSlug = 'modules';
 require __DIR__ . '/_top.php';
 ?>
 <!-- 1. Overview -->

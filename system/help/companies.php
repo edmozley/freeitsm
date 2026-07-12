@@ -3,15 +3,7 @@
  * System Help — Companies (multi-tenancy).
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Companies';
-$helpSub  = 'Run several separate client companies from one FreeITSM install — keeping each one\'s people, tickets and inbound email apart — or just one, invisibly, if that\'s all you need.';
-$helpNav  = [
-    ['id' => 'overview', 'label' => 'Overview'],
-    ['id' => 'adding',   'label' => 'Adding companies'],
-    ['id' => 'email',    'label' => 'Routing inbound email'],
-    ['id' => 'senders',  'label' => 'Personal &amp; free email'],
-    ['id' => 'summary',  'label' => 'How email reaches a company'],
-];
+$helpSlug = 'companies';
 require __DIR__ . '/_top.php';
 ?>
 <!-- 1. Overview -->

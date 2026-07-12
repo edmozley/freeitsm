@@ -3,14 +3,7 @@
  * System Help — Debug tools.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Debug tools';
-$helpSub  = 'A catalogue of self-contained diagnostics that probe a failing flow and return a plain-text report you can copy straight back to support.';
-$helpNav  = [
-    ['id' => 'overview', 'label' => 'Overview'],
-    ['id' => 'how',      'label' => 'How to run one'],
-    ['id' => 'tools',    'label' => 'The diagnostics'],
-    ['id' => 'safety',   'label' => 'When to use them'],
-];
+$helpSlug = 'debug-tools';
 require __DIR__ . '/_top.php';
 ?>
 

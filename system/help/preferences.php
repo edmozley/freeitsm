@@ -3,15 +3,7 @@
  * System Help — Preferences.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Preferences';
-$helpSub  = 'Your own personal settings — interface language, where notifications pop up, how left-hand panels behave and a couple of display options. Each choice is saved to your account and follows you to any browser you sign in from.';
-$helpNav  = [
-    ['id' => 'overview',  'label' => 'Overview'],
-    ['id' => 'language',  'label' => 'Interface language'],
-    ['id' => 'toasts',    'label' => 'Notifications'],
-    ['id' => 'panels',    'label' => 'Left panels'],
-    ['id' => 'display',   'label' => 'Display options'],
-];
+$helpSlug = 'preferences';
 require __DIR__ . '/_top.php';
 ?>
 <!-- 1. Overview -->

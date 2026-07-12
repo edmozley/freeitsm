@@ -3,14 +3,7 @@
  * System Help — Module colours.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Module colours';
-$helpSub  = 'Give each module its own colour so its icon and headers stand out at a glance across FreeITSM.';
-$helpNav  = [
-    ['id' => 'overview', 'label' => 'Overview'],
-    ['id' => 'change',   'label' => 'Changing a colour'],
-    ['id' => 'reset',    'label' => 'Resetting to default'],
-    ['id' => 'notes',    'label' => 'Good to know'],
-];
+$helpSlug = 'colours';
 require __DIR__ . '/_top.php';
 ?>
 

@@ -3,15 +3,7 @@
  * System Help — Branding.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Branding';
-$helpSub  = 'Set your organisation logo and the default header/footer text that appears on branded output — diagrams and exported documents.';
-$helpNav  = [
-    ['id' => 'overview', 'label' => 'Overview'],
-    ['id' => 'logo',     'label' => 'Logo'],
-    ['id' => 'slots',    'label' => 'Header & footer text'],
-    ['id' => 'tokens',   'label' => 'Tokens'],
-    ['id' => 'save',     'label' => 'Saving & resetting'],
-];
+$helpSlug = 'branding';
 require __DIR__ . '/_top.php';
 ?>
 

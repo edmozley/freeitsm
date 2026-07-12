@@ -3,15 +3,7 @@
  * System Help — Demo data.
  */
 require __DIR__ . '/_init.php';
-$helpHero = 'Demo data';
-$helpSub  = 'Fill a fresh FreeITSM with realistic sample data — analysts, tickets, assets, software, a CMDB and more — so you can evaluate every module without typing in your own records. Import each module on its own, and remove it again just as easily.';
-$helpNav  = [
-    ['id' => 'overview', 'label' => 'Overview'],
-    ['id' => 'whats',    'label' => "What's included"],
-    ['id' => 'how',      'label' => 'How to import'],
-    ['id' => 'remove',   'label' => 'Removing demo data'],
-    ['id' => 'tips',     'label' => 'Tips & gotchas'],
-];
+$helpSlug = 'demo-data';
 require __DIR__ . '/_top.php';
 ?>
 <!-- 1. Overview -->
