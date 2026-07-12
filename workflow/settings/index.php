@@ -94,10 +94,10 @@ $translationNamespaces = ['common', 'workflow'];
                 <h2><?php echo htmlspecialchars(t('workflow.formats.title')); ?></h2>
                 <button class="add-btn" onclick="WFF.openNew()"><?php echo htmlspecialchars(t('common.add')); ?></button>
             </div>
-            <p style="color:var(--text-muted, #666); font-size:13px; margin: 0 0 8px 0; max-width: 760px;">
+            <p style="color:var(--text-muted, #666); font-size:13px; margin: 0 0 8px 0;">
                 <?php echo t('workflow.formats.intro'); ?>
             </p>
-            <p style="color:var(--text-muted, #666); font-size:13px; margin: 0 0 20px 0; max-width: 760px;">
+            <p style="color:var(--text-muted, #666); font-size:13px; margin: 0 0 20px 0;">
                 <?php echo t('workflow.formats.reserved_note'); ?>
             </p>
 
