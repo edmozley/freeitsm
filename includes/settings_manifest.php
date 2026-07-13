@@ -12,14 +12,22 @@
  *
  *   [
  *     'module' => 'assets',                       // Layer 1 module slug
+ *     'label'  => 'Asset management',             // its name in the Roles picker
+ *     'umbrella' => ['cap' => Cap::ASSETS_MANAGE, 'grant' => '…'],
  *     'tabs'   => [
  *       ['id' => 'vcenter',
  *        'cap' => Cap::ASSETS_VCENTER,            // null = personal preference, never gated
- *        'label_key' => 'asset-management.settings.tab_vcenter',
- *        'setting_keys' => ['vcenter_server', …], // documentation; enforced in settings_keys.php
+ *        'label_key' => 'asset-management.settings.tab_vcenter',   // the TAB's name
+ *        'grant' => 'Configure the vCenter connection…',           // the PERMISSION's description
+ *        'sensitive' => true,                                      // badged in the Roles picker
+ *        'setting_keys' => ['vcenter_server', …],                  // who may write these
  *       ],
  *     ],
  *   ]
+ *
+ * This file is the ONLY place any of that is written. The capability registry, the module
+ * list for System → Roles, and the setting-key ownership map are all DERIVED from it (see
+ * includes/capabilities.php). They cannot disagree with it, because they are it.
  *
  * ---------------------------------------------------------------------------
  * NOT RENDERED, NOT HIDDEN
