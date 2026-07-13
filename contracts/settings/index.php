@@ -8,9 +8,17 @@ require_once '../../includes/functions.php';
 require_once __DIR__ . '/../../includes/i18n.php';
 require_once '../../includes/theme.php';
 require_once '../../includes/timezone.php';
+require_once '../../includes/settings_manifest.php';
 I18n::initFromSession();
 Tz::init();
 requireModuleAccess('contracts');
+
+// RBAC Layer 2: which of these tabs may this analyst see? Everything below is rendered
+// from the manifest, so a tab they lack the capability for is never emitted at all —
+// there is no hidden panel to un-hide. Administrators hold everything.
+$settingsManifest = settingsManifestFor('contracts');
+$visibleTabs      = settingsVisibleTabs(connectToDatabase(), (int) $_SESSION['analyst_id'], $settingsManifest);
+$activeTabId      = settingsFirstTabId($visibleTabs);
 
 $current_page = 'settings';
 $path_prefix = '../../';
@@ -93,19 +101,11 @@ $translationNamespaces = ['common', 'contracts'];
     <?php include '../includes/header.php'; ?>
 
     <div class="container">
-        <div class="tabs">
-            <button class="tab active" data-tab="supplier-types" onclick="switchTab('supplier-types')"><?php echo htmlspecialchars(t('contracts.settings.tab_supplier_types')); ?></button>
-            <button class="tab" data-tab="supplier-statuses" onclick="switchTab('supplier-statuses')"><?php echo htmlspecialchars(t('contracts.settings.tab_supplier_statuses')); ?></button>
-            <button class="tab" data-tab="contract-statuses" onclick="switchTab('contract-statuses')"><?php echo htmlspecialchars(t('contracts.settings.tab_contract_statuses')); ?></button>
-            <button class="tab" data-tab="payment-schedules" onclick="switchTab('payment-schedules')"><?php echo htmlspecialchars(t('contracts.settings.tab_payment_schedules')); ?></button>
-            <button class="tab" data-tab="contract-term-tabs" onclick="switchTab('contract-term-tabs')"><?php echo htmlspecialchars(t('contracts.settings.tab_contract_terms')); ?></button>
-            <button class="tab" data-tab="rfp-departments" onclick="switchTab('rfp-departments')"><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_departments')); ?></button>
-            <button class="tab" data-tab="rfp-ai" onclick="switchTab('rfp-ai')"><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_ai')); ?></button>
-            <button class="tab" data-tab="left-panel" onclick="switchTab('left-panel')"><?php echo htmlspecialchars(t('contracts.settings.tab_left_panel')); ?></button>
-        </div>
+        <?php renderSettingsTabBar($visibleTabs, $activeTabId); ?>
 
+        <?php if (settingsTabVisible($visibleTabs, 'supplier-types')): ?>
         <!-- Supplier types Tab -->
-        <div class="tab-content active" id="supplier-types-tab">
+        <div class="tab-content<?php echo $activeTabId === 'supplier-types' ? ' active' : ''; ?>" id="supplier-types-tab" data-capability="<?php echo Cap::CONTRACTS_SUPPLIER_TYPES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_supplier_types')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('supplier-type')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -126,8 +126,11 @@ $translationNamespaces = ['common', 'contracts'];
             </table>
         </div>
 
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'supplier-statuses')): ?>
         <!-- Supplier statuses Tab -->
-        <div class="tab-content" id="supplier-statuses-tab">
+        <div class="tab-content<?php echo $activeTabId === 'supplier-statuses' ? ' active' : ''; ?>" id="supplier-statuses-tab" data-capability="<?php echo Cap::CONTRACTS_SUPPLIER_STATUSES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_supplier_statuses')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('supplier-status')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -148,8 +151,11 @@ $translationNamespaces = ['common', 'contracts'];
             </table>
         </div>
 
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'contract-statuses')): ?>
         <!-- Contract statuses Tab -->
-        <div class="tab-content" id="contract-statuses-tab">
+        <div class="tab-content<?php echo $activeTabId === 'contract-statuses' ? ' active' : ''; ?>" id="contract-statuses-tab" data-capability="<?php echo Cap::CONTRACTS_CONTRACT_STATUSES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_contract_statuses')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('contract-status')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -170,8 +176,11 @@ $translationNamespaces = ['common', 'contracts'];
             </table>
         </div>
 
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'payment-schedules')): ?>
         <!-- Payment schedules Tab -->
-        <div class="tab-content" id="payment-schedules-tab">
+        <div class="tab-content<?php echo $activeTabId === 'payment-schedules' ? ' active' : ''; ?>" id="payment-schedules-tab" data-capability="<?php echo Cap::CONTRACTS_PAYMENT_SCHEDULES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_payment_schedules')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('payment-schedule')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -191,8 +200,11 @@ $translationNamespaces = ['common', 'contracts'];
                 </tbody>
             </table>
         </div>
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'contract-term-tabs')): ?>
         <!-- Contract terms Tab -->
-        <div class="tab-content" id="contract-term-tabs-tab">
+        <div class="tab-content<?php echo $activeTabId === 'contract-term-tabs' ? ' active' : ''; ?>" id="contract-term-tabs-tab" data-capability="<?php echo Cap::CONTRACTS_CONTRACT_TERMS; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_contract_terms')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('contract-term-tab')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -213,8 +225,11 @@ $translationNamespaces = ['common', 'contracts'];
             </table>
         </div>
 
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'rfp-departments')): ?>
         <!-- RFP departments Tab -->
-        <div class="tab-content" id="rfp-departments-tab">
+        <div class="tab-content<?php echo $activeTabId === 'rfp-departments' ? ' active' : ''; ?>" id="rfp-departments-tab" data-capability="<?php echo Cap::CONTRACTS_RFP_DEPARTMENTS; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_departments')); ?></h2>
                 <button class="add-btn" onclick="openAddRfpDept()"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -238,8 +253,11 @@ $translationNamespaces = ['common', 'contracts'];
             </table>
         </div>
 
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'rfp-ai')): ?>
         <!-- RFP AI Tab -->
-        <div class="tab-content" id="rfp-ai-tab">
+        <div class="tab-content<?php echo $activeTabId === 'rfp-ai' ? ' active' : ''; ?>" id="rfp-ai-tab" data-capability="<?php echo Cap::CONTRACTS_RFP_AI; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_rfp_ai')); ?></h2>
             </div>
@@ -309,8 +327,11 @@ $translationNamespaces = ['common', 'contracts'];
             </div>
         </div>
 
-        <!-- Left panel tab — per-analyst preference -->
-        <div class="tab-content" id="left-panel-tab">
+        <?php endif; ?>
+
+        <!-- Left panel tab — a per-analyst display preference, so it declares no
+             capability and is never gated: everyone with the module sees it. -->
+        <div class="tab-content<?php echo $activeTabId === 'left-panel' ? ' active' : ''; ?>" id="left-panel-tab" data-capability="none">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('contracts.settings.tab_left_panel')); ?></h2>
             </div>

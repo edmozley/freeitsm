@@ -73,6 +73,16 @@ final class Cap
     const ASSETS_WARRANTY  = 'assets.warranty';
     const ASSETS_VCENTER   = 'assets.vcenter';     // credentials
     const ASSETS_INTUNE    = 'assets.intune';      // credentials
+
+    // ---- Contracts ---------------------------------------------------------
+    const CONTRACTS_MANAGE             = 'contracts.manage';              // umbrella
+    const CONTRACTS_SUPPLIER_TYPES     = 'contracts.supplier_types';
+    const CONTRACTS_SUPPLIER_STATUSES  = 'contracts.supplier_statuses';
+    const CONTRACTS_CONTRACT_STATUSES  = 'contracts.contract_statuses';
+    const CONTRACTS_PAYMENT_SCHEDULES  = 'contracts.payment_schedules';
+    const CONTRACTS_CONTRACT_TERMS     = 'contracts.contract_terms';
+    const CONTRACTS_RFP_DEPARTMENTS    = 'contracts.rfp_departments';
+    const CONTRACTS_RFP_AI             = 'contracts.rfp_ai';              // AI provider + API key
 }
 
 /**
