@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
 
 header('Content-Type: application/json');
 
@@ -13,6 +14,7 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 requireModuleAccessJson('tasks');
+requireCapabilityJson(Cap::TASKS_STATUSES);   // Tasks settings tab — see docs/design/rbac.md
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);

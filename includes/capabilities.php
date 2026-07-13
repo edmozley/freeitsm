@@ -91,6 +91,14 @@ final class Cap
     const CHANGES_PRIORITIES = 'changes.priorities';
     const CHANGES_TYPES      = 'changes.types';
     const CHANGES_IMPACTS    = 'changes.impacts';
+
+    // ---- Tasks -------------------------------------------------------------
+    const TASKS_MANAGE     = 'tasks.manage';       // umbrella
+    const TASKS_STATUSES   = 'tasks.statuses';
+    const TASKS_PRIORITIES = 'tasks.priorities';
+    const TASKS_CALENDAR   = 'tasks.calendar';
+    const TASKS_CARD       = 'tasks.card';
+    const TASKS_TAGS       = 'tasks.tags';
 }
 
 /**

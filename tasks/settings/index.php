@@ -16,7 +16,14 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+require_once '../../includes/settings_manifest.php';
 requireModuleAccess('tasks');
+
+// RBAC Layer 2: only the tabs this analyst may see are rendered — a tab they lack is
+// never emitted, so there is nothing to un-hide. Administrators hold everything.
+$settingsManifest = settingsManifestFor('tasks');
+$visibleTabs      = settingsVisibleTabs(connectToDatabase(), (int) $_SESSION['analyst_id'], $settingsManifest);
+$activeTabId      = settingsFirstTabId($visibleTabs);
 
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 $current_page = 'settings';
@@ -107,17 +114,11 @@ $translationNamespaces = ['common', 'tasks'];
     <?php include '../includes/header.php'; ?>
 
     <div class="container">
-        <div class="tabs">
-            <button class="tab active" data-tab="statuses" onclick="switchTab('statuses')"><?php echo htmlspecialchars(t('tasks.settings.tab_statuses')); ?></button>
-            <button class="tab" data-tab="priorities" onclick="switchTab('priorities')"><?php echo htmlspecialchars(t('tasks.settings.tab_priorities')); ?></button>
-            <button class="tab" data-tab="calendar" onclick="switchTab('calendar')"><?php echo htmlspecialchars(t('tasks.settings.tab_calendar')); ?></button>
-            <button class="tab" data-tab="card" onclick="switchTab('card')"><?php echo htmlspecialchars(t('tasks.settings.tab_card')); ?></button>
-            <button class="tab" data-tab="tags" onclick="switchTab('tags')"><?php echo htmlspecialchars(t('tasks.settings.tab_tags')); ?></button>
-            <button class="tab" data-tab="left-panel" onclick="switchTab('left-panel')"><?php echo htmlspecialchars(t('common.left_panel.tab')); ?></button>
-        </div>
+        <?php renderSettingsTabBar($visibleTabs, $activeTabId); ?>
 
         <!-- Statuses Tab -->
-        <div class="tab-content active" id="statuses-tab">
+        <?php if (settingsTabVisible($visibleTabs, 'statuses')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'statuses' ? ' active' : ''; ?>" id="statuses-tab" data-capability="<?php echo Cap::TASKS_STATUSES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tasks.settings.statuses_heading')); ?></h2>
                 <button class="add-btn" onclick="openLookupModal('status')"><?php echo htmlspecialchars(t('tasks.settings.add')); ?></button>
@@ -138,7 +139,10 @@ $translationNamespaces = ['common', 'tasks'];
         </div>
 
         <!-- Priorities Tab -->
-        <div class="tab-content" id="priorities-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'priorities')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'priorities' ? ' active' : ''; ?>" id="priorities-tab" data-capability="<?php echo Cap::TASKS_PRIORITIES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tasks.settings.priorities_heading')); ?></h2>
                 <button class="add-btn" onclick="openLookupModal('priority')"><?php echo htmlspecialchars(t('tasks.settings.add')); ?></button>
@@ -158,7 +162,10 @@ $translationNamespaces = ['common', 'tasks'];
         </div>
 
         <!-- Calendar Tab -->
-        <div class="tab-content" id="calendar-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'calendar')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'calendar' ? ' active' : ''; ?>" id="calendar-tab" data-capability="<?php echo Cap::TASKS_CALENDAR; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tasks.settings.calendar_heading')); ?></h2>
             </div>
@@ -189,7 +196,10 @@ $translationNamespaces = ['common', 'tasks'];
         </div>
 
         <!-- Card Tab -->
-        <div class="tab-content" id="card-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'card')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'card' ? ' active' : ''; ?>" id="card-tab" data-capability="<?php echo Cap::TASKS_CARD; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tasks.settings.card_heading')); ?></h2>
             </div>
@@ -255,7 +265,10 @@ $translationNamespaces = ['common', 'tasks'];
         </div>
 
         <!-- Tags Tab -->
-        <div class="tab-content" id="tags-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'tags')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'tags' ? ' active' : ''; ?>" id="tags-tab" data-capability="<?php echo Cap::TASKS_TAGS; ?>">
             <div class="settings-group">
                 <div class="section-header">
                     <h3><?php echo htmlspecialchars(t('tasks.settings.tags_heading')); ?></h3>
@@ -316,7 +329,10 @@ $translationNamespaces = ['common', 'tasks'];
         </div>
 
         <!-- Left panel tab — per-analyst preference -->
-        <div class="tab-content" id="left-panel-tab">
+        <?php endif; ?>
+
+        <!-- Left panel — a per-analyst display preference; declares no capability. -->
+        <div class="tab-content<?php echo $activeTabId === 'left-panel' ? ' active' : ''; ?>" id="left-panel-tab" data-capability="none">
             <div class="settings-group">
                 <div class="section-header">
                     <h3><?php echo htmlspecialchars(t('common.left_panel.tab')); ?></h3>
