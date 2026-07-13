@@ -19,7 +19,7 @@ $current_page = $current_page ?? '';
 // get My Courses + Help; managers additionally get the Dashboard and Settings.
 // Resolved here so every LMS page's header is consistent, using the RBAC helper.
 require_once $path_prefix . 'includes/rbac.php';
-$lmsCanManage = analystHasCapability(connectToDatabase(), (int) $_SESSION['analyst_id'], 'lms.manage');
+$lmsCanManage = analystHasCapability(connectToDatabase(), (int) $_SESSION['analyst_id'], Cap::LMS_MANAGE);
 
 require_once $path_prefix . 'includes/waffle-menu.php';
 ?>

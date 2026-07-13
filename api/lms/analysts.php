@@ -14,7 +14,7 @@ if (!isset($_SESSION['analyst_id'])) {
 }
 // The full analyst list is a management picker (choosing group members) — a
 // learner has no business enumerating everyone, so it's manage-only.
-requireCapabilityJson('lms.manage');
+requireCapabilityJson(Cap::LMS_MANAGE);
 
 $conn = connectToDatabase();
 $stmt = $conn->query("SELECT id, full_name, username FROM analysts WHERE is_active = 1 ORDER BY full_name");

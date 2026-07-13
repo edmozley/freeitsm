@@ -15,7 +15,7 @@ if (!isset($_SESSION['analyst_id'])) {
 }
 // Everyone's progress across every assignment — the admin Progress tab. Managers
 // only; a learner sees only their own courses, on the My Courses page.
-requireCapabilityJson('lms.manage');
+requireCapabilityJson(Cap::LMS_MANAGE);
 
 $conn = connectToDatabase();
 

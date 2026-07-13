@@ -15,7 +15,7 @@ if (!isset($_SESSION['analyst_id'])) {
 }
 // The whole-catalogue list AND the upload are management functions — a learner
 // sees only their assigned courses, via api/lms/my_courses.php. Gate both branches.
-requireCapabilityJson('lms.manage');
+requireCapabilityJson(Cap::LMS_MANAGE);
 
 $conn = connectToDatabase();
 

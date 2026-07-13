@@ -24,7 +24,7 @@ $path_prefix = '../';
 $translationNamespaces = ['common', 'lms'];
 
 $conn = connectToDatabase();
-$canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], 'lms.manage');
+$canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], Cap::LMS_MANAGE);
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">

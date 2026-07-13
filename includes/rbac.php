@@ -22,69 +22,35 @@
  */
 
 require_once __DIR__ . '/functions.php';
+require_once __DIR__ . '/capabilities.php';
 
 /**
- * The capability registry — every administrative capability the app defines,
- * grouped by module. THIS IS THE SOURCE OF TRUTH. A capability that isn't here
- * cannot be granted (the System UI won't offer it) and, if somehow present in
- * the DB, is ignored by rbacCapabilityExists().
+ * The registry (WHAT capabilities exist) lives in includes/capabilities.php. This file
+ * is only concerned with WHO holds them, and with enforcing that.
  *
- * Rollout (docs/design/rbac.md §8) adds one '<module>.manage' per module as each
- * module's settings surface is moved behind it. Only the LMS is declared now,
- * because it is the pilot; the others land as they are wired.
- *
- * @return array<string,array{label:string,capabilities:array<string,string>}>
+ * Always pass a Cap:: constant to the functions below, never a string literal — see the
+ * header of capabilities.php for why a mistyped string here is the dangerous kind of bug.
  */
-function rbacCapabilities(): array {
-    return [
-        'lms' => [
-            'label' => 'LMS',
-            'capabilities' => [
-                'lms.manage' => 'Manage courses, learning groups and assignments, and view everyone\'s progress',
-            ],
-        ],
-        // Further modules declared here as their settings surfaces are moved
-        // behind a capability (phase 3). e.g. 'tickets' => 'tickets.manage_settings'.
-    ];
-}
-
-/** Flat list of every valid capability key. */
-function rbacAllCapabilityKeys(): array {
-    $keys = [];
-    foreach (rbacCapabilities() as $group) {
-        foreach ($group['capabilities'] as $key => $_label) $keys[] = $key;
-    }
-    return $keys;
-}
-
-/** Is this a capability the code actually defines? Guards writes against typos/stale rows. */
-function rbacCapabilityExists(string $key): bool {
-    return in_array($key, rbacAllCapabilityKeys(), true);
-}
-
-/** Human label for a capability key, or the key itself if unknown. */
-function rbacCapabilityLabel(string $key): string {
-    foreach (rbacCapabilities() as $group) {
-        if (isset($group['capabilities'][$key])) return $group['capabilities'][$key];
-    }
-    return $key;
-}
 
 /**
  * Every capability an analyst effectively holds, as a flat list of keys.
  *
- * is_admin short-circuits to ALL declared capabilities. Otherwise it's the union
- * of the capabilities granted by the roles assigned to the analyst directly and
- * by the roles assigned to any team they belong to — one query, one choke-point,
- * the same individual-plus-team-unioned shape as module and company access.
- * Only capabilities that still exist in the registry are returned, so retiring a
- * capability in code retires it everywhere without a data migration.
+ * is_admin short-circuits to ALL declared capabilities. Otherwise it's the union of the
+ * capabilities granted by the roles assigned to the analyst directly and by the roles
+ * assigned to any team they belong to — one query, one choke-point, the same
+ * individual-plus-team-unioned shape as module and company access.
+ *
+ * Two filters are then applied, and the order matters:
+ *   1. capFromKey() drops anything the code no longer defines (and maps retired keys
+ *      through capAliases()), so a stale or hand-inserted DB row can never grant.
+ *   2. capExpandUmbrellas() adds everything an umbrella grant implies, so holding
+ *      '<module>.manage' gives you the module's individual capabilities too.
  *
  * @return array<int,string>
  */
 function getAnalystCapabilities(PDO $conn, int $analystId): array {
     if ($analystId <= 0) return [];
-    if (analystIsAdmin($conn, $analystId)) return rbacAllCapabilityKeys();
+    if (analystIsAdmin($conn, $analystId)) return capAll();
 
     $sql = "SELECT DISTINCT rc.capability_key
             FROM rbac_role_capabilities rc
@@ -104,9 +70,13 @@ function getAnalystCapabilities(PDO $conn, int $analystId): array {
         return []; // fail closed — a broken query must not grant access
     }
 
-    // Intersect with the registry so a stale/retired capability can never apply.
-    $valid = rbacAllCapabilityKeys();
-    return array_values(array_intersect($granted, $valid));
+    $valid = [];
+    foreach ($granted as $key) {
+        $resolved = capFromKey((string) $key);
+        if ($resolved !== null) $valid[] = $resolved;
+    }
+
+    return capExpandUmbrellas($valid);
 }
 
 /**

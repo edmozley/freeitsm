@@ -104,10 +104,10 @@ const Roles = (() => {
         wrap.innerHTML = groups.map(([mod, group]) => `
             <div class="rl-cap-group">
                 <h5>${esc(group.label)}</h5>
-                ${Object.entries(group.capabilities).map(([key, label]) => `
-                    <label class="rl-check">
+                ${Object.entries(group.capabilities).map(([key, cap]) => `
+                    <label class="rl-check${cap.umbrella ? ' rl-cap-umbrella' : ''}">
                         <input type="checkbox" class="cap-box" value="${esc(key)}" ${selected.includes(key) ? 'checked' : ''}>
-                        <span>${esc(label)}</span>
+                        <span>${esc(cap.label)}${cap.sensitive ? ' <span class="rl-cap-sensitive" title="Reaches credentials, email or money — grant with care">sensitive</span>' : ''}</span>
                     </label>
                 `).join('')}
             </div>

@@ -14,7 +14,7 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 // This reads ANOTHER analyst's answers and results — strictly a manager view.
-requireCapabilityJson('lms.manage');
+requireCapabilityJson(Cap::LMS_MANAGE);
 
 $analystId = (int)($_GET['analyst_id'] ?? 0);
 $courseId = (int)($_GET['course_id'] ?? 0);

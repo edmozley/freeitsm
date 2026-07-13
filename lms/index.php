@@ -18,7 +18,7 @@ requireModuleAccess('lms');
 // This is the management dashboard. A learner (module access but not lms.manage)
 // has no business here — send them to their own courses. Managers and admins
 // stay. This is what makes the waffle "LMS" link land everyone in the right place.
-if (!analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_id'], 'lms.manage')) {
+if (!analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_id'], Cap::LMS_MANAGE)) {
     header('Location: my-courses.php');
     exit;
 }

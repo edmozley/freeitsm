@@ -58,11 +58,16 @@ try {
         $name = trim($input['name'] ?? '');
         if ($name === '') throw new Exception('A role name is required.');
 
-        $capabilities = array_values(array_unique((array)($input['capabilities'] ?? [])));
-        // Refuse any capability the code doesn't define — no phantom rows.
-        foreach ($capabilities as $cap) {
-            if (!rbacCapabilityExists($cap)) throw new Exception('Unknown capability: ' . $cap);
+        // Refuse any capability the code doesn't define — no phantom rows. capFromKey()
+        // also maps a retired key through capAliases(), so a role saved before a rename
+        // is re-saved under the current key rather than losing the grant.
+        $capabilities = [];
+        foreach (array_unique((array)($input['capabilities'] ?? [])) as $cap) {
+            $resolved = capFromKey((string) $cap);
+            if ($resolved === null) throw new Exception('Unknown capability: ' . $cap);
+            $capabilities[] = $resolved;
         }
+        $capabilities = array_values(array_unique($capabilities));
         $analystIds = array_map('intval', (array)($input['analyst_ids'] ?? []));
         $teamIds    = array_map('intval', (array)($input['team_ids'] ?? []));
 

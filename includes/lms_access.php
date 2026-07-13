@@ -15,7 +15,7 @@ require_once __DIR__ . '/rbac.php';
 
 /** May this analyst manage the LMS? (is_admin bypasses, via analystHasCapability.) */
 function lmsCanManage(PDO $conn, int $analystId): bool {
-    return analystHasCapability($conn, $analystId, 'lms.manage');
+    return analystHasCapability($conn, $analystId, Cap::LMS_MANAGE);
 }
 
 /**

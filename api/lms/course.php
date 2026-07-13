@@ -25,7 +25,7 @@ if ($method === 'GET') {
     exit;
 }
 
-requireCapabilityJson('lms.manage');
+requireCapabilityJson(Cap::LMS_MANAGE);
 
 $input = json_decode(file_get_contents('php://input'), true);
 $id = (int)($input['id'] ?? 0);

@@ -33,7 +33,7 @@ $conn = connectToDatabase();
 // lists are small. Analysts flagged is_admin are shown as already-covered.
 $analysts = $conn->query("SELECT id, full_name, username, is_admin FROM analysts WHERE is_active = 1 ORDER BY full_name, username")->fetchAll(PDO::FETCH_ASSOC);
 $teams    = $conn->query("SELECT id, name FROM teams WHERE is_active = 1 ORDER BY name")->fetchAll(PDO::FETCH_ASSOC);
-$capabilityGroups = rbacCapabilities();
+$capabilityGroups = capGroups();   // generated from the registry — add a Cap:: constant, the tick-box appears
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -77,6 +77,11 @@ $capabilityGroups = rbacCapabilities();
         .rl-cap-group h5 { margin: 0 0 8px; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim, #9aa); }
         .rl-check { display: flex; align-items: flex-start; gap: 9px; padding: 5px 0; font-size: 13.5px; color: var(--text, #374151); line-height: 1.45; }
         .rl-check input { margin-top: 2px; flex-shrink: 0; }
+        /* The umbrella ("manage everything in this module") reads as the headline choice. */
+        .rl-cap-umbrella { font-weight: 600; padding-bottom: 7px; margin-bottom: 3px; border-bottom: 1px dashed var(--border, #e5e7eb); }
+        /* Sensitive = reaches credentials, email or money. Badge it; granting it should make you pause. */
+        .rl-cap-sensitive { display: inline-block; margin-left: 5px; padding: 1px 6px; border-radius: 9px; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.4px; vertical-align: 1px;
+            background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); }
         .rl-picker { max-height: 200px; overflow-y: auto; border: 1px solid var(--border, #e5e7eb); border-radius: 8px; padding: 8px 12px; background: var(--surface, #fff); }
         .rl-picker .rl-check .rl-admin-note { color: var(--text-dim, #9aa); font-size: 11.5px; }
     </style>

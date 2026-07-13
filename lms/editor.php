@@ -18,7 +18,7 @@ I18n::initFromSession();
 Tz::init();
 
 requireModuleAccess('lms');
-requireCapability('lms.manage');   // authoring is a manager job
+requireCapability(Cap::LMS_MANAGE);   // authoring is a manager job
 
 $courseId = (int)($_GET['course_id'] ?? 0);
 $conn     = connectToDatabase();
