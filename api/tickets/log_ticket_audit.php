@@ -16,6 +16,9 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// Writes a ticket audit entry from the inbox — everyday work. It had NO module check.
+requireModuleAccessJson('tickets');
+
 // Get POST data
 $data = json_decode(file_get_contents('php://input'), true);
 

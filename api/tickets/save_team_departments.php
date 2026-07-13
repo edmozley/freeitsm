@@ -9,6 +9,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/admin_api_guard.php'; // System admins only (issue #34)
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
 
 header('Content-Type: application/json');
 
@@ -17,6 +18,10 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+
+// Settings-only (the Departments tab's team mapping). It had no module check at all.
+requireModuleAccessJson('tickets');
+requireCapabilityJson(Cap::TICKETS_DEPARTMENTS);
 
 // Get POST data
 $input = json_decode(file_get_contents('php://input'), true);

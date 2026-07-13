@@ -16,6 +16,9 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// The inbox's template picker — everyday work.
+requireModuleAccessJson('tickets');
+
 try {
     $conn = connectToDatabase();
     $manage   = !empty($_GET['manage']);

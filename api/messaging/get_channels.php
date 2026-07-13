@@ -7,6 +7,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
 require_once '../../includes/messaging/messaging.php';
 
 header('Content-Type: application/json');
@@ -15,6 +16,10 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+
+// Messaging settings tab — returns channel config.
+requireModuleAccessJson('tickets');
+requireCapabilityJson(Cap::TICKETS_MESSAGING);
 
 try {
     $conn = connectToDatabase();

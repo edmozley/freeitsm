@@ -154,6 +154,27 @@ final class Cap
     // ---- Software ----------------------------------------------------------
     const SOFTWARE_MANAGE   = 'software.manage';     // umbrella
     const SOFTWARE_API_KEYS = 'software.api_keys';   // mints credentials
+
+    // ---- Tickets -----------------------------------------------------------
+    // The module the whole per-tab design was argued FOR. Fourteen tabs, and they are
+    // emphatically not the same kind of thing: MAILBOXES holds the OAuth credentials and
+    // inbound mail routing — whoever has it can redirect or read the company's email —
+    // and it sits on the same tab bar as TICKET_TYPES, which is a list of words.
+    const TICKETS_MANAGE          = 'tickets.manage';           // umbrella
+    const TICKETS_DEPARTMENTS     = 'tickets.departments';
+    const TICKETS_TICKET_TYPES    = 'tickets.ticket_types';
+    const TICKETS_TICKET_ORIGINS  = 'tickets.ticket_origins';
+    const TICKETS_STATUSES        = 'tickets.statuses';
+    const TICKETS_PRIORITIES      = 'tickets.priorities';
+    const TICKETS_SLA             = 'tickets.sla';
+    const TICKETS_ROTA_LOCATIONS  = 'tickets.rota_locations';
+    const TICKETS_ROTA            = 'tickets.rota';
+    const TICKETS_MAILBOXES       = 'tickets.mailboxes';        // OAuth credentials + mail routing
+    const TICKETS_MESSAGING       = 'tickets.messaging';        // Twilio/Meta credentials
+    const TICKETS_EMAIL_TEMPLATES = 'tickets.email_templates';
+    const TICKETS_GENERAL         = 'tickets.general';
+    const TICKETS_REPLY_CLEANUP   = 'tickets.reply_cleanup';    // AI provider + API key
+    const TICKETS_CSAT            = 'tickets.csat';
 }
 
 /**

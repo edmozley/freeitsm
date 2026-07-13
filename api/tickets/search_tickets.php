@@ -16,6 +16,10 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// The inbox's ticket search — everyday work. It had NO module check, so any logged-in
+// analyst could search every ticket in the product, whatever their module access.
+requireModuleAccessJson('tickets');
+
 // Get POST data
 $input = json_decode(file_get_contents('php://input'), true);
 

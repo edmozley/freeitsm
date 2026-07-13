@@ -10,6 +10,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
 require_once '../../includes/encryption.php';
 require_once '../../includes/messaging/messaging.php';
 
@@ -19,6 +20,10 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+
+// Messaging settings tab — holds the channel's Twilio/Meta credentials.
+requireModuleAccessJson('tickets');
+requireCapabilityJson(Cap::TICKETS_MESSAGING);
 
 /** Treat blank or all-asterisk values as "unchanged" so masked secrets aren't wiped. */
 function provided($v): bool

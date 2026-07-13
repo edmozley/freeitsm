@@ -59,12 +59,17 @@ try {
         $mailbox['mark_as_read'] = (bool)$mailbox['mark_as_read'];
         $mailbox['is_authenticated'] = (bool)$mailbox['is_authenticated'];
 
-        // Mask client secret for display (show only last 4 chars)
+        // Mask client secret for display (show only last 4 chars) — and then DROP the
+        // plaintext. It used to be masked into a NEW field while the original was left in
+        // the payload, so the OAuth client secret (Microsoft and Google alike) was shipped
+        // in full to the browser of any logged-in analyst. The IMAP password below always
+        // did this correctly; the client secret was simply missed.
         if (!empty($mailbox['azure_client_secret'])) {
             $mailbox['azure_client_secret_masked'] = '****' . substr($mailbox['azure_client_secret'], -4);
         } else {
             $mailbox['azure_client_secret_masked'] = '';
         }
+        unset($mailbox['azure_client_secret']);
 
         // Mask the IMAP password and never ship the plaintext to the browser.
         $mailbox['imap_password_set'] = !empty($mailbox['imap_password']);

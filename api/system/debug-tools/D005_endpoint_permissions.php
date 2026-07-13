@@ -142,6 +142,16 @@ function d005Classify(string $src, string $rel): array {
     if (preg_match('/analystCanWriteSettingKey|settingKeyOwner/', $src)) {
         return ['perkey', 'Per setting key (settings_keys.php)'];
     }
+    // Per-NAMESPACE authorisation: the AI settings panel is shared by seven modules, so it
+    // defers to the converted module's AI capability (else is_admin). See settings_keys.php.
+    if (preg_match('/requireAiNamespaceJson|analystCanManageAnyAiNamespace/', $src)) {
+        return ['perkey', 'Per AI namespace (settings_keys.php)'];
+    }
+    // A feature reachable from SEVERAL modules — the KB chat is offered in Knowledge and
+    // from the ticket reading pane, so a single-module gate would break the other.
+    if (preg_match('/requireAnyModuleAccessJson\s*\(\s*\[([^\]]*)\]/', $src, $m)) {
+        return ['module', 'Any of: ' . preg_replace('/[\'"\s]/', '', $m[1])];
+    }
     // Module access asserted through the underlying resolver rather than the JSON guard
     // — used where a JSON 403 would corrupt the response (e.g. SSE streams).
     // Note the lazy .*? rather than [^)]* — the call typically contains connectToDatabase(),
@@ -362,6 +372,15 @@ foreach ($rows as $r) {
         }
     }
 }
+// A capability is ALSO enforced if it owns one or more system_settings keys: those tabs
+// are guarded per key by the shared writers (save_system_settings, the AI panel, and the
+// module endpoints that serve several tabs at once), not by a requireCapabilityJson() call
+// of their own. Missing this made the check cry wolf on six perfectly-guarded capabilities.
+require_once __DIR__ . '/../../../includes/settings_keys.php';
+foreach (settingKeyOwners() as $owner) {
+    if (!empty($owner['cap'])) $enforced[$owner['cap']] = true;
+}
+
 // Umbrellas are satisfied by expansion rather than enforced directly — that's by design.
 $unenforced = [];
 foreach (capAll() as $cap) {

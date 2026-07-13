@@ -22,6 +22,9 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// Replying to a WhatsApp message from the inbox — everyday work.
+requireModuleAccessJson('tickets');
+
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     $ticketId = (int) ($input['ticket_id'] ?? 0);

@@ -19,6 +19,9 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// Sending a template from the inbox — everyday work.
+requireModuleAccessJson('tickets');
+
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     $ticketId   = (int) ($input['ticket_id'] ?? 0);

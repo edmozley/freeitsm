@@ -16,6 +16,17 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// This page checked ONLY that you were logged in — it never checked module access, so any
+// analyst could open the service desk's settings by typing the URL.
+require_once '../../includes/settings_manifest.php';
+requireModuleAccess('tickets');
+
+// RBAC Layer 2: only the tabs this analyst may see are rendered — a tab they lack is never
+// emitted, so there is no hidden mailbox panel to un-hide. Administrators hold everything.
+$settingsManifest = settingsManifestFor('tickets');
+$visibleTabs      = settingsVisibleTabs(connectToDatabase(), (int) $_SESSION['analyst_id'], $settingsManifest);
+$activeTabId      = settingsFirstTabId($visibleTabs);
+
 $analyst_name = $_SESSION['analyst_name'] ?? 'Analyst';
 
 // Check for OAuth success message
@@ -260,25 +271,11 @@ $translationNamespaces = ['common', 'tickets'];
     <?php include '../includes/header.php'; ?>
 
     <div class="container">
-        <div class="tabs">
-            <button class="tab active" data-tab="departments" onclick="switchTab('departments')"><?php echo htmlspecialchars(t('tickets.settings.tabs.departments')); ?></button>
-            <button class="tab" data-tab="ticket-types" onclick="switchTab('ticket-types')"><?php echo htmlspecialchars(t('tickets.settings.tabs.ticket_types')); ?></button>
-            <button class="tab" data-tab="ticket-origins" onclick="switchTab('ticket-origins')"><?php echo htmlspecialchars(t('tickets.settings.tabs.ticket_origins')); ?></button>
-            <button class="tab" data-tab="statuses" onclick="switchTab('statuses')"><?php echo htmlspecialchars(t('tickets.settings.tabs.statuses')); ?></button>
-            <button class="tab" data-tab="priorities" onclick="switchTab('priorities')"><?php echo htmlspecialchars(t('tickets.settings.tabs.priorities')); ?></button>
-            <button class="tab" data-tab="sla" onclick="switchTab('sla')"><?php echo htmlspecialchars(t('tickets.settings.tabs.sla')); ?></button>
-            <button class="tab" data-tab="rota-locations" onclick="switchTab('rota-locations')"><?php echo htmlspecialchars(t('tickets.settings.tabs.rota_locations')); ?></button>
-            <button class="tab" data-tab="mailboxes" onclick="switchTab('mailboxes')"><?php echo htmlspecialchars(t('tickets.settings.tabs.mailboxes')); ?></button>
-            <button class="tab" data-tab="messaging" onclick="switchTab('messaging')"><?php echo htmlspecialchars(t('tickets.settings.tab_messaging')); ?></button>
-            <button class="tab" data-tab="email-templates" onclick="switchTab('email-templates')"><?php echo htmlspecialchars(t('tickets.settings.tabs.email_templates')); ?></button>
-            <button class="tab" data-tab="rota" onclick="switchTab('rota')"><?php echo htmlspecialchars(t('tickets.settings.tabs.rota')); ?></button>
-            <button class="tab" data-tab="general" onclick="switchTab('general')"><?php echo htmlspecialchars(t('tickets.settings.tabs.general')); ?></button>
-            <button class="tab" data-tab="reply-cleanup" onclick="switchTab('reply-cleanup')"><?php echo htmlspecialchars(t('tickets.settings.tabs.reply_cleanup')); ?></button>
-            <button class="tab" data-tab="csat" onclick="switchTab('csat')"><?php echo htmlspecialchars(t('tickets.settings.tabs.csat')); ?></button>
-        </div>
+        <?php renderSettingsTabBar($visibleTabs, $activeTabId); ?>
 
         <!-- Departments Tab -->
-        <div class="tab-content active" id="departments-tab">
+        <?php if (settingsTabVisible($visibleTabs, 'departments')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'departments' ? ' active' : ''; ?>" id="departments-tab" data-capability="<?php echo Cap::TICKETS_DEPARTMENTS; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.departments')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('department')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -302,7 +299,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Ticket Types Tab -->
-        <div class="tab-content" id="ticket-types-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'ticket-types')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'ticket-types' ? ' active' : ''; ?>" id="ticket-types-tab" data-capability="<?php echo Cap::TICKETS_TICKET_TYPES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.ticket_types')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('ticket-type')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -325,7 +325,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Ticket Origins Tab -->
-        <div class="tab-content" id="ticket-origins-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'ticket-origins')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'ticket-origins' ? ' active' : ''; ?>" id="ticket-origins-tab" data-capability="<?php echo Cap::TICKETS_TICKET_ORIGINS; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.ticket_origins')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('ticket-origin')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -348,7 +351,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Statuses Tab -->
-        <div class="tab-content" id="statuses-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'statuses')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'statuses' ? ' active' : ''; ?>" id="statuses-tab" data-capability="<?php echo Cap::TICKETS_STATUSES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.statuses')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('status')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -374,7 +380,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Priorities Tab -->
-        <div class="tab-content" id="priorities-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'priorities')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'priorities' ? ' active' : ''; ?>" id="priorities-tab" data-capability="<?php echo Cap::TICKETS_PRIORITIES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.priorities')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('priority')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -398,7 +407,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- SLA Tab — see docs/sla.md -->
-        <div class="tab-content" id="sla-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'sla')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'sla' ? ' active' : ''; ?>" id="sla-tab" data-capability="<?php echo Cap::TICKETS_SLA; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.sla.heading')); ?></h2>
             </div>
@@ -653,7 +665,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Rota Locations Tab -->
-        <div class="tab-content" id="rota-locations-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'rota-locations')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'rota-locations' ? ' active' : ''; ?>" id="rota-locations-tab" data-capability="<?php echo Cap::TICKETS_ROTA_LOCATIONS; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.rota_locations')); ?></h2>
                 <button class="add-btn" onclick="openAddModal('rota-location')"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -677,7 +692,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Mailboxes Tab -->
-        <div class="tab-content" id="mailboxes-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'mailboxes')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'mailboxes' ? ' active' : ''; ?>" id="mailboxes-tab" data-capability="<?php echo Cap::TICKETS_MAILBOXES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.mailboxes')); ?></h2>
                 <div>
@@ -727,7 +745,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Messaging Tab (WhatsApp etc.) -->
-        <div class="tab-content" id="messaging-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'messaging')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'messaging' ? ' active' : ''; ?>" id="messaging-tab" data-capability="<?php echo Cap::TICKETS_MESSAGING; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.messaging.channels_heading')); ?></h2>
                 <button class="add-btn" onclick="openChannelModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -785,7 +806,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Email Templates Tab -->
-        <div class="tab-content" id="email-templates-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'email-templates')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'email-templates' ? ' active' : ''; ?>" id="email-templates-tab" data-capability="<?php echo Cap::TICKETS_EMAIL_TEMPLATES; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.email_templates')); ?></h2>
                 <button class="add-btn" onclick="openTemplateModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -809,7 +833,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Rota Tab -->
-        <div class="tab-content" id="rota-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'rota')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'rota' ? ' active' : ''; ?>" id="rota-tab" data-capability="<?php echo Cap::TICKETS_ROTA; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.rota_shifts')); ?></h2>
                 <button class="add-btn" onclick="openRotaShiftModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
@@ -840,7 +867,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- General Tab -->
-        <div class="tab-content" id="general-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'general')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'general' ? ' active' : ''; ?>" id="general-tab" data-capability="<?php echo Cap::TICKETS_GENERAL; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.general_settings')); ?></h2>
             </div>
@@ -860,7 +890,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- Reply Cleanup Tab -->
-        <div class="tab-content" id="reply-cleanup-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'reply-cleanup')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'reply-cleanup' ? ' active' : ''; ?>" id="reply-cleanup-tab" data-capability="<?php echo Cap::TICKETS_REPLY_CLEANUP; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.reply_cleanup_ai')); ?></h2>
             </div>
@@ -919,7 +952,10 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
 
         <!-- CSAT Tab -->
-        <div class="tab-content" id="csat-tab">
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'csat')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'csat' ? ' active' : ''; ?>" id="csat-tab" data-capability="<?php echo Cap::TICKETS_CSAT; ?>">
             <div class="section-header">
                 <h2><?php echo htmlspecialchars(t('tickets.settings.headings.csat')); ?></h2>
             </div>
@@ -985,6 +1021,7 @@ $translationNamespaces = ['common', 'tickets'];
                 </div>
             </form>
         </div>
+        <?php endif; ?>
     </div>
 
     <!-- Modal for Add/Edit -->

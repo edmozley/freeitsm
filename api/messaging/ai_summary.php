@@ -20,6 +20,9 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// AI summary in the inbox — everyday work, but it spends the AI budget.
+requireModuleAccessJson('tickets');
+
 try {
     $input = json_decode(file_get_contents('php://input'), true);
     $ticketId = (int) ($input['ticket_id'] ?? 0);

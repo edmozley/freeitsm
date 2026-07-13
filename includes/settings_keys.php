@@ -83,8 +83,8 @@ function settingKeyOwners(): array
     // Module 'system' resolves to is_admin via analystCanAccessModule(), so the System
     // areas are administrator-only without any special-casing here.
     return $owners += [
-        // --- Tickets: General tab ---
-        'system_name'              => ['module' => 'tickets', 'cap' => null, 'tab' => 'general'],
+        // (Tickets' 'system_name' moved into tickets/settings/manifest.php when Tickets
+        // was converted — it is now guarded by tickets.general, not module access.)
 
         // --- System: Security area. The lockout policy — an analyst able to raise
         // max_failed_logins could switch off brute-force protection entirely. ---

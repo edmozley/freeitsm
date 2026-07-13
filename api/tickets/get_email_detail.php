@@ -16,6 +16,9 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// Reading an email on a ticket — everyday work. It had NO module check.
+requireModuleAccessJson('tickets');
+
 // Get email ID or ticket ID from request
 $emailId = $_GET['id'] ?? null;
 $ticketId = $_GET['ticket_id'] ?? null;

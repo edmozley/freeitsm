@@ -19,6 +19,9 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// The inbox's 'check for new mail' action — everyday work. It had NO module check.
+requireModuleAccessJson('tickets');
+
 // Get mailbox ID from request
 $data = json_decode(file_get_contents('php://input'), true);
 $mailboxId = $data['mailbox_id'] ?? $_GET['mailbox_id'] ?? null;

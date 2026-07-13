@@ -9,6 +9,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
 
 header('Content-Type: application/json');
 
@@ -17,6 +18,7 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 requireModuleAccessJson('tickets');
+requireCapabilityJson(Cap::TICKETS_REPLY_CLEANUP);   // settings tab — see docs/design/rbac.md
 
 const VALID_TONES = ['Friendly', 'Formal', 'Brief'];
 
