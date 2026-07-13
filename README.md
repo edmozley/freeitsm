@@ -116,9 +116,10 @@ Then open [http://localhost:8080/setup/](http://localhost:8080/setup/) to verify
 
 #### Prerequisites
 - **Web Server**: WAMP, XAMPP, LAMP, or any PHP-capable web server
-- **PHP**: 7.4 or higher (tested up to 8.4)
+- **PHP**: 7.4 or higher (tested up to 8.4). **PHP 8.3 or 8.4 recommended** — 7.4 and 8.0 still run, but have reached end of life upstream and no longer receive security updates.
 - **Database**: MySQL 8.0 or higher (included with WAMP/XAMPP)
 - **Extensions**: PHP PDO, pdo_mysql, curl, openssl, mbstring
+- **Optional extensions**: `imap` — only needed for basic IMAP/SMTP mailboxes. Note that **PHP 8.4 no longer bundles `imap`**; on 8.4 you must install it from PECL, or that mailbox type will silently collect no mail. The setup page reports whether it's present.
 - **Database credentials file**: A `db_config.php` file stored **outside your web root** (e.g. `C:\wamp64\db_config.php`) — see step 2 below. The path is configured in `config.php`.
 
 > **⚠️ Note for early adopters:** If you downloaded FreeITSM before 18 February 2026, the project required Microsoft SQL Server Express and ODBC drivers — sorry about that! The original choice of SQL Server made sense at the time (it was the database I was most familiar with), but it created a painful setup experience: downloading SQL Server Express, installing ODBC drivers, enabling Mixed Mode Authentication, and troubleshooting driver compatibility issues. That's a lot of friction for an open-source project that's supposed to be easy to get running.

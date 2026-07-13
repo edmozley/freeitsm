@@ -95,12 +95,17 @@ if (file_exists($configPath)) {
 }
 
 // 6. PHP version
+// PHP_VERSION_ID, not (float)phpversion(): the float cast reads "8.10.0" as 8.1,
+// so it silently mis-orders the moment PHP ships an x.10.
 $phpVersion = phpversion();
-$phpMajorMinor = (float)$phpVersion;
-if ($phpMajorMinor >= 7.4) {
-    $checks[] = ['name' => t('setup.checks.php_version'), 'status' => 'pass', 'detail' => t('setup.detail.php_version_ok', ['version' => $phpVersion])];
-} else {
+if (PHP_VERSION_ID < 70400) {
     $checks[] = ['name' => t('setup.checks.php_version'), 'status' => 'fail', 'detail' => t('setup.detail.php_version_too_low', ['version' => $phpVersion])];
+} elseif (PHP_VERSION_ID < 80100) {
+    // 7.4 and 8.0 still run, but neither has had an upstream security fix since
+    // Nov 2022 / Nov 2023. Warn rather than fail — we still support them.
+    $checks[] = ['name' => t('setup.checks.php_version'), 'status' => 'warn', 'detail' => t('setup.detail.php_version_eol', ['version' => $phpVersion])];
+} else {
+    $checks[] = ['name' => t('setup.checks.php_version'), 'status' => 'pass', 'detail' => t('setup.detail.php_version_ok', ['version' => $phpVersion])];
 }
 
 // 7. PHP extensions (always check, regardless of config)
@@ -117,6 +122,16 @@ if ($mysqlLoaded) {
     $checks[] = ['name' => t('setup.checks.php_extension', ['ext' => 'pdo_mysql']), 'status' => 'pass', 'detail' => t('setup.detail.extension_loaded')];
 } else {
     $checks[] = ['name' => t('setup.checks.php_extension', ['ext' => 'pdo_mysql']), 'status' => 'fail', 'detail' => t('setup.detail.pdo_mysql_not_loaded')];
+}
+
+// 8. Optional extensions — absent is fine, but say so, because the feature that
+// needs one fails silently otherwise. imap is the live case: PHP 8.4 unbundled
+// it, so a basic IMAP/SMTP mailbox on 8.4 simply never collects mail and nothing
+// on screen explains why (includes/mailbox_imap.php degrades on function_exists).
+if (extension_loaded('imap')) {
+    $checks[] = ['name' => t('setup.checks.php_extension_optional', ['ext' => 'imap']), 'status' => 'pass', 'detail' => t('setup.detail.extension_loaded')];
+} else {
+    $checks[] = ['name' => t('setup.checks.php_extension_optional', ['ext' => 'imap']), 'status' => 'warn', 'detail' => t('setup.detail.imap_not_loaded')];
 }
 
 // Count results

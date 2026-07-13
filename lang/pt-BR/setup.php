@@ -23,6 +23,7 @@ return [
         'display_errors' => 'Exibição de erros',
         'php_version'    => 'Versão do PHP',
         'php_extension'  => 'Extensão do PHP: {ext}',
+        'php_extension_optional' => 'Extensão do PHP: {ext} (opcional)',
     ],
 
     'detail' => [
@@ -41,9 +42,11 @@ return [
         'display_errors_disabled'  => 'Desativada',
         'php_version_ok'           => '{version}',
         'php_version_too_low'      => '{version} — é necessário PHP 7.4 ou superior',
+        'php_version_eol'          => '{version} — ainda é compatível, mas esta versão não recebe atualizações de segurança desde que chegou ao fim da vida útil. Recomenda-se PHP 8.3 ou 8.4.',
         'extension_loaded'         => 'Carregada',
         'extension_not_loaded'     => 'Não carregada — ative em php.ini',
         'pdo_mysql_not_loaded'     => 'Não carregada — ative pdo_mysql em php.ini',
+        'imap_not_loaded'          => 'Não carregada — necessária apenas para caixas de correio IMAP/SMTP básicas. O PHP 8.4 não inclui mais esta extensão; instale-a via PECL se você usar uma.',
     ],
 
     'db_verify' => [

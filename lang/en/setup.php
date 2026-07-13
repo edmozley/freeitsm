@@ -29,6 +29,7 @@ return [
         'display_errors' => 'Display errors',
         'php_version'    => 'PHP version',
         'php_extension'  => 'PHP extension: {ext}',
+        'php_extension_optional' => 'PHP extension: {ext} (optional)',
     ],
 
     'detail' => [
@@ -47,9 +48,11 @@ return [
         'display_errors_disabled'  => 'Disabled',
         'php_version_ok'           => '{version}',
         'php_version_too_low'      => '{version} — PHP 7.4 or higher is required',
+        'php_version_eol'          => '{version} — still supported, but this release has had no security updates since it reached end of life. PHP 8.3 or 8.4 recommended.',
         'extension_loaded'         => 'Loaded',
         'extension_not_loaded'     => 'Not loaded — enable in php.ini',
         'pdo_mysql_not_loaded'     => 'Not loaded — enable pdo_mysql in php.ini',
+        'imap_not_loaded'          => 'Not loaded — only needed for basic IMAP/SMTP mailboxes. PHP 8.4 no longer bundles this extension; install it via PECL if you use one.',
     ],
 
     'db_verify' => [
