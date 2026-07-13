@@ -21,6 +21,12 @@ try {
     $conn = connectToDatabase();
 
     // Get vCenter settings from system_settings
+    // Despite the name this SYNCS from vCenter (it writes server records), and it is
+    // called by the operational Servers page — so it stays on module access rather than
+    // the vCenter settings capability, which would break Servers for every non-manager.
+    // It had no module gate at all before this: any logged-in analyst could run it.
+    requireModuleAccessJson('assets', $conn);
+
     $stmt = $conn->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN ('vcenter_server', 'vcenter_user', 'vcenter_password')");
     $stmt->execute();
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);

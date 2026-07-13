@@ -50,6 +50,14 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// The RFP Builder is part of the Contracts module. These are STREAMING (SSE)
+// endpoints, so the refusal has to go down the stream as an SSE error event —
+// requireModuleAccessJson() would emit JSON and corrupt it. (Found by D005.)
+if (!analystCanAccessModule(connectToDatabase(), (int) $_SESSION['analyst_id'], 'contracts')) {
+    sse('error', ['error' => 'You do not have access to the Contracts module']);
+    exit;
+}
+
 // Browser sends rfp_id as a query parameter on EventSource (which only
 // supports GET) — POST body would force fetch+ReadableStream complexity
 // for no real gain.

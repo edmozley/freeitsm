@@ -33,9 +33,16 @@ function sse(string $event, array $data): void
     echo "data: " . json_encode($data, JSON_UNESCAPED_SLASHES) . "\n\n";
     @flush();
 }
-
 if (!isset($_SESSION['analyst_id'])) {
     sse('error', ['error' => 'Not authenticated']);
+    exit;
+}
+
+// The RFP Builder is part of the Contracts module. These are STREAMING (SSE)
+// endpoints, so the refusal has to go down the stream as an SSE error event —
+// requireModuleAccessJson() would emit JSON and corrupt it. (Found by D005.)
+if (!analystCanAccessModule(connectToDatabase(), (int) $_SESSION['analyst_id'], 'contracts')) {
+    sse('error', ['error' => 'You do not have access to the Contracts module']);
     exit;
 }
 

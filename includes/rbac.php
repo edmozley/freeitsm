@@ -52,6 +52,14 @@ function getAnalystCapabilities(PDO $conn, int $analystId): array {
     if ($analystId <= 0) return [];
     if (analystIsAdmin($conn, $analystId)) return capAll();
 
+    // Cached for the life of the request, like getAnalystAllowedModules(). A settings page
+    // asks "do you hold this?" once per tab, and each ask used to re-run this query — so
+    // an 8-tab page cost 8 round-trips to answer a question whose answer cannot change
+    // mid-render. Still authoritative: the next request re-reads, so a revoked role bites
+    // immediately.
+    static $cache = [];
+    if (array_key_exists($analystId, $cache)) return $cache[$analystId];
+
     $sql = "SELECT DISTINCT rc.capability_key
             FROM rbac_role_capabilities rc
             JOIN rbac_roles r ON r.id = rc.role_id AND r.is_active = 1
@@ -67,7 +75,7 @@ function getAnalystCapabilities(PDO $conn, int $analystId): array {
         $stmt->execute([$analystId, $analystId]);
         $granted = $stmt->fetchAll(PDO::FETCH_COLUMN);
     } catch (Throwable $e) {
-        return []; // fail closed — a broken query must not grant access
+        return []; // fail closed — a broken query must not grant access (and don't cache it)
     }
 
     $valid = [];
@@ -76,7 +84,7 @@ function getAnalystCapabilities(PDO $conn, int $analystId): array {
         if ($resolved !== null) $valid[] = $resolved;
     }
 
-    return capExpandUmbrellas($valid);
+    return $cache[$analystId] = capExpandUmbrellas($valid);
 }
 
 /**

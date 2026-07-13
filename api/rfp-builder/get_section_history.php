@@ -15,6 +15,10 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// The RFP Builder is part of the Contracts module — its PAGES have always checked
+// this, its endpoints never did. Any logged-in analyst could read, edit or delete
+// any RFP by calling the API directly. (Found by debug tool D005.)
+requireModuleAccessJson('contracts');
 try {
     $sectionId = isset($_GET['section_id']) ? (int)$_GET['section_id'] : 0;
     if ($sectionId <= 0) throw new Exception('Missing or invalid section_id');

@@ -20,6 +20,10 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// Spends money against the configured AI provider, so it is not for anyone who merely
+// happens to be logged in. (Found by debug tool D005.)
+requireModuleAccessJson('forms');
+
 try {
     $data      = json_decode(file_get_contents('php://input'), true) ?: [];
     $provider  = (string)($data['provider'] ?? '');

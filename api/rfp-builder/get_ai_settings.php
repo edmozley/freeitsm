@@ -16,6 +16,10 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// The RFP Builder is part of the Contracts module — its PAGES have always checked
+// this, its endpoints never did. Any logged-in analyst could read, edit or delete
+// any RFP by calling the API directly. (Found by debug tool D005.)
+requireModuleAccessJson('contracts');
 const RFP_AI_KEYS = ['rfp_ai_provider', 'rfp_ai_api_key', 'rfp_ai_model', 'rfp_ai_verify_ssl', 'rfp_default_style_guide'];
 
 try {

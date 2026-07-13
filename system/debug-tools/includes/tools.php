@@ -122,6 +122,28 @@ function getDebugTools() {
             'duration' => '~1 second',
             'persists' => 'None. Read-only — writes nothing. POST-only so the password never lands in a URL or log; the password is never echoed and the stored hash is never printed (only its format / cost / length).',
         ],
+        [
+            'id'       => 'D005',
+            'slug'     => 'd005',
+            'file'     => 'D005_endpoint_permissions.php',
+            'title'    => 'Endpoint permission coverage',
+            'category' => 'Security',
+            'icon'     => 'key',
+            'desc'     => 'Scan every API endpoint and find the ones with no permission check — the holes a type system can never catch.',
+            'keywords' => 'security permissions rbac roles capability guard unguarded audit endpoint api coverage hole escalation d005',
+            'when'     => 'Run this after adding endpoints, after converting a module to per-tab permissions, and before a release. A type system catches a MISSPELLED permission; nothing catches one somebody simply forgot to write — and that omission is how any logged-in analyst came to be able to rewrite the vCenter credentials and switch off brute-force lockout (#829), trigger a full Intune tenant sync (#830), and read or delete any RFP (#833). Each of those was found by hand, by accident. This is the systematic version.',
+            'checks'   => [
+                'Every file under api/ — what actually guards it: a capability, administrator-only, module access, an API key, a webhook signature, a URL token, "logged in and nothing more", or nothing at all',
+                'CRITICAL — endpoints that CHANGE DATA and have no authentication whatsoever',
+                'HIGH — endpoints that change data behind nothing but "are you logged in?", so any analyst can reach them even if their module access is a single unrelated module',
+                'Capabilities passed as a bare string instead of a Cap:: constant (a typo in a string fails closed and SILENTLY, and the is_admin bypass hides it from administrators)',
+                'Capabilities declared on System → Roles that no endpoint actually enforces — a tick-box that grants nothing',
+                'Registry self-check — the Cap:: constants, the capability registry and the module list all agree',
+                'A full per-module inventory, so the report is auditable rather than a black box',
+            ],
+            'duration' => '~2 seconds',
+            'persists' => 'None. Read-only — it reads source files and writes nothing. Prints no secrets. It is a STATIC scan, so it cannot prove an endpoint is safe (one may do its own bespoke checking) — findings are ranked "worth a look", not "definitely broken". Endpoints that are public by design (login, self-service, the REST API, inbound webhooks) and those that act only on the caller\'s own account (your own password, your own MFA) are excluded and listed separately.',
+        ],
     ];
 }
 

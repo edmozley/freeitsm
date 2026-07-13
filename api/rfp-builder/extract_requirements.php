@@ -20,6 +20,10 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// The RFP Builder is part of the Contracts module — its PAGES have always checked
+// this, its endpoints never did. Any logged-in analyst could read, edit or delete
+// any RFP by calling the API directly. (Found by debug tool D005.)
+requireModuleAccessJson('contracts');
 // AI calls can take a while; bump the request timeout so the worker
 // has room to retry on 429s before the request gets killed.
 set_time_limit(300);

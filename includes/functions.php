@@ -149,9 +149,18 @@ function getAnalystAllowedModules($conn, $analyst_id) {
  */
 function analystIsAdmin(PDO $conn, int $analystId): bool {
     if ($analystId <= 0) return false;
+
+    // Cached for the life of the request, exactly as getAnalystAllowedModules() does.
+    // Still authoritative: the flag cannot meaningfully change midway through rendering
+    // one page, and the next request re-reads it — so a just-demoted admin is still
+    // stopped. Without this, drawing a settings tab bar re-asked this question once per
+    // tab (see includes/rbac.php).
+    static $cache = [];
+    if (array_key_exists($analystId, $cache)) return $cache[$analystId];
+
     $stmt = $conn->prepare("SELECT is_admin FROM analysts WHERE id = ?");
     $stmt->execute([$analystId]);
-    return (int) $stmt->fetchColumn() === 1;
+    return $cache[$analystId] = ((int) $stmt->fetchColumn() === 1);
 }
 
 /**

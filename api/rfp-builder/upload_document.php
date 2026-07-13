@@ -16,6 +16,10 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+// The RFP Builder is part of the Contracts module — its PAGES have always checked
+// this, its endpoints never did. Any logged-in analyst could read, edit or delete
+// any RFP by calling the API directly. (Found by debug tool D005.)
+requireModuleAccessJson('contracts');
 const RFP_UPLOAD_MAX_BYTES = 20 * 1024 * 1024; // 20 MB
 $uploadDir = __DIR__ . '/../../contracts/rfp-builder/uploads/';
 

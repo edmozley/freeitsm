@@ -19,6 +19,10 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+
+// Mints/returns the secret token for the unauthenticated iCal feed, so it must not be
+// reachable by an analyst who cannot use the Calendar. (Found by debug tool D005.)
+requireModuleAccessJson('calendar');
 $analystId = (int)$_SESSION['analyst_id'];
 $reset = ($_SERVER['REQUEST_METHOD'] === 'POST') && (($_POST['action'] ?? '') === 'reset');
 
