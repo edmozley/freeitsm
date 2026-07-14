@@ -539,7 +539,17 @@
        Desktop keeps the table untouched: none of this exists above 768px,
        and the JS that rewrites the rows is gated on the same media query.
        ==================================================================== */
+    /* Full-screen panel, exactly like the add-note sheet. LAYER 3's generic
+       .modal-content rule already forces this for every modal, but the audit
+       modal also carries the .audit-modal class (width:90%; max-width:900px;
+       max-height:80vh), so spell the override out here at #id specificity too —
+       that way the whole-screen panel doesn't hinge on cascade order. */
     #auditModal .modal-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        border-radius: 0 !important;
         display: flex;
         flex-direction: column;
         box-shadow: none;
