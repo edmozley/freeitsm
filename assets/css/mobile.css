@@ -382,7 +382,10 @@
     /* Properties sheet: the panel is an absolute collapsible dropdown on desktop;
        in the sheet render it inline and fully expanded (no toggle needed). */
     .ms-body .ticket-properties-container { z-index: auto; }
-    .ms-body .ticket-properties-header { cursor: default; padding-left: 0; padding-right: 0; }
+    /* Drop the collapsible inner header entirely: the sheet's own "Properties"
+       title already labels it, and its Dept/Status/Owner summary both repeats
+       the dropdowns below and spills off a narrow screen. */
+    .ms-body .ticket-properties-header { display: none; }
     .ms-body .ticket-properties-panel {
         position: static !important;
         max-height: none !important;
@@ -392,6 +395,14 @@
         border-bottom: none !important;
         background: none !important;
     }
+    /* Let the dropdown grid use the sheet's full width (the toolbar carries a
+       roomy desktop side padding on top of the sheet's own). Comfortable
+       two-up columns with a bit more breathing room between fields. */
+    .mobile-sheet-props .ticket-toolbar {
+        padding: 4px 0 8px;
+        gap: 14px 12px;
+    }
+    .mobile-sheet-props .toolbar-select { min-width: 0; }
 
     /* ====================================================================
        LAYER 8 — Opened-ticket refinements (device-test loop with Ed):
