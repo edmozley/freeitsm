@@ -629,4 +629,47 @@
         font-size: 12px;
         color: var(--text-muted, #888);
     }
+
+    /* ====================================================================
+       LAYER 11 — Time entries sheet. The desktop panel is a nested card
+       whose add-form (minutes + notes + Add) sits on one row that runs off a
+       phone screen, with 13px inputs that trigger the iOS focus-zoom, and
+       entry rows that cram spent / analyst / date / delete onto a single line
+       so names and dates wrap mid-word. Reflow all three for mobile.
+       ==================================================================== */
+
+    /* Strip the nested-card chrome — the sheet is already the panel. */
+    .mobile-sheet-time .time-entries-section {
+        padding: 0;
+        margin-top: 0;
+        background: none;
+        box-shadow: none;
+        border-radius: 0;
+    }
+
+    /* Add-form: minutes + notes share the top row, the Add button drops to its
+       own full-width row beneath so nothing runs off the edge. 16px inputs are
+       REQUIRED (not cosmetic) — iOS auto-zooms any field under 16px on focus,
+       which then reflows this fixed sheet to a desktop width. */
+    .mobile-sheet-time .time-entry-form { flex-wrap: wrap; }
+    .mobile-sheet-time .time-entry-input-minutes { width: 90px; font-size: 16px; }
+    .mobile-sheet-time .time-entry-input-notes { font-size: 16px; }
+    .mobile-sheet-time .time-entry-add-btn {
+        flex-basis: 100%;
+        padding: 11px;
+        font-size: 15px;
+    }
+
+    /* Entry row: spent + analyst + delete on the top line (delete pushed to the
+       right), the date on its own line beneath, so nothing wraps mid-word. */
+    .mobile-sheet-time .time-entry-row { flex-wrap: wrap; }
+    .mobile-sheet-time .time-entry-analyst { margin-right: auto; }
+    .mobile-sheet-time .time-entry-delete { order: 1; }
+    .mobile-sheet-time .time-entry-date {
+        order: 2;
+        flex-basis: 100%;
+        margin-left: 0;
+        margin-top: 2px;
+        padding-right: 0;
+    }
 }
