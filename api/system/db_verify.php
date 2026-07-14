@@ -9,9 +9,21 @@ require_once '../../includes/functions.php';
 
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['analyst_id']) && empty($_SESSION['setup_access'])) {
-    echo json_encode(['success' => false, 'error' => 'Not authenticated']);
-    exit;
+// Database Verification CREATES AND ALTERS TABLES. It is idempotent and never drops
+// anything, so the blast radius is limited — but it is unmistakably an administrator's
+// action, and it checked only that you were logged in: any analyst at all could run schema
+// changes against the live database. (Found closing out the RBAC roll-out. D005 had missed
+// it too, for two separate reasons — see that tool's write-detection and signature patterns.)
+//
+// setup_access is preserved deliberately: on a fresh install there is no analyst yet, and
+// this is the endpoint that builds the schema they will log in against.
+if (empty($_SESSION['setup_access'])) {
+    if (!isset($_SESSION['analyst_id'])) {
+        http_response_code(401);
+        echo json_encode(['success' => false, 'error' => 'Not authenticated']);
+        exit;
+    }
+    require_once '../../includes/admin_api_guard.php';   // administrators only
 }
 
 /**

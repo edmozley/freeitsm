@@ -100,8 +100,10 @@ function d005ByDesign(string $rel): ?string {
 
 /** Does this endpoint change anything? Writes are what make a missing guard dangerous. */
 function d005IsWriteShaped(string $src): bool {
-    // SQL that mutates…
-    if (preg_match('/\b(INSERT\s+INTO|UPDATE\s+[`\w]+\s+SET|DELETE\s+FROM|REPLACE\s+INTO|TRUNCATE|ALTER\s+TABLE|DROP\s+TABLE)\b/i', $src)) return true;
+    // SQL that mutates. Note CREATE TABLE / CREATE INDEX: leaving those out is not
+    // academic — it is why this tool initially reported db_verify.php, which builds the
+    // whole schema, as a harmless READ. A scanner is only as honest as its patterns.
+    if (preg_match('/\b(INSERT\s+INTO|UPDATE\s+[`\w]+\s+SET|DELETE\s+FROM|REPLACE\s+INTO|TRUNCATE|ALTER\s+TABLE|DROP\s+(TABLE|INDEX|COLUMN)|CREATE\s+(TABLE|INDEX|UNIQUE)|ADD\s+CONSTRAINT)\b/i', $src)) return true;
     // …or it accepts a request body / POST at all, or writes files.
     if (preg_match('/php:\/\/input|\$_POST|\$_FILES|move_uploaded_file|file_put_contents|unlink\s*\(/i', $src)) return true;
     return false;
@@ -164,7 +166,14 @@ function d005Classify(string $src, string $rel): array {
         return ['apikey', 'API key (Authorization header)'];
     }
     // A provider webhook proving itself with a signature or a shared relay secret.
-    if (preg_match('/hash_equals|hash_hmac|X-Twilio-Signature|X-Hub-Signature|relay_secret/i', $src)) {
+    //
+    // Match the CALL, not the word. This used to accept a bare 'relay_secret' anywhere in
+    // the file — and db_verify.php happens to name a 'relay_secret' COLUMN in its schema
+    // definitions, so the endpoint that builds the entire database was reported as
+    // "signature-authenticated" when in fact it had no permission check at all. A scanner
+    // that mistakes a column name for a guard is worse than no scanner: it hides the hole
+    // it exists to find.
+    if (preg_match('/hash_equals\s*\(|hash_hmac\s*\(|X-Twilio-Signature|X-Hub-Signature/i', $src)) {
         return ['signature', 'Signature / shared secret (inbound provider webhook)'];
     }
     // A per-analyst capability token in the URL. Used where the client CANNOT carry a
