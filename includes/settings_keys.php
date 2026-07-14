@@ -75,17 +75,21 @@ function settingKeyOwners(): array
         }
     }
 
-    // NOT YET CONVERTED — modules and System areas whose settings pages still predate the
-    // manifest. They fall back to Layer 1 module access ('cap' => null), which is exactly
-    // what reaching those pages requires today, so nothing breaks. Each entry MOVES INTO
-    // ITS MODULE'S MANIFEST as that module converts, and this list shrinks to nothing.
+    // THE SYSTEM MODULE — and, now that the roll-out is complete, nothing else.
     //
-    // Module 'system' resolves to is_admin via analystCanAccessModule(), so the System
-    // areas are administrator-only without any special-casing here.
+    // These are not "not yet converted": the System module is deliberately NOT split into
+    // capabilities (docs/design/rbac.md §9a). It is ~20 areas, every one of them
+    // administration by definition, with no operational half to separate out — so
+    // splitting it would produce permissions only administrators would ever hold, which is
+    // what is_admin already means.
+    //
+    // 'cap' => null therefore falls back to Layer 1, and module 'system' resolves to
+    // is_admin via analystCanAccessModule(). So these keys are administrator-only, with no
+    // special-casing here. This list is permanent, not a to-do.
+    //
+    // (Every other module's keys are DERIVED from its manifest above. Tickets' 'system_name'
+    // was the last one to move out, when Tickets converted in #848.)
     return $owners += [
-        // (Tickets' 'system_name' moved into tickets/settings/manifest.php when Tickets
-        // was converted — it is now guarded by tickets.general, not module access.)
-
         // --- System: Security area. The lockout policy — an analyst able to raise
         // max_failed_logins could switch off brute-force protection entirely. ---
         'trusted_device_days'      => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
