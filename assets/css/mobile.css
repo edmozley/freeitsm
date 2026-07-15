@@ -714,6 +714,27 @@
        reflows this fixed sheet to a desktop width. */
     .mobile-sheet-cmdb .cmdb-picker input { font-size: 16px; padding: 10px 12px; }
 
+    /* "+ Link object" as a proper finger-friendly pill instead of a bare text
+       link (which is a tiny tap target on a phone). */
+    .mobile-sheet-cmdb .cmdb-section-head { align-items: center; gap: 10px; }
+    .mobile-sheet-cmdb .cmdb-section-head .btn-link {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        min-height: 40px;
+        padding: 8px 16px;
+        border: 1px solid #f9a8d4;
+        border-radius: 8px;
+        background: #fdf2f8;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    .mobile-sheet-cmdb .cmdb-section-head .btn-link:hover { text-decoration: none; }
+    [data-theme="dark"] .mobile-sheet-cmdb .cmdb-section-head .btn-link {
+        background: #2f2430;
+        border-color: #6b3d54;
+    }
+
     /* No lift-on-hover on touch — :hover sticks after a tap and reads as jank.
        Roomier tap targets on the cards and the search results. */
     .mobile-sheet-cmdb .cmdb-link-card { padding: 12px; }
