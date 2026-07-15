@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -119,11 +120,18 @@ try {
 
     $params = [];
 
+    // Scope to the active company (multi-tenancy). No-op on a single-company
+    // install — activeTenantFilter returns ['', []]. The Default company also
+    // sees NULL-tenant (not-yet-assigned) assets.
+    [$tenantSql, $tenantParams] = activeTenantFilter($conn, (int)$_SESSION['analyst_id'], 'a');
+
+    $sql .= " WHERE 1=1";
     if (!empty($search)) {
-        $sql .= " WHERE a.hostname LIKE ?";
-        $searchParam = '%' . $search . '%';
-        $params = [$searchParam];
+        $sql .= " AND a.hostname LIKE ?";
+        $params[] = '%' . $search . '%';
     }
+    $sql .= $tenantSql;
+    $params = array_merge($params, $tenantParams);
 
     if ($tableExists) {
         $groupBy = " GROUP BY a.id, a.hostname, a.manufacturer, a.model, a.memory, a.service_tag, a.operating_system, a.feature_release, a.build_number, a.cpu_name, a.speed, a.bios_version, a.location_id, a.purchase_date, a.purchase_cost, a.supplier_id, a.order_number, a.warranty_expiry";
