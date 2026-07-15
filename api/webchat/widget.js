@@ -32,6 +32,7 @@
     var lastId = 0;
     var pollTimer = null;
     var pollInFlight = false;
+    var sendInFlight = false;
     var typingTimer = null;
     var opened = false;
     var started = false;      // conversation created (have a token) and chat view shown
@@ -292,6 +293,8 @@
         var text = ta.value.trim();
         if (!text || !token) { return; }
         ta.value = '';
+        // Suppress polling until we know this message's id (see the poll() guard).
+        sendInFlight = true;
         // Echo the visitor's message immediately — the send round trip waits for the AI
         // answer, and that shouldn't hold up showing what they just typed.
         addMessage({ from: 'visitor', body: text });
@@ -305,17 +308,20 @@
         }).then(function (r) { return r.json(); }).then(function (d) {
             if (btn) { btn.disabled = false; }
             if (!d.success) {
+                sendInFlight = false;
                 hideTyping();
                 addMessage({ from: 'agent', name: '', body: d.error || 'Message could not be sent.' });
                 return;
             }
-            // Advance the poll cursor past our own just-echoed message, so the follow-up
-            // poll brings back only the reply — never a duplicate of what we showed.
+            // Advance the poll cursor past our own just-echoed message BEFORE re-enabling
+            // polling, so no poll re-fetches it — the follow-up poll brings back only the reply.
             if (typeof d.msg_id === 'number' && d.msg_id > lastId) { lastId = d.msg_id; }
+            sendInFlight = false;
             if (d.notice) { hideTyping(); addMessage({ kind: 'system', body: d.notice }); }
             poll(); // pull the reply straight back so it shows immediately
         }).catch(function () {
             if (btn) { btn.disabled = false; }
+            sendInFlight = false;
             hideTyping();
             addMessage({ from: 'agent', name: '', body: 'Network error — message not sent.' });
         });
@@ -325,7 +331,10 @@
         // Guard against overlapping polls: the immediate poll() fired after a send or an
         // escalation can otherwise race the 3s interval poll, and both append the same new
         // messages (they share one `after` cursor) — which showed as duplicate bubbles.
-        if (!token || pollInFlight) { return; }
+        // `sendInFlight` additionally suppresses polling for the window between echoing the
+        // visitor's own message and learning its id — otherwise a poll mid-send re-fetches
+        // that message (already stored server-side) and duplicates the optimistic echo.
+        if (!token || pollInFlight || sendInFlight) { return; }
         pollInFlight = true;
         fetch(api('poll.php?key=' + encodeURIComponent(KEY) + '&token=' + encodeURIComponent(token) + '&after=' + lastId))
             .then(function (r) { return r.json(); })
