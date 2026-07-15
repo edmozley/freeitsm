@@ -11,13 +11,14 @@
  *   - a warranty_expiry change re-syncs the calendar's warranty events
  *
  * Notes on scope and identity:
- *   - Assets are NOT company-scoped (no tenant_id column) — they are
- *     install-wide, exactly as in the UI, so a key's company scope does not
- *     restrict them.
+ *   - Assets ARE company-scoped (assets.tenant_id, Phase 3): the key's company
+ *     scope restricts every list + by-id read/write (apiKeyTenantFilter on the
+ *     list, apiKeyCanAccessTenantRow via apiLoadAsset). An asset outside scope is
+ *     a 404; NULL tenant_id normalises to the Default company. Invisible at N=1.
  *   - There is deliberately NO delete endpoint: nothing in the product
  *     deletes assets (they are agent-maintained records).
- *   - hostname is the de-facto identity every ingest path upserts on, so
- *     creating a duplicate hostname is a 409.
+ *   - hostname is the de-facto identity every ingest path upserts on, and is now
+ *     unique PER COMPANY, so a duplicate hostname within a company is a 409.
  *
  * The WRITES (create / field update / assign / unassign) are delegated to
  * AssetsService — the same rules the UI's api/assets/*.php endpoints now call.
@@ -37,12 +38,14 @@ function apiAssetSelect(): string {
                    at.name  AS type_name,
                    ast.name AS status_name,
                    al.name  AS location_name,
+                   tn.name  AS company_name,
                    COALESCE(NULLIF(TRIM(s.trading_name), ''), s.legal_name) AS supplier_name,
                    (SELECT COUNT(*) FROM users_assets ua WHERE ua.asset_id = a.id) AS assigned_count
             FROM assets a
             LEFT JOIN asset_types        at  ON at.id  = a.asset_type_id
             LEFT JOIN asset_status_types ast ON ast.id = a.asset_status_id
             LEFT JOIN asset_locations    al  ON al.id  = a.location_id
+            LEFT JOIN tenants            tn  ON tn.id  = a.tenant_id
             LEFT JOIN suppliers          s   ON s.id   = a.supplier_id";
 }
 
@@ -81,6 +84,7 @@ function apiSerializeAsset(PDO $conn, array $r): array {
     return [
         'id'       => (int)$r['id'],
         'hostname' => $r['hostname'],
+        'company'  => $rel($r['tenant_id'] ?? null, $r['company_name'] ?? null),
         'type'     => $rel($r['asset_type_id'], $r['type_name']),
         'status'   => $rel($r['asset_status_id'], $r['status_name']),
         'location' => $locationId === null ? null : [
@@ -123,12 +127,16 @@ function apiSerializeAsset(PDO $conn, array $r): array {
     ];
 }
 
-/** Load one asset (with joins); 404 if unknown. Assets are install-wide (no company scope). */
-function apiLoadAsset(PDO $conn, int $assetId): array {
+/**
+ * Load one asset (with joins); 404 if unknown OR outside the key's companies
+ * (multi-tenancy — the key's company scope gates every by-id read/write; a NULL
+ * tenant_id normalises to the Default company; no-op at N=1 / all-access key).
+ */
+function apiLoadAsset(PDO $conn, array $apiKey, int $assetId): array {
     $stmt = $conn->prepare(apiAssetSelect() . " WHERE a.id = ?");
     $stmt->execute([$assetId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row) {
+    if (!$row || !apiKeyCanAccessTenantRow($conn, $apiKey, 'assets', $assetId)) {
         apiError(404, 'not_found', 'Asset not found.');
     }
     return $row;
@@ -218,8 +226,22 @@ function apiAssetsList(PDO $conn, array $apiKey, array $params, array $body): vo
     }
     $orderSql = $sortable[$sortKey] . ($desc ? ' DESC' : ' ASC');
 
+    // Multi-tenancy: restrict to the key's companies (no-op at N=1 / all-access
+    // key). An explicit ?company_id= narrows within that scope.
+    [$scopeSql, $scopeArgs] = apiKeyTenantFilter($conn, $apiKey, 'a');
+    if (isset($_GET['company_id']) && $_GET['company_id'] !== '') {
+        $cid = (int)$_GET['company_id'];
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $cid)) {
+            apiError(403, 'forbidden', 'This key cannot access that company.');
+        }
+        $where[] = ($cid === getDefaultTenantId($conn))
+            ? '(a.tenant_id = ? OR a.tenant_id IS NULL)' : 'a.tenant_id = ?';
+        $args[] = $cid;
+    }
+
     [$page, $perPage, $offset] = apiPagination();
-    $whereSql = implode(' AND ', $where);
+    $whereSql = implode(' AND ', $where) . $scopeSql;
+    $args = array_merge($args, $scopeArgs);
 
     $countStmt = $conn->prepare("SELECT COUNT(*) FROM assets a WHERE $whereSql");
     $countStmt->execute($args);
@@ -243,7 +265,7 @@ function apiAssetsList(PDO $conn, array $apiKey, array $params, array $body): vo
 // GET /assets/{id}
 // ---------------------------------------------------------------------------
 function apiAssetsGet(PDO $conn, array $apiKey, array $params, array $body): void {
-    $row = apiLoadAsset($conn, $params[0]);
+    $row = apiLoadAsset($conn, $apiKey, $params[0]);
     $asset = apiSerializeAsset($conn, $row);
 
     // Current holders inline — the one child collection you nearly always want.
@@ -271,11 +293,25 @@ function apiAssetsGet(PDO $conn, array $apiKey, array $params, array $body): voi
 // POST /assets
 // ---------------------------------------------------------------------------
 function apiAssetsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
+    // Multi-tenancy: the company the new asset belongs to — an explicit
+    // company_id (which must be in the key's scope) or the key's default company.
+    if (isset($body['company_id']) && $body['company_id'] !== '' && $body['company_id'] !== null) {
+        $tenantId = (int)$body['company_id'];
+        if (!getTenantById($conn, $tenantId)) {
+            apiError(422, 'invalid_field', "Unknown company id: {$tenantId}");
+        }
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $tenantId)) {
+            apiError(403, 'forbidden', 'This key cannot create assets for that company.');
+        }
+    } else {
+        $tenantId = apiKeyDefaultTenantId($conn, $apiKey);
+    }
+
     try {
         $assetId = AssetsService::createAsset($conn, ActorContext::fromApiKey($apiKey), $body,
-            'Created via API (key: ' . $apiKey['name'] . ')');
+            'Created via API (key: ' . $apiKey['name'] . ')', $tenantId);
     } catch (ServiceError $e) { apiFailFromService($e); }
-    apiRespond(apiSerializeAsset($conn, apiLoadAsset($conn, $assetId)), 201);
+    apiRespond(apiSerializeAsset($conn, apiLoadAsset($conn, $apiKey, $assetId)), 201);
 }
 
 // ---------------------------------------------------------------------------
@@ -285,14 +321,14 @@ function apiAssetsUpdate(PDO $conn, array $apiKey, array $params, array $body): 
     try {
         AssetsService::updateFields($conn, ActorContext::fromApiKey($apiKey), (int)$params[0], $body);
     } catch (ServiceError $e) { apiFailFromService($e); }
-    apiRespond(apiSerializeAsset($conn, apiLoadAsset($conn, $params[0])));
+    apiRespond(apiSerializeAsset($conn, apiLoadAsset($conn, $apiKey, $params[0])));
 }
 
 // ---------------------------------------------------------------------------
 // Assignments — POST/GET /assets/{id}/assignments, DELETE .../{user_id}
 // ---------------------------------------------------------------------------
 function apiAssetAssignmentsList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadAsset($conn, $params[0]);
+    apiLoadAsset($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
         "SELECT ua.user_id, u.display_name, u.email, ua.assigned_datetime, ua.expected_return_date, ua.notes,
                 a.full_name AS assigned_by
@@ -333,7 +369,7 @@ function apiAssetAssignmentsDelete(PDO $conn, array $apiKey, array $params, arra
 // GET /assets/{id}/history  +  /custody
 // ---------------------------------------------------------------------------
 function apiAssetHistoryList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadAsset($conn, $params[0]);
+    apiLoadAsset($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
         "SELECT h.id, h.field_name, h.old_value, h.new_value, h.created_datetime,
                 h.analyst_id, a.full_name AS analyst_name
@@ -354,7 +390,7 @@ function apiAssetHistoryList(PDO $conn, array $apiKey, array $params, array $bod
 }
 
 function apiAssetCustodyList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadAsset($conn, $params[0]);
+    apiLoadAsset($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
         "SELECT c.id, c.user_id, c.user_name, c.action, c.expected_return_date, c.notes,
                 c.action_datetime, a.full_name AS analyst_name
@@ -380,7 +416,7 @@ function apiAssetCustodyList(PDO $conn, array $apiKey, array $params, array $bod
 // Inventory reads — disks, network adapters, devices, software
 // ---------------------------------------------------------------------------
 function apiAssetDisksList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadAsset($conn, $params[0]);
+    apiLoadAsset($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
         "SELECT id, drive, label, file_system, size_bytes, free_bytes, used_percent
          FROM asset_disks WHERE asset_id = ? ORDER BY drive"
@@ -400,7 +436,7 @@ function apiAssetDisksList(PDO $conn, array $apiKey, array $params, array $body)
 }
 
 function apiAssetNetworkAdaptersList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadAsset($conn, $params[0]);
+    apiLoadAsset($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
         "SELECT id, name, mac_address, ip_address, subnet_mask, gateway, dhcp_enabled
          FROM asset_network_adapters WHERE asset_id = ? ORDER BY name"
@@ -420,7 +456,7 @@ function apiAssetNetworkAdaptersList(PDO $conn, array $apiKey, array $params, ar
 }
 
 function apiAssetDevicesList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadAsset($conn, $params[0]);
+    apiLoadAsset($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(
         "SELECT id, device_class, device_name, status, manufacturer, driver_version, driver_date
          FROM asset_devices WHERE asset_id = ? ORDER BY device_class, device_name"
@@ -440,7 +476,7 @@ function apiAssetDevicesList(PDO $conn, array $apiKey, array $params, array $bod
 }
 
 function apiAssetSoftwareList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadAsset($conn, $params[0]);
+    apiLoadAsset($conn, $apiKey, $params[0]);
     // software_inventory_detail keys the asset as host_id.
     $sql = "SELECT d.id, a.display_name, a.publisher, d.display_version, d.install_date,
                    d.system_component, d.last_seen
@@ -470,25 +506,27 @@ function apiAssetSoftwareList(PDO $conn, array $apiKey, array $params, array $bo
 // ---------------------------------------------------------------------------
 // Reference lookups
 // ---------------------------------------------------------------------------
+// The reference lists resolve for the key's default company (globals + that
+// company's own; every row at N=1). Suppliers stay a shared registry.
 function apiAssetTypesList(PDO $conn, array $apiKey, array $params, array $body): void {
-    $rows = $conn->query("SELECT id, name, description, is_active FROM asset_types ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC);
+    $rows = getTenantConfigRows($conn, 'asset_types', 'asset_type', apiKeyDefaultTenantId($conn, $apiKey),
+        'id, name, description, is_active, display_order', '', 'display_order, name');
     apiRespond(array_map(function ($r) {
         return ['id' => (int)$r['id'], 'name' => $r['name'], 'description' => $r['description'], 'is_active' => (bool)$r['is_active']];
     }, $rows));
 }
 
 function apiAssetStatusesList(PDO $conn, array $apiKey, array $params, array $body): void {
-    $rows = $conn->query("SELECT id, name, description, is_active FROM asset_status_types ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC);
+    $rows = getTenantConfigRows($conn, 'asset_status_types', 'asset_status_type', apiKeyDefaultTenantId($conn, $apiKey),
+        'id, name, description, is_active, display_order', '', 'display_order, name');
     apiRespond(array_map(function ($r) {
         return ['id' => (int)$r['id'], 'name' => $r['name'], 'description' => $r['description'], 'is_active' => (bool)$r['is_active']];
     }, $rows));
 }
 
 function apiAssetLocationsList(PDO $conn, array $apiKey, array $params, array $body): void {
-    $rows = $conn->query(
-        "SELECT id, name, parent_id, display_order FROM asset_locations
-         ORDER BY (parent_id IS NULL) DESC, parent_id, display_order, name"
-    )->fetchAll(PDO::FETCH_ASSOC);
+    $rows = getTenantConfigRows($conn, 'asset_locations', 'asset_location', apiKeyDefaultTenantId($conn, $apiKey),
+        'id, name, parent_id, display_order', '', '(parent_id IS NULL) DESC, parent_id, display_order, name');
     apiRespond(array_map(function ($r) use ($conn) {
         $id = (int)$r['id'];
         return [
