@@ -71,7 +71,11 @@
         '.head .title { font-weight: 700; font-size: 15px; }' +
         '.head button { background: transparent; border: 0; color: #fff; cursor: pointer; font-size: 22px; line-height: 1; padding: 0 4px; opacity: .9; }' +
         '.head button:hover { opacity: 1; }' +
-        '.body { flex: 1; overflow-y: auto; padding: 14px; background: #f6f7f9; }' +
+        // .scroll fills the space between header and the pinned composer, and is itself a
+        // flex column so .body can scroll while .foot stays put. min-height:0 is required
+        // for a flex child to actually scroll rather than grow past its parent.
+        '.scroll { flex: 1; display: flex; flex-direction: column; min-height: 0; }' +
+        '.body { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; background: #f6f7f9; }' +
         '.msg { display: flex; margin-bottom: 10px; }' +
         '.msg .bubble { max-width: 78%; padding: 9px 12px; border-radius: 14px; white-space: pre-wrap; word-wrap: break-word; }' +
         '.msg.visitor { justify-content: flex-end; }' +
