@@ -22,7 +22,13 @@ if (empty($asset_id)) {
 }
 
 try {
+    require_once '../../includes/tenancy.php';
     $conn = connectToDatabase();
+    // Multi-tenancy: only serve child data for an asset in this analyst's companies.
+    if (!analystCanAccessAsset($conn, (int)$_SESSION['analyst_id'], (int)$asset_id)) {
+        echo json_encode(['success' => false, 'error' => 'Asset not found']);
+        exit;
+    }
 
     $sql = "SELECT
                 a.display_name,
