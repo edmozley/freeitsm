@@ -632,6 +632,8 @@ $translationNamespaces = ['common', 'asset-management'];
                 get: API_BASE + 'get_asset_types.php',
                 save: API_BASE + 'save_asset_type.php',
                 delete: API_BASE + 'delete_asset_type.php',
+                setHidden: API_BASE + 'set_asset_type_hidden.php',
+                hiddenParam: 'asset_type_id',
                 key: 'asset_types',
                 listId: 'asset-types-list',
                 label: window.t('asset-management.settings.label_asset_type')
@@ -640,11 +642,17 @@ $translationNamespaces = ['common', 'asset-management'];
                 get: API_BASE + 'get_asset_status_types.php',
                 save: API_BASE + 'save_asset_status_type.php',
                 delete: API_BASE + 'delete_asset_status_type.php',
+                setHidden: API_BASE + 'set_asset_status_type_hidden.php',
+                hiddenParam: 'asset_status_type_id',
                 key: 'asset_status_types',
                 listId: 'asset-statuses-list',
                 label: window.t('asset-management.settings.label_asset_status')
             }
         };
+
+        // Icons for the per-company "shared defaults" hide/show toggle.
+        const ASSET_EYE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+        const ASSET_EYE_OFF_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
 
         document.addEventListener('DOMContentLoaded', function() {
             loadItems('asset-type');
@@ -701,11 +709,16 @@ $translationNamespaces = ['common', 'asset-management'];
         async function loadItems(type) {
             const ep = endpoints[type];
             try {
-                const response = await fetch(ep.get);
+                // ?manage=1 → in a client company's context the endpoint also returns
+                // `scoped` (this company's own + the shared defaults with hide state).
+                const response = await fetch(ep.get + '?manage=1');
                 const data = await response.json();
                 if (data.success) {
-                    allItems[type] = data[ep.key];
-                    renderItems(type, data[ep.key]);
+                    // Only a company's OWN rows are editable by id; in the flat /
+                    // Default view that's every row, in a client view it's scoped.own.
+                    allItems[type] = (data.scoped && data.scoped.is_default === false)
+                        ? data.scoped.own : data[ep.key];
+                    renderItems(type, data);
                 } else {
                     document.getElementById(ep.listId).innerHTML =
                         `<tr><td colspan="5" style="text-align:center;padding:20px;color:#d13438;">${window.t('asset-management.toast.error', { error: escapeHtml(data.error) })}</td></tr>`;
@@ -717,16 +730,9 @@ $translationNamespaces = ['common', 'asset-management'];
             }
         }
 
-        function renderItems(type, items) {
-            const ep = endpoints[type];
-            const tbody = document.getElementById(ep.listId);
-
-            if (items.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">${window.t('asset-management.settings.no_items')}</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = items.map(item => `
+        // The editable row for a company's-own / global-default item.
+        function assetItemRow(type, item) {
+            return `
                 <tr>
                     <td><strong>${escapeHtml(item.name)}</strong></td>
                     <td>${escapeHtml(item.description || '-')}</td>
@@ -746,8 +752,85 @@ $translationNamespaces = ['common', 'asset-management'];
                             </svg>
                         </button>
                     </td>
-                </tr>
-            `).join('');
+                </tr>`;
+        }
+
+        function renderItems(type, data) {
+            const ep = endpoints[type];
+            const tbody = document.getElementById(ep.listId);
+
+            // Multi-company, inside a client company's context → the two-group
+            // "this company's own + shared defaults (add/hide)" view.
+            if (data.scoped && data.scoped.is_default === false) {
+                renderItemsScoped(type, tbody, data.scoped);
+                return;
+            }
+
+            // Otherwise: a flat list (single-company install, or the MSP/Default
+            // context where you manage the shared defaults themselves).
+            const items = data[ep.key] || [];
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:#999;">${window.t('asset-management.settings.no_items')}</td></tr>`;
+                return;
+            }
+            tbody.innerHTML = items.map(item => assetItemRow(type, item)).join('');
+        }
+
+        // Per-company add+hide view: the company's own items, then the shared
+        // defaults it inherits, each with a Hide/Show toggle.
+        function renderItemsScoped(type, tbody, scoped) {
+            const groupRow = (label, hint) =>
+                `<tr><td colspan="5" style="background:#f7f9fa;border-top:1px solid #e3e8ea;font-size:12px;font-weight:600;color:#455a64;padding:10px;">${escapeHtml(label)}${hint ? ` <span style="font-weight:400;color:#90a4ae;">— ${escapeHtml(hint)}</span>` : ''}</td></tr>`;
+
+            let html = '';
+            html += groupRow(`${scoped.company.name}’s own`);
+            html += scoped.own.length
+                ? scoped.own.map(item => assetItemRow(type, item)).join('')
+                : '<tr><td colspan="5" style="color:#aaa;font-style:italic;padding:10px;">None yet — use Add to create one just for this company.</td></tr>';
+
+            html += groupRow('Shared defaults', `inherited by ${scoped.company.name}`);
+            html += scoped.globals.map(g => {
+                const dim = g.hidden ? 'opacity:0.5;' : '';
+                const statusCell = g.hidden
+                    ? '<span class="status-badge status-inactive">Hidden here</span>'
+                    : `<span class="status-badge status-${g.is_active ? 'active' : 'inactive'}">${g.is_active ? window.t('asset-management.status.active') : window.t('asset-management.status.inactive')}</span>`;
+                const toggle = g.hidden
+                    ? `<button class="action-btn" onclick="toggleHidden('${type}', ${g.id}, false)" title="Hidden from this company — click to show">${ASSET_EYE_OFF_SVG}</button>`
+                    : `<button class="action-btn" onclick="toggleHidden('${type}', ${g.id}, true)" title="Visible to this company — click to hide">${ASSET_EYE_SVG}</button>`;
+                return `
+                    <tr style="${dim}">
+                        <td><strong>${escapeHtml(g.name)}</strong></td>
+                        <td>${escapeHtml(g.description || '-')}</td>
+                        <td>${g.display_order}</td>
+                        <td>${statusCell}</td>
+                        <td>${toggle}</td>
+                    </tr>`;
+            }).join('');
+
+            tbody.innerHTML = html;
+        }
+
+        // Hide / show a shared default for the active company (add+hide model).
+        async function toggleHidden(type, id, hidden) {
+            const ep = endpoints[type];
+            try {
+                const body = { hidden: hidden };
+                body[ep.hiddenParam] = id;
+                const response = await fetch(ep.setHidden, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast(hidden ? 'Hidden from this company' : 'Shown for this company', 'success');
+                    loadItems(type);
+                } else {
+                    showToast(data.error || 'Could not update', 'error');
+                }
+            } catch (error) {
+                showToast('Could not update', 'error');
+            }
         }
 
         function openAddModal(type) {
