@@ -31,6 +31,7 @@
     try { token = sessionStorage.getItem(STORE_KEY); } catch (e) { token = null; }
     var lastId = 0;
     var pollTimer = null;
+    var pollInFlight = false;
     var opened = false;
     var started = false;      // conversation created (have a token) and chat view shown
     var closed = false;
@@ -284,10 +285,15 @@
     }
 
     function poll() {
-        if (!token) { return; }
+        // Guard against overlapping polls: the immediate poll() fired after a send or an
+        // escalation can otherwise race the 3s interval poll, and both append the same new
+        // messages (they share one `after` cursor) — which showed as duplicate bubbles.
+        if (!token || pollInFlight) { return; }
+        pollInFlight = true;
         fetch(api('poll.php?key=' + encodeURIComponent(KEY) + '&token=' + encodeURIComponent(token) + '&after=' + lastId))
             .then(function (r) { return r.json(); })
             .then(function (d) {
+                pollInFlight = false;
                 if (!d.success) { return; }
                 (d.messages || []).forEach(function (m) { addMessage(m); });
                 if (typeof d.last_id === 'number') { lastId = d.last_id; }
@@ -305,7 +311,7 @@
                     var sb = el('.foot .send'); if (sb) { sb.disabled = true; }
                     stopPolling();
                 }
-            }).catch(function () { /* transient */ });
+            }).catch(function () { pollInFlight = false; /* transient */ });
     }
 
     function startPolling() {
