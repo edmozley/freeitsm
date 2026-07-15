@@ -37,11 +37,23 @@ if (!$authKey) {
 // --------------------------------------------------
 // Validate Authorization key against apikeys table
 // --------------------------------------------------
+$keyTenant = null;  // multi-tenancy: the company this agent's assets belong to
 try {
-    $stmt = $conn->prepare("SELECT COUNT(*) AS keyExists FROM apikeys WHERE apikey = ? AND active = 1");
-    $stmt->execute([$authKey]);
-    $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    $keyExists = $result && $result['keyExists'] > 0;
+    // Validate the key and read its company in one go. Fall back gracefully if
+    // the tenant_id column isn't present yet (part-migrated install).
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM apikeys WHERE apikey = ? AND active = 1");
+        $stmt->execute([$authKey]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        $stmt = $conn->prepare("SELECT id FROM apikeys WHERE apikey = ? AND active = 1");
+        $stmt->execute([$authKey]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    $keyExists = (bool)$result;
+    if ($result && array_key_exists('tenant_id', $result) && $result['tenant_id'] !== null) {
+        $keyTenant = (int)$result['tenant_id'];   // NULL stays the Default company
+    }
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to validate API key: ' . $e->getMessage()]);
@@ -105,9 +117,9 @@ function logApiResponse($conn, $hostId, $message) {
 $hostId = null;
 
 try {
-    // Try to find existing host
-    $stmt = $conn->prepare("SELECT id FROM assets WHERE hostname = ?");
-    $stmt->execute([$hostname]);
+    // Try to find existing host — scoped to this key's company (NULL-safe match).
+    $stmt = $conn->prepare("SELECT id FROM assets WHERE hostname = ? AND tenant_id <=> ?");
+    $stmt->execute([$hostname, $keyTenant]);
     $hostRow = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($hostRow && isset($hostRow['id'])) {
@@ -117,13 +129,13 @@ try {
         $stmt = $conn->prepare("UPDATE assets SET last_seen = UTC_TIMESTAMP() WHERE id = ?");
         $stmt->execute([$hostId]);
     } else {
-        // Host does not exist -> insert
-        $stmt = $conn->prepare("INSERT INTO assets (hostname, first_seen, last_seen) VALUES (?, UTC_TIMESTAMP(), UTC_TIMESTAMP())");
-        $stmt->execute([$hostname]);
+        // Host does not exist -> insert (stamped with this key's company)
+        $stmt = $conn->prepare("INSERT INTO assets (hostname, tenant_id, first_seen, last_seen) VALUES (?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())");
+        $stmt->execute([$hostname, $keyTenant]);
 
-        // Re-select to get id
-        $stmt = $conn->prepare("SELECT id FROM assets WHERE hostname = ?");
-        $stmt->execute([$hostname]);
+        // Re-select to get id (scoped to this key's company)
+        $stmt = $conn->prepare("SELECT id FROM assets WHERE hostname = ? AND tenant_id <=> ?");
+        $stmt->execute([$hostname, $keyTenant]);
         $hostRow2 = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if (!$hostRow2 || !isset($hostRow2['id'])) {

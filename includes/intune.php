@@ -278,6 +278,13 @@ function intuneLinkDevicesToAssets(PDO $conn): array {
 
     $stubsCreated = 0;
     if ($unlinked) {
+        // Multi-tenancy: Intune is a single MSP-level connection that can hold
+        // machines from several client companies, so there's no per-key company
+        // to derive here (unlike the agent ingest paths). Stubs are therefore
+        // created with tenant_id NULL = the Default company — the "needs a
+        // company" state. Assigning synced machines to their real company (per
+        // connection, by domain, or via a triage queue) is a deliberate later
+        // slice; see the multi-tenancy plan.
         $insert = $conn->prepare(
             "INSERT INTO assets (hostname, manufacturer, model, operating_system, service_tag, first_seen, last_seen)
              VALUES (:hostname, :manufacturer, :model, :operating_system, :service_tag, UTC_TIMESTAMP(), :last_seen)"

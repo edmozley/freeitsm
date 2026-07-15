@@ -283,6 +283,34 @@ function analystCanAccessChange(PDO $conn, int $analystId, $changeId): bool {
 }
 
 /**
+ * May this analyst access this *asset* (by its owning company)? The Asset
+ * Management twin of analystCanAccessChange() — same rules (single-company →
+ * always true; NULL tenant treated as Default-owned; unknown id → false;
+ * part-migrated table → true).
+ */
+function analystCanAccessAsset(PDO $conn, int $analystId, $assetId): bool {
+    if (!isMultiTenant($conn)) {
+        return true;
+    }
+    $assetId = (int) $assetId;
+    if ($assetId <= 0) {
+        return false;
+    }
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM assets WHERE id = ?");
+        $stmt->execute([$assetId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
+        return analystCanAccessTenant($conn, $analystId, $tid);
+    } catch (Exception $e) {
+        return true; // tenant_id column missing on a part-migrated install.
+    }
+}
+
+/**
  * The analyst's current working company context.
  *
  * - Single-company install → always the Default tenant.

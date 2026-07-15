@@ -9,6 +9,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/services/assets.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -41,6 +42,14 @@ try {
     }
 
     $conn = connectToDatabase();
+
+    // Multi-tenancy: refuse to edit an asset in a company this analyst can't
+    // access (no-op on a single-company install). Framed as not-found so it
+    // never reveals another company's asset.
+    if (!analystCanAccessAsset($conn, (int)$_SESSION['analyst_id'], (int)$asset_id)) {
+        throw new Exception('Asset not found');
+    }
+
     AssetsService::updateFields($conn, ActorContext::fromSession($conn), (int)$asset_id, [$field => $value]);
     echo json_encode(['success' => true]);
 

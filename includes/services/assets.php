@@ -31,10 +31,28 @@
  */
 
 require_once __DIR__ . '/../service_context.php';
+require_once __DIR__ . '/../tenancy.php';
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class AssetsService
 {
+    /**
+     * Multi-tenancy gate: refuse to touch an asset outside the actor's companies.
+     * companyScope null = all companies (single-company install or an all-access
+     * actor) → no gate. Framed as not-found so it never reveals another company's
+     * asset. $row must include tenant_id.
+     */
+    private static function assertScope(PDO $conn, ActorContext $ctx, array $row): void
+    {
+        if ($ctx->companyScope === null) {
+            return;
+        }
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int)$row['tenant_id'];
+        if (!in_array($tid, $ctx->companyScope, true)) {
+            throw new ServiceError('not_found', 'not_found', 'Asset not found.');
+        }
+    }
+
     /**
      * The editable columns, their audit field keys (the SAME stable keys the UI
      * history view localises via t('asset-management.field.<key>')), and how to
@@ -79,7 +97,7 @@ class AssetsService
      * $creationNote is the audit new_value for the 'asset_created' row (the API
      * records the acting key; the UI has no create path).
      */
-    public static function createAsset(PDO $conn, ActorContext $ctx, array $in, string $creationNote): int
+    public static function createAsset(PDO $conn, ActorContext $ctx, array $in, string $creationNote, ?int $tenantId = null): int
     {
         $hostname = trim((string)($in['hostname'] ?? ''));
         if ($hostname === '') {
@@ -89,10 +107,17 @@ class AssetsService
             throw new ServiceError('validation', 'invalid_field', "'hostname' must be at most 50 characters.");
         }
 
+        // Multi-tenancy: normalise the Default company to NULL so API-created and
+        // agent-created assets store the same thing (every read treats NULL as the
+        // Default company).
+        $storeTenant = ($tenantId !== null && $tenantId === getDefaultTenantId($conn)) ? null : $tenantId;
+
         // hostname is the identity every ingest path upserts on — a duplicate
         // would split an asset's records, so refuse rather than silently fork.
-        $dup = $conn->prepare("SELECT id FROM assets WHERE hostname = ?");
-        $dup->execute([$hostname]);
+        // Scoped to the target company (NULL-safe) so two companies may each hold
+        // a "LAPTOP-01".
+        $dup = $conn->prepare("SELECT id FROM assets WHERE hostname = ? AND tenant_id <=> ?");
+        $dup->execute([$hostname, $storeTenant]);
         $existingId = $dup->fetchColumn();
         if ($existingId !== false) {
             throw new ServiceError('conflict', 'conflict', "An asset with this hostname already exists (id {$existingId}). Use PATCH /assets/{$existingId} to update it.");
@@ -109,6 +134,8 @@ class AssetsService
             $columns[] = $field;
             $values[]  = self::validateField($conn, $field, $in[$field], $def);
         }
+        $columns[] = 'tenant_id';
+        $values[]  = $storeTenant;
 
         $placeholders = implode(', ', array_fill(0, count($columns), '?'));
         $sql = "INSERT INTO assets (" . implode(', ', $columns) . ", first_seen, last_seen)
@@ -132,6 +159,7 @@ class AssetsService
     public static function updateFields(PDO $conn, ActorContext $ctx, int $assetId, array $in): void
     {
         $current = self::loadRow($conn, $assetId);   // 404 if gone
+        self::assertScope($conn, $ctx, $current);    // 404 if in another company
         if (!$in) {
             throw new ServiceError('validation', 'missing_field', 'No fields to update.');
         }
@@ -153,8 +181,10 @@ class AssetsService
                 if ($newValue === null) {
                     throw new ServiceError('validation', 'invalid_field', "'hostname' cannot be blank.");
                 }
-                $dup = $conn->prepare("SELECT id FROM assets WHERE hostname = ? AND id != ?");
-                $dup->execute([$newValue, $assetId]);
+                // Scoped to this asset's own company (NULL-safe) — a matching
+                // hostname in another company is not a clash.
+                $dup = $conn->prepare("SELECT id FROM assets WHERE hostname = ? AND id != ? AND tenant_id <=> ?");
+                $dup->execute([$newValue, $assetId, $current['tenant_id']]);
                 if ($dup->fetchColumn()) {
                     throw new ServiceError('conflict', 'conflict', 'Another asset already uses this hostname.');
                 }

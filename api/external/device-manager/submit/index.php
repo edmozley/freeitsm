@@ -42,14 +42,24 @@ if (!$authKey) {
     exit;
 }
 
+$keyTenant = null;  // multi-tenancy: the company this agent's assets belong to
 try {
-    $stmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM apikeys WHERE apikey = ? AND active = 1");
-    $stmt->execute([$authKey]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row || (int)$row['cnt'] === 0) {
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM apikeys WHERE apikey = ? AND active = 1");
+        $stmt->execute([$authKey]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        $stmt = $conn->prepare("SELECT id FROM apikeys WHERE apikey = ? AND active = 1");
+        $stmt->execute([$authKey]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    if (!$row) {
         http_response_code(403);
         echo json_encode(['error' => 'Invalid authorization key']);
         exit;
+    }
+    if (array_key_exists('tenant_id', $row) && $row['tenant_id'] !== null) {
+        $keyTenant = (int)$row['tenant_id'];   // NULL stays the Default company
     }
 } catch (PDOException $e) {
     http_response_code(500);
@@ -89,8 +99,10 @@ $hostname = trim($data['hostname']);
 // Look up asset by hostname
 // --------------------------------------------------
 try {
-    $stmt = $conn->prepare("SELECT id FROM assets WHERE hostname = ?");
-    $stmt->execute([$hostname]);
+    // Scoped to this key's company (NULL-safe match) so a device report only
+    // ever attaches to that company's asset of the same hostname.
+    $stmt = $conn->prepare("SELECT id FROM assets WHERE hostname = ? AND tenant_id <=> ?");
+    $stmt->execute([$hostname, $keyTenant]);
     $asset = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$asset) {

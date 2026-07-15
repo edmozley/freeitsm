@@ -22,7 +22,13 @@ if (empty($assetId)) {
 }
 
 try {
+    require_once '../../includes/tenancy.php';
     $conn = connectToDatabase();
+    // Multi-tenancy: only serve child data for an asset in this analyst's companies.
+    if (!analystCanAccessAsset($conn, (int)$_SESSION['analyst_id'], (int)$assetId)) {
+        echo json_encode(['success' => false, 'error' => 'Asset not found']);
+        exit;
+    }
 
     $stmt = $conn->prepare("
         SELECT id, device_class, device_name, status, manufacturer, driver_version, driver_date

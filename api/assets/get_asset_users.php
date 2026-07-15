@@ -24,7 +24,13 @@ if (!$assetId) {
 }
 
 try {
+    require_once '../../includes/tenancy.php';
     $conn = connectToDatabase();
+    // Multi-tenancy: only serve child data for an asset in this analyst's companies.
+    if (!analystCanAccessAsset($conn, (int)$_SESSION['analyst_id'], (int)$assetId)) {
+        echo json_encode(['success' => false, 'error' => 'Asset not found']);
+        exit;
+    }
 
     // Check if users_assets table exists
     $tableCheck = $conn->prepare("SELECT COUNT(*) as cnt FROM information_schema.tables WHERE table_schema = ? AND table_name = 'users_assets'");

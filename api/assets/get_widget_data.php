@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -37,16 +38,22 @@ try {
 
     $prop = $widget['aggregate_property'];
     $params = [];
-    $where = '';
+    $where = ' WHERE 1=1';
 
     // Apply status filter
     if (!empty($status_id) && $widget['is_status_filterable']) {
-        $where = ' WHERE a.asset_status_id = ?';
+        $where .= ' AND a.asset_status_id = ?';
         $params[] = $status_id;
     } elseif (!$widget['is_status_filterable'] && $widget['default_status_id']) {
-        $where = ' WHERE a.asset_status_id = ?';
+        $where .= ' AND a.asset_status_id = ?';
         $params[] = $widget['default_status_id'];
     }
+
+    // Multi-tenancy: the dashboard aggregates only the active company's assets
+    // (the Default company also counts NULL-tenant assets). No-op at N=1.
+    [$tenantSql, $tenantParams] = activeTenantFilter($conn, (int)$_SESSION['analyst_id'], 'a');
+    $where .= $tenantSql;
+    $params = array_merge($params, $tenantParams);
 
     // Build aggregation query based on property type
     if ($prop === 'asset_type_id') {

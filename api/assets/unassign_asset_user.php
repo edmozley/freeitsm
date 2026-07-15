@@ -10,6 +10,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/services/assets.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -33,6 +34,10 @@ if (!$assetId || !$userId) {
 
 try {
     $conn = connectToDatabase();
+    // Multi-tenancy: refuse to touch an asset outside this analyst's companies.
+    if (!analystCanAccessAsset($conn, (int)$_SESSION['analyst_id'], (int)$assetId)) {
+        throw new Exception('Asset not found');
+    }
     AssetsService::unassignUser($conn, ActorContext::fromSession($conn), (int)$assetId, (int)$userId, (bool)$skipAudit);
     echo json_encode(['success' => true, 'message' => 'User removed from asset successfully']);
 } catch (ServiceError $e) {

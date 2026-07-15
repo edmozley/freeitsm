@@ -43,15 +43,27 @@ if (!$authKey) {
     exit;
 }
 
+$keyTenant = null;  // multi-tenancy: the company this agent's assets belong to
 try {
-    $stmt = $conn->prepare("SELECT COUNT(*) AS cnt FROM apikeys WHERE apikey = ? AND active = 1");
-    $stmt->execute([$authKey]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if (!$row || (int)$row['cnt'] === 0) {
+    // Fetch the key's company alongside validating it. A missing tenant_id column
+    // (part-migrated install) simply leaves $keyTenant null → the Default company.
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM apikeys WHERE apikey = ? AND active = 1");
+        $stmt->execute([$authKey]);
+        $keyRow = $stmt->fetch(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        $stmt = $conn->prepare("SELECT id FROM apikeys WHERE apikey = ? AND active = 1");
+        $stmt->execute([$authKey]);
+        $keyRow = $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+    if (!$keyRow) {
         http_response_code(403);
         echo json_encode(['error' => 'Invalid authorization key']);
         exit;
     }
+    // NULL = the Default company. Scopes the hostname upsert below so two
+    // companies may each legitimately hold a "LAPTOP-01".
+    $keyTenant = isset($keyRow['tenant_id']) && $keyRow['tenant_id'] !== null ? (int)$keyRow['tenant_id'] : null;
 } catch (PDOException $e) {
     http_response_code(500);
     echo json_encode(['error' => 'Failed to validate API key']);
@@ -136,9 +148,10 @@ if (!empty($data['tpm']) && is_array($data['tpm'])) {
 }
 
 try {
-    // Check if asset exists
-    $stmt = $conn->prepare("SELECT id FROM assets WHERE hostname = ?");
-    $stmt->execute([$hostname]);
+    // Check if asset exists — scoped to this key's company (NULL-safe match, so a
+    // Default-company key matches NULL-tenant assets).
+    $stmt = $conn->prepare("SELECT id FROM assets WHERE hostname = ? AND tenant_id <=> ?");
+    $stmt->execute([$hostname, $keyTenant]);
     $existing = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($existing) {
@@ -194,13 +207,13 @@ try {
                 operating_system, feature_release, build_number, cpu_name, speed,
                 bios_version, first_seen, last_seen,
                 domain, logged_in_user, last_boot_utc,
-                tpm_version, bitlocker_status, gpu_name
+                tpm_version, bitlocker_status, gpu_name, tenant_id
             ) VALUES (
                 ?, ?, ?, ?, ?,
                 ?, ?, ?, ?, ?,
                 ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(),
                 ?, ?, ?,
-                ?, ?, ?
+                ?, ?, ?, ?
             )
         ");
         $stmt->execute([
@@ -220,7 +233,8 @@ try {
             strOrNull($data, 'last_boot_utc'),
             $tpmVersion,
             $bitlockerStatus ? mb_substr($bitlockerStatus, 0, 20) : null,
-            $gpuName
+            $gpuName,
+            $keyTenant
         ]);
 
         $hostId = (int)$conn->lastInsertId();

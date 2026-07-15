@@ -716,6 +716,8 @@ $schema = [
         'supplier_id'       => 'INT NULL',
         'order_number'      => 'VARCHAR(100) NULL',
         'warranty_expiry'   => 'DATE NULL',
+        // Multi-tenancy: the company this asset belongs to (NULL = Default).
+        'tenant_id'         => 'INT NULL',
     ],
 
     'asset_types' => [
@@ -724,6 +726,8 @@ $schema = [
         'description'       => 'VARCHAR(255) NULL',
         'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
         'display_order'     => 'INT NOT NULL DEFAULT 0',
+        // Multi-tenancy config: NULL = global default type, set = a company's own.
+        'tenant_id'         => 'INT NULL',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
@@ -733,6 +737,8 @@ $schema = [
         'description'       => 'VARCHAR(255) NULL',
         'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
         'display_order'     => 'INT NOT NULL DEFAULT 0',
+        // Multi-tenancy config: NULL = global default status, set = a company's own.
+        'tenant_id'         => 'INT NULL',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
@@ -743,6 +749,8 @@ $schema = [
         'name'              => 'VARCHAR(100) NOT NULL',
         'parent_id'         => 'INT NULL',
         'display_order'     => 'INT NOT NULL DEFAULT 0',
+        // Multi-tenancy config: NULL = global/shared location, set = a company's own.
+        'tenant_id'         => 'INT NULL',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
@@ -1738,6 +1746,8 @@ $schema = [
         'label'      => 'VARCHAR(100) NULL',
         'datestamp'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'active'     => 'TINYINT(1) NULL DEFAULT 1',
+        // Multi-tenancy: the company an ingest key belongs to (NULL = Default).
+        'tenant_id'  => 'INT NULL',
     ],
 
     'api_rate_limits' => [
@@ -2946,6 +2956,50 @@ try {
             try { $conn->exec("ALTER TABLE ticket_types ADD UNIQUE KEY uq_ticket_types_tenant_name (tenant_id, name)"); } catch (Exception $e) {}
         }
     }
+
+    // --- Asset Management multi-tenancy (mirrors ticket_types above) ----------
+    // asset_types / asset_status_types / asset_locations: NULL tenant_id = global
+    // default (shared by every company); set = a company's own. For the two named
+    // option-lists, widen name-uniqueness from global to per-scope so a company may
+    // hold an option whose name matches a shared default (global-name dedup is
+    // enforced in the API — NULL tenant_id rows aren't de-duped by a unique key).
+    foreach ([
+        ['asset_types',        'fk_asset_types_tenant',        'uq_asset_types_name',        'uq_asset_types_tenant_name'],
+        ['asset_status_types', 'fk_asset_status_types_tenant', 'uq_asset_status_types_name', 'uq_asset_status_types_tenant_name'],
+        ['asset_locations',    'fk_asset_locations_tenant',    null,                         null],
+    ] as [$tbl, $fk, $oldIdx, $newIdx]) {
+        if ($tableExists($tbl) && $tableExists('tenants') && $colExists($tbl, 'tenant_id')) {
+            if (!$fkExists($tbl, $fk)) {
+                try { $conn->exec("ALTER TABLE $tbl ADD CONSTRAINT $fk FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+            }
+            if ($oldIdx && $idxExists($tbl, $oldIdx)) {
+                try { $conn->exec("ALTER TABLE $tbl DROP INDEX $oldIdx"); } catch (Exception $e) {}
+            }
+            if ($newIdx && !$idxExists($tbl, $newIdx)) {
+                try { $conn->exec("ALTER TABLE $tbl ADD UNIQUE KEY $newIdx (tenant_id, name)"); } catch (Exception $e) {}
+            }
+        }
+    }
+    // assets.tenant_id (SCOPED DATA, not config): the company an asset belongs to.
+    // FK reverts to Default (SET NULL) if a company is ever deleted — never
+    // cascade-delete assets. Index backs the list scope filter.
+    if ($tableExists('assets') && $tableExists('tenants') && $colExists('assets', 'tenant_id')) {
+        if (!$fkExists('assets', 'fk_assets_tenant')) {
+            try { $conn->exec("ALTER TABLE assets ADD CONSTRAINT fk_assets_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+        if (!$idxExists('assets', 'idx_assets_tenant')) {
+            try { $conn->exec("ALTER TABLE assets ADD INDEX idx_assets_tenant (tenant_id)"); } catch (Exception $e) {}
+        }
+    }
+    // apikeys.tenant_id: the company an ingest key pins its assets to (NULL =
+    // Default). SET NULL so deleting a company reverts its keys to Default rather
+    // than orphaning the agent.
+    if ($tableExists('apikeys') && $tableExists('tenants') && $colExists('apikeys', 'tenant_id')) {
+        if (!$fkExists('apikeys', 'fk_apikeys_tenant')) {
+            try { $conn->exec("ALTER TABLE apikeys ADD CONSTRAINT fk_apikeys_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+    }
+
     // ticket_origins had no name unique key historically; we don't add one (would
     // fail on pre-existing duplicate names) — dedup is enforced in the API.
     if ($tableExists('ticket_origins') && $tableExists('tenants') && $colExists('ticket_origins', 'tenant_id')) {

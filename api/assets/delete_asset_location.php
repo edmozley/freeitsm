@@ -1,15 +1,18 @@
 <?php
 /**
- * API Endpoint: Delete an asset location.
+ * API Endpoint: Delete an asset location — multi-tenancy aware.
  *
- * Refuses to delete a node that still has children — the caller must remove or
- * re-parent the children first. This keeps the tree intact and avoids silently
- * wiping a whole branch. (The DB self-ref FK is RESTRICT as a backstop.)
+ * Refuses to delete a node that still has children (re-parent/remove them
+ * first; the DB self-ref FK is RESTRICT as a backstop). Per company: you may
+ * delete only what this context owns — a company's own locations in its
+ * context, the shared ones from the MSP/Default context. Assets pointing at the
+ * deleted location have their location cleared (FK ON DELETE SET NULL).
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -29,6 +32,32 @@ try {
     }
 
     $conn = connectToDatabase();
+    $analystId = (int)$_SESSION['analyst_id'];
+
+    $multi        = isMultiTenant($conn);
+    $activeId     = getActiveTenantId($conn, $analystId);
+    $defaultId    = getDefaultTenantId($conn);
+    $isDefaultCtx = (!$multi || $activeId === $defaultId);
+
+    $cur = $conn->prepare("SELECT tenant_id FROM asset_locations WHERE id = ?");
+    $cur->execute([$id]);
+    $row = $cur->fetch(PDO::FETCH_ASSOC);
+    if (!$row) {
+        throw new Exception('Location not found');
+    }
+    $owner = ($row['tenant_id'] === null) ? null : (int)$row['tenant_id'];
+    if ($isDefaultCtx) {
+        if ($owner !== null) {
+            throw new Exception("That's a company's own location — switch to that company to delete it.");
+        }
+    } else {
+        if ($owner === null) {
+            throw new Exception('That location belongs to the Default company — switch to it to manage that location.');
+        }
+        if ($owner !== $activeId) {
+            throw new Exception('That location belongs to another company.');
+        }
+    }
 
     $childStmt = $conn->prepare("SELECT COUNT(*) FROM asset_locations WHERE parent_id = ?");
     $childStmt->execute([$id]);
@@ -46,4 +75,3 @@ try {
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>
