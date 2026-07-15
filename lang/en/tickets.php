@@ -739,6 +739,24 @@ return [
             'embed_label'          => 'Embed snippet',
             'embed_help'           => 'Paste this just before the closing &lt;/body&gt; tag on every page that should show the chat window.',
             'embed_after_save'     => 'The embed snippet appears here once you save the widget.',
+            // Availability
+            'avail_heading'        => 'Availability',
+            'business_hours'       => 'Office hours',
+            'always_open'          => 'Always open',
+            'business_hours_help'  => 'Outside these hours the widget shows your offline message and still takes the enquiry as a ticket to answer later. Calendars are managed under SLA settings.',
+            // Email delivery
+            'email_heading'        => 'Email',
+            'email_when_away'      => 'Email replies to the visitor if they\'ve left the chat',
+            'email_when_away_help' => 'If an analyst replies while the visitor is no longer watching the chat, send that reply to the email they gave.',
+            // AI answers
+            'ai_heading'           => 'AI answers',
+            'ai_enabled'           => 'Answer from the Knowledge base with AI',
+            'ai_enabled_help'      => 'When a visitor asks a question, AI drafts an answer from your published Knowledge articles before a person is involved.',
+            'ai_mode'              => 'When AI answers',
+            'ai_mode_assist'       => 'Always raise a ticket (assist)',
+            'ai_mode_deflect'      => 'Only raise a ticket if escalated (deflect)',
+            'ai_offer_agent'       => 'Let the visitor ask for a live agent',
+            'ai_offer_email'       => 'Let the visitor raise a ticket by email (summary + full chat log attached)',
         ],
 
         // Mailboxes tab — OAuth success banner.

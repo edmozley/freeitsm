@@ -659,6 +659,24 @@ Obrigado por entrar em contato conosco…',
             'embed_label'          => 'Trecho de incorporação',
             'embed_help'           => 'Cole isto logo antes da tag &lt;/body&gt; em cada página que deve exibir a janela de chat.',
             'embed_after_save'     => 'O trecho de incorporação aparece aqui após você salvar o widget.',
+            // Disponibilidade
+            'avail_heading'        => 'Disponibilidade',
+            'business_hours'       => 'Horário de atendimento',
+            'always_open'          => 'Sempre aberto',
+            'business_hours_help'  => 'Fora desse horário o widget mostra sua mensagem offline e ainda registra a solicitação como um ticket para responder depois. Os calendários são gerenciados nas configurações de SLA.',
+            // E-mail
+            'email_heading'        => 'E-mail',
+            'email_when_away'      => 'Enviar as respostas por e-mail se o visitante tiver saído do chat',
+            'email_when_away_help' => 'Se um analista responder enquanto o visitante não está mais acompanhando o chat, envie essa resposta para o e-mail informado.',
+            // Respostas de IA
+            'ai_heading'           => 'Respostas de IA',
+            'ai_enabled'           => 'Responder com IA a partir da Base de Conhecimento',
+            'ai_enabled_help'      => 'Quando um visitante faz uma pergunta, a IA rascunha uma resposta a partir dos seus artigos publicados antes de envolver uma pessoa.',
+            'ai_mode'              => 'Quando a IA responde',
+            'ai_mode_assist'       => 'Sempre abrir um ticket (assistir)',
+            'ai_mode_deflect'      => 'Só abrir um ticket se escalar (desviar)',
+            'ai_offer_agent'       => 'Permitir que o visitante peça um agente ao vivo',
+            'ai_offer_email'       => 'Permitir que o visitante abra um ticket por e-mail (resumo + registro completo do chat anexado)',
         ],
 
         'oauth' => [

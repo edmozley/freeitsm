@@ -501,6 +501,23 @@ $schema = [
         'launcher_text'    => 'VARCHAR(60) NULL',
         'offline_message'  => 'VARCHAR(500) NULL',
         'require_email'    => 'TINYINT(1) NOT NULL DEFAULT 1',
+        // Availability (business-hours calendar), offline email delivery, and AI answers.
+        'business_calendar_id' => 'INT NULL',
+        'email_when_away'  => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'ai_enabled'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'ai_mode'          => "VARCHAR(10) NOT NULL DEFAULT 'assist'",
+        'ai_offer_agent'   => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'ai_offer_email'   => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    // Pre-ticket chat transcript (AI 'deflect' mode) — see freeitsm.sql. sender is
+    // 'visitor'|'ai'|'agent'|'system'. Source for the ticket opening message + .txt log.
+    'webchat_messages' => [
+        'id'               => 'INT NOT NULL AUTO_INCREMENT',
+        'conversation_id'  => 'INT NOT NULL',
+        'sender'           => "VARCHAR(10) NOT NULL DEFAULT 'visitor'",
+        'body'             => 'LONGTEXT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
@@ -2970,6 +2987,21 @@ try {
         }
         if (!$fkExists('webchat_conversations', 'fk_webchat_conversation_channel')) {
             try { $conn->exec("ALTER TABLE webchat_conversations ADD CONSTRAINT fk_webchat_conversation_channel FOREIGN KEY (channel_id) REFERENCES messaging_channels (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+    // Web chat pre-ticket transcript → its conversation. CASCADE with the conversation.
+    if ($tableExists('webchat_messages') && $tableExists('webchat_conversations') && $colExists('webchat_messages', 'conversation_id')) {
+        if (!$idxExists('webchat_messages', 'ix_webchat_messages_conversation')) {
+            try { $conn->exec("ALTER TABLE webchat_messages ADD KEY ix_webchat_messages_conversation (conversation_id)"); } catch (Exception $e) {}
+        }
+        if (!$fkExists('webchat_messages', 'fk_webchat_messages_conversation')) {
+            try { $conn->exec("ALTER TABLE webchat_messages ADD CONSTRAINT fk_webchat_messages_conversation FOREIGN KEY (conversation_id) REFERENCES webchat_conversations (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+    }
+    // Web chat widget → its optional business-hours calendar (SET NULL if the calendar goes).
+    if ($tableExists('webchat_widgets') && $tableExists('sla_calendars') && $colExists('webchat_widgets', 'business_calendar_id')) {
+        if (!$fkExists('webchat_widgets', 'fk_webchat_widget_calendar')) {
+            try { $conn->exec("ALTER TABLE webchat_widgets ADD CONSTRAINT fk_webchat_widget_calendar FOREIGN KEY (business_calendar_id) REFERENCES sla_calendars (id) ON DELETE SET NULL"); } catch (Exception $e) {}
         }
     }
     // Seed the WhatsApp ticket origin (global default) if absent, so channel tickets

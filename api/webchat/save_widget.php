@@ -45,6 +45,15 @@ try {
     $reqEmail  = !empty($data['require_email']) ? 1 : 0;
     $isActive  = !empty($data['is_active']) ? 1 : 0;
 
+    // Availability + email + AI controls.
+    $calendarId  = $data['business_calendar_id'] ?? null;
+    $calendarId  = ($calendarId === '' || $calendarId === 0 || $calendarId === '0') ? null : (int) $calendarId;
+    $emailAway   = !empty($data['email_when_away']) ? 1 : 0;
+    $aiEnabled   = !empty($data['ai_enabled']) ? 1 : 0;
+    $aiMode      = ($data['ai_mode'] ?? 'assist') === 'deflect' ? 'deflect' : 'assist';
+    $aiOfferAgent = !empty($data['ai_offer_agent']) ? 1 : 0;
+    $aiOfferEmail = !empty($data['ai_offer_email']) ? 1 : 0;
+
     if ($name === '') {
         throw new Exception('Name is required');
     }
@@ -59,6 +68,17 @@ try {
     $origins = implode("\n", webchatParseOrigins($origins));
 
     $conn = connectToDatabase();
+
+    // Validate the chosen business-hours calendar actually exists (else treat as none).
+    if ($calendarId !== null) {
+        try {
+            $ck = $conn->prepare("SELECT COUNT(*) FROM sla_calendars WHERE id = ?");
+            $ck->execute([$calendarId]);
+            if ((int) $ck->fetchColumn() === 0) {
+                $calendarId = null;
+            }
+        } catch (Exception $e) { $calendarId = null; }
+    }
 
     // Pinned company (NULL = shared / single-company install). Validate it's real.
     $tenantId = $data['tenant_id'] ?? null;
@@ -95,11 +115,15 @@ try {
         $conn->prepare(
             "UPDATE webchat_widgets
              SET allowed_origins = ?, greeting = ?, accent_colour = ?,
-                 launcher_text = ?, offline_message = ?, require_email = ?
+                 launcher_text = ?, offline_message = ?, require_email = ?,
+                 business_calendar_id = ?, email_when_away = ?, ai_enabled = ?,
+                 ai_mode = ?, ai_offer_agent = ?, ai_offer_email = ?
              WHERE id = ?"
         )->execute([
             $origins ?: null, $greeting ?: null, $accent ?: null,
-            $launcher ?: null, $offline ?: null, $reqEmail, (int) $id,
+            $launcher ?: null, $offline ?: null, $reqEmail,
+            $calendarId, $emailAway, $aiEnabled, $aiMode, $aiOfferAgent, $aiOfferEmail,
+            (int) $id,
         ]);
 
         $conn->commit();
@@ -123,11 +147,13 @@ try {
         $conn->prepare(
             "INSERT INTO webchat_widgets
                  (channel_id, widget_key, allowed_origins, greeting, accent_colour,
-                  launcher_text, offline_message, require_email)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                  launcher_text, offline_message, require_email, business_calendar_id,
+                  email_when_away, ai_enabled, ai_mode, ai_offer_agent, ai_offer_email)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         )->execute([
             $channelId, $widgetKey, $origins ?: null, $greeting ?: null,
             $accent ?: null, $launcher ?: null, $offline ?: null, $reqEmail,
+            $calendarId, $emailAway, $aiEnabled, $aiMode, $aiOfferAgent, $aiOfferEmail,
         ]);
         $newId = (int) $conn->lastInsertId();
 

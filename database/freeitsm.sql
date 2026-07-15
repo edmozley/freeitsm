@@ -852,6 +852,18 @@ CREATE TABLE IF NOT EXISTS `webchat_widgets` (
     `launcher_text`    VARCHAR(60) NULL,
     `offline_message`  VARCHAR(500) NULL,
     `require_email`    TINYINT(1) NOT NULL DEFAULT 1,
+    -- Availability: an SLA business-hours calendar defines "open" vs "closed". NULL =
+    -- always open. When closed the widget shows offline_message and still takes a ticket.
+    `business_calendar_id` INT NULL,
+    -- If a reply arrives while the visitor isn't watching the chat, email it to them.
+    `email_when_away`  TINYINT(1) NOT NULL DEFAULT 0,
+    -- AI answers from the Knowledge base. ai_mode: 'assist' always raises a ticket;
+    -- 'deflect' only raises one if the visitor escalates. The two ai_offer_* flags
+    -- control which escalation routes the AI presents.
+    `ai_enabled`       TINYINT(1) NOT NULL DEFAULT 0,
+    `ai_mode`          VARCHAR(10) NOT NULL DEFAULT 'assist',
+    `ai_offer_agent`   TINYINT(1) NOT NULL DEFAULT 1,
+    `ai_offer_email`   TINYINT(1) NOT NULL DEFAULT 1,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_webchat_widget_key` (`widget_key`),
@@ -881,6 +893,23 @@ CREATE TABLE IF NOT EXISTS `webchat_conversations` (
     KEY `ix_webchat_conversation_channel` (`channel_id`),
     KEY `ix_webchat_conversation_ticket` (`ticket_id`),
     CONSTRAINT `fk_webchat_conversation_channel` FOREIGN KEY (`channel_id`) REFERENCES `messaging_channels` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The chat transcript held BEFORE (and if) a conversation becomes a ticket — used in AI
+-- 'deflect' mode, where the AI can answer without ever raising a ticket. `sender` is
+-- 'visitor', 'ai', 'agent' or 'system'. When the visitor escalates, these rows are the
+-- source for the ticket's opening message + the full-chat-log .txt attachment. Once a
+-- ticket exists the ticket's own `emails` thread takes over (this table is not written
+-- to for plain, AI-off widgets — those go straight to the ticket).
+CREATE TABLE IF NOT EXISTS `webchat_messages` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `conversation_id`  INT NOT NULL,
+    `sender`           VARCHAR(10) NOT NULL DEFAULT 'visitor',
+    `body`             LONGTEXT NULL,
+    `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_webchat_messages_conversation` (`conversation_id`),
+    CONSTRAINT `fk_webchat_messages_conversation` FOREIGN KEY (`conversation_id`) REFERENCES `webchat_conversations` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `ticket_recordings` (

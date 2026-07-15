@@ -1475,6 +1475,47 @@ $translationNamespaces = ['common', 'tickets'];
                         <label><input type="checkbox" id="widgetRequireEmail" checked> <?php echo htmlspecialchars(t('tickets.settings.webchat.require_email')); ?></label>
                     </div>
 
+                    <!-- Availability -->
+                    <div class="form-group" style="grid-column: span 2; border-top:1px solid var(--border, #e5e7eb); padding-top:12px; margin-bottom:0;">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.webchat.avail_heading')); ?></strong>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label for="widgetCalendar"><?php echo htmlspecialchars(t('tickets.settings.webchat.business_hours')); ?></label>
+                        <select id="widgetCalendar"><option value=""><?php echo htmlspecialchars(t('tickets.settings.webchat.always_open')); ?></option></select>
+                        <small style="color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.webchat.business_hours_help')); ?></small>
+                    </div>
+
+                    <!-- Email delivery -->
+                    <div class="form-group" style="grid-column: span 2; border-top:1px solid var(--border, #e5e7eb); padding-top:12px; margin-bottom:0;">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.webchat.email_heading')); ?></strong>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label><input type="checkbox" id="widgetEmailWhenAway"> <?php echo htmlspecialchars(t('tickets.settings.webchat.email_when_away')); ?></label>
+                        <small style="color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.webchat.email_when_away_help')); ?></small>
+                    </div>
+
+                    <!-- AI answers -->
+                    <div class="form-group" style="grid-column: span 2; border-top:1px solid var(--border, #e5e7eb); padding-top:12px; margin-bottom:0;">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.webchat.ai_heading')); ?></strong>
+                    </div>
+                    <div class="form-group" style="grid-column: span 2;">
+                        <label><input type="checkbox" id="widgetAiEnabled" onchange="toggleWidgetAiFields()"> <?php echo htmlspecialchars(t('tickets.settings.webchat.ai_enabled')); ?></label>
+                        <small style="color:var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.webchat.ai_enabled_help')); ?></small>
+                    </div>
+                    <div class="form-group widget-ai-fields" style="grid-column: span 2;">
+                        <label for="widgetAiMode"><?php echo htmlspecialchars(t('tickets.settings.webchat.ai_mode')); ?></label>
+                        <select id="widgetAiMode">
+                            <option value="assist"><?php echo htmlspecialchars(t('tickets.settings.webchat.ai_mode_assist')); ?></option>
+                            <option value="deflect"><?php echo htmlspecialchars(t('tickets.settings.webchat.ai_mode_deflect')); ?></option>
+                        </select>
+                    </div>
+                    <div class="form-group widget-ai-fields" style="grid-column: span 2; margin-bottom:0;">
+                        <label><input type="checkbox" id="widgetAiOfferAgent"> <?php echo htmlspecialchars(t('tickets.settings.webchat.ai_offer_agent')); ?></label>
+                    </div>
+                    <div class="form-group widget-ai-fields" style="grid-column: span 2;">
+                        <label><input type="checkbox" id="widgetAiOfferEmail"> <?php echo htmlspecialchars(t('tickets.settings.webchat.ai_offer_email')); ?></label>
+                    </div>
+
                     <div class="form-group">
                         <label><input type="checkbox" id="widgetActive" checked> <?php echo htmlspecialchars(t('tickets.settings.webchat.active')); ?></label>
                     </div>
@@ -2970,6 +3011,7 @@ $translationNamespaces = ['common', 'tickets'];
         // ---- Web chat widgets ------------------------------------------------
         const WEBCHAT_API = '../../api/webchat/';
         let widgets = [];
+        let webchatCalendars = [];
 
         async function loadWidgets() {
             const tbody = document.getElementById('widgets-list');
@@ -2980,6 +3022,7 @@ $translationNamespaces = ['common', 'tickets'];
                 const data = await res.json();
                 if (data.success) {
                     widgets = data.widgets;
+                    webchatCalendars = data.calendars || [];
                     renderWidgets(widgets);
                 } else {
                     tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;color:red;">Error: ${escapeHtml(data.error || '')}</td></tr>`;
@@ -3057,6 +3100,23 @@ $translationNamespaces = ['common', 'tickets'];
             document.getElementById('widgetRequireEmail').checked = widget ? !!widget.require_email : true;
             document.getElementById('widgetActive').checked = widget ? !!widget.is_active : true;
 
+            // Availability calendar dropdown.
+            const calSel = document.getElementById('widgetCalendar');
+            let calOpts = '<option value="">' + escapeHtml(t('tickets.settings.webchat.always_open')) + '</option>';
+            webchatCalendars.forEach(c => {
+                const sel = widget && String(widget.business_calendar_id) === String(c.id) ? ' selected' : '';
+                calOpts += '<option value="' + c.id + '"' + sel + '>' + escapeHtml(c.name) + '</option>';
+            });
+            calSel.innerHTML = calOpts;
+
+            // Email + AI controls.
+            document.getElementById('widgetEmailWhenAway').checked = widget ? !!widget.email_when_away : false;
+            document.getElementById('widgetAiEnabled').checked = widget ? !!widget.ai_enabled : false;
+            document.getElementById('widgetAiMode').value = (widget && widget.ai_mode) ? widget.ai_mode : 'assist';
+            document.getElementById('widgetAiOfferAgent').checked = widget ? !!widget.ai_offer_agent : true;
+            document.getElementById('widgetAiOfferEmail').checked = widget ? !!widget.ai_offer_email : true;
+            toggleWidgetAiFields();
+
             const embedGroup = document.getElementById('widgetEmbedGroup');
             const embedField = document.getElementById('widgetEmbed');
             if (widget && widget.embed_snippet) {
@@ -3069,6 +3129,11 @@ $translationNamespaces = ['common', 'tickets'];
 
             populateWidgetCompanies(widget ? widget.tenant_id : null);
             document.getElementById('widgetModal').classList.add('active');
+        }
+
+        function toggleWidgetAiFields() {
+            const on = document.getElementById('widgetAiEnabled').checked;
+            document.querySelectorAll('.widget-ai-fields').forEach(el => el.style.display = on ? '' : 'none');
         }
 
         function editWidget(id) {
@@ -3105,7 +3170,13 @@ $translationNamespaces = ['common', 'tickets'];
                 offline_message: document.getElementById('widgetOffline').value.trim(),
                 require_email: document.getElementById('widgetRequireEmail').checked,
                 is_active: document.getElementById('widgetActive').checked,
-                tenant_id: document.getElementById('widgetCompany').value || null
+                tenant_id: document.getElementById('widgetCompany').value || null,
+                business_calendar_id: document.getElementById('widgetCalendar').value || null,
+                email_when_away: document.getElementById('widgetEmailWhenAway').checked,
+                ai_enabled: document.getElementById('widgetAiEnabled').checked,
+                ai_mode: document.getElementById('widgetAiMode').value,
+                ai_offer_agent: document.getElementById('widgetAiOfferAgent').checked,
+                ai_offer_email: document.getElementById('widgetAiOfferEmail').checked
             };
             if (!payload.name) { showToast('Name is required', 'error'); return; }
             try {
