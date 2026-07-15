@@ -672,4 +672,25 @@
         margin-top: 2px;
         padding-right: 0;
     }
+
+    /* ====================================================================
+       LAYER 12 — Horizontal scroll for wide email content. External email
+       HTML (fixed-width tables, wide images) renders as its author intended
+       inside a shadow root, so it can be wider than a phone screen. Desktop
+       clips it (overflow:hidden on the host) so it can't overlap the panels
+       below; on a phone that left wide content spilling off the right with
+       no way to reach it. Turn each message body into its own horizontal
+       scroll container, so you can swipe sideways WITHIN a message to see
+       the rest — the isolated email CSS is untouched (this is the light-DOM
+       host, outside the shadow), the whole thread and the page never scroll
+       sideways, and FreeITSM replies that already wrap have nothing to
+       scroll. overflow-y stays hidden (inherited from the desktop rule), so
+       vertical containment is preserved.
+       ==================================================================== */
+    .email-body-content,
+    .thread-message-body {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;   /* momentum scroll on iOS */
+        overscroll-behavior-x: contain;      /* don't chain to page / back-nav */
+    }
 }
