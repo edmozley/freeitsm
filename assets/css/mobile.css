@@ -693,4 +693,56 @@
         -webkit-overflow-scrolling: touch;   /* momentum scroll on iOS */
         overscroll-behavior-x: contain;      /* don't chain to page / back-nav */
     }
+
+    /* ====================================================================
+       LAYER 13 — Affected objects (CMDB) sheet. Same nested-card chrome as
+       the others, plus a 13px picker input that trips the iOS focus-zoom, a
+       lift-on-hover that sticks after a tap on touch, and cards authored in
+       hardcoded light pinks that glare (and wash out the name) in dark mode.
+       ==================================================================== */
+
+    /* Strip the nested-card chrome — the sheet is the panel. */
+    .mobile-sheet-cmdb .cmdb-section {
+        border: none;
+        border-radius: 0;
+        padding: 0;
+        margin: 0;
+        background: none;
+    }
+
+    /* 16px search input — iOS zooms any field under 16px on focus, which then
+       reflows this fixed sheet to a desktop width. */
+    .mobile-sheet-cmdb .cmdb-picker input { font-size: 16px; padding: 10px 12px; }
+
+    /* No lift-on-hover on touch — :hover sticks after a tap and reads as jank.
+       Roomier tap targets on the cards and the search results. */
+    .mobile-sheet-cmdb .cmdb-link-card { padding: 12px; }
+    .mobile-sheet-cmdb .cmdb-link-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    .mobile-sheet-cmdb .cmdb-picker-result { padding: 11px 12px; font-size: 14px; }
+    .mobile-sheet-cmdb .cmdb-picker-results { max-height: 260px; }
+
+    /* Dark mode: the cards are authored in light pinks that glare in a dark
+       sheet and wash out the object name — remap to a dark magenta-tinted
+       surface with a lifted (lighter) pink accent so text stays legible.
+       Scoped to the sheet, so desktop is untouched. */
+    [data-theme="dark"] .mobile-sheet-cmdb .cmdb-link-card {
+        background: #271e25;
+        border-color: #45293a;
+    }
+    [data-theme="dark"] .mobile-sheet-cmdb .cmdb-class-badge {
+        background: #2f2430;
+        border-color: #6b3d54;
+        color: #f0a6cd;
+    }
+    [data-theme="dark"] .mobile-sheet-cmdb .cmdb-section-head h3,
+    [data-theme="dark"] .mobile-sheet-cmdb .cmdb-section-head .btn-link {
+        color: #f472b6;
+    }
+    [data-theme="dark"] .mobile-sheet-cmdb .cmdb-picker-result.highlighted {
+        background: #2f2430;
+        color: #f472b6;
+    }
 }
