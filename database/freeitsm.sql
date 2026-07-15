@@ -906,6 +906,10 @@ CREATE TABLE IF NOT EXISTS `webchat_messages` (
     `conversation_id`  INT NOT NULL,
     `sender`           VARCHAR(10) NOT NULL DEFAULT 'visitor',
     `body`             LONGTEXT NULL,
+    -- When an agent reply (stored in `emails`) is mirrored into this transcript so the
+    -- visitor's widget can show it, this holds the source emails.id (dedup key). NULL for
+    -- native visitor/ai/system rows.
+    `source_email_id`  INT NULL,
     `created_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `ix_webchat_messages_conversation` (`conversation_id`),

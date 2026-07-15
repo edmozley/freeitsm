@@ -518,6 +518,7 @@ $schema = [
         'conversation_id'  => 'INT NOT NULL',
         'sender'           => "VARCHAR(10) NOT NULL DEFAULT 'visitor'",
         'body'             => 'LONGTEXT NULL',
+        'source_email_id'  => 'INT NULL',
         'created_datetime' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
