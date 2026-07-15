@@ -162,8 +162,8 @@
     var SECTIONS = [
         { cls: 'links', title: 'Links',            icon: '🔗', label: 'Links',      sel: '.problem-strip',             all: true  },
         { cls: 'props', title: 'Properties',       icon: '⚙',  label: 'Properties', sel: '#ticketPropertiesContainer', all: false },
-        { cls: 'time',  title: 'Time entries',     icon: '⏱',  label: 'Time',       sel: '#timeEntriesContainer',      all: false },
-        { cls: 'cmdb',  title: 'Affected objects', icon: '🖥', label: 'Objects',    sel: '#cmdbObjectsContainer',      all: false }
+        { cls: 'time',  title: 'Time',             icon: '⏱',  label: 'Time',       sel: '#timeEntriesContainer',      all: false },
+        { cls: 'cmdb',  title: 'Objects',          icon: '🖥', label: 'Objects',    sel: '#cmdbObjectsContainer',      all: false }
     ];
     SECTIONS.forEach(function (def) {
         var sheet = document.createElement('div');
@@ -171,7 +171,7 @@
         sheet.style.display = 'none';
         sheet.innerHTML =
             '<div class="ms-head"><span>' + def.title + '</span>' +
-            '<button type="button" class="ms-close" aria-label="Close">✕</button></div>' +
+            '<button type="button" class="ms-close" aria-label="Close">Close</button></div>' +
             '<div class="ms-body"></div>';
         document.body.appendChild(sheet);
         def.sheet = sheet;
@@ -325,7 +325,7 @@
     auditSheet.style.display = 'none';
     auditSheet.innerHTML =
         '<div class="ms-head"><span>History</span>' +
-        '<button type="button" class="ms-close" aria-label="Close">✕</button></div>' +
+        '<button type="button" class="ms-close" aria-label="Close">Close</button></div>' +
         '<div class="ms-body"></div>';
     document.body.appendChild(auditSheet);
     var auditBody = auditSheet.querySelector('.ms-body');
