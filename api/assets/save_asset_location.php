@@ -1,16 +1,19 @@
 <?php
 /**
- * API Endpoint: Save an asset location (create or update).
+ * API Endpoint: Save an asset location (create or update) — multi-tenancy aware.
  *
- * A location is one node in an arbitrary-depth tree. parent_id is the node it
- * sits under (NULL = a root/top-level location). On edit, the parent can be
- * changed (re-parenting); we reject any move that would create a cycle
- * (a node can't become its own ancestor/descendant).
+ * A location is one node in an arbitrary-depth tree. Per company: a save in the
+ * MSP/Default context is a SHARED location (tenant_id NULL); a save in a client
+ * company's context is that company's own. A node's parent must be visible in
+ * the same scope — a company may nest under a shared location or its own, but
+ * not under another company's, and a shared location nests only under shared.
+ * Re-parenting rejects cycles (a node can't sit inside its own subtree).
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -36,17 +39,50 @@ try {
     }
 
     $conn = connectToDatabase();
+    $analystId = (int)$_SESSION['analyst_id'];
 
-    // Validate the chosen parent exists.
+    $multi        = isMultiTenant($conn);
+    $activeId     = getActiveTenantId($conn, $analystId);
+    $defaultId    = getDefaultTenantId($conn);
+    $isDefaultCtx = (!$multi || $activeId === $defaultId);
+
+    // Scope this location targets: NULL = shared, else this company.
+    $scopeTenant = $isDefaultCtx ? null : $activeId;
+
+    // Validate the chosen parent exists AND is visible in this scope (shared, or
+    // owned by this company). NULL-safe match on the owner side.
     if ($parentId !== null) {
-        $chk = $conn->prepare("SELECT id FROM asset_locations WHERE id = ?");
-        $chk->execute([$parentId]);
+        $chk = $conn->prepare(
+            "SELECT id FROM asset_locations WHERE id = ? AND (tenant_id IS NULL OR tenant_id <=> ?)"
+        );
+        $chk->execute([$parentId, $scopeTenant]);
         if (!$chk->fetchColumn()) {
-            throw new Exception('Selected parent location no longer exists');
+            throw new Exception('Selected parent location is not available here');
         }
     }
 
     if ($id) {
+        // Confirm the row exists and that this context owns it.
+        $cur = $conn->prepare("SELECT tenant_id FROM asset_locations WHERE id = ?");
+        $cur->execute([$id]);
+        $row = $cur->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            throw new Exception('Location not found');
+        }
+        $owner = ($row['tenant_id'] === null) ? null : (int)$row['tenant_id'];
+        if ($isDefaultCtx) {
+            if ($owner !== null) {
+                throw new Exception("That's a company's own location — switch to that company to edit it.");
+            }
+        } else {
+            if ($owner === null) {
+                throw new Exception('Shared locations are managed from the MSP (default) company.');
+            }
+            if ($owner !== $activeId) {
+                throw new Exception('That location belongs to another company.');
+            }
+        }
+
         if ($parentId === $id) {
             throw new Exception('A location cannot be its own parent');
         }
@@ -61,18 +97,19 @@ try {
                 }
                 $s = $conn->prepare("SELECT parent_id FROM asset_locations WHERE id = ?");
                 $s->execute([$cursor]);
-                $row = $s->fetch(PDO::FETCH_ASSOC);
-                $cursor = ($row && $row['parent_id'] !== null) ? (int)$row['parent_id'] : null;
+                $r = $s->fetch(PDO::FETCH_ASSOC);
+                $cursor = ($r && $r['parent_id'] !== null) ? (int)$r['parent_id'] : null;
                 if (++$guard > 1000) break; // paranoia against malformed data
             }
         }
+        // tenant_id is not changed on edit — a node keeps its owner.
         $stmt = $conn->prepare("UPDATE asset_locations SET name = ?, parent_id = ?, display_order = ? WHERE id = ?");
         $stmt->execute([$name, $parentId, $displayOrder, $id]);
         wf_emit('asset_location', 'updated', (int)$id, $name);
         echo json_encode(['success' => true, 'id' => $id]);
     } else {
-        $stmt = $conn->prepare("INSERT INTO asset_locations (name, parent_id, display_order) VALUES (?, ?, ?)");
-        $stmt->execute([$name, $parentId, $displayOrder]);
+        $stmt = $conn->prepare("INSERT INTO asset_locations (name, parent_id, display_order, tenant_id) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$name, $parentId, $displayOrder, $scopeTenant]);
         $newId = (int)$conn->lastInsertId();
         wf_emit('asset_location', 'created', $newId, $name);
         echo json_encode(['success' => true, 'id' => $newId]);
@@ -81,4 +118,3 @@ try {
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
-?>
