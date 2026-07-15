@@ -953,9 +953,17 @@ CREATE TABLE IF NOT EXISTS `asset_types` (
     `description`       VARCHAR(255) NULL,
     `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
     `display_order`     INT NOT NULL DEFAULT 0,
+    -- Multi-tenancy: NULL = global default type (shared by every company); set =
+    -- a type a company added for itself. Existing rows stay NULL, so a
+    -- single-company install is unaffected. (Config meaning of tenant_id: NULL =
+    -- global default — unlike scoped data tables where NULL means "unrouted".)
+    `tenant_id`         INT NULL,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_asset_types_name` (`name`)
+    -- Per-scope name uniqueness (a company may hold a type whose name matches a
+    -- global default). Global-name dedup is enforced in the API, since NULL
+    -- tenant_id rows aren't de-duped by a unique key.
+    UNIQUE KEY `uq_asset_types_tenant_name` (`tenant_id`, `name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `asset_status_types` (
@@ -964,9 +972,12 @@ CREATE TABLE IF NOT EXISTS `asset_status_types` (
     `description`       VARCHAR(255) NULL,
     `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
     `display_order`     INT NOT NULL DEFAULT 0,
+    -- Multi-tenancy: NULL = global default status; set = a company's own. See
+    -- asset_types above for the tenant_id config convention.
+    `tenant_id`         INT NULL,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_asset_status_types_name` (`name`)
+    UNIQUE KEY `uq_asset_status_types_tenant_name` (`tenant_id`, `name`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Arbitrary-depth physical location tree (adjacency list). A NULL parent_id is
@@ -1014,10 +1025,18 @@ CREATE TABLE IF NOT EXISTS `assets` (
     `supplier_id`       INT NULL,
     `order_number`      VARCHAR(100) NULL,
     `warranty_expiry`   DATE NULL,
+    -- Multi-tenancy (SCOPED DATA, not config): the company this asset belongs to.
+    -- NULL = the Default company (existing installs stay NULL, so a single-company
+    -- install is unaffected). Agent ingest derives it from the API key's tenant_id;
+    -- hostname uniqueness is enforced PER COMPANY in application code (two clients
+    -- may each legitimately have a "LAPTOP-01").
+    `tenant_id`         INT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_assets_location` (`location_id`),
     KEY `idx_assets_supplier` (`supplier_id`),
-    CONSTRAINT `fk_assets_location` FOREIGN KEY (`location_id`) REFERENCES `asset_locations` (`id`) ON DELETE SET NULL
+    KEY `idx_assets_tenant` (`tenant_id`),
+    CONSTRAINT `fk_assets_location` FOREIGN KEY (`location_id`) REFERENCES `asset_locations` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_assets_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL
     -- fk_assets_supplier (supplier_id -> suppliers.id) is added in db_verify.php:
     -- the suppliers table is defined later in this file, so the FK can't be inline here.
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -2010,6 +2029,11 @@ CREATE TABLE IF NOT EXISTS `apikeys` (
     `label`      VARCHAR(100) NULL,
     `datestamp`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `active`     TINYINT(1) NULL DEFAULT 1,
+    -- Multi-tenancy: the company this ingest key belongs to. A monitoring agent
+    -- authenticates with its key, so assets it reports are stamped with this
+    -- company (the "pinned mailbox" equivalent for asset ingest). NULL = the
+    -- Default company, so existing keys keep working unchanged at N=1.
+    `tenant_id`  INT NULL,
     PRIMARY KEY (`id`),
     CONSTRAINT `fk_apikeys_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
