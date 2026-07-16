@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/encryption.php';
 
@@ -41,6 +42,13 @@ try {
     }
 
     $apiKey = decryptValue($keyRow['setting_value']);
+
+    // Reads a body by id, so it needs the same ownership check as any other
+    // by-id read — an id is a guess away.
+    if (!analystCanAccessArticle($conn, (int)$_SESSION['analyst_id'], $articleId)) {
+        echo json_encode(['success' => false, 'error' => 'Article not found']);
+        exit;
+    }
 
     // Get article content
     $articleSql = "SELECT id, title, body FROM knowledge_articles WHERE id = ? AND is_published = 1";

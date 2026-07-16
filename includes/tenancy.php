@@ -451,6 +451,46 @@ function knowledgeTenantFilterForCompany(PDO $conn, ?int $tenantId, string $alia
 }
 
 /**
+ * Scope a Knowledge query to what an ANALYST should see right now: the company
+ * they have switched to, plus everything shared.
+ *
+ * The Knowledge counterpart of activeTenantFilter() — it follows the header's
+ * company switcher exactly as tickets/assets/changes do, so switching company
+ * means the same thing everywhere. It differs only in that NULL stays visible
+ * from every company rather than only from Default (see
+ * knowledgeTenantFilterForCompany above for why).
+ *
+ * @return array [sqlFragment, params]
+ */
+function knowledgeTenantFilter(PDO $conn, int $analystId, string $alias = 'a'): array {
+    if (!isMultiTenant($conn)) return ['', []];
+    return knowledgeTenantFilterForCompany($conn, getActiveTenantId($conn, $analystId), $alias);
+}
+
+/**
+ * May this analyst act on this article? Mirrors analystCanAccessAsset(), except
+ * a SHARED article (tenant_id IS NULL) belongs to everybody, so everybody may
+ * reach it — that is what "shared" means.
+ *
+ * Permissive when multi-tenancy is off or the column does not exist yet, so a
+ * single-company or un-migrated install behaves exactly as before.
+ */
+function analystCanAccessArticle(PDO $conn, int $analystId, $articleId): bool {
+    if (!isMultiTenant($conn)) return true;
+    if (!tenancyColumnExists($conn, 'knowledge_articles', 'tenant_id')) return true;
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM knowledge_articles WHERE id = ?");
+        $stmt->execute([$articleId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) return true;                       // let the caller's own 404 handle it
+        if ($row['tenant_id'] === null) return true;  // shared with everyone
+        return analystCanAccessTenant($conn, $analystId, (int)$row['tenant_id']);
+    } catch (Exception $e) {
+        return true;
+    }
+}
+
+/**
  * Decide which company (tenant) a NEW inbound-email ticket belongs to.
  *
  * This implements the design's inbound routing for the "no existing ticket"

@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -27,6 +28,7 @@ try {
     // still show up — otherwise they vanish from the list but stay counted in
     // the tag sidebar, causing the count mismatch reported in #391.
     $sql = "SELECT DISTINCT a.id, a.title, a.created_datetime, a.modified_datetime, a.view_count,
+                   a.tenant_id, a.audience,
                    LEFT(a.body, 300) as preview,
                    COALESCE(an.full_name, '(deleted analyst)') as author_name
             FROM knowledge_articles a
@@ -35,6 +37,13 @@ try {
               AND (a.is_archived = 0 OR a.is_archived IS NULL)";
 
     $params = [];
+
+    // Scope to the company the analyst has switched to, plus shared articles.
+    // No-op on a single-company install. Analysts see every audience — the ladder
+    // only holds back customers and the public.
+    [$tenantSql, $tenantParams] = knowledgeTenantFilter($conn, (int)$_SESSION['analyst_id'], 'a');
+    $sql .= $tenantSql;
+    $params = array_merge($params, $tenantParams);
 
     // Search filter
     if (!empty($search)) {

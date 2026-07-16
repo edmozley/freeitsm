@@ -5,6 +5,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -51,6 +52,14 @@ try {
     $article = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$article) {
+        echo json_encode(['success' => false, 'error' => 'Article not found']);
+        exit;
+    }
+
+    // An id is a guess away, so a direct fetch needs the check the list gets from
+    // its filter. Same "not found" wording either way — an analyst has no business
+    // learning that article 47 exists but belongs to someone else.
+    if (!analystCanAccessArticle($conn, (int)$_SESSION['analyst_id'], $articleId)) {
         echo json_encode(['success' => false, 'error' => 'Article not found']);
         exit;
     }

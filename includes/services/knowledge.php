@@ -83,6 +83,33 @@ class KnowledgeService
         return (string)$raw;
     }
 
+    /**
+     * Refuse to touch an article belonging to a company this actor cannot reach.
+     *
+     * These mutations previously took a bare id and checked nothing, which was
+     * harmless while Knowledge was install-wide and every analyst could see every
+     * article. Now that articles have owners, an id is a guess away.
+     *
+     * A SHARED article (tenant_id NULL) is everyone's, so anyone may act on it.
+     * companyScope null = every company (single-company install, or an all-access
+     * analyst/key).
+     */
+    private static function assertCanAccessArticle(PDO $conn, ActorContext $ctx, int $articleId): void
+    {
+        $scope = $ctx->companyScope;
+        if (!is_array($scope)) return;                     // all companies
+
+        $stmt = $conn->prepare("SELECT tenant_id FROM knowledge_articles WHERE id = ?");
+        $stmt->execute([$articleId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) return;                                  // loadArticleRow raises the 404
+        if ($row['tenant_id'] === null) return;             // shared with everyone
+
+        if (!in_array((int)$row['tenant_id'], array_map('intval', $scope), true)) {
+            throw new ServiceError('forbidden', 'forbidden', 'That article belongs to a company you do not have access to.');
+        }
+    }
+
     // ======================================================================
     //  Articles
     // ======================================================================
@@ -93,6 +120,7 @@ class KnowledgeService
         if (!empty($in['id'])) {
             $articleId = (int)$in['id'];
             $current   = self::loadArticleRow($conn, $articleId);     // 404 if gone
+            self::assertCanAccessArticle($conn, $ctx, $articleId);    // not another company's
             if ((int)$current['is_archived']) {
                 throw new ServiceError('conflict', 'conflict', 'Article is in the recycle bin. Restore it before updating.');
             }
@@ -223,6 +251,7 @@ class KnowledgeService
     public static function archiveArticle(PDO $conn, ActorContext $ctx, int $id): int
     {
         $row = self::loadArticleRow($conn, $id);
+        self::assertCanAccessArticle($conn, $ctx, $id);
         $stmt = $conn->prepare(
             "UPDATE knowledge_articles
              SET is_archived = 1, archived_datetime = UTC_TIMESTAMP(), archived_by_id = ?
@@ -240,6 +269,7 @@ class KnowledgeService
     public static function restoreArticle(PDO $conn, ActorContext $ctx, int $id): int
     {
         self::loadArticleRow($conn, $id);
+        self::assertCanAccessArticle($conn, $ctx, $id);
         $stmt = $conn->prepare(
             "UPDATE knowledge_articles
              SET is_archived = 0, archived_datetime = NULL, archived_by_id = NULL
@@ -256,6 +286,7 @@ class KnowledgeService
     public static function purgeArticle(PDO $conn, ActorContext $ctx, int $id): int
     {
         $row = self::loadArticleRow($conn, $id);
+        self::assertCanAccessArticle($conn, $ctx, $id);
         if (!(int)$row['is_archived']) {
             throw new ServiceError('conflict', 'conflict', 'Only archived articles can be permanently deleted. DELETE (archive) it first.');
         }

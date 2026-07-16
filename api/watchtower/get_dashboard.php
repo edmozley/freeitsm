@@ -17,7 +17,7 @@ if (!isset($_SESSION['analyst_id'])) {
 
 try {
     $conn = connectToDatabase();
-    $data = getWatchtowerData($conn);
+    $data = getWatchtowerData($conn, (int)$_SESSION['analyst_id']);
 
     echo json_encode(array_merge(
         ['success' => true, 'generated_at' => gmdate('Y-m-d\TH:i:s\Z')],

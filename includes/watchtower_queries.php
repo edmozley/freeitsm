@@ -4,7 +4,14 @@
  * Returns unified attention summary data from all modules
  */
 
-function getWatchtowerData($conn) {
+require_once __DIR__ . '/tenancy.php';   // knowledgeTenantFilter() for the Knowledge card
+
+/**
+ * $analystId is optional and only used to scope the Knowledge card to the
+ * company the analyst has switched to. Omitted (or 0) = unscoped, which is the
+ * behaviour every other card on this dashboard still has.
+ */
+function getWatchtowerData($conn, $analystId = 0) {
     $today = date('Y-m-d');
 
     // -- Morning Checks --
@@ -221,21 +228,38 @@ function getWatchtowerData($conn) {
 
     // -- Knowledge --
 
-    $kbRecentStmt = $conn->query(
-        "SELECT id, title, created_datetime
-         FROM knowledge_articles
-         WHERE is_published = 1 AND is_archived = 0
-           AND created_datetime >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-         ORDER BY created_datetime DESC
+    // Company scope. NOTE: Knowledge is currently the ONLY card here that scopes
+    // by company — the rest of this dashboard (tickets included) is install-wide,
+    // which is a pre-existing multi-tenancy gap in Watchtower rather than
+    // something this introduced. Scoped here anyway: an article carries an owning
+    // company now, so surfacing another company's titles on the dashboard would be
+    // a hole in Knowledge, whatever the neighbouring cards do.
+    $kbTenantSql    = '';
+    $kbTenantParams = [];
+    if ($analystId > 0 && function_exists('knowledgeTenantFilter')) {
+        [$kbTenantSql, $kbTenantParams] = knowledgeTenantFilter($conn, $analystId, 'ka');
+    }
+
+    $kbRecentStmt = $conn->prepare(
+        "SELECT ka.id, ka.title, ka.created_datetime
+         FROM knowledge_articles ka
+         WHERE ka.is_published = 1 AND ka.is_archived = 0
+           AND ka.created_datetime >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+         . $kbTenantSql . "
+         ORDER BY ka.created_datetime DESC
          LIMIT 5"
     );
+    $kbRecentStmt->execute($kbTenantParams);
     $kbRecent = $kbRecentStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $kbOverdue = (int)$conn->query(
-        "SELECT COUNT(*) FROM knowledge_articles
-         WHERE is_published = 1 AND is_archived = 0
-           AND next_review_date IS NOT NULL AND next_review_date < CURDATE()"
-    )->fetchColumn();
+    $kbOverdueStmt = $conn->prepare(
+        "SELECT COUNT(*) FROM knowledge_articles ka
+         WHERE ka.is_published = 1 AND ka.is_archived = 0
+           AND ka.next_review_date IS NOT NULL AND ka.next_review_date < CURDATE()"
+         . $kbTenantSql
+    );
+    $kbOverdueStmt->execute($kbTenantParams);
+    $kbOverdue = (int)$kbOverdueStmt->fetchColumn();
 
     $knowledge = [
         'recent_articles' => $kbRecent,

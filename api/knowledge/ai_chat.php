@@ -9,6 +9,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';
 require_once '../../includes/ai_settings.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -106,9 +107,19 @@ try {
 
     // Check if we have articles with embeddings
     $archiveFilter = $includeArchived ? '' : ' AND (is_archived = 0 OR is_archived IS NULL)';
-    $embeddingCountSql = "SELECT COUNT(*) as count FROM knowledge_articles WHERE is_published = 1" . $archiveFilter . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0";
+
+    // Company scope. This is an ANALYST asking, so there is no audience filter —
+    // the ladder only holds back customers and the public.
+    // NOTE: this file still carries its own copy of the embedding/cosine code that
+    // includes/knowledge/kb_ai.php factored out (see the note at the top of that
+    // file). It is not consolidated here because kbRetrieveArticles has no
+    // include-archived mode, and rewriting a working AI path was not worth bundling
+    // into a security fix. The tenant filter is applied to BOTH copies instead.
+    [$tenantSql, $tenantParams] = knowledgeTenantFilter($conn, (int)$_SESSION['analyst_id'], '');
+
+    $embeddingCountSql = "SELECT COUNT(*) as count FROM knowledge_articles WHERE is_published = 1" . $archiveFilter . $tenantSql . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0";
     $embeddingCountStmt = $conn->prepare($embeddingCountSql);
-    $embeddingCountStmt->execute();
+    $embeddingCountStmt->execute($tenantParams);
     $embeddingCount = $embeddingCountStmt->fetch(PDO::FETCH_ASSOC)['count'];
 
     $useVectorSearch = !empty($openaiApiKey) && $embeddingCount > 0;
@@ -126,9 +137,9 @@ try {
             // Fetch all articles with embeddings
             $articleSql = "SELECT id, title, body, embedding
                           FROM knowledge_articles
-                          WHERE is_published = 1" . $archiveFilter . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0";
+                          WHERE is_published = 1" . $archiveFilter . $tenantSql . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0";
             $articleStmt = $conn->prepare($articleSql);
-            $articleStmt->execute();
+            $articleStmt->execute($tenantParams);
             $allArticles = $articleStmt->fetchAll(PDO::FETCH_ASSOC);
 
             // Calculate similarity scores
@@ -162,28 +173,30 @@ try {
     if (!$useVectorSearch) {
         // Fallback: fetch all published articles
         $searchMethod = 'all';
-        $articleSql = "SELECT id, title, body FROM knowledge_articles WHERE is_published = 1" . $archiveFilter . " ORDER BY title";
+        $articleSql = "SELECT id, title, body FROM knowledge_articles WHERE is_published = 1" . $archiveFilter . $tenantSql . " ORDER BY title";
         $articleStmt = $conn->prepare($articleSql);
-        $articleStmt->execute();
+        $articleStmt->execute($tenantParams);
         $articles = $articleStmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     if (empty($articles)) {
-        // Check if there are any articles at all (regardless of published status)
-        $totalSql = "SELECT COUNT(*) as total FROM knowledge_articles";
+        // These counts are reported back to the user in the messages below, so they
+        // must be scoped too — an unscoped count tells one company how many articles
+        // another company has.
+        $totalSql = "SELECT COUNT(*) as total FROM knowledge_articles WHERE 1=1" . $tenantSql;
         $totalStmt = $conn->prepare($totalSql);
-        $totalStmt->execute();
+        $totalStmt->execute($tenantParams);
         $totalCount = $totalStmt->fetch(PDO::FETCH_ASSOC)['total'];
 
-        $publishedSql = "SELECT COUNT(*) as published FROM knowledge_articles WHERE is_published = 1";
+        $publishedSql = "SELECT COUNT(*) as published FROM knowledge_articles WHERE is_published = 1" . $tenantSql;
         $publishedStmt = $conn->prepare($publishedSql);
-        $publishedStmt->execute();
+        $publishedStmt->execute($tenantParams);
         $publishedCount = $publishedStmt->fetch(PDO::FETCH_ASSOC)['published'];
 
         // Check how many are available after the archive filter
-        $availableSql = "SELECT COUNT(*) as available FROM knowledge_articles WHERE is_published = 1" . $archiveFilter;
+        $availableSql = "SELECT COUNT(*) as available FROM knowledge_articles WHERE is_published = 1" . $archiveFilter . $tenantSql;
         $availableStmt = $conn->prepare($availableSql);
-        $availableStmt->execute();
+        $availableStmt->execute($tenantParams);
         $availableCount = $availableStmt->fetch(PDO::FETCH_ASSOC)['available'];
 
         if ($totalCount == 0) {

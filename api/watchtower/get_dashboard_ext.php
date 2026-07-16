@@ -131,7 +131,9 @@ if ($requestCount > $rateLimitMax) {
 // Fetch and return Watchtower data
 // --------------------------------------------------
 try {
-    $data = getWatchtowerData($conn);
+    // Scope the Knowledge card to the company the key's owning analyst can see —
+    // an external dashboard is no reason to widen it.
+    $data = getWatchtowerData($conn, (int)($apiKeyRow['analyst_id'] ?? 0));
 
     echo json_encode(array_merge(
         ['success' => true, 'generated_at' => gmdate('Y-m-d\TH:i:s\Z')],

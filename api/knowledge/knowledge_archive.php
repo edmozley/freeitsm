@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 require_once '../../includes/services/knowledge.php';
 
 header('Content-Type: application/json');
@@ -50,6 +51,10 @@ function handleList($conn) {
     // Auto-purge expired items first
     purgeExpired($conn);
 
+    // The recycle bin is scoped like the live list — otherwise deleting an article
+    // would make it visible to companies that could never see it when it was live.
+    [$tenantSql, $tenantParams] = knowledgeTenantFilter($conn, (int)$_SESSION['analyst_id'], 'a');
+
     $sql = "SELECT a.id, a.title, a.created_datetime, a.modified_datetime,
                    a.archived_datetime, a.view_count,
                    COALESCE(author.full_name, '(deleted analyst)') as author_name,
@@ -57,11 +62,11 @@ function handleList($conn) {
             FROM knowledge_articles a
             LEFT JOIN analysts author ON author.id = a.author_id
             LEFT JOIN analysts archiver ON archiver.id = a.archived_by_id
-            WHERE a.is_archived = 1
+            WHERE a.is_archived = 1" . $tenantSql . "
             ORDER BY a.archived_datetime DESC";
 
     $stmt = $conn->prepare($sql);
-    $stmt->execute();
+    $stmt->execute($tenantParams);
     $articles = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Get retention setting
