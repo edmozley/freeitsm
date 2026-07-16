@@ -1,0 +1,47 @@
+dn: ou=people,dc=freeitsm,dc=test
+objectClass: organizationalUnit
+ou: people
+
+dn: ou=groups,dc=freeitsm,dc=test
+objectClass: organizationalUnit
+ou: groups
+
+dn: cn=svc-freeitsm,dc=freeitsm,dc=test
+objectClass: organizationalRole
+objectClass: simpleSecurityObject
+cn: svc-freeitsm
+description: Read-only service account used by FreeITSM to search for users
+userPassword: svcpass
+
+dn: uid=alice,ou=people,dc=freeitsm,dc=test
+objectClass: inetOrgPerson
+uid: alice
+cn: Alice Analyst
+sn: Analyst
+givenName: Alice
+mail: alice@freeitsm.test
+userPassword: alicepass
+
+dn: uid=bob,ou=people,dc=freeitsm,dc=test
+objectClass: inetOrgPerson
+uid: bob
+cn: Bob Tech
+sn: Tech
+givenName: Bob
+mail: bob@freeitsm.test
+userPassword: bobpass
+
+dn: uid=carol,ou=people,dc=freeitsm,dc=test
+objectClass: inetOrgPerson
+uid: carol
+cn: Carol Customer
+sn: Customer
+givenName: Carol
+mail: carol@freeitsm.test
+userPassword: carolpass
+
+dn: cn=itsm-analysts,ou=groups,dc=freeitsm,dc=test
+objectClass: groupOfNames
+cn: itsm-analysts
+member: uid=alice,ou=people,dc=freeitsm,dc=test
+member: uid=bob,ou=people,dc=freeitsm,dc=test

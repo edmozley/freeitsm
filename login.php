@@ -5,6 +5,7 @@
 session_start();
 require_once 'config.php';
 require_once 'includes/functions.php';
+require_once 'includes/ldap.php';
 
 // An SSO sign-in attempt that failed bounces back here with a message.
 $sso_error = $_SESSION['sso_error'] ?? null;
@@ -170,7 +171,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Falls back to basic query if security columns don't exist yet (pre db-verify)
             try {
                 $sql = "SELECT id, username, password_hash, full_name, email, totp_enabled,
-                               locked_until, failed_login_count, trust_device_enabled, password_changed_datetime
+                               locked_until, failed_login_count, trust_device_enabled, password_changed_datetime,
+                               auth_provider_id
                         FROM analysts WHERE username = ? AND is_active = 1";
                 $stmt = $conn->prepare($sql);
                 $stmt->execute([$username]);
@@ -202,7 +204,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             }
 
-            if (empty($error) && $analyst && password_verify($password, $analyst['password_hash'])) {
+            // --- Decide HOW to check this password ------------------------
+            // Three cases:
+            //   a) the analyst is assigned to a directory (LDAP) provider   -> bind
+            //   b) the analyst is local                                     -> password_verify
+            //   c) no analyst row at all                                    -> the user may be a
+            //      brand-new employee who only exists in the directory; ask each
+            //      LDAP provider and just-in-time create them. This is the whole
+            //      point of the feature (GitHub #47): nobody wants to hand-create
+            //      an account for every new starter.
+            // An analyst assigned to an OIDC provider is NOT allowed through this
+            // form at all — they must use the SSO button.
+            $authOk           = false;
+            $ldapProviderUsed = null;
+            $ldapCandidates   = [];
+
+            if (empty($error)) {
+                $assignedProviderId = (int)($analyst['auth_provider_id'] ?? 0);
+
+                if ($analyst && $assignedProviderId > 0) {
+                    // ldapGetProvider() returns null for a non-LDAP provider, which
+                    // is how an OIDC-assigned analyst is kept off this form.
+                    $assigned = ldapGetProvider($conn, $assignedProviderId);
+                    if ($assigned && (int)$assigned['enabled'] === 1) {
+                        $ldapCandidates = [$assigned];
+                    } else {
+                        $error = 'This account signs in with single sign-on. Please use the sign-in button above.';
+                    }
+
+                } elseif ($analyst) {
+                    $authOk = password_verify($password, $analyst['password_hash']);
+
+                } else {
+                    $ldapCandidates = ldapAnalystProviders($conn);
+                }
+            }
+
+            // Both directory cases run the same resolve/link/JIT path, so the
+            // first login and every later one behave identically.
+            foreach ($ldapCandidates as $ldapProvider) {
+                $res = ldapAuthenticate($ldapProvider, $username, $password);
+                if (!$res['ok']) {
+                    continue; // wrong password, or this directory doesn't know them
+                }
+
+                // The password is right — but that alone must not grant analyst
+                // access, or every employee in the directory becomes an analyst
+                // (GitHub #47). The configured groups decide.
+                $role = ldapAccessRole($ldapProvider, $res['user']);
+                if ($role !== 'analyst') {
+                    $error = ($role === 'user')
+                        // Correct credentials, wrong portal: point them somewhere useful.
+                        ? 'Your account does not have analyst access. Please use the self-service portal.'
+                        : 'Your account is not a member of a group that grants access to FreeITSM.';
+                    logLoginAttempt($conn, null, $username, false);
+                    break;
+                }
+
+                $resolved = ldapResolveAnalyst($conn, $ldapProvider, $res['user']);
+                if (!$resolved['ok']) {
+                    $error = $resolved['error'];
+                    break;
+                }
+                $reload = $conn->prepare(
+                    "SELECT id, username, password_hash, full_name, email, totp_enabled,
+                            locked_until, failed_login_count, trust_device_enabled,
+                            password_changed_datetime, auth_provider_id
+                       FROM analysts WHERE id = ? AND is_active = 1"
+                );
+                $reload->execute([$resolved['analyst_id']]);
+                $analyst = $reload->fetch(PDO::FETCH_ASSOC) ?: null;
+                if ($analyst) {
+                    $authOk           = true;
+                    $ldapProviderUsed = $ldapProvider;
+                }
+                break; // the directory answered; do not try the others
+            }
+
+            // A directory-backed analyst has no usable local password, so local
+            // password expiry must never apply to them — force_password_change.php
+            // would ask them to change a password that does not exist.
+            $skipPasswordExpiry = ($ldapProviderUsed !== null);
+
+            if (empty($error) && $analyst && $authOk) {
                 // Reset failed login counter on success
                 if (!empty($analyst['failed_login_count'])) {
                     try {
@@ -239,7 +323,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         logLoginAttempt($conn, $analyst['id'], $username, true);
 
                         // Check password expiry
-                        if (isset($analyst['password_changed_datetime']) && isPasswordExpired($conn, $analyst['password_changed_datetime'])) {
+                        if (!$skipPasswordExpiry && isset($analyst['password_changed_datetime']) && isPasswordExpired($conn, $analyst['password_changed_datetime'])) {
                             $_SESSION['password_expired'] = true;
                             header('Location: force_password_change.php');
                         } else {
@@ -279,7 +363,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     logLoginAttempt($conn, $analyst['id'], $username, true);
 
                     // Check password expiry
-                    if (isset($analyst['password_changed_datetime']) && isPasswordExpired($conn, $analyst['password_changed_datetime'])) {
+                    if (!$skipPasswordExpiry && isset($analyst['password_changed_datetime']) && isPasswordExpired($conn, $analyst['password_changed_datetime'])) {
                         $_SESSION['password_expired'] = true;
                         header('Location: force_password_change.php');
                     } else {

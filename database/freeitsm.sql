@@ -44,7 +44,17 @@ CREATE TABLE IF NOT EXISTS `analysts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ----------------------------------------------------------
--- SSO / OIDC identity providers (one row per configured IdP)
+-- Authentication providers (one row per configured sign-in method)
+-- `protocol` selects the flavour:
+--   'oidc' — OpenID Connect SSO (browser redirect to an IdP). Uses the
+--            issuer_url / client_id / client_secret / scopes columns.
+--   'ldap' — LDAP / Active Directory bind (user types their directory
+--            password into our own login form; NOT single sign-on).
+--            Uses the ldap_* columns below.
+-- The two column groups are mutually exclusive; the unused group is left
+-- empty. issuer_url/client_id stay NOT NULL (db_verify only ever ADDS
+-- columns, so relaxing them would not reach upgraded installs) — LDAP rows
+-- therefore store '' in them rather than NULL.
 -- ----------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS `auth_providers` (
@@ -55,6 +65,22 @@ CREATE TABLE IF NOT EXISTS `auth_providers` (
     `client_id`              VARCHAR(255) NOT NULL,
     `client_secret`          VARCHAR(500) NULL,
     `scopes`                 VARCHAR(255) NOT NULL DEFAULT 'openid email profile',
+    -- --- LDAP / Active Directory (protocol = 'ldap') ---
+    `ldap_host`              VARCHAR(255) NULL,
+    `ldap_port`              INT NULL,
+    `ldap_encryption`        VARCHAR(10) NULL,
+    `ldap_bind_dn`           VARCHAR(255) NULL,
+    `ldap_bind_password`     VARCHAR(500) NULL,
+    `ldap_base_dn`           VARCHAR(255) NULL,
+    `ldap_user_filter`       VARCHAR(500) NULL,
+    `ldap_attr_username`     VARCHAR(64) NULL,
+    `ldap_attr_email`        VARCHAR(64) NULL,
+    `ldap_attr_name`         VARCHAR(64) NULL,
+    `ldap_attr_guid`         VARCHAR(64) NULL,
+    `ldap_group_base_dn`     VARCHAR(255) NULL,
+    `ldap_group_filter`      VARCHAR(500) NULL,
+    `ldap_analyst_group`     VARCHAR(255) NULL,
+    `ldap_user_group`        VARCHAR(255) NULL,
     `enabled`                TINYINT(1) NOT NULL DEFAULT 1,
     `auto_create_users`      TINYINT(1) NOT NULL DEFAULT 0,
     `require_verified_email` TINYINT(1) NOT NULL DEFAULT 0,

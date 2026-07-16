@@ -145,18 +145,25 @@ function getHelpTopics() {
             'terms' => 'brute force locked out failed attempts hardening rotation ban blocked',
         ],
         'sso' => [
-            'hero' => 'Single Sign-On (SSO)',
-            'sub'  => 'Let people sign in with their existing identity provider — Microsoft Entra, Google, Okta, Keycloak and any other OpenID Connect provider — for both analysts and the self-service portal. Local passwords keep working as a fallback.',
+            'hero' => 'Authentication',
+            'sub'  => 'Choose how people sign in: single sign-on through an identity provider (Microsoft Entra, Google, Okta, Keycloak or any OpenID Connect provider), or against your LDAP / Active Directory. Local passwords keep working as a fallback.',
             'sections' => [
                 ['id' => 'overview',   'label' => 'Overview'],
                 ['id' => 'which',      'label' => 'Single or multi-company?'],
                 ['id' => 'single',     'label' => 'Single-company setup'],
                 ['id' => 'multi',      'label' => 'Multi-company (MSP) setup'],
+                ['id' => 'ldap',       'label' => 'LDAP / Active Directory'],
+                ['id' => 'ldap-setup', 'label' => 'Setting up a directory'],
+                ['id' => 'ldap-groups','label' => 'Controlling access by group'],
+                ['id' => 'ldap-faq',   'label' => 'LDAP troubleshooting'],
                 ['id' => 'experience', 'label' => 'What people see'],
                 ['id' => 'breakglass', 'label' => 'Break-glass & safety'],
                 ['id' => 'faq',        'label' => 'Troubleshooting'],
             ],
-            'terms' => 'oidc openid connect saml entra azure ad google okta keycloak login federation',
+            'terms' => 'oidc openid connect saml entra azure ad google okta keycloak login federation'
+                     . ' ldap active directory domain controller dc bind base dn service account samba openldap'
+                     . ' freeipa 389 memberof samaccountname objectguid starttls ldaps nested groups'
+                     . " no such object cannot log in can't sign in invalid credentials directory",
         ],
         'api' => [
             'hero' => 'API',

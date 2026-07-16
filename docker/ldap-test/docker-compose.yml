@@ -1,0 +1,45 @@
+services:
+  openldap:
+    image: osixia/openldap:1.5.0
+    container_name: freeitsm-ldap
+    environment:
+      LDAP_ORGANISATION: "FreeITSM Test"
+      LDAP_DOMAIN: "freeitsm.test"
+      LDAP_ADMIN_PASSWORD: "adminpass"
+      LDAP_TLS: "false"
+    ports:
+      - "3890:389"
+    command: ["--copy-service"]
+
+  # Samba 4 Active Directory Domain Controller.
+  # This is the realistic target: real AD semantics (sAMAccountName, memberOf,
+  # nested groups) without needing Windows Server.
+  # INSECURELDAP=true relaxes "ldap server require strong auth" so we can do
+  # simple binds over plain 389 in testing. Real AD usually wants LDAPS/StartTLS.
+  samba-ad:
+    image: nowsci/samba-domain:latest
+    container_name: freeitsm-samba-ad
+    hostname: dc1
+    privileged: true
+    environment:
+      DOMAIN: "AD.FREEITSM.TEST"
+      DOMAINPASS: "Passw0rd!2026"
+      DNSFORWARDER: "1.1.1.1"
+      INSECURELDAP: "true"
+      NOCOMPLEXITY: "true"
+    ports:
+      - "3891:389"
+      - "6361:636"
+    dns:
+      - 127.0.0.1
+
+  phpldapadmin:
+    image: osixia/phpldapadmin:0.9.0
+    container_name: freeitsm-ldap-ui
+    environment:
+      PHPLDAPADMIN_LDAP_HOSTS: "openldap"
+      PHPLDAPADMIN_HTTPS: "false"
+    ports:
+      - "8091:80"
+    depends_on:
+      - openldap

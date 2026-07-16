@@ -71,6 +71,31 @@ $schema = [
         'client_id'              => 'VARCHAR(255) NOT NULL',
         'client_secret'          => 'VARCHAR(500) NULL',
         'scopes'                 => "VARCHAR(255) NOT NULL DEFAULT 'openid email profile'",
+        // --- LDAP / Active Directory (protocol = 'ldap') ---
+        // Mutually exclusive with the OIDC columns above. ldap_bind_password is
+        // the service account's password, encrypted at rest via encryptValue().
+        // ldap_attr_guid names the immutable id attribute (objectGUID on AD,
+        // entryUUID on OpenLDAP) used as the stable `subject` link — a DN is not
+        // safe for that, it changes when a user is renamed or moved between OUs.
+        'ldap_host'              => 'VARCHAR(255) NULL',
+        'ldap_port'              => 'INT NULL',
+        'ldap_encryption'        => 'VARCHAR(10) NULL',
+        'ldap_bind_dn'           => 'VARCHAR(255) NULL',
+        'ldap_bind_password'     => 'VARCHAR(500) NULL',
+        'ldap_base_dn'           => 'VARCHAR(255) NULL',
+        'ldap_user_filter'       => 'VARCHAR(500) NULL',
+        'ldap_attr_username'     => 'VARCHAR(64) NULL',
+        'ldap_attr_email'        => 'VARCHAR(64) NULL',
+        'ldap_attr_name'         => 'VARCHAR(64) NULL',
+        'ldap_attr_guid'         => 'VARCHAR(64) NULL',
+        // Group gating (issue #47). ldap_analyst_group / ldap_user_group name the
+        // directory groups that grant access; both blank = gate off (anyone the
+        // directory authenticates becomes an analyst). ldap_group_filter finds the
+        // groups a user is in — %s is their DN.
+        'ldap_group_base_dn'     => 'VARCHAR(255) NULL',
+        'ldap_group_filter'      => 'VARCHAR(500) NULL',
+        'ldap_analyst_group'     => 'VARCHAR(255) NULL',
+        'ldap_user_group'        => 'VARCHAR(255) NULL',
         'enabled'                => 'TINYINT(1) NOT NULL DEFAULT 1',
         'auto_create_users'      => 'TINYINT(1) NOT NULL DEFAULT 0',
         'require_verified_email' => 'TINYINT(1) NOT NULL DEFAULT 0',

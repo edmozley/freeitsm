@@ -94,6 +94,71 @@ require __DIR__ . '/_top.php';
     <div class="syshelp-callout warn"><strong>Today, each client hands you a client secret</strong> (which you store and rotate). That's the “bring-your-own-credentials” model and it works for any provider. A future option — where you register one app and each client just clicks “consent”, with no secret to hand over — is designed but not yet built. It will not change anything above; only how a provider is added.</div>
 </div>
 
+<!-- 4b. LDAP / Active Directory -->
+<div class="syshelp-section" id="ldap">
+    <div class="syshelp-section-header"><h3>LDAP / Active Directory</h3></div>
+    <p>If your people already exist in Active Directory (or OpenLDAP, FreeIPA, 389 Directory Server), FreeITSM can check their password against it directly. They keep the username and password they already use everywhere else, and you don't create an account here for every new starter.</p>
+    <div class="syshelp-callout"><strong>This is not single sign-on.</strong> With SSO the browser bounces to your identity provider and back. With LDAP people type their directory password into <em>FreeITSM's own</em> login form, and we check it with the directory. Both live on this page because both answer the same question — how do people sign in — but they behave differently, and only SSO gives you one shared session across apps.</div>
+    <h4>How it works</h4>
+    <p>Someone types <code>r.patel</code>, not their full directory path, so FreeITSM does this on every sign-in:</p>
+    <ol>
+        <li>Connects to your directory and signs in as a <strong>read-only service account</strong>, so it is allowed to look people up.</li>
+        <li><strong>Searches</strong> for the person to find their full entry.</li>
+        <li>Tries to sign in <strong>as that person</strong> with the password they typed. If the directory accepts it, the password was right.</li>
+        <li>Checks their <strong>groups</strong> to decide what, if anything, they're allowed to be.</li>
+    </ol>
+    <p>That's why the setup form asks for a server, a service account and a base DN — they're the ingredients for those steps. FreeITSM never reads or stores anyone's directory password.</p>
+    <div class="syshelp-callout ok"><strong>Leavers are handled for you.</strong> Disable someone in the directory and they can no longer sign in here, immediately — the directory refuses the sign-in, so there is nothing to remember to switch off in FreeITSM.</div>
+</div>
+
+<!-- 4c. LDAP setup -->
+<div class="syshelp-section" id="ldap-setup">
+    <div class="syshelp-section-header"><h3>Setting up a directory</h3></div>
+    <p>Go to <strong>System → Authentication</strong>, click <strong>+ Add</strong>, and set <strong>Type</strong> to <em>LDAP / Active Directory</em>. Then pick the <strong>Active Directory</strong> or <strong>OpenLDAP</strong> preset — it fills in the filter and attribute names that are right for that kind of directory, so you only need to supply the four things that are specific to you:</p>
+    <ul>
+        <li><strong>Server</strong> — a domain controller's hostname or IP, e.g. <code>dc1.example.local</code>.</li>
+        <li><strong>Service account</strong> — a <em>read-only</em> account used only to look people up. Active Directory accepts <code>svc-freeitsm@example.local</code>; OpenLDAP wants a full DN like <code>cn=svc-freeitsm,dc=example,dc=com</code>. It never needs write access.</li>
+        <li><strong>Base DN</strong> — where to search from, e.g. <code>DC=example,DC=local</code>, or narrow it to <code>OU=Staff,DC=example,DC=local</code>.</li>
+        <li><strong>Encryption</strong> — see the warning below.</li>
+    </ul>
+    <p>Use the <strong>Test</strong> button before saving. Leave the test user blank to check only that the service account can connect and read; fill one in and it runs a real sign-in and shows you exactly which name, email and groups came back. That is the quickest way to catch a wrong attribute name or a too-narrow base DN.</p>
+    <div class="syshelp-callout warn"><strong>Use STARTTLS or LDAPS in production.</strong> With encryption set to <em>None</em>, people's passwords cross your network in the clear on every sign-in. Many Active Directory servers refuse password sign-ins over unencrypted LDAP anyway, so if plain LDAP fails with an error about strong authentication, that's why — switch to LDAPS.</div>
+    <p>Turn on <strong>Auto-create users on first login (JIT)</strong> so a new starter gets an account the first time they sign in. Read the next section before you do — on its own, that lets anyone in the directory in.</p>
+</div>
+
+<!-- 4d. LDAP groups -->
+<div class="syshelp-section highlight" id="ldap-groups">
+    <div class="syshelp-section-header"><h3>Controlling access by group</h3></div>
+    <p>Auto-create is the point of connecting a directory — but by itself it means <em>everyone</em> your directory recognises becomes an analyst. Point that at a 500-person company and you get 500 analysts. Naming groups is what stops that.</p>
+    <table class="syshelp-table">
+        <thead><tr><th>Setting</th><th>What it does</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Analyst group</strong></td><td>Members get an analyst account and can use the main FreeITSM login.</td></tr>
+            <tr><td><strong>Self-service user group</strong></td><td>Members get a self-service account — they can raise and track their own tickets, but cannot sign in as an analyst.</td></tr>
+            <tr><td><strong>Neither</strong></td><td>They cannot sign in at all, even with a correct password.</td></tr>
+            <tr><td><strong>Both boxes blank</strong></td><td>No gate: anyone the directory recognises becomes an analyst. Fine for a small single-team install; risky anywhere else.</td></tr>
+        </tbody>
+    </table>
+    <p>Type either the group's plain name (<code>ITSM-Analysts</code>) or its full DN — both work, and case doesn't matter.</p>
+    <div class="syshelp-callout ok"><strong>Nested groups work on Active Directory.</strong> If your analyst group contains other groups rather than people directly, members of those inner groups still get in. The AD preset handles this for you. OpenLDAP has no equivalent, so there you must name a group that contains the people themselves.</div>
+    <div class="syshelp-callout"><strong>It fails safely.</strong> If FreeITSM can't read your groups for any reason, nobody is let in by accident — an unreadable group list denies access rather than granting it. So if <em>everyone</em> is suddenly refused, suspect the group settings, not people's passwords.</div>
+</div>
+
+<!-- 4e. LDAP troubleshooting -->
+<div class="syshelp-section" id="ldap-faq">
+    <div class="syshelp-section-header"><h3>LDAP troubleshooting</h3></div>
+    <ul>
+        <li><strong>“No such object”, but the user definitely exists.</strong> Nearly always the service account's permissions, not a missing user — most directories report a subtree they aren't allowed to read as though it isn't there. Check the base DN, then check the service account can read it. OpenLDAP in particular denies reads by default until you grant them.</li>
+        <li><strong>Everyone is refused, even with the right password.</strong> Check <em>Access by group</em>. If a group is named and nobody matches it, everyone is denied by design. The Test button shows the groups it found and the access it worked out.</li>
+        <li><strong>One person is refused, everyone else is fine.</strong> Are they in the right group? Remember an Active Directory admins group is not automatically your analyst group — name whichever group actually holds your service desk staff.</li>
+        <li><strong>“The account is disabled.”</strong> They're disabled in the directory. That's the directory refusing them, and it's working as intended.</li>
+        <li><strong>Signs in, but the account has no name or email.</strong> The attribute names don't match your directory. Run Test with that person and compare what comes back.</li>
+        <li><strong>“Cannot create an account — no email address.”</strong> The person has no email in the directory. FreeITSM needs one, since tickets are addressed by email. Add it to their directory entry.</li>
+        <li><strong>Anything about strong authentication.</strong> Your directory requires an encrypted connection. Switch Encryption to LDAPS or STARTTLS.</li>
+        <li><strong>The PHP <code>ldap</code> extension is not enabled.</strong> Enable <code>extension=ldap</code> in <code>php.ini</code> and restart your web server. On some setups there are two php.ini files — one for the web server and one for the command line — and both need it.</li>
+    </ul>
+</div>
+
 <!-- 5. Experience -->
 <div class="syshelp-section" id="experience">
     <div class="syshelp-section-header"><h3>What people see when they sign in</h3></div>

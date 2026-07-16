@@ -28,7 +28,7 @@ try {
         $ssoTenants = $ssoAdminConn->query("SELECT id, name FROM tenants WHERE is_active = 1 ORDER BY is_default DESC, name")->fetchAll(PDO::FETCH_ASSOC);
     }
 } catch (Exception $e) { $ssoTenants = []; $ssoMultiTenant = false; }
-$ssoColspan = $ssoMultiTenant ? 6 : 5; // providers table column count (Company col only at N>1)
+$ssoColspan = $ssoMultiTenant ? 7 : 6; // providers table column count (Company col only at N>1; Type always)
 
 // The redirect URI the admin must register in their IdP. Built from the
 // deployment's BASE_URL so it's correct whatever path the app is served at.
@@ -118,12 +118,21 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         .sso-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); }
         .sso-modal-body { padding: 20px 24px; }
         .sso-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; }
+        /* The four attribute mappings sit two-up; they collapse to one column on narrow screens. */
+        /* Encryption + port share a row: the select flexes, the port stays narrow.
+           Needed because .form-field select is width:100%, which would otherwise
+           squash the port box to nothing. */
+        .enc-row { display: flex; gap: 10px; align-items: center; }
+        .enc-row select { flex: 1 1 auto; }
+        .enc-row input[type=number] { flex: 0 0 110px; width: 110px; }
+        .ldap-attr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+        .ldap-attr-grid .hint { display: block; margin-bottom: 2px; }
+        .proto-badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 600; background: var(--surface-alt, #eef1f4); color: var(--text-muted, #667); }
         .form-field { margin-bottom: 16px; }
         .form-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #444); margin-bottom: 4px; }
         .form-field .hint { font-size: 12px; color: var(--text-faint, #999); font-weight: 400; margin-bottom: 6px; }
-        .form-field input[type=text], .form-field input[type=password] { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
-        .form-field input:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
-        .form-field select { background: var(--surface, #fff); color: var(--text, #333); }
+        .form-field input[type=text], .form-field input[type=password], .form-field input[type=number], .form-field select { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; font-family: inherit; box-sizing: border-box; background: var(--surface, #fff); color: var(--text, #333); }
+        .form-field input:focus, .form-field select:focus { outline: none; border-color: var(--sys-accent, #546e7a); }
         .issuer-row { display: flex; gap: 8px; }
         .issuer-row input { flex: 1; }
         .checkbox-field { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
@@ -206,7 +215,7 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             </div>
             <table class="providers">
                 <thead>
-                    <tr><th><?php echo htmlspecialchars(t('system.sso.col_name')); ?></th><?php if ($ssoMultiTenant): ?><th><?php echo htmlspecialchars(t('system.sso.col_company')); ?></th><?php endif; ?><th><?php echo htmlspecialchars(t('system.sso.col_issuer')); ?></th><th><?php echo htmlspecialchars(t('system.sso.col_status')); ?></th><th><?php echo htmlspecialchars(t('system.sso.col_auto_create')); ?></th><th style="text-align:right;"><?php echo htmlspecialchars(t('system.sso.col_actions')); ?></th></tr>
+                    <tr><th><?php echo htmlspecialchars(t('system.sso.col_name')); ?></th><?php if ($ssoMultiTenant): ?><th><?php echo htmlspecialchars(t('system.sso.col_company')); ?></th><?php endif; ?><th><?php echo htmlspecialchars(t('system.sso.col_type')); ?></th><th><?php echo htmlspecialchars(t('system.sso.col_issuer')); ?></th><th><?php echo htmlspecialchars(t('system.sso.col_status')); ?></th><th><?php echo htmlspecialchars(t('system.sso.col_auto_create')); ?></th><th style="text-align:right;"><?php echo htmlspecialchars(t('system.sso.col_actions')); ?></th></tr>
                 </thead>
                 <tbody id="providersBody">
                     <tr class="empty-row"><td colspan="<?php echo $ssoColspan; ?>"><?php echo htmlspecialchars(t('system.sso.loading')); ?></td></tr>
@@ -222,10 +231,124 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             <div class="sso-modal-body">
                 <input type="hidden" id="providerId">
                 <div class="form-field">
+                    <label><?php echo htmlspecialchars(t('system.sso.field_protocol')); ?></label>
+                    <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_protocol_hint')); ?></div>
+                    <select id="fProtocol">
+                        <option value="oidc"><?php echo htmlspecialchars(t('system.sso.protocol_oidc')); ?></option>
+                        <option value="ldap"><?php echo htmlspecialchars(t('system.sso.protocol_ldap')); ?></option>
+                    </select>
+                    <?php if (!extension_loaded('ldap')): ?>
+                        <div class="hint" style="color:var(--danger,#c0392b);margin-top:6px;"><?php echo htmlspecialchars(t('system.sso.ldap_ext_missing')); ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="form-field">
                     <label><?php echo htmlspecialchars(t('system.sso.field_display_name')); ?></label>
                     <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_display_name_hint')); ?></div>
                     <input type="text" id="fDisplayName" placeholder="<?php echo htmlspecialchars(t('system.sso.field_display_name_placeholder')); ?>">
                 </div>
+
+                <!-- ===== LDAP / Active Directory ===== -->
+                <div id="ldapFields" style="display:none;">
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.ldap_preset')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.ldap_preset_hint')); ?></div>
+                        <div class="issuer-row">
+                            <button class="btn btn-secondary" id="presetAdBtn" type="button"><?php echo htmlspecialchars(t('system.sso.ldap_preset_ad')); ?></button>
+                            <button class="btn btn-secondary" id="presetOpenldapBtn" type="button"><?php echo htmlspecialchars(t('system.sso.ldap_preset_openldap')); ?></button>
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_ldap_host')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_ldap_host_hint')); ?></div>
+                        <input type="text" id="fLdapHost" placeholder="dc1.example.local">
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_ldap_encryption')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.ldap_enc_hint')); ?></div>
+                        <div class="enc-row">
+                            <select id="fLdapEncryption">
+                                <option value="none"><?php echo htmlspecialchars(t('system.sso.ldap_enc_none')); ?></option>
+                                <option value="starttls"><?php echo htmlspecialchars(t('system.sso.ldap_enc_starttls')); ?></option>
+                                <option value="ldaps"><?php echo htmlspecialchars(t('system.sso.ldap_enc_ldaps')); ?></option>
+                            </select>
+                            <input type="number" id="fLdapPort" placeholder="389" aria-label="<?php echo htmlspecialchars(t('system.sso.field_ldap_port')); ?>">
+                        </div>
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_ldap_bind_dn')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_ldap_bind_dn_hint')); ?></div>
+                        <input type="text" id="fLdapBindDn" placeholder="svc-freeitsm@example.local">
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_ldap_bind_password')); ?></label>
+                        <div class="hint" id="bindPasswordHint"><?php echo htmlspecialchars(t('system.sso.field_ldap_bind_password_hint')); ?></div>
+                        <input type="password" id="fLdapBindPassword" autocomplete="new-password">
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_ldap_base_dn')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_ldap_base_dn_hint')); ?></div>
+                        <input type="text" id="fLdapBaseDn" placeholder="DC=example,DC=local">
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.field_ldap_filter')); ?></label>
+                        <div class="hint"><?php echo t('system.sso.field_ldap_filter_hint', ['token' => '<code>%s</code>']); ?></div>
+                        <input type="text" id="fLdapFilter" placeholder="(&amp;(objectClass=user)(|(sAMAccountName=%s)(mail=%s)))">
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.ldap_attrs_heading')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.ldap_attrs_desc')); ?></div>
+                        <div class="ldap-attr-grid">
+                            <div>
+                                <span class="hint"><?php echo htmlspecialchars(t('system.sso.field_ldap_attr_username')); ?></span>
+                                <input type="text" id="fLdapAttrUsername" placeholder="sAMAccountName">
+                            </div>
+                            <div>
+                                <span class="hint"><?php echo htmlspecialchars(t('system.sso.field_ldap_attr_email')); ?></span>
+                                <input type="text" id="fLdapAttrEmail" placeholder="mail">
+                            </div>
+                            <div>
+                                <span class="hint"><?php echo htmlspecialchars(t('system.sso.field_ldap_attr_name')); ?></span>
+                                <input type="text" id="fLdapAttrName" placeholder="displayName">
+                            </div>
+                            <div>
+                                <span class="hint"><?php echo htmlspecialchars(t('system.sso.field_ldap_attr_guid')); ?></span>
+                                <input type="text" id="fLdapAttrGuid" placeholder="objectGUID">
+                            </div>
+                        </div>
+                        <div class="hint" style="margin-top:6px;"><?php echo t('system.sso.field_ldap_attr_guid_hint', ['ad' => '<code>objectGUID</code>', 'openldap' => '<code>entryUUID</code>']); ?></div>
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.ldap_groups_heading')); ?></label>
+                        <div class="hint"><?php echo t('system.sso.ldap_groups_desc', ['strong' => '<strong>' . htmlspecialchars(t('system.sso.ldap_groups_desc_strong')) . '</strong>']); ?></div>
+                        <div class="ldap-attr-grid">
+                            <div>
+                                <span class="hint"><?php echo htmlspecialchars(t('system.sso.field_ldap_analyst_group')); ?></span>
+                                <input type="text" id="fLdapAnalystGroup" placeholder="ITSM-Analysts">
+                            </div>
+                            <div>
+                                <span class="hint"><?php echo htmlspecialchars(t('system.sso.field_ldap_user_group')); ?></span>
+                                <input type="text" id="fLdapUserGroup" placeholder="ITSM-Users">
+                            </div>
+                        </div>
+                        <div class="hint" style="margin-top:8px;"><?php echo htmlspecialchars(t('system.sso.field_ldap_group_filter')); ?></div>
+                        <input type="text" id="fLdapGroupFilter" placeholder="(&amp;(objectClass=group)(member=%s))">
+                        <div class="hint" style="margin-top:8px;"><?php echo htmlspecialchars(t('system.sso.field_ldap_group_base_dn')); ?></div>
+                        <input type="text" id="fLdapGroupBaseDn" placeholder="<?php echo htmlspecialchars(t('system.sso.field_ldap_group_base_dn_placeholder')); ?>">
+                    </div>
+                    <div class="form-field">
+                        <label><?php echo htmlspecialchars(t('system.sso.ldap_test_heading')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.ldap_test_desc')); ?></div>
+                        <div class="issuer-row">
+                            <input type="text" id="fLdapTestUser" placeholder="<?php echo htmlspecialchars(t('system.sso.ldap_test_user')); ?>">
+                            <input type="password" id="fLdapTestPass" placeholder="<?php echo htmlspecialchars(t('system.sso.ldap_test_pass')); ?>" autocomplete="new-password">
+                            <button class="btn btn-test" id="testLdapBtn" type="button"><?php echo htmlspecialchars(t('system.sso.test')); ?></button>
+                        </div>
+                        <div class="test-result" id="ldapTestResult"></div>
+                    </div>
+                </div>
+
+                <!-- ===== OpenID Connect ===== -->
+                <div id="oidcFields">
                 <div class="form-field">
                     <label><?php echo htmlspecialchars(t('system.sso.field_issuer')); ?></label>
                     <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_issuer_hint')); ?></div>
@@ -250,6 +373,7 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                     <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_scopes_hint')); ?></div>
                     <input type="text" id="fScopes" value="openid email profile">
                 </div>
+                </div><!-- /#oidcFields -->
                 <div class="checkbox-field">
                     <input type="checkbox" id="fEnabled" checked>
                     <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_enabled')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_enabled_desc')); ?></span></div>
@@ -258,7 +382,8 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                     <input type="checkbox" id="fAutoCreate">
                     <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_autocreate')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_autocreate_desc')); ?></span></div>
                 </div>
-                <div class="checkbox-field">
+                <!-- OIDC-only: LDAP has no email_verified claim to require. -->
+                <div class="checkbox-field" id="requireVerifiedField">
                     <input type="checkbox" id="fRequireVerified">
                     <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_verified')); ?></strong><span><?php echo t('system.sso.cb_verified_desc', ['claim' => '<code>email_verified: true</code>', 'claim_false' => '<code>email_verified: false</code>']); ?></span></div>
                 </div>
@@ -349,28 +474,116 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             body.innerHTML = '<tr class="empty-row"><td colspan="' + SSO_COLSPAN + '">' + window.t('system.sso.no_providers', { add: '<strong>' + window.t('system.sso.add_strong') + '</strong>' }) + '</td></tr>';
             return;
         }
-        body.innerHTML = providers.map(p => `
+        body.innerHTML = providers.map(p => {
+            const isLdap = p.protocol === 'ldap';
+            // "Issuer" is an OIDC idea; for a directory show where we connect to.
+            const target = isLdap
+                ? ((p.ldap_host || '') + (p.ldap_port ? ':' + p.ldap_port : ''))
+                : (p.issuer_url || '');
+            return `
             <tr>
                 <td><strong>${esc(p.display_name)}</strong></td>
                 ${MULTI_TENANT ? `<td>${p.tenant_name ? esc(p.tenant_name) : '<span class="tenant-global">' + window.t('system.sso.global_badge') + '</span>'}</td>` : ''}
-                <td class="issuer-cell" title="${esc(p.issuer_url)}">${esc(p.issuer_url)}</td>
+                <td><span class="proto-badge">${isLdap ? window.t('system.sso.ldap_badge') : window.t('system.sso.oidc_badge')}</span></td>
+                <td class="issuer-cell" title="${esc(target)}">${esc(target)}</td>
                 <td><span class="status-badge ${p.enabled ? 'on' : 'off'}">${p.enabled ? window.t('system.sso.enabled') : window.t('system.sso.disabled')}</span></td>
                 <td>${p.auto_create_users ? '<span class="badge-jit">' + window.t('system.sso.jit_on') + '</span>' : '<span class="jit-off">' + window.t('system.sso.jit_off') + '</span>'}</td>
                 <td style="text-align:right;">
                     <button class="table-action-btn" data-edit="${p.id}">${window.t('system.sso.edit')}</button>
                     <button class="table-action-btn danger" data-del="${p.id}">${window.t('system.sso.delete')}</button>
                 </td>
-            </tr>`).join('');
+            </tr>`;
+        }).join('');
     }
 
     // ---------- Modal ----------
     const modal = document.getElementById('providerModal');
+    const $ = id => document.getElementById(id);
+
+    // Defaults per directory flavour. These mirror ldapFlavourDefaults() in
+    // includes/ldap.php — if you change one, change the other.
+    const LDAP_PRESETS = {
+        ad: {
+            port: 389, encryption: 'none',
+            filter: '(&(objectClass=user)(|(sAMAccountName=%s)(userPrincipalName=%s)(mail=%s)))',
+            username: 'sAMAccountName', email: 'mail', name: 'displayName', guid: 'objectGUID',
+            // LDAP_MATCHING_RULE_IN_CHAIN: walks NESTED groups, which memberOf cannot.
+            groupFilter: '(&(objectClass=group)(member:1.2.840.113556.1.4.1941:=%s))'
+        },
+        openldap: {
+            port: 389, encryption: 'none',
+            filter: '(&(objectClass=inetOrgPerson)(|(uid=%s)(mail=%s)))',
+            username: 'uid', email: 'mail', name: 'cn', guid: 'entryUUID',
+            groupFilter: '(&(objectClass=groupOfNames)(member=%s))'
+        }
+    };
+    function applyPreset(which) {
+        const d = LDAP_PRESETS[which];
+        $('fLdapPort').value = d.port;
+        $('fLdapEncryption').value = d.encryption;
+        $('fLdapFilter').value = d.filter;
+        $('fLdapAttrUsername').value = d.username;
+        $('fLdapAttrEmail').value = d.email;
+        $('fLdapAttrName').value = d.name;
+        $('fLdapAttrGuid').value = d.guid;
+        $('fLdapGroupFilter').value = d.groupFilter;
+        showToast(window.t('system.sso.ldap_preset_applied'), 'success');
+    }
+    $('presetAdBtn').addEventListener('click', () => applyPreset('ad'));
+    $('presetOpenldapBtn').addEventListener('click', () => applyPreset('openldap'));
+
+    /** Show only the fields that belong to the selected protocol. */
+    function syncProtocolFields() {
+        const isLdap = $('fProtocol').value === 'ldap';
+        $('ldapFields').style.display = isLdap ? '' : 'none';
+        $('oidcFields').style.display = isLdap ? 'none' : '';
+        // email_verified is an OIDC claim; it means nothing for a directory bind.
+        $('requireVerifiedField').style.display = isLdap ? 'none' : '';
+    }
+    $('fProtocol').addEventListener('change', syncProtocolFields);
+
     function openModal(p) {
         document.getElementById('testResult').className = 'test-result';
+        $('ldapTestResult').className = 'test-result';
+        $('ldapTestResult').textContent = '';
         document.getElementById('modalTitle').textContent = p ? window.t('system.sso.modal_edit_title') : window.t('system.sso.modal_add_title');
         document.getElementById('providerId').value = p ? p.id : '';
         document.getElementById('fDisplayName').value = p ? p.display_name : '';
         document.getElementById('fIssuerUrl').value = p ? p.issuer_url : '';
+
+        // --- LDAP ---
+        $('fProtocol').value = p ? (p.protocol || 'oidc') : 'oidc';
+        $('fLdapHost').value = p ? (p.ldap_host || '') : '';
+        $('fLdapPort').value = p ? (p.ldap_port || '') : '';
+        $('fLdapEncryption').value = p ? (p.ldap_encryption || 'none') : 'none';
+        $('fLdapBindDn').value = p ? (p.ldap_bind_dn || '') : '';
+        $('fLdapBaseDn').value = p ? (p.ldap_base_dn || '') : '';
+        $('fLdapFilter').value = p ? (p.ldap_user_filter || '') : '';
+        $('fLdapAttrUsername').value = p ? (p.ldap_attr_username || '') : '';
+        $('fLdapAttrEmail').value = p ? (p.ldap_attr_email || '') : '';
+        $('fLdapAttrName').value = p ? (p.ldap_attr_name || '') : '';
+        $('fLdapAttrGuid').value = p ? (p.ldap_attr_guid || '') : '';
+        $('fLdapAnalystGroup').value = p ? (p.ldap_analyst_group || '') : '';
+        $('fLdapUserGroup').value = p ? (p.ldap_user_group || '') : '';
+        $('fLdapGroupFilter').value = p ? (p.ldap_group_filter || '') : '';
+        $('fLdapGroupBaseDn').value = p ? (p.ldap_group_base_dn || '') : '';
+        $('fLdapTestUser').value = '';
+        $('fLdapTestPass').value = '';
+        const bindPw = $('fLdapBindPassword');
+        bindPw.value = '';
+        if (p && p.has_bind_password) {
+            bindPw.placeholder = window.t('system.sso.secret_stored_placeholder');
+            $('bindPasswordHint').textContent = window.t('system.sso.bind_password_stored_hint');
+        } else {
+            bindPw.placeholder = '';
+            $('bindPasswordHint').textContent = window.t('system.sso.field_ldap_bind_password_hint');
+        }
+        // A brand-new LDAP provider starts from the AD preset (the common case);
+        // an existing one keeps whatever is stored.
+        if (!p) { const d = LDAP_PRESETS.ad; $('fLdapFilter').value = d.filter; $('fLdapAttrUsername').value = d.username;
+                  $('fLdapAttrEmail').value = d.email; $('fLdapAttrName').value = d.name; $('fLdapAttrGuid').value = d.guid;
+                  $('fLdapPort').value = d.port; $('fLdapGroupFilter').value = d.groupFilter; }
+        syncProtocolFields();
         document.getElementById('fClientId').value = p ? p.client_id : '';
         document.getElementById('fScopes').value = p ? (p.scopes || 'openid email profile') : 'openid email profile';
         document.getElementById('fEnabled').checked = p ? !!p.enabled : true;
@@ -428,10 +641,83 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         this.disabled = false;
     });
 
+    // ---------- Test LDAP ----------
+    function ldapPayload() {
+        return {
+            id: $('providerId').value || 0,
+            ldap_host: $('fLdapHost').value.trim(),
+            ldap_port: parseInt($('fLdapPort').value, 10) || 0,
+            ldap_encryption: $('fLdapEncryption').value,
+            ldap_bind_dn: $('fLdapBindDn').value.trim(),
+            ldap_bind_password: $('fLdapBindPassword').value,
+            ldap_base_dn: $('fLdapBaseDn').value.trim(),
+            ldap_user_filter: $('fLdapFilter').value.trim(),
+            ldap_attr_username: $('fLdapAttrUsername').value.trim(),
+            ldap_attr_email: $('fLdapAttrEmail').value.trim(),
+            ldap_attr_name: $('fLdapAttrName').value.trim(),
+            ldap_attr_guid: $('fLdapAttrGuid').value.trim(),
+            ldap_group_base_dn: $('fLdapGroupBaseDn').value.trim(),
+            ldap_group_filter: $('fLdapGroupFilter').value.trim(),
+            ldap_analyst_group: $('fLdapAnalystGroup').value.trim(),
+            ldap_user_group: $('fLdapUserGroup').value.trim()
+        };
+    }
+
+    $('testLdapBtn').addEventListener('click', async function () {
+        const box = $('ldapTestResult');
+        const body = ldapPayload();
+        if (!body.ldap_host || !body.ldap_base_dn) {
+            box.className = 'test-result err';
+            box.textContent = window.t('system.sso.ldap_required_fields');
+            return;
+        }
+        body.test_username = $('fLdapTestUser').value.trim();
+        body.test_password = $('fLdapTestPass').value;
+        this.disabled = true;
+        box.className = 'test-result';
+        box.textContent = window.t('system.sso.ldap_test_running');
+        try {
+            const r = await fetch(API + 'system/test_ldap_connection.php', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            const d = await r.json();
+            if (d.success) {
+                let txt = d.message;
+                if (d.found) {
+                    txt += ' ' + window.t('system.sso.ldap_test_found', { name: d.found.name || d.found.username, email: d.found.email || '—' });
+                    if (d.found.groups) {
+                        txt += '\n' + window.t('system.sso.ldap_test_groups', { groups: d.found.groups.length ? d.found.groups.join(', ') : '—' });
+                    }
+                    if (d.found.role !== undefined) {
+                        const label = d.found.role === 'analyst' ? window.t('system.sso.ldap_role_analyst')
+                                    : d.found.role === 'user'   ? window.t('system.sso.ldap_role_user')
+                                    : window.t('system.sso.ldap_role_none');
+                        txt += '\n' + window.t('system.sso.ldap_test_role', { role: label });
+                    }
+                }
+                // A user who authenticates but is in no group is a SUCCESSFUL bind
+                // and a DENIED login — show it as a warning, not a green tick.
+                box.className = (d.found && d.found.role === null) ? 'test-result err' : 'test-result ok';
+                box.style.whiteSpace = 'pre-line';
+                box.textContent = txt;
+            } else {
+                box.className = 'test-result err';
+                box.textContent = d.error;
+            }
+        } catch (e) {
+            box.className = 'test-result err';
+            box.textContent = window.t('system.sso.request_failed');
+        }
+        this.disabled = false;
+    });
+
     // ---------- Save provider ----------
     document.getElementById('saveProviderBtn').addEventListener('click', async function () {
+        const isLdap = $('fProtocol').value === 'ldap';
         const payload = {
             id: document.getElementById('providerId').value || 0,
+            protocol: isLdap ? 'ldap' : 'oidc',
             display_name: document.getElementById('fDisplayName').value.trim(),
             issuer_url: document.getElementById('fIssuerUrl').value.trim(),
             client_id: document.getElementById('fClientId').value.trim(),
@@ -443,7 +729,18 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             default_modules: document.getElementById('fDefaultModules').value.trim(),
             tenant_id: (document.getElementById('fTenant') ? (document.getElementById('fTenant').value || null) : null)
         };
-        if (!payload.display_name || !payload.issuer_url || !payload.client_id) {
+        if (isLdap) Object.assign(payload, ldapPayload(), { id: payload.id });
+
+        if (!payload.display_name) {
+            showToast(window.t('system.sso.required_fields'), 'error');
+            return;
+        }
+        if (isLdap) {
+            if (!payload.ldap_host || !payload.ldap_base_dn || !payload.ldap_user_filter) {
+                showToast(window.t('system.sso.ldap_required_fields'), 'error');
+                return;
+            }
+        } else if (!payload.issuer_url || !payload.client_id) {
             showToast(window.t('system.sso.required_fields'), 'error');
             return;
         }
