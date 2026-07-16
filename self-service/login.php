@@ -38,7 +38,10 @@ try {
         // Only GLOBAL providers are shown up front (single-company installs).
         // On a multi-tenant install we never list providers up front — the
         // email-first router reveals only the requester's own company's IdP(s).
-        $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
+        // protocol='oidc' ONLY — an LDAP provider has no button and nothing to
+        // redirect to. (LDAP sign-in for this portal isn't built yet; see the
+        // LDAP developer guide.)
+        $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'oidc' ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
     }
     $multiTenant = isMultiTenant($ssoConn);
 } catch (Exception $e) { $ssoProviders = []; }

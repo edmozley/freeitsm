@@ -39,17 +39,22 @@ if ($email !== '') {
             // (1) Per-user pin — an account already assigned to a provider routes
             // straight there. (This is also what makes "mixed IdPs in one company"
             // automatic after the first login.) Each portal reads its own table.
+            // protocol='oidc' throughout: only OIDC has somewhere to redirect to.
+            // An account pinned to an LDAP provider deliberately falls through to
+            // 'local' — they type their directory password into the ordinary form
+            // and login.php checks it by bind. Routing them to 'sso' would send the
+            // browser to the OIDC flow with no issuer URL to discover.
             if ($portal === 'self-service') {
                 $sql = "SELECT u.auth_provider_id AS pid, p.display_name
                           FROM users u
                           JOIN auth_providers p ON p.id = u.auth_provider_id
-                         WHERE LOWER(u.email) = ? AND p.enabled = 1
+                         WHERE LOWER(u.email) = ? AND p.enabled = 1 AND p.protocol = 'oidc'
                          LIMIT 1";
             } else {
                 $sql = "SELECT a.auth_provider_id AS pid, p.display_name
                           FROM analysts a
                           JOIN auth_providers p ON p.id = a.auth_provider_id
-                         WHERE LOWER(a.email) = ? AND a.is_active = 1 AND p.enabled = 1
+                         WHERE LOWER(a.email) = ? AND a.is_active = 1 AND p.enabled = 1 AND p.protocol = 'oidc'
                          LIMIT 1";
             }
             $stmt = $conn->prepare($sql);
@@ -72,7 +77,7 @@ if ($email !== '') {
                     if ($tenantId !== null) {
                         $ps = $conn->prepare(
                             "SELECT id, display_name FROM auth_providers
-                              WHERE tenant_id = ? AND enabled = 1
+                              WHERE tenant_id = ? AND enabled = 1 AND protocol = 'oidc'
                               ORDER BY sort_order, display_name"
                         );
                         $ps->execute([$tenantId]);

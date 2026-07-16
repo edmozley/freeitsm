@@ -49,6 +49,13 @@ try {
     if ((int)$provider['enabled'] !== 1) {
         ssoBail('That identity provider is disabled.');
     }
+    // This flow is OIDC-only. An LDAP provider has no issuer to discover, so
+    // reaching here with one would fail deep inside discovery with a confusing
+    // "no host part in the URL". The login pages never offer an LDAP button, so
+    // this is a backstop against a hand-typed or stale ?provider= id.
+    if (($provider['protocol'] ?? 'oidc') !== 'oidc') {
+        ssoBail('That sign-in method does not use single sign-on. Enter your username and password instead.');
+    }
 
     $disco = oidcDiscover($provider['issuer_url']);
 
