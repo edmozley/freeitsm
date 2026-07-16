@@ -230,6 +230,51 @@ function apiKeyTicketFilter(PDO $conn, array $apiKey, string $alias = 't'): arra
 }
 
 /**
+ * The Knowledge counterpart of apiKeyTenantFilter().
+ *
+ * ⚠️ DO NOT REPLACE THIS WITH apiKeyTenantFilter(). ⚠️
+ *
+ * It exists because NULL means the opposite in Knowledge. For tickets/problems,
+ * `tenant_id IS NULL` = "belongs to the Default company", so the generic filter
+ * only lets NULL rows through when the key's scope happens to include Default.
+ * In Knowledge, `tenant_id IS NULL` = "SHARED WITH EVERY COMPANY" — an MSP's
+ * generic "how to reset your password" serves every client — so shared articles
+ * must be visible to EVERY key, whatever its scope.
+ *
+ * Run a Knowledge query through the generic filter and every shared article
+ * silently vanishes for any key not scoped to Default. The SQL looks nearly
+ * identical; the meaning is not. See knowledgeTenantFilterForCompany() in
+ * includes/tenancy.php for the session-side twin.
+ *
+ * @return array [sqlFragment, params]
+ */
+function apiKeyKnowledgeFilter(PDO $conn, array $apiKey, string $alias = 'a'): array {
+    if (!isMultiTenant($conn) || $apiKey['company_scope'] === null) {
+        return ['', []];
+    }
+    $ids = $apiKey['company_scope'];
+    $col = $alias === '' ? 'tenant_id' : "$alias.tenant_id";
+    if (!$ids) {
+        return [" AND $col IS NULL", []];   // scoped to no companies -> shared only
+    }
+    $placeholders = implode(',', array_fill(0, count($ids), '?'));
+    return [" AND ($col IN ($placeholders) OR $col IS NULL)", $ids];
+}
+
+/** May this key act on this article? Shared (NULL) articles belong to everyone. */
+function apiKeyCanAccessArticle(PDO $conn, array $apiKey, int $articleId): bool {
+    if (!isMultiTenant($conn) || $apiKey['company_scope'] === null) {
+        return true;
+    }
+    $stmt = $conn->prepare("SELECT tenant_id FROM knowledge_articles WHERE id = ?");
+    $stmt->execute([$articleId]);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$row) return true;                        // the caller's own 404 handles it
+    if ($row['tenant_id'] === null) return true;   // shared with everyone
+    return in_array((int)$row['tenant_id'], array_map('intval', $apiKey['company_scope']), true);
+}
+
+/**
  * The company a NEW ticket created by this key belongs to when the request
  * doesn't say: the Default company if the key may access it, otherwise the
  * key's first scoped company.

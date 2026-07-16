@@ -35,6 +35,19 @@ return array (
         array (
           'type' => 'integer',
         ),
+        'company' => 
+        array (
+          'type' => 'object',
+          'description' => 'The company that owns this asset. null = not assigned to one.',
+          'allOf' => 
+          array (
+            0 => 
+            array (
+              '$ref' => '#/components/schemas/NamedRef',
+            ),
+          ),
+          'nullable' => true,
+        ),
         'hostname' => 
         array (
           'type' => 'string',
@@ -3424,11 +3437,11 @@ return array (
         ),
       ),
     ),
-    'KnowledgeArticle' => 
+    'KnowledgeArticle' =>
     array (
       'type' => 'object',
       'description' => 'The full article as returned by get/create/update/restore — full HTML body instead of a preview.',
-      'required' => 
+      'required' =>
       array (
         0 => 'id',
         1 => 'title',
@@ -3438,11 +3451,13 @@ return array (
         5 => 'version',
         6 => 'view_count',
         7 => 'next_review_date',
-        8 => 'is_archived',
-        9 => 'created_at',
-        10 => 'modified_at',
-        11 => 'body_html',
-        12 => 'has_embedding',
+        8 => 'company',
+        9 => 'audience',
+        10 => 'is_archived',
+        11 => 'created_at',
+        12 => 'modified_at',
+        13 => 'body_html',
+        14 => 'has_embedding',
       ),
       'properties' => 
       array (
@@ -3508,6 +3523,30 @@ return array (
           'type' => 'string',
           'format' => 'date',
           'nullable' => true,
+        ),
+        'company' => 
+        array (
+          'type' => 'object',
+          'description' => 'The company that owns this article. null = shared with every company.',
+          'allOf' => 
+          array (
+            0 => 
+            array (
+              '$ref' => '#/components/schemas/NamedRef',
+            ),
+          ),
+          'nullable' => true,
+        ),
+        'audience' => 
+        array (
+          'type' => 'string',
+          'description' => 'Who may read the article. internal = analysts only; customer = also signed-in self-service users; public = also anonymous web chat visitors.',
+          'enum' => 
+          array (
+            0 => 'internal',
+            1 => 'customer',
+            2 => 'public',
+          ),
         ),
         'is_archived' => 
         array (
@@ -3606,11 +3645,11 @@ return array (
         ),
       ),
     ),
-    'KnowledgeArticleSummary' => 
+    'KnowledgeArticleSummary' =>
     array (
       'type' => 'object',
       'description' => 'A knowledge article as returned by the list/search endpoint — a preview instead of the full body.',
-      'required' => 
+      'required' =>
       array (
         0 => 'id',
         1 => 'title',
@@ -3620,10 +3659,12 @@ return array (
         5 => 'version',
         6 => 'view_count',
         7 => 'next_review_date',
-        8 => 'is_archived',
-        9 => 'created_at',
-        10 => 'modified_at',
-        11 => 'preview',
+        8 => 'company',
+        9 => 'audience',
+        10 => 'is_archived',
+        11 => 'created_at',
+        12 => 'modified_at',
+        13 => 'preview',
       ),
       'properties' => 
       array (
@@ -3690,6 +3731,30 @@ return array (
           'type' => 'string',
           'format' => 'date',
           'nullable' => true,
+        ),
+        'company' => 
+        array (
+          'type' => 'object',
+          'description' => 'The company that owns this article. null = shared with every company.',
+          'allOf' => 
+          array (
+            0 => 
+            array (
+              '$ref' => '#/components/schemas/NamedRef',
+            ),
+          ),
+          'nullable' => true,
+        ),
+        'audience' => 
+        array (
+          'type' => 'string',
+          'description' => 'Who may read the article. internal = analysts only; customer = also signed-in self-service users; public = also anonymous web chat visitors.',
+          'enum' => 
+          array (
+            0 => 'internal',
+            1 => 'customer',
+            2 => 'public',
+          ),
         ),
         'is_archived' => 
         array (

@@ -23,7 +23,11 @@
  * (sync jobs, chatbots re-fetching) would otherwise inflate the stats the
  * review screens rely on.
  *
- * Knowledge is install-wide (no tenant_id — matches the UI). Bodies are
+ * Articles carry a `company` (knowledge_articles.tenant_id; null = shared with
+ * every company) and an `audience` (internal | customer | public). Lists are
+ * scoped to the key's companies via apiKeyKnowledgeFilter() — NOT the generic
+ * apiKeyTenantFilter(), because a NULL tenant_id here means "shared with all"
+ * rather than "the Default company's"; see that function's docblock. Bodies are
  * TinyMCE HTML stored verbatim, exactly like the UI (no server-side
  * sanitisation exists in the product) — consumers render at their own risk,
  * and integrations should send trusted HTML only.
@@ -35,6 +39,7 @@
 
 require_once dirname(__DIR__, 3) . '/includes/service_context.php';
 require_once dirname(__DIR__, 3) . '/includes/services/knowledge.php';
+require_once dirname(__DIR__, 3) . '/includes/knowledge/audience.php';   // Audience:: used directly below
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -44,11 +49,13 @@ function apiKnowledgeSelect(): string {
     return "SELECT a.*,
                    au.full_name AS author_name,
                    ow.full_name AS owner_name,
-                   ar.full_name AS archived_by_name
+                   ar.full_name AS archived_by_name,
+                   tn.name AS tenant_name
             FROM knowledge_articles a
             LEFT JOIN analysts au ON au.id = a.author_id
             LEFT JOIN analysts ow ON ow.id = a.owner_id
-            LEFT JOIN analysts ar ON ar.id = a.archived_by_id";
+            LEFT JOIN analysts ar ON ar.id = a.archived_by_id
+            LEFT JOIN tenants tn ON tn.id = a.tenant_id";
 }
 
 function apiKnowledgeTags(PDO $conn, int $articleId): array {
@@ -75,6 +82,9 @@ function apiSerializeArticle(PDO $conn, array $r, bool $detail = false): array {
         'version'          => (int)$r['version'],
         'view_count'       => (int)$r['view_count'],
         'next_review_date' => $r['next_review_date'],
+        // Which company owns it (null = shared with all) and who may read it.
+        'company'          => $rel($r['tenant_id'] ?? null, $r['tenant_name'] ?? null),
+        'audience'         => $r['audience'] ?? Audience::INTERNAL,
         'is_archived'      => (bool)$r['is_archived'],
         'created_at'       => apiIsoDate($r['created_datetime']),
         'modified_at'      => apiIsoDate($r['modified_datetime']),
@@ -93,11 +103,22 @@ function apiSerializeArticle(PDO $conn, array $r, bool $detail = false): array {
     return $out;
 }
 
-function apiLoadArticle(PDO $conn, int $articleId): array {
+/**
+ * Load an article by id, 404ing if it's gone.
+ *
+ * Pass $apiKey on a READ path and it also refuses an article belonging to a
+ * company the key can't reach — reported as 404, not 403, so an id can't be used
+ * to probe which articles exist elsewhere. The post-write callers omit it: the
+ * service layer has already run the same check by then.
+ */
+function apiLoadArticle(PDO $conn, int $articleId, ?array $apiKey = null): array {
     $stmt = $conn->prepare(apiKnowledgeSelect() . " WHERE a.id = ?");
     $stmt->execute([$articleId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$row) {
+        apiError(404, 'not_found', 'Article not found.');
+    }
+    if ($apiKey !== null && !apiKeyCanAccessArticle($conn, $apiKey, $articleId)) {
         apiError(404, 'not_found', 'Article not found.');
     }
     return $row;
@@ -173,6 +194,35 @@ function apiKnowledgeArticlesList(PDO $conn, array $apiKey, array $params, array
         $where[] = 'a.modified_datetime >= ?';
         $args[]  = apiParseDate($_GET['modified_since'], 'modified_since');
     }
+    // Filter by owning company. '' / 'shared' selects the shared ones.
+    if (isset($_GET['company']) && $_GET['company'] !== '') {
+        if ($_GET['company'] === 'shared') {
+            $where[] = 'a.tenant_id IS NULL';
+        } else {
+            $companyId = (int)$_GET['company'];
+            if (!apiKeyCanAccessTenant($conn, $apiKey, $companyId)) {
+                apiError(403, 'forbidden', 'Your API key does not have access to that company.');
+            }
+            $where[] = 'a.tenant_id = ?';
+            $args[]  = $companyId;
+        }
+    }
+    if (isset($_GET['audience']) && $_GET['audience'] !== '') {
+        if (!Audience::isValid($_GET['audience'])) {
+            apiError(400, 'invalid_parameter', "'audience' must be one of: " . implode(', ', Audience::all()) . '.');
+        }
+        $where[] = 'a.audience = ?';
+        $args[]  = $_GET['audience'];
+    }
+
+    // The key's company scope. NOTE: apiKeyKnowledgeFilter, NOT apiKeyTenantFilter —
+    // shared (NULL) articles belong to every company here, not to Default. See the
+    // docblock on that function.
+    [$tenantSql, $tenantParams] = apiKeyKnowledgeFilter($conn, $apiKey, 'a');
+    if ($tenantSql !== '') {
+        $where[] = ltrim(substr($tenantSql, 5));   // strip the leading ' AND '
+        $args    = array_merge($args, $tenantParams);
+    }
 
     $sortable = [
         'modified_at' => 'a.modified_datetime', 'created_at' => 'a.created_datetime',
@@ -212,7 +262,7 @@ function apiKnowledgeArticlesList(PDO $conn, array $apiKey, array $params, array
 // GET /knowledge/articles/{id}
 // ---------------------------------------------------------------------------
 function apiKnowledgeArticlesGet(PDO $conn, array $apiKey, array $params, array $body): void {
-    $row = apiLoadArticle($conn, $params[0]);
+    $row = apiLoadArticle($conn, $params[0], $apiKey);
 
     // Machine reads don't inflate view stats unless asked to (deliberate
     // divergence from the UI, which counts every open).
@@ -272,7 +322,7 @@ function apiKnowledgeArticlesPurge(PDO $conn, array $apiKey, array $params, arra
 // Versions
 // ---------------------------------------------------------------------------
 function apiKnowledgeVersionsList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadArticle($conn, $params[0]);
+    apiLoadArticle($conn, $params[0], $apiKey);
     $stmt = $conn->prepare(
         "SELECT v.version, v.title, v.saved_datetime, v.saved_by_id, a.full_name AS saved_by_name
          FROM knowledge_article_versions v LEFT JOIN analysts a ON a.id = v.saved_by_id
@@ -290,7 +340,7 @@ function apiKnowledgeVersionsList(PDO $conn, array $apiKey, array $params, array
 }
 
 function apiKnowledgeVersionsGet(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiLoadArticle($conn, $params[0]);
+    apiLoadArticle($conn, $params[0], $apiKey);
     $stmt = $conn->prepare(
         "SELECT v.version, v.title, v.body, v.saved_datetime, v.saved_by_id, a.full_name AS saved_by_name
          FROM knowledge_article_versions v LEFT JOIN analysts a ON a.id = v.saved_by_id
