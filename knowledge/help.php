@@ -644,11 +644,18 @@ $translationNamespaces = ['common', 'knowledge'];
                         <div class="kb-help-step-item">
                             <div class="kb-help-step-num">7</div>
                             <div>
+                                <?php echo t('knowledge.help.writing_step_visibility'); ?>
+                            </div>
+                        </div>
+                        <div class="kb-help-step-item">
+                            <div class="kb-help-step-num">8</div>
+                            <div>
                                 <?php echo t('knowledge.help.writing_step7'); ?>
                             </div>
                         </div>
                     </div>
                     <p class="kb-help-tip"><?php echo htmlspecialchars(t('knowledge.help.writing_tip')); ?></p>
+                    <p class="kb-help-tip"><?php echo t('knowledge.help.writing_visibility_callout'); ?></p>
                 </div>
 
                 <!-- Section 3: Review Workflow (highlighted) -->

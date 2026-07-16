@@ -36,7 +36,17 @@ class Audience
 {
     /** Analysts only. The default for every article, including on upgrade. */
     const INTERNAL = 'internal';
-    /** Analysts + signed-in self-service users. */
+    /**
+     * Analysts + signed-in self-service users.
+     *
+     * ⚠️ NOTHING READS AT THIS LEVEL YET. The self-service portal has no
+     * knowledge section (it never queries knowledge_articles), so an article
+     * marked 'customer' is today identical to 'internal' in effect. The rung
+     * exists because the ladder is about the READER's trust, not about which
+     * features happen to be built — when the portal grows a knowledge section it
+     * reads at this level and these articles light up with no migration. The UI
+     * says so plainly rather than implying it works.
+     */
     const CUSTOMER = 'customer';
     /** Analysts + self-service + anonymous web chat visitors. */
     const PUBLIC   = 'public';

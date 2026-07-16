@@ -89,10 +89,13 @@ return [
         'field_review'     => 'Next review date',
         'field_audience'   => 'Who can see this',
         'audience_internal'=> 'Analysts only',
-        'audience_customer'=> 'Analysts and signed-in customers',
+        'audience_customer'=> 'Analysts and signed-in customers (not yet in use)',
         'audience_public'  => 'Anyone, including website chat',
         'audience_hint_internal' => 'Only your own team. Never shown to customers or the website chat.',
-        'audience_hint_customer' => 'Also visible to customers signed in to the self-service portal. The website chat still will not use it.',
+        // Honest about doing nothing today: the self-service portal has no knowledge
+        // section yet, so nothing in the app reads at this level. Mark articles now if
+        // you want them ready, but do not expect anyone to see them.
+        'audience_hint_customer' => 'Intended for the self-service portal, which does not show knowledge articles yet — so for now this behaves exactly like "Analysts only". Safe to set in advance; the website chat will never use it.',
         'audience_hint_public'   => 'The website chat can answer visitors from this article. Only mark things public that you would happily show a stranger.',
         'field_company'    => 'Company',
         'company_shared'   => 'Shared with all companies',
@@ -343,7 +346,9 @@ return [
         'writing_step4'   => '<strong>Assign an owner</strong> &mdash; the owner is the person responsible for keeping the article up to date. When it comes up for review, the owner gets notified.',
         'writing_step5'   => '<strong>Set a review date</strong> &mdash; knowledge goes stale. Set a next-review date so the article surfaces in the review queue at the right time. Quarterly reviews work well for most content; critical procedures might need monthly checks.',
         'writing_step6'   => '<strong>Write the content</strong> &mdash; the rich text editor supports headings, bold, italic, bullet and numbered lists, tables, code blocks with syntax highlighting, images, and links. Structure your article with clear headings so readers can scan it quickly.',
+        'writing_step_visibility' => '<strong>Decide who can see it</strong> &mdash; <em>Who can see this</em> controls the audience. <strong>Analysts only</strong> (the default) keeps it inside your team. <strong>Anyone, including website chat</strong> lets the chat widget answer visitors from it &mdash; only choose that for things you would happily show a stranger. If you run more than one company you can also give the article a <em>Company</em>, or leave it shared with everyone.',
         'writing_step7'   => "<strong>Save</strong> &mdash; your article is saved as a draft. You can come back and edit it anytime. When you're happy with it, submit it for review or publish it directly depending on your team's workflow.",
+        'writing_visibility_callout' => '<strong>Why your chat widget might not be answering:</strong> every article starts as <em>Analysts only</em>, including ones written before this setting existed. The website chat can only use articles marked <em>Anyone, including website chat</em>, so mark a few of your customer-facing ones public and it will start using them. That default is deliberate &mdash; nothing you wrote for internal use gets shown to the public unless you say so.',
         'writing_tip'     => 'Every time you save significant changes, use the "Save as new version" option. This creates a versioned snapshot so you can always look back at what the article said previously. Version numbers display on the article view so readers know how current it is.',
 
         'review_heading' => 'Review workflow — getting articles approved',
