@@ -4,6 +4,10 @@ Throwaway directory servers for developing and testing FreeITSM's LDAP sign-in
 (System → Authentication → Type: *LDAP / Active Directory*). **Development only
 — never run these anywhere real.** The passwords below are public.
 
+> **Full walkthrough:** [Setting up OpenLDAP & Samba AD in Docker](https://github.com/edmozley/freeitsm/wiki/Setting-up-LDAP-with-Docker)
+> on the wiki takes you from nothing to a working LDAP login, step by step. This
+> file is the quick reference for people who already have the repo checked out.
+
 Two servers, deliberately:
 
 | Service | Port | Base DN | What it's for |
