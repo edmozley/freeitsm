@@ -33,13 +33,20 @@ services:
     dns:
       - 127.0.0.1
 
+  # Browse BOTH directories in a GUI. The server dropdown on the login page
+  # picks between them.
+  #  - OpenLDAP  -> log in as cn=admin,dc=freeitsm,dc=test / adminpass
+  #  - Samba AD  -> log in as Administrator@AD.FREEITSM.TEST / Passw0rd!2026
+  #    (AD accepts a UPN for a simple bind, which is why login_attr is set to
+  #    the plain string form rather than a DN template.)
   phpldapadmin:
     image: osixia/phpldapadmin:0.9.0
     container_name: freeitsm-ldap-ui
     environment:
-      PHPLDAPADMIN_LDAP_HOSTS: "openldap"
+      PHPLDAPADMIN_LDAP_HOSTS: "#PYTHON2BASH:[{'openldap': [{'server': [{'tls': False}]},{'login': [{'bind_id': 'cn=admin,dc=freeitsm,dc=test'}]}]},{'samba-ad': [{'server': [{'tls': False}]},{'login': [{'bind_id': 'Administrator@AD.FREEITSM.TEST'}]}]}]"
       PHPLDAPADMIN_HTTPS: "false"
     ports:
       - "8091:80"
     depends_on:
       - openldap
+      - samba-ad

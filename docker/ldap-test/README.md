@@ -10,7 +10,7 @@ Two servers, deliberately:
 |---|---|---|---|
 | `samba-ad` | 3891 | `DC=ad,DC=freeitsm,DC=test` | **Real Active Directory semantics** — `sAMAccountName`, `memberOf`, nested groups, referrals, binary `objectGUID`, disabled accounts. This is what most users actually have. |
 | `openldap` | 3890 | `dc=freeitsm,dc=test` | A genuinely different flavour — `uid`, `entryUUID`, `groupOfNames`, no nested groups. |
-| `phpldapadmin` | [8091](http://localhost:8091) | — | Browse the OpenLDAP tree in a GUI. |
+| `phpldapadmin` | [8091](http://localhost:8091) | — | Browse **either** directory in a GUI — pick the server from the dropdown on the login page. |
 
 Testing against **both** is the point. Build against one and the code silently
 grows that one's assumptions — nested groups and `sAMAccountName` simply don't
@@ -40,6 +40,50 @@ bash docker/ldap-test/seed-ad-company.sh
 
 The containers have **no restart policy** and **no volumes** — they survive
 `docker stop`/`start` but a `docker rm` loses everything. Re-seed with the above.
+
+## Looking around with a GUI
+
+Open **<http://localhost:8091>**, choose the server in the dropdown, and log in:
+
+| Server | Login DN | Password |
+|---|---|---|
+| `openldap` | `cn=admin,dc=freeitsm,dc=test` | `adminpass` |
+| `samba-ad` | `Administrator@AD.FREEITSM.TEST` | `Passw0rd!2026` |
+
+Active Directory accepts a UPN (`user@domain`) for a simple bind, which is why
+the AD login isn't a DN. Expand `DC=ad,DC=freeitsm,DC=test` → `OU=Northwind` to
+see the seeded company.
+
+Prefer the command line? No GUI needed:
+
+```bash
+# every person and group in the company
+docker exec freeitsm-samba-ad ldapsearch -x -H ldap://localhost \
+  -D "Administrator@AD.FREEITSM.TEST" -w 'Passw0rd!2026' \
+  -b "OU=Northwind,DC=ad,DC=freeitsm,DC=test" \
+  "(|(objectClass=user)(objectClass=group))" dn
+
+# who is in a group, walking nested membership like FreeITSM does
+docker exec freeitsm-samba-ad ldapsearch -x -H ldap://localhost \
+  -D "Administrator@AD.FREEITSM.TEST" -w 'Passw0rd!2026' \
+  -b "OU=Northwind,DC=ad,DC=freeitsm,DC=test" \
+  "(&(objectClass=group)(member:1.2.840.113556.1.4.1941:=CN=Raj Patel,OU=IT,OU=Staff,OU=Northwind,DC=ad,DC=freeitsm,DC=test))" cn
+
+# samba-tool is the admin CLI: list users, add one, disable one
+docker exec freeitsm-samba-ad samba-tool user list
+docker exec freeitsm-samba-ad samba-tool group listmembers "NW-IT-Support"
+```
+
+> **Changing a phpLDAPadmin env var appears to do nothing.** The osixia image
+> declares an anonymous volume on `/var/www/phpldapadmin` and generates its
+> config on **first** run, so a plain `up -d` or even `--force-recreate` keeps
+> the old config. Drop the volume:
+> ```bash
+> docker compose -f docker/ldap-test/docker-compose.yml rm -fsv phpldapadmin
+> docker compose -f docker/ldap-test/docker-compose.yml up -d phpldapadmin
+> ```
+> Only ever do this to `phpldapadmin`. The directories hold their data in the
+> container, so removing **their** volumes loses everything you seeded.
 
 ## Credentials
 
