@@ -726,8 +726,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // ordinary form below, and login.php checks it by bind.
                     $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'oidc' ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
                 }
-            } catch (Exception $e) { $ssoProviders = []; }
+                // Is a directory configured? Directory users sign in through the
+                // username/password form, so calling it "a local account" would be a
+                // lie to exactly the people who need to click it — they have no local
+                // account at all.
+                $hasLdap = (int)$ssoConn->query("SELECT COUNT(*) FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'ldap'")->fetchColumn() > 0;
+            } catch (Exception $e) { $ssoProviders = []; $hasLdap = false; }
             $ssoActive = $ssoOn && !empty($ssoProviders);
+            $localLinkLabel = !empty($hasLdap)
+                ? 'Sign in with a username and password'
+                : 'Sign in with a local account';
             // Break-glass: ?local=1 always reveals the local form, even when local login is "off".
             $forceLocal = isset($_GET['local']);
             // Is local login permitted at all (for the reveal link / email-first fallback)?
@@ -754,20 +762,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <?php endforeach; ?>
 
                 <?php if ($localAllowed): ?>
-                    <a href="#" id="showLocalLink" class="forgot-link" style="display:block;margin-top:14px;">Sign in with a local account</a>
+                    <a href="#" id="showLocalLink" class="forgot-link" style="display:block;margin-top:14px;"><?php echo htmlspecialchars($localLinkLabel); ?></a>
                 <?php endif; ?>
 
-                <!-- Local account sign-in lives in its own modal when SSO is leading -->
+                <!-- Username + password sign-in lives in its own modal when SSO is
+                     leading. It serves BOTH local accounts and directory (LDAP)
+                     users, so its wording must not claim to be local-only. -->
                 <div class="modal-overlay" id="localModal">
                     <div class="modal-box">
                         <button type="button" class="modal-close" id="localModalClose" aria-label="Close">&times;</button>
-                        <h2>Local account</h2>
+                        <h2><?php echo !empty($hasLdap) ? 'Sign in' : 'Local account'; ?></h2>
                         <?php if ($error): ?>
                             <div class="error-message"><?php echo htmlspecialchars($error); ?></div>
                         <?php endif; ?>
                         <form method="POST" action="" autocomplete="off" id="localLoginForm">
                             <div class="form-group">
-                                <label for="username">Username</label>
+                                <label for="username"><?php echo !empty($hasLdap) ? 'Username or email' : 'Username'; ?></label>
                                 <input type="text" id="username" name="username" required autocomplete="off">
                             </div>
                             <div class="form-group">
