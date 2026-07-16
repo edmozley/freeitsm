@@ -33,10 +33,56 @@
 
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../encryption.php';   // decryptValue() for the embedding step (safe: only reads the key file when actually called)
+require_once __DIR__ . '/../knowledge/audience.php';
+require_once __DIR__ . '/../tenancy.php';
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class KnowledgeService
 {
+    /**
+     * Validate a submitted company for an article.
+     *
+     * '' / null => NULL => shared with every company (the default, and what every
+     * pre-multi-tenancy article is). Otherwise it must be a real company the actor
+     * can actually reach — an analyst restricted to two clients must not be able to
+     * file an article against a third, and an API key inherits the same scope.
+     *
+     * Returns the id to store, or null for shared.
+     */
+    private static function resolveTenantId(PDO $conn, ActorContext $ctx, $raw): ?int
+    {
+        if ($raw === '' || $raw === null) return null;
+        $tenantId = (int)$raw;
+        if ($tenantId <= 0) return null;
+
+        if (!getTenantById($conn, $tenantId)) {
+            throw new ServiceError('validation', 'invalid_field', "'tenant_id' is not a known company.");
+        }
+        // companyScope null = every company (single-company install, or an
+        // all-access analyst/key). Otherwise it is the explicit allowed list.
+        $scope = $ctx->companyScope;
+        if (is_array($scope) && !in_array($tenantId, array_map('intval', $scope), true)) {
+            throw new ServiceError('forbidden', 'forbidden', 'You do not have access to that company.');
+        }
+        return $tenantId;
+    }
+
+    /**
+     * Validate a submitted audience. Unlike the read path — which normalises junk
+     * down to 'internal' so a bad value can never widen visibility — a WRITE with a
+     * bogus audience is a caller bug and is rejected outright, so nobody silently
+     * saves an article as internal while believing they published it.
+     */
+    private static function resolveAudience($raw): string
+    {
+        if ($raw === '' || $raw === null) return Audience::INTERNAL;
+        if (!Audience::isValid($raw)) {
+            throw new ServiceError('validation', 'invalid_field',
+                "'audience' must be one of: " . implode(', ', Audience::all()) . '.');
+        }
+        return (string)$raw;
+    }
+
     // ======================================================================
     //  Articles
     // ======================================================================
@@ -81,6 +127,17 @@ class KnowledgeService
                 $updates[] = 'next_review_date = ?';
                 $args[]    = self::parseDateOnly($in['next_review_date'], 'next_review_date');
             }
+            // Company + audience are only touched when the caller sends them, so an
+            // adapter that knows nothing about either (or a partial PATCH) can never
+            // silently reset an article to shared+internal.
+            if (array_key_exists('tenant_id', $in)) {
+                $updates[] = 'tenant_id = ?';
+                $args[]    = self::resolveTenantId($conn, $ctx, $in['tenant_id']);
+            }
+            if (array_key_exists('audience', $in)) {
+                $updates[] = 'audience = ?';
+                $args[]    = self::resolveAudience($in['audience']);
+            }
 
             $saveAsVersion = !empty($in['save_as_version']);
 
@@ -124,15 +181,21 @@ class KnowledgeService
             self::resolveAnalyst($conn, $ownerId);
         }
         $nextReview = self::parseDateOnly($in['next_review_date'] ?? null, 'next_review_date');
+        // Omitted => shared with every company, and internal. Both are the safe end:
+        // a new article is never narrower than the author expects, and never visible
+        // to the public until they say so.
+        $tenantId = self::resolveTenantId($conn, $ctx, $in['tenant_id'] ?? null);
+        $audience = self::resolveAudience($in['audience'] ?? null);
 
         $conn->beginTransaction();
         try {
             $conn->prepare(
                 "INSERT INTO knowledge_articles
                     (title, body, author_id, owner_id, next_review_date,
-                     created_datetime, modified_datetime, is_published, view_count)
-                 VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1, 0)"
-            )->execute([$title, $bodyHtml, $ctx->actorId, $ownerId, $nextReview]);
+                     created_datetime, modified_datetime, is_published, view_count,
+                     tenant_id, audience)
+                 VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1, 0, ?, ?)"
+            )->execute([$title, $bodyHtml, $ctx->actorId, $ownerId, $nextReview, $tenantId, $audience]);
             $articleId = (int)$conn->lastInsertId();
 
             if (isset($in['tags']) && is_array($in['tags'])) {

@@ -191,6 +191,30 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                                     <input type="date" class="form-input" id="articleReviewDate">
                                 </div>
                             </div>
+                            <div class="form-row" style="display: flex; gap: 20px;">
+                                <!-- Who can see this. Always shown: it is orthogonal to
+                                     multi-company, and on a single-company install it is
+                                     still the only thing between an internal runbook and
+                                     an anonymous web chat visitor. -->
+                                <div class="form-group" style="flex: 1;">
+                                    <label class="form-label"><?php echo htmlspecialchars(t('knowledge.editor.field_audience')); ?></label>
+                                    <select class="form-input" id="articleAudience">
+                                        <option value="internal"><?php echo htmlspecialchars(t('knowledge.editor.audience_internal')); ?></option>
+                                        <option value="customer"><?php echo htmlspecialchars(t('knowledge.editor.audience_customer')); ?></option>
+                                        <option value="public"><?php echo htmlspecialchars(t('knowledge.editor.audience_public')); ?></option>
+                                    </select>
+                                    <small class="field-hint" id="audienceHint"></small>
+                                </div>
+                                <!-- Company. Hidden unless the install has more than one
+                                     (the isMultiTenant mirror) — invisible at N=1. -->
+                                <div class="form-group" style="flex: 1; display: none;" id="articleCompanyGroup">
+                                    <label class="form-label"><?php echo htmlspecialchars(t('knowledge.editor.field_company')); ?></label>
+                                    <select class="form-input" id="articleCompany">
+                                        <option value=""><?php echo htmlspecialchars(t('knowledge.editor.company_shared')); ?></option>
+                                    </select>
+                                    <small class="field-hint"><?php echo htmlspecialchars(t('knowledge.editor.company_hint')); ?></small>
+                                </div>
+                            </div>
                         </div>
                         <div class="editor-content">
                             <div class="form-group">

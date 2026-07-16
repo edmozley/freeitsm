@@ -379,6 +379,17 @@
     align-items: stretch;
     gap: 24px;
 }
+/* Explains what the chosen "who can see this" actually means, under the select.
+   Themed via tokens so it doesn't glow white in dark mode. */
+.editor-properties .field-hint {
+    display: block;
+    margin-top: 5px;
+    font-size: 11.5px;
+    line-height: 1.45;
+    font-weight: 400;
+    color: var(--text-dim, #888);
+}
+
 .knowledge-container.editor-popout .editor-properties {
     flex-shrink: 0;
     width: 340px;

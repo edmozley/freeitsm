@@ -19,6 +19,12 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTags();
     loadArticles();
     loadAnalysts();
+    loadCompanies();
+    const audienceSel = document.getElementById('articleAudience');
+    if (audienceSel) {
+        audienceSel.addEventListener('change', updateAudienceHint);
+        updateAudienceHint();
+    }
     initTinyMCE();
     initTagInput();
     loadSidebarModePreference();
@@ -30,6 +36,74 @@ document.addEventListener('DOMContentLoaded', function() {
         openAiChat();
     }
 });
+
+// ---------------------------------------------------------------------------
+//  Visibility: which company owns an article, and who may read it
+// ---------------------------------------------------------------------------
+
+let kbCompanies = [];
+
+/**
+ * Companies this analyst can file an article against. Same source and
+ * hide-unless-more-than-one idiom as the tickets/changes "Move to company"
+ * pickers — on a single-company install the control never appears.
+ */
+async function loadCompanies() {
+    const group = document.getElementById('articleCompanyGroup');
+    try {
+        const res = await fetch('../api/system/get_tenants.php?accessible=1');
+        const data = await res.json();
+        kbCompanies = (data.success && data.companies) ? data.companies : [];
+    } catch (e) {
+        kbCompanies = [];
+    }
+    if (!group) return;
+
+    // One company (or none) => nothing to choose. Stay invisible at N=1.
+    if (kbCompanies.length < 2) {
+        group.style.display = 'none';
+        return;
+    }
+    const select = document.getElementById('articleCompany');
+    select.innerHTML = '<option value="">' + escapeHtml(window.t('knowledge.editor.company_shared')) + '</option>';
+    kbCompanies.forEach(c => {
+        const o = document.createElement('option');
+        o.value = c.id;
+        o.textContent = c.name;
+        select.appendChild(o);
+    });
+    group.style.display = '';
+}
+
+/** Spell out what the chosen audience actually means, in the editor. */
+function updateAudienceHint() {
+    const sel  = document.getElementById('articleAudience');
+    const hint = document.getElementById('audienceHint');
+    if (!sel || !hint) return;
+    hint.textContent = window.t('knowledge.editor.audience_hint_' + sel.value);
+}
+
+/** Put the two visibility controls back to the safe default (a new article). */
+function resetVisibilityFields() {
+    const aud = document.getElementById('articleAudience');
+    if (aud) aud.value = 'internal';
+    const co = document.getElementById('articleCompany');
+    if (co) co.value = '';
+    updateAudienceHint();
+}
+
+/** The visibility half of a save payload. */
+function visibilityPayload() {
+    const aud = document.getElementById('articleAudience');
+    const co  = document.getElementById('articleCompany');
+    const out = { audience: aud ? aud.value : 'internal' };
+    // Only send a company when the picker is actually in play; otherwise a
+    // single-company install would post an empty string on every save.
+    if (co && kbCompanies.length >= 2) {
+        out.tenant_id = co.value || null;
+    }
+    return out;
+}
 
 // Load analysts for owner dropdown
 async function loadAnalysts() {
@@ -328,6 +402,8 @@ function openCreateArticle() {
     if (ownerSelect) ownerSelect.value = '';
     const reviewDateInput = document.getElementById('articleReviewDate');
     if (reviewDateInput) reviewDateInput.value = '';
+    // A new article starts internal + shared: never public until someone says so.
+    resetVisibilityFields();
 
     if (articleEditor) {
         articleEditor.setContent('');
@@ -348,6 +424,14 @@ function editCurrentArticle() {
 
     selectedTags = (currentArticle.tags || []).map(t => t.name);
     renderSelectedTags();
+
+    // Set visibility from the stored article. Fall back to the safe end if the
+    // read endpoint hasn't been taught these fields yet.
+    const audienceSelect = document.getElementById('articleAudience');
+    if (audienceSelect) audienceSelect.value = currentArticle.audience || 'internal';
+    const companySelect = document.getElementById('articleCompany');
+    if (companySelect) companySelect.value = currentArticle.tenant_id || '';
+    updateAudienceHint();
 
     // Set owner and review date
     const ownerSelect = document.getElementById('articleOwner');
@@ -419,7 +503,7 @@ async function saveAsNewVersion() {
         const response = await fetch(API_BASE + 'knowledge_save.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+            body: JSON.stringify(Object.assign({
                 id: articleId,
                 title: title,
                 body: body,
@@ -427,7 +511,7 @@ async function saveAsNewVersion() {
                 owner_id: ownerId || null,
                 next_review_date: nextReviewDate || null,
                 save_as_version: true
-            })
+            }, visibilityPayload()))
         });
 
         const data = await response.json();
@@ -467,14 +551,14 @@ async function saveArticle() {
         const response = await fetch(API_BASE + 'knowledge_save.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
+            body: JSON.stringify(Object.assign({
                 id: articleId || null,
                 title: title,
                 body: body,
                 tags: selectedTags,
                 owner_id: ownerId || null,
                 next_review_date: nextReviewDate || null
-            })
+            }, visibilityPayload()))
         });
 
         const data = await response.json();
