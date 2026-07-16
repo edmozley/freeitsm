@@ -18,6 +18,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/ai_settings.php';
+require_once '../../includes/lms/knowledge_source.php';   // lmsCanUseArticle()
 require_once '../cmdb/_ai_helpers.php';   // parseClaudeJson()
 
 header('Content-Type: application/json');
@@ -75,6 +76,14 @@ try {
         $source    = '';
 
         if ($articleId) {
+            // The picker only offers SHARED articles, but it posts an id and this
+            // endpoint is gated on LMS_MANAGE rather than on Knowledge — so without
+            // this, an author could read any company's article body by guessing an
+            // id the picker never showed them. Same rule, same message as a genuinely
+            // missing article: no probing. See includes/lms/knowledge_source.php.
+            if (!lmsCanUseArticle($conn, $articleId)) {
+                throw new Exception('That knowledge article could not be found (it may be archived, unpublished, or specific to one company).');
+            }
             $st = $conn->prepare("SELECT title, body FROM knowledge_articles
                                   WHERE id = ? AND is_published = 1 AND (is_archived = 0 OR is_archived IS NULL)");
             $st->execute([$articleId]);
