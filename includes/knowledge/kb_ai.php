@@ -56,6 +56,17 @@ function kbGenerateEmbedding(string $text, string $apiKey): ?array
 }
 
 /**
+ * The rows this file will ever consider: published, and NOT in the recycle bin.
+ *
+ * `is_archived` matters as much as `is_published` here. Archiving does NOT
+ * unpublish (KnowledgeService::archiveArticle only sets is_archived), so an
+ * article deleted into the recycle bin keeps is_published = 1 — and every other
+ * reader in the codebase pairs the two checks. Omitting it here meant a deleted
+ * article was still being fed to anonymous web chat visitors.
+ */
+const KB_VISIBLE_SQL = "is_published = 1 AND (is_archived = 0 OR is_archived IS NULL)";
+
+/**
  * Find the published Knowledge articles most relevant to a question. Uses embedding
  * similarity when an OpenAI key + embedded articles exist, else returns all published
  * articles. Returns ['articles' => [{id,title,body}], 'method' => 'vector'|'all'].
@@ -74,14 +85,14 @@ function kbRetrieveArticles(PDO $conn, string $question, int $limit = 5): array
 
     $haveEmbeddings = false;
     try {
-        $cnt = $conn->query("SELECT COUNT(*) FROM knowledge_articles WHERE is_published = 1 AND embedding IS NOT NULL AND LENGTH(embedding) > 0")->fetchColumn();
+        $cnt = $conn->query("SELECT COUNT(*) FROM knowledge_articles WHERE " . KB_VISIBLE_SQL . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0")->fetchColumn();
         $haveEmbeddings = (int) $cnt > 0;
     } catch (Exception $e) { $haveEmbeddings = false; }
 
     if ($openaiKey !== '' && $haveEmbeddings) {
         $qvec = kbGenerateEmbedding($question, $openaiKey);
         if ($qvec) {
-            $rows = $conn->query("SELECT id, title, body, embedding FROM knowledge_articles WHERE is_published = 1 AND embedding IS NOT NULL AND LENGTH(embedding) > 0")->fetchAll(PDO::FETCH_ASSOC);
+            $rows = $conn->query("SELECT id, title, body, embedding FROM knowledge_articles WHERE " . KB_VISIBLE_SQL . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0")->fetchAll(PDO::FETCH_ASSOC);
             $scored = [];
             foreach ($rows as $r) {
                 $vec = json_decode($r['embedding'], true);
@@ -95,7 +106,7 @@ function kbRetrieveArticles(PDO $conn, string $question, int $limit = 5): array
     }
 
     // Fallback: all published articles (context is capped by kbBuildContext anyway).
-    $all = $conn->query("SELECT id, title, body FROM knowledge_articles WHERE is_published = 1 ORDER BY title")->fetchAll(PDO::FETCH_ASSOC);
+    $all = $conn->query("SELECT id, title, body FROM knowledge_articles WHERE " . KB_VISIBLE_SQL . " ORDER BY title")->fetchAll(PDO::FETCH_ASSOC);
     return ['articles' => array_slice($all, 0, max($limit, 10)), 'method' => 'all'];
 }
 
