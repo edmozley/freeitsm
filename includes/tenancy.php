@@ -397,6 +397,59 @@ function activeTenantFilter(PDO $conn, int $analystId, string $alias = 't', stri
     return [" AND $qualified = ?", [$active]];
 }
 
+/** Does $table have $column? Cached per request; false if the table is missing. */
+function tenancyColumnExists(PDO $conn, string $table, string $column): bool {
+    static $cache = [];
+    $key = $table . '.' . $column;
+    if (array_key_exists($key, $cache)) return $cache[$key];
+    try {
+        $stmt = $conn->prepare("SHOW COLUMNS FROM `" . str_replace('`', '', $table) . "` LIKE ?");
+        $stmt->execute([$column]);
+        return $cache[$key] = (bool)$stmt->fetch();
+    } catch (Exception $e) {
+        return $cache[$key] = false;
+    }
+}
+
+/**
+ * Scope a Knowledge query to the articles a given COMPANY may see.
+ *
+ * ⚠️ READ THIS BEFORE "SIMPLIFYING" IT INTO activeTenantFilter(). ⚠️
+ *
+ * The SQL looks almost identical to activeTenantFilter() and means something
+ * materially different, because NULL means something different in Knowledge:
+ *
+ *   tickets / assets / changes:  tenant_id IS NULL = "unassigned, treat as the
+ *                                DEFAULT company's" — so a NULL row is visible
+ *                                only while Default is the active company.
+ *   knowledge_articles:          tenant_id IS NULL = "SHARED WITH EVERY COMPANY"
+ *                                — an MSP's generic "how to reset your password"
+ *                                serves every client, so NULL is visible to ALL.
+ *
+ * Feed a non-Default company through activeTenantFilter() and every shared
+ * article silently disappears from it. Hence this exists.
+ *
+ * $tenantId is the company whose view we want (e.g. a web chat widget's), NOT an
+ * analyst. NULL means "no company context": only shared articles are in scope,
+ * which is the safe reading.
+ *
+ * Returns ['', []] — no filtering — on a single-company install (invisible at
+ * N=1), and on an install that has not run Database Verify yet, where the column
+ * does not exist and every article is shared by definition.
+ *
+ * @return array [sqlFragment, params]
+ */
+function knowledgeTenantFilterForCompany(PDO $conn, ?int $tenantId, string $alias = 'a'): array {
+    if (!isMultiTenant($conn)) return ['', []];
+    if (!tenancyColumnExists($conn, 'knowledge_articles', 'tenant_id')) return ['', []];
+
+    $qualified = $alias === '' ? 'tenant_id' : "$alias.tenant_id";
+    if ($tenantId === null) {
+        return [" AND $qualified IS NULL", []];
+    }
+    return [" AND ($qualified = ? OR $qualified IS NULL)", [$tenantId]];
+}
+
 /**
  * Decide which company (tenant) a NEW inbound-email ticket belongs to.
  *

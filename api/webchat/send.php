@@ -100,7 +100,11 @@ if ($mode === 'assist' || !$isOpen || $hasTicket) {
 $aiShouldAnswer = $isOpen && ($mode === 'assist' || !$hasTicket);
 
 if ($aiShouldAnswer) {
-    $r = webchatAiReply($conn, $message, $history);
+    // Scope the knowledge search to the widget's company — the same tenant_id that
+    // already routes the ticket (see webchatIngestMessage). Otherwise this client's
+    // visitor can be answered out of another client's knowledge base.
+    $aiTenantId = ($channel['tenant_id'] ?? null) !== null ? (int) $channel['tenant_id'] : null;
+    $r = webchatAiReply($conn, $message, $history, $aiTenantId);
     if ($r['ok'] && $r['answer'] !== '') {
         if (!empty($conv['ticket_id'])) {
             // Assist mode: post the bot's reply onto the ticket too, so the analyst sees

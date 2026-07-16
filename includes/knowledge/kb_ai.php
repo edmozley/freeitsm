@@ -15,6 +15,8 @@
  */
 
 require_once __DIR__ . '/../encryption.php';
+require_once __DIR__ . '/audience.php';
+require_once __DIR__ . '/../tenancy.php';
 
 /** Cosine similarity of two equal-ish length vectors (0 if either is a zero vector). */
 function kbCosineSimilarity(array $a, array $b): float
@@ -67,15 +69,37 @@ function kbGenerateEmbedding(string $text, string $apiKey): ?array
 const KB_VISIBLE_SQL = "is_published = 1 AND (is_archived = 0 OR is_archived IS NULL)";
 
 /**
- * Find the published Knowledge articles most relevant to a question. Uses embedding
- * similarity when an OpenAI key + embedded articles exist, else returns all published
- * articles. Returns ['articles' => [{id,title,body}], 'method' => 'vector'|'all'].
+ * Find the Knowledge articles most relevant to a question. Uses embedding similarity
+ * when an OpenAI key + embedded articles exist, else falls back to every in-scope
+ * article. Returns ['articles' => [{id,title,body}], 'method' => 'vector'|'all'].
  *
- * (KB is not yet company-scoped — no tenant_id on knowledge_articles — so this searches
- * all published articles. Add a tenant filter here once Knowledge multi-tenancy lands.)
+ * SCOPE — both arguments narrow what can possibly be returned, and they answer
+ * different questions:
+ *   $tenantId — WHOSE articles: the company asking (e.g. a web chat widget's).
+ *               Its own articles plus shared (tenant_id IS NULL) ones. NULL means
+ *               no company context => shared only. No-op on a single-company install.
+ *   $viewer   — WHO is reading, as an Audience:: level. Web chat is anonymous, so it
+ *               passes Audience::PUBLIC and can only ever see articles an author has
+ *               deliberately marked public.
+ *
+ * The default is Audience::PUBLIC — the MOST restrictive rung — on purpose. This
+ * function's only caller is the anonymous web chat, so a future caller that forgets
+ * to think about scope gets too little, never too much.
+ *
+ * Filtering happens in SQL, before scoring: it is both the security boundary and
+ * strictly less work than decoding vectors we would discard.
  */
-function kbRetrieveArticles(PDO $conn, string $question, int $limit = 5): array
+function kbRetrieveArticles(PDO $conn, string $question, int $limit = 5, ?int $tenantId = null, string $viewer = Audience::PUBLIC): array
 {
+    // Company scope + audience. Both degrade to no-op on installs that predate the
+    // columns, where every article is shared and public by definition anyway.
+    [$tenantSql, $tenantParams] = knowledgeTenantFilterForCompany($conn, $tenantId, '');
+    [$audSql, $audParams] = tenancyColumnExists($conn, 'knowledge_articles', 'audience')
+        ? Audience::sqlFilter($viewer, '')
+        : ['', []];
+    $scopeSql    = $tenantSql . $audSql;
+    $scopeParams = array_merge($tenantParams, $audParams);
+
     $openaiKey = '';
     try {
         $st = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'knowledge_openai_api_key'");
@@ -83,16 +107,22 @@ function kbRetrieveArticles(PDO $conn, string $question, int $limit = 5): array
         $openaiKey = decryptValue((string) ($st->fetchColumn() ?: ''));
     } catch (Exception $e) { $openaiKey = ''; }
 
+    // "Are there embeddings?" must ask within the SAME scope. Counting the whole
+    // install would take the vector path on the strength of articles this caller
+    // cannot see, then score an empty set.
     $haveEmbeddings = false;
     try {
-        $cnt = $conn->query("SELECT COUNT(*) FROM knowledge_articles WHERE " . KB_VISIBLE_SQL . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0")->fetchColumn();
-        $haveEmbeddings = (int) $cnt > 0;
+        $st = $conn->prepare("SELECT COUNT(*) FROM knowledge_articles WHERE " . KB_VISIBLE_SQL . $scopeSql . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0");
+        $st->execute($scopeParams);
+        $haveEmbeddings = (int) $st->fetchColumn() > 0;
     } catch (Exception $e) { $haveEmbeddings = false; }
 
     if ($openaiKey !== '' && $haveEmbeddings) {
         $qvec = kbGenerateEmbedding($question, $openaiKey);
         if ($qvec) {
-            $rows = $conn->query("SELECT id, title, body, embedding FROM knowledge_articles WHERE " . KB_VISIBLE_SQL . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0")->fetchAll(PDO::FETCH_ASSOC);
+            $st = $conn->prepare("SELECT id, title, body, embedding FROM knowledge_articles WHERE " . KB_VISIBLE_SQL . $scopeSql . " AND embedding IS NOT NULL AND LENGTH(embedding) > 0");
+            $st->execute($scopeParams);
+            $rows = $st->fetchAll(PDO::FETCH_ASSOC);
             $scored = [];
             foreach ($rows as $r) {
                 $vec = json_decode($r['embedding'], true);
@@ -105,8 +135,12 @@ function kbRetrieveArticles(PDO $conn, string $question, int $limit = 5): array
         }
     }
 
-    // Fallback: all published articles (context is capped by kbBuildContext anyway).
-    $all = $conn->query("SELECT id, title, body FROM knowledge_articles WHERE " . KB_VISIBLE_SQL . " ORDER BY title")->fetchAll(PDO::FETCH_ASSOC);
+    // Fallback: every in-scope article (context is capped by kbBuildContext anyway).
+    // This path is the one that would hurt most if unscoped — with no API key it
+    // hands the caller the whole knowledge base.
+    $st = $conn->prepare("SELECT id, title, body FROM knowledge_articles WHERE " . KB_VISIBLE_SQL . $scopeSql . " ORDER BY title");
+    $st->execute($scopeParams);
+    $all = $st->fetchAll(PDO::FETCH_ASSOC);
     return ['articles' => array_slice($all, 0, max($limit, 10)), 'method' => 'all'];
 }
 

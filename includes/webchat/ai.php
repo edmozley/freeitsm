@@ -12,6 +12,7 @@
 require_once __DIR__ . '/../ai_settings.php';
 require_once __DIR__ . '/../ai_provider.php';
 require_once __DIR__ . '/../knowledge/kb_ai.php';
+require_once __DIR__ . '/../knowledge/audience.php';   // Audience:: is used directly below
 
 /** Is a Knowledge AI provider/key configured? (Cheap check before spending the budget.) */
 function webchatAiConfigured(PDO $conn): bool
@@ -27,15 +28,24 @@ function webchatAiConfigured(PDO $conn): bool
 /**
  * Draft an AI answer to $question, given the recent $history (array of ['sender','body']).
  * Returns ['ok'=>bool, 'answer'=>string, 'articles'=>[{id,title}], 'error'=>?string].
+ *
+ * $tenantId is the widget's company (messaging_channels.tenant_id) — the SAME value
+ * that already decides which company the resulting ticket belongs to. Without it, a
+ * visitor on one client's website could be answered out of another client's articles.
+ * NULL means the widget has no company, which scopes to shared articles only.
+ *
+ * The audience is always Audience::PUBLIC and is not a parameter: whoever is typing
+ * into a website chat box is an anonymous stranger. They gave a name and an email;
+ * we verified neither.
  */
-function webchatAiReply(PDO $conn, string $question, array $history = []): array
+function webchatAiReply(PDO $conn, string $question, array $history = [], ?int $tenantId = null): array
 {
     $cfg = aiSettingsLoad($conn, 'knowledge_ai');
     if (($cfg['api_key'] ?? '') === '') {
         return ['ok' => false, 'answer' => '', 'articles' => [], 'error' => 'AI not configured'];
     }
 
-    $ret     = kbRetrieveArticles($conn, $question, 5);
+    $ret     = kbRetrieveArticles($conn, $question, 5, $tenantId, Audience::PUBLIC);
     $context = kbBuildContext($ret['articles']);
 
     $system = "You are a friendly website support assistant. Answer the visitor's question using ONLY the "

@@ -2039,11 +2039,33 @@ CREATE TABLE IF NOT EXISTS `knowledge_articles` (
     `archived_datetime`     DATETIME NULL,
     `archived_by_id`        INT NULL,
     `version`               INT NOT NULL DEFAULT 1,
+    `tenant_id`             INT NULL,
+    `audience`              VARCHAR(20) NOT NULL DEFAULT 'internal',
     PRIMARY KEY (`id`),
+    KEY `idx_knowledge_articles_tenant` (`tenant_id`),
     CONSTRAINT `fk_knowledge_articles_author` FOREIGN KEY (`author_id`) REFERENCES `analysts` (`id`),
     CONSTRAINT `fk_knowledge_articles_owner` FOREIGN KEY (`owner_id`) REFERENCES `analysts` (`id`),
-    CONSTRAINT `fk_knowledge_articles_archived_by` FOREIGN KEY (`archived_by_id`) REFERENCES `analysts` (`id`)
+    CONSTRAINT `fk_knowledge_articles_archived_by` FOREIGN KEY (`archived_by_id`) REFERENCES `analysts` (`id`),
+    -- NO "ON DELETE SET NULL" here, unlike fk_assets_tenant. For assets NULL means
+    -- "unassigned"; for knowledge NULL means "shared with EVERY company" — so
+    -- SET NULL would silently promote a deleted company's private articles into
+    -- everyone's knowledge base. Restrict instead: deleting a company with its
+    -- own articles must be a deliberate act, not a side effect.
+    CONSTRAINT `fk_knowledge_articles_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- knowledge_articles.tenant_id => which client company OWNS this article.
+--   ⚠️ NULL means SHARED WITH EVERY COMPANY here — NOT "belongs to Default", which
+--   is what NULL means for tickets/assets/changes. Knowledge is the one module
+--   where a NULL row is deliberately visible to all tenants (an MSP's generic
+--   "how to reset your password" serves every client). Hence Knowledge has its
+--   own filter helper and must NOT use activeTenantFilter(). See tenancy.php.
+--   NULL is also the zero-migration default: existing articles stay shared,
+--   which is exactly the pre-multi-tenancy behaviour.
+-- knowledge_articles.audience => WHO may read it, independent of who owns it:
+--   'internal' (analysts only) | 'customer' (+ signed-in self-service users)
+--   | 'public' (+ anonymous web chat visitors). Defaults to 'internal' so an
+--   upgrade can never start disclosing existing articles to the public — an
+--   author opts in. See includes/knowledge/audience.php.
 
 CREATE TABLE IF NOT EXISTS `knowledge_article_versions` (
     `id`                INT NOT NULL AUTO_INCREMENT,

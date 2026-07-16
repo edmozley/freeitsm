@@ -1739,6 +1739,16 @@ $schema = [
         'archived_datetime'     => 'DATETIME NULL',
         'archived_by_id'        => 'INT NULL',
         'version'               => 'INT NOT NULL DEFAULT 1',
+        // Which company OWNS the article. ⚠️ NULL = SHARED WITH EVERY COMPANY here,
+        // NOT "belongs to Default" as it does for tickets/assets — Knowledge has its
+        // own filter helper for exactly this reason (see includes/tenancy.php).
+        // NULL is also the zero-migration default: existing articles stay shared,
+        // which is precisely today's behaviour.
+        'tenant_id'             => 'INT NULL',
+        // WHO may read it: 'internal' | 'customer' | 'public'. Defaults to 'internal'
+        // so running Database Verify can NEVER start disclosing existing articles to
+        // anonymous web chat visitors — authors opt in per article.
+        'audience'              => "VARCHAR(20) NOT NULL DEFAULT 'internal'",
     ],
 
     'knowledge_article_versions' => [
@@ -3960,6 +3970,10 @@ try {
         ['knowledge_articles',         'fk_knowledge_articles_author',      "ALTER TABLE knowledge_articles ADD CONSTRAINT fk_knowledge_articles_author FOREIGN KEY (author_id) REFERENCES analysts (id)"],
         ['knowledge_articles',         'fk_knowledge_articles_owner',       "ALTER TABLE knowledge_articles ADD CONSTRAINT fk_knowledge_articles_owner FOREIGN KEY (owner_id) REFERENCES analysts (id)"],
         ['knowledge_articles',         'fk_knowledge_articles_archived_by', "ALTER TABLE knowledge_articles ADD CONSTRAINT fk_knowledge_articles_archived_by FOREIGN KEY (archived_by_id) REFERENCES analysts (id)"],
+        // Deliberately NOT "ON DELETE SET NULL" (which fk_assets_tenant uses): for
+        // knowledge, NULL means "shared with every company", so SET NULL would turn a
+        // deleted company's private articles into everyone's. Restrict instead.
+        ['knowledge_articles',         'fk_knowledge_articles_tenant',      "ALTER TABLE knowledge_articles ADD CONSTRAINT fk_knowledge_articles_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id)"],
         ['knowledge_article_versions', 'fk_kav_article',                    "ALTER TABLE knowledge_article_versions ADD CONSTRAINT fk_kav_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id)"],
         ['knowledge_article_versions', 'fk_kav_saved_by',                   "ALTER TABLE knowledge_article_versions ADD CONSTRAINT fk_kav_saved_by FOREIGN KEY (saved_by_id) REFERENCES analysts (id)"],
         ['knowledge_article_tags',     'fk_article_tags_article',           "ALTER TABLE knowledge_article_tags ADD CONSTRAINT fk_article_tags_article FOREIGN KEY (article_id) REFERENCES knowledge_articles (id) ON DELETE CASCADE"],
