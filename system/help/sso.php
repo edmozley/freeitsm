@@ -153,7 +153,7 @@ require __DIR__ . '/_top.php';
         <li><strong>One person is refused, everyone else is fine.</strong> Are they in the right group? Remember an Active Directory admins group is not automatically your analyst group — name whichever group actually holds your service desk staff.</li>
         <li><strong>“The account is disabled.”</strong> They're disabled in the directory. That's the directory refusing them, and it's working as intended.</li>
         <li><strong>Signs in, but the account has no name or email.</strong> The attribute names don't match your directory. Run Test with that person and compare what comes back.</li>
-        <li><strong>“Cannot create an account — no email address.”</strong> The person has no email in the directory. FreeITSM needs one, since tickets are addressed by email. Add it to their directory entry.</li>
+        <li><strong>Signing in with no email address.</strong> People with no mailbox in the directory (warehouse, shop-floor, and so on) sign in fine — their account is created with the email left blank. They just won't receive ticket email until an address is added to their directory entry.</li>
         <li><strong>Anything about strong authentication.</strong> Your directory requires an encrypted connection. Switch Encryption to LDAPS or STARTTLS.</li>
         <li><strong>The PHP <code>ldap</code> extension is not enabled.</strong> Enable <code>extension=ldap</code> in <code>php.ini</code> and restart your web server. On some setups there are two php.ini files — one for the web server and one for the command line — and both need it.</li>
     </ul>

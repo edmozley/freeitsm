@@ -117,7 +117,7 @@ because the cases that break LDAP code only exist in a realistic tree:
 | `l.garcia` | `Nw!Garc2026` | `Lucía García` — same |
 | `t.brooks` | `Nw!Broo2026` | Sales — gate him to the self-service user group, not analyst |
 | `p.ndlovu` | `Nw!Ndlo2026` | Finance — in **neither** ITSM group, so must be **denied despite a correct password** |
-| `w.noemail` | `Nw!NoMa2026` | Has **no email attribute** — JIT must refuse cleanly |
+| `w.noemail` | `Nw!NoMa2026` | Has **no email attribute** — JIT must **provision them anyway** with an empty email (GitHub #47) |
 | `x.leaver` | `Nw!Leav2026` | **Disabled** — must never sign in, even with the right password |
 
 Groups live in `OU=Groups,OU=Northwind`: `NW-IT-Support`, `NW-IT-Admins`,

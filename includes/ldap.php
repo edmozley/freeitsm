@@ -508,9 +508,12 @@ function ldapResolveAnalyst(PDO $conn, array $provider, array $ldapUser): array 
         if ((int)$provider['auto_create_users'] !== 1) {
             return ['ok' => false, 'error' => 'No FreeITSM account exists for that user. Ask an administrator to create one.'];
         }
-        if ($email === '') {
-            return ['ok' => false, 'error' => 'Cannot create an account: the directory entry has no email address.'];
-        }
+        // No email is allowed: plenty of directories hold staff who were never
+        // given a mailbox. The bind already proved who they are, so there is
+        // nothing an address would add. Safe because analysts.email is NOT NULL
+        // but NOT unique (so '' may repeat), and step 2 above skips the
+        // match-by-email branch when $email is '' — otherwise the second
+        // mailbox-less starter would match the first and log in as them.
         $analystId = ldapCreateAnalyst(
             $conn, $providerId,
             (string)$ldapUser['username'], (string)$ldapUser['name'], $email,
