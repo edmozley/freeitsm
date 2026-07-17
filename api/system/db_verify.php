@@ -4795,6 +4795,48 @@ try {
         // Non-fatal — fall through with verification result
     }
 
+    // ---- Comprehensive named-index backfill --------------------------------
+    // freeitsm.sql creates every secondary index at CREATE TABLE time, but a
+    // GROWN install only ever received the indexes db_verify was explicitly told
+    // to add — so an index that was dropped, or never existed on an older
+    // install, stays missing, and for a UNIQUE key that silently permits
+    // duplicate data (e.g. two users sharing one email). This pass is the
+    // backstop: it restores EVERY named index in freeitsm.sql, idempotently —
+    // present -> skip, missing -> add. It runs LAST, after the feature-specific
+    // FK/index groups above, so anything they added is simply skipped here.
+    //
+    // A UNIQUE key that can't be added because duplicate rows already exist is
+    // REPORTED, never forced: unlike orphaned FK child rows (which have a Fix
+    // button), we can't know which duplicate the admin wants to keep — so they
+    // resolve it and re-run. The list is generated from freeitsm.sql by
+    // scripts/gen_db_verify_indexes.php.
+    $allNamedIndexes = require '../../includes/db_verify_indexes.php';
+    $resultPosByTable = [];
+    foreach ($results as $ri => $rr) {
+        if (isset($rr['table']) && !isset($resultPosByTable[$rr['table']])) {
+            $resultPosByTable[$rr['table']] = $ri;
+        }
+    }
+    foreach ($allNamedIndexes as [$idxTable, $idxName, $idxUnique, $idxCols]) {
+        if (!$tableExists($idxTable) || $idxExists($idxTable, $idxName)) continue;
+        $keyword = $idxUnique ? 'UNIQUE KEY' : 'KEY';
+        $pos = $resultPosByTable[$idxTable] ?? null;
+        try {
+            $conn->exec("ALTER TABLE `$idxTable` ADD $keyword `$idxName` $idxCols");
+            if ($pos !== null) {
+                $results[$pos]['details'][] = 'Restored missing index ' . $idxName;
+                if (($results[$pos]['status'] ?? '') === 'ok') $results[$pos]['status'] = 'updated';
+            }
+        } catch (Exception $e) {
+            if ($pos !== null) {
+                $results[$pos]['details'][] = $idxUnique
+                    ? ('Could not add unique index ' . $idxName . ' — duplicate rows exist; resolve them, then re-run')
+                    : ('Could not add index ' . $idxName . ': ' . $e->getMessage());
+                $results[$pos]['status'] = 'error';
+            }
+        }
+    }
+
     // Tag each result with its module for the card grid's colour + filter. This
     // is presentation only (a label on a table name); it reads no schema truth
     // and cannot affect verification. Derived from table-name prefixes — see
