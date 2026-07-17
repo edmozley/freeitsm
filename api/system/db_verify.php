@@ -4795,10 +4795,21 @@ try {
         // Non-fatal — fall through with verification result
     }
 
+    // Tag each result with its module for the card grid's colour + filter. This
+    // is presentation only (a label on a table name); it reads no schema truth
+    // and cannot affect verification. Derived from table-name prefixes — see
+    // includes/db_verify_modules.php.
+    require_once '../../includes/db_verify_modules.php';
+    foreach ($results as &$r) {
+        $r['module'] = dbVerifyModuleForTable($r['table'] ?? '');
+    }
+    unset($r);
+
     echo json_encode([
         'success' => true,
         'results' => $results,
-        'total_tables' => count($schema)
+        'total_tables' => count($schema),
+        'modules' => dbVerifyModuleMeta()
     ]);
 
 } catch (Exception $e) {
