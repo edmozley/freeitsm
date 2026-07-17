@@ -116,6 +116,13 @@ if (!isset($_SESSION['analyst_id'])) {
         .summary-updated { background: #cce5ff; color: #004085; }
         .summary-error { background: #f8d7da; color: #721c24; }
 
+        /* A summary card with a non-zero count doubles as a filter for that
+           status; the active one gets a ring in its own semantic colour. */
+        .summary-card.clickable { cursor: pointer; transition: transform 0.12s, box-shadow 0.12s; }
+        .summary-card.clickable:hover { transform: translateY(-1px); box-shadow: 0 3px 10px var(--shadow, rgba(0,0,0,0.15)); }
+        .summary-card.selected { box-shadow: 0 0 0 2px currentColor inset; }
+        .summary-card.is-empty { opacity: 0.6; }
+
         .results-table {
             width: 100%;
             border-collapse: collapse;
@@ -514,18 +521,33 @@ if (!isset($_SESSION['analyst_id'])) {
         // Latest verify results + module metadata, held for filtering and the detail modal.
         let VERIFY_RESULTS = [];
         let MODULE_META = {};
+        let STATUS_FILTER = '';   // '' = all; otherwise ok/created/updated/error
 
         function renderResults(results, total) {
             VERIFY_RESULTS = results;
+            STATUS_FILTER = '';   // a fresh run clears any status filter
 
             const counts = { ok: 0, created: 0, updated: 0, error: 0 };
             results.forEach(r => counts[r.status] = (counts[r.status] || 0) + 1);
 
+            // Each summary card with a non-zero count doubles as a filter for that
+            // status (click Errors -> just the tables in error; click again to clear).
+            const summaryCards = [
+                { key: 'ok',      cls: 'summary-ok',      label: window.t('system.db_verify.count_ok') },
+                { key: 'created', cls: 'summary-created', label: window.t('system.db_verify.count_created') },
+                { key: 'updated', cls: 'summary-updated', label: window.t('system.db_verify.count_updated') },
+                { key: 'error',   cls: 'summary-error',   label: window.t('system.db_verify.count_errors') },
+            ];
             let summaryHtml = '<div class="results-summary">';
-            summaryHtml += `<div class="summary-card summary-ok"><span class="count">${counts.ok}</span><span class="label">${window.t('system.db_verify.count_ok')}</span></div>`;
-            summaryHtml += `<div class="summary-card summary-created"><span class="count">${counts.created}</span><span class="label">${window.t('system.db_verify.count_created')}</span></div>`;
-            summaryHtml += `<div class="summary-card summary-updated"><span class="count">${counts.updated}</span><span class="label">${window.t('system.db_verify.count_updated')}</span></div>`;
-            summaryHtml += `<div class="summary-card summary-error"><span class="count">${counts.error}</span><span class="label">${window.t('system.db_verify.count_errors')}</span></div>`;
+            summaryCards.forEach(s => {
+                const n = counts[s.key];
+                const clickable = n > 0;
+                const cls = 'summary-card ' + s.cls + (clickable ? ' clickable' : ' is-empty');
+                const attrs = clickable
+                    ? ` onclick="toggleStatusFilter('${s.key}')" title="${dt('system.db_verify.filter_status', 'Click to show only these')}"`
+                    : '';
+                summaryHtml += `<div class="${cls}" data-status="${s.key}"${attrs}><span class="count">${n}</span><span class="label">${s.label}</span></div>`;
+            });
             summaryHtml += '</div>';
             document.getElementById('summaryArea').innerHTML = summaryHtml;
 
@@ -573,6 +595,7 @@ if (!isset($_SESSION['analyst_id'])) {
                 card.style.setProperty('--mod-color', color);
                 card.dataset.table = r.table;
                 card.dataset.module = mod;
+                card.dataset.status = r.status;
                 card.dataset.index = i;
                 card.onclick = () => openDetail(i);
                 card.innerHTML =
@@ -597,7 +620,16 @@ if (!isset($_SESSION['analyst_id'])) {
             applyFilters();
         }
 
-        // Client-side filter: table-name substring + module. Toggles visibility only.
+        // Toggle a status filter from a summary card (click active one to clear).
+        function toggleStatusFilter(status) {
+            STATUS_FILTER = (STATUS_FILTER === status) ? '' : status;
+            document.querySelectorAll('.summary-card').forEach(c => {
+                c.classList.toggle('selected', STATUS_FILTER !== '' && c.dataset.status === STATUS_FILTER);
+            });
+            applyFilters();
+        }
+
+        // Client-side filter: table-name substring + module + status. Visibility only.
         function applyFilters() {
             const q = (document.getElementById('tableSearch')?.value || '').trim().toLowerCase();
             const mod = document.getElementById('moduleFilter')?.value || '';
@@ -605,7 +637,8 @@ if (!isset($_SESSION['analyst_id'])) {
             document.querySelectorAll('#cardGrid .tcard').forEach(card => {
                 const matchQ = !q || card.dataset.table.toLowerCase().includes(q);
                 const matchM = !mod || card.dataset.module === mod;
-                const show = matchQ && matchM;
+                const matchS = !STATUS_FILTER || card.dataset.status === STATUS_FILTER;
+                const show = matchQ && matchM && matchS;
                 card.classList.toggle('is-hidden', !show);
                 if (show) shown++;
             });
