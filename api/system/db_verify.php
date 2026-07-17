@@ -4810,6 +4810,26 @@ try {
     // button), we can't know which duplicate the admin wants to keep — so they
     // resolve it and re-run. The list is generated from freeitsm.sql by
     // scripts/gen_db_verify_indexes.php.
+    // Drift guard: the backfill list is a GENERATED mirror of freeitsm.sql, and
+    // the failure mode is someone adding an index to freeitsm.sql but forgetting
+    // to regenerate — so the mirror silently omits it and grown installs miss it
+    // again. Re-parse freeitsm.sql and compare; if they've drifted, say so loudly
+    // right here (this page is the ritual after a schema change). Silent when in
+    // sync, which is every shipped install (both files ship from one commit), so
+    // this only ever fires for a developer mid-change. Mirrors capSelfCheck().
+    require_once '../../includes/db_verify_index_parse.php';
+    $indexListDrift = dbVerifyIndexListSelfCheck();
+    if (!empty($indexListDrift)) {
+        $results[] = [
+            'table'   => 'index backfill list',
+            'status'  => 'error',
+            'details' => array_merge(
+                ['The index list is out of date vs freeitsm.sql — run scripts/gen_db_verify_indexes.php and commit both files.'],
+                array_slice($indexListDrift, 0, 12)
+            ),
+        ];
+    }
+
     $allNamedIndexes = require '../../includes/db_verify_indexes.php';
     $resultPosByTable = [];
     foreach ($results as $ri => $rr) {

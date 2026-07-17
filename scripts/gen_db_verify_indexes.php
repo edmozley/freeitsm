@@ -19,32 +19,17 @@ $root = dirname(__DIR__);
 $sqlPath = $root . '/database/freeitsm.sql';
 $outPath = $root . '/includes/db_verify_indexes.php';
 
+// The parse lives in one place, shared with db_verify's drift self-check, so the
+// generator and the checker can never disagree about what an index "is".
+require_once $root . '/includes/db_verify_index_parse.php';
+
 $sql = file_get_contents($sqlPath);
 if ($sql === false) {
     fwrite(STDERR, "Cannot read $sqlPath\n");
     exit(1);
 }
 
-// Split into CREATE TABLE blocks so each index is attributed to its table.
-preg_match_all('/CREATE TABLE(?: IF NOT EXISTS)?\s+`([a-zA-Z0-9_]+)`\s*\((.*?)\n\)\s*ENGINE/s', $sql, $blocks, PREG_SET_ORDER);
-
-$rows = [];
-foreach ($blocks as $b) {
-    $table = $b[1];
-    foreach (explode("\n", $b[2]) as $line) {
-        $line = trim($line);
-        // [UNIQUE] KEY|INDEX `name` (cols)  — cols may contain nested () for
-        // prefix lengths, e.g. (`display_name`(400)), so match to the last ).
-        if (preg_match('/^(UNIQUE\s+)?(?:KEY|INDEX)\s+`([a-zA-Z0-9_]+)`\s*(\(.*\))\s*,?\s*$/i', $line, $m)) {
-            $rows[] = [
-                'table'  => $table,
-                'name'   => $m[2],
-                'unique' => trim($m[1]) !== '',
-                'cols'   => preg_replace('/\s+/', '', $m[3]),
-            ];
-        }
-    }
-}
+$rows = dbVerifyParseIndexesFromSql($sql);   // [ [table, name, isUnique, cols], ... ]
 
 $out  = "<?php\n";
 $out .= "/**\n";
@@ -57,9 +42,10 @@ $out .= " * changing an index in freeitsm.sql.\n";
 $out .= " */\n";
 $out .= "return [\n";
 foreach ($rows as $r) {
+    // $r = [table, name, isUnique, cols]
     $out .= sprintf(
         "    ['%s', '%s', %s, '%s'],\n",
-        $r['table'], $r['name'], $r['unique'] ? 'true' : 'false', $r['cols']
+        $r[0], $r[1], $r[2] ? 'true' : 'false', $r[3]
     );
 }
 $out .= "];\n";
