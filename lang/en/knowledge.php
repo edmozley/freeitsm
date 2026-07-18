@@ -75,6 +75,19 @@ return [
         'email'      => 'Email (Link + PDF)',
     ],
 
+    'bulk' => [
+        'select_title' => 'Select this article',
+        'selected'     => '{count} articles selected',
+        'selected_one' => '1 article selected',
+        'set_to'       => 'Set who can see them:',
+        'apply'        => 'Apply',
+        'applying'     => 'Applying...',
+        'select_all'   => 'Select all',
+        'done'         => 'Updated {count} articles',
+        'partial'      => 'Updated {updated}; {failed} could not be changed (they may belong to a company you cannot access)',
+        'failed'       => 'Could not update the selected articles',
+    ],
+
     'editor' => [
         'new_title'        => 'New article',
         'edit_title'       => 'Edit article',
@@ -89,13 +102,13 @@ return [
         'field_review'     => 'Next review date',
         'field_audience'   => 'Who can see this',
         'audience_internal'=> 'Analysts only',
-        'audience_customer'=> 'Analysts and signed-in customers (not yet in use)',
+        'audience_customer'=> 'Analysts and signed-in customers',
         'audience_public'  => 'Anyone, including website chat',
         'audience_hint_internal' => 'Only your own team. Never shown to customers or the website chat.',
-        // Honest about doing nothing today: the self-service portal has no knowledge
-        // section yet, so nothing in the app reads at this level. Mark articles now if
-        // you want them ready, but do not expect anyone to see them.
-        'audience_hint_customer' => 'Intended for the self-service portal, which does not show knowledge articles yet — so for now this behaves exactly like "Analysts only". Safe to set in advance; the website chat will never use it.',
+        // This rung is LIVE as of the portal Help Centre — it used to say "not yet
+        // in use", which was honest at the time and became wrong the moment a
+        // reader shipped. Keep it accurate.
+        'audience_hint_customer' => 'Appears in the Help Centre of the self-service portal, so anyone signed in there can read it. The website chat will never use it, because a chat visitor is an anonymous stranger.',
         'audience_hint_public'   => 'The website chat can answer visitors from this article. Only mark things public that you would happily show a stranger.',
         'field_company'    => 'Company',
         'company_shared'   => 'Shared with all companies',

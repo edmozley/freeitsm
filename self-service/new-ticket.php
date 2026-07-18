@@ -261,6 +261,47 @@ $pageStyles = <<<'CSS'
             content: '🎥';
             margin-right: 4px;
         }
+
+        /* Deflection suggestions under the subject field. Quiet by design: a
+           helpful aside, never a barrier to reporting a problem. */
+        .deflect {
+            margin-top: 10px;
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 8px;
+            background: var(--surface-hover, #fafafa);
+            padding: 12px 14px;
+        }
+        .deflect-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted, #666);
+            margin-bottom: 8px;
+        }
+        .deflect-list { display: grid; gap: 6px; }
+        .deflect-item {
+            display: block;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e5e7eb);
+            text-decoration: none;
+        }
+        .deflect-item:hover { border-color: var(--ss-accent, #0078d4); }
+        .deflect-item-title {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ss-accent, #0078d4);
+        }
+        .deflect-item-preview {
+            display: block;
+            font-size: 12px;
+            color: var(--text-muted, #666);
+            margin-top: 2px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
 CSS;
 
 $pageScripts = <<<'JS'
@@ -281,12 +322,85 @@ let attachments = [];
     document.addEventListener('DOMContentLoaded', function() {
         loadMailboxes();
         initDropzone();
+        initDeflection();
 
         // Hide the record button entirely if the browser can't do screen capture
         if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
             document.getElementById('recordToggle').style.display = 'none';
         }
     });
+
+    /*
+     * Ticket deflection: show Help Centre articles matching the subject as it is
+     * typed, so someone can find the answer before raising a ticket at all.
+     *
+     * Deliberately quiet. It only appears once there is something to show, never
+     * interrupts, and never blocks Submit — a suggestion that gets in the way of
+     * reporting a problem is worse than no suggestion. Nothing is logged about
+     * what was typed.
+     *
+     * Reuses the Help Centre's endpoint, so the same two scopes apply: articles
+     * marked for customers, in this requester's company or shared. It cannot
+     * surface anything the Help Centre itself wouldn't show.
+     */
+    let deflectTimer = null;
+    let deflectLastQuery = '';
+
+    function initDeflection() {
+        const subject = document.getElementById('subject');
+        if (!subject) return;
+
+        subject.addEventListener('input', function () {
+            const q = subject.value.trim();
+            clearTimeout(deflectTimer);
+
+            // Below three characters the results are noise.
+            if (q.length < 3) { hideDeflection(); return; }
+            if (q === deflectLastQuery) return;
+
+            deflectTimer = setTimeout(() => runDeflection(q), 400);
+        });
+    }
+
+    async function runDeflection(query) {
+        deflectLastQuery = query;
+        try {
+            const response = await fetch('../api/self-service/get_knowledge_articles.php?limit=3&q='
+                                         + encodeURIComponent(query));
+            const data = await response.json();
+            if (!data.success || !data.articles || !data.articles.length) { hideDeflection(); return; }
+            showDeflection(data.articles);
+        } catch (e) {
+            hideDeflection();   // never let a suggestion failure disturb the form
+        }
+    }
+
+    function showDeflection(articles) {
+        const box = document.getElementById('deflect');
+        const list = document.getElementById('deflectList');
+        const title = document.getElementById('deflectTitle');
+        if (!box || !list) return;
+
+        title.textContent = window.t('self-service.new_ticket.deflect_title');
+        list.innerHTML = articles.map(a =>
+            '<a class="deflect-item" href="help-centre.php?id=' + encodeURIComponent(a.id) + '" target="_blank" rel="noopener">'
+            + '<span class="deflect-item-title">' + escapeHtmlSs(a.title || '') + '</span>'
+            + '<span class="deflect-item-preview">' + escapeHtmlSs((a.preview || '').slice(0, 120)) + '</span>'
+            + '</a>'
+        ).join('');
+        box.style.display = '';
+    }
+
+    function hideDeflection() {
+        const box = document.getElementById('deflect');
+        if (box) box.style.display = 'none';
+    }
+
+    function escapeHtmlSs(text) {
+        const div = document.createElement('div');
+        div.textContent = text == null ? '' : text;
+        return div.innerHTML;
+    }
 
     function initDropzone() {
         const dropzone = document.getElementById('dropzone');
@@ -677,7 +791,14 @@ require __DIR__ . '/includes/header.php';
                 </div>
                 <div class="form-group">
                     <label for="subject"><?php echo htmlspecialchars(t('self-service.new_ticket.subject')); ?></label>
-                    <input type="text" id="subject" required placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.subject_placeholder')); ?>">
+                    <input type="text" id="subject" required placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.subject_placeholder')); ?>" autocomplete="off">
+                    <!-- Deflection: answers matching what they're typing. Hidden
+                         until there's something to show, so the form is unchanged
+                         for anyone whose question isn't in the knowledge base. -->
+                    <div class="deflect" id="deflect" style="display:none;">
+                        <div class="deflect-title" id="deflectTitle"></div>
+                        <div class="deflect-list" id="deflectList"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="priority"><?php echo htmlspecialchars(t('self-service.new_ticket.priority')); ?></label>

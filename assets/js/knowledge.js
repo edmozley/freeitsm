@@ -298,6 +298,92 @@ function toggleTagFilter(tagId) {
     loadArticles(document.getElementById('articleSearch').value, activeTagFilters);
 }
 
+/*
+ * Bulk "who can see this".
+ *
+ * Every article defaults to `internal` (deliberately — see audience.php), so
+ * publishing a knowledge base to the self-service Help Centre otherwise means
+ * opening articles one at a time. Selection survives re-renders (search, tag
+ * filter) because it lives here rather than in the DOM: filtering to "VPN",
+ * ticking six, then filtering to "printer" and ticking four more is the whole
+ * point.
+ *
+ * The checkbox sits inside the card, whose entire surface is a click target that
+ * opens the article — hence stopPropagation on the label.
+ */
+const kbSelected = new Set();
+
+function toggleArticleSelected(id, checked) {
+    if (checked) kbSelected.add(id); else kbSelected.delete(id);
+    renderBulkBar();
+}
+
+function clearArticleSelection() {
+    kbSelected.clear();
+    renderBulkBar();
+    document.querySelectorAll('.article-select input[type="checkbox"]').forEach(cb => { cb.checked = false; });
+}
+
+function selectAllVisibleArticles() {
+    articles.forEach(a => kbSelected.add(a.id));
+    renderBulkBar();
+    document.querySelectorAll('.article-select input[type="checkbox"]').forEach(cb => { cb.checked = true; });
+}
+
+function renderBulkBar() {
+    const bar = document.getElementById('kbBulkBar');
+    if (!bar) return;
+    const n = kbSelected.size;
+    if (n === 0) { bar.style.display = 'none'; return; }
+    bar.style.display = '';
+    const countEl = document.getElementById('kbBulkCount');
+    if (countEl) {
+        countEl.textContent = window.t(n === 1 ? 'knowledge.bulk.selected_one' : 'knowledge.bulk.selected', { count: n });
+    }
+}
+
+async function applyBulkAudience() {
+    const select = document.getElementById('kbBulkAudience');
+    const audience = select ? select.value : '';
+    if (!audience || kbSelected.size === 0) return;
+
+    const ids = Array.from(kbSelected);
+    const btn = document.getElementById('kbBulkApply');
+    if (btn) { btn.disabled = true; btn.textContent = window.t('knowledge.bulk.applying'); }
+
+    try {
+        const response = await fetch('../api/knowledge/knowledge_bulk_audience.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ids: ids, audience: audience })
+        });
+        const data = await response.json();
+
+        if (!data.success) {
+            showToast(data.error || window.t('knowledge.bulk.failed'), 'error');
+            return;
+        }
+
+        // Report partial success honestly: silently skipping articles the analyst
+        // can't reach is how someone believes a document is published when it
+        // isn't.
+        if (data.failed && data.failed.length) {
+            showToast(window.t('knowledge.bulk.partial', {
+                updated: data.updated, failed: data.failed.length
+            }), 'error');
+        } else {
+            showToast(window.t('knowledge.bulk.done', { count: data.updated }), 'success');
+        }
+
+        clearArticleSelection();
+        loadArticles();
+    } catch (e) {
+        showToast(window.t('knowledge.bulk.failed'), 'error');
+    } finally {
+        if (btn) { btn.disabled = false; btn.textContent = window.t('knowledge.bulk.apply'); }
+    }
+}
+
 // Render article list
 function renderArticleList() {
     const container = document.getElementById('articleList');
@@ -318,6 +404,11 @@ function renderArticleList() {
 
     container.innerHTML = articles.map(article => `
         <div class="article-card" onclick="viewArticle(${article.id})">
+            <label class="article-select" onclick="event.stopPropagation()" title="${escapeHtml(window.t('knowledge.bulk.select_title'))}">
+                <input type="checkbox" value="${article.id}"
+                       ${kbSelected.has(article.id) ? 'checked' : ''}
+                       onchange="toggleArticleSelected(${article.id}, this.checked)">
+            </label>
             <div class="article-card-title">${escapeHtml(article.title)}</div>
             <div class="article-card-preview">${escapeHtml(article.preview || '')}</div>
             <div class="article-card-meta">

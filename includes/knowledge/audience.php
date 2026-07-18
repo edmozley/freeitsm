@@ -39,13 +39,16 @@ class Audience
     /**
      * Analysts + signed-in self-service users.
      *
-     * ⚠️ NOTHING READS AT THIS LEVEL YET. The self-service portal has no
-     * knowledge section (it never queries knowledge_articles), so an article
-     * marked 'customer' is today identical to 'internal' in effect. The rung
-     * exists because the ladder is about the READER's trust, not about which
-     * features happen to be built — when the portal grows a knowledge section it
-     * reads at this level and these articles light up with no migration. The UI
-     * says so plainly rather than implying it works.
+     * ✅ LIVE. The self-service portal's Help Centre reads at this level —
+     * api/self-service/get_knowledge_articles.php and get_knowledge_article.php,
+     * which hard-code CUSTOMER rather than accepting it from the request.
+     *
+     * This rung shipped BEFORE its reader and spent several releases doing
+     * nothing, documented here and in the editor as "not yet in use". That was
+     * the right call: the ladder describes the READER'S TRUST, not which features
+     * happen to be built, so articles marked in advance lit up with no migration
+     * the moment the Help Centre existed. Note the flip side — a rung with no
+     * reader is invisible, so the claim had to be re-checked when one arrived.
      */
     const CUSTOMER = 'customer';
     /** Analysts + self-service + anonymous web chat visitors. */

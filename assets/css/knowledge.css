@@ -177,6 +177,45 @@
     cursor: pointer;
     transition: all 0.2s;
     border: 1px solid var(--border, #e0e0e0);
+    position: relative;
+}
+
+/* Bulk-select tick. The whole card opens the article, so the label stops
+   propagation (see knowledge.js); the padding widens the hit area so it is
+   reachable without catching the card. */
+.article-select {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    padding: 4px;
+    cursor: pointer;
+    z-index: 1;
+}
+.article-select input { cursor: pointer; }
+
+/* Room for the tick so a long title never runs underneath it. */
+.article-card-title { padding-right: 28px; }
+
+.kb-bulk-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+    background: var(--accent-soft, #eff6ff);
+    border: 1px solid var(--border, #e0e0e0);
+}
+.kb-bulk-count { font-weight: 600; color: var(--text, #333); }
+.kb-bulk-bar label { color: var(--text-muted, #666); font-size: 13px; }
+.kb-bulk-bar select {
+    padding: 6px 10px;
+    border: 1px solid var(--border, #e0e0e0);
+    border-radius: 6px;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
+    font-family: inherit;
 }
 
 .article-card:hover {

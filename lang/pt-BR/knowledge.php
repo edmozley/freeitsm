@@ -68,6 +68,19 @@ return [
         'email'      => 'E-mail (link + PDF)',
     ],
 
+    'bulk' => [
+        'select_title' => 'Selecionar este artigo',
+        'selected'     => '{count} artigos selecionados',
+        'selected_one' => '1 artigo selecionado',
+        'set_to'       => 'Definir quem pode vê-los:',
+        'apply'        => 'Aplicar',
+        'applying'     => 'Aplicando...',
+        'select_all'   => 'Selecionar todos',
+        'done'         => '{count} artigos atualizados',
+        'partial'      => '{updated} atualizados; {failed} não puderam ser alterados (podem pertencer a uma empresa à qual você não tem acesso)',
+        'failed'       => 'Não foi possível atualizar os artigos selecionados',
+    ],
+
     'editor' => [
         'new_title'        => 'Novo artigo',
         'edit_title'       => 'Editar artigo',
@@ -82,10 +95,10 @@ return [
         'field_review'     => 'Próxima data de revisão',
         'field_audience'   => 'Quem pode ver isto',
         'audience_internal'=> 'Somente analistas',
-        'audience_customer'=> 'Analistas e clientes autenticados (ainda não utilizado)',
+        'audience_customer'=> 'Analistas e clientes autenticados',
         'audience_public'  => 'Qualquer pessoa, incluindo o chat do site',
         'audience_hint_internal' => 'Somente a sua equipe. Nunca é mostrado a clientes nem ao chat do site.',
-        'audience_hint_customer' => 'Destinado ao portal de autoatendimento, que ainda não exibe artigos da base de conhecimento — por enquanto isto se comporta exatamente como "Somente analistas". Pode ser definido com antecedência; o chat do site nunca vai usá-lo.',
+        'audience_hint_customer' => 'Aparece na Central de ajuda do portal de autoatendimento, então qualquer pessoa autenticada lá pode ler. O chat do site nunca vai usá-lo, porque um visitante do chat é um desconhecido anônimo.',
         'audience_hint_public'   => 'O chat do site pode responder aos visitantes com base neste artigo. Marque como público apenas o que você mostraria tranquilamente a um desconhecido.',
         'field_company'    => 'Empresa',
         'company_shared'   => 'Compartilhado com todas as empresas',

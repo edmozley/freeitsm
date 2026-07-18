@@ -93,6 +93,21 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
                     <h2 id="articleListHeader"><?php echo htmlspecialchars(t('knowledge.list.heading')); ?></h2>
                     <div class="article-count" id="articleCount"></div>
                 </div>
+
+                <!-- Bulk audience bar. Hidden until something is ticked; selection
+                     survives searching and tag-filtering (see knowledge.js). -->
+                <div class="kb-bulk-bar" id="kbBulkBar" style="display:none;">
+                    <span class="kb-bulk-count" id="kbBulkCount"></span>
+                    <label for="kbBulkAudience"><?php echo htmlspecialchars(t('knowledge.bulk.set_to')); ?></label>
+                    <select id="kbBulkAudience">
+                        <option value="internal"><?php echo htmlspecialchars(t('knowledge.editor.audience_internal')); ?></option>
+                        <option value="customer"><?php echo htmlspecialchars(t('knowledge.editor.audience_customer')); ?></option>
+                        <option value="public"><?php echo htmlspecialchars(t('knowledge.editor.audience_public')); ?></option>
+                    </select>
+                    <button type="button" class="btn btn-primary" id="kbBulkApply" onclick="applyBulkAudience()"><?php echo htmlspecialchars(t('knowledge.bulk.apply')); ?></button>
+                    <button type="button" class="btn btn-secondary" onclick="selectAllVisibleArticles()"><?php echo htmlspecialchars(t('knowledge.bulk.select_all')); ?></button>
+                    <button type="button" class="btn btn-secondary" onclick="clearArticleSelection()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                </div>
                 <div class="article-list" id="articleList">
                     <div class="loading"><div class="spinner"></div></div>
                 </div>

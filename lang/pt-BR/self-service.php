@@ -83,6 +83,7 @@ return [
         'mailbox_failed'     => 'Falha ao carregar as caixas de correio',
         'subject'            => 'Assunto *',
         'subject_placeholder'=> 'Breve resumo do seu problema',
+        'deflect_title'      => 'Isto pode responder à sua pergunta:',
         'priority'           => 'Prioridade',
         'priority_low'       => 'Baixa',
         'priority_normal'    => 'Normal',

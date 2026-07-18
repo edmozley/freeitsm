@@ -93,6 +93,7 @@ return [
         'mailbox_failed'     => 'Failed to load mailboxes',
         'subject'            => 'Subject *',
         'subject_placeholder'=> 'Brief summary of your issue',
+        'deflect_title'      => 'These might answer your question:',
         'priority'           => 'Priority',
         'priority_low'       => 'Low',
         'priority_normal'    => 'Normal',

@@ -108,7 +108,13 @@ try {
     foreach ($articles as &$a) {
         // The preview is plain text: the body is TinyMCE HTML and a truncated
         // fragment would be unbalanced markup.
-        $a['preview'] = trim(preg_replace('/\s+/', ' ', strip_tags((string)$a['preview'])));
+        //
+        // strip_tags() removes the TAGS but keeps their CONTENTS, so a <script> or
+        // <style> block would spill its source into the preview as readable text
+        // ("...sign in.alert(1)"). Drop those elements whole first. Not a security
+        // control — the preview is escaped on render — just correctness.
+        $raw = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', ' ', (string)$a['preview']);
+        $a['preview'] = trim(preg_replace('/\s+/', ' ', strip_tags((string)$raw)));
         $a['tags']    = $tagsById[(int)$a['id']] ?? [];
     }
     unset($a);
