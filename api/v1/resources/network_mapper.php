@@ -40,7 +40,15 @@
  *   - adding an object already on the diagram is a 409 unless
  *     allow_duplicate=true (the editor allows silent duplicates).
  *
- * Network tables are install-wide (no tenant_id), same posture as CMDB.
+ * MULTI-TENANCY: the network tables themselves are install-wide (no tenant_id)
+ * — but the CMDB objects they reference are NOT, as of the CMDB slice. So a key
+ * may only place a CI it can reach onto a diagram (apiNmValidateObjectExists),
+ * mirroring NetworkMapperService. Node/connector READS deliberately do not
+ * filter by the CI's company, matching api/network-mapper/get_diagram.php:
+ * diagrams have no company of their own, so filtering would make CIs silently
+ * vanish from existing diagrams. Both routes onto a canvas are scoped, so the
+ * residual is historical data only. Giving diagrams a company is the first job
+ * of Network Mapper's own multi-tenancy slice.
  * No audit trail exists for diagrams and none was invented.
  *
  * Depends on cmdb.php (apiCmdbClassDefs) — index.php requires it earlier.
@@ -244,10 +252,18 @@ function apiNmConnectorHydrated(PDO $conn, int $diagramId, int $connectorId): ar
 // Validation
 // ---------------------------------------------------------------------------
 
-function apiNmValidateObjectExists(PDO $conn, int $objectId): void {
+function apiNmValidateObjectExists(PDO $conn, int $objectId, ?array $apiKey = null): void {
     $stmt = $conn->prepare("SELECT 1 FROM cmdb_objects WHERE id = ?");
     $stmt->execute([$objectId]);
     if (!$stmt->fetchColumn()) {
+        apiError(422, 'invalid_field', "Unknown cmdb_object_id: {$objectId}");
+    }
+    // Multi-tenancy: CIs are company-scoped, so a key may only drop one it can
+    // reach onto a diagram. The UI/service path enforces this in
+    // NetworkMapperService::validateObjectExists(); this is its REST twin, and
+    // without it the API is a way around that guard. Same message either way, so
+    // it never reveals that a CI exists in another company.
+    if ($apiKey !== null && !apiKeyCanAccessTenantRow($conn, $apiKey, 'cmdb_objects', $objectId)) {
         apiError(422, 'invalid_field', "Unknown cmdb_object_id: {$objectId}");
     }
 }
@@ -339,12 +355,12 @@ function apiNmResolveRelationshipId(PDO $conn, $raw, int $fromNodeId, int $toNod
  * [cmdb_object_id, x|null, y|null, size, icon_override, ref] — null x/y
  * means auto-place.
  */
-function apiNmValidateNodeInput(PDO $conn, array $n, int $index): array {
+function apiNmValidateNodeInput(PDO $conn, array $n, int $index, ?array $apiKey = null): array {
     $objectId = isset($n['cmdb_object_id']) ? (int)$n['cmdb_object_id'] : 0;
     if ($objectId <= 0) {
         apiError(422, 'missing_field', "nodes[{$index}]: 'cmdb_object_id' is required.");
     }
-    apiNmValidateObjectExists($conn, $objectId);
+    apiNmValidateObjectExists($conn, $objectId, $apiKey);
     $size = apiNmValidateSize(trim((string)($n['size'] ?? 'medium')) ?: 'medium');
     $icon = null;
     if (isset($n['icon_override']) && $n['icon_override'] !== null && trim((string)$n['icon_override']) !== '') {
@@ -692,7 +708,7 @@ function apiNmNodesCreate(PDO $conn, array $apiKey, array $params, array $body):
         if (!is_array($n)) {
             apiError(422, 'invalid_field', "nodes[{$i}] must be an object.");
         }
-        $validated[] = apiNmValidateNodeInput($conn, $n, $i);
+        $validated[] = apiNmValidateNodeInput($conn, $n, $i, $apiKey);
     }
     if (!$allowDuplicate) {
         foreach ($validated as [$objectId]) {

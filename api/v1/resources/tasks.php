@@ -256,7 +256,10 @@ function apiTasksGet(PDO $conn, array $apiKey, array $params, array $body): void
         }
     }
     $task['linked_change'] = null;
-    if ($r['change_id'] !== null) {
+    // Changes are company-scoped too, so gate this the same way as the ticket
+    // above — it was reading a change's title by id with no check.
+    if ($r['change_id'] !== null
+        && apiKeyCanAccessTenantRow($conn, $apiKey, 'changes', (int)$r['change_id'])) {
         try {
             $c = $conn->prepare("SELECT id, title FROM changes WHERE id = ?");
             $c->execute([(int)$r['change_id']]);
