@@ -19,7 +19,8 @@ return [
     'nav' => [
         'dashboard'   => 'Dashboard',
         'new_ticket'  => 'New Ticket',
-        'help'        => 'Help',
+        'help_centre' => 'Help Centre',
+        'help'        => 'Using the portal',
     ],
 
     'login' => [
@@ -153,6 +154,23 @@ return [
         'reply_failed'         => 'Your reply could not be sent. Please try again.',
         'reply_sent'           => 'Your reply has been sent.',
         'reply_sent_reopened'  => 'Your reply has been sent, and the ticket has been reopened.',
+    ],
+
+    'help_centre' => [
+        'title'              => 'Self-Service Portal — Help Centre',
+        'heading'            => 'Help Centre',
+        'lede'               => 'Guides and answers from the IT team. Search before raising a ticket — the answer may already be here.',
+        'search_placeholder' => 'Search for an answer...',
+        'loading'            => 'Loading articles...',
+        'load_failed'        => 'Failed to load articles. Please try again.',
+        'back'               => 'Back to all articles',
+        'updated'            => 'Updated {date}',
+        'not_found'          => 'Article not available',
+        'not_found_hint'     => 'It may have been withdrawn, or it may not be shared with you.',
+        'no_results'         => 'Nothing found for "{query}"',
+        'no_results_hint'    => 'Try a different word, or raise a ticket and the IT team will help.',
+        'no_articles'        => 'No articles yet',
+        'no_articles_hint'   => 'The IT team has not published any guides here yet. Raise a ticket and they will help you directly.',
     ],
 
     'help' => [

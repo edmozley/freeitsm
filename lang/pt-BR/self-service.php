@@ -9,7 +9,8 @@ return [
     'nav' => [
         'dashboard'   => 'Painel',
         'new_ticket'  => 'Novo ticket',
-        'help'        => 'Ajuda',
+        'help_centre' => 'Central de ajuda',
+        'help'        => 'Usando o portal',
     ],
 
     'login' => [
@@ -143,6 +144,23 @@ return [
         'reply_failed'         => 'Não foi possível enviar sua resposta. Tente novamente.',
         'reply_sent'           => 'Sua resposta foi enviada.',
         'reply_sent_reopened'  => 'Sua resposta foi enviada e o ticket foi reaberto.',
+    ],
+
+    'help_centre' => [
+        'title'              => 'Portal de Autoatendimento — Central de ajuda',
+        'heading'            => 'Central de ajuda',
+        'lede'               => 'Guias e respostas da equipe de TI. Pesquise antes de abrir um ticket — a resposta pode já estar aqui.',
+        'search_placeholder' => 'Pesquisar uma resposta...',
+        'loading'            => 'Carregando artigos...',
+        'load_failed'        => 'Falha ao carregar os artigos. Tente novamente.',
+        'back'               => 'Voltar para todos os artigos',
+        'updated'            => 'Atualizado em {date}',
+        'not_found'          => 'Artigo indisponível',
+        'not_found_hint'     => 'Ele pode ter sido retirado ou pode não estar compartilhado com você.',
+        'no_results'         => 'Nada encontrado para "{query}"',
+        'no_results_hint'    => 'Tente outra palavra ou abra um ticket para a equipe de TI ajudar.',
+        'no_articles'        => 'Ainda não há artigos',
+        'no_articles_hint'   => 'A equipe de TI ainda não publicou guias aqui. Abra um ticket e eles ajudarão você diretamente.',
     ],
 
     'help' => [
