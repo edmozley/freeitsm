@@ -1,56 +1,16 @@
 <?php
 /**
- * Self-Service Portal - Help / Guide page
- * Targeted at end users (not analysts). Covers registration, raising tickets,
- * screen recording, viewing tickets, and account/MFA management.
+ * Self-Service Portal — Help.
+ *
+ * Chrome (head, theme, header, nav, footer) comes from includes/header.php and
+ * includes/footer.php; shared styling from assets/css/self-service.css.
  */
-session_start();
-require_once '../config.php';
-require_once '../includes/i18n.php';
-I18n::initFromSession();
-require_once 'includes/auth.php';
+$pageTitleKey = 'self-service.help.title';   // a KEY: i18n starts in header.php
+$activeNav    = 'help';
 
-$translationNamespaces = ['common', 'self-service'];
-?>
-<!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars(t('self-service.help.title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/inbox.css">
-    <style>
-        body { overflow: auto; height: auto; background: #f5f5f5; }
-
-        .portal-header {
-            background: #0078d4;
-            color: white;
-            padding: 0 24px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .portal-brand { display: flex; align-items: center; gap: 12px; font-weight: 600; font-size: 15px; }
-        .portal-brand img { height: 28px; filter: brightness(0) invert(1); }
-        .portal-nav { display: flex; align-items: center; gap: 4px; }
-        .portal-nav a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            padding: 6px 14px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.15s;
-        }
-        .portal-nav a:hover  { background: rgba(255,255,255,0.15); color: white; }
-        .portal-nav a.active { background: rgba(255,255,255,0.2);  color: white; }
-
-        .ss-help-page {
+// Page-specific styling only — shared chrome lives in self-service.css.
+$pageStyles = <<<'CSS'
+.ss-help-page {
             max-width: 800px;
             margin: 0 auto;
             padding: 32px 24px 64px;
@@ -135,24 +95,10 @@ $translationNamespaces = ['common', 'self-service'];
             border-radius: 3px;
             font-size: 12px;
         }
-    </style>
-    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../assets/js/i18n.js?v=2"></script>
-</head>
-<body>
-    <div class="portal-header">
-        <div class="portal-brand">
-            <img src="../assets/images/CompanyLogo.png" alt="Logo">
-            <span><?php echo htmlspecialchars(t('self-service.portal')); ?></span>
-        </div>
-        <nav class="portal-nav">
-            <a href="index.php"><?php echo htmlspecialchars(t('self-service.nav.dashboard')); ?></a>
-            <a href="new-ticket.php"><?php echo htmlspecialchars(t('self-service.nav.new_ticket')); ?></a>
-            <a href="help.php" class="active"><?php echo htmlspecialchars(t('self-service.nav.help')); ?></a>
-        </nav>
-        <?php include 'includes/user-menu.php'; ?>
-    </div>
+CSS;
 
+require __DIR__ . '/includes/header.php';
+?>
     <div class="ss-help-page">
         <h1><?php echo htmlspecialchars(t('self-service.help.heading')); ?></h1>
         <p class="lede"><?php echo htmlspecialchars(t('self-service.help.lede')); ?></p>
@@ -252,5 +198,4 @@ $translationNamespaces = ['common', 'self-service'];
         </div>
 
     </div>
-</body>
-</html>
+<?php require __DIR__ . '/includes/footer.php';

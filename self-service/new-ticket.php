@@ -1,75 +1,16 @@
 <?php
 /**
- * Self-Service Portal - New Ticket
+ * Self-Service Portal — New ticket.
+ *
+ * Chrome (head, theme, header, nav, footer) comes from includes/header.php and
+ * includes/footer.php; shared styling from assets/css/self-service.css.
  */
-session_start();
-require_once '../config.php';
-require_once '../includes/i18n.php';
-I18n::initFromSession();
-require_once 'includes/auth.php';
+$pageTitleKey = 'self-service.new_ticket.title';   // a KEY: i18n starts in header.php
+$activeNav    = 'new_ticket';
 
-$translationNamespaces = ['common', 'self-service'];
-?>
-<!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars(t('self-service.new_ticket.title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/inbox.css">
-    <style>
-        body { overflow: auto; height: auto; background: #f5f5f5; }
-
-        .portal-header {
-            background: #0078d4;
-            color: white;
-            padding: 0 24px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .portal-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 600;
-            font-size: 15px;
-        }
-        .portal-brand img { height: 28px; filter: brightness(0) invert(1); }
-        .portal-nav {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .portal-nav a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            padding: 6px 14px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.15s;
-        }
-        .portal-nav a:hover { background: rgba(255,255,255,0.15); color: white; }
-        .portal-nav a.active { background: rgba(255,255,255,0.2); color: white; }
-        .portal-user {
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        .portal-layout {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 28px 24px;
-        }
-
-        .page-title {
+// Page-specific styling only — shared chrome lives in self-service.css.
+$pageStyles = <<<'CSS'
+.page-title {
             font-size: 22px;
             font-weight: 600;
             color: #333;
@@ -320,107 +261,10 @@ $translationNamespaces = ['common', 'self-service'];
             content: '🎥';
             margin-right: 4px;
         }
-    </style>
-</head>
-<body>
-    <div class="portal-header">
-        <div class="portal-brand">
-            <img src="../assets/images/CompanyLogo.png" alt="Logo">
-            <span><?php echo htmlspecialchars(t('self-service.portal')); ?></span>
-        </div>
-        <nav class="portal-nav">
-            <a href="index.php"><?php echo htmlspecialchars(t('self-service.nav.dashboard')); ?></a>
-            <a href="new-ticket.php" class="active"><?php echo htmlspecialchars(t('self-service.nav.new_ticket')); ?></a>
-            <a href="help.php"><?php echo htmlspecialchars(t('self-service.nav.help')); ?></a>
-        </nav>
-        <?php include 'includes/user-menu.php'; ?>
-    </div>
+CSS;
 
-    <div class="portal-layout">
-        <h1 class="page-title"><?php echo htmlspecialchars(t('self-service.new_ticket.heading')); ?></h1>
-
-        <div class="error-message" id="errorMsg"></div>
-        <div class="success-message" id="successMsg"></div>
-
-        <div class="form-card" id="formCard">
-            <form id="ticketForm" onsubmit="return handleSubmit(event)" autocomplete="off">
-                <div class="form-group">
-                    <label for="mailbox"><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox')); ?></label>
-                    <select id="mailbox" required>
-                        <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox_loading')); ?></option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="subject"><?php echo htmlspecialchars(t('self-service.new_ticket.subject')); ?></label>
-                    <input type="text" id="subject" required placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.subject_placeholder')); ?>">
-                </div>
-                <div class="form-group">
-                    <label for="priority"><?php echo htmlspecialchars(t('self-service.new_ticket.priority')); ?></label>
-                    <select id="priority">
-                        <?php
-                        // Populate from the configured active priorities (consistent
-                        // with the analyst New Ticket form, #40) rather than a fixed
-                        // Low/Normal/High list. Requesters can pick any priority; the
-                        // analyst re-triages if it's not appropriate.
-                        try {
-                            $ssPrioConn = connectToDatabase();
-                            $ssPrios = $ssPrioConn->query("SELECT name, is_default FROM ticket_priorities WHERE is_active = 1 ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC);
-                        } catch (Exception $e) { $ssPrios = []; }
-                        if (!$ssPrios) {
-                            // Fallback keeps the form usable if the table isn't reachable.
-                            $ssPrios = [['name' => 'Low', 'is_default' => 0], ['name' => 'Normal', 'is_default' => 1], ['name' => 'High', 'is_default' => 0]];
-                        }
-                        $ssHasDefault = false;
-                        foreach ($ssPrios as $p) { if ((int)$p['is_default'] === 1) { $ssHasDefault = true; break; } }
-                        foreach ($ssPrios as $p):
-                            $sel = ((int)$p['is_default'] === 1) || (!$ssHasDefault && $p['name'] === 'Normal');
-                        ?>
-                        <option value="<?php echo htmlspecialchars($p['name']); ?>"<?php echo $sel ? ' selected' : ''; ?>><?php echo htmlspecialchars($p['name']); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="description"><?php echo htmlspecialchars(t('self-service.new_ticket.description')); ?></label>
-                    <textarea id="description" placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.description_placeholder')); ?>"></textarea>
-                </div>
-                <div class="form-group">
-                    <label><?php echo htmlspecialchars(t('self-service.new_ticket.attachments')); ?></label>
-                    <div class="dropzone" id="dropzone">
-                        <div class="dropzone-icon">📎</div>
-                        <?php echo t('self-service.new_ticket.dropzone', ['browse' => '<span class="dropzone-browse">' . htmlspecialchars(t('self-service.new_ticket.dropzone_browse')) . '</span>']); ?>
-                    </div>
-                    <input type="file" id="fileInput" multiple style="display:none">
-                    <div class="attachment-list" id="attachmentList"></div>
-
-                    <button type="button" class="record-toggle" id="recordToggle" onclick="toggleRecordPanel()">
-                        <span class="rec-dot"></span> <?php echo htmlspecialchars(t('self-service.new_ticket.record_screen')); ?>
-                    </button>
-                    <div class="record-panel hidden" id="recordPanel">
-                        <label class="mic-toggle">
-                            <input type="checkbox" id="recMicToggle"> <?php echo htmlspecialchars(t('self-service.new_ticket.include_mic')); ?>
-                        </label>
-                        <div class="record-controls">
-                            <button type="button" class="btn-rec-start" id="recStartBtn" onclick="startRecording()"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_start')); ?></button>
-                            <button type="button" class="btn-rec-stop" id="recStopBtn" onclick="stopRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_stop')); ?></button>
-                            <button type="button" class="btn-rec-use" id="recUseBtn" onclick="useRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_use')); ?></button>
-                            <button type="button" class="btn-rec-discard" id="recDiscardBtn" onclick="discardRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_discard')); ?></button>
-                            <span class="rec-status" id="recStatus"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_ready')); ?></span>
-                        </div>
-                        <video id="recPreview" controls style="display:none"></video>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <a href="index.php" class="btn-cancel"><?php echo htmlspecialchars(t('self-service.new_ticket.cancel')); ?></a>
-                    <button type="submit" class="btn-submit" id="submitBtn"><?php echo htmlspecialchars(t('self-service.new_ticket.submit')); ?></button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../assets/js/i18n.js?v=2"></script>
-    <script>
-    let attachments = [];
+$pageScripts = <<<'JS'
+let attachments = [];
     let recordings = []; // [{recording_id, name, size_bytes, duration_seconds}]
 
     // Recording state
@@ -814,6 +658,86 @@ $translationNamespaces = ['common', 'self-service'];
         div.textContent = text || '';
         return div.innerHTML;
     }
-    </script>
-</body>
-</html>
+JS;
+
+require __DIR__ . '/includes/header.php';
+?>
+        <h1 class="page-title"><?php echo htmlspecialchars(t('self-service.new_ticket.heading')); ?></h1>
+
+        <div class="error-message" id="errorMsg"></div>
+        <div class="success-message" id="successMsg"></div>
+
+        <div class="form-card" id="formCard">
+            <form id="ticketForm" onsubmit="return handleSubmit(event)" autocomplete="off">
+                <div class="form-group">
+                    <label for="mailbox"><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox')); ?></label>
+                    <select id="mailbox" required>
+                        <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox_loading')); ?></option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="subject"><?php echo htmlspecialchars(t('self-service.new_ticket.subject')); ?></label>
+                    <input type="text" id="subject" required placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.subject_placeholder')); ?>">
+                </div>
+                <div class="form-group">
+                    <label for="priority"><?php echo htmlspecialchars(t('self-service.new_ticket.priority')); ?></label>
+                    <select id="priority">
+                        <?php
+                        // Populate from the configured active priorities (consistent
+                        // with the analyst New Ticket form, #40) rather than a fixed
+                        // Low/Normal/High list. Requesters can pick any priority; the
+                        // analyst re-triages if it's not appropriate.
+                        try {
+                            $ssPrioConn = connectToDatabase();
+                            $ssPrios = $ssPrioConn->query("SELECT name, is_default FROM ticket_priorities WHERE is_active = 1 ORDER BY display_order, name")->fetchAll(PDO::FETCH_ASSOC);
+                        } catch (Exception $e) { $ssPrios = []; }
+                        if (!$ssPrios) {
+                            // Fallback keeps the form usable if the table isn't reachable.
+                            $ssPrios = [['name' => 'Low', 'is_default' => 0], ['name' => 'Normal', 'is_default' => 1], ['name' => 'High', 'is_default' => 0]];
+                        }
+                        $ssHasDefault = false;
+                        foreach ($ssPrios as $p) { if ((int)$p['is_default'] === 1) { $ssHasDefault = true; break; } }
+                        foreach ($ssPrios as $p):
+                            $sel = ((int)$p['is_default'] === 1) || (!$ssHasDefault && $p['name'] === 'Normal');
+                        ?>
+                        <option value="<?php echo htmlspecialchars($p['name']); ?>"<?php echo $sel ? ' selected' : ''; ?>><?php echo htmlspecialchars($p['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="description"><?php echo htmlspecialchars(t('self-service.new_ticket.description')); ?></label>
+                    <textarea id="description" placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.description_placeholder')); ?>"></textarea>
+                </div>
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('self-service.new_ticket.attachments')); ?></label>
+                    <div class="dropzone" id="dropzone">
+                        <div class="dropzone-icon">📎</div>
+                        <?php echo t('self-service.new_ticket.dropzone', ['browse' => '<span class="dropzone-browse">' . htmlspecialchars(t('self-service.new_ticket.dropzone_browse')) . '</span>']); ?>
+                    </div>
+                    <input type="file" id="fileInput" multiple style="display:none">
+                    <div class="attachment-list" id="attachmentList"></div>
+
+                    <button type="button" class="record-toggle" id="recordToggle" onclick="toggleRecordPanel()">
+                        <span class="rec-dot"></span> <?php echo htmlspecialchars(t('self-service.new_ticket.record_screen')); ?>
+                    </button>
+                    <div class="record-panel hidden" id="recordPanel">
+                        <label class="mic-toggle">
+                            <input type="checkbox" id="recMicToggle"> <?php echo htmlspecialchars(t('self-service.new_ticket.include_mic')); ?>
+                        </label>
+                        <div class="record-controls">
+                            <button type="button" class="btn-rec-start" id="recStartBtn" onclick="startRecording()"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_start')); ?></button>
+                            <button type="button" class="btn-rec-stop" id="recStopBtn" onclick="stopRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_stop')); ?></button>
+                            <button type="button" class="btn-rec-use" id="recUseBtn" onclick="useRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_use')); ?></button>
+                            <button type="button" class="btn-rec-discard" id="recDiscardBtn" onclick="discardRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_discard')); ?></button>
+                            <span class="rec-status" id="recStatus"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_ready')); ?></span>
+                        </div>
+                        <video id="recPreview" controls style="display:none"></video>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <a href="index.php" class="btn-cancel"><?php echo htmlspecialchars(t('self-service.new_ticket.cancel')); ?></a>
+                    <button type="submit" class="btn-submit" id="submitBtn"><?php echo htmlspecialchars(t('self-service.new_ticket.submit')); ?></button>
+                </div>
+            </form>
+        </div>
+<?php require __DIR__ . '/includes/footer.php';

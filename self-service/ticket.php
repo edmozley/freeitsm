@@ -1,81 +1,16 @@
 <?php
 /**
- * Self-Service Portal - Ticket Detail View
+ * Self-Service Portal — Ticket.
+ *
+ * Chrome (head, theme, header, nav, footer) comes from includes/header.php and
+ * includes/footer.php; shared styling from assets/css/self-service.css.
  */
-session_start();
-require_once '../config.php';
-require_once '../includes/i18n.php';
-I18n::initFromSession();
-require_once 'includes/auth.php';
+$pageTitleKey = 'self-service.ticket.title';   // a KEY: i18n starts in header.php
+$activeNav    = 'dashboard';
 
-$ticketId = (int)($_GET['id'] ?? 0);
-if (!$ticketId) {
-    header('Location: index.php');
-    exit;
-}
-
-$translationNamespaces = ['common', 'self-service'];
-?>
-<!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars(t('self-service.ticket.title')); ?></title>
-    <link rel="stylesheet" href="../assets/css/inbox.css">
-    <style>
-        body { overflow: auto; height: auto; background: #f5f5f5; }
-
-        .portal-header {
-            background: #0078d4;
-            color: white;
-            padding: 0 24px;
-            height: 48px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        .portal-brand {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-weight: 600;
-            font-size: 15px;
-        }
-        .portal-brand img { height: 28px; filter: brightness(0) invert(1); }
-        .portal-nav {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .portal-nav a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            padding: 6px 14px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.15s;
-        }
-        .portal-nav a:hover { background: rgba(255,255,255,0.15); color: white; }
-        .portal-nav a.active { background: rgba(255,255,255,0.2); color: white; }
-        .portal-user {
-            display: flex;
-            align-items: center;
-            position: relative;
-        }
-
-        .portal-layout {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 28px 24px;
-        }
-
-        .back-link {
+// Page-specific styling only — shared chrome lives in self-service.css.
+$pageStyles = <<<'CSS'
+.back-link {
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -122,27 +57,6 @@ $translationNamespaces = ['common', 'self-service'];
         }
 
         /* Status & Priority badges (reused from dashboard) */
-        .status-badge {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-        }
-        .status-open { background: #dbeafe; color: #1e40af; }
-        .status-in-progress { background: #fff7ed; color: #c2410c; }
-        .status-on-hold { background: #fef3c7; color: #92400e; }
-        .status-closed { background: #d1fae5; color: #065f46; }
-        .priority-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 500;
-        }
-        .priority-high { background: #fee2e2; color: #991b1b; }
-        .priority-normal { background: #f3f4f6; color: #6b7280; }
-        .priority-low { background: #e0e7ff; color: #3730a3; }
 
         /* Thread */
         .thread-section {
@@ -201,19 +115,6 @@ $translationNamespaces = ['common', 'self-service'];
             line-height: 1.6;
         }
         .thread-body img { max-width: 100%; }
-
-        .empty-state {
-            text-align: center;
-            padding: 40px 20px;
-            color: #999;
-            font-size: 14px;
-        }
-        .loading-state {
-            text-align: center;
-            padding: 30px 20px;
-            color: #999;
-            font-size: 13px;
-        }
         .error-state {
             text-align: center;
             padding: 40px 20px;
@@ -253,34 +154,10 @@ $translationNamespaces = ['common', 'self-service'];
             color: #777;
             margin-top: 8px;
         }
-    </style>
-</head>
-<body>
-    <div class="portal-header">
-        <div class="portal-brand">
-            <img src="../assets/images/CompanyLogo.png" alt="Logo">
-            <span><?php echo htmlspecialchars(t('self-service.portal')); ?></span>
-        </div>
-        <nav class="portal-nav">
-            <a href="index.php"><?php echo htmlspecialchars(t('self-service.nav.dashboard')); ?></a>
-            <a href="new-ticket.php"><?php echo htmlspecialchars(t('self-service.nav.new_ticket')); ?></a>
-            <a href="help.php"><?php echo htmlspecialchars(t('self-service.nav.help')); ?></a>
-        </nav>
-        <?php include 'includes/user-menu.php'; ?>
-    </div>
+CSS;
 
-    <div class="portal-layout">
-        <a href="index.php" class="back-link">&lsaquo; <?php echo htmlspecialchars(t('self-service.ticket.back')); ?></a>
-
-        <div id="ticketContent">
-            <div class="loading-state"><?php echo htmlspecialchars(t('self-service.ticket.loading')); ?></div>
-        </div>
-    </div>
-
-    <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <script src="../assets/js/i18n.js?v=2"></script>
-    <script>
-        const TICKET_ID = <?php echo $ticketId; ?>;
+$pageScripts = <<<'JS'
+const TICKET_ID = <?php echo $ticketId; ?>;
 
         document.addEventListener('DOMContentLoaded', loadTicket);
 
@@ -433,6 +310,13 @@ $translationNamespaces = ['common', 'self-service'];
             div.textContent = text || '';
             return div.innerHTML;
         }
-    </script>
-</body>
-</html>
+JS;
+
+require __DIR__ . '/includes/header.php';
+?>
+        <a href="index.php" class="back-link">&lsaquo; <?php echo htmlspecialchars(t('self-service.ticket.back')); ?></a>
+
+        <div id="ticketContent">
+            <div class="loading-state"><?php echo htmlspecialchars(t('self-service.ticket.loading')); ?></div>
+        </div>
+<?php require __DIR__ . '/includes/footer.php';
