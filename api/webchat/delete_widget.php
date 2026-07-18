@@ -11,6 +11,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -36,6 +37,12 @@ try {
     $cur->execute([$id]);
     $channelId = $cur->fetchColumn();
     if (!$channelId) {
+        throw new Exception('Widget not found');
+    }
+
+    // Only a widget this analyst may administer — one belonging to a company they
+    // can't reach is framed as not-found rather than confirming it exists.
+    if (!analystCanAccessChannel($conn, (int) $_SESSION['analyst_id'], (int) $channelId)) {
         throw new Exception('Widget not found');
     }
 

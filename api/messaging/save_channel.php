@@ -13,6 +13,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/encryption.php';
 require_once '../../includes/messaging/messaging.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -57,6 +58,15 @@ try {
 
     $conn = connectToDatabase();
 
+    // On edit, the channel must be one this analyst may administer — otherwise an
+    // analyst restricted to company A could re-point company B's channel (or its
+    // credentials) at themselves. Shared-intake channels are administerable by
+    // anyone holding the capability; see analystCanAccessChannel().
+    if ($id && !analystCanAccessChannel($conn, (int) $_SESSION['analyst_id'], (int) $id)) {
+        echo json_encode(['success' => false, 'error' => 'Channel not found']);
+        exit;
+    }
+
     // Pinned company (NULL = shared intake). Validate it's a real company.
     $tenantId = $data['tenant_id'] ?? null;
     if ($tenantId === '' || $tenantId === 0 || $tenantId === '0') {
@@ -69,6 +79,13 @@ try {
         if ((int) $chk->fetchColumn() === 0) {
             $tenantId = null;
         }
+    }
+    // ...and it must be a company this analyst can actually reach. Refuse rather
+    // than silently falling back to shared intake, which would quietly widen the
+    // channel instead of failing.
+    if (!analystCanAssignTenant($conn, (int) $_SESSION['analyst_id'], $tenantId)) {
+        echo json_encode(['success' => false, 'error' => 'You do not have access to that company']);
+        exit;
     }
 
     // Load existing (on edit) so blank/masked secret fields are preserved, not wiped.

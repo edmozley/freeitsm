@@ -8,6 +8,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -28,6 +29,14 @@ try {
     }
 
     $conn = connectToDatabase();
+
+    // Only a channel this analyst may administer — a channel pinned to a company
+    // they can't reach is framed as not-found rather than confirming it exists.
+    if (!analystCanAccessChannel($conn, (int) $_SESSION['analyst_id'], $id)) {
+        echo json_encode(['success' => false, 'error' => 'Channel not found']);
+        exit;
+    }
+
     $conn->prepare("DELETE FROM messaging_channels WHERE id = ?")->execute([$id]);
 
     echo json_encode(['success' => true, 'message' => 'Channel deleted']);

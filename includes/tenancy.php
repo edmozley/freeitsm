@@ -283,6 +283,66 @@ function analystCanAccessChange(PDO $conn, int $analystId, $changeId): bool {
 }
 
 /**
+ * May this analyst administer this *messaging channel* (WhatsApp number, web
+ * chat widget) by its owning company?
+ *
+ * ⚠️ NULL tenant_id does NOT mean "Default-owned" here — unlike tickets,
+ * changes and assets. A channel mirrors a MAILBOX: NULL = **shared intake**, a
+ * channel serving every company whose inbound messages are routed per-sender by
+ * resolveTicketTenantForChannel(). A shared channel is nobody's private
+ * property, so anyone holding the messaging capability may administer it; only
+ * a channel PINNED to a company is restricted to analysts who can reach that
+ * company.
+ *
+ * This gates WRITES only. The channel *list* is deliberately install-wide (the
+ * same tier as mailbox connections — MSP-global settings), and it returns no
+ * credentials, only a has_credentials flag.
+ *
+ * Single-company install → always true; unknown id → false; part-migrated table
+ * → true.
+ */
+function analystCanAccessChannel(PDO $conn, int $analystId, $channelId): bool {
+    if (!isMultiTenant($conn)) {
+        return true;
+    }
+    $channelId = (int) $channelId;
+    if ($channelId <= 0) {
+        return false;
+    }
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM messaging_channels WHERE id = ?");
+        $stmt->execute([$channelId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+        if ($row['tenant_id'] === null) {
+            return true; // shared intake — not owned by any one company.
+        }
+        return analystCanAccessTenant($conn, $analystId, (int) $row['tenant_id']);
+    } catch (Exception $e) {
+        return true; // tenant_id column missing on a part-migrated install.
+    }
+}
+
+/**
+ * May this analyst PIN a channel (or anything else) to this company?
+ *
+ * Write-side counterpart to the guard above, for a company id supplied by the
+ * client. NULL is allowed through — it means "shared intake", not a company.
+ * Single-company install → always true (there is only one company to pick).
+ */
+function analystCanAssignTenant(PDO $conn, int $analystId, $tenantId): bool {
+    if (!isMultiTenant($conn)) {
+        return true;
+    }
+    if ($tenantId === null || $tenantId === '' || (int) $tenantId <= 0) {
+        return true; // shared / unassigned
+    }
+    return analystCanAccessTenant($conn, $analystId, (int) $tenantId);
+}
+
+/**
  * May this analyst access this *asset* (by its owning company)? The Asset
  * Management twin of analystCanAccessChange() — same rules (single-company →
  * always true; NULL tenant treated as Default-owned; unknown id → false;

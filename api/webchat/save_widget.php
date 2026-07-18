@@ -17,6 +17,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/rbac.php';
 require_once '../../includes/webchat/webchat.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -93,6 +94,13 @@ try {
             $tenantId = null;
         }
     }
+    // ...and it must be a company this analyst can reach. Refuse rather than
+    // silently falling back to shared, which would widen the widget instead of
+    // failing — a widget is embedded on one client's website.
+    if (!analystCanAssignTenant($conn, (int) $_SESSION['analyst_id'], $tenantId)) {
+        echo json_encode(['success' => false, 'error' => 'You do not have access to that company']);
+        exit;
+    }
 
     $conn->beginTransaction();
 
@@ -105,6 +113,12 @@ try {
             throw new Exception('Widget not found');
         }
         $channelId = (int) $channelId;
+
+        // The widget being edited must belong to a company this analyst may
+        // administer, or they could re-point another client's live widget.
+        if (!analystCanAccessChannel($conn, (int) $_SESSION['analyst_id'], $channelId)) {
+            throw new Exception('Widget not found');
+        }
 
         $conn->prepare(
             "UPDATE messaging_channels
