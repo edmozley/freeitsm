@@ -14,6 +14,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 require_once __DIR__ . '/_ai_helpers.php';
 
 header('Content-Type: application/json');
@@ -31,6 +32,16 @@ try {
     if ($id <= 0) throw new Exception('id is required');
 
     $conn = connectToDatabase();
+
+    // Company gate. This one both reads the CI's whole neighbourhood (properties,
+    // children, relationships) AND writes back ai_summary, so an ungated call
+    // would leak another company's estate into an AI prompt and then persist the
+    // generated prose onto their record.
+    if (!analystCanAccessCmdbObject($conn, (int) $_SESSION['analyst_id'], $id)) {
+        echo json_encode(['success' => false, 'error' => 'Object not found']);
+        exit;
+    }
+
     $cfg = loadCmdbAiConfig($conn);
 
     // Pull the object + class + parent
