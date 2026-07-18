@@ -143,6 +143,37 @@ if (count($_um_parts) > 1) {
     }
     .ss-modal-close:hover { color: #333; }
     .ss-modal-body { padding: 24px; }
+
+    /* Appearance picker — the portal's equivalent of the analyst waffle-menu
+       palette swatches. Swatch colours are literal on purpose: they must show
+       what each palette LOOKS like, so they can't come from the active theme. */
+    .ss-theme-picker { display: flex; gap: 10px; flex-wrap: wrap; }
+    .ss-theme-option {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border: 1px solid var(--border, #d1d5db);
+        border-radius: 6px;
+        background: var(--surface, #fff);
+        color: var(--text, #333);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: border-color .15s, box-shadow .15s;
+    }
+    .ss-theme-option:hover { border-color: var(--ss-accent, #10b981); }
+    .ss-theme-option.selected {
+        border-color: var(--ss-accent, #10b981);
+        box-shadow: 0 0 0 2px var(--ss-accent-soft, #d1fae5);
+    }
+    .ss-theme-swatch {
+        width: 18px; height: 18px; border-radius: 4px;
+        border: 1px solid rgba(0,0,0,.15);
+        display: inline-block;
+    }
+    .ss-theme-swatch-default { background: linear-gradient(135deg, #ffffff 50%, #f3f4f6 50%); }
+    .ss-theme-swatch-dark    { background: linear-gradient(135deg, #1f2937 50%, #111827 50%); }
     .ss-modal-footer {
         padding: 16px 24px;
         border-top: 1px solid #e0e0e0;
@@ -288,6 +319,26 @@ if (count($_um_parts) > 1) {
                 <button class="ss-btn ss-btn-primary" id="ssNameSaveBtn" onclick="ssSavePreferredName()"><?php echo htmlspecialchars(t('self-service.account.save')); ?></button>
             </div>
 
+            <!-- Appearance. Analysts pick a palette from the waffle menu; portal
+                 users have no waffle menu, so their picker lives here. Saves and
+                 applies immediately — no page reload, because the whole portal is
+                 driven by theme tokens on <html data-theme>. -->
+            <div style="border-top:1px solid var(--border, #e0e0e0); padding-top:20px; margin-bottom:24px;">
+                <div style="font-size:15px;font-weight:600;color:var(--text,#333);margin-bottom:12px;">
+                    <?php echo htmlspecialchars(t('self-service.account.appearance')); ?>
+                </div>
+                <div class="ss-theme-picker" id="ssThemePicker">
+                    <?php foreach (Theme::all() as $tid => $meta): ?>
+                    <button type="button" class="ss-theme-option" data-theme-id="<?php echo htmlspecialchars($tid); ?>"
+                            onclick="ssSetTheme(this.dataset.themeId)">
+                        <span class="ss-theme-swatch ss-theme-swatch-<?php echo htmlspecialchars($tid); ?>"></span>
+                        <?php echo htmlspecialchars(t('self-service.account.theme_' . $tid)); ?>
+                    </button>
+                    <?php endforeach; ?>
+                </div>
+                <div class="ss-form-hint"><?php echo htmlspecialchars(t('self-service.account.appearance_hint')); ?></div>
+            </div>
+
             <div style="border-top:1px solid #e0e0e0; padding-top:20px;">
                 <div style="font-size:15px;font-weight:600;color:#333;margin-bottom:16px;"><?php echo htmlspecialchars(t('self-service.account.change_password')); ?></div>
                 <div id="ssPwMsg" class="ss-msg"></div>
@@ -409,6 +460,40 @@ function ssShowAcctMsg(msg, type) {
     el.className = 'ss-msg ' + type;
     el.textContent = msg;
 }
+
+/**
+ * Switch colour palette. Applies instantly by swapping the attributes on <html>
+ * — the whole portal is driven by theme tokens, so nothing needs reloading —
+ * then persists to the user record so it sticks on the next visit.
+ */
+async function ssSetTheme(themeId) {
+    const modes = { 'default': 'light', 'dark': 'dark' };
+    document.documentElement.setAttribute('data-theme', themeId);
+    document.documentElement.setAttribute('data-theme-mode', modes[themeId] || 'light');
+    ssMarkSelectedTheme(themeId);
+
+    try {
+        await fetch('../api/self-service/save_theme.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ theme: themeId })
+        });
+    } catch (e) {
+        // The visual change already happened; a failed save just means it won't
+        // persist. Not worth an error banner over.
+        console.warn('Could not save theme preference', e);
+    }
+}
+
+function ssMarkSelectedTheme(themeId) {
+    document.querySelectorAll('.ss-theme-option').forEach(function (btn) {
+        btn.classList.toggle('selected', btn.dataset.themeId === themeId);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    ssMarkSelectedTheme(document.documentElement.getAttribute('data-theme') || 'default');
+});
 
 async function ssSavePreferredName() {
     const btn = document.getElementById('ssNameSaveBtn');

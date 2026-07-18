@@ -219,6 +219,10 @@ return [
 
     'account' => [
         'heading'             => 'My Account',
+        'appearance'          => 'Appearance',
+        'appearance_hint'     => 'Choose how the portal looks. Saved to your account.',
+        'theme_default'       => 'Light',
+        'theme_dark'          => 'Dark',
         'preferred_name'      => 'Preferred Name',
         'preferred_name_placeholder' => 'e.g. Ed',
         'preferred_name_hint' => 'How you would like to be addressed (leave blank to use your full name)',

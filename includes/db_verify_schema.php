@@ -262,6 +262,10 @@ return [
         'totp_secret'     => 'VARCHAR(500) NULL',
         'totp_enabled'    => 'TINYINT(1) NOT NULL DEFAULT 0',
         'auth_provider_id' => 'INT NULL',
+        // Portal user's colour palette ('default' | 'dark'); NULL = install
+        // default. Analysts use user_preferences, which is keyed by analyst_id
+        // and so unavailable to portal users.
+        'theme_preference' => 'VARCHAR(32) NULL',
         'created_at'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 

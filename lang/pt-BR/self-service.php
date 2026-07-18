@@ -209,6 +209,10 @@ return [
 
     'account' => [
         'heading'             => 'Minha conta',
+        'appearance'          => 'Aparência',
+        'appearance_hint'     => 'Escolha a aparência do portal. Salvo na sua conta.',
+        'theme_default'       => 'Claro',
+        'theme_dark'          => 'Escuro',
         'preferred_name'      => 'Nome preferido',
         'preferred_name_placeholder' => 'ex. Ed',
         'preferred_name_hint' => 'Como você gostaria de ser chamado (deixe em branco para usar o seu nome completo)',

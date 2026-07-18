@@ -59,6 +59,32 @@ class Theme
             require_once __DIR__ . '/functions.php';
         }
 
+        // Self-service portal users. They have no analyst_id, so without this
+        // branch a portal user could only ever get the default palette — the
+        // portal would be tokenised but the tokens unreachable. Their choice
+        // lives on the user row (users.theme_preference); the session copy is
+        // just a cache so a signed-in page doesn't hit the DB every request.
+        if (empty($_SESSION['analyst_id']) && !empty($_SESSION['ss_user_id'])) {
+            if (isset($_SESSION['ss_theme']) && self::isValid($_SESSION['ss_theme'])) {
+                return self::$cache[$ckey] = $_SESSION['ss_theme'];
+            }
+            if (function_exists('connectToDatabase')) {
+                try {
+                    $conn = connectToDatabase();
+                    $stmt = $conn->prepare("SELECT theme_preference FROM users WHERE id = ?");
+                    $stmt->execute([(int) $_SESSION['ss_user_id']]);
+                    $val = $stmt->fetchColumn();
+                    if ($val !== false && self::isValid($val)) {
+                        $_SESSION['ss_theme'] = $val;   // cache for later requests
+                        return self::$cache[$ckey] = $val;
+                    }
+                } catch (Throwable $e) {
+                    // column not added yet, or DB unavailable — fall through to default
+                }
+            }
+            return self::$cache[$ckey] = $theme;
+        }
+
         if (!empty($_SESSION['analyst_id']) && function_exists('connectToDatabase')) {
             try {
                 $keys = [];

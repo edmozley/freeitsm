@@ -311,6 +311,11 @@ CREATE TABLE IF NOT EXISTS `users` (
     `totp_secret`     VARCHAR(500) NULL,
     `totp_enabled`    TINYINT(1) NOT NULL DEFAULT 0,
     `auth_provider_id` INT NULL,
+    -- The portal user's chosen colour palette ('default' | 'dark'), matching the
+    -- ids in Theme::THEMES. NULL = follow the install default. Analysts keep
+    -- theirs in `user_preferences` (keyed by analyst_id), which portal users
+    -- can't use — hence a column here rather than a row there.
+    `theme_preference` VARCHAR(32) NULL,
     `created_at`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_users_email` (`email`)

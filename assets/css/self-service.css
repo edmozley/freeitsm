@@ -1,0 +1,269 @@
+/**
+ * Self-service portal — the shared chrome.
+ *
+ * Until now every portal page carried its own copy of the header, nav, cards,
+ * badges and table CSS inline: ~926 lines across four pages, with the nav block
+ * duplicated verbatim four times. Adding a page meant a fifth copy. This is that
+ * CSS, once.
+ *
+ * Everything is expressed in THEME TOKENS (assets/css/theme.css), so the portal
+ * now follows light/dark like every analyst module. The tokens it leans on —
+ * --ss-accent, --ss-accent-hover, --ss-accent-soft, --ss-on-accent — already
+ * existed in theme.css for both schemes; the portal simply never used them.
+ *
+ * ⚠️ Every var() below must exist in theme.css. A missing token doesn't error,
+ * it silently falls back to the second argument — so a typo looks "fine" and
+ * quietly ignores dark mode. Each var() here carries a sensible light-mode
+ * fallback deliberately, but that is a safety net, not the design.
+ */
+
+/* inbox.css sets a fixed app-shell height; the portal is a normal scrolling page. */
+body {
+    overflow: auto;
+    height: auto;
+    background: var(--app-bg, #f5f5f5);
+    color: var(--text, #333);
+}
+
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.portal-header {
+    background: var(--ss-accent, #0078d4);
+    color: var(--ss-on-accent, #fff);
+    padding: 0 24px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: var(--shadow, 0 1px 3px rgba(0, 0, 0, 0.15));
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.portal-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ss-on-accent, #fff);
+}
+/* The logo is a dark-on-transparent PNG; force it white against the accent bar. */
+.portal-brand img { height: 28px; filter: brightness(0) invert(1); }
+
+.portal-nav { display: flex; align-items: center; gap: 4px; }
+.portal-nav a {
+    color: rgba(255, 255, 255, 0.82);
+    text-decoration: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+    white-space: nowrap;
+}
+.portal-nav a:hover { background: rgba(255, 255, 255, 0.15); color: #fff; }
+.portal-nav a.active { background: rgba(255, 255, 255, 0.22); color: #fff; }
+.portal-user { display: flex; align-items: center; position: relative; }
+
+/* ── Layout ─────────────────────────────────────────────────────────────── */
+/* FULL WIDTH, edge to edge — the portal used to cap at 1200px and centre.
+ * ⚠️ `max-width: none` alone is NOT enough here: inbox.css puts a
+ * `margin: … auto` on shared containers, and that auto-margin silently cancels
+ * the stretch. Both must be reset, which is why `margin: 0` is explicit.
+ * Verify with a screenshot, not by reading the CSS — this one looks right and
+ * isn't. */
+.portal-layout {
+    max-width: none;
+    width: 100%;
+    margin: 0;
+    padding: 28px 32px;
+    box-sizing: border-box;
+}
+
+.welcome-section { margin-bottom: 24px; }
+.welcome-section h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text, #333);
+    margin: 0 0 4px;
+}
+.welcome-section p { color: var(--text-muted, #888); font-size: 14px; margin: 0; }
+
+.portal-grid {
+    display: grid;
+    grid-template-columns: 1fr 350px;
+    gap: 24px;
+    align-items: start;
+}
+
+.portal-section {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.section-header h2 { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0; }
+.section-header a {
+    font-size: 12px;
+    color: var(--ss-accent, #0078d4);
+    text-decoration: none;
+    font-weight: 500;
+}
+.section-header a:hover { text-decoration: underline; }
+
+/* ── Summary cards ──────────────────────────────────────────────────────── */
+.summary-cards {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+}
+.summary-card {
+    background: var(--surface, #fff);
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--border, #e5e7eb);
+    transition: box-shadow 0.2s;
+}
+.summary-card:hover { box-shadow: var(--shadow, 0 2px 8px rgba(0, 0, 0, 0.08)); }
+.summary-card .card-label {
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    color: var(--text-muted, #666);
+}
+.summary-card .card-value { font-size: 32px; font-weight: 700; line-height: 1; color: var(--text, #333); }
+/* Status cards colour themselves from the DB `colour` column at render time —
+   these are only the fallbacks for the Total card and any uncoloured status. */
+.card-total .card-label { color: var(--text-muted, #555); }
+.card-total .card-value { color: var(--text, #333); }
+.card-total { border-top: 3px solid var(--text-faint, #6b7280); }
+
+/* ── Tables ─────────────────────────────────────────────────────────────── */
+/* inbox.css gives tables a margin, which showed as an empty band between a
+   section header and its first row. Reset it inside portal sections. */
+.portal-section .ticket-table { margin: 0; }
+.ticket-table { width: 100%; border-collapse: collapse; }
+.ticket-table th {
+    background: var(--surface-hover, #f9fafb);
+    padding: 10px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted, #666);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.ticket-table td {
+    padding: 12px 16px;
+    font-size: 13px;
+    color: var(--text, #333);
+    border-bottom: 1px solid var(--border-soft, #f3f4f6);
+}
+.ticket-table tr:last-child td { border-bottom: none; }
+.ticket-table tr:hover { background: var(--surface-hover, #f8fafc); }
+.ticket-table .ticket-link { color: var(--ss-accent, #0078d4); text-decoration: none; font-weight: 500; }
+.ticket-table .ticket-link:hover { text-decoration: underline; }
+.ticket-number {
+    font-family: 'Consolas', 'Courier New', monospace;
+    font-size: 12px;
+    color: var(--text-muted, #888);
+}
+.ticket-date { font-size: 12px; color: var(--text-faint, #999); white-space: nowrap; }
+
+/* ── Badges ─────────────────────────────────────────────────────────────── */
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+}
+.priority-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 500;
+}
+/* Fallbacks, used when a lookup row has no colour of its own.
+ *
+ * Semantic pairs (--*-bg with its matching --*-text) flip together, so a pill
+ * becomes dark-bg + light-text in dark mode rather than staying pale. The BLUE
+ * ones stay literal on purpose: there is no --info-* pair in theme.css, and per
+ * the theming guidance you reach for an existing token rather than invent one —
+ * a self-coloured badge reads fine on either surface. */
+.status-open        { background: #dbeafe;                    color: #1e40af; }
+.status-in-progress { background: var(--warning-bg, #fff7ed); color: var(--warning-text, #c2410c); }
+.status-on-hold     { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
+.status-closed      { background: var(--success-bg, #d1fae5); color: var(--success-text, #065f46); }
+.priority-high      { background: var(--danger-bg, #fee2e2);  color: var(--danger-text, #991b1b); }
+.priority-normal    { background: var(--surface-hover, #f3f4f6); color: var(--text-muted, #6b7280); }
+.priority-low       { background: #e0e7ff;                    color: #3730a3; }
+
+/* ── Service status ─────────────────────────────────────────────────────── */
+.service-list { padding: 8px 0; }
+.service-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--border-soft, #f3f4f6);
+}
+.service-item:last-child { border-bottom: none; }
+.service-item .svc-name { font-size: 13px; font-weight: 500; color: var(--text, #333); }
+
+.impact-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.impact-operational    { background: var(--success-bg, #d1fae5); color: var(--success-text, #065f46); }
+.impact-degraded       { background: var(--warning-bg, #fff7ed); color: var(--warning-text, #c2410c); }
+.impact-partial-outage { background: var(--danger-bg, #fff1f2);  color: var(--danger-text, #be123c); }
+.impact-major-outage   { background: var(--danger-bg, #fee2e2);  color: var(--danger-text, #991b1b); }
+.impact-maintenance    { background: #dbeafe;                    color: #1e40af; }  /* blue: no --info-* pair */
+
+.all-operational {
+    text-align: center;
+    padding: 16px 20px;
+    color: var(--success-text, #065f46);
+    font-size: 13px;
+    font-weight: 600;
+}
+.all-operational svg { vertical-align: middle; margin-right: 6px; }
+
+/* ── States ─────────────────────────────────────────────────────────────── */
+.empty-state   { text-align: center; padding: 40px 20px; color: var(--text-faint, #999); font-size: 14px; }
+.loading-state { text-align: center; padding: 30px 20px; color: var(--text-faint, #999); font-size: 13px; }
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .portal-grid { grid-template-columns: 1fr; }
+    .summary-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 640px) {
+    .portal-header { padding: 0 14px; }
+    .portal-layout { padding: 20px 14px; }
+    .portal-brand span { display: none; }   /* logo only, to buy nav room */
+    .portal-nav a { padding: 6px 10px; }
+}
+@media (max-width: 500px) {
+    .summary-cards { grid-template-columns: 1fr; }
+    /* Table rows get cramped; hide the least important columns rather than
+       letting the table scroll sideways — see the mobile-friendly guidance. */
+    .ticket-table .col-optional { display: none; }
+}
