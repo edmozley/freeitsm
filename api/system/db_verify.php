@@ -834,7 +834,9 @@ $schema = [
         'name'              => 'VARCHAR(100) NOT NULL',
         'parent_id'         => 'INT NULL',
         'display_order'     => 'INT NOT NULL DEFAULT 0',
-        // Multi-tenancy config: NULL = global/shared location, set = a company's own.
+        // Multi-tenancy SCOPED DATA (not a config list, unlike the two lists
+        // above): a company's sites are entirely its own, so NULL = the Default
+        // company's, set = that company's. Read via activeTenantFilter().
         'tenant_id'         => 'INT NULL',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
@@ -3097,11 +3099,14 @@ try {
     }
 
     // --- Asset Management multi-tenancy (mirrors ticket_types above) ----------
-    // asset_types / asset_status_types / asset_locations: NULL tenant_id = global
-    // default (shared by every company); set = a company's own. For the two named
-    // option-lists, widen name-uniqueness from global to per-scope so a company may
-    // hold an option whose name matches a shared default (global-name dedup is
-    // enforced in the API — NULL tenant_id rows aren't de-duped by a unique key).
+    // asset_types / asset_status_types are CONFIG LISTS: NULL tenant_id = global
+    // default (shared by every company); set = a company's own. Widen their
+    // name-uniqueness from global to per-scope so a company may hold an option
+    // whose name matches a shared default (global-name dedup is enforced in the
+    // API — NULL tenant_id rows aren't de-duped by a unique key).
+    // asset_locations is NOT a config list — it is SCOPED DATA (a company's sites
+    // are its own, never shared), so NULL means the Default company's rather than
+    // "global" and it takes no name unique. Same CASCADE either way.
     foreach ([
         ['asset_types',        'fk_asset_types_tenant',        'uq_asset_types_name',        'uq_asset_types_tenant_name'],
         ['asset_status_types', 'fk_asset_status_types_tenant', 'uq_asset_status_types_name', 'uq_asset_status_types_tenant_name'],

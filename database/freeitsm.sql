@@ -1126,10 +1126,19 @@ CREATE TABLE IF NOT EXISTS `asset_locations` (
     `name`              VARCHAR(100) NOT NULL,
     `parent_id`         INT NULL,
     `display_order`     INT NOT NULL DEFAULT 0,
+    -- Multi-tenancy: SCOPED DATA, not a config list. A company's physical sites
+    -- are entirely its own — there is no such thing as a shared office — so this
+    -- scopes like `assets` (activeTenantFilter): the Default company owns the
+    -- pre-existing NULL rows, and a client company sees only its own. Deleting a
+    -- company CASCADEs its locations away rather than promoting them to NULL,
+    -- which would hand them to Default. Assets pointing at a deleted location
+    -- fall back to none via fk_assets_location (ON DELETE SET NULL).
+    `tenant_id`         INT NULL,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     KEY `idx_asset_locations_parent` (`parent_id`),
-    CONSTRAINT `fk_asset_locations_parent` FOREIGN KEY (`parent_id`) REFERENCES `asset_locations` (`id`)
+    CONSTRAINT `fk_asset_locations_parent` FOREIGN KEY (`parent_id`) REFERENCES `asset_locations` (`id`),
+    CONSTRAINT `fk_asset_locations_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `assets` (
