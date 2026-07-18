@@ -138,6 +138,13 @@ return [
             'setting_keys' => ['system_name', 'reopen_on_customer_reply'],
         ],
         [
+            'id'           => 'privacy',
+            'cap'          => Cap::TICKETS_PRIVACY,
+            'label_key'    => 'tickets.settings.tabs.privacy',
+            'grant'        => 'Control what requesters see of their own ticket in the self-service portal',
+            'setting_keys' => ['portal_third_party_visibility'],
+        ],
+        [
             // The shared AI settings panel, namespace tickets_reply_cleanup.
             'id'           => 'reply-cleanup',
             'cap'          => Cap::TICKETS_REPLY_CLEANUP,

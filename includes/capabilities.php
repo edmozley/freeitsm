@@ -174,6 +174,7 @@ final class Cap
     const TICKETS_WEBCHAT         = 'tickets.webchat';          // website chat widgets
     const TICKETS_EMAIL_TEMPLATES = 'tickets.email_templates';
     const TICKETS_GENERAL         = 'tickets.general';
+    const TICKETS_PRIVACY         = 'tickets.privacy';          // what requesters see of their own ticket
     const TICKETS_REPLY_CLEANUP   = 'tickets.reply_cleanup';    // AI provider + API key
     const TICKETS_CSAT            = 'tickets.csat';
 }

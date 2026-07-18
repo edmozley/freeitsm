@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/portal_visibility.php';
 
 header('Content-Type: application/json');
 
@@ -46,17 +47,41 @@ try {
         exit;
     }
 
+    // The requester's own address — the yardstick for "was this correspondence
+    // with them, or about them" (see includes/portal_visibility.php).
+    $reqStmt = $conn->prepare("SELECT email FROM users WHERE id = ?");
+    $reqStmt->execute([$userId]);
+    $requesterEmail = (string)($reqStmt->fetchColumn() ?: '');
+    $policy = portalThirdPartyPolicy($conn);
+
     // Fetch email thread
     $threadStmt = $conn->prepare(
         // body_type: chat messages are stored verbatim as 'text' and must be
         // escaped by the renderer, not parsed as markup.
-        "SELECT id, from_name, received_datetime, body_content, body_type, direction
+        // channel / from / to / cc drive the third-party visibility rule; they are
+        // used for the decision and then stripped, never returned to the browser —
+        // the portal has no business listing who else was on an email.
+        "SELECT id, from_name, received_datetime, body_content, body_type, direction,
+                channel, from_address, to_recipients, cc_recipients
          FROM emails
          WHERE ticket_id = ?
          ORDER BY received_datetime ASC"
     );
     $threadStmt->execute([$ticketId]);
     $thread = $threadStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Apply the privacy policy, then drop the routing columns from the payload.
+    $visibleThread   = [];
+    $noAttachmentIds = [];   // shown, but their files are withheld
+    foreach ($thread as $msg) {
+        $decision = portalEmailVisibility($msg, $requesterEmail, $policy);
+        if (!$decision['visible']) continue;
+        if (!$decision['attachments']) $noAttachmentIds[(int)$msg['id']] = true;
+
+        unset($msg['channel'], $msg['from_address'], $msg['to_recipients'], $msg['cc_recipients']);
+        $visibleThread[] = $msg;
+    }
+    $thread = $visibleThread;
 
     // Attachments for the whole thread in one query, then bucketed onto their
     // message — so a requester can finally retrieve the file an analyst sent them.
@@ -84,7 +109,12 @@ try {
             ];
         }
         foreach ($thread as &$msg) {
-            $msg['attachments'] = $byEmail[(int)$msg['id']] ?? [];
+            // A message kept visible under "show the message, withhold the file"
+            // lists no attachments. get_attachment.php enforces the same rule
+            // independently — an empty list here is presentation, not security.
+            $msg['attachments'] = isset($noAttachmentIds[(int)$msg['id']])
+                ? []
+                : ($byEmail[(int)$msg['id']] ?? []);
         }
         unset($msg);
     }

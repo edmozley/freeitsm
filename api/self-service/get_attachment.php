@@ -15,6 +15,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/portal_visibility.php';
 
 if (!isset($_SESSION['ss_user_id'])) {
     http_response_code(401);
@@ -37,16 +38,35 @@ try {
     // deleted. A miss is a 404 either way, so a wrong id and someone else's id
     // are indistinguishable from outside.
     $stmt = $conn->prepare(
-        "SELECT ea.filename, ea.content_type, ea.file_path, ea.file_size
+        "SELECT ea.filename, ea.content_type, ea.file_path, ea.file_size,
+                e.channel, e.direction, e.from_address, e.to_recipients, e.cc_recipients,
+                u.email AS requester_email
          FROM email_attachments ea
          JOIN emails e  ON e.id = ea.email_id
          JOIN tickets t ON t.id = e.ticket_id
+         JOIN users u   ON u.id = t.user_id
          WHERE ea.id = ? AND t.user_id = ? AND t.deleted_datetime IS NULL"
     );
     $stmt->execute([$attachmentId, $userId]);
     $attachment = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$attachment) {
+        http_response_code(404);
+        exit('Attachment not found');
+    }
+
+    // Owning the ticket is not the whole question: a ticket can carry mail that
+    // was never TO or FROM the requester (an analyst forwarding to a supplier,
+    // and that supplier's reply). Tickets → Settings → Privacy decides. Enforced
+    // HERE as well as in the listing, because hiding a link while the URL still
+    // works is decoration — the id is trivially guessable and the file is the
+    // sensitive part. See includes/portal_visibility.php.
+    $decision = portalEmailVisibility(
+        $attachment,
+        (string)($attachment['requester_email'] ?? ''),
+        portalThirdPartyPolicy($conn)
+    );
+    if (!$decision['attachments']) {
         http_response_code(404);
         exit('Attachment not found');
     }

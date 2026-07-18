@@ -936,9 +936,52 @@ $translationNamespaces = ['common', 'tickets'];
 
         </div>
 
-        <!-- Reply Cleanup Tab -->
         <?php endif; ?>
 
+        <!-- Privacy Tab -->
+        <?php if (settingsTabVisible($visibleTabs, 'privacy')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'privacy' ? ' active' : ''; ?>" id="privacy-tab" data-capability="<?php echo Cap::TICKETS_PRIVACY; ?>">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.privacy')); ?></h2>
+            </div>
+            <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.privacy'); ?></p>
+            <form id="privacySettingsForm" style="max-width: 760px;">
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('tickets.settings.privacy.third_party_label')); ?></label>
+
+                    <label style="display:block;margin-top:10px;font-weight:400;">
+                        <input type="radio" name="thirdPartyVisibility" value="hide">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.privacy.opt_hide')); ?></strong>
+                        <small style="display:block;margin-left:22px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.privacy.opt_hide_help')); ?></small>
+                    </label>
+
+                    <label style="display:block;margin-top:10px;font-weight:400;">
+                        <input type="radio" name="thirdPartyVisibility" value="no_attachments">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.privacy.opt_no_attachments')); ?></strong>
+                        <small style="display:block;margin-left:22px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.privacy.opt_no_attachments_help')); ?></small>
+                    </label>
+
+                    <label style="display:block;margin-top:10px;font-weight:400;">
+                        <input type="radio" name="thirdPartyVisibility" value="show">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.privacy.opt_show')); ?></strong>
+                        <small style="display:block;margin-left:22px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.privacy.opt_show_help')); ?></small>
+                    </label>
+                </div>
+
+                <!-- --accent-soft, not --ss-accent-soft: this is an analyst page, and
+                     the ss- tokens are the portal's green. -->
+                <div class="info-box" style="margin-top:18px;padding:12px 14px;border-radius:6px;background: var(--accent-soft, #eff6ff);border-left:4px solid var(--accent, #0078d4);">
+                    <small><?php echo t('tickets.settings.privacy.always_visible_note'); ?></small>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-start; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                </div>
+            </form>
+        </div>
+        <?php endif; ?>
+
+        <!-- Reply Cleanup Tab -->
         <?php if (settingsTabVisible($visibleTabs, 'reply-cleanup')): ?>
         <div class="tab-content<?php echo $activeTabId === 'reply-cleanup' ? ' active' : ''; ?>" id="reply-cleanup-tab" data-capability="<?php echo Cap::TICKETS_REPLY_CLEANUP; ?>">
             <div class="section-header">
@@ -4157,6 +4200,7 @@ $translationNamespaces = ['common', 'tickets'];
         // System → Analysts).
         document.addEventListener('DOMContentLoaded', function() {
             loadGeneralSettings();
+            loadPrivacySettings();
             loadReplyCleanupSettings();
             loadCsatSettings();
         });
@@ -4284,6 +4328,43 @@ $translationNamespaces = ['common', 'tickets'];
             } catch (error) {
                 console.error('Error loading settings:', error);
             }
+        }
+
+        // Privacy settings (what a requester sees of their own ticket in the portal)
+        async function loadPrivacySettings() {
+            try {
+                const response = await fetch(API_SETTINGS + 'get_system_settings.php');
+                const data = await response.json();
+                if (!data.success) return;
+                // Absent = hide. Mirrors portalThirdPartyPolicy() in
+                // includes/portal_visibility.php — a fresh install is protected
+                // before anyone finds this screen.
+                const v = data.settings.portal_third_party_visibility || 'hide';
+                const el = document.querySelector('input[name="thirdPartyVisibility"][value="' + v + '"]')
+                        || document.querySelector('input[name="thirdPartyVisibility"][value="hide"]');
+                if (el) el.checked = true;
+            } catch (e) {
+                console.error('Error loading privacy settings:', e);
+            }
+        }
+
+        const privacyForm = document.getElementById('privacySettingsForm');
+        if (privacyForm) {
+            privacyForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const chosen = document.querySelector('input[name="thirdPartyVisibility"]:checked');
+                try {
+                    const response = await fetch(API_SETTINGS + 'save_system_settings.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ settings: { portal_third_party_visibility: chosen ? chosen.value : 'hide' } })
+                    });
+                    const data = await response.json();
+                    showToast(data.success ? 'Settings saved' : ('Error: ' + data.error), data.success ? 'success' : 'error');
+                } catch (err) {
+                    showToast('Failed to save settings', 'error');
+                }
+            });
         }
 
         // General settings form submission
