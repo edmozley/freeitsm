@@ -48,7 +48,9 @@ try {
 
     // Fetch email thread
     $threadStmt = $conn->prepare(
-        "SELECT id, from_name, received_datetime, body_content, direction
+        // body_type: chat messages are stored verbatim as 'text' and must be
+        // escaped by the renderer, not parsed as markup.
+        "SELECT id, from_name, received_datetime, body_content, body_type, direction
          FROM emails
          WHERE ticket_id = ?
          ORDER BY received_datetime ASC"

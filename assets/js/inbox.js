@@ -12,56 +12,36 @@ let composeMode = 'new';
 let folderGrouping = 'department'; // 'department' or 'analyst' — persisted via user_preferences
 
 /**
- * Defensive HTML cleaner for email bodies.
+ * Defensive HTML cleaner for email bodies. The real work lives in
+ * assets/js/safe-html.js, shared with the self-service portal so the two
+ * surfaces that display the same email bodies can never drift apart.
  *
- * Three jobs:
+ * This wrapper only supplies the inbox's API_BASE for inline-image rewriting.
  *
- * 1. Balance unclosed tags. Emails frequently arrive with an open `<div>`,
- *    half a `<table>`, an unclosed `<font>`. When that HTML hits innerHTML
- *    raw, the parser balances tags at the parent element's boundary —
- *    runaway tags from an email would swallow every sibling that follows
- *    (CMDB, time-entries, notes panels nested *inside* the email body).
+ * WHAT THIS FUNCTION USED TO GET WRONG — worth keeping, because the reasoning
+ * looked sound. It was written for LAYOUT hygiene: balancing the unclosed tags
+ * real email is full of (a runaway <div> otherwise swallows the CMDB, notes and
+ * time-entry panels that sit inside the reading pane) and stripping <style>
+ * blocks whose page-wide selectors bled into our chrome — the grey-box overlap
+ * in MFG-151-13903 was an Outlook footer's stylesheet repositioning content.
+ * On <script> it reasoned correctly: scripts genuinely do NOT execute when HTML
+ * is assigned via innerHTML.
  *
- * 2. Strip `<style>`, `<script>`, `<link>`, `<base>`, `<meta>`. Even with
- *    balanced markup, a `<style>` block inside the email can apply
- *    page-wide selectors (`div { ... }`, `* { position: absolute; ... }`)
- *    that bleed into our chrome and make our containers look broken. The
- *    grey-box overlap reported in MFG-151-13903 was a case of an Outlook
- *    "Did you find this email helpful?" footer block whose stylesheet was
- *    repositioning content. Scripts don't execute via innerHTML in any
- *    browser, but stripping them removes them from the source of truth too.
+ * But that is true of <script> ONLY. `<img src=x onerror=...>` fires the moment
+ * it is inserted, in every browser, and the Shadow DOM below isolates CSS — not
+ * script execution. So any of the hundreds of people who can email your service
+ * desk could run code in an analyst's signed-in session. The shared cleaner now
+ * strips every inline event handler and javascript:/data: URL as well.
  *
- * 3. DOMParser does the parsing in a separate document context so the
- *    stripped tags never touch the live DOM. We then serialise the cleaned
- *    body back via innerHTML.
+ * Fails CLOSED if safe-html.js is missing: markup is escaped to visible-but-inert
+ * text rather than rendered raw.
  */
 function safeEmailHtml(html) {
-    if (!html) return '';
-    try {
-        const doc = new DOMParser().parseFromString(html, 'text/html');
-        if (!doc.body) return '';
-        // Remove any tags that can leak style / positioning into the parent
-        // document or fire side effects on insertion.
-        const dangerous = doc.querySelectorAll('style, script, link, base, meta');
-        dangerous.forEach(el => el.remove());
-
-        // Inbound inline images (cid:) are saved server-side and their <img src>
-        // rewritten to a get_attachment.php URL. That rewrite emitted a ROOT-ABSOLUTE
-        // path ('/api/tickets/get_attachment.php?...') that ignores the app's
-        // deployment sub-path — so on any install not served from the web root the
-        // images 404. Normalise every get_attachment.php image URL to the same
-        // relative API_BASE the rest of the app uses, so they resolve wherever the
-        // app is mounted. Idempotent — already-relative URLs pass straight through.
-        doc.querySelectorAll('img[src*="get_attachment.php"]').forEach(img => {
-            const raw = img.getAttribute('src') || '';
-            const qs = raw.indexOf('?');
-            img.setAttribute('src', API_BASE + 'get_attachment.php' + (qs >= 0 ? raw.slice(qs) : ''));
-        });
-
-        return doc.body.innerHTML;
-    } catch (e) {
-        return '';
+    if (typeof safeHtmlFragment !== 'function') {
+        console.error('FreeITSM: assets/js/safe-html.js did not load — email bodies are being shown as plain text.');
+        return typeof escapeHtmlText === 'function' ? escapeHtmlText(html) : '';
     }
+    return safeHtmlFragment(html, { attachmentBase: API_BASE });
 }
 
 /*
@@ -84,9 +64,23 @@ function safeEmailHtml(html) {
 let _emailBodySeq = 0;
 const _emailBodyPending = new Map();
 
-function emailBodyHost(rawHtml, cls) {
+/**
+ * @param bodyType  the row's `emails.body_type`. Chat channels (web chat,
+ *                  WhatsApp) store the sender's message verbatim as 'text';
+ *                  passing it through means their words are ESCAPED rather
+ *                  than parsed as markup. Omitted / anything else = HTML.
+ */
+function emailBodyHost(rawHtml, cls, bodyType) {
     const token = 'eb' + (++_emailBodySeq);
-    _emailBodyPending.set(token, safeEmailHtml(rawHtml));
+    let cleaned;
+    if (typeof messageBodyHtml === 'function') {
+        cleaned = messageBodyHtml(rawHtml, bodyType, { attachmentBase: API_BASE });
+    } else {
+        // safe-html.js missing → fail closed, never render raw.
+        console.error('FreeITSM: assets/js/safe-html.js did not load — message bodies are being shown as plain text.');
+        cleaned = safeEmailHtml(rawHtml);
+    }
+    _emailBodyPending.set(token, cleaned);
     return `<div class="${cls}" data-email-body="${token}"></div>`;
 }
 
@@ -1453,7 +1447,7 @@ function displayEmail(email, recordings) {
         </div>
         <div class="email-body">
             <div id="threadContainer">
-                ${emailBodyHost(email.body_content, 'email-body-content')}
+                ${emailBodyHost(email.body_content, 'email-body-content', email.body_type)}
             </div>
             <div id="cmdbObjectsContainer"></div>
             <div id="slaContainer"></div>
@@ -1861,7 +1855,7 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                         <strong>${escapeHtml(e.from_name || e.from_address)}</strong>
                         &lt;${escapeHtml(e.from_address)}&gt; &mdash; ${formatFullDateTime(e.received_datetime)}
                     </div>
-                    ${emailBodyHost(e.body_content, 'thread-message-body')}
+                    ${emailBodyHost(e.body_content, 'thread-message-body', e.body_type)}
                 `;
             }).join('');
             // Isolate each thread body in a shadow root (see emailBodyHost).

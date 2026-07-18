@@ -373,7 +373,7 @@ const TICKET_ID = window.PAGE.ticketId;
                                     </div>
                                     <span class="thread-date">${formatDate(e.received_datetime)}</span>
                                 </div>
-                                <div class="thread-body">${safeMessageHtml(e.body_content)}</div>
+                                <div class="thread-body">${safeMessageHtml(e.body_content, e.body_type)}</div>
                                 ${renderAttachments(e.attachments)}
                             </div>`;
                     } else {
@@ -402,39 +402,18 @@ const TICKET_ID = window.PAGE.ticketId;
         /*
          * Message bodies are arbitrary third-party HTML — anyone who can email the
          * service desk controls them, and this page renders them inside the
-         * requester's own signed-in session. They were previously injected raw.
+         * requester's own signed-in session.
          *
-         * Strip the tags that fire side effects or leak styling into the page, every
-         * inline event handler (onerror/onclick/... — an <img src=x onerror=...> DOES
-         * run when assigned via innerHTML, so removing <script> alone is not enough),
-         * and javascript:/data: URLs on links and sources. Parsing happens in an inert
-         * DOMParser document, so nothing executes while we clean it.
+         * The cleaning itself lives in assets/js/safe-html.js, shared with the
+         * analyst inbox: both surfaces show the SAME email bodies, and a security
+         * control kept in two copies drifts. Fails closed if that file is missing.
          */
-        function safeMessageHtml(html) {
-            if (!html) return '';
-            try {
-                const doc = new DOMParser().parseFromString(html, 'text/html');
-                if (!doc.body) return '';
-
-                doc.querySelectorAll('script, style, link, base, meta, iframe, object, embed, form').forEach(el => el.remove());
-
-                doc.body.querySelectorAll('*').forEach(el => {
-                    [...el.attributes].forEach(attr => {
-                        const name = attr.name.toLowerCase();
-                        const value = (attr.value || '').replace(/\s+/g, '').toLowerCase();
-                        if (name.startsWith('on')) {
-                            el.removeAttribute(attr.name);
-                        } else if ((name === 'href' || name === 'src' || name === 'xlink:href')
-                                   && (value.startsWith('javascript:') || value.startsWith('data:text/html'))) {
-                            el.removeAttribute(attr.name);
-                        }
-                    });
-                });
-
-                return doc.body.innerHTML;
-            } catch (e) {
-                return '';
+        function safeMessageHtml(html, bodyType) {
+            if (typeof messageBodyHtml !== 'function') {
+                console.error('FreeITSM: assets/js/safe-html.js did not load — message bodies are being shown as plain text.');
+                return typeof escapeHtmlText === 'function' ? escapeHtmlText(html) : '';
             }
+            return messageBodyHtml(html, bodyType);
         }
 
         function renderAttachments(attachments) {
