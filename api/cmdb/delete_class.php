@@ -25,6 +25,10 @@ try {
 
     $conn = connectToDatabase();
 
+    // In-use guard. DELIBERATELY NOT company-scoped, unlike the sidebar count in
+    // get_classes.php: a class is install-wide config, so deleting one must be
+    // blocked while ANY company still has a CI using it — scoping this would let
+    // one company delete a class another is actively using.
     $cnt = $conn->prepare("SELECT COUNT(*) FROM cmdb_objects WHERE class_id = ?");
     $cnt->execute([$id]);
     $objectCount = (int)$cnt->fetchColumn();

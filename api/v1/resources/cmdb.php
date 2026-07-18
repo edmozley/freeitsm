@@ -47,13 +47,20 @@ require_once dirname(__DIR__, 3) . '/includes/services/cmdb.php';
 // ---------------------------------------------------------------------------
 
 function apiCmdbClassesList(PDO $conn, array $apiKey, array $params, array $body): void {
-    $rows = $conn->query(
+    // Classes are install-wide config, but object_count is a count of DATA — so
+    // it scopes to the key's companies. Unscoped it both contradicts the CI list
+    // and discloses how many CIs other companies hold.
+    [$cntSql, $cntArgs] = apiKeyTenantFilter($conn, $apiKey, 'o');
+    $stmt = $conn->prepare(
         "SELECT c.id, c.class_key, c.name, c.description, c.is_active, i.icon_key,
-                (SELECT COUNT(*) FROM cmdb_objects o WHERE o.class_id = c.id) AS object_count
+                (SELECT COUNT(*) FROM cmdb_objects o
+                  WHERE o.class_id = c.id{$cntSql}) AS object_count
          FROM cmdb_classes c
          LEFT JOIN cmdb_icons i ON i.id = c.icon_id
          ORDER BY c.display_order, c.name"
-    )->fetchAll(PDO::FETCH_ASSOC);
+    );
+    $stmt->execute($cntArgs);
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     apiRespond(array_map(function ($c) {
         return [
             'id'           => (int)$c['id'],
