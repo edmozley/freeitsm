@@ -284,6 +284,16 @@ $schema = [
         'last_login_datetime' => 'DATETIME NULL',
     ],
 
+    'user_verification_tokens' => [
+        'id'            => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+        'email'         => 'VARCHAR(255) NOT NULL',
+        'password_hash' => 'VARCHAR(255) NOT NULL',
+        'display_name'  => 'VARCHAR(255) NULL',
+        'token_hash'    => 'CHAR(64) NOT NULL',
+        'expires_at'    => 'DATETIME NOT NULL',
+        'created_at'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'ticket_statuses' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'name'              => 'VARCHAR(50) NOT NULL',

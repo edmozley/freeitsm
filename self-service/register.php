@@ -203,7 +203,12 @@ $translationNamespaces = ['common', 'self-service'];
                 })
             });
             const data = await resp.json();
-            if (data.success) {
+            if (data.success && data.pending) {
+                // Verification required — email sent. Show the message, hide the form.
+                document.getElementById('registerForm').style.display = 'none';
+                successEl.textContent = data.message || 'Check your inbox to confirm your account.';
+                successEl.style.display = 'block';
+            } else if (data.success) {
                 window.location.href = 'index.php';
             } else {
                 errEl.textContent = data.error;

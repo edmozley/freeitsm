@@ -53,36 +53,55 @@ try {
         exit;
     }
 
-    // Check if user already exists
+    // If a real (password-set) account already exists, don't start a registration.
     $userStmt = $conn->prepare("SELECT id, password_hash FROM users WHERE email = ?");
     $userStmt->execute([$email]);
     $existingUser = $userStmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($existingUser) {
-        if (!empty($existingUser['password_hash'])) {
-            // Already has a password - can't register again
-            echo json_encode(['success' => false, 'error' => 'An account with this email already exists. Please log in.']);
-            exit;
-        }
-
-        // Claim existing passwordless account
-        $updateStmt = $conn->prepare("UPDATE users SET password_hash = ?, display_name = COALESCE(NULLIF(?, ''), display_name) WHERE id = ?");
-        $updateStmt->execute([$hash, $displayName, $existingUser['id']]);
-
-        $_SESSION['ss_user_id'] = (int)$existingUser['id'];
-        $_SESSION['ss_user_email'] = $email;
-        $_SESSION['ss_user_name'] = $displayName;
-    } else {
-        // Create new user
-        $insertStmt = $conn->prepare("INSERT INTO users (email, display_name, password_hash, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP())");
-        $insertStmt->execute([$email, $displayName, $hash]);
-
-        $_SESSION['ss_user_id'] = (int)$conn->lastInsertId();
-        $_SESSION['ss_user_email'] = $email;
-        $_SESSION['ss_user_name'] = $displayName;
+    if ($existingUser && !empty($existingUser['password_hash'])) {
+        echo json_encode(['success' => false, 'error' => 'An account with this email already exists. Please log in.']);
+        exit;
     }
 
-    echo json_encode(['success' => true]);
+    // ------------------------------------------------------------------
+    // Everything below covers BOTH a brand-new email and an existing
+    // *passwordless* account (one auto-created from an inbound email, web
+    // chat or a ticket). We do NOT set a password or sign anyone in here.
+    // Instead we email a confirmation link to the address itself and only
+    // apply the password when that link is opened — so registering an email
+    // you don't control can't take over someone else's account. The password
+    // is parked (hashed) in user_verification_tokens until then.
+    // ------------------------------------------------------------------
+    require_once '../../includes/self_service_email.php';
+
+    $rawToken  = bin2hex(random_bytes(32));
+    $tokenHash = hash('sha256', $rawToken);
+
+    // One live token per email — a fresh registration supersedes any pending one.
+    $conn->prepare("DELETE FROM user_verification_tokens WHERE email = ?")->execute([$email]);
+    $conn->prepare(
+        "INSERT INTO user_verification_tokens (email, password_hash, display_name, token_hash, expires_at, created_at)
+         VALUES (?, ?, ?, ?, DATE_ADD(UTC_TIMESTAMP(), INTERVAL 24 HOUR), UTC_TIMESTAMP())"
+    )->execute([$email, $hash, $displayName, $tokenHash]);
+
+    $sent = ssSendSystemEmail(
+        $conn, $email,
+        'Confirm your account',
+        ssVerifyEmailBody($displayName, ssBuildVerifyUrl($rawToken))
+    );
+
+    if (!$sent) {
+        // Fail closed: no email means no verification means no account. Bin the
+        // token so nothing is left half-created, and tell them plainly.
+        $conn->prepare("DELETE FROM user_verification_tokens WHERE token_hash = ?")->execute([$tokenHash]);
+        echo json_encode(['success' => false, 'error' => 'We couldn\'t send a confirmation email right now. Please contact your service desk.']);
+        exit;
+    }
+
+    echo json_encode([
+        'success' => true,
+        'pending' => true,
+        'message' => 'Almost there — check your inbox. We\'ve emailed a link to confirm your account.'
+    ]);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => 'Registration failed. Please try again.']);

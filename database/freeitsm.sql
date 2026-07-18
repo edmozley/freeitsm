@@ -333,6 +333,25 @@ CREATE TABLE IF NOT EXISTS `user_sso_identities` (
     CONSTRAINT `fk_user_sso_identity_provider` FOREIGN KEY (`provider_id`) REFERENCES `auth_providers` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Pending self-service registrations awaiting email confirmation. A row holds
+-- the *pending* password hash; the users row's password is only set once the
+-- emailed token is confirmed, so registering an email you don't control can
+-- never take over an existing passwordless account. Token stored as a SHA-256
+-- hash (the raw token only ever lives in the email link).
+CREATE TABLE IF NOT EXISTS `user_verification_tokens` (
+    `id`            INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `email`         VARCHAR(255) NOT NULL,
+    `password_hash` VARCHAR(255) NOT NULL,
+    `display_name`  VARCHAR(255) NULL,
+    `token_hash`    CHAR(64) NOT NULL,
+    `expires_at`    DATETIME NOT NULL,
+    `created_at`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_uvt_token` (`token_hash`),
+    KEY `ix_uvt_email` (`email`),
+    KEY `ix_uvt_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- users.auth_provider_id => the IdP a requester is assigned to (NULL = local
 -- password). Added after auth_providers is defined.
 ALTER TABLE `users`
