@@ -18,14 +18,20 @@
  *     back-references nulled) rather than trusting FK cascades — installs
  *     grown via Database Verify had no CMDB foreign keys at all.
  *
- * Two deliberate improvements over the UI, documented:
+ * One deliberate improvement over the UI, documented:
  *   - dropdown values are validated against the property's option list (422)
- *     instead of storing anything;
- *   - GET /cmdb/objects/{id}/tickets applies the key's COMPANY SCOPE to the
- *     tickets it returns (the internal endpoint reads tickets unscoped, a
- *     known multi-tenancy audit gap — the API does not reproduce it).
+ *     instead of storing anything.
  *
- * CMDB tables themselves are install-wide (no tenant_id — matches the UI).
+ * MULTI-TENANCY: configuration items are company-scoped (`cmdb_objects.tenant_id`,
+ * NULL = the Default company). The key's company scope restricts every list and
+ * by-id read/write — apiKeyTenantFilter on the list, apiKeyCanAccessTenantRow via
+ * apiCmdbLoadObject — and a CI outside scope is a 404, never a 403, so the API
+ * never confirms it exists. `?company_id=` narrows the list within what the key
+ * can already see; POST takes company_id, defaulting to the key's own company.
+ * A CI belongs to exactly ONE company: parent links, relationships and
+ * object_ref properties must stay within it (enforced in CmdbService).
+ * Classes, class properties, relationship types and icons remain install-wide
+ * admin config, matching the UI.
  * There is no audit trail in the product and none is invented here.
  *
  * Object + relationship WRITES are delegated to CmdbService
@@ -120,14 +126,25 @@ function apiCmdbClassesGet(PDO $conn, array $apiKey, array $params, array $body)
 // Object helpers
 // ---------------------------------------------------------------------------
 
-function apiCmdbLoadObject(PDO $conn, int $objectId): array {
+/**
+ * Load one CI; 404 if unknown OR outside the key's companies (multi-tenancy —
+ * the key's company scope gates every by-id read/write; a NULL tenant_id
+ * normalises to the Default company; no-op at N=1 / all-access key).
+ */
+function apiCmdbLoadObject(PDO $conn, int $objectId, ?array $apiKey = null): array {
     $stmt = $conn->prepare(
-        "SELECT o.*, c.name AS class_name, c.class_key
-         FROM cmdb_objects o JOIN cmdb_classes c ON c.id = o.class_id WHERE o.id = ?"
+        "SELECT o.*, c.name AS class_name, c.class_key, t.name AS company_name
+         FROM cmdb_objects o
+         JOIN cmdb_classes c ON c.id = o.class_id
+    LEFT JOIN tenants t ON t.id = o.tenant_id
+        WHERE o.id = ?"
     );
     $stmt->execute([$objectId]);
     $row = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$row) {
+        apiError(404, 'not_found', 'Object not found.');
+    }
+    if ($apiKey !== null && !apiKeyCanAccessTenantRow($conn, $apiKey, 'cmdb_objects', $objectId)) {
         apiError(404, 'not_found', 'Object not found.');
     }
     return $row;
@@ -137,6 +154,8 @@ function apiCmdbSerializeObject(array $r): array {
     return [
         'id'         => (int)$r['id'],
         'name'       => $r['name'],
+        'company'    => ($r['tenant_id'] ?? null) === null
+            ? null : ['id' => (int)$r['tenant_id'], 'name' => $r['company_name'] ?? null],
         'class'      => ['id' => (int)$r['class_id'], 'class_key' => $r['class_key'], 'name' => $r['class_name']],
         'parent_id'  => $r['parent_id'] !== null ? (int)$r['parent_id'] : null,
         'is_planned' => (bool)$r['is_planned'],
@@ -165,6 +184,23 @@ function apiCmdbClassDefs(PDO $conn, int $classId): array {
 function apiCmdbObjectsList(PDO $conn, array $apiKey, array $params, array $body): void {
     $where = ['1=1'];
     $args  = [];
+
+    // Multi-tenancy: restrict to the key's companies (no-op at N=1 / all-access).
+    [$scopeSql, $scopeArgs] = apiKeyTenantFilter($conn, $apiKey, 'o');
+    if ($scopeSql !== '') {
+        $where[] = ltrim($scopeSql, ' AND');
+        $args    = array_merge($args, $scopeArgs);
+    }
+
+    // Optional explicit company filter, within whatever the key can already see.
+    if (isset($_GET['company_id']) && $_GET['company_id'] !== '') {
+        $companyId = (int)$_GET['company_id'];
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $companyId)) {
+            apiError(403, 'forbidden', 'This API key cannot access that company.');
+        }
+        $where[] = 'o.tenant_id <=> ?';
+        $args[]  = ($companyId === getDefaultTenantId($conn)) ? null : $companyId;
+    }
 
     if (isset($_GET['class_id']) && $_GET['class_id'] !== '') {
         $where[] = 'o.class_id = ?';
@@ -212,8 +248,10 @@ function apiCmdbObjectsList(PDO $conn, array $apiKey, array $params, array $body
     $total = (int)$countStmt->fetchColumn();
 
     $stmt = $conn->prepare(
-        "SELECT o.*, c.name AS class_name, c.class_key
-         FROM cmdb_objects o JOIN cmdb_classes c ON c.id = o.class_id
+        "SELECT o.*, c.name AS class_name, c.class_key, t.name AS company_name
+         FROM cmdb_objects o
+         JOIN cmdb_classes c ON c.id = o.class_id
+    LEFT JOIN tenants t ON t.id = o.tenant_id
          WHERE $whereSql ORDER BY $orderSql LIMIT $perPage OFFSET $offset"
     );
     $stmt->execute($args);
@@ -229,19 +267,28 @@ function apiCmdbObjectsList(PDO $conn, array $apiKey, array $params, array $body
 // GET /cmdb/objects/{id} — fully hydrated
 // ---------------------------------------------------------------------------
 function apiCmdbObjectsGet(PDO $conn, array $apiKey, array $params, array $body): void {
-    $r = apiCmdbLoadObject($conn, $params[0]);
+    $r = apiCmdbLoadObject($conn, (int)$params[0], $apiKey);
     $obj = apiCmdbSerializeObject($r);
     $obj['ai_summary'] = $r['ai_summary'];
+
+    // Neighbour hydration below names OTHER CIs (parent, children, object_ref
+    // targets, both relationship directions). The by-id gate above covers only
+    // THIS CI, and the same-company invariant can be violated by pre-existing
+    // data, so each neighbour is scoped to the key's companies independently.
+    [$nRef,   $aRef]   = apiKeyTenantFilter($conn, $apiKey, 'ro');
+    [$nPar,   $aPar]   = apiKeyTenantFilter($conn, $apiKey, 'o');
+    [$nOther, $aOther] = apiKeyTenantFilter($conn, $apiKey, 'oo');
 
     // Typed property values, hydrated like get_object.php.
     $vals = $conn->prepare(
         "SELECT op.*, ro.name AS ref_name, rc.name AS ref_class_name
          FROM cmdb_object_properties op
-         LEFT JOIN cmdb_objects ro ON ro.id = op.value_object_id
+         LEFT JOIN cmdb_objects ro ON ro.id = op.value_object_id" . $nRef . "
          LEFT JOIN cmdb_classes rc ON rc.id = ro.class_id
          WHERE op.object_id = ?"
     );
-    $vals->execute([$params[0]]);
+    // ON-clause params bind before WHERE params.
+    $vals->execute(array_merge($aRef, [$params[0]]));
     $valuesByProp = [];
     foreach ($vals->fetchAll(PDO::FETCH_ASSOC) as $v) {
         $valuesByProp[(int)$v['property_id']] = $v;
@@ -281,15 +328,15 @@ function apiCmdbObjectsGet(PDO $conn, array $apiKey, array $params, array $body)
     // Parent + children
     $obj['parent'] = null;
     if ($r['parent_id'] !== null) {
-        $p = $conn->prepare("SELECT o.id, o.name, c.name AS class_name FROM cmdb_objects o JOIN cmdb_classes c ON c.id = o.class_id WHERE o.id = ?");
-        $p->execute([(int)$r['parent_id']]);
+        $p = $conn->prepare("SELECT o.id, o.name, c.name AS class_name FROM cmdb_objects o JOIN cmdb_classes c ON c.id = o.class_id WHERE o.id = ?" . $nPar);
+        $p->execute(array_merge([(int)$r['parent_id']], $aPar));
         $pr = $p->fetch(PDO::FETCH_ASSOC);
         if ($pr) {
             $obj['parent'] = ['id' => (int)$pr['id'], 'name' => $pr['name'], 'class_name' => $pr['class_name']];
         }
     }
-    $ch = $conn->prepare("SELECT o.id, o.name, c.name AS class_name FROM cmdb_objects o JOIN cmdb_classes c ON c.id = o.class_id WHERE o.parent_id = ? ORDER BY o.name");
-    $ch->execute([$params[0]]);
+    $ch = $conn->prepare("SELECT o.id, o.name, c.name AS class_name FROM cmdb_objects o JOIN cmdb_classes c ON c.id = o.class_id WHERE o.parent_id = ?" . $nPar . " ORDER BY o.name");
+    $ch->execute(array_merge([$params[0]], $aPar));
     $obj['children'] = array_map(function ($x) {
         return ['id' => (int)$x['id'], 'name' => $x['name'], 'class_name' => $x['class_name']];
     }, $ch->fetchAll(PDO::FETCH_ASSOC));
@@ -315,9 +362,9 @@ function apiCmdbObjectsGet(PDO $conn, array $apiKey, array $params, array $body)
          JOIN cmdb_relationship_types rt ON rt.id = r.relationship_type_id
          JOIN cmdb_objects oo ON oo.id = r.to_object_id
          JOIN cmdb_classes oc ON oc.id = oo.class_id
-         WHERE r.from_object_id = ? ORDER BY rt.display_order, rt.verb, oo.name"
+         WHERE r.from_object_id = ?" . $nOther . " ORDER BY rt.display_order, rt.verb, oo.name"
     );
-    $out->execute([$params[0]]);
+    $out->execute(array_merge([$params[0]], $aOther));
     $in = $conn->prepare(
         "SELECT r.id, rt.id AS type_id, rt.verb, rt.inverse_verb,
                 r.from_object_id AS other_id, oo.name AS other_name, oc.name AS other_class_name
@@ -325,9 +372,9 @@ function apiCmdbObjectsGet(PDO $conn, array $apiKey, array $params, array $body)
          JOIN cmdb_relationship_types rt ON rt.id = r.relationship_type_id
          JOIN cmdb_objects oo ON oo.id = r.from_object_id
          JOIN cmdb_classes oc ON oc.id = oo.class_id
-         WHERE r.to_object_id = ? ORDER BY rt.display_order, rt.inverse_verb, oo.name"
+         WHERE r.to_object_id = ?" . $nOther . " ORDER BY rt.display_order, rt.inverse_verb, oo.name"
     );
-    $in->execute([$params[0]]);
+    $in->execute(array_merge([$params[0]], $aOther));
     $obj['relationships'] = [
         'outgoing' => $serializeRel($out->fetchAll(PDO::FETCH_ASSOC)),
         'incoming' => $serializeRel($in->fetchAll(PDO::FETCH_ASSOC)),
@@ -340,9 +387,20 @@ function apiCmdbObjectsGet(PDO $conn, array $apiKey, array $params, array $body)
 // POST /cmdb/objects
 // ---------------------------------------------------------------------------
 function apiCmdbObjectsCreate(PDO $conn, array $apiKey, array $params, array $body): void {
+    // Multi-tenancy: an API key has no session, so the service's "actor's active
+    // company" fallback is meaningless here — resolve the company from the KEY.
+    // An explicit company_id wins, but only one the key may reach.
+    if (isset($body['company_id']) && $body['company_id'] !== '' && $body['company_id'] !== null) {
+        if (!apiKeyCanAccessTenant($conn, $apiKey, (int)$body['company_id'])) {
+            apiError(403, 'forbidden', 'This API key cannot access that company.');
+        }
+        $body['tenant_id'] = (int)$body['company_id'];
+    } else {
+        $body['tenant_id'] = apiKeyDefaultTenantId($conn, $apiKey);
+    }
     try {
         $res = CmdbService::saveObject($conn, ActorContext::fromApiKey($apiKey), $body);
-        apiRespond(apiCmdbSerializeObject(apiCmdbLoadObject($conn, $res['id'])), 201);
+        apiRespond(apiCmdbSerializeObject(apiCmdbLoadObject($conn, (int)$res['id'], $apiKey)), 201);
     } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
@@ -352,7 +410,7 @@ function apiCmdbObjectsCreate(PDO $conn, array $apiKey, array $params, array $bo
 function apiCmdbObjectsUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
     try {
         $res = CmdbService::saveObject($conn, ActorContext::fromApiKey($apiKey), array_merge($body, ['id' => (int)$params[0]]));
-        apiRespond(apiCmdbSerializeObject(apiCmdbLoadObject($conn, $res['id'])));
+        apiRespond(apiCmdbSerializeObject(apiCmdbLoadObject($conn, (int)$res['id'], $apiKey)));
     } catch (ServiceError $e) { apiFailFromService($e); }
 }
 
@@ -371,7 +429,7 @@ function apiCmdbObjectsDelete(PDO $conn, array $apiKey, array $params, array $bo
 // GET /cmdb/objects/{id}/impact — blast radius (mirrors get_object_impact.php)
 // ---------------------------------------------------------------------------
 function apiCmdbObjectImpact(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiCmdbLoadObject($conn, $params[0]);
+    apiCmdbLoadObject($conn, (int)$params[0], $apiKey);
 
     $descendants = [];
     $stack = [['id' => $params[0], 'depth' => 0]];
@@ -449,12 +507,14 @@ function apiCmdbRelationshipsDelete(PDO $conn, array $apiKey, array $params, arr
 }
 
 // ---------------------------------------------------------------------------
-// Ticket links — company-scoped, unlike the internal CMDB-side read
+// Ticket links — company-scoped on both the CI and the tickets
 // ---------------------------------------------------------------------------
 function apiCmdbObjectTicketsList(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiCmdbLoadObject($conn, $params[0]);
-    // Scope the ticket rows to the key's companies (the internal
-    // get_object_tickets.php reads them unscoped — the API does not).
+    apiCmdbLoadObject($conn, (int)$params[0], $apiKey);
+    // Scope the ticket rows to the key's companies. The internal
+    // api/cmdb/get_object_tickets.php used to read these unscoped — that gap is
+    // now closed on the UI side too, so the two agree rather than the API being
+    // the only safe path.
     [$scopeSql, $scopeArgs] = apiKeyTenantFilter($conn, $apiKey, 't');
     $stmt = $conn->prepare(
         "SELECT t.id, t.ticket_number, t.subject, ts.name AS status, ts.is_closed, l.created_datetime AS linked_at
@@ -478,7 +538,7 @@ function apiCmdbObjectTicketsList(PDO $conn, array $apiKey, array $params, array
 }
 
 function apiCmdbObjectTicketsLink(PDO $conn, array $apiKey, array $params, array $body): void {
-    apiCmdbLoadObject($conn, $params[0]);
+    apiCmdbLoadObject($conn, (int)$params[0], $apiKey);
     $ticketId = isset($body['ticket_id']) ? (int)$body['ticket_id'] : 0;
     if ($ticketId <= 0) {
         apiError(422, 'missing_field', "'ticket_id' is required.");
@@ -504,7 +564,7 @@ function apiCmdbObjectTicketsLink(PDO $conn, array $apiKey, array $params, array
 
 function apiCmdbObjectTicketsUnlink(PDO $conn, array $apiKey, array $params, array $body): void {
     [$objectId, $ticketId] = $params;
-    apiCmdbLoadObject($conn, $objectId);
+    apiCmdbLoadObject($conn, (int)$objectId, $apiKey);
     if (!apiKeyCanAccessTicket($conn, $apiKey, $ticketId)) {
         apiError(404, 'not_found', 'Ticket not found.');
     }
