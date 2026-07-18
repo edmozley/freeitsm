@@ -27,6 +27,7 @@
  */
 
 require_once __DIR__ . '/../service_context.php';
+require_once __DIR__ . '/../tenancy.php';   // CMDB objects on a diagram are company-scoped
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class NetworkMapperService
@@ -73,7 +74,7 @@ class NetworkMapperService
             $diagramId = (int)$conn->lastInsertId();
 
             if ((isset($in['nodes']) && is_array($in['nodes'])) || (isset($in['connectors']) && is_array($in['connectors']))) {
-                self::replaceContents($conn, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
+                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
             }
             $conn->commit();
         } catch (Exception $e) {
@@ -128,7 +129,7 @@ class NetworkMapperService
             ]);
 
             if ((isset($in['nodes']) && is_array($in['nodes'])) || (isset($in['connectors']) && is_array($in['connectors']))) {
-                self::replaceContents($conn, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
+                self::replaceContents($conn, $ctx, $diagramId, $in['nodes'] ?? [], $in['connectors'] ?? []);
             }
             $conn->commit();
         } catch (Exception $e) {
@@ -311,7 +312,7 @@ class NetworkMapperService
     }
 
     /** Full contents replace (delete + reinsert; ref-based connector wiring, strict validation). */
-    private static function replaceContents(PDO $conn, int $diagramId, array $nodesIn, array $connectorsIn): void
+    private static function replaceContents(PDO $conn, ActorContext $ctx, int $diagramId, array $nodesIn, array $connectorsIn): void
     {
         $conn->prepare("DELETE FROM network_diagram_connectors WHERE diagram_id = ?")->execute([$diagramId]);
         $conn->prepare("DELETE FROM network_diagram_nodes WHERE diagram_id = ?")->execute([$diagramId]);
@@ -326,7 +327,7 @@ class NetworkMapperService
             if (!is_array($n)) {
                 throw new ServiceError('validation', 'invalid_field', "nodes[{$i}] must be an object.");
             }
-            [$objectId, $x, $y, $size, $icon, $ref] = self::validateNodeInput($conn, $n, $i);
+            [$objectId, $x, $y, $size, $icon, $ref] = self::validateNodeInput($conn, $ctx, $n, $i);
             if ($x === null || $y === null) {
                 if ($place === null) {
                     $place = self::autoPlacer($conn, $diagramId);
@@ -386,13 +387,13 @@ class NetworkMapperService
     }
 
     /** Validate one node input row. Returns [objectId, x|null, y|null, size, icon, ref]. */
-    private static function validateNodeInput(PDO $conn, array $n, int $index): array
+    private static function validateNodeInput(PDO $conn, ActorContext $ctx, array $n, int $index): array
     {
         $objectId = isset($n['cmdb_object_id']) ? (int)$n['cmdb_object_id'] : 0;
         if ($objectId <= 0) {
             throw new ServiceError('validation', 'missing_field', "nodes[{$index}]: 'cmdb_object_id' is required.");
         }
-        self::validateObjectExists($conn, $objectId);
+        self::validateObjectExists($conn, $ctx, $objectId);
         $size = self::validateSize(trim((string)($n['size'] ?? 'medium')) ?: 'medium');
         $icon = null;
         if (isset($n['icon_override']) && $n['icon_override'] !== null && trim((string)$n['icon_override']) !== '') {
@@ -453,12 +454,24 @@ class NetworkMapperService
         return $relId;
     }
 
-    private static function validateObjectExists(PDO $conn, int $objectId): void
+    private static function validateObjectExists(PDO $conn, ActorContext $ctx, int $objectId): void
     {
-        $stmt = $conn->prepare("SELECT 1 FROM cmdb_objects WHERE id = ?");
+        $stmt = $conn->prepare("SELECT tenant_id FROM cmdb_objects WHERE id = ?");
         $stmt->execute([$objectId]);
-        if (!$stmt->fetchColumn()) {
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
             throw new ServiceError('validation', 'invalid_field', "Unknown cmdb_object_id: {$objectId}");
+        }
+        // Multi-tenancy: a CI can only be dropped onto a diagram by someone who
+        // can reach it. The pickers are scoped, but this is the write path they
+        // feed — without the check a raw id would still plant another company's
+        // CI on a canvas, where get_diagram.php would then render its name.
+        // Same wording as the not-found case so it reveals nothing either way.
+        if ($ctx->companyScope !== null) {
+            $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int)$row['tenant_id'];
+            if (!in_array($tid, $ctx->companyScope, true)) {
+                throw new ServiceError('validation', 'invalid_field', "Unknown cmdb_object_id: {$objectId}");
+            }
         }
     }
 
