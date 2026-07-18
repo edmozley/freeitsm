@@ -22,6 +22,11 @@ $translationNamespaces = ['common', 'self-service'];
 $sso_error = $_SESSION['sso_error'] ?? null;
 unset($_SESSION['sso_error']);
 
+// Only offer "create an account" if an admin has enabled self-registration.
+require_once '../includes/self_service.php';
+$ssRegistrationEnabled = false;
+try { $ssRegistrationEnabled = selfServiceRegistrationEnabled(connectToDatabase()); } catch (Exception $e) {}
+
 // Work out SSO / local availability for the email-first router (mirrors the
 // analyst login). At N=1 with SSO off this all collapses to the local form.
 $ssoProviders = [];
@@ -250,8 +255,10 @@ $localAllowed = $localOn || $forceLocal;
             <?php endif; ?>
 
             <div class="login-links">
+                <?php if ($ssRegistrationEnabled): ?>
                 <a href="register.php"><?php echo htmlspecialchars(t('self-service.login.create_account')); ?></a>
                 <span class="divider">|</span>
+                <?php endif; ?>
                 <a href="../login.php"><?php echo htmlspecialchars(t('self-service.login.analyst_login')); ?></a>
             </div>
         </div>

@@ -10,8 +10,21 @@ if (isset($_SESSION['ss_user_id'])) {
 }
 
 require_once '../config.php';
+require_once '../includes/functions.php';
+require_once '../includes/self_service.php';
 require_once '../includes/i18n.php';
 I18n::initFromSession();
+
+// If self-registration isn't enabled, there's no page to show — send them to login.
+try {
+    if (!selfServiceRegistrationEnabled(connectToDatabase())) {
+        header('Location: login.php');
+        exit;
+    }
+} catch (Exception $e) {
+    header('Location: login.php');
+    exit;
+}
 
 $translationNamespaces = ['common', 'self-service'];
 ?>

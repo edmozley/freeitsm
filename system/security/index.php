@@ -176,6 +176,19 @@ $translationNamespaces = ['common', 'system'];
         <p class="page-subtitle"><?php echo htmlspecialchars(t('system.security.subtitle')); ?></p>
 
         <form id="securityForm">
+            <!-- Self-service registration -->
+            <div class="settings-card">
+                <h3><?php echo htmlspecialchars(t('system.security.selfreg_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.security.selfreg_desc')); ?></p>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <strong><?php echo htmlspecialchars(t('system.security.selfreg_label')); ?></strong>
+                        <?php echo htmlspecialchars(t('system.security.selfreg_hint')); ?>
+                    </div>
+                    <input type="checkbox" id="selfServiceRegistration" style="width:22px;height:22px;cursor:pointer;">
+                </div>
+            </div>
+
             <!-- Trusted Device -->
             <div class="settings-card">
                 <h3><?php echo htmlspecialchars(t('system.security.trusted_heading')); ?></h3>
@@ -270,6 +283,7 @@ $translationNamespaces = ['common', 'system'];
             const data = await resp.json();
             if (data.success) {
                 const s = data.settings;
+                document.getElementById('selfServiceRegistration').checked = (s.self_service_registration_enabled === '1');
                 document.getElementById('trustedDeviceDays').value = s.trusted_device_days || '0';
                 document.getElementById('passwordExpiryDays').value = s.password_expiry_days || '0';
                 document.getElementById('maxFailedLogins').value = s.max_failed_logins || '0';
@@ -288,6 +302,7 @@ $translationNamespaces = ['common', 'system'];
         btn.disabled = true;
 
         const settings = {
+            self_service_registration_enabled: document.getElementById('selfServiceRegistration').checked ? '1' : '0',
             trusted_device_days: document.getElementById('trustedDeviceDays').value,
             password_expiry_days: document.getElementById('passwordExpiryDays').value,
             max_failed_logins: document.getElementById('maxFailedLogins').value,

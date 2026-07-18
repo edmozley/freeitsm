@@ -333,6 +333,10 @@ return [
         'title'    => 'Segurança',
         'subtitle' => 'Configure políticas de autenticação e proteção de contas',
 
+        'selfreg_heading' => 'Autocadastro no portal',
+        'selfreg_desc'    => 'Se as pessoas podem criar a própria conta do portal de autoatendimento a partir da tela de login. Desativado por padrão. Quando ativado, o cadastro ainda é confirmado por um link de e-mail antes de qualquer senha ser definida.',
+        'selfreg_label'   => 'Permitir autocadastro',
+        'selfreg_hint'    => 'Desativado = apenas contas que você cria podem acessar o portal',
         'trusted_heading' => 'Dispositivo confiável',
         'trusted_desc'    => 'Permita que os usuários pulem a verificação por OTP em navegadores confiáveis. Os usuários optam por isso individualmente pelo menu do avatar. Defina como 0 para desativar este recurso completamente.',
         'trust_duration'  => 'Duração da confiança',

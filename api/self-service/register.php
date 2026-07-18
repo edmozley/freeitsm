@@ -43,6 +43,14 @@ if ($password !== $confirmPassword) {
 
 try {
     $conn = connectToDatabase();
+
+    // Self-registration is off unless an admin enabled it (System → Security).
+    require_once '../../includes/self_service.php';
+    if (!selfServiceRegistrationEnabled($conn)) {
+        echo json_encode(['success' => false, 'error' => 'Self-service registration is not enabled. Please contact your service desk.']);
+        exit;
+    }
+
     $hash = password_hash($password, PASSWORD_BCRYPT);
 
     // Check if email belongs to an analyst account

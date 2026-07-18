@@ -92,6 +92,7 @@ function settingKeyOwners(): array
     return $owners += [
         // --- System: Security area. The lockout policy — an analyst able to raise
         // max_failed_logins could switch off brute-force protection entirely. ---
+        'self_service_registration_enabled' => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
         'trusted_device_days'      => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
         'password_expiry_days'     => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
         'max_failed_logins'        => ['module' => 'system', 'cap' => null, 'tab' => 'security'],

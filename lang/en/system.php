@@ -353,6 +353,10 @@ return [
         'title'    => 'Security',
         'subtitle' => 'Configure authentication policies and account protection',
 
+        'selfreg_heading' => 'Self-service registration',
+        'selfreg_desc'    => 'Whether people can create their own self-service portal account from the sign-in page. Off by default. When on, sign-up is still confirmed by an email link before any password is set.',
+        'selfreg_label'   => 'Allow self-registration',
+        'selfreg_hint'    => 'Off = only accounts you create can sign in to the portal',
         'trusted_heading' => 'Trusted Device',
         'trusted_desc'    => 'Allow users to skip OTP verification on trusted browsers. Users opt in individually via their avatar menu. Set to 0 to disable this feature entirely.',
         'trust_duration'  => 'Trust duration',
