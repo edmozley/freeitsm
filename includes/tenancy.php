@@ -583,6 +583,56 @@ function analystCanAccessArticle(PDO $conn, int $analystId, $articleId): bool {
 }
 
 /**
+ * Suggest the company for a NEW portal/requester account from its email address.
+ *
+ * This is a PRE-FILL, not a rule: the answer is written once to users.tenant_id
+ * and thereafter that column is the truth. We deliberately do NOT re-derive it
+ * when the person raises a ticket, so editing a company's registered domains can
+ * never silently re-file people who already exist.
+ *
+ *   1. Single-company install → the Default company. Storing the real id (rather
+ *      than NULL) means that if a second company is added later, everyone who
+ *      already existed stays correctly on Default instead of falling into triage.
+ *   2. Registered domain (tenant_domains) → that company.
+ *   3. Anything else — including every freemail address — → NULL, "not known".
+ *      Freemail is never guessed: two customers share gmail.com, so a domain
+ *      match there would be worse than no answer. An admin sets those by hand.
+ *
+ * Note this is stricter than resolveTenantIdForAddress(), which also consults
+ * the per-address override list. That list exists to route inbound MAIL, and an
+ * address being on it doesn't establish that the person belongs to the company.
+ *
+ * @return int|null a tenant id, or NULL meaning "company not known".
+ */
+function resolveTenantForNewUser(PDO $conn, string $email): ?int {
+    if (!isMultiTenant($conn)) {
+        return getDefaultTenantId($conn);
+    }
+
+    $addr = strtolower(trim($email));
+    if ($addr === '' || strpos($addr, '@') === false) return null;
+
+    $domain = strtolower(trim(substr(strrchr($addr, '@'), 1)));
+    if ($domain === '') return null;
+
+    // Freemail is never mapped by domain — see (3) above.
+    try {
+        if (isFreemailDomain($conn, $domain)) return null;
+    } catch (Exception $e) {
+        return null;   // can't prove it's safe → don't guess.
+    }
+
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM tenant_domains WHERE domain = ? LIMIT 1");
+        $stmt->execute([$domain]);
+        $val = $stmt->fetchColumn();
+        if ($val !== false && $val !== null) return (int) $val;
+    } catch (Exception $e) { /* table missing → no answer */ }
+
+    return null;
+}
+
+/**
  * Decide which company (tenant) a NEW inbound-email ticket belongs to.
  *
  * This implements the design's inbound routing for the "no existing ticket"

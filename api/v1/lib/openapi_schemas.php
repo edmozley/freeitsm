@@ -5836,12 +5836,18 @@ return array (
           'type' => 'string',
           'nullable' => true,
         ),
-        'preferred_name' => 
+        'preferred_name' =>
         array (
           'type' => 'string',
           'nullable' => true,
         ),
-        'created_at' => 
+        'tenant_id' =>
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+          'description' => 'Company this requester belongs to. null = not known; tickets they raise in the self-service portal go to triage.',
+        ),
+        'created_at' =>
         array (
           'type' => 'string',
           'format' => 'date-time',
@@ -5897,12 +5903,18 @@ return array (
               'type' => 'string',
               'nullable' => true,
             ),
-            'preferred_name' => 
+            'preferred_name' =>
             array (
               'type' => 'string',
               'nullable' => true,
             ),
-            'created_at' => 
+            'tenant_id' =>
+            array (
+              'type' => 'integer',
+              'nullable' => true,
+              'description' => 'Company this requester belongs to. null = not known; tickets they raise in the self-service portal go to triage.',
+            ),
+            'created_at' =>
             array (
               'type' => 'string',
               'nullable' => true,

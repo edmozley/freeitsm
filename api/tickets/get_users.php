@@ -36,8 +36,11 @@ try {
                 u.display_name,
                 u.preferred_name,
                 u.created_at,
+                u.tenant_id,
+                ten.name AS tenant_name,
                 (SELECT COUNT(*) FROM tickets t WHERE t.user_id = u.id{$ttSql}) as ticket_count
-            FROM users u";
+            FROM users u
+            LEFT JOIN tenants ten ON ten.id = u.tenant_id";
 
     $params = $ttParams;
 

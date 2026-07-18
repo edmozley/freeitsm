@@ -266,6 +266,10 @@ return [
         // default. Analysts use user_preferences, which is keyed by analyst_id
         // and so unavailable to portal users.
         'theme_preference' => 'VARCHAR(32) NULL',
+        // The company this requester belongs to. NULL = unknown → their tickets
+        // land in triage, the same meaning NULL carries on `tickets`. Scoped-data
+        // shape, not config: NULL is "not yet known", never "shared".
+        'tenant_id'       => 'INT NULL',
         'created_at'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 

@@ -316,9 +316,16 @@ CREATE TABLE IF NOT EXISTS `users` (
     -- theirs in `user_preferences` (keyed by analyst_id), which portal users
     -- can't use — hence a column here rather than a row there.
     `theme_preference` VARCHAR(32) NULL,
+    -- The company this requester belongs to. NULL = unknown, and a ticket they
+    -- raise lands in triage for an analyst to route — the same meaning NULL has
+    -- on `tickets`. Set explicitly (admin, or pre-filled from the email domain
+    -- at registration); deliberately NOT re-derived at ticket time, so editing
+    -- a company's domains never silently re-files an existing person.
+    `tenant_id`       INT NULL,
     `created_at`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_users_email` (`email`)
+    UNIQUE KEY `uq_users_email` (`email`),
+    KEY `idx_users_tenant` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Links a self-service requester to their identity at a given provider (the IdP

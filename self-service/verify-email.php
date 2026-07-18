@@ -10,6 +10,7 @@
 session_start();
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/tenancy.php';
 
 $ok = false;
 $heading = 'Link invalid or expired';
@@ -43,13 +44,22 @@ if ($token !== '' && preg_match('/^[0-9a-f]{64}$/i', $token)) {
                 $heading = 'Already confirmed';
                 $message = 'This account is already set up. Please sign in.';
             } else {
+                // Work out their company from the confirmed address. On the claim
+                // path we only FILL A BLANK — an admin who has already filed this
+                // person by hand outranks anything we can infer from a domain.
+                $newTenantId = resolveTenantForNewUser($conn, $email);
+
                 if ($existing) {
                     $conn->prepare("UPDATE users SET password_hash = ?, display_name = COALESCE(NULLIF(?, ''), display_name) WHERE id = ?")
                          ->execute([$row['password_hash'], $row['display_name'], $existing['id']]);
                     $userId = (int)$existing['id'];
+                    if ($newTenantId !== null) {
+                        $conn->prepare("UPDATE users SET tenant_id = ? WHERE id = ? AND tenant_id IS NULL")
+                             ->execute([$newTenantId, $userId]);
+                    }
                 } else {
-                    $conn->prepare("INSERT INTO users (email, display_name, password_hash, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP())")
-                         ->execute([$email, $row['display_name'], $row['password_hash']]);
+                    $conn->prepare("INSERT INTO users (email, display_name, password_hash, tenant_id, created_at) VALUES (?, ?, ?, ?, UTC_TIMESTAMP())")
+                         ->execute([$email, $row['display_name'], $row['password_hash'], $newTenantId]);
                     $userId = (int)$conn->lastInsertId();
                 }
 

@@ -98,6 +98,17 @@ try {
         $analystAllModulesColWasMissing = ((int)$amProbe->fetchColumn() === 0);
     } catch (Exception $e) {}
 
+    // Was users.tenant_id absent before this run? Requesters predate the column,
+    // so on the run that adds it we pre-fill it from each address's domain (see
+    // the back-fill below) rather than leaving every existing person company-less
+    // and sending all their future portal tickets to triage.
+    $userTenantColWasMissing = false;
+    try {
+        $utProbe = $conn->prepare("SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = ? AND table_name = 'users' AND column_name = 'tenant_id'");
+        $utProbe->execute([$dbName]);
+        $userTenantColWasMissing = ((int)$utProbe->fetchColumn() === 0);
+    } catch (Exception $e) {}
+
     foreach ($schema as $tableName => $columns) {
         $tableResult = ['table' => $tableName, 'status' => 'ok', 'details' => []];
 
@@ -247,6 +258,59 @@ try {
             'table' => 'analysts',
             'status' => 'updated',
             'details' => ['Preserved module restrictions for ' . (int)$restricted . ' analyst(s) on upgrade (issue #30)']
+        ];
+    }
+
+    // One-time company pre-fill for requesters (portal tickets were landing in
+    // triage because nobody had a company). Runs ONLY on the run that first adds
+    // the column, so an admin's later deliberate choice — including deliberately
+    // clearing someone — is never overwritten on a subsequent verify.
+    //
+    // Domain match only. Freemail is skipped on purpose: two customers share
+    // gmail.com, so a domain match there would be a guess, and a wrong company is
+    // worse than a blank one. Those get set by hand in Tickets → Users.
+    if ($userTenantColWasMissing) {
+        require_once '../../includes/tenancy.php';
+        $filled = 0;
+        try {
+            if (!isMultiTenant($conn)) {
+                // Single-company install: everyone belongs to the silent Default.
+                // Doing this now means that if a second company is added later,
+                // these people stay on Default instead of falling into triage.
+                $stmt = $conn->prepare("UPDATE users SET tenant_id = ? WHERE tenant_id IS NULL");
+                $stmt->execute([getDefaultTenantId($conn)]);
+                $filled = $stmt->rowCount();
+            } else {
+                $upd = $conn->prepare(
+                    "UPDATE users SET tenant_id = ?
+                     WHERE tenant_id IS NULL AND SUBSTRING_INDEX(email, '@', -1) = ?"
+                );
+                foreach ($conn->query("SELECT domain, tenant_id FROM tenant_domains") as $row) {
+                    $domain = strtolower(trim($row['domain']));
+                    if ($domain === '' || $row['tenant_id'] === null) continue;
+                    if (isFreemailDomain($conn, $domain)) continue;
+                    $upd->execute([(int)$row['tenant_id'], $domain]);
+                    $filled += $upd->rowCount();
+                }
+            }
+        } catch (Exception $e) {
+            // tenancy tables missing / part-migrated install — leave them blank,
+            // which is the safe state (triage), not a broken one.
+        }
+
+        $blank = 0;
+        try {
+            $blank = (int)$conn->query("SELECT COUNT(*) FROM users WHERE tenant_id IS NULL")->fetchColumn();
+        } catch (Exception $e) {}
+
+        $detail = 'Set the company for ' . $filled . ' requester(s) from their email domain (one-time upgrade)';
+        if ($blank > 0) {
+            $detail .= '; ' . $blank . ' left blank (freemail or unregistered domain) — set these in Tickets → Users or their tickets go to triage';
+        }
+        $results[] = [
+            'table' => 'users',
+            'status' => 'updated',
+            'details' => [$detail]
         ];
     }
 

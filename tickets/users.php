@@ -351,6 +351,13 @@ $translationNamespaces = ['common', 'tickets'];
                     <input type="text" id="userPreferredName" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.users.modal.preferred_name_placeholder')); ?>">
                 </div>
 
+                <!-- Multi-tenancy: only shown when more than one company exists (populated by JS). -->
+                <div class="form-group" id="userCompanyGroup" style="display: none;">
+                    <label for="userCompany"><?php echo htmlspecialchars(t('tickets.users.modal.company')); ?></label>
+                    <select id="userCompany"></select>
+                    <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.users.modal.company_help')); ?></small>
+                </div>
+
                 <div class="form-group">
                     <label for="userPassword"><?php echo htmlspecialchars(t('tickets.users.modal.password')); ?></label>
                     <input type="password" id="userPassword" autocomplete="new-password" placeholder="<?php echo htmlspecialchars(t('tickets.users.modal.password_placeholder')); ?>" minlength="8">
@@ -371,10 +378,54 @@ $translationNamespaces = ['common', 'tickets'];
         let selectedUserId = null;
         let searchTimeout = null;
 
+        // Companies, for the modal's picker. Loaded once; stays empty (and the
+        // picker stays hidden) on a single-company install.
+        let userCompanies = [];
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadUsers();
+            loadUserCompanies();
         });
+
+        // Only the companies THIS analyst can reach — the picker must never offer
+        // to file someone somewhere they can't see. (save_user.php re-checks; the
+        // dropdown is a convenience, not the guard.)
+        async function loadUserCompanies() {
+            try {
+                const r = await fetch('../api/system/get_tenants.php?accessible=1');
+                const d = await r.json();
+                userCompanies = d.success ? d.companies : [];
+            } catch (e) {
+                userCompanies = [];
+            }
+        }
+
+        // The hide-unless-more-than-one idiom: at N=1 multi-tenancy is invisible.
+        //
+        // The blank option means different things in the two modes, so it says so:
+        // on a NEW person it means "work it out from their email address" (the
+        // payload omits the field and the server infers), while on an EXISTING one
+        // it means "no company", a deliberate choice that is sent and stored.
+        function populateUserCompanies(selectedTenantId, isNew) {
+            const group  = document.getElementById('userCompanyGroup');
+            const select = document.getElementById('userCompany');
+
+            if (userCompanies.length < 2) { group.style.display = 'none'; select.innerHTML = ''; return; }
+
+            const blankLabel = isNew
+                ? t('tickets.users.modal.company_auto')
+                : t('tickets.users.modal.company_none');
+            let html = `<option value="">${escapeHtml(blankLabel)}</option>`;
+            userCompanies.forEach(c => {
+                // Hide retired companies unless this person is already filed there.
+                if (!c.is_active && c.id != selectedTenantId) return;
+                html += `<option value="${c.id}">${escapeHtml(c.name)}</option>`;
+            });
+            select.innerHTML = html;
+            select.value = (selectedTenantId === null || selectedTenantId === undefined) ? '' : String(selectedTenantId);
+            group.style.display = '';
+        }
 
         // Load users from API
         async function loadUsers(search = '') {
@@ -464,6 +515,11 @@ $translationNamespaces = ['common', 'tickets'];
                         <span class="info-label">${escapeHtml(t('tickets.users.info.total_tickets'))}</span>
                         <span class="info-value">${user.ticket_count}</span>
                     </div>
+                    ${userCompanies.length < 2 ? '' : `
+                    <div class="info-item">
+                        <span class="info-label">${escapeHtml(t('tickets.users.info.company'))}</span>
+                        <span class="info-value">${escapeHtml(user.tenant_name || t('tickets.users.info.company_none'))}</span>
+                    </div>`}
                 </div>
                 <div class="tickets-section">
                     <div class="tickets-header">${escapeHtml(t('tickets.users.tickets_section', { count: user.ticket_count }))}</div>
@@ -566,12 +622,16 @@ $translationNamespaces = ['common', 'tickets'];
                 emailField.value = user?.email || '';
                 displayField.value = user?.display_name || '';
                 preferredField.value = user?.preferred_name || '';
+                populateUserCompanies(user?.tenant_id ?? null, false);
             } else {
                 title.textContent = t('tickets.users.modal.add_title');
                 idField.value = '';
                 emailField.value = '';
                 displayField.value = '';
                 preferredField.value = '';
+                // New person: no company chosen. Leaving it blank lets the server
+                // work one out from their email domain.
+                populateUserCompanies(null, true);
             }
             passwordField.value = '';
             modal.classList.add('active');
@@ -592,6 +652,17 @@ $translationNamespaces = ['common', 'tickets'];
                 preferred_name: document.getElementById('userPreferredName').value.trim(),
                 password: document.getElementById('userPassword').value
             };
+
+            // Only send a company when the picker is actually in play; otherwise a
+            // single-company install would post an empty string on every save and
+            // clear the company it can't even see. On a NEW person, a blank choice
+            // is omitted entirely so the server infers it from their email domain.
+            if (userCompanies.length >= 2) {
+                const companyValue = document.getElementById('userCompany').value;
+                if (companyValue || id) {
+                    payload.tenant_id = companyValue || null;
+                }
+            }
 
             try {
                 const response = await fetch(`${API_BASE}save_user.php`, {

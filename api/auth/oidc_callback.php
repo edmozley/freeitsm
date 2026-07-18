@@ -16,6 +16,7 @@ session_start();
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/oidc.php';
+require_once '../../includes/tenancy.php';
 
 /** Bounce back to the originating portal's login page with an error message. */
 function ssoBail(string $msg): void {
@@ -254,11 +255,18 @@ function completeSelfServiceSso(PDO $conn, array $provider, int $providerId, str
             if ($email === '') {
                 ssoBail('Cannot create an account without an email from the provider.');
             }
+            // A provider pinned to a company vouches for whoever it signs in, so it
+            // outranks the email domain; an unpinned (shared) provider falls back
+            // to the domain, and to blank if that proves nothing.
+            $jitTenantId = !empty($provider['tenant_id'])
+                ? (int)$provider['tenant_id']
+                : resolveTenantForNewUser($conn, $email);
+
             $stmt = $conn->prepare(
-                "INSERT INTO users (email, display_name, auth_provider_id, created_at)
-                 VALUES (?, ?, ?, UTC_TIMESTAMP())"
+                "INSERT INTO users (email, display_name, auth_provider_id, tenant_id, created_at)
+                 VALUES (?, ?, ?, ?, UTC_TIMESTAMP())"
             );
-            $stmt->execute([$email, $name ?: $email, $providerId]);
+            $stmt->execute([$email, $name ?: $email, $providerId, $jitTenantId]);
             $userId = (int)$conn->lastInsertId();
             $user   = ssLoadUser($conn, $userId);
         }

@@ -10,6 +10,9 @@ function apiSerializeUser(array $u): array {
         'email'          => $u['email'],
         'display_name'   => $u['display_name'],
         'preferred_name' => $u['preferred_name'],
+        // The company this requester belongs to; null = not known, and tickets
+        // they raise land in triage.
+        'tenant_id'      => isset($u['tenant_id']) && $u['tenant_id'] !== null ? (int)$u['tenant_id'] : null,
         'created_at'     => apiIsoDate($u['created_at']),
     ];
 }
@@ -35,7 +38,7 @@ function apiUsersList(PDO $conn, array $apiKey, array $params, array $body): voi
     $total = (int)$countStmt->fetchColumn();
 
     $stmt = $conn->prepare(
-        "SELECT id, email, display_name, preferred_name, created_at
+        "SELECT id, email, display_name, preferred_name, tenant_id, created_at
          FROM users WHERE $whereSql ORDER BY email ASC LIMIT $perPage OFFSET $offset"
     );
     $stmt->execute($args);
@@ -47,7 +50,7 @@ function apiUsersList(PDO $conn, array $apiKey, array $params, array $body): voi
 
 // GET /users/{id}
 function apiUsersGet(PDO $conn, array $apiKey, array $params, array $body): void {
-    $stmt = $conn->prepare("SELECT id, email, display_name, preferred_name, created_at FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT id, email, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
     $stmt->execute([$params[0]]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$user) {
@@ -86,18 +89,29 @@ function apiUsersCreate(PDO $conn, array $apiKey, array $params, array $body): v
     if ($check->fetchColumn()) {
         apiError(409, 'conflict', 'A requester with this email already exists.');
     }
-    $stmt = $conn->prepare("INSERT INTO users (email, display_name, preferred_name, created_at) VALUES (?, ?, ?, UTC_TIMESTAMP())");
-    $stmt->execute([$email, $displayName, $preferredName]);
+    // Told a company → use it, but only one this key may reach. Not told → infer
+    // it from the address, the same pre-fill the admin UI does.
+    if (array_key_exists('tenant_id', $body) && $body['tenant_id'] !== null && $body['tenant_id'] !== '') {
+        $tenantId = (int)$body['tenant_id'];
+        if (!apiKeyCanAccessTenant($conn, $apiKey, $tenantId)) {
+            apiError(403, 'forbidden', 'This API key cannot assign requesters to that company.');
+        }
+    } else {
+        $tenantId = array_key_exists('tenant_id', $body) ? null : resolveTenantForNewUser($conn, $email);
+    }
+
+    $stmt = $conn->prepare("INSERT INTO users (email, display_name, preferred_name, tenant_id, created_at) VALUES (?, ?, ?, ?, UTC_TIMESTAMP())");
+    $stmt->execute([$email, $displayName, $preferredName, $tenantId]);
     $id = (int)$conn->lastInsertId();
 
-    $get = $conn->prepare("SELECT id, email, display_name, preferred_name, created_at FROM users WHERE id = ?");
+    $get = $conn->prepare("SELECT id, email, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
     $get->execute([$id]);
     apiRespond(apiSerializeUser($get->fetch(PDO::FETCH_ASSOC)), 201);
 }
 
 // PATCH /users/{id}
 function apiUsersUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $stmt = $conn->prepare("SELECT id, email, display_name, preferred_name, created_at FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT id, email, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
     $stmt->execute([$params[0]]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$user) {
@@ -127,13 +141,26 @@ function apiUsersUpdate(PDO $conn, array $apiKey, array $params, array $body): v
         $updates[] = 'preferred_name = ?';
         $args[]    = trim((string)$body['preferred_name']) ?: null;
     }
+    if (array_key_exists('tenant_id', $body)) {
+        if ($body['tenant_id'] === null || $body['tenant_id'] === '') {
+            $updates[] = 'tenant_id = ?';
+            $args[]    = null;
+        } else {
+            $tenantId = (int)$body['tenant_id'];
+            if (!apiKeyCanAccessTenant($conn, $apiKey, $tenantId)) {
+                apiError(403, 'forbidden', 'This API key cannot assign requesters to that company.');
+            }
+            $updates[] = 'tenant_id = ?';
+            $args[]    = $tenantId;
+        }
+    }
     if (!$updates) {
         apiError(422, 'missing_field', 'No fields to update.');
     }
     $args[] = $params[0];
     $conn->prepare('UPDATE users SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
 
-    $get = $conn->prepare("SELECT id, email, display_name, preferred_name, created_at FROM users WHERE id = ?");
+    $get = $conn->prepare("SELECT id, email, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
     $get->execute([$params[0]]);
     apiRespond(apiSerializeUser($get->fetch(PDO::FETCH_ASSOC)));
 }

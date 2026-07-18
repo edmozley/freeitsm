@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -52,7 +53,7 @@ try {
     $conn->beginTransaction();
 
     // Get user details
-    $userStmt = $conn->prepare("SELECT email, display_name FROM users WHERE id = ?");
+    $userStmt = $conn->prepare("SELECT email, display_name, tenant_id FROM users WHERE id = ?");
     $userStmt->execute([$userId]);
     $user = $userStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -63,18 +64,27 @@ try {
     $fromEmail = $user['email'];
     $fromName = $user['display_name'] ?: $user['email'];
 
+    // Which company does this ticket belong to? The portal has no mailbox and no
+    // sender to route on, so the answer is simply whose account raised it. A user
+    // with no company on file falls to NULL = triage, exactly as an email from an
+    // unrecognised domain does; a single-company install always gets Default so
+    // portal tickets aren't shaped differently from every other intake path.
+    $ticketTenantId = $user['tenant_id'] !== null
+        ? (int) $user['tenant_id']
+        : (isMultiTenant($conn) ? null : getDefaultTenantId($conn));
+
     // Generate unique ticket number
     $ticketNumber = generateTicketNumber($conn);
 
     // Create ticket. Resolve status/priority names to ids via subselects.
     $ticketSql = "INSERT INTO tickets (
         ticket_number, subject, status_id, priority_id,
-        user_id, created_datetime, updated_datetime
+        user_id, tenant_id, created_datetime, updated_datetime
     ) VALUES (
         ?, ?,
         (SELECT id FROM ticket_statuses   WHERE name = 'Open' LIMIT 1),
         (SELECT id FROM ticket_priorities WHERE name = ? LIMIT 1),
-        ?, UTC_TIMESTAMP(), UTC_TIMESTAMP()
+        ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP()
     )";
 
     $ticketStmt = $conn->prepare($ticketSql);
@@ -83,6 +93,7 @@ try {
         $subject,
         $priority,
         $userId,
+        $ticketTenantId,
     ]);
 
     $ticketId = $conn->lastInsertId();
