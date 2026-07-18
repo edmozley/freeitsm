@@ -18,18 +18,18 @@ $pageStyles = <<<'CSS'
         .ss-help-page h1 {
             font-size: 28px;
             font-weight: 600;
-            color: #222;
+            color: var(--text, #222);
             margin: 0 0 6px;
         }
         .ss-help-page p.lede {
             font-size: 15px;
-            color: #666;
+            color: var(--text-muted, #666);
             line-height: 1.55;
             margin-bottom: 32px;
         }
 
         .ss-help-section {
-            background: white;
+            background: var(--surface, #fff);
             border-radius: 10px;
             padding: 26px 30px;
             margin-bottom: 22px;
@@ -38,10 +38,10 @@ $pageStyles = <<<'CSS'
         .ss-help-section h2 {
             font-size: 18px;
             font-weight: 600;
-            color: #222;
+            color: var(--text, #222);
             margin: 0 0 14px;
             padding-bottom: 12px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border, #eee);
             display: flex;
             align-items: center;
             gap: 12px;
@@ -53,20 +53,20 @@ $pageStyles = <<<'CSS'
             width: 28px;
             height: 28px;
             border-radius: 50%;
-            background: #0078d4;
+            background: var(--ss-accent, #0078d4);
             color: white;
             font-size: 13px;
         }
         .ss-help-section h3 {
             font-size: 15px;
             font-weight: 600;
-            color: #333;
+            color: var(--text, #333);
             margin: 18px 0 8px;
         }
         .ss-help-section p {
             font-size: 14px;
             line-height: 1.6;
-            color: #444;
+            color: var(--text, #444);
             margin: 0 0 12px;
         }
         .ss-help-section ol, .ss-help-section ul {
@@ -76,21 +76,21 @@ $pageStyles = <<<'CSS'
         .ss-help-section li {
             font-size: 14px;
             line-height: 1.7;
-            color: #444;
+            color: var(--text, #444);
             margin-bottom: 4px;
         }
         .ss-help-section .tip {
-            background: #eff6ff;
-            border-left: 4px solid #2563eb;
+            background: var(--ss-accent-soft, #eff6ff);
+            border-left: 4px solid var(--ss-accent, #2563eb);
             padding: 12px 16px;
             border-radius: 4px;
             font-size: 13px;
             line-height: 1.55;
-            color: #1e3a8a;
+            color: var(--text, #1e3a8a);
             margin: 14px 0 0;
         }
         .ss-help-section code {
-            background: #f5f5f5;
+            background: var(--app-bg, #f5f5f5);
             padding: 1px 5px;
             border-radius: 3px;
             font-size: 12px;

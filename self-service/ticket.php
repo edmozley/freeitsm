@@ -28,7 +28,7 @@ $pageStyles = <<<'CSS'
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            color: #0078d4;
+            color: var(--ss-accent, #0078d4);
             text-decoration: none;
             font-size: 13px;
             font-weight: 500;
@@ -38,8 +38,8 @@ $pageStyles = <<<'CSS'
 
         /* Ticket Header */
         .ticket-header-card {
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e5e7eb);
             border-radius: 8px;
             padding: 24px;
             margin-bottom: 20px;
@@ -47,7 +47,7 @@ $pageStyles = <<<'CSS'
         .ticket-subject {
             font-size: 20px;
             font-weight: 600;
-            color: #333;
+            color: var(--text, #333);
             margin: 0 0 12px 0;
         }
         .ticket-meta {
@@ -58,40 +58,40 @@ $pageStyles = <<<'CSS'
         }
         .ticket-meta-item {
             font-size: 13px;
-            color: #666;
+            color: var(--text-muted, #666);
         }
-        .ticket-meta-item strong { color: #333; }
+        .ticket-meta-item strong { color: var(--text, #333); }
         .ticket-number-display {
             font-family: 'Consolas', 'Courier New', monospace;
-            background: #f3f4f6;
+            background: var(--surface-hover, #f3f4f6);
             padding: 2px 8px;
             border-radius: 4px;
             font-size: 12px;
-            color: #555;
+            color: var(--text-muted, #555);
         }
 
         /* Status & Priority badges (reused from dashboard) */
 
         /* Thread */
         .thread-section {
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e5e7eb);
             border-radius: 8px;
             overflow: hidden;
         }
         .thread-header {
             padding: 16px 20px;
-            border-bottom: 1px solid #e5e7eb;
+            border-bottom: 1px solid var(--border, #e5e7eb);
         }
         .thread-header h2 {
             font-size: 15px;
             font-weight: 600;
-            color: #333;
+            color: var(--text, #333);
             margin: 0;
         }
         .thread-item {
             padding: 20px;
-            border-bottom: 1px solid #f3f4f6;
+            border-bottom: 1px solid var(--border-soft, #f3f4f6);
         }
         .thread-item:last-child { border-bottom: none; }
         .thread-item-header {
@@ -103,7 +103,7 @@ $pageStyles = <<<'CSS'
         .thread-sender {
             font-size: 13px;
             font-weight: 600;
-            color: #333;
+            color: var(--text, #333);
         }
         .thread-direction {
             display: inline-block;
@@ -117,28 +117,28 @@ $pageStyles = <<<'CSS'
         .direction-inbound { background: #dbeafe; color: #1e40af; }
         .direction-outbound { background: #d1fae5; color: #065f46; }
         .direction-portal { background: #e0e7ff; color: #3730a3; }
-        .direction-manual { background: #f3f4f6; color: #6b7280; }
+        .direction-manual { background: var(--surface-hover, #f3f4f6); color: var(--text-muted, #6b7280); }
         .direction-note { background: #fef3c7; color: #92400e; }
         .thread-date {
             font-size: 12px;
-            color: #999;
+            color: var(--text-faint, #999);
         }
         .thread-body {
             font-size: 14px;
-            color: #333;
+            color: var(--text, #333);
             line-height: 1.6;
         }
         .thread-body img { max-width: 100%; }
         .error-state {
             text-align: center;
             padding: 40px 20px;
-            color: #c33;
+            color: var(--danger-text, #c33);
             font-size: 14px;
         }
 
         .recordings-section {
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e5e7eb);
             border-radius: 8px;
             padding: 20px 24px;
             margin-bottom: 20px;
@@ -147,14 +147,14 @@ $pageStyles = <<<'CSS'
             font-size: 16px;
             font-weight: 600;
             margin: 0 0 14px 0;
-            color: #333;
+            color: var(--text, #333);
         }
         .recording-card {
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--border, #e5e7eb);
             border-radius: 6px;
             padding: 12px;
             margin-bottom: 12px;
-            background: #fafafa;
+            background: var(--surface-hover, #fafafa);
         }
         .recording-card:last-child { margin-bottom: 0; }
         .recording-card video {
@@ -165,12 +165,11 @@ $pageStyles = <<<'CSS'
         }
         .recording-meta {
             font-size: 12px;
-            color: #777;
+            color: var(--text-muted, #777);
             margin-top: 8px;
         }
 
-        /* Attachments on a message. New UI, so it uses the theme tokens rather
-           than the fixed colours the rest of this page still carries. */
+        /* Attachments on a message. */
         .thread-attachments {
             display: flex;
             flex-wrap: wrap;

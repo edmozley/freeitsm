@@ -13,13 +13,13 @@ $pageStyles = <<<'CSS'
 .page-title {
             font-size: 22px;
             font-weight: 600;
-            color: #333;
+            color: var(--text, #333);
             margin: 0 0 24px 0;
         }
 
         .form-card {
-            background: white;
-            border: 1px solid #e5e7eb;
+            background: var(--surface, #fff);
+            border: 1px solid var(--border, #e5e7eb);
             border-radius: 8px;
             padding: 28px;
         }
@@ -32,14 +32,14 @@ $pageStyles = <<<'CSS'
             margin-bottom: 6px;
             font-size: 13px;
             font-weight: 600;
-            color: #333;
+            color: var(--text, #333);
         }
         .form-group input,
         .form-group select,
         .form-group textarea {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border, #ddd);
             border-radius: 4px;
             font-size: 14px;
             font-family: inherit;
@@ -49,7 +49,7 @@ $pageStyles = <<<'CSS'
         .form-group select:focus,
         .form-group textarea:focus {
             outline: none;
-            border-color: #0078d4;
+            border-color: var(--ss-accent, #0078d4);
             box-shadow: 0 0 0 2px rgba(0,120,212,0.1);
         }
         .form-group textarea {
@@ -65,7 +65,7 @@ $pageStyles = <<<'CSS'
         }
         .btn-submit {
             padding: 10px 24px;
-            background: #0078d4;
+            background: var(--ss-accent, #0078d4);
             color: white;
             border: none;
             border-radius: 4px;
@@ -74,13 +74,13 @@ $pageStyles = <<<'CSS'
             cursor: pointer;
             transition: background 0.2s;
         }
-        .btn-submit:hover { background: #005a9e; }
+        .btn-submit:hover { background: var(--ss-accent-hover, #005a9e); }
         .btn-submit:disabled { opacity: 0.7; cursor: not-allowed; }
         .btn-cancel {
             padding: 10px 24px;
-            background: #f3f4f6;
-            color: #333;
-            border: 1px solid #ddd;
+            background: var(--surface-hover, #f3f4f6);
+            color: var(--text, #333);
+            border: 1px solid var(--border, #ddd);
             border-radius: 4px;
             font-size: 14px;
             font-weight: 500;
@@ -89,48 +89,48 @@ $pageStyles = <<<'CSS'
             display: inline-flex;
             align-items: center;
         }
-        .btn-cancel:hover { background: #e5e7eb; }
+        .btn-cancel:hover { background: var(--surface-hover, #e5e7eb); }
 
         .error-message {
-            background: #fee;
-            color: #c33;
+            background: var(--danger-bg, #fee);
+            color: var(--danger-text, #c33);
             padding: 12px;
             border-radius: 5px;
             margin-bottom: 20px;
             font-size: 14px;
-            border-left: 4px solid #c33;
+            border-left: 4px solid var(--danger-border, #c33);
             display: none;
         }
         .success-message {
-            background: #d1fae5;
-            color: #065f46;
+            background: var(--success-bg, #d1fae5);
+            color: var(--success-text, #065f46);
             padding: 16px;
             border-radius: 5px;
             margin-bottom: 20px;
             font-size: 14px;
-            border-left: 4px solid #065f46;
+            border-left: 4px solid var(--success-border, #065f46);
             display: none;
         }
         .success-message a {
-            color: #065f46;
+            color: var(--success-text, #065f46);
             font-weight: 600;
         }
 
         /* Attachment dropzone */
         .dropzone {
-            border: 2px dashed #ddd;
+            border: 2px dashed var(--border, #ddd);
             border-radius: 6px;
             padding: 20px;
             text-align: center;
-            color: #999;
+            color: var(--text-faint, #999);
             font-size: 13px;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .dropzone:hover { border-color: #0078d4; color: #0078d4; }
-        .dropzone.dragover { border-color: #0078d4; background: #f0f7ff; color: #0078d4; }
+        .dropzone:hover { border-color: var(--ss-accent, #0078d4); color: var(--ss-accent, #0078d4); }
+        .dropzone.dragover { border-color: var(--ss-accent, #0078d4); background: var(--ss-accent-soft, #f0f7ff); color: var(--ss-accent, #0078d4); }
         .dropzone-icon { font-size: 24px; margin-bottom: 6px; }
-        .dropzone-browse { color: #0078d4; font-weight: 600; }
+        .dropzone-browse { color: var(--ss-accent, #0078d4); font-weight: 600; }
 
         .attachment-list { margin-top: 10px; }
         .attachment-item {
@@ -138,8 +138,8 @@ $pageStyles = <<<'CSS'
             align-items: center;
             justify-content: space-between;
             padding: 8px 10px;
-            background: #f9fafb;
-            border: 1px solid #e5e7eb;
+            background: var(--surface-hover, #f9fafb);
+            border: 1px solid var(--border, #e5e7eb);
             border-radius: 4px;
             margin-bottom: 6px;
             font-size: 13px;
@@ -152,22 +152,22 @@ $pageStyles = <<<'CSS'
         }
         .attachment-item .file-name {
             font-weight: 500;
-            color: #333;
+            color: var(--text, #333);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .attachment-item .file-size { color: #999; white-space: nowrap; }
+        .attachment-item .file-size { color: var(--text-faint, #999); white-space: nowrap; }
         .attachment-item .remove-btn {
             background: none;
             border: none;
-            color: #999;
+            color: var(--text-faint, #999);
             cursor: pointer;
             font-size: 18px;
             padding: 0 4px;
             line-height: 1;
         }
-        .attachment-item .remove-btn:hover { color: #c33; }
+        .attachment-item .remove-btn:hover { color: var(--danger-text, #c33); }
 
         /* Screen recording */
         .record-toggle {
@@ -175,9 +175,9 @@ $pageStyles = <<<'CSS'
             align-items: center;
             gap: 8px;
             padding: 10px 16px;
-            background: #fff;
-            color: #0078d4;
-            border: 1px solid #0078d4;
+            background: var(--surface, #fff);
+            color: var(--ss-accent, #0078d4);
+            border: 1px solid var(--ss-accent, #0078d4);
             border-radius: 4px;
             font-size: 13px;
             font-weight: 500;
@@ -185,7 +185,7 @@ $pageStyles = <<<'CSS'
             transition: all 0.15s;
             margin-top: 8px;
         }
-        .record-toggle:hover { background: #f0f7ff; }
+        .record-toggle:hover { background: var(--ss-accent-soft, #f0f7ff); }
         .record-toggle:disabled { opacity: 0.5; cursor: not-allowed; }
         .record-toggle .rec-dot {
             width: 10px;
@@ -194,11 +194,11 @@ $pageStyles = <<<'CSS'
             background: #dc2626;
         }
         .record-panel {
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--border, #e5e7eb);
             border-radius: 6px;
             padding: 16px;
             margin-top: 10px;
-            background: #fafafa;
+            background: var(--surface-hover, #fafafa);
         }
         .record-panel.hidden { display: none; }
         .record-panel .mic-toggle {
@@ -206,7 +206,7 @@ $pageStyles = <<<'CSS'
             align-items: center;
             gap: 8px;
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             margin-bottom: 12px;
         }
         .record-panel video {
@@ -234,18 +234,18 @@ $pageStyles = <<<'CSS'
         .btn-rec-start:hover { background: #b91c1c; }
         .btn-rec-stop { background: #1f2937; color: white; }
         .btn-rec-stop:hover { background: #111827; }
-        .btn-rec-use { background: #0078d4; color: white; }
-        .btn-rec-use:hover { background: #005a9e; }
-        .btn-rec-discard { background: #f3f4f6; color: #333; border-color: #ddd; }
-        .btn-rec-discard:hover { background: #e5e7eb; }
+        .btn-rec-use { background: var(--ss-accent, #0078d4); color: white; }
+        .btn-rec-use:hover { background: var(--ss-accent-hover, #005a9e); }
+        .btn-rec-discard { background: var(--surface-hover, #f3f4f6); color: var(--text, #333); border-color: var(--border, #ddd); }
+        .btn-rec-discard:hover { background: var(--surface-hover, #e5e7eb); }
         .rec-status {
             font-size: 13px;
-            color: #555;
+            color: var(--text-muted, #555);
             display: inline-flex;
             align-items: center;
             gap: 6px;
         }
-        .rec-status.recording { color: #dc2626; font-weight: 600; }
+        .rec-status.recording { color: var(--danger-text, #dc2626); font-weight: 600; }
         .rec-status .pulse {
             width: 10px;
             height: 10px;
