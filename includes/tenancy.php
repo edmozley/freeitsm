@@ -283,6 +283,38 @@ function analystCanAccessChange(PDO $conn, int $analystId, $changeId): bool {
 }
 
 /**
+ * May this analyst access this *CMDB configuration item* (by its owning
+ * company)? The CMDB twin of analystCanAccessAsset() — same rules
+ * (single-company → always true; NULL tenant treated as Default-owned; unknown
+ * id → false; part-migrated table → true).
+ *
+ * A CI belongs to exactly one company (there are no shared CIs), so this is
+ * also the gate for the same-company invariant on parent/child links,
+ * relationships and object_ref properties: both ends must pass.
+ */
+function analystCanAccessCmdbObject(PDO $conn, int $analystId, $objectId): bool {
+    if (!isMultiTenant($conn)) {
+        return true;
+    }
+    $objectId = (int) $objectId;
+    if ($objectId <= 0) {
+        return false;
+    }
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM cmdb_objects WHERE id = ?");
+        $stmt->execute([$objectId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
+        return analystCanAccessTenant($conn, $analystId, $tid);
+    } catch (Exception $e) {
+        return true; // tenant_id column missing on a part-migrated install.
+    }
+}
+
+/**
  * May this analyst administer this *messaging channel* (WhatsApp number, web
  * chat widget) by its owning company?
  *

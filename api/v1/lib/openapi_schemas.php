@@ -2397,17 +2397,30 @@ return array (
     array (
       'type' => 'object',
       'description' => 'A CMDB object (CI) as returned by list/create/update. See CmdbObjectDetail for the fully hydrated GET-by-id shape.',
-      'properties' => 
+      'properties' =>
       array (
-        'id' => 
+        'id' =>
         array (
           'type' => 'integer',
         ),
-        'name' => 
+        'name' =>
         array (
           'type' => 'string',
         ),
-        'class' => 
+        'company' =>
+        array (
+          'type' => 'object',
+          'description' => 'The company this configuration item belongs to. null = the Default company. A CI belongs to exactly one company: its parent, its relationships and any object_ref properties must all stay within it.',
+          'allOf' =>
+          array (
+            0 =>
+            array (
+              '$ref' => '#/components/schemas/NamedRef',
+            ),
+          ),
+          'nullable' => true,
+        ),
+        'class' =>
         array (
           '$ref' => '#/components/schemas/CmdbObjectClassRef',
         ),
@@ -2480,16 +2493,29 @@ return array (
     'CmdbObjectDetail' => 
     array (
       'type' => 'object',
-      'description' => 'A fully hydrated CMDB object (GET /cmdb/objects/{id}): every class property with its typed value, parent, children, relationships in both directions, and the cached AI summary.',
-      'properties' => 
+      'description' => 'A fully hydrated CMDB object (GET /cmdb/objects/{id}): every class property with its typed value, parent, children, relationships in both directions, and the cached AI summary. Neighbours (parent, children, object_ref targets, relationship counterparties) are themselves company-scoped, so one outside the key\'s companies is omitted rather than named.',
+      'properties' =>
       array (
-        'id' => 
+        'id' =>
         array (
           'type' => 'integer',
         ),
-        'name' => 
+        'name' =>
         array (
           'type' => 'string',
+        ),
+        'company' =>
+        array (
+          'type' => 'object',
+          'description' => 'The company this configuration item belongs to. null = the Default company.',
+          'allOf' =>
+          array (
+            0 =>
+            array (
+              '$ref' => '#/components/schemas/NamedRef',
+            ),
+          ),
+          'nullable' => true,
         ),
         'class' => 
         array (

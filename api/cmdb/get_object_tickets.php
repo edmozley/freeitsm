@@ -9,6 +9,8 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -17,11 +19,27 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('cmdb');
+
 try {
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     if ($id <= 0) throw new Exception('id is required');
 
     $conn = connectToDatabase();
+    $analystId = (int) $_SESSION['analyst_id'];
+
+    // Two independent gates, because this endpoint straddles two modules.
+    // 1. The CI itself must be reachable...
+    if (!analystCanAccessCmdbObject($conn, $analystId, $id)) {
+        echo json_encode(['success' => false, 'error' => 'Object not found']);
+        exit;
+    }
+    // 2. ...and the TICKETS are scoped separately. A CI and a ticket linked to it
+    //    should always share a company, but this read must not depend on that
+    //    invariant holding — it's the gap the REST resource already closed and
+    //    this endpoint didn't. Also filters deleted tickets, which it never did:
+    //    a CI was showing links to tickets sitting in the recycle bin.
+    [$tSql, $tArgs] = ticketTenantFilter($conn, $analystId, 't');
 
     $base =
         "SELECT t.id, t.ticket_number, t.subject,
@@ -36,14 +54,16 @@ try {
       LEFT JOIN ticket_priorities tp ON tp.id = t.priority_id
       LEFT JOIN analysts a ON a.id = t.assigned_analyst_id
       LEFT JOIN departments d ON d.id = t.department_id
-          WHERE tco.cmdb_object_id = ?";
+          WHERE tco.cmdb_object_id = ? AND t.deleted_datetime IS NULL" . $tSql;
+
+    $args = array_merge([$id], $tArgs);
 
     $openStmt = $conn->prepare($base . " AND COALESCE(ts.is_closed, 0) = 0 ORDER BY t.updated_datetime DESC");
-    $openStmt->execute([$id]);
+    $openStmt->execute($args);
     $open = $openStmt->fetchAll(PDO::FETCH_ASSOC);
 
     $closedStmt = $conn->prepare($base . " AND COALESCE(ts.is_closed, 0) = 1 ORDER BY t.closed_datetime DESC LIMIT 20");
-    $closedStmt->execute([$id]);
+    $closedStmt->execute($args);
     $closed = $closedStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Total closed count (so the UI can show "showing 20 of N")
@@ -51,9 +71,10 @@ try {
         "SELECT COUNT(*) FROM ticket_cmdb_objects tco
            JOIN tickets t ON t.id = tco.ticket_id
       LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
-          WHERE tco.cmdb_object_id = ? AND COALESCE(ts.is_closed, 0) = 1"
+          WHERE tco.cmdb_object_id = ? AND t.deleted_datetime IS NULL" . $tSql .
+        " AND COALESCE(ts.is_closed, 0) = 1"
     );
-    $totalClosedStmt->execute([$id]);
+    $totalClosedStmt->execute($args);
     $totalClosed = (int)$totalClosedStmt->fetchColumn();
 
     $coerce = function (&$rows) {

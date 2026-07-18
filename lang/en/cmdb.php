@@ -472,6 +472,7 @@ return [
         'nav_tickets'       => 'Linking tickets',
         'nav_settings'      => 'Settings',
         'nav_tips'          => 'Tips &amp; conventions',
+        'nav_companies'     => 'Companies',
 
         // 1. Overview
         'overview_heading'  => 'Overview',
@@ -616,5 +617,13 @@ return [
         'tips_card7_body'  => 'You don\'t have to bounce to Settings every time you want to add a dropdown option or rename a label. Edit any property\'s definition right from the object detail page.',
         'tips_card8_title' => 'Object names are NOT unique',
         'tips_card8_body'  => 'Two databases can both be called <em>master</em> on different SQL instances &mdash; that\'s intentional. Use the parent + class context to disambiguate, not the name.',
+
+        // Section 13 — only rendered once a second company exists (isMultiTenant).
+        'companies_heading' => 'Configuration items and companies',
+        'companies_intro'   => 'You have more than one company, so each configuration item belongs to one of them.',
+        'companies_scope'   => 'Every configuration item belongs to <strong>exactly one company</strong>. The browse list, the search box and every picker show only the company you are currently working in, and a configuration item belonging to another company is reported as not found &mdash; so the app never even confirms it exists. New items are filed against whichever company you are working in.',
+        'companies_links'   => 'There are <strong>no shared configuration items</strong> &mdash; a client\'s servers and services are entirely their own. That means a configuration item\'s <strong>parent</strong>, its <strong>relationships</strong> and any <strong>linked-object property</strong> must all stay inside one company, and linking one to a ticket checks both sides. This holds even for staff who can access every company: without it, two clients\' estates could be joined together. A configuration item\'s ticket list shows only tickets from its own company.',
+        'companies_shared'  => '<strong>Classes, their properties, relationship types and icons stay shared</strong> across every company. They describe how you <em>model</em> your estate rather than whose equipment it is &mdash; the same reasoning that keeps ticket statuses and priorities global.',
+        'companies_move'    => 'A configuration item <strong>cannot currently be moved</strong> between companies. Unlike a ticket, it sits in a tree with relationships hanging off it, so a move would have to decide what happens to its parent, its children and every link. For now, file it in the right company when you create it; if one ends up in the wrong place, delete it and recreate it.',
     ],
 ];

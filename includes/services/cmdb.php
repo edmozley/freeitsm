@@ -28,10 +28,84 @@
  */
 
 require_once __DIR__ . '/../service_context.php';
+require_once __DIR__ . '/../tenancy.php';
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 
 class CmdbService
 {
+    /**
+     * Multi-tenancy gate: refuse to touch a CI outside the actor's companies.
+     * companyScope null = all companies (single-company install or an all-access
+     * actor) → no gate. Framed as not-found so it never reveals another
+     * company's CI. $row must include tenant_id.
+     */
+    private static function assertScope(PDO $conn, ActorContext $ctx, array $row): void
+    {
+        if ($ctx->companyScope === null) {
+            return;
+        }
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int)$row['tenant_id'];
+        if (!in_array($tid, $ctx->companyScope, true)) {
+            throw new ServiceError('not_found', 'not_found', 'Object not found.');
+        }
+    }
+
+    /**
+     * Resolve the company a new CI should belong to, and refuse one the actor
+     * can't reach. Callers may pass an explicit company; otherwise it's the
+     * actor's current company context.
+     *
+     * Returns the value to STORE: the Default company normalises to NULL so
+     * UI-created and API-created CIs store the same thing (every read treats
+     * NULL as Default's), matching AssetsService.
+     */
+    private static function resolveTenantForCreate(PDO $conn, ActorContext $ctx, array $in): ?int
+    {
+        $tenantId = null;
+        foreach (['tenant_id', 'company_id'] as $k) {
+            if (isset($in[$k]) && $in[$k] !== '' && $in[$k] !== null) {
+                $tenantId = (int)$in[$k];
+                break;
+            }
+        }
+        if ($tenantId === null) {
+            $tenantId = getActiveTenantId($conn, $ctx->actorId);
+        }
+        if ($tenantId !== null && $ctx->companyScope !== null
+            && !in_array($tenantId, $ctx->companyScope, true)) {
+            throw new ServiceError('validation', 'invalid_field', 'Company not found.');
+        }
+        return ($tenantId !== null && $tenantId === getDefaultTenantId($conn)) ? null : $tenantId;
+    }
+
+    /**
+     * The same-company invariant. A CI belongs to exactly one company, so every
+     * link between two CIs — parent/child, a relationship, an object_ref
+     * property — must have both ends in the same company. Without this a link
+     * becomes a side channel: you can't read the other CI, but you can still
+     * discover it exists and bind your own records to it.
+     */
+    private static function assertSameCompany(PDO $conn, int $aId, int $bId, string $what): void
+    {
+        if (!isMultiTenant($conn)) {
+            return;
+        }
+        $stmt = $conn->prepare("SELECT id, tenant_id FROM cmdb_objects WHERE id IN (?, ?)");
+        $stmt->execute([$aId, $bId]);
+        $byId = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $byId[(int)$r['id']] = ($r['tenant_id'] === null)
+                ? getDefaultTenantId($conn) : (int)$r['tenant_id'];
+        }
+        if (!isset($byId[$aId], $byId[$bId])) {
+            return; // a missing row is the callers' existence check to report
+        }
+        if ($byId[$aId] !== $byId[$bId]) {
+            throw new ServiceError('validation', 'invalid_field',
+                "Both configuration items must belong to the same company ($what).");
+        }
+    }
+
     // ======================================================================
     //  Objects
     // ======================================================================
@@ -76,15 +150,31 @@ class CmdbService
         self::validateParent($conn, null, $parentId);
         $isPlanned = !empty($in['is_planned']) ? 1 : 0;
 
+        // Multi-tenancy: which company owns this CI (NULL = Default's).
+        $storeTenant = self::resolveTenantForCreate($conn, $ctx, $in);
+
+        // A parent must be reachable AND in the same company as the new CI —
+        // otherwise a CI could be filed under another client's tree.
+        if ($parentId !== null) {
+            self::assertScope($conn, $ctx, self::loadObjectRow($conn, $parentId));
+            $parentTenant = self::tenantOf($conn, $parentId);
+            $newTenant = ($storeTenant === null) ? getDefaultTenantId($conn) : $storeTenant;
+            if (isMultiTenant($conn) && $parentTenant !== $newTenant) {
+                throw new ServiceError('validation', 'invalid_field',
+                    'The parent belongs to a different company.');
+            }
+        }
+
         $values = self::normaliseProperties($conn, $classId, $in);
         self::checkRequired($conn, $classId, $values, true);
+        self::assertObjectRefsInCompany($conn, $ctx, $classId, $values, $storeTenant);
 
         $conn->beginTransaction();
         try {
             $conn->prepare(
-                "INSERT INTO cmdb_objects (class_id, name, parent_id, is_planned, created_datetime, updated_datetime)
-                 VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
-            )->execute([$classId, $name, $parentId, $isPlanned]);
+                "INSERT INTO cmdb_objects (class_id, name, parent_id, is_planned, tenant_id, created_datetime, updated_datetime)
+                 VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+            )->execute([$classId, $name, $parentId, $isPlanned, $storeTenant]);
             $objectId = (int)$conn->lastInsertId();
             self::writeProperties($conn, $objectId, $classId, $values);
             $conn->commit();
@@ -107,6 +197,7 @@ class CmdbService
     private static function updateObject(PDO $conn, ActorContext $ctx, int $objectId, array $in): int
     {
         $current = self::loadObjectRow($conn, $objectId);       // 404 if gone
+        self::assertScope($conn, $ctx, $current);               // 404 if another company's
         if (!array_diff_key($in, ['id' => true])) {
             throw new ServiceError('validation', 'missing_field', 'No fields to update.');
         }
@@ -126,10 +217,16 @@ class CmdbService
         if (array_key_exists('parent_id', $in)) {
             $newParent = ($in['parent_id'] === '' || $in['parent_id'] === null) ? null : (int)$in['parent_id'];
             self::validateParent($conn, $objectId, $newParent);
+            if ($newParent !== null) {
+                self::assertScope($conn, $ctx, self::loadObjectRow($conn, $newParent));
+                self::assertSameCompany($conn, $objectId, $newParent, 'parent');
+            }
         }
 
         $values = self::normaliseProperties($conn, $classId, $in);
         self::checkRequired($conn, $classId, $values, false);
+        self::assertObjectRefsInCompany($conn, $ctx, $classId, $values,
+            $current['tenant_id'] !== null ? (int)$current['tenant_id'] : null);
 
         $conn->beginTransaction();
         try {
@@ -156,6 +253,7 @@ class CmdbService
     public static function deleteObject(PDO $conn, ActorContext $ctx, int $objectId): array
     {
         $row = self::loadObjectRow($conn, $objectId);
+        self::assertScope($conn, $ctx, $row);   // never delete another company's CI
 
         $descendants = self::descendantIds($conn, $objectId);
         $ids = array_merge([$objectId], $descendants);
@@ -194,7 +292,7 @@ class CmdbService
     /** Create a relationship from $fromId. Returns ['id','to_object_id','verb']. */
     public static function createRelationship(PDO $conn, ActorContext $ctx, int $fromId, array $in): array
     {
-        self::loadObjectRow($conn, $fromId);
+        self::assertScope($conn, $ctx, self::loadObjectRow($conn, $fromId));
 
         $toId = isset($in['to_object_id']) ? (int)$in['to_object_id'] : 0;
         if ($toId <= 0) {
@@ -203,7 +301,11 @@ class CmdbService
         if ($toId === $fromId) {
             throw new ServiceError('validation', 'invalid_field', "An object can't have a relationship with itself.");
         }
-        self::loadObjectRow($conn, $toId);
+        // Both ends gated, then required to share a company. The scope check
+        // alone isn't enough for an all-access actor, who can reach both
+        // companies and could otherwise wire two clients' estates together.
+        self::assertScope($conn, $ctx, self::loadObjectRow($conn, $toId));
+        self::assertSameCompany($conn, $fromId, $toId, 'relationship');
 
         // Type by id or verb; must be active.
         if (isset($in['relationship_type_id']) && $in['relationship_type_id'] !== '') {
@@ -242,13 +344,22 @@ class CmdbService
     public static function deleteRelationship(PDO $conn, ActorContext $ctx, int $relId, ?int $objectId = null): int
     {
         if ($objectId !== null) {
-            self::loadObjectRow($conn, $objectId);
+            self::assertScope($conn, $ctx, self::loadObjectRow($conn, $objectId));
             $stmt = $conn->prepare("DELETE FROM cmdb_object_relationships WHERE id = ? AND (from_object_id = ? OR to_object_id = ?)");
             $stmt->execute([$relId, $objectId, $objectId]);
             if ($stmt->rowCount() === 0) {
                 throw new ServiceError('not_found', 'not_found', 'Relationship not found on this object.');
             }
         } else {
+            // UI path: no object id, so gate on the relationship's own ends —
+            // otherwise a bare row id would delete any company's relationship.
+            $ends = $conn->prepare("SELECT from_object_id, to_object_id FROM cmdb_object_relationships WHERE id = ?");
+            $ends->execute([$relId]);
+            $row = $ends->fetch(PDO::FETCH_ASSOC);
+            if (!$row) {
+                throw new ServiceError('not_found', 'not_found', 'Relationship not found.');
+            }
+            self::assertScope($conn, $ctx, self::loadObjectRow($conn, (int)$row['from_object_id']));
             $conn->prepare("DELETE FROM cmdb_object_relationships WHERE id = ?")->execute([$relId]);
         }
         return $relId;
@@ -257,6 +368,50 @@ class CmdbService
     // ======================================================================
     //  Internals
     // ======================================================================
+
+    /** The company id a CI effectively belongs to (NULL stored = Default's). */
+    private static function tenantOf(PDO $conn, int $id): int
+    {
+        $stmt = $conn->prepare("SELECT tenant_id FROM cmdb_objects WHERE id = ?");
+        $stmt->execute([$id]);
+        $v = $stmt->fetchColumn();
+        return ($v === false || $v === null) ? getDefaultTenantId($conn) : (int)$v;
+    }
+
+    /**
+     * object_ref properties point at another CI, so they're a third way to link
+     * across companies — alongside parent/child and relationships. Every
+     * object_ref value being written must resolve to a CI in the same company as
+     * the CI being written.
+     *
+     * $ownTenant is the STORED value (NULL = Default's).
+     */
+    private static function assertObjectRefsInCompany(
+        PDO $conn, ActorContext $ctx, int $classId, array $values, ?int $ownTenant): void
+    {
+        if (!isMultiTenant($conn) || !$values) {
+            return;
+        }
+        $own = ($ownTenant === null) ? getDefaultTenantId($conn) : $ownTenant;
+        foreach (self::classDefs($conn, $classId) as $key => $def) {
+            if (($def['property_type'] ?? '') !== 'object_ref') {
+                continue;
+            }
+            if (!array_key_exists($key, $values)) {
+                continue;
+            }
+            $refId = $values[$key];
+            if ($refId === null || $refId === '' || (int)$refId <= 0) {
+                continue;
+            }
+            $refId = (int)$refId;
+            self::assertScope($conn, $ctx, self::loadObjectRow($conn, $refId));
+            if (self::tenantOf($conn, $refId) !== $own) {
+                throw new ServiceError('validation', 'invalid_field',
+                    "'{$key}' must point at a configuration item in the same company.");
+            }
+        }
+    }
 
     private static function loadObjectRow(PDO $conn, int $id): array
     {

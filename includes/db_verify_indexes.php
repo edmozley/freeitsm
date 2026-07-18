@@ -199,6 +199,7 @@ return [
     ['cmdb_objects', 'ix_cmdb_objects_parent_id', false, '(`parent_id`)'],
     ['cmdb_objects', 'ix_cmdb_objects_name', false, '(`name`)'],
     ['cmdb_objects', 'ix_cmdb_objects_is_planned', false, '(`is_planned`)'],
+    ['cmdb_objects', 'ix_cmdb_objects_tenant_id', false, '(`tenant_id`)'],
     ['cmdb_object_properties', 'uq_cmdb_op_obj_prop', true, '(`object_id`,`property_id`)'],
     ['cmdb_object_properties', 'ix_cmdb_op_value_object_id', false, '(`value_object_id`)'],
     ['cmdb_relationship_types', 'uq_cmdb_rel_type_verb', true, '(`verb`)'],

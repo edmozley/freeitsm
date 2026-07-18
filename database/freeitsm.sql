@@ -3497,6 +3497,17 @@ CREATE TABLE IF NOT EXISTS `cmdb_objects` (
     `is_planned`        TINYINT(1) NOT NULL DEFAULT 0,
     `ai_summary`        LONGTEXT NULL,
     `ai_summary_generated_at` DATETIME NULL,
+    -- Multi-tenancy: SCOPED DATA. The company this configuration item belongs
+    -- to; NULL = the Default company (which is every CI on a single-company
+    -- install, and every pre-existing CI on upgrade). A CI belongs to exactly
+    -- one company — there are no shared CIs — so parent/child, relationships and
+    -- object_ref properties must all stay within one company; that invariant is
+    -- enforced in CmdbService, not by the schema.
+    -- Only cmdb_objects carries this: classes, properties, relationship types
+    -- and icons are install-wide admin config, and the child tables
+    -- (cmdb_object_properties, cmdb_object_relationships, ticket_cmdb_objects)
+    -- inherit their company from the object they hang off.
+    `tenant_id`         INT NULL,
     `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -3504,8 +3515,13 @@ CREATE TABLE IF NOT EXISTS `cmdb_objects` (
     KEY `ix_cmdb_objects_parent_id` (`parent_id`),
     KEY `ix_cmdb_objects_name` (`name`),
     KEY `ix_cmdb_objects_is_planned` (`is_planned`),
+    KEY `ix_cmdb_objects_tenant_id` (`tenant_id`),
     CONSTRAINT `fk_cmdb_objects_class` FOREIGN KEY (`class_id`) REFERENCES `cmdb_classes` (`id`),
-    CONSTRAINT `fk_cmdb_objects_parent` FOREIGN KEY (`parent_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE
+    CONSTRAINT `fk_cmdb_objects_parent` FOREIGN KEY (`parent_id`) REFERENCES `cmdb_objects` (`id`) ON DELETE CASCADE,
+    -- SET NULL, never CASCADE: deleting a company must not destroy its CI
+    -- records — they revert to Default so the estate history survives. Mirrors
+    -- fk_assets_tenant.
+    CONSTRAINT `fk_cmdb_objects_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `cmdb_object_properties` (

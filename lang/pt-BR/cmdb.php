@@ -459,6 +459,7 @@ return [
         'nav_tickets'       => 'Vinculando chamados',
         'nav_settings'      => 'Configurações',
         'nav_tips'          => 'Dicas e convenções',
+        'nav_companies'     => 'Empresas',
 
         // 1. Overview
         'overview_heading'  => 'Visão geral',
@@ -603,5 +604,13 @@ return [
         'tips_card7_body'  => 'Você não precisa ir até as Configurações toda vez que quiser adicionar uma opção de lista suspensa ou renomear um rótulo. Edite a definição de qualquer propriedade direto da página de detalhes do objeto.',
         'tips_card8_title' => 'Os nomes de objeto NÃO são exclusivos',
         'tips_card8_body'  => 'Dois bancos de dados podem se chamar <em>master</em> em instâncias SQL diferentes &mdash; isso é intencional. Use o contexto do pai + classe para desambiguar, não o nome.',
+
+        // Seção 13 — exibida apenas quando existe uma segunda empresa (isMultiTenant).
+        'companies_heading' => 'Itens de configuração e empresas',
+        'companies_intro'   => 'Você tem mais de uma empresa, portanto cada item de configuração pertence a uma delas.',
+        'companies_scope'   => 'Todo item de configuração pertence a <strong>exatamente uma empresa</strong>. A lista, a busca e todos os seletores mostram apenas a empresa em que você está trabalhando, e um item de configuração de outra empresa é informado como não encontrado &mdash; assim o sistema nunca confirma sequer que ele existe. Novos itens são registrados na empresa em que você estiver trabalhando.',
+        'companies_links'   => '<strong>Não existem itens de configuração compartilhados</strong> &mdash; os servidores e serviços de um cliente são inteiramente dele. Isso significa que o <strong>pai</strong> de um item, seus <strong>relacionamentos</strong> e qualquer <strong>propriedade de objeto vinculado</strong> devem permanecer dentro de uma mesma empresa, e vincular um item a um chamado verifica os dois lados. Isso vale até para quem tem acesso a todas as empresas: sem essa regra, os ambientes de dois clientes poderiam ser interligados. A lista de chamados de um item mostra apenas chamados da própria empresa.',
+        'companies_shared'  => '<strong>Classes, suas propriedades, tipos de relacionamento e ícones continuam compartilhados</strong> entre todas as empresas. Eles descrevem como você <em>modela</em> seu ambiente, e não de quem é o equipamento &mdash; o mesmo raciocínio que mantém status e prioridades de chamados globais.',
+        'companies_move'    => 'Um item de configuração <strong>ainda não pode ser movido</strong> entre empresas. Diferente de um chamado, ele fica em uma árvore com relacionamentos ligados a ele, então mover exigiria decidir o que acontece com o pai, os filhos e cada vínculo. Por enquanto, registre-o na empresa correta ao criá-lo; se algum ficar no lugar errado, exclua-o e crie novamente.',
     ],
 ];

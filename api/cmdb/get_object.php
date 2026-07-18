@@ -15,6 +15,8 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -23,11 +25,34 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('cmdb');
+
 try {
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     if ($id <= 0) throw new Exception('id is required');
 
     $conn = connectToDatabase();
+
+    // Company gate. Framed as not-found rather than "no access", so the response
+    // never confirms a CI exists in a company this analyst can't reach. Children,
+    // properties and relationships below all hang off this object, so gating here
+    // covers the whole payload.
+    if (!analystCanAccessCmdbObject($conn, (int) $_SESSION['analyst_id'], $id)) {
+        echo json_encode(['success' => false, 'error' => 'Object not found']);
+        exit;
+    }
+
+    // The gate above covers THIS object. But this endpoint also hydrates the
+    // NAMES of neighbouring CIs — parent, children, object_ref property targets
+    // and both ends of every relationship. CmdbService keeps those within one
+    // company, but this read must not depend on that invariant: pre-existing data
+    // can already straddle companies, and a single stray row would otherwise
+    // disclose another client's CI name here. So every neighbour is scoped too.
+    $analystId = (int) $_SESSION['analyst_id'];
+    [$tParent, $aParent] = activeTenantFilter($conn, $analystId, 'p');
+    [$tChild,  $aChild]  = activeTenantFilter($conn, $analystId, 'ch');
+    [$tRef,    $aRef]    = activeTenantFilter($conn, $analystId, 'refo');
+    [$tOther,  $aOther]  = activeTenantFilter($conn, $analystId, 'oo');
 
     // Object + class + parent (and the cached AI summary, if any)
     $stmt = $conn->prepare(
@@ -38,11 +63,13 @@ try {
                 o.created_datetime, o.updated_datetime
            FROM cmdb_objects o
            JOIN cmdb_classes c ON c.id = o.class_id
-      LEFT JOIN cmdb_objects p ON p.id = o.parent_id
+      LEFT JOIN cmdb_objects p ON p.id = o.parent_id" . $tParent . "
       LEFT JOIN cmdb_classes pc ON pc.id = p.class_id
           WHERE o.id = ?"
     );
-    $stmt->execute([$id]);
+    // Parent filter sits in the ON clause (above), so a cross-company parent
+    // blanks out rather than making the CI itself disappear.
+    $stmt->execute(array_merge($aParent, [$id]));
     $obj = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$obj) throw new Exception('Object not found');
 
@@ -56,10 +83,10 @@ try {
         "SELECT ch.id, ch.name, ch.class_id, cc.name AS class_name
            FROM cmdb_objects ch
            JOIN cmdb_classes cc ON cc.id = ch.class_id
-          WHERE ch.parent_id = ?
+          WHERE ch.parent_id = ?" . $tChild . "
        ORDER BY cc.name, ch.name"
     );
-    $childStmt->execute([$id]);
+    $childStmt->execute(array_merge([$id], $aChild));
     $children = $childStmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($children as &$c) { $c['id'] = (int)$c['id']; $c['class_id'] = (int)$c['class_id']; }
     $obj['children'] = $children;
@@ -82,11 +109,13 @@ try {
                 op.value_boolean, op.value_object_id,
                 refo.name AS value_object_name, refoc.name AS value_object_class_name
            FROM cmdb_object_properties op
-      LEFT JOIN cmdb_objects refo ON refo.id = op.value_object_id
+      LEFT JOIN cmdb_objects refo ON refo.id = op.value_object_id" . $tRef . "
       LEFT JOIN cmdb_classes refoc ON refoc.id = refo.class_id
           WHERE op.object_id = ?"
     );
-    $valStmt->execute([$id]);
+    // ON-clause filter again: the property row must still render, just without a
+    // name for a target the analyst may not see.
+    $valStmt->execute(array_merge($aRef, [$id]));
     $valuesByProp = [];
     foreach ($valStmt->fetchAll(PDO::FETCH_ASSOC) as $v) {
         $valuesByProp[(int)$v['property_id']] = $v;
@@ -161,10 +190,12 @@ try {
            JOIN cmdb_relationship_types rt ON rt.id = r.relationship_type_id
            JOIN cmdb_objects oo ON oo.id = r.to_object_id
            JOIN cmdb_classes oc ON oc.id = oo.class_id
-          WHERE r.from_object_id = ?
+          WHERE r.from_object_id = ?" . $tOther . "
        ORDER BY rt.display_order, rt.verb, oo.name"
     );
-    $outStmt->execute([$id]);
+    // Inner JOIN + WHERE filter: a relationship pointing at a CI in another
+    // company is dropped entirely rather than shown with a blank other end.
+    $outStmt->execute(array_merge([$id], $aOther));
     $outgoing = $outStmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($outgoing as &$r) { $r['id'] = (int)$r['id']; $r['type_id'] = (int)$r['type_id']; $r['other_id'] = (int)$r['other_id']; }
 
@@ -176,10 +207,10 @@ try {
            JOIN cmdb_relationship_types rt ON rt.id = r.relationship_type_id
            JOIN cmdb_objects oo ON oo.id = r.from_object_id
            JOIN cmdb_classes oc ON oc.id = oo.class_id
-          WHERE r.to_object_id = ?
+          WHERE r.to_object_id = ?" . $tOther . "
        ORDER BY rt.display_order, rt.inverse_verb, oo.name"
     );
-    $inStmt->execute([$id]);
+    $inStmt->execute(array_merge([$id], $aOther));
     $incoming = $inStmt->fetchAll(PDO::FETCH_ASSOC);
     foreach ($incoming as &$r) { $r['id'] = (int)$r['id']; $r['type_id'] = (int)$r['type_id']; $r['other_id'] = (int)$r['other_id']; }
 

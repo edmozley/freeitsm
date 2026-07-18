@@ -23,6 +23,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -43,6 +44,17 @@ try {
     $check->execute([$id]);
     if (!$check->fetchColumn()) throw new Exception('Object not found');
 
+    // Multi-tenancy: this is a CMDB read living in the Network Mapper module, so
+    // it needs the same company gate as api/cmdb/get_object_impact.php —
+    // otherwise it's a way around it. Same not-found framing.
+    $analystId = (int)$_SESSION['analyst_id'];
+    if (!analystCanAccessCmdbObject($conn, $analystId, $id)) {
+        throw new Exception('Object not found');
+    }
+    // ...and the CIs on the far side of each relationship/property are scoped
+    // too, so a link that straddles companies can't name the other end.
+    [$tOther, $aOther] = activeTenantFilter($conn, $analystId, 'o');
+
     $related = [];
 
     // ---- Outgoing relationships (this object → other) ----
@@ -56,10 +68,10 @@ try {
            JOIN cmdb_objects o ON o.id = r.to_object_id
            JOIN cmdb_classes c ON c.id = o.class_id
       LEFT JOIN cmdb_icons   i ON i.id = c.icon_id
-          WHERE r.from_object_id = ?
+          WHERE r.from_object_id = ?" . $tOther . "
        ORDER BY rt.display_order, rt.verb, o.name"
     );
-    $outStmt->execute([$id]);
+    $outStmt->execute(array_merge([$id], $aOther));
     foreach ($outStmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $related[] = [
             'kind'            => 'outgoing',
@@ -86,10 +98,10 @@ try {
            JOIN cmdb_objects o ON o.id = r.from_object_id
            JOIN cmdb_classes c ON c.id = o.class_id
       LEFT JOIN cmdb_icons   i ON i.id = c.icon_id
-          WHERE r.to_object_id = ?
+          WHERE r.to_object_id = ?" . $tOther . "
        ORDER BY rt.display_order, rt.inverse_verb, o.name"
     );
-    $inStmt->execute([$id]);
+    $inStmt->execute(array_merge([$id], $aOther));
     foreach ($inStmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $related[] = [
             'kind'            => 'incoming',
@@ -117,10 +129,10 @@ try {
            JOIN cmdb_classes c ON c.id = o.class_id
       LEFT JOIN cmdb_icons   i ON i.id = c.icon_id
            JOIN cmdb_class_properties p ON p.id = op.property_id
-          WHERE op.value_object_id = ?
+          WHERE op.value_object_id = ?" . $tOther . "
        ORDER BY p.label, o.name"
     );
-    $propStmt->execute([$id]);
+    $propStmt->execute(array_merge([$id], $aOther));
     foreach ($propStmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $related[] = [
             'kind'            => 'property',

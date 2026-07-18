@@ -16,6 +16,8 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -23,6 +25,8 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+
+requireModuleAccessJson('cmdb');
 
 try {
     $q = trim((string)($_GET['q'] ?? ''));
@@ -38,11 +42,16 @@ try {
 
     $conn = connectToDatabase();
 
+    // Per-company scope. This feeds the parent, object_ref and relationship-target
+    // pickers, so scoping it here is what stops an analyst attaching one company's
+    // CI to another's — the invariant the service also enforces on write.
+    [$tSql, $tArgs] = activeTenantFilter($conn, (int) $_SESSION['analyst_id'], 'o');
+
     $sql = "SELECT o.id, o.name, c.id AS class_id, c.name AS class_name, o.is_planned
               FROM cmdb_objects o
               JOIN cmdb_classes c ON c.id = o.class_id
-             WHERE o.name LIKE ?";
-    $params = ['%' . $q . '%'];
+             WHERE o.name LIKE ?" . $tSql;
+    $params = array_merge(['%' . $q . '%'], $tArgs);
 
     if ($classId !== null) {
         $sql .= " AND o.class_id = ?";

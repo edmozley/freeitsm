@@ -19,6 +19,8 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/rbac.php';
+require_once '../../includes/tenancy.php';
 
 header('Content-Type: application/json');
 
@@ -27,11 +29,21 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
+requireModuleAccessJson('cmdb');
+
 try {
     $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
     if ($id <= 0) throw new Exception('id is required');
 
     $conn = connectToDatabase();
+
+    // Company gate — impact walks descendants and inbound references, so an
+    // ungated call here would enumerate another company's estate through the
+    // blast-radius panel.
+    if (!analystCanAccessCmdbObject($conn, (int) $_SESSION['analyst_id'], $id)) {
+        echo json_encode(['success' => false, 'error' => 'Object not found']);
+        exit;
+    }
 
     // Walk descendants depth-first, capping at 1000 to avoid runaway loops on
     // circular/very deep trees. Each entry includes its hop count from the root.

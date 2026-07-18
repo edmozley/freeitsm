@@ -6,6 +6,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';
+require_once '../../includes/rbac.php';
 
 header('Content-Type: application/json');
 
@@ -13,6 +14,11 @@ if (!isset($_SESSION['analyst_id'])) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
+
+// AI settings tab — mirrors api/forms/test_ai_key.php and api/workflow/test_ai_key.php,
+// which have always carried both guards. CMDB's twin was missing them.
+requireModuleAccessJson('cmdb');
+requireCapabilityJson(Cap::CMDB_AI);   // settings tab — see docs/design/rbac.md
 
 try {
     $conn = connectToDatabase();
