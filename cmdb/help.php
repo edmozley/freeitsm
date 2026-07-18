@@ -18,6 +18,18 @@ if (!isset($_SESSION['analyst_id'])) {
 
 requireModuleAccess('cmdb');
 
+// The company section only makes sense once the install serves more than one
+// company — invisible on a single-company install, like the rest of
+// multi-tenancy (mirrors tickets/help.php).
+require_once '../includes/tenancy.php';
+$showTenancyHelp = false;
+try {
+    $conn = connectToDatabase();
+    $showTenancyHelp = isMultiTenant($conn);
+} catch (Exception $e) {
+    $showTenancyHelp = false;
+}
+
 $current_page = 'help';
 $path_prefix = '../';
 $translationNamespaces = ['common', 'cmdb'];
@@ -364,6 +376,11 @@ $translationNamespaces = ['common', 'cmdb'];
             <a href="#tips" class="cmdb-help-nav-link" data-section="tips">
                 <span class="cmdb-help-nav-num">12</span> <?php echo t('cmdb.help.nav_tips'); ?>
             </a>
+            <?php if ($showTenancyHelp): ?>
+            <a href="#companies" class="cmdb-help-nav-link" data-section="companies">
+                <span class="cmdb-help-nav-num">13</span> <?php echo t('cmdb.help.nav_companies'); ?>
+            </a>
+            <?php endif; ?>
 
         </div>
 
@@ -803,6 +820,24 @@ $translationNamespaces = ['common', 'cmdb'];
                         </div>
                     </div>
                 </div>
+
+                <?php if ($showTenancyHelp): ?>
+                <!-- 13. Companies (multi-company installs only) -->
+                <div class="cmdb-help-section" id="companies">
+                    <div class="cmdb-help-section-header">
+                        <span class="cmdb-help-section-num">13</span>
+                        <div>
+                            <h3><?php echo t('cmdb.help.companies_heading'); ?></h3>
+                            <p><?php echo t('cmdb.help.companies_intro'); ?></p>
+                        </div>
+                    </div>
+
+                    <p><?php echo t('cmdb.help.companies_scope'); ?></p>
+                    <p><?php echo t('cmdb.help.companies_links'); ?></p>
+                    <p><?php echo t('cmdb.help.companies_shared'); ?></p>
+                    <p><?php echo t('cmdb.help.companies_move'); ?></p>
+                </div>
+                <?php endif; ?>
 
             </div>
         </div>
