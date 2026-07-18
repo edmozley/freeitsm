@@ -2444,6 +2444,10 @@ $schema = [
         'is_planned'        => 'TINYINT(1) NOT NULL DEFAULT 0',
         'ai_summary'        => 'LONGTEXT NULL',
         'ai_summary_generated_at' => 'DATETIME NULL',
+        // Multi-tenancy SCOPED DATA: the company this CI belongs to, NULL =
+        // Default's. Only cmdb_objects carries it — classes/properties/relationship
+        // types are install-wide config, and the child tables inherit from here.
+        'tenant_id'         => 'INT NULL',
         'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
     ],
@@ -3141,6 +3145,18 @@ try {
     if ($tableExists('apikeys') && $tableExists('tenants') && $colExists('apikeys', 'tenant_id')) {
         if (!$fkExists('apikeys', 'fk_apikeys_tenant')) {
             try { $conn->exec("ALTER TABLE apikeys ADD CONSTRAINT fk_apikeys_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+    }
+    // cmdb_objects.tenant_id (SCOPED DATA): the company a configuration item
+    // belongs to. SET NULL like assets — deleting a company reverts its CIs to
+    // Default rather than destroying the estate record. Only cmdb_objects is
+    // scoped; classes/properties/relationship types stay install-wide config, and
+    // the child tables inherit through their object.
+    // (The backing index ix_cmdb_objects_tenant_id comes from the generated index
+    // list, which is parsed out of freeitsm.sql — no manual add needed here.)
+    if ($tableExists('cmdb_objects') && $tableExists('tenants') && $colExists('cmdb_objects', 'tenant_id')) {
+        if (!$fkExists('cmdb_objects', 'fk_cmdb_objects_tenant')) {
+            try { $conn->exec("ALTER TABLE cmdb_objects ADD CONSTRAINT fk_cmdb_objects_tenant FOREIGN KEY (tenant_id) REFERENCES tenants (id) ON DELETE SET NULL"); } catch (Exception $e) {}
         }
     }
 
