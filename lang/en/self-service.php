@@ -141,6 +141,18 @@ return [
         'support'            => 'Support',
         'note'               => 'Note',
         'message'            => 'Message',
+
+        'reply_heading'        => 'Reply',
+        'reply_placeholder'    => 'Add a reply for the support team...',
+        'reply_send'           => 'Send',
+        'reply_sending'        => 'Sending...',
+        'reply_attach'         => 'Attach',
+        'reply_hint'           => 'Attach screenshots, logs or documents if they help.',
+        'reply_remove_file'    => 'Remove',
+        'reply_empty'          => 'Please write a message or attach a file.',
+        'reply_failed'         => 'Your reply could not be sent. Please try again.',
+        'reply_sent'           => 'Your reply has been sent.',
+        'reply_sent_reopened'  => 'Your reply has been sent, and the ticket has been reopened.',
     ],
 
     'help' => [
@@ -154,9 +166,9 @@ return [
 
         's2_title'           => 'Signing in',
         's2_p1'              => 'There are three ways your account gets created — you might not even need to register:',
-        's2_li1'             => '<strong>Self-registration</strong> — click <em>Register</em> on the sign-in page, enter your work email, name, and a password. You\'re in.',
-        's2_li2'             => '<strong>"Claiming" an account</strong> — if you\'ve previously sent the IT team an email and they raised a ticket on your behalf, the system already has your email on file. Registering with that same email will <em>claim</em> the existing account (and link any past tickets to it) rather than create a duplicate.',
-        's2_li3'             => '<strong>Created by IT</strong> — the team can pre-create an account for you. You\'ll be told to register with your email and pick a password — same claim flow as above.',
+        's2_li1'             => '<strong>Self-registration</strong> — click <em>Register</em> on the sign-in page, enter your work email, name, and a password. We then email you a confirmation link, and your password is only set once you open it, so nobody can sign up using an address that isn\'t theirs. (Your IT team can switch self-registration off, in which case you won\'t see the link.)',
+        's2_li2'             => '<strong>"Claiming" an account</strong> — if you\'ve previously sent the IT team an email and they raised a ticket on your behalf, the system already has your email on file. Registering with that same email <em>claims</em> the existing account (and keeps your past tickets) rather than creating a duplicate — again, only once you\'ve opened the confirmation link.',
+        's2_li3'             => '<strong>Created by IT</strong> — the team can pre-create an account for you. You\'ll be told to register with your email and pick a password — same confirmed flow as above.',
         's2_tip'             => '<strong>Forgotten password?</strong> Use the <em>Forgot password</em> link on the sign-in page — you\'ll get an email with a reset link.',
 
         's3_title'           => 'Raising a ticket',

@@ -22,6 +22,7 @@
  */
 
 require_once __DIR__ . '/../messaging/messaging.php';
+require_once __DIR__ . '/../ticket_reply.php';
 
 /** A fresh, URL-safe public widget key (e.g. wc_1a2b…). */
 function webchatGenerateKey(): string
@@ -312,6 +313,9 @@ function webchatIngestMessage(PDO $conn, array $conversation, array $channel, st
     } else {
         $conn->prepare("UPDATE tickets SET updated_datetime = UTC_TIMESTAMP(), last_inbound_at = UTC_TIMESTAMP() WHERE id = ?")
              ->execute([$ticketId]);
+        // A visitor picking the chat back up on a finished ticket is the customer
+        // coming back — same shared rule as email and the portal.
+        reopenTicketForCustomerReply($conn, (int)$ticketId);
         $conn->prepare("UPDATE webchat_conversations SET last_activity_datetime = UTC_TIMESTAMP() WHERE id = ?")
              ->execute([(int) $conversation['id']]);
     }

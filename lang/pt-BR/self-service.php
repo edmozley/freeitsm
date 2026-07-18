@@ -131,6 +131,18 @@ return [
         'support'            => 'Suporte',
         'note'               => 'Nota',
         'message'            => 'Mensagem',
+
+        'reply_heading'        => 'Responder',
+        'reply_placeholder'    => 'Escreva uma resposta para a equipe de suporte...',
+        'reply_send'           => 'Enviar',
+        'reply_sending'        => 'Enviando...',
+        'reply_attach'         => 'Anexar',
+        'reply_hint'           => 'Anexe capturas de tela, logs ou documentos se ajudarem.',
+        'reply_remove_file'    => 'Remover',
+        'reply_empty'          => 'Escreva uma mensagem ou anexe um arquivo.',
+        'reply_failed'         => 'Não foi possível enviar sua resposta. Tente novamente.',
+        'reply_sent'           => 'Sua resposta foi enviada.',
+        'reply_sent_reopened'  => 'Sua resposta foi enviada e o ticket foi reaberto.',
     ],
 
     'help' => [
@@ -144,9 +156,9 @@ return [
 
         's2_title'           => 'Entrando',
         's2_p1'              => 'Há três maneiras de a sua conta ser criada — talvez você nem precise se cadastrar:',
-        's2_li1'             => '<strong>Autocadastro</strong> — clique em <em>Cadastrar</em> na página de login, informe seu e-mail de trabalho, nome e uma senha. Pronto.',
-        's2_li2'             => '<strong>"Reivindicar" uma conta</strong> — se você já enviou um e-mail à equipe de TI e eles abriram um ticket em seu nome, o sistema já tem o seu e-mail registrado. Cadastrar-se com esse mesmo e-mail irá <em>reivindicar</em> a conta existente (e vincular quaisquer tickets anteriores a ela) em vez de criar uma duplicata.',
-        's2_li3'             => '<strong>Criada pela TI</strong> — a equipe pode criar uma conta para você previamente. Você será orientado a se cadastrar com o seu e-mail e escolher uma senha — o mesmo fluxo de reivindicação descrito acima.',
+        's2_li1'             => '<strong>Autocadastro</strong> — clique em <em>Cadastrar</em> na página de login, informe seu e-mail de trabalho, nome e uma senha. Em seguida enviamos um link de confirmação por e-mail, e sua senha só é definida quando você abri-lo, de modo que ninguém consiga se cadastrar com um endereço que não é seu. (Sua equipe de TI pode desativar o autocadastro; nesse caso o link não aparece.)',
+        's2_li2'             => '<strong>"Reivindicar" uma conta</strong> — se você já enviou um e-mail à equipe de TI e eles abriram um ticket em seu nome, o sistema já tem o seu e-mail registrado. Cadastrar-se com esse mesmo e-mail <em>reivindica</em> a conta existente (mantendo seus tickets anteriores) em vez de criar uma duplicata — novamente, apenas depois que você abrir o link de confirmação.',
+        's2_li3'             => '<strong>Criada pela TI</strong> — a equipe pode criar uma conta para você previamente. Você será orientado a se cadastrar com o seu e-mail e escolher uma senha — o mesmo fluxo confirmado descrito acima.',
         's2_tip'             => '<strong>Esqueceu a senha?</strong> Use o link <em>Esqueci minha senha</em> na página de login — você receberá um e-mail com um link de redefinição.',
 
         's3_title'           => 'Abrindo um ticket',

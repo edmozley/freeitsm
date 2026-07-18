@@ -921,6 +921,14 @@ $translationNamespaces = ['common', 'tickets'];
                     <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.system_name_help')); ?></small>
                 </div>
 
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('tickets.settings.general.reopen_label')); ?></label>
+                    <label style="display:block;margin-top:6px;font-weight:400;">
+                        <input type="checkbox" id="reopenOnCustomerReply"> <?php echo htmlspecialchars(t('tickets.settings.general.reopen_toggle')); ?>
+                    </label>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.general.reopen_help')); ?></small>
+                </div>
+
                 <div style="display: flex; gap: 10px; justify-content: flex-start; margin-top: 30px;">
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
@@ -4263,6 +4271,13 @@ $translationNamespaces = ['common', 'tickets'];
 
                 if (data.success) {
                     document.getElementById('systemName').value = data.settings.system_name || '';
+                    // Absent (never saved) means ON — the requester email template has
+                    // always promised a reply reopens the ticket, so the stored default
+                    // matches what customers were already told. Mirrors
+                    // customerReplyReopensTickets() in includes/ticket_reply.php.
+                    const reopen = data.settings.reopen_on_customer_reply;
+                    document.getElementById('reopenOnCustomerReply').checked =
+                        (reopen === null || reopen === undefined || reopen === '') ? true : (reopen === '1');
                 } else {
                     console.error('Error loading settings:', data.error);
                 }
@@ -4276,7 +4291,8 @@ $translationNamespaces = ['common', 'tickets'];
             e.preventDefault();
 
             const settings = {
-                system_name: document.getElementById('systemName').value
+                system_name: document.getElementById('systemName').value,
+                reopen_on_customer_reply: document.getElementById('reopenOnCustomerReply').checked ? '1' : '0'
             };
 
             try {

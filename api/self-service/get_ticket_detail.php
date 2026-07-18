@@ -56,6 +56,37 @@ try {
     $threadStmt->execute([$ticketId]);
     $thread = $threadStmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Attachments for the whole thread in one query, then bucketed onto their
+    // message — so a requester can finally retrieve the file an analyst sent them.
+    // INLINE ones are excluded: they're the images already embedded in the body
+    // (signature logos, pasted screenshots), and listing them again would show a
+    // "spacer.gif" download under every message.
+    if (!empty($thread)) {
+        $emailIds = array_column($thread, 'id');
+        $ph = implode(',', array_fill(0, count($emailIds), '?'));
+        $attStmt = $conn->prepare(
+            "SELECT id, email_id, filename, content_type, file_size
+             FROM email_attachments
+             WHERE email_id IN ($ph) AND (is_inline = 0 OR is_inline IS NULL)
+             ORDER BY id ASC"
+        );
+        $attStmt->execute($emailIds);
+
+        $byEmail = [];
+        foreach ($attStmt->fetchAll(PDO::FETCH_ASSOC) as $att) {
+            $byEmail[(int)$att['email_id']][] = [
+                'id'           => (int)$att['id'],
+                'filename'     => $att['filename'],
+                'content_type' => $att['content_type'],
+                'file_size'    => (int)$att['file_size'],
+            ];
+        }
+        foreach ($thread as &$msg) {
+            $msg['attachments'] = $byEmail[(int)$msg['id']] ?? [];
+        }
+        unset($msg);
+    }
+
     // Fetch non-internal notes only
     $notesStmt = $conn->prepare(
         "SELECT n.note_text, n.created_datetime, a.full_name as analyst_name

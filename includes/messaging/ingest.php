@@ -13,6 +13,7 @@
 
 require_once __DIR__ . '/messaging.php';
 require_once __DIR__ . '/../tenancy.php';
+require_once __DIR__ . '/../ticket_reply.php';
 
 /**
  * Ingest one normalised inbound message for a (decrypted) channel row.
@@ -76,6 +77,9 @@ function ingestInboundMessage(PDO $conn, array $channel, array $msg): array
     } else {
         $conn->prepare("UPDATE tickets SET updated_datetime = UTC_TIMESTAMP(), last_inbound_at = UTC_TIMESTAMP() WHERE id = ?")
              ->execute([$ticketId]);
+        // Messaging in on a finished ticket is the customer coming back, exactly
+        // as an email or portal reply is — same shared rule, same setting.
+        reopenTicketForCustomerReply($conn, (int)$ticketId);
     }
 
     // Store the message in the shared emails table (channel = 'whatsapp' etc.).

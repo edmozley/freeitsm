@@ -9,6 +9,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/encryption.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/ticket_reply.php';
 require_once '../../includes/mailbox_graph.php';
 
 header('Content-Type: application/json');
@@ -989,6 +990,14 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId) {
             $updateTicketSql = "UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?";
             $updateTicketStmt = $conn->prepare($updateTicketSql);
             $updateTicketStmt->execute([$ticketId]);
+
+            // The requester has come back. If the ticket was finished, reopen it
+            // (Tickets → Settings → General) — the notification email they were
+            // replying to says "just reply to this email and it will be reopened",
+            // and until now nothing honoured that. Shared with the self-service
+            // portal so both doors behave identically; non-fatal by design, so a
+            // reopen problem can never cost us the inbound message.
+            reopenTicketForCustomerReply($conn, (int)$ticketId);
 
             // For replies to existing tickets, strip the quoted thread
             // Look for our reply marker and store only the new content above it

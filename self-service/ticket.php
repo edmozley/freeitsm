@@ -154,6 +154,118 @@ $pageStyles = <<<'CSS'
             color: #777;
             margin-top: 8px;
         }
+
+        /* Attachments on a message. New UI, so it uses the theme tokens rather
+           than the fixed colours the rest of this page still carries. */
+        .thread-attachments {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .attachment-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 6px;
+            background: var(--surface-hover, #fafafa);
+            color: var(--text, #333);
+            font-size: 12px;
+            text-decoration: none;
+            max-width: 100%;
+        }
+        .attachment-chip:hover { border-color: var(--ss-accent, #0078d4); }
+        .attachment-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 220px;
+        }
+        .attachment-size { color: var(--text-muted, #777); flex-shrink: 0; }
+
+        /* Reply composer */
+        .reply-section {
+            background: var(--surface, white);
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-top: 20px;
+        }
+        .reply-section h2 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 0 0 14px 0;
+            color: var(--text, #333);
+        }
+        .reply-box {
+            width: 100%;
+            min-height: 110px;
+            padding: 12px;
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 6px;
+            background: var(--surface, white);
+            color: var(--text, #333);
+            font-family: inherit;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+        }
+        .reply-box:focus {
+            outline: none;
+            border-color: var(--ss-accent, #0078d4);
+        }
+        .reply-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .reply-files {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .reply-file {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border: 1px solid var(--border, #e5e7eb);
+            border-radius: 6px;
+            background: var(--surface-hover, #fafafa);
+            font-size: 12px;
+            color: var(--text, #333);
+        }
+        .reply-file button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--text-muted, #777);
+            font-size: 15px;
+            line-height: 1;
+            padding: 0;
+        }
+        .reply-file button:hover { color: var(--danger-text, #c33); }
+        .reply-hint {
+            font-size: 12px;
+            color: var(--text-muted, #777);
+        }
+        .reply-notice {
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--success-bg, #d1fae5);
+            color: var(--text, #065f46);
+        }
+        .reply-notice.is-error {
+            background: var(--danger-bg, #fee2e2);
+            color: var(--danger-text, #c33);
+        }
 CSS;
 
 $pageScripts = <<<'JS'
@@ -247,7 +359,8 @@ const TICKET_ID = <?php echo $ticketId; ?>;
                                     </div>
                                     <span class="thread-date">${formatDate(e.received_datetime)}</span>
                                 </div>
-                                <div class="thread-body">${e.body_content || ''}</div>
+                                <div class="thread-body">${safeMessageHtml(e.body_content)}</div>
+                                ${renderAttachments(e.attachments)}
                             </div>`;
                     } else {
                         const n = item.data;
@@ -267,7 +380,198 @@ const TICKET_ID = <?php echo $ticketId; ?>;
             }
 
             html += '</div>';
+            html += renderReplyBox();
             container.innerHTML = html;
+            wireReplyBox();
+        }
+
+        /*
+         * Message bodies are arbitrary third-party HTML — anyone who can email the
+         * service desk controls them, and this page renders them inside the
+         * requester's own signed-in session. They were previously injected raw.
+         *
+         * Strip the tags that fire side effects or leak styling into the page, every
+         * inline event handler (onerror/onclick/... — an <img src=x onerror=...> DOES
+         * run when assigned via innerHTML, so removing <script> alone is not enough),
+         * and javascript:/data: URLs on links and sources. Parsing happens in an inert
+         * DOMParser document, so nothing executes while we clean it.
+         */
+        function safeMessageHtml(html) {
+            if (!html) return '';
+            try {
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                if (!doc.body) return '';
+
+                doc.querySelectorAll('script, style, link, base, meta, iframe, object, embed, form').forEach(el => el.remove());
+
+                doc.body.querySelectorAll('*').forEach(el => {
+                    [...el.attributes].forEach(attr => {
+                        const name = attr.name.toLowerCase();
+                        const value = (attr.value || '').replace(/\s+/g, '').toLowerCase();
+                        if (name.startsWith('on')) {
+                            el.removeAttribute(attr.name);
+                        } else if ((name === 'href' || name === 'src' || name === 'xlink:href')
+                                   && (value.startsWith('javascript:') || value.startsWith('data:text/html'))) {
+                            el.removeAttribute(attr.name);
+                        }
+                    });
+                });
+
+                return doc.body.innerHTML;
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function renderAttachments(attachments) {
+            if (!attachments || !attachments.length) return '';
+            const chips = attachments.map(a => {
+                const url = '../api/self-service/get_attachment.php?id=' + encodeURIComponent(a.id);
+                return '<a class="attachment-chip" href="' + url + '" target="_blank" rel="noopener">' +
+                           '<span class="attachment-name">' + escapeHtml(a.filename || '') + '</span>' +
+                           '<span class="attachment-size">' + formatBytes(a.file_size) + '</span>' +
+                       '</a>';
+            }).join('');
+            return '<div class="thread-attachments">' + chips + '</div>';
+        }
+
+        function formatBytes(bytes) {
+            const b = Number(bytes) || 0;
+            if (b < 1024) return b + ' B';
+            if (b < 1048576) return (b / 1024).toFixed(0) + ' KB';
+            return (b / 1048576).toFixed(1) + ' MB';
+        }
+
+        function renderReplyBox() {
+            return `
+                <div class="reply-section">
+                    <h2>${escapeHtml(window.t('self-service.ticket.reply_heading'))}</h2>
+                    <textarea class="reply-box" id="replyBody" placeholder="${escapeHtml(window.t('self-service.ticket.reply_placeholder'))}"></textarea>
+                    <div class="reply-files" id="replyFiles"></div>
+                    <div class="reply-actions">
+                        <button type="button" class="btn btn-primary" id="replySend">${escapeHtml(window.t('self-service.ticket.reply_send'))}</button>
+                        <input type="file" id="replyFileInput" multiple style="display:none">
+                        <button type="button" class="btn btn-secondary" id="replyAttach">${escapeHtml(window.t('self-service.ticket.reply_attach'))}</button>
+                        <span class="reply-hint">${escapeHtml(window.t('self-service.ticket.reply_hint'))}</span>
+                    </div>
+                    <div id="replyNotice"></div>
+                </div>`;
+        }
+
+        // Files chosen but not yet sent. Held as base64 to match the payload
+        // shape create_ticket.php already accepts.
+        let pendingReplyFiles = [];
+
+        function wireReplyBox() {
+            const attachBtn = document.getElementById('replyAttach');
+            const fileInput = document.getElementById('replyFileInput');
+            const sendBtn   = document.getElementById('replySend');
+            if (!attachBtn || !fileInput || !sendBtn) return;
+
+            attachBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', async () => {
+                for (const file of fileInput.files) {
+                    try {
+                        pendingReplyFiles.push({
+                            name: file.name,
+                            type: file.type || 'application/octet-stream',
+                            size: file.size,
+                            content: await fileToBase64(file)
+                        });
+                    } catch (e) { /* skip a file the browser can't read */ }
+                }
+                fileInput.value = '';
+                renderPendingFiles();
+            });
+
+            sendBtn.addEventListener('click', sendReply);
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                // result is a data: URL — the API wants the base64 payload only.
+                reader.onload = () => resolve(String(reader.result).split(',')[1] || '');
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderPendingFiles() {
+            const host = document.getElementById('replyFiles');
+            if (!host) return;
+            host.innerHTML = pendingReplyFiles.map((f, i) =>
+                '<span class="reply-file">' +
+                    escapeHtml(f.name) + ' <span class="attachment-size">' + formatBytes(f.size) + '</span>' +
+                    '<button type="button" title="' + escapeHtml(window.t('self-service.ticket.reply_remove_file')) + '" onclick="removePendingFile(' + i + ')">&times;</button>' +
+                '</span>'
+            ).join('');
+        }
+
+        function removePendingFile(index) {
+            pendingReplyFiles.splice(index, 1);
+            renderPendingFiles();
+        }
+
+        function showReplyNotice(message, isError) {
+            const host = document.getElementById('replyNotice');
+            if (!host) return;
+            host.innerHTML = '<div class="reply-notice' + (isError ? ' is-error' : '') + '">' + escapeHtml(message) + '</div>';
+        }
+
+        async function sendReply() {
+            const bodyEl  = document.getElementById('replyBody');
+            const sendBtn = document.getElementById('replySend');
+            const body    = (bodyEl.value || '').trim();
+
+            if (!body && !pendingReplyFiles.length) {
+                showReplyNotice(window.t('self-service.ticket.reply_empty'), true);
+                return;
+            }
+
+            sendBtn.disabled = true;
+            sendBtn.textContent = window.t('self-service.ticket.reply_sending');
+
+            try {
+                const response = await fetch('../api/self-service/reply_ticket.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ticket_id: TICKET_ID,
+                        body: body,
+                        attachments: pendingReplyFiles.map(f => ({ name: f.name, type: f.type, content: f.content }))
+                    })
+                });
+                const data = await response.json();
+
+                if (!data.success) {
+                    showReplyNotice(data.error || window.t('self-service.ticket.reply_failed'), true);
+                    return;
+                }
+
+                // Sent: clear the composer and reload so the new message (and the
+                // reopened status, if it changed) come straight from the server
+                // rather than being guessed at here.
+                pendingReplyFiles = [];
+                bodyEl.value = '';
+                const reopened = data.reopened;
+                await loadTicket();
+                showReplyNotice(
+                    reopened ? window.t('self-service.ticket.reply_sent_reopened')
+                             : window.t('self-service.ticket.reply_sent'),
+                    false
+                );
+            } catch (err) {
+                showReplyNotice(window.t('self-service.ticket.reply_failed'), true);
+            } finally {
+                // Re-query: a successful send re-renders the whole ticket, so the
+                // button captured above is a detached node by now.
+                const btn = document.getElementById('replySend');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = window.t('self-service.ticket.reply_send');
+                }
+            }
         }
 
         // Build inline style for the status badge from the lookup colour returned

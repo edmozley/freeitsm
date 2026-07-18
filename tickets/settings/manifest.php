@@ -135,7 +135,7 @@ return [
             'cap'          => Cap::TICKETS_GENERAL,
             'label_key'    => 'tickets.settings.tabs.general',
             'grant'        => 'Manage general ticket settings',
-            'setting_keys' => ['system_name'],
+            'setting_keys' => ['system_name', 'reopen_on_customer_reply'],
         ],
         [
             // The shared AI settings panel, namespace tickets_reply_cleanup.
