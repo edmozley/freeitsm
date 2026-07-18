@@ -8,15 +8,34 @@
  * A page may set BEFORE including this:
  *   $pageScripts — a string of page-specific JS, emitted after the i18n bootstrap
  *                  so window.t() and API_BASE are already available to it.
+ *   $pageData    — page-specific VALUES for that JS, as an array. Emitted as
+ *                  window.PAGE, JSON-encoded.
+ *
+ * $pageData exists because $pageScripts is echoed as a plain STRING, and pages
+ * build it with a nowdoc (<<<'JS') so that JS template literals — ${...} — are
+ * not eaten by PHP interpolation. The cost of a nowdoc is that PHP tags inside
+ * it are NOT executed: a `<?php echo $id; ?>` written in there reaches the
+ * browser verbatim, and because the stray `<` is a syntax error at the top of
+ * the block, the ENTIRE script silently fails to parse and the whole page's JS
+ * dies. That happened to the ticket page. So values come through here instead
+ * of being interpolated into the script text.
  */
 $pageScripts = $pageScripts ?? '';
+$pageData    = $pageData ?? [];
 ?>
     </div><!-- /.portal-layout -->
 
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces ?? ['common', 'self-service']), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/i18n.js?v=2"></script>
     <script>const API_BASE = '../api/self-service/';</script>
+    <script>window.PAGE = <?php echo json_encode($pageData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php if ($pageScripts !== ''): ?>
+    <?php if (strpos($pageScripts, '<?php') !== false): ?>
+    <?php /* Fail LOUD. A PHP tag in here never ran (see the note above) and would
+             otherwise take the page's entire script block down with a syntax error
+             that says nothing about the cause. */ ?>
+    <script>console.error('FreeITSM: $pageScripts contains a raw PHP tag. Nowdoc blocks are not parsed by PHP — pass the value through $pageData/window.PAGE instead.');</script>
+    <?php endif; ?>
     <script><?php echo $pageScripts; ?></script>
     <?php endif; ?>
 </body>

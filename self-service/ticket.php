@@ -8,6 +8,20 @@
 $pageTitleKey = 'self-service.ticket.title';   // a KEY: i18n starts in header.php
 $activeNav    = 'dashboard';
 
+// Which ticket. No id means someone hand-typed the URL — send them home rather
+// than rendering a shell that can only fail. (Ownership is enforced by the API,
+// not here: this page is a frame, the data comes from get_ticket_detail.php.)
+$ticketId = (int)($_GET['id'] ?? 0);
+if (!$ticketId) {
+    header('Location: index.php');
+    exit;
+}
+
+// Page-specific VALUES for the script below. They cannot be interpolated into
+// $pageScripts: that is a nowdoc, so a PHP tag inside it is emitted verbatim and
+// kills the whole script block. See the note in includes/footer.php.
+$pageData = ['ticketId' => $ticketId];
+
 // Page-specific styling only — shared chrome lives in self-service.css.
 $pageStyles = <<<'CSS'
 .back-link {
@@ -269,7 +283,7 @@ $pageStyles = <<<'CSS'
 CSS;
 
 $pageScripts = <<<'JS'
-const TICKET_ID = <?php echo $ticketId; ?>;
+const TICKET_ID = window.PAGE.ticketId;
 
         document.addEventListener('DOMContentLoaded', loadTicket);
 
