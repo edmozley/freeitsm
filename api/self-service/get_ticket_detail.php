@@ -133,8 +133,12 @@ try {
     // Screen recordings attached to the ticket
     $recordings = [];
     try {
+        // email_id says WHICH message the recording came with; NULL means the
+        // opening one. The thread renders each against its own message so a
+        // video attached to reply #7 isn't shown as though it arrived with the
+        // original report.
         $recStmt = $conn->prepare(
-            "SELECT id, original_filename, content_type, file_size, duration_seconds, has_audio, created_at
+            "SELECT id, email_id, original_filename, content_type, file_size, duration_seconds, has_audio, created_at
              FROM ticket_recordings WHERE ticket_id = ? ORDER BY created_at ASC"
         );
         $recStmt->execute([$ticketId]);

@@ -976,6 +976,9 @@ CREATE TABLE IF NOT EXISTS `webchat_messages` (
 CREATE TABLE IF NOT EXISTS `ticket_recordings` (
     `id`                  INT NOT NULL AUTO_INCREMENT,
     `ticket_id`           INT NULL,
+    -- Which message the recording came with. NULL = the ticket's opening
+    -- message (how every recording behaved before replies could carry one).
+    `email_id`            INT NULL,
     `recorded_by_user_id` INT NULL,
     `filename`            VARCHAR(255) NOT NULL,
     `original_filename`   VARCHAR(255) NULL,
@@ -989,6 +992,9 @@ CREATE TABLE IF NOT EXISTS `ticket_recordings` (
     KEY `ix_ticket_recordings_ticket_id` (`ticket_id`),
     KEY `ix_ticket_recordings_pending` (`ticket_id`, `created_at`),
     CONSTRAINT `fk_ticket_recordings_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+    -- SET NULL, not CASCADE: if a message is ever removed the video should fall
+    -- back to the ticket, not be destroyed with it.
+    CONSTRAINT `fk_ticket_recordings_email` FOREIGN KEY (`email_id`) REFERENCES `emails` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_ticket_recordings_user` FOREIGN KEY (`recorded_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

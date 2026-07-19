@@ -684,6 +684,10 @@ return [
     'ticket_recordings' => [
         'id'                  => 'INT NOT NULL AUTO_INCREMENT',
         'ticket_id'           => 'INT NULL',
+        // Which message the recording came with. NULL = the ticket's opening
+        // message, which is what every recording was before replies could carry
+        // one — so existing rows are already correct and need no backfill.
+        'email_id'            => 'INT NULL',
         'recorded_by_user_id' => 'INT NULL',
         'filename'            => 'VARCHAR(255) NOT NULL',
         'original_filename'   => 'VARCHAR(255) NULL',

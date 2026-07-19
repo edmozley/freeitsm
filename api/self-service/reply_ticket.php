@@ -1,7 +1,7 @@
 <?php
 /**
  * API: Reply to your own ticket from the Self-Service Portal.
- * POST { ticket_id, body, attachments[] }
+ * POST { ticket_id, body, attachments[], recording_ids[] }
  *
  * Until this existed the portal was entirely READ-ONLY: a requester could watch
  * their ticket but not answer it, so "can you send us a screenshot?" forced them
@@ -19,6 +19,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/ticket_reply.php';
+require_once '../../includes/ticket_recordings.php';
 
 header('Content-Type: application/json');
 
@@ -37,14 +38,17 @@ $input    = json_decode(file_get_contents('php://input'), true);
 $ticketId = (int)($input['ticket_id'] ?? 0);
 $body     = trim($input['body'] ?? '');
 $inputAttachments = $input['attachments'] ?? [];
+$recordingIds     = $input['recording_ids'] ?? [];
 
 if (!$ticketId) {
     echo json_encode(['success' => false, 'error' => 'Ticket ID required']);
     exit;
 }
 
-// A reply with neither words nor a file is nothing at all.
-if ($body === '' && empty($inputAttachments)) {
+// A reply with neither words nor a file is nothing at all. A screen recording
+// counts: "here, look at what happens" is a complete answer on its own, and
+// making someone type a covering sentence for it would be pointless.
+if ($body === '' && empty($inputAttachments) && empty($recordingIds)) {
     echo json_encode(['success' => false, 'error' => 'Please write a message or attach a file']);
     exit;
 }
@@ -166,14 +170,21 @@ try {
 
     $conn->commit();
 
+    // Claim any screen recordings made with this reply. Shared with
+    // create_ticket.php — see includes/ticket_recordings.php. Unlike the opening
+    // message these carry the $emailId, so the video is shown against the reply
+    // it came with rather than floating at the top of a long thread.
+    $claimedRecordings = claimPendingRecordings($conn, $recordingIds, $ticketId, $userId, (int)$emailId);
+
     // Reopen AFTER the commit: the reply is the thing that must not be lost, and
     // the helper is deliberately non-fatal for the same reason.
     $reopened = reopenTicketForCustomerReply($conn, $ticketId);
 
     echo json_encode([
-        'success'  => true,
-        'email_id' => (int)$emailId,
-        'reopened' => $reopened,
+        'success'    => true,
+        'email_id'   => (int)$emailId,
+        'reopened'   => $reopened,
+        'recordings' => $claimedRecordings,
     ]);
 
 } catch (Exception $e) {

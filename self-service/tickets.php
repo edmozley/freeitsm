@@ -14,6 +14,9 @@ $pageTitleKey = 'self-service.tickets.title';
 $activeNav    = 'tickets';
 // App-shell page: the panes scroll internally, the window does not.
 $bodyClass    = 'portal-app';
+// Loads assets/js/screen-recorder.js for the reply composer — the same module
+// the compose screen uses. Pairs with includes/record-modal.php below.
+$needsRecorder = true;
 
 $pageData = ['ticketId' => (int)($_GET['id'] ?? 0)];
 
@@ -205,7 +208,6 @@ $pageStyles = <<<'CSS'
 }
 .tk-chip button { border: none; background: none; cursor: pointer; color: var(--text-muted, #777); font-size: 15px; line-height: 1; padding: 0; }
 .tk-chip button:hover { color: var(--danger-text, #c33); }
-.tk-note-line { font-size: 12px; color: var(--text-muted, #666); }
 
 @media (max-width: 900px) {
     .tk-shell { flex-direction: column; height: auto; }
@@ -219,6 +221,23 @@ let ssTickets = [];
         let ssSelected = null;
         let ssFilter = '';        // '' = every status
         let ssFiles = [];
+        let ssRecordings = [];    // [{recording_id, name, size_bytes, duration_seconds}]
+
+        // The recorder is the SAME module the compose screen uses
+        // (assets/js/screen-recorder.js) — capture, preview and upload are
+        // identical whether you are opening a ticket or answering one. All that
+        // differs is what a claimed recording is attached to, which is this.
+        //
+        // init() runs at parse time, so screen-recorder.js must load first;
+        // footer.php emits it before this block when $needsRecorder is set.
+        ScreenRecorder.init({
+            uploadUrl: '../api/self-service/upload_recording.php',
+            onClaimed: function (rec) {
+                ssRecordings.push(rec);
+                renderFiles();
+                flash(window.t('self-service.recorder.attached'), false);
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', function () {
             const sel = document.getElementById('tkFilter');
@@ -342,6 +361,19 @@ let ssTickets = [];
             const pane = document.getElementById('tkRead');
             const c = t.status_colour || '#0078d4';
 
+            // Screen recordings, bucketed by the message they were recorded with.
+            // A recording with no email_id came with the ticket's OPENING message
+            // — which is every recording made before replies could carry one, so
+            // old tickets keep showing theirs in the right place with no
+            // migration.
+            const recsByEmail = {};
+            let firstEmailId = null;
+            (d.thread || []).forEach(m => { if (firstEmailId === null) firstEmailId = m.id; });
+            (d.recordings || []).forEach(r => {
+                const key = (r.email_id === null || r.email_id === undefined) ? firstEmailId : r.email_id;
+                (recsByEmail[key] = recsByEmail[key] || []).push(r);
+            });
+
             // Merge messages and shared notes into one chronological conversation.
             const items = [];
             (d.thread || []).forEach(m => items.push({ kind: 'msg', data: m, at: m.received_datetime }));
@@ -367,7 +399,8 @@ let ssTickets = [];
                     when: m.received_datetime,
                     html: safeBody(m.body_content, m.body_type),
                     cls: mine ? 'is-mine' : '',
-                    atts: m.attachments || []
+                    atts: m.attachments || [],
+                    recs: recsByEmail[m.id] || []
                 });
             }).join('');
 
@@ -397,12 +430,31 @@ let ssTickets = [];
                     + '<span class="tk-att-name">' + esc(a.filename || '') + '</span>'
                     + '<span class="tk-att-size">' + bytes(a.file_size) + '</span></a>').join('') + '</div>'
                 : '';
+
+            // Screen recordings play inline. get_recording.php is range-aware, so
+            // <video> can seek without pulling the whole file down first.
+            const recs = (o.recs && o.recs.length)
+                ? o.recs.map(r => {
+                    const meta = [];
+                    if (r.duration_seconds) meta.push(ScreenRecorder.formatDuration(r.duration_seconds));
+                    if (r.file_size) meta.push(bytes(r.file_size));
+                    return '<div class="tk-recording">'
+                         +   '<video controls preload="metadata" src="../api/self-service/get_recording.php?id='
+                         +     encodeURIComponent(r.id) + '"></video>'
+                         +   '<div class="tk-recording-meta"><span>🎥 '
+                         +     esc(window.t('self-service.ticket.screen_recording')) + '</span>'
+                         +     (meta.length ? '<span>' + esc(meta.join(' · ')) + '</span>' : '')
+                         +   '</div>'
+                         + '</div>';
+                }).join('')
+                : '';
+
             return '<div class="tk-msg ' + (o.cls || '') + '">'
                  +   '<div class="tk-avatar">' + esc(initials(o.who)) + '</div>'
                  +   '<div class="tk-msg-body">'
                  +     '<div class="tk-msg-head"><span class="tk-msg-who">' + esc(o.who) + '</span>'
                  +       '<span class="tk-msg-when">' + esc(fullDate(o.when)) + '</span></div>'
-                 +     '<div class="tk-msg-card">' + o.html + atts + '</div>'
+                 +     '<div class="tk-msg-card">' + o.html + atts + recs + '</div>'
                  +   '</div>'
                  + '</div>';
         }
@@ -414,8 +466,21 @@ let ssTickets = [];
                  +   '<div class="tk-composer-actions">'
                  +     '<button type="button" class="btn btn-primary" id="ssSend">' + esc(window.t('self-service.ticket.reply_send')) + '</button>'
                  +     '<input type="file" id="ssFileInput" multiple style="display:none">'
-                 +     '<button type="button" class="btn btn-secondary" id="ssAttach">' + esc(window.t('self-service.ticket.reply_attach')) + '</button>'
-                 +     '<span class="tk-note-line">' + esc(window.t('self-service.ticket.reply_hint')) + '</span>'
+                 // The "attach screenshots, logs or documents" line is the
+                 // button's TOOLTIP rather than a line of body text beside it:
+                 // it explains the button, and as standing text it was just
+                 // clutter under every ticket. Same treatment as the dashboard
+                 // action buttons.
+                 +     '<button type="button" class="btn btn-secondary" id="ssAttach" title="'
+                 +       esc(window.t('self-service.ticket.reply_hint')) + '">'
+                 +       esc(window.t('self-service.ticket.reply_attach')) + '</button>'
+                 // Hidden where the browser can't screen-capture (iOS Safari has
+                 // no getDisplayMedia), rather than offering a button that fails.
+                 +     (ScreenRecorder.isSupported()
+                        ? '<button type="button" class="btn btn-secondary" id="ssRecord" title="'
+                          + esc(window.t('self-service.recorder.tooltip')) + '">'
+                          + esc(window.t('self-service.recorder.button')) + '</button>'
+                        : '')
                  +   '</div>'
                  + '</div>';
         }
@@ -437,23 +502,65 @@ let ssTickets = [];
                 renderFiles();
             });
             send.addEventListener('click', sendReply);
+
+            const record = document.getElementById('ssRecord');
+            if (record) record.addEventListener('click', () => ScreenRecorder.open());
         }
 
+        /**
+         * Pending recordings and picked files render in the SAME chip strip:
+         * to the person replying they are both just "things going with this
+         * message", and splitting them into two lists would be a distinction
+         * only the database cares about.
+         */
         function renderFiles() {
             const host = document.getElementById('ssFiles');
             if (!host) return;
-            host.innerHTML = ssFiles.map((f, i) =>
+            const files = ssFiles.map((f, i) =>
                 '<span class="tk-chip">' + esc(f.name) + ' <span class="tk-att-size">' + bytes(f.size) + '</span>'
                 + '<button type="button" onclick="dropFile(' + i + ')">&times;</button></span>').join('');
+            const recs = ssRecordings.map((r, i) =>
+                '<span class="tk-chip">🎥 ' + esc(window.t('self-service.ticket.screen_recording'))
+                + ' <span class="tk-att-size">' + ScreenRecorder.formatDuration(r.duration_seconds || 0) + '</span>'
+                + '<button type="button" onclick="dropRecording(' + i + ')">&times;</button></span>').join('');
+            host.innerHTML = files + recs;
         }
 
         function dropFile(i) { ssFiles.splice(i, 1); renderFiles(); }
+
+        /**
+         * Dropping a recording only unhooks it from THIS reply — the uploaded row
+         * stays pending and unclaimed, exactly as it would if the page were
+         * closed. Deleting server-side from here would need a second endpoint
+         * whose whole job is destroying things, for no gain.
+         */
+        function dropRecording(i) { ssRecordings.splice(i, 1); renderFiles(); }
 
         async function sendReply() {
             const box = document.getElementById('ssReply');
             const send = document.getElementById('ssSend');
             const body = (box.value || '').trim();
-            if (!body && !ssFiles.length) { flash(window.t('self-service.ticket.reply_empty'), true); return; }
+            if (!body && !ssFiles.length && !ssRecordings.length) {
+                flash(window.t('self-service.ticket.reply_empty'), true);
+                return;
+            }
+
+            // Same guard the compose screen uses: a recorded-but-unclaimed video
+            // is sitting in the modal's preview, and sending now would silently
+            // lose it. Put the Use this / Discard choice back in front of them.
+            if (ScreenRecorder.hasUnclaimed()) {
+                ScreenRecorder.open();
+                const status = document.getElementById('recStatus');
+                if (status) {
+                    status.style.color = '#dc2626';
+                    status.style.fontWeight = '600';
+                    status.innerHTML = window.t('self-service.recorder.claim_prompt', {
+                        use: '<strong>' + esc(window.t('self-service.recorder.use')) + '</strong>',
+                        discard: '<strong>' + esc(window.t('self-service.recorder.discard')) + '</strong>'
+                    });
+                }
+                return;
+            }
 
             send.disabled = true;
             send.textContent = window.t('self-service.ticket.reply_sending');
@@ -464,13 +571,15 @@ let ssTickets = [];
                     body: JSON.stringify({
                         ticket_id: ssSelected,
                         body: body,
-                        attachments: ssFiles.map(f => ({ name: f.name, type: f.type, content: f.content }))
+                        attachments: ssFiles.map(f => ({ name: f.name, type: f.type, content: f.content })),
+                        recording_ids: ssRecordings.map(r => r.recording_id)
                     })
                 });
                 const d = await r.json();
                 if (!d.success) { flash(d.error || window.t('self-service.ticket.reply_failed'), true); return; }
 
                 ssFiles = [];
+                ssRecordings = [];
                 // Refreshes the list (the status may have changed if the reply
                 // reopened the ticket) AND re-renders this ticket, because
                 // loadTickets keeps the current selection. No second select here
@@ -572,5 +681,7 @@ require_once __DIR__ . '/includes/header.php';
             <div class="tk-read-empty"><?php echo htmlspecialchars(t('self-service.tickets.select')); ?></div>
         </div>
     </div>
+
+    <?php require __DIR__ . '/includes/record-modal.php'; ?>
 <?php
 require_once __DIR__ . '/includes/footer.php';

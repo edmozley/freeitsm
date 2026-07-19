@@ -10,6 +10,9 @@
  *                  so window.t() and API_BASE are already available to it.
  *   $pageData    — page-specific VALUES for that JS, as an array. Emitted as
  *                  window.PAGE, JSON-encoded.
+ *   $needsRecorder — true to load assets/js/screen-recorder.js. Pair it with
+ *                  `require __DIR__ . '/includes/record-modal.php';` in the
+ *                  markup; the script binds to that partial's element ids.
  *
  * $pageData exists because $pageScripts is echoed as a plain STRING, and pages
  * build it with a nowdoc (<<<'JS') so that JS template literals — ${...} — are
@@ -35,6 +38,13 @@ $pageData    = $pageData ?? [];
          confirmations look and behave exactly like the rest of FreeITSM instead
          of each page inventing its own little message strip. -->
     <script src="../assets/js/toast.js"></script>
+    <?php if (!empty($needsRecorder)): ?>
+    <!-- Screen recording, for the pages that offer it (raising a ticket and
+         replying to one). Loaded per-page rather than globally: it is dead
+         weight on the dashboard, and it must be present BEFORE the page script
+         runs, since that calls ScreenRecorder.init() at parse time. -->
+    <script src="../assets/js/screen-recorder.js?v=1"></script>
+    <?php endif; ?>
     <script>const API_BASE = '../api/self-service/';</script>
     <script>window.PAGE = <?php echo json_encode($pageData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php if ($pageScripts !== ''): ?>

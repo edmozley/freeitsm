@@ -10,6 +10,9 @@ $activeNav    = '';   // reached from the dashboard button, not the nav
 // App-shell: the compose screen fills the viewport and the EDITOR takes up the
 // slack, rather than the page scrolling with a fixed-height box in it.
 $bodyClass    = 'portal-app';
+// Loads assets/js/screen-recorder.js — shared with the reply composer on
+// tickets.php. Pairs with includes/record-modal.php in the markup below.
+$needsRecorder = true;
 
 // The rich-text editor, loaded only here — no other portal page needs 500KB of
 // editor. Bundled locally, so no third-party CDN is involved.
@@ -293,114 +296,8 @@ $pageStyles = <<<'CSS'
             border-radius: 50%;
             background: #dc2626;
         }
-        /* ── Recording modal ───────────────────────────────────────────────
-           Its own surface, so the video preview has room and opening it doesn't
-           shove the rest of the form around. */
-        .rec-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 2000;
-            display: none;
-            align-items: center;
-            justify-content: center;
-        }
-        .rec-modal.active { display: flex; }
-        .rec-modal-box {
-            background: var(--surface, #fff);
-            border-radius: 10px;
-            width: 92%;
-            max-width: 640px;
-            max-height: 88vh;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
-        }
-        .rec-modal-head {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--border, #e5e7eb);
-        }
-        .rec-modal-head h2 { font-size: 15px; font-weight: 600; margin: 0; color: var(--text, #333); }
-        .rec-modal-x {
-            border: none; background: none; cursor: pointer;
-            font-size: 22px; line-height: 1; padding: 0 4px;
-            color: var(--text-muted, #777);
-        }
-        .rec-modal-x:hover { color: var(--text, #333); }
-        .rec-modal-body { padding: 16px 18px; overflow-y: auto; }
-        .rec-modal-foot {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-            padding: 12px 18px 16px;
-            border-top: 1px solid var(--border, #e5e7eb);
-        }
-        .rec-modal-foot .btn-cancel { margin-left: auto; }
-        .rec-modal .mic-toggle {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: var(--text-muted, #555);
-            margin-bottom: 12px;
-        }
-        .rec-modal video {
-            width: 100%;
-            max-height: 360px;
-            background: #000;
-            border-radius: 4px;
-            margin-top: 10px;
-        }
-        /* The recording buttons now live in the modal footer rather than a
-           .record-controls row; both selectors are kept so the shared look
-           survives the move. */
-        .record-controls {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            flex-wrap: wrap;
-        }
-        .record-controls button,
-        .rec-modal-foot button {
-            padding: 8px 14px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 500;
-            font-family: inherit;
-            cursor: pointer;
-            border: 1px solid transparent;
-        }
-        .btn-rec-start { background: #dc2626; color: white; }
-        .btn-rec-start:hover { background: #b91c1c; }
-        .btn-rec-stop { background: #1f2937; color: white; }
-        .btn-rec-stop:hover { background: #111827; }
-        .btn-rec-use { background: var(--ss-accent, #0078d4); color: white; }
-        .btn-rec-use:hover { background: var(--ss-accent-hover, #005a9e); }
-        .btn-rec-discard { background: var(--surface-hover, #f3f4f6); color: var(--text, #333); border-color: var(--border, #ddd); }
-        .btn-rec-discard:hover { background: var(--surface-hover, #e5e7eb); }
-        .rec-status {
-            font-size: 13px;
-            color: var(--text-muted, #555);
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .rec-status.recording { color: var(--danger-text, #dc2626); font-weight: 600; }
-        .rec-status .pulse {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #dc2626;
-            animation: rec-pulse 1.2s infinite;
-        }
-        @keyframes rec-pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
+        /* The recording modal's styling is shared with the reply composer and
+           lives in assets/css/self-service.css (.rec-modal and friends). */
         .recording-item .file-info::before {
             content: '🎥';
             margin-right: 4px;
@@ -452,16 +349,9 @@ $pageScripts = <<<'JS'
 let attachments = [];
     let recordings = []; // [{recording_id, name, size_bytes, duration_seconds}]
 
-    // Recording state
-    let mediaRecorder = null;
-    let recordedChunks = [];
-    let recordedBlob = null;
-    let recordedMime = null;
-    let recordedDuration = 0;
-    let recordStart = 0;
-    let recordTimer = null;
-    let captureStream = null;
-    const MAX_DURATION_SEC = 300;
+    // Capture state lives inside ScreenRecorder (assets/js/screen-recorder.js),
+    // not here — two pages must not disagree about what "currently recording"
+    // means.
 
     document.addEventListener('DOMContentLoaded', function() {
         loadMailboxes();
@@ -470,7 +360,9 @@ let attachments = [];
         initEditor();
 
         // Hide the record button entirely if the browser can't do screen capture
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+        // (iOS Safari has no getDisplayMedia at all) — better than letting them
+        // press it and meet a confusing failure.
+        if (!ScreenRecorder.isSupported()) {
             document.getElementById('recordToggle').style.display = 'none';
         }
     });
@@ -684,206 +576,20 @@ let attachments = [];
     }
 
     // -------------------- Screen recording --------------------
+    //
+    // The recorder itself lives in assets/js/screen-recorder.js and is shared
+    // with the reply composer on tickets.php — capture, MIME negotiation, the
+    // countdown, preview and upload are identical whether you are opening a
+    // ticket or answering one. Only what happens to a CLAIMED recording differs,
+    // which is this callback.
 
-    function toggleRecordPanel() {
-        const modal = document.getElementById('recordModal');
-        modal.classList.add('active');
-        modal.setAttribute('aria-hidden', 'false');
-    }
-
-    /**
-     * Close the recording modal.
-     *
-     * Refuses while recording is actually running: closing mid-capture would
-     * leave the screen-share live with no way back to the Stop button. Stop
-     * first, then decide whether to keep it.
-     *
-     * A recording that has been captured but not claimed is DISCARDED on close —
-     * cancelling should not silently leave something attached. That is the
-     * opposite of the submit guard, which blocks submitting with an unclaimed
-     * recording: there, they were heading onward and might lose work; here they
-     * have explicitly said no.
-     */
-    function closeRecordModal() {
-        if (typeof mediaRecorder !== 'undefined' && mediaRecorder && mediaRecorder.state === 'recording') {
-            return;
-        }
-        if (typeof recordedBlob !== 'undefined' && recordedBlob) {
-            discardRecording();
-        }
-        const modal = document.getElementById('recordModal');
-        modal.classList.remove('active');
-        modal.setAttribute('aria-hidden', 'true');
-    }
-
-    function pickRecorderMime() {
-        // Modern Chrome/Edge can produce MP4/H.264 directly via MediaRecorder.
-        // Firefox + older Chrome falls back to webm. The video element plays
-        // either, so the analyst's experience is identical regardless.
-        const candidates = [
-            'video/mp4; codecs=avc1.42E01E,mp4a.40.2',
-            'video/mp4; codecs=avc1',
-            'video/mp4',
-            'video/webm; codecs=vp9,opus',
-            'video/webm; codecs=vp9',
-            'video/webm; codecs=vp8,opus',
-            'video/webm'
-        ];
-        for (const mime of candidates) {
-            if (MediaRecorder.isTypeSupported(mime)) return mime;
-        }
-        return '';
-    }
-
-    async function startRecording() {
-        const errEl = document.getElementById('errorMsg');
-        errEl.style.display = 'none';
-
-        const wantMic = document.getElementById('recMicToggle').checked;
-
-        try {
-            // Always request video + system audio (the user's browser tab/window)
-            captureStream = await navigator.mediaDevices.getDisplayMedia({
-                video: { frameRate: 30 },
-                audio: true
-            });
-
-            // Mix in the mic track if requested. The browser shows a separate
-            // permission prompt for the mic — silently failing back to no-mic
-            // is friendlier than aborting the whole recording.
-            if (wantMic) {
-                try {
-                    const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    micStream.getAudioTracks().forEach(t => captureStream.addTrack(t));
-                } catch (micErr) {
-                    console.warn('Mic permission denied or unavailable:', micErr);
-                }
-            }
-
-            // If the user clicks the browser's "Stop sharing" bar instead of our Stop button
-            captureStream.getVideoTracks()[0].onended = () => {
-                if (mediaRecorder && mediaRecorder.state === 'recording') {
-                    stopRecording();
-                }
-            };
-
-            const mime = pickRecorderMime();
-            recordedChunks = [];
-            recordedMime = mime || 'video/webm';
-            mediaRecorder = new MediaRecorder(captureStream, mime ? { mimeType: mime } : undefined);
-            mediaRecorder.ondataavailable = (e) => { if (e.data && e.data.size > 0) recordedChunks.push(e.data); };
-            mediaRecorder.onstop = () => {
-                recordedDuration = Math.floor((Date.now() - recordStart) / 1000);
-                recordedBlob = new Blob(recordedChunks, { type: recordedMime });
-                captureStream.getTracks().forEach(t => t.stop());
-                captureStream = null;
-                clearInterval(recordTimer);
-                showPreview();
-            };
-
-            mediaRecorder.start(1000); // 1s timeslice
-            recordStart = Date.now();
-
-            document.getElementById('recStartBtn').style.display = 'none';
-            document.getElementById('recStopBtn').style.display = '';
-            document.getElementById('recMicToggle').disabled = true;
-            const status = document.getElementById('recStatus');
-            status.className = 'rec-status recording';
-            status.innerHTML = '<span class="pulse"></span> ' + escapeHtml(window.t('self-service.new_ticket.rec_recording', { time: '0:00' }));
-
-            recordTimer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - recordStart) / 1000);
-                status.innerHTML = '<span class="pulse"></span> ' + escapeHtml(window.t('self-service.new_ticket.rec_recording', { time: formatDuration(elapsed) }));
-                if (elapsed >= MAX_DURATION_SEC) stopRecording();
-            }, 500);
-        } catch (err) {
-            console.error(err);
-            if (err.name === 'NotAllowedError') {
-                document.getElementById('recStatus').textContent = window.t('self-service.new_ticket.rec_permission_denied');
-            } else {
-                document.getElementById('recStatus').textContent = window.t('self-service.new_ticket.rec_start_failed', { message: err.message });
-            }
-        }
-    }
-
-    function stopRecording() {
-        if (mediaRecorder && mediaRecorder.state === 'recording') {
-            mediaRecorder.stop();
-        }
-    }
-
-    function showPreview() {
-        const preview = document.getElementById('recPreview');
-        preview.src = URL.createObjectURL(recordedBlob);
-        preview.style.display = '';
-
-        document.getElementById('recStopBtn').style.display = 'none';
-        document.getElementById('recUseBtn').style.display = '';
-        document.getElementById('recDiscardBtn').style.display = '';
-        document.getElementById('recMicToggle').disabled = false;
-
-        const status = document.getElementById('recStatus');
-        status.className = 'rec-status';
-        status.textContent = window.t('self-service.new_ticket.rec_recorded', { time: formatDuration(recordedDuration) });
-    }
-
-    function discardRecording() {
-        recordedBlob = null;
-        recordedChunks = [];
-        const preview = document.getElementById('recPreview');
-        if (preview.src) URL.revokeObjectURL(preview.src);
-        preview.src = '';
-        preview.style.display = 'none';
-
-        document.getElementById('recStartBtn').style.display = '';
-        document.getElementById('recUseBtn').style.display = 'none';
-        document.getElementById('recDiscardBtn').style.display = 'none';
-        const status = document.getElementById('recStatus');
-        status.style.color = '';
-        status.style.fontWeight = '';
-        status.textContent = window.t('self-service.new_ticket.rec_ready');
-    }
-
-    async function useRecording() {
-        if (!recordedBlob) return;
-        const useBtn = document.getElementById('recUseBtn');
-        const discardBtn = document.getElementById('recDiscardBtn');
-        useBtn.disabled = true;
-        discardBtn.disabled = true;
-        useBtn.textContent = window.t('self-service.new_ticket.rec_uploading');
-
-        try {
-            const ext = recordedMime.startsWith('video/mp4') ? 'mp4' : 'webm';
-            const now = new Date();
-            const stamp = now.toISOString().slice(0, 19).replace(/[T:]/g, '-');
-            const filename = 'screen-recording-' + stamp + '.' + ext;
-
-            const fd = new FormData();
-            fd.append('file', recordedBlob, filename);
-            fd.append('duration_seconds', String(recordedDuration));
-            fd.append('has_audio', document.getElementById('recMicToggle').checked ? '1' : '0');
-
-            const resp = await fetch('../api/self-service/upload_recording.php', { method: 'POST', body: fd });
-            const data = await resp.json();
-            if (!data.success) throw new Error(data.error || window.t('self-service.new_ticket.rec_upload_failed'));
-
-            recordings.push({
-                recording_id: data.recording_id,
-                name: filename,
-                size_bytes: recordedBlob.size,
-                duration_seconds: recordedDuration
-            });
+    ScreenRecorder.init({
+        uploadUrl: '../api/self-service/upload_recording.php',
+        onClaimed: function (rec) {
+            recordings.push(rec);
             renderAttachments();
-            discardRecording();
-            closeRecordModal();   // claimed — nothing left to decide
-        } catch (err) {
-            alert(window.t('self-service.new_ticket.rec_upload_failed_alert', { message: err.message }));
-        } finally {
-            useBtn.disabled = false;
-            discardBtn.disabled = false;
-            useBtn.textContent = window.t('self-service.new_ticket.rec_use');
         }
-    }
+    });
 
     // -------------------- Mailbox loading --------------------
 
@@ -913,16 +619,16 @@ let attachments = [];
         // Block submit if there's a recorded-but-not-claimed blob sitting in the
         // preview. Easy to miss the "Use this" button otherwise, and the recording
         // would be silently lost when the form posts.
-        if (recordedBlob !== null) {
+        if (ScreenRecorder.hasUnclaimed()) {
             // Reopen the recording modal so the Use this / Discard choice is
             // in front of them — the whole point of the guard.
-            toggleRecordPanel();
+            ScreenRecorder.open();
             const status = document.getElementById('recStatus');
             status.style.color = '#dc2626';
             status.style.fontWeight = '600';
-            status.innerHTML = window.t('self-service.new_ticket.rec_claim_prompt', {
-                use: '<strong>' + escapeHtml(window.t('self-service.new_ticket.rec_use')) + '</strong>',
-                discard: '<strong>' + escapeHtml(window.t('self-service.new_ticket.rec_discard')) + '</strong>'
+            status.innerHTML = window.t('self-service.recorder.claim_prompt', {
+                use: '<strong>' + escapeHtml(window.t('self-service.recorder.use')) + '</strong>',
+                discard: '<strong>' + escapeHtml(window.t('self-service.recorder.discard')) + '</strong>'
             });
             return;
         }
@@ -1060,8 +766,8 @@ require __DIR__ . '/includes/header.php';
                     <input type="file" id="fileInput" multiple style="display:none">
                     <div class="attachment-list" id="attachmentList"></div>
 
-                    <button type="button" class="record-toggle" id="recordToggle" onclick="toggleRecordPanel()">
-                        <span class="rec-dot"></span> <?php echo htmlspecialchars(t('self-service.new_ticket.record_screen')); ?>
+                    <button type="button" class="record-toggle" id="recordToggle" onclick="ScreenRecorder.open()">
+                        <span class="rec-dot"></span> <?php echo htmlspecialchars(t('self-service.recorder.button')); ?>
                     </button>
                 </div>
 
@@ -1074,31 +780,5 @@ require __DIR__ . '/includes/header.php';
             </form>
         </div>
 
-        <!-- Screen recording, in a modal. It was an inline panel wedged into the
-             settings column, which left no room for the video preview and pushed
-             the rest of the form around as it opened and closed. Recording is a
-             self-contained task with its own start/stop/keep decision, so it gets
-             its own surface — and, per Ed, a Cancel that closes it outright. -->
-        <div class="rec-modal" id="recordModal" aria-hidden="true">
-            <div class="rec-modal-box" role="dialog" aria-modal="true" aria-labelledby="recModalTitle">
-                <div class="rec-modal-head">
-                    <h2 id="recModalTitle"><?php echo htmlspecialchars(t('self-service.new_ticket.record_screen')); ?></h2>
-                    <button type="button" class="rec-modal-x" onclick="closeRecordModal()" aria-label="<?php echo htmlspecialchars(t('self-service.new_ticket.cancel')); ?>">&times;</button>
-                </div>
-                <div class="rec-modal-body">
-                    <label class="mic-toggle">
-                        <input type="checkbox" id="recMicToggle"> <?php echo htmlspecialchars(t('self-service.new_ticket.include_mic')); ?>
-                    </label>
-                    <video id="recPreview" controls style="display:none"></video>
-                    <span class="rec-status" id="recStatus"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_ready')); ?></span>
-                </div>
-                <div class="rec-modal-foot">
-                    <button type="button" class="btn-rec-start" id="recStartBtn" onclick="startRecording()"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_start')); ?></button>
-                    <button type="button" class="btn-rec-stop" id="recStopBtn" onclick="stopRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_stop')); ?></button>
-                    <button type="button" class="btn-rec-use" id="recUseBtn" onclick="useRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_use')); ?></button>
-                    <button type="button" class="btn-rec-discard" id="recDiscardBtn" onclick="discardRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_discard')); ?></button>
-                    <button type="button" class="btn-cancel" onclick="closeRecordModal()"><?php echo htmlspecialchars(t('self-service.new_ticket.cancel')); ?></button>
-                </div>
-            </div>
-        </div>
+        <?php require __DIR__ . '/includes/record-modal.php'; ?>
 <?php require __DIR__ . '/includes/footer.php';
