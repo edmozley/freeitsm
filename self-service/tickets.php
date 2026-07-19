@@ -236,11 +236,17 @@ let ssTickets = [];
                 renderFilterOptions();
                 renderList();
 
-                // Deep link, or default to the first ticket so the pane is never
-                // empty for someone who does have tickets.
+                // What to show, in order of precedence:
+                //   1. whatever is ALREADY selected — this runs again after a
+                //      reply, and forgetting the open ticket then (and rewriting
+                //      the URL to the first one) is exactly the bug that caused;
+                //   2. a deep link, on first load;
+                //   3. the first ticket, so the pane is never empty for someone
+                //      who does have tickets.
                 const first = visibleTickets()[0];
-                const wanted = window.PAGE.ticketId || (first ? first.id : 0);
-                if (wanted) selectTicket(wanted);
+                const wanted = ssSelected || window.PAGE.ticketId || (first ? first.id : 0);
+                // Awaited: an un-awaited select here would race the caller's own.
+                if (wanted) await selectTicket(wanted);
             } catch (e) {
                 document.getElementById('tkList').innerHTML =
                     '<div class="loading-state">' + esc(window.t('self-service.tickets.load_failed')) + '</div>';
@@ -468,8 +474,11 @@ let ssTickets = [];
                 if (!d.success) { flash(d.error || window.t('self-service.ticket.reply_failed'), true); return; }
 
                 ssFiles = [];
-                await loadTickets();          // status may have changed (reopen)
-                await selectTicket(ssSelected);
+                // Refreshes the list (the status may have changed if the reply
+                // reopened the ticket) AND re-renders this ticket, because
+                // loadTickets keeps the current selection. No second select here
+                // — two of them raced, and the loser left you on another ticket.
+                await loadTickets();
                 flash(d.reopened ? window.t('self-service.ticket.reply_sent_reopened')
                                  : window.t('self-service.ticket.reply_sent'), false);
             } catch (e) {

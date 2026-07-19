@@ -229,6 +229,21 @@ return [
         's2_li3'             => '<strong>Created by IT</strong> — the team can pre-create an account for you. You\'ll be told to register with your email and pick a password — same confirmed flow as above.',
         's2_tip'             => '<strong>Forgotten password?</strong> Use the <em>Forgot password</em> link on the sign-in page — you\'ll get an email with a reset link.',
 
+        // Sections added when the Help Centre and request catalogue shipped.
+        'kb_title'           => 'Finding an answer yourself',
+        'kb_p1'              => 'Before raising a ticket, it is worth a look in <strong>Knowledge</strong> — the IT team publish guides there for the things people ask most often. If your answer is in one, you have it straight away instead of waiting for a reply.',
+        'kb_li1'             => 'Click <strong>Knowledge</strong> in the top navigation.',
+        'kb_li2'             => 'Type what you are stuck on into the search box — a word or two is usually enough (<em>vpn</em>, <em>printer</em>, <em>password</em>).',
+        'kb_li3'             => 'Click an article to read it. You can link straight to one, so it is easy to share with a colleague.',
+        'kb_p2'              => 'You will also see suggestions <em>while you are raising a ticket</em>: start typing the subject and any matching guides appear underneath it. Reading one costs you nothing, and if it solves the problem you can simply close the page — nothing is submitted until you press Submit.',
+        'kb_tip'             => '<strong>Nothing showing?</strong> Either your search found no match, or your IT team has not published any guides yet. Raise a ticket as normal and they will help you directly.',
+
+        'cat_title'          => 'Requesting something',
+        'cat_p1'             => 'Some things are not a fault at all — a new starter, a laptop, access to a system. Those have their own forms so the IT team get everything they need first time, instead of a conversation to fill in the gaps.',
+        'cat_li1'            => 'From the dashboard, click <strong>Request</strong>.',
+        'cat_li2'            => 'Pick what you need from the list.',
+        'cat_li3'            => 'Fill in the questions and press <strong>Submit request</strong>. Anything marked with a red asterisk is required.',
+        'cat_p2'             => 'Your request goes to the IT team to pick up. If the list is empty, your team has not published any request forms yet — raise a normal ticket instead.',
         's3_title'           => 'Raising a ticket',
         's3_p1'              => 'Click <strong>New Ticket</strong> in the top nav. Fill in:',
         's3_li1'             => '<strong>Mailbox</strong> — which support queue the ticket should land in (e.g. <em>IT Support</em>, <em>HR</em>). If your organisation only has one, it\'s pre-selected.',
@@ -251,7 +266,8 @@ return [
         's4_tip1'            => '<strong>Heads up</strong>: if you click Submit while a recording is still in the preview without clicking <em>Use this</em> or <em>Discard</em>, the form will stop and ask you to do one or the other first. This is deliberate — we don\'t want to silently lose your recording.',
         's4_tip2'            => '<strong>iPhone / iPad</strong>: Apple Safari on iOS doesn\'t support screen recording from web pages (an Apple limitation, not ours). The Record button won\'t appear on those devices — use a desktop or laptop browser to capture a recording.',
 
-        's5_title'           => 'Viewing & tracking your tickets',
+        // Kept short so it doesn't wrap in the help page's 250px sidebar.
+        's5_title'           => 'Viewing your tickets',
         's5_p1'              => 'The <strong>Dashboard</strong> is your home page. It shows:',
         's5_li1'             => '<strong>Summary cards</strong> — how many of your tickets are Open, In Progress, On Hold, and the total.',
         's5_li2'             => '<strong>Recent tickets</strong> — a quick table of your most recent items. Click any row to open it.',

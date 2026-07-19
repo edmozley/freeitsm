@@ -216,6 +216,20 @@ return [
         's2_li3'             => '<strong>Criada pela TI</strong> — a equipe pode criar uma conta para você previamente. Você será orientado a se cadastrar com o seu e-mail e escolher uma senha — o mesmo fluxo confirmado descrito acima.',
         's2_tip'             => '<strong>Esqueceu a senha?</strong> Use o link <em>Esqueci minha senha</em> na página de login — você receberá um e-mail com um link de redefinição.',
 
+        'kb_title'           => 'Encontrando a resposta você mesmo',
+        'kb_p1'              => 'Antes de abrir um ticket, vale olhar em <strong>Conhecimento</strong> — a equipe de TI publica lá guias para o que as pessoas mais perguntam. Se a sua resposta estiver em um deles, você a tem na hora, sem esperar retorno.',
+        'kb_li1'             => 'Clique em <strong>Conhecimento</strong> na navegação superior.',
+        'kb_li2'             => 'Digite o que está travando você na busca — uma ou duas palavras costumam bastar (<em>vpn</em>, <em>impressora</em>, <em>senha</em>).',
+        'kb_li3'             => 'Clique em um artigo para lê-lo. É possível criar link direto para um artigo, então fica fácil compartilhar com um colega.',
+        'kb_p2'              => 'Você também verá sugestões <em>enquanto abre um ticket</em>: comece a digitar o assunto e os guias relacionados aparecem logo abaixo. Ler um não custa nada e, se resolver, basta fechar a página — nada é enviado até você clicar em Enviar.',
+        'kb_tip'             => '<strong>Nada aparecendo?</strong> Ou a busca não encontrou nada, ou a sua equipe de TI ainda não publicou guias. Abra um ticket normalmente e eles ajudarão você diretamente.',
+
+        'cat_title'          => 'Solicitando algo',
+        'cat_p1'             => 'Algumas coisas não são falhas — um novo colaborador, um notebook, acesso a um sistema. Elas têm formulários próprios para que a equipe de TI receba tudo de que precisa já na primeira vez.',
+        'cat_li1'            => 'No painel, clique em <strong>Solicitar</strong>.',
+        'cat_li2'            => 'Escolha o que você precisa na lista.',
+        'cat_li3'            => 'Preencha as perguntas e clique em <strong>Enviar solicitação</strong>. Tudo marcado com asterisco vermelho é obrigatório.',
+        'cat_p2'             => 'Sua solicitação vai para a equipe de TI. Se a lista estiver vazia, sua equipe ainda não publicou formulários — abra um ticket normal.',
         's3_title'           => 'Abrindo um ticket',
         's3_p1'              => 'Clique em <strong>Novo ticket</strong> na navegação superior. Preencha:',
         's3_li1'             => '<strong>Caixa de correio</strong> — em qual fila de suporte o ticket deve cair (ex.: <em>Suporte de TI</em>, <em>RH</em>). Se a sua organização tiver apenas uma, ela já vem pré-selecionada.',
@@ -238,7 +252,8 @@ return [
         's4_tip1'            => '<strong>Atenção</strong>: se você clicar em Enviar enquanto uma gravação ainda estiver na pré-visualização sem clicar em <em>Usar esta</em> ou <em>Descartar</em>, o formulário vai parar e pedir que você faça uma das duas coisas primeiro. Isso é proposital — não queremos perder a sua gravação silenciosamente.',
         's4_tip2'            => '<strong>iPhone / iPad</strong>: o Apple Safari no iOS não oferece suporte à gravação de tela a partir de páginas web (uma limitação da Apple, não nossa). O botão Gravar não aparecerá nesses dispositivos — use o navegador de um desktop ou notebook para capturar uma gravação.',
 
-        's5_title'           => 'Visualizando e acompanhando seus tickets',
+        // Curto de propósito para não quebrar linha na barra lateral da ajuda.
+        's5_title'           => 'Seus tickets',
         's5_p1'              => 'O <strong>Painel</strong> é a sua página inicial. Ele mostra:',
         's5_li1'             => '<strong>Cartões de resumo</strong> — quantos dos seus tickets estão Abertos, Em andamento, Em espera, e o total.',
         's5_li2'             => '<strong>Tickets recentes</strong> — uma tabela rápida dos seus itens mais recentes. Clique em qualquer linha para abri-lo.',

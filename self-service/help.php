@@ -32,6 +32,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 return { id: l.dataset.section, el: document.getElementById(l.dataset.section) };
             }).filter(function (s) { return s.el; });
 
+            // Stamp each section's number from its position in the nav, so the
+            // heading and the sidebar can never disagree. Inserting a section
+            // used to mean hand-renumbering every one after it — which is
+            // exactly the kind of edit that gets half-done.
+            sections.forEach(function (s, i) {
+                var num = s.el.querySelector('.num');
+                if (num) num.textContent = String(i + 1);
+            });
+
             function markActive(id) {
                 links.forEach(function (l) { l.classList.toggle('active', l.dataset.section === id); });
             }
@@ -144,10 +153,14 @@ $pageStyles = <<<'CSS'
             .ss-help-sidebar { display: none; }   /* the content reads fine linearly */
         }
 
+        /* Full width of the content column. ⚠️ `max-width: none` alone would NOT
+           be enough — the `margin: 0 auto` centring has to go too, or the block
+           stays put at its natural width. Padding matches the hero's 40px so the
+           left edge lines up down the page. */
         .ss-help-page {
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 32px 24px 64px;
+            max-width: none;
+            margin: 0;
+            padding: 28px 40px 64px;
         }
         .ss-help-page h1 {
             font-size: 28px;
@@ -238,7 +251,9 @@ CSS;
 // ⚠️ KEYS, not translated strings: t() does not exist until header.php has
 // booted i18n, and calling it up here is a fatal. The same reason $pageTitleKey
 // is a key rather than a title.
-$helpNav = ['s1', 's2', 's3', 's4', 's5', 's6', 's7'];
+// Page order, which is also the order we'd like people to try things: look for
+// an answer BEFORE raising a ticket, and request-something right after it.
+$helpNav = ['s1', 's2', 'kb', 's3', 'cat', 's4', 's5', 's6', 's7'];
 
 require __DIR__ . '/includes/header.php';
 ?>
@@ -280,6 +295,20 @@ require __DIR__ . '/includes/header.php';
             <p class="tip"><?php echo t('self-service.help.s2_tip'); ?></p>
         </div>
 
+        <!-- Finding an answer yourself. Deliberately BEFORE "raising a ticket":
+             the order on the page is the order we'd like people to try. -->
+        <div class="ss-help-section" id="kb">
+            <h2><span class="num"></span> <?php echo htmlspecialchars(t('self-service.help.kb_title')); ?></h2>
+            <p><?php echo t('self-service.help.kb_p1'); ?></p>
+            <ol>
+                <li><?php echo t('self-service.help.kb_li1'); ?></li>
+                <li><?php echo t('self-service.help.kb_li2'); ?></li>
+                <li><?php echo t('self-service.help.kb_li3'); ?></li>
+            </ol>
+            <p><?php echo t('self-service.help.kb_p2'); ?></p>
+            <div class="tip"><?php echo t('self-service.help.kb_tip'); ?></div>
+        </div>
+
         <!-- 3. Raising a ticket -->
         <div class="ss-help-section" id="s3">
             <h2><span class="num">3</span> <?php echo htmlspecialchars(t('self-service.help.s3_title')); ?></h2>
@@ -293,6 +322,19 @@ require __DIR__ . '/includes/header.php';
             </ul>
             <p><?php echo t('self-service.help.s3_p2'); ?></p>
             <p class="tip"><?php echo t('self-service.help.s3_tip'); ?></p>
+        </div>
+
+        <!-- Requesting something — sits after raising a ticket, because it's the
+             "this isn't a fault" alternative to it. -->
+        <div class="ss-help-section" id="cat">
+            <h2><span class="num"></span> <?php echo htmlspecialchars(t('self-service.help.cat_title')); ?></h2>
+            <p><?php echo t('self-service.help.cat_p1'); ?></p>
+            <ol>
+                <li><?php echo t('self-service.help.cat_li1'); ?></li>
+                <li><?php echo t('self-service.help.cat_li2'); ?></li>
+                <li><?php echo t('self-service.help.cat_li3'); ?></li>
+            </ol>
+            <p><?php echo t('self-service.help.cat_p2'); ?></p>
         </div>
 
         <!-- 4. Screen recording -->
