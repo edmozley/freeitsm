@@ -2398,6 +2398,13 @@ CREATE TABLE IF NOT EXISTS `forms` (
     -- in-place saves.
     `parent_form_id` INT NULL,
     `version_number` INT NOT NULL DEFAULT 1,
+    -- Show this form in the self-service portal's request catalogue.
+    -- SEPARATE from is_active, which is the analyst-side on/off: an internal
+    -- form (a new-starter request a manager fills in) is active but has no
+    -- business being offered to every customer. Defaults to 0 so no existing
+    -- form is exposed by an upgrade — the same fail-closed rule as article
+    -- visibility.
+    `is_portal_visible` TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     -- RESTRICT (no delete rule): a frozen version can't be deleted while
     -- newer versions chain off it — delete leaf-first (or the whole chain).
@@ -2419,10 +2426,25 @@ CREATE TABLE IF NOT EXISTS `form_fields` (
 CREATE TABLE IF NOT EXISTS `form_submissions` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `form_id`           INT NOT NULL,
+    -- The ANALYST who submitted it. Every reader LEFT JOINs this to `analysts`,
+    -- so a requester's id must NOT be written here: `users` and `analysts` are
+    -- separate id spaces and a collision would silently attribute a customer's
+    -- request to whichever analyst happened to share the number.
     `submitted_by`      INT NULL,
+    -- The REQUESTER who submitted it, via the portal's request catalogue.
+    -- Exactly one of these two is set; both NULL means an old row whose
+    -- submitter is unknown.
+    `submitted_by_user_id` INT NULL,
+    -- The ticket an analyst raised FROM this submission, once they have. NULL
+    -- means "not yet actioned", which is what the analyst queue filters on.
+    `ticket_id`         INT NULL,
     `submitted_date`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
-    CONSTRAINT `fk_form_submissions_form` FOREIGN KEY (`form_id`) REFERENCES `forms` (`id`)
+    KEY `idx_form_submissions_user` (`submitted_by_user_id`),
+    KEY `idx_form_submissions_ticket` (`ticket_id`),
+    CONSTRAINT `fk_form_submissions_form` FOREIGN KEY (`form_id`) REFERENCES `forms` (`id`),
+    CONSTRAINT `fk_form_submissions_user` FOREIGN KEY (`submitted_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_form_submissions_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `form_submission_data` (

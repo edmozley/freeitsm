@@ -1960,6 +1960,10 @@ return [
         // in-place save (regular Save just updates modified_by/date).
         'parent_form_id' => 'INT NULL',
         'version_number' => 'INT NOT NULL DEFAULT 1',
+        // Offer this form in the self-service portal's request catalogue.
+        // Separate from is_active (the analyst-side on/off) and defaulting to 0,
+        // so upgrading never exposes an existing internal form to customers.
+        'is_portal_visible' => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 
     'form_fields' => [
@@ -1975,7 +1979,15 @@ return [
     'form_submissions' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'form_id'           => 'INT NOT NULL',
+        // The ANALYST submitter. Readers LEFT JOIN this to `analysts`, so a
+        // requester's id must never land here — separate id spaces.
         'submitted_by'      => 'INT NULL',
+        // The REQUESTER submitter (portal request catalogue). Exactly one of
+        // the two is set.
+        'submitted_by_user_id' => 'INT NULL',
+        // The ticket an analyst raised from this submission; NULL = not yet
+        // actioned, which is what the queue filters on.
+        'ticket_id'         => 'INT NULL',
         'submitted_date'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 

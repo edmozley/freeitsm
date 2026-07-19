@@ -21,7 +21,7 @@ try {
     // the Versions dropdown inside the editor, not here. Filter is
     // "no children" which works for both single-version forms (NULL
     // parent_form_id, no children) and forks (parent set, no children).
-    $sql = "SELECT f.id, f.title, f.description, f.is_active,
+    $sql = "SELECT f.id, f.title, f.description, f.is_active, f.is_portal_visible,
                    f.created_by,  ca.full_name AS created_by_name,
                    DATE_FORMAT(f.created_date,  '%Y-%m-%d %H:%i:%s') AS created_date,
                    f.modified_by, ma.full_name AS modified_by_name,

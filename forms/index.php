@@ -288,6 +288,9 @@ $translationNamespaces = ['common', 'forms'];
         const ICON_FILL    = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
         const ICON_SUBS    = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>';
         const ICON_DELETE  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+        // In the customer catalogue (filled globe) vs not (outline globe).
+        const ICON_PORTAL_ON  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12" stroke="#fff"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" fill="none" stroke="#fff"></path></svg>';
+        const ICON_PORTAL_OFF = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>';
 
         document.addEventListener('DOMContentLoaded', function() {
             loadForms();
@@ -381,13 +384,21 @@ $translationNamespaces = ['common', 'forms'];
                 const statusPill = f.is_active == 1
                     ? '<span class="ft-pill active">' + esc(window.t('forms.list.status_active')) + '</span>'
                     : '<span class="ft-pill inactive">' + esc(window.t('forms.list.status_inactive')) + '</span>';
+                // A second, separate pill: being ACTIVE is the analyst-side on/off,
+                // being in the CATALOGUE is a deliberate decision to offer the form
+                // to customers. An internal new-starter form is active and should
+                // not be on a customer's menu.
+                const portalPill = f.is_portal_visible == 1
+                    ? '<span class="ft-pill active" title="' + escAttr(window.t('forms.list.portal_on_title')) + '">'
+                      + esc(window.t('forms.list.portal_on')) + '</span>'
+                    : '';
                 return `<tr onclick="openEdit(${f.id})">
                     <td class="col-title">
                         <strong>${esc(f.title)}</strong>
                         ${desc}
                     </td>
                     <td><span class="ft-pill version">v${f.version_number || 1}</span></td>
-                    <td>${statusPill}</td>
+                    <td>${statusPill} ${portalPill}</td>
                     <td style="text-align: right;">${f.field_count}</td>
                     <td style="text-align: right;">${f.submission_count}</td>
                     <td title="${esc(fullLocalDate(f.modified_date))}">${esc(relativeDate(f.modified_date))}</td>
@@ -395,6 +406,7 @@ $translationNamespaces = ['common', 'forms'];
                     <td class="col-actions" onclick="event.stopPropagation()">
                         <a class="ft-action-btn" href="<?php echo BASE_URL; ?>forms/fill.php?id=${f.id}" title="${escAttr(window.t('forms.list.fill_title'))}">${ICON_FILL}</a>
                         <a class="ft-action-btn" href="<?php echo BASE_URL; ?>forms/submissions.php?id=${f.id}" title="${escAttr(window.t('forms.list.subs_title'))}">${ICON_SUBS}</a>
+                        <button class="ft-action-btn" onclick="togglePortal(${f.id}, ${f.is_portal_visible == 1 ? 0 : 1})" title="${escAttr(window.t(f.is_portal_visible == 1 ? 'forms.list.portal_remove_title' : 'forms.list.portal_add_title'))}">${f.is_portal_visible == 1 ? ICON_PORTAL_ON : ICON_PORTAL_OFF}</button>
                         <button class="ft-action-btn danger" onclick="confirmDelete(${f.id})" title="${escAttr(window.t('forms.list.delete_title'))}">${ICON_DELETE}</button>
                     </td>
                 </tr>`;
@@ -458,6 +470,32 @@ $translationNamespaces = ['common', 'forms'];
         }
 
         // ===== Delete =====
+        /**
+         * Offer a form in the portal's request catalogue, or withdraw it.
+         *
+         * Goes through the normal save endpoint with ONLY this field, which the
+         * service treats as a partial update — nothing else about the form is
+         * touched, and it can't accidentally reset a title or the fields.
+         */
+        async function togglePortal(id, makeVisible) {
+            try {
+                const response = await fetch(API_BASE + 'save_form.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, is_portal_visible: makeVisible ? 1 : 0 })
+                });
+                const data = await response.json();
+                if (!data.success) {
+                    showToast(data.error || window.t('forms.list.portal_failed'), 'error');
+                    return;
+                }
+                showToast(window.t(makeVisible ? 'forms.list.portal_added' : 'forms.list.portal_removed'), 'success');
+                loadForms();
+            } catch (e) {
+                showToast(window.t('forms.list.portal_failed'), 'error');
+            }
+        }
+
         async function confirmDelete(id) {
             const ok = await showConfirm({
                 title: window.t('forms.delete.title'),

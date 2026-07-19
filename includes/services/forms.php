@@ -59,12 +59,18 @@ class FormsService
             $conn->beginTransaction();
             try {
                 $conn->prepare(
-                    "UPDATE forms SET title = ?, description = ?, is_active = ?, modified_by = ?, modified_date = UTC_TIMESTAMP()
+                    "UPDATE forms SET title = ?, description = ?, is_active = ?, is_portal_visible = ?,
+                            modified_by = ?, modified_date = UTC_TIMESTAMP()
                      WHERE id = ?"
                 )->execute([
                     $title,
                     array_key_exists('description', $in) ? trim((string)$in['description']) : $current['description'],
                     array_key_exists('is_active', $in) ? (int)(bool)$in['is_active'] : (int)$current['is_active'],
+                    // Only touched when sent, so an adapter that knows nothing about
+                    // the portal can never silently withdraw a catalogue form.
+                    array_key_exists('is_portal_visible', $in)
+                        ? (int)(bool)$in['is_portal_visible']
+                        : (int)($current['is_portal_visible'] ?? 0),
                     $ctx->actorId,
                     $formId,
                 ]);
@@ -88,12 +94,15 @@ class FormsService
         $conn->beginTransaction();
         try {
             $conn->prepare(
-                "INSERT INTO forms (title, description, is_active, created_by, modified_by, version_number, created_date, modified_date)
-                 VALUES (?, ?, ?, ?, ?, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+                "INSERT INTO forms (title, description, is_active, is_portal_visible, created_by, modified_by, version_number, created_date, modified_date)
+                 VALUES (?, ?, ?, ?, ?, ?, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([
                 $title,
                 trim((string)($in['description'] ?? '')),
                 isset($in['is_active']) ? (int)(bool)$in['is_active'] : 1,
+                // Fail closed: a new form is NOT offered to customers unless
+                // someone deliberately says so.
+                isset($in['is_portal_visible']) ? (int)(bool)$in['is_portal_visible'] : 0,
                 $ctx->actorId,
                 $ctx->actorId,
             ]);
@@ -184,12 +193,18 @@ class FormsService
         $conn->beginTransaction();
         try {
             $conn->prepare(
-                "INSERT INTO forms (title, description, is_active, created_by, modified_by, parent_form_id, version_number, created_date, modified_date)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+                "INSERT INTO forms (title, description, is_active, is_portal_visible, created_by, modified_by, parent_form_id, version_number, created_date, modified_date)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([
                 $src['title'],
                 $src['description'],
                 (int)$src['is_active'],
+                // Carried to the new version DELIBERATELY. A new version is the
+                // editable leaf and the catalogue lists leaves, so dropping this
+                // would silently withdraw a published form from the portal the
+                // moment someone edited it — a disappearance nobody would connect
+                // to having pressed Save.
+                (int)($src['is_portal_visible'] ?? 0),
                 $ctx->actorId,
                 $ctx->actorId,
                 $parentId,
@@ -216,15 +231,31 @@ class FormsService
     /**
      * Validate + record a submission, then dispatch form.submitted. $data is a
      * field_id => value map. Returns the submission id.
+     *
+     * @param ?int $portalUserId  a REQUESTER (users.id) submitting through the
+     *   self-service request catalogue, or null for the analyst paths.
+     *
+     *   It is a separate argument rather than $ctx->actorId because the two are
+     *   DIFFERENT ID SPACES. `submitted_by` has no foreign key and every reader
+     *   LEFT JOINs it to `analysts`, so writing a users.id there would silently
+     *   attribute a customer's request to whichever analyst happened to share
+     *   the number. They go in different columns and exactly one is set.
      */
-    public static function submitForm(PDO $conn, ActorContext $ctx, int $formId, array $data): int
+    public static function submitForm(PDO $conn, ActorContext $ctx, int $formId, array $data, ?int $portalUserId = null): int
     {
         $form = self::loadFormRow($conn, $formId);             // 404 if gone
         if (!(int)$form['is_active']) {
             throw new ServiceError('conflict', 'conflict', 'This form is inactive and cannot accept submissions.');
         }
 
-        $stmt = $conn->prepare("SELECT id, label, field_type, is_required FROM form_fields WHERE form_id = ?");
+        // A requester may only submit a form actually offered in the catalogue.
+        // Checked HERE, not just in the adapter, so the rule holds however this
+        // is reached — knowing a hidden form's id must not be enough.
+        if ($portalUserId !== null && !(int)($form['is_portal_visible'] ?? 0)) {
+            throw new ServiceError('not_found', 'not_found', 'Form not found.');
+        }
+
+        $stmt = $conn->prepare("SELECT id, label, field_type, is_required, options FROM form_fields WHERE form_id = ?");
         $stmt->execute([$formId]);
         $fields = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $fieldsById = [];
@@ -278,14 +309,42 @@ class FormsService
                 if ($type === 'number' && !is_numeric((string)$val)) {
                     throw new ServiceError('validation', 'invalid_field', '"' . $field['label'] . '" must be a number.');
                 }
+
+                // A choice field must be answered with one of ITS OWN choices.
+                // This was never checked: the value was whatever the client
+                // posted, so a select could carry arbitrary text straight into
+                // the stored answers. Harmless-ish while only analysts could
+                // reach it; not once customers can.
+                if (in_array($type, ['dropdown', 'radio', 'checkboxes'], true)) {
+                    $options = json_decode((string)($field['options'] ?? '[]'), true);
+                    if (is_array($options) && $options) {
+                        $options = array_map('strval', $options);
+                        $chosen  = ($type === 'checkboxes')
+                            ? (json_decode((string)$val, true) ?: [])
+                            : [(string)$val];
+                        foreach ($chosen as $one) {
+                            if (!in_array((string)$one, $options, true)) {
+                                throw new ServiceError('validation', 'invalid_field',
+                                    '"' . $field['label'] . '" has an option that is not on its list.');
+                            }
+                        }
+                    }
+                }
             }
         }
 
         $conn->beginTransaction();
         try {
+            // Exactly one submitter column is populated — see the $portalUserId
+            // note on this method.
             $conn->prepare(
-                "INSERT INTO form_submissions (form_id, submitted_by, submitted_date) VALUES (?, ?, UTC_TIMESTAMP())"
-            )->execute([$formId, $ctx->actorId]);
+                "INSERT INTO form_submissions (form_id, submitted_by, submitted_by_user_id, submitted_date)
+                 VALUES (?, ?, ?, UTC_TIMESTAMP())"
+            )->execute([
+                $formId,
+                $portalUserId !== null ? null : $ctx->actorId,
+                $portalUserId,
+            ]);
             $submissionId = (int)$conn->lastInsertId();
 
             $ins = $conn->prepare("INSERT INTO form_submission_data (submission_id, field_id, field_value) VALUES (?, ?, ?)");

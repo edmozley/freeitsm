@@ -19,8 +19,27 @@ return [
     'nav' => [
         'dashboard'   => 'Dashboard',
         'new_ticket'  => 'New Ticket',
+        'catalogue'   => 'Request Something',
         'help_centre' => 'Help Centre',
         'help'        => 'Using the portal',
+    ],
+
+    'catalogue' => [
+        'title'       => 'Self-Service Portal — Request Something',
+        'heading'     => 'Request something',
+        'lede'        => 'Pick what you need and fill in a few details. The IT team will pick it up from there.',
+        'loading'     => 'Loading...',
+        'back'        => 'Back to all requests',
+        'submit'      => 'Submit request',
+        'submitting'  => 'Submitting...',
+        'required'    => 'Required',
+        'yes'         => 'Yes',
+        'not_found'   => 'That request form is not available.',
+        'failed'      => 'Your request could not be submitted. Please try again.',
+        'sent'        => 'Request submitted',
+        'sent_hint'   => 'The IT team has your request and will be in touch. You can close this page.',
+        'empty'       => 'Nothing to request yet',
+        'empty_hint'  => 'The IT team has not published any request forms yet. Raise a ticket and they will help you directly.',
     ],
 
     'login' => [

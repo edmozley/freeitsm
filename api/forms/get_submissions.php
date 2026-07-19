@@ -38,10 +38,20 @@ try {
     $fields = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Get submissions with data
-    $stmt = $conn->prepare("SELECT s.id, a.full_name as submitted_by,
+    // A submission comes from EITHER an analyst or a portal requester, and they
+    // are different id spaces — so both are joined and whichever is set wins.
+    // Joining only `analysts` (as this did) left every customer's request showing
+    // a blank submitter.
+    $stmt = $conn->prepare("SELECT s.id,
+                                   COALESCE(a.full_name, u.display_name, u.email) AS submitted_by,
+                                   CASE WHEN s.submitted_by_user_id IS NOT NULL THEN 1 ELSE 0 END AS from_portal,
+                                   s.ticket_id,
+                                   t.ticket_number,
                                    DATE_FORMAT(s.submitted_date, '%Y-%m-%d %H:%i:%s') as submitted_date
                             FROM form_submissions s
                             LEFT JOIN analysts a ON s.submitted_by = a.id
+                            LEFT JOIN users    u ON u.id = s.submitted_by_user_id
+                            LEFT JOIN tickets  t ON t.id = s.ticket_id
                             WHERE s.form_id = ?
                             ORDER BY s.submitted_date DESC");
     $stmt->execute([$formId]);

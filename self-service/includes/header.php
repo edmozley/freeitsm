@@ -49,6 +49,7 @@ $portalNav = [
     'new_ticket'  => ['href' => 'new-ticket.php', 'label' => t('self-service.nav.new_ticket')],
     // The knowledge base. 'help' below is the guide to using the portal ITSELF,
     // relabelled "Using the portal" so there aren't two nav items called Help.
+    'catalogue'   => ['href' => 'catalogue.php',   'label' => t('self-service.nav.catalogue')],
     'help_centre' => ['href' => 'help-centre.php', 'label' => t('self-service.nav.help_centre')],
     'help'        => ['href' => 'help.php',        'label' => t('self-service.nav.help')],
 ];

@@ -9,8 +9,27 @@ return [
     'nav' => [
         'dashboard'   => 'Painel',
         'new_ticket'  => 'Novo ticket',
+        'catalogue'   => 'Solicitar algo',
         'help_centre' => 'Central de ajuda',
         'help'        => 'Usando o portal',
+    ],
+
+    'catalogue' => [
+        'title'       => 'Portal de Autoatendimento — Solicitar algo',
+        'heading'     => 'Solicitar algo',
+        'lede'        => 'Escolha o que você precisa e preencha alguns detalhes. A equipe de TI cuida do resto.',
+        'loading'     => 'Carregando...',
+        'back'        => 'Voltar para todas as solicitações',
+        'submit'      => 'Enviar solicitação',
+        'submitting'  => 'Enviando...',
+        'required'    => 'Obrigatório',
+        'yes'         => 'Sim',
+        'not_found'   => 'Este formulário de solicitação não está disponível.',
+        'failed'      => 'Não foi possível enviar sua solicitação. Tente novamente.',
+        'sent'        => 'Solicitação enviada',
+        'sent_hint'   => 'A equipe de TI recebeu sua solicitação e entrará em contato. Você já pode fechar esta página.',
+        'empty'       => 'Ainda não há nada para solicitar',
+        'empty_hint'  => 'A equipe de TI ainda não publicou formulários de solicitação. Abra um ticket e eles ajudarão você diretamente.',
     ],
 
     'login' => [

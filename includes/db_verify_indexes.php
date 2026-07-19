@@ -131,6 +131,8 @@ return [
     ['tasks', 'ix_tasks_status_id', false, '(`status_id`)'],
     ['tasks', 'ix_tasks_priority_id', false, '(`priority_id`)'],
     ['task_tags', 'uq_task_tags_name', true, '(`name`)'],
+    ['form_submissions', 'idx_form_submissions_user', false, '(`submitted_by_user_id`)'],
+    ['form_submissions', 'idx_form_submissions_ticket', false, '(`ticket_id`)'],
     ['contracts', 'ix_contracts_supplier_id', false, '(`supplier_id`)'],
     ['contracts', 'ix_contracts_contract_end', false, '(`contract_end`)'],
     ['contract_term_values', 'uq_ctv_contract_tab', true, '(`contract_id`,`term_tab_id`)'],
