@@ -6,22 +6,122 @@
  * includes/footer.php; shared styling from assets/css/self-service.css.
  */
 $pageTitleKey = 'self-service.new_ticket.title';   // a KEY: i18n starts in header.php
-$activeNav    = 'new_ticket';
+$activeNav    = '';   // reached from the dashboard button, not the nav
+// App-shell: the compose screen fills the viewport and the EDITOR takes up the
+// slack, rather than the page scrolling with a fixed-height box in it.
+$bodyClass    = 'portal-app';
+
+// The rich-text editor, loaded only here — no other portal page needs 500KB of
+// editor. Bundled locally, so no third-party CDN is involved.
+$pageHead = '<script src="../assets/js/tinymce/tinymce.min.js"></script>';
 
 // Page-specific styling only — shared chrome lives in self-service.css.
 $pageStyles = <<<'CSS'
 .page-title {
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 600;
             color: var(--text, #333);
-            margin: 0 0 24px 0;
+            margin: 0 0 14px 0;
+            flex-shrink: 0;
         }
 
         .form-card {
             background: var(--surface, #fff);
             border: 1px solid var(--border, #e5e7eb);
             border-radius: 8px;
-            padding: 28px;
+            padding: 20px 22px;
+        }
+
+        /* ── Compose layout ────────────────────────────────────────────────
+           Subject across the top, then the editor and the settings panel side
+           by side. The editor is the thing people actually spend time in, so it
+           gets the height; everything you merely SET lives on the right. */
+        .compose-top { margin-bottom: 14px; }
+        .compose-top label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text, #333);
+        }
+        .compose-top input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border, #ddd);
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: inherit;
+            background: var(--surface, #fff);
+            color: var(--text, #333);
+        }
+        .compose-top input:focus { outline: none; border-color: var(--ss-accent, #10b981); }
+
+        /* ── Filling the height ────────────────────────────────────────────
+           The editor should take whatever space is left, not a guessed number of
+           pixels. So the whole column is a flex chain from the viewport down —
+           layout → card → body → editor — and each link sets `min-height: 0`,
+           without which a flex child refuses to shrink below its content and the
+           chain silently breaks. TinyMCE is then told height:100% and fills its
+           box. Any magic `calc(100vh - 330px)` would drift the moment the
+           subject field, the title or the padding changed. */
+        /* Selector matches `body.portal-app .portal-layout` in self-service.css,
+           which zeroes the padding for the full-bleed My Tickets panes. Compose
+           wants the app-shell height but KEEPS its breathing room, and an equal
+           selector is needed to say so — a bare `.portal-layout` loses on
+           specificity however late it appears. */
+        body.portal-app .portal-layout {
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 48px);   /* 48px = the portal header */
+            padding: 20px 24px;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .form-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .form-card form { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+
+        .compose-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 18px;
+            align-items: stretch;
+            min-height: 0;
+        }
+        .compose-editor { min-width: 0; display: flex; flex-direction: column; min-height: 0; }
+        .compose-editor .tox-tinymce { flex: 1 !important; height: auto !important; }
+        /* The panel scrolls on its own when the recording controls open. */
+        .compose-side {
+            border-left: 1px solid var(--border, #e5e7eb);
+            padding-left: 18px;
+            overflow-y: auto;
+            min-height: 0;
+        }
+        .compose-side .form-group { margin-bottom: 16px; }
+        .compose-side .form-actions { margin-top: 20px; flex-direction: column; align-items: stretch; gap: 8px; }
+        .compose-side .btn-submit,
+        .compose-side .btn-cancel { width: 100%; justify-content: center; text-align: center; }
+
+        /* TinyMCE ships its own chrome; soften the seam so it reads as one field. */
+        .compose-editor .tox-tinymce {
+            border: 1px solid var(--border, #e5e7eb) !important;
+            border-radius: 6px !important;
+        }
+
+        @media (max-width: 900px) {
+            .compose-body { grid-template-columns: 1fr; }
+            .compose-side {
+                border-left: none;
+                border-top: 1px solid var(--border, #e5e7eb);
+                padding-left: 0;
+                padding-top: 16px;
+                max-height: none;
+            }
         }
 
         .form-group {
@@ -193,15 +293,54 @@ $pageStyles = <<<'CSS'
             border-radius: 50%;
             background: #dc2626;
         }
-        .record-panel {
-            border: 1px solid var(--border, #e5e7eb);
-            border-radius: 6px;
-            padding: 16px;
-            margin-top: 10px;
-            background: var(--surface-hover, #fafafa);
+        /* ── Recording modal ───────────────────────────────────────────────
+           Its own surface, so the video preview has room and opening it doesn't
+           shove the rest of the form around. */
+        .rec-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
         }
-        .record-panel.hidden { display: none; }
-        .record-panel .mic-toggle {
+        .rec-modal.active { display: flex; }
+        .rec-modal-box {
+            background: var(--surface, #fff);
+            border-radius: 10px;
+            width: 92%;
+            max-width: 640px;
+            max-height: 88vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+        }
+        .rec-modal-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 18px;
+            border-bottom: 1px solid var(--border, #e5e7eb);
+        }
+        .rec-modal-head h2 { font-size: 15px; font-weight: 600; margin: 0; color: var(--text, #333); }
+        .rec-modal-x {
+            border: none; background: none; cursor: pointer;
+            font-size: 22px; line-height: 1; padding: 0 4px;
+            color: var(--text-muted, #777);
+        }
+        .rec-modal-x:hover { color: var(--text, #333); }
+        .rec-modal-body { padding: 16px 18px; overflow-y: auto; }
+        .rec-modal-foot {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 12px 18px 16px;
+            border-top: 1px solid var(--border, #e5e7eb);
+        }
+        .rec-modal-foot .btn-cancel { margin-left: auto; }
+        .rec-modal .mic-toggle {
             display: flex;
             align-items: center;
             gap: 8px;
@@ -209,24 +348,29 @@ $pageStyles = <<<'CSS'
             color: var(--text-muted, #555);
             margin-bottom: 12px;
         }
-        .record-panel video {
+        .rec-modal video {
             width: 100%;
             max-height: 360px;
             background: #000;
             border-radius: 4px;
             margin-top: 10px;
         }
+        /* The recording buttons now live in the modal footer rather than a
+           .record-controls row; both selectors are kept so the shared look
+           survives the move. */
         .record-controls {
             display: flex;
             gap: 8px;
             align-items: center;
             flex-wrap: wrap;
         }
-        .record-controls button {
+        .record-controls button,
+        .rec-modal-foot button {
             padding: 8px 14px;
             border-radius: 4px;
             font-size: 13px;
             font-weight: 500;
+            font-family: inherit;
             cursor: pointer;
             border: 1px solid transparent;
         }
@@ -323,12 +467,53 @@ let attachments = [];
         loadMailboxes();
         initDropzone();
         initDeflection();
+        initEditor();
 
         // Hide the record button entirely if the browser can't do screen capture
         if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
             document.getElementById('recordToggle').style.display = 'none';
         }
     });
+
+    /*
+     * The rich-text editor. Same component and licence key the analyst compose
+     * window uses, with a DELIBERATELY SHORTER toolbar: a customer describing a
+     * problem needs emphasis, lists and the odd link — not fonts, colours,
+     * tables, media embeds or a source-code view. Fewer choices, less to get
+     * wrong, and less exotic markup arriving in the analyst's inbox.
+     *
+     * The height fills the column rather than being a fixed box, which is the
+     * point of the compose layout.
+     */
+    function initEditor() {
+        if (typeof tinymce === 'undefined') {
+            // Editor unavailable — the plain textarea underneath still works, and
+            // the server escapes plain text, so the form degrades rather than breaks.
+            console.error('FreeITSM: TinyMCE did not load — using the plain text box.');
+            return;
+        }
+        const isDark = document.documentElement.getAttribute('data-theme-mode') === 'dark';
+        tinymce.init({
+            selector: '#description',
+            license_key: 'gpl',
+            // 100% of the flex box the CSS gives it — see the height notes above.
+            height: '100%',
+            menubar: false,
+            statusbar: false,
+            branding: false,
+            skin: isDark ? 'oxide-dark' : 'oxide',
+            content_css: isDark ? 'dark' : 'default',
+            plugins: ['autolink', 'lists', 'link', 'wordcount'],
+            toolbar: 'undo redo | bold italic underline | bullist numlist | link | removeformat',
+            // TinyMCE ignores the textarea's own placeholder, and an empty
+            // full-height editor is an intimidating blank void — tell them what
+            // to write, as the old plain box did.
+            placeholder: document.getElementById('description').getAttribute('placeholder') || '',
+            // 16px on touch so iOS Safari doesn't zoom the page when tapping in.
+            content_style: 'body { font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; } @media (pointer: coarse) { body { font-size: 16px; } }',
+            setup: function (editor) { window.ssEditor = editor; }
+        });
+    }
 
     /*
      * Ticket deflection: show Help Centre articles matching the subject as it is
@@ -501,8 +686,34 @@ let attachments = [];
     // -------------------- Screen recording --------------------
 
     function toggleRecordPanel() {
-        const panel = document.getElementById('recordPanel');
-        panel.classList.toggle('hidden');
+        const modal = document.getElementById('recordModal');
+        modal.classList.add('active');
+        modal.setAttribute('aria-hidden', 'false');
+    }
+
+    /**
+     * Close the recording modal.
+     *
+     * Refuses while recording is actually running: closing mid-capture would
+     * leave the screen-share live with no way back to the Stop button. Stop
+     * first, then decide whether to keep it.
+     *
+     * A recording that has been captured but not claimed is DISCARDED on close —
+     * cancelling should not silently leave something attached. That is the
+     * opposite of the submit guard, which blocks submitting with an unclaimed
+     * recording: there, they were heading onward and might lose work; here they
+     * have explicitly said no.
+     */
+    function closeRecordModal() {
+        if (typeof mediaRecorder !== 'undefined' && mediaRecorder && mediaRecorder.state === 'recording') {
+            return;
+        }
+        if (typeof recordedBlob !== 'undefined' && recordedBlob) {
+            discardRecording();
+        }
+        const modal = document.getElementById('recordModal');
+        modal.classList.remove('active');
+        modal.setAttribute('aria-hidden', 'true');
     }
 
     function pickRecorderMime() {
@@ -664,7 +875,7 @@ let attachments = [];
             });
             renderAttachments();
             discardRecording();
-            document.getElementById('recordPanel').classList.add('hidden');
+            closeRecordModal();   // claimed — nothing left to decide
         } catch (err) {
             alert(window.t('self-service.new_ticket.rec_upload_failed_alert', { message: err.message }));
         } finally {
@@ -703,9 +914,9 @@ let attachments = [];
         // preview. Easy to miss the "Use this" button otherwise, and the recording
         // would be silently lost when the form posts.
         if (recordedBlob !== null) {
-            const panel = document.getElementById('recordPanel');
-            panel.classList.remove('hidden');
-            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            // Reopen the recording modal so the Use this / Discard choice is
+            // in front of them — the whole point of the guard.
+            toggleRecordPanel();
             const status = document.getElementById('recStatus');
             status.style.color = '#dc2626';
             status.style.fontWeight = '600';
@@ -739,7 +950,11 @@ let attachments = [];
                     mailbox_id: document.getElementById('mailbox').value || null,
                     subject: document.getElementById('subject').value.trim(),
                     priority: document.getElementById('priority').value,
-                    description: document.getElementById('description').value.trim(),
+                    // The editor holds the content, not the textarea it replaced.
+                    // Falls back to the textarea if TinyMCE failed to load, so the
+                    // form still works rather than silently posting nothing.
+                    description: (window.ssEditor ? window.ssEditor.getContent()
+                                                  : document.getElementById('description').value).trim(),
                     attachments: attachmentData,
                     recording_ids: recordings.map(r => r.recording_id)
                 })
@@ -783,13 +998,11 @@ require __DIR__ . '/includes/header.php';
 
         <div class="form-card" id="formCard">
             <form id="ticketForm" onsubmit="return handleSubmit(event)" autocomplete="off">
-                <div class="form-group">
-                    <label for="mailbox"><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox')); ?></label>
-                    <select id="mailbox" required>
-                        <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox_loading')); ?></option>
-                    </select>
-                </div>
-                <div class="form-group">
+                <!-- Compose layout: subject across the top, the editor filling the
+                     height on the left, and everything you SET (queue, priority,
+                     files, recording) gathered in a panel on the right — so the
+                     thing you spend the time on gets the space. -->
+                <div class="compose-top">
                     <label for="subject"><?php echo htmlspecialchars(t('self-service.new_ticket.subject')); ?></label>
                     <input type="text" id="subject" required placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.subject_placeholder')); ?>" autocomplete="off">
                     <!-- Deflection: answers matching what they're typing. Hidden
@@ -799,6 +1012,19 @@ require __DIR__ . '/includes/header.php';
                         <div class="deflect-title" id="deflectTitle"></div>
                         <div class="deflect-list" id="deflectList"></div>
                     </div>
+                </div>
+
+                <div class="compose-body">
+                    <div class="compose-editor">
+                        <textarea id="description" placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.description_placeholder')); ?>"></textarea>
+                    </div>
+
+                    <aside class="compose-side">
+                <div class="form-group">
+                    <label for="mailbox"><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox')); ?></label>
+                    <select id="mailbox" required>
+                        <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox_loading')); ?></option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="priority"><?php echo htmlspecialchars(t('self-service.new_ticket.priority')); ?></label>
@@ -826,10 +1052,6 @@ require __DIR__ . '/includes/header.php';
                     </select>
                 </div>
                 <div class="form-group">
-                    <label for="description"><?php echo htmlspecialchars(t('self-service.new_ticket.description')); ?></label>
-                    <textarea id="description" placeholder="<?php echo htmlspecialchars(t('self-service.new_ticket.description_placeholder')); ?>"></textarea>
-                </div>
-                <div class="form-group">
                     <label><?php echo htmlspecialchars(t('self-service.new_ticket.attachments')); ?></label>
                     <div class="dropzone" id="dropzone">
                         <div class="dropzone-icon">📎</div>
@@ -841,24 +1063,42 @@ require __DIR__ . '/includes/header.php';
                     <button type="button" class="record-toggle" id="recordToggle" onclick="toggleRecordPanel()">
                         <span class="rec-dot"></span> <?php echo htmlspecialchars(t('self-service.new_ticket.record_screen')); ?>
                     </button>
-                    <div class="record-panel hidden" id="recordPanel">
-                        <label class="mic-toggle">
-                            <input type="checkbox" id="recMicToggle"> <?php echo htmlspecialchars(t('self-service.new_ticket.include_mic')); ?>
-                        </label>
-                        <div class="record-controls">
-                            <button type="button" class="btn-rec-start" id="recStartBtn" onclick="startRecording()"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_start')); ?></button>
-                            <button type="button" class="btn-rec-stop" id="recStopBtn" onclick="stopRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_stop')); ?></button>
-                            <button type="button" class="btn-rec-use" id="recUseBtn" onclick="useRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_use')); ?></button>
-                            <button type="button" class="btn-rec-discard" id="recDiscardBtn" onclick="discardRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_discard')); ?></button>
-                            <span class="rec-status" id="recStatus"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_ready')); ?></span>
-                        </div>
-                        <video id="recPreview" controls style="display:none"></video>
-                    </div>
                 </div>
-                <div class="form-actions">
-                    <a href="index.php" class="btn-cancel"><?php echo htmlspecialchars(t('self-service.new_ticket.cancel')); ?></a>
-                    <button type="submit" class="btn-submit" id="submitBtn"><?php echo htmlspecialchars(t('self-service.new_ticket.submit')); ?></button>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn-submit" id="submitBtn"><?php echo htmlspecialchars(t('self-service.new_ticket.submit')); ?></button>
+                            <a href="index.php" class="btn-cancel"><?php echo htmlspecialchars(t('self-service.new_ticket.cancel')); ?></a>
+                        </div>
+                    </aside>
                 </div>
             </form>
+        </div>
+
+        <!-- Screen recording, in a modal. It was an inline panel wedged into the
+             settings column, which left no room for the video preview and pushed
+             the rest of the form around as it opened and closed. Recording is a
+             self-contained task with its own start/stop/keep decision, so it gets
+             its own surface — and, per Ed, a Cancel that closes it outright. -->
+        <div class="rec-modal" id="recordModal" aria-hidden="true">
+            <div class="rec-modal-box" role="dialog" aria-modal="true" aria-labelledby="recModalTitle">
+                <div class="rec-modal-head">
+                    <h2 id="recModalTitle"><?php echo htmlspecialchars(t('self-service.new_ticket.record_screen')); ?></h2>
+                    <button type="button" class="rec-modal-x" onclick="closeRecordModal()" aria-label="<?php echo htmlspecialchars(t('self-service.new_ticket.cancel')); ?>">&times;</button>
+                </div>
+                <div class="rec-modal-body">
+                    <label class="mic-toggle">
+                        <input type="checkbox" id="recMicToggle"> <?php echo htmlspecialchars(t('self-service.new_ticket.include_mic')); ?>
+                    </label>
+                    <video id="recPreview" controls style="display:none"></video>
+                    <span class="rec-status" id="recStatus"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_ready')); ?></span>
+                </div>
+                <div class="rec-modal-foot">
+                    <button type="button" class="btn-rec-start" id="recStartBtn" onclick="startRecording()"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_start')); ?></button>
+                    <button type="button" class="btn-rec-stop" id="recStopBtn" onclick="stopRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_stop')); ?></button>
+                    <button type="button" class="btn-rec-use" id="recUseBtn" onclick="useRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_use')); ?></button>
+                    <button type="button" class="btn-rec-discard" id="recDiscardBtn" onclick="discardRecording()" style="display:none"><?php echo htmlspecialchars(t('self-service.new_ticket.rec_discard')); ?></button>
+                    <button type="button" class="btn-cancel" onclick="closeRecordModal()"><?php echo htmlspecialchars(t('self-service.new_ticket.cancel')); ?></button>
+                </div>
+            </div>
         </div>
 <?php require __DIR__ . '/includes/footer.php';

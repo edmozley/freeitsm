@@ -7,6 +7,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
+require_once '../../includes/html_sanitise.php';
 
 header('Content-Type: application/json');
 
@@ -100,8 +101,23 @@ try {
 
     // Create initial email entry
     $hasAttachments = !empty($inputAttachments) ? 1 : 0;
-    $bodyHtml = nl2br(htmlspecialchars($description));
-    $bodyPreview = substr(strip_tags($description), 0, 200);
+
+    // The new-ticket form is a rich-text editor, so the description arrives as
+    // HTML written by a CUSTOMER and is then read in the analyst's inbox. Clean
+    // it to an allow-list on the way in, so the payload never reaches the
+    // database and everything that later reads this row inherits the protection
+    // (the reading pane also cleans at render — this is the first line, not the
+    // only one).
+    $bodyHtml = sanitiseUserHtml($description);
+    if ($bodyHtml === '' && trim($description) !== '') {
+        // Not HTML after all (an older client, or plain text): escape it rather
+        // than lose what they wrote.
+        $bodyHtml = nl2br(htmlspecialchars($description, ENT_QUOTES, 'UTF-8'));
+    }
+    // Preview from the SANITISED body, never the raw input: strip_tags() removes
+    // tags but KEEPS their contents, so a <script> block in the raw description
+    // would spill its source into the preview as readable text.
+    $bodyPreview = substr(trim(preg_replace('/\s+/', ' ', strip_tags($bodyHtml))), 0, 200);
 
     $emailSql = "INSERT INTO emails (
         subject, from_address, from_name, to_recipients, received_datetime,

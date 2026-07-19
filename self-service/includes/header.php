@@ -21,6 +21,9 @@
  *   $pageStyles  — a string of page-specific CSS (keep it genuinely page-specific;
  *                  anything shared belongs in assets/css/self-service.css)
  *   $bodyClass   — extra class on <body>
+ *   $pageHead    — raw markup for <head> (a page needing an extra script/stylesheet,
+ *                  e.g. the rich-text editor on new-ticket.php). Only ONE page
+ *                  wants that, so it opts in rather than every page loading it.
  *
  * ⚠️ Load order matters: theme.css must come BEFORE self-service.css so the
  * token definitions are in scope when the portal stylesheet reads them.
@@ -59,6 +62,7 @@ $portalNav = [
 $activeNav  = $activeNav  ?? '';
 $bodyClass  = $bodyClass  ?? '';
 $pageStyles = $pageStyles ?? '';
+$pageHead   = $pageHead   ?? '';
 // Pages hand us a translation KEY, because i18n only comes up inside this file —
 // a page can't call t() before including it.
 $pageTitle  = isset($pageTitleKey) ? t($pageTitleKey) : t('self-service.portal');
@@ -77,6 +81,7 @@ $pageTitle  = isset($pageTitleKey) ? t($pageTitleKey) : t('self-service.portal')
     <?php if ($pageStyles !== ''): ?>
     <style><?php echo $pageStyles; ?></style>
     <?php endif; ?>
+    <?php echo $pageHead; ?>
 </head>
 <body class="<?php echo htmlspecialchars($bodyClass); ?>">
     <div class="portal-header">
