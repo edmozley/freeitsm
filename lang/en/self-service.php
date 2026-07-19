@@ -16,12 +16,14 @@
 return [
     'portal' => 'Self-Service Portal',
 
+    // Raising a ticket and requesting something are ACTIONS, not destinations, so
+    // they are buttons on the dashboard rather than nav items. 'new_ticket' is kept
+    // because the pages still use it for their own headings.
     'nav' => [
         'dashboard'   => 'Dashboard',
-        'new_ticket'  => 'New Ticket',
-        'catalogue'   => 'Request Something',
-        'help_centre' => 'Help Centre',
-        'help'        => 'Using the portal',
+        'tickets'     => 'My Tickets',
+        'help_centre' => 'Knowledge',
+        'help'        => 'Help',
     ],
 
     'catalogue' => [
@@ -87,6 +89,10 @@ return [
         'title'              => 'Self-Service Portal',
         'welcome'            => 'Welcome, {name}',
         'welcome_sub'        => "Here's an overview of your tickets and system status",
+        'action_new_ticket'     => 'New ticket',
+        'action_new_ticket_sub' => 'Report a problem or ask for help',
+        'action_catalogue'      => 'Request',
+        'action_catalogue_sub'  => 'Order from the request catalogue',
         'recent_tickets'     => 'Recent Tickets',
         'system_status'      => 'System Status',
         'loading_tickets'    => 'Loading tickets...',
@@ -144,6 +150,19 @@ return [
         'view_ticket'        => 'View ticket',
         'return_dashboard'   => 'return to dashboard',
         'create_failed'      => 'Failed to create ticket. Please try again.',
+    ],
+
+    'tickets' => [
+        'title'         => 'Self-Service Portal — My Tickets',
+        'heading'       => 'My Tickets',
+        'filter_open'   => 'Open',
+        'filter_closed' => 'Closed',
+        'filter_all'    => 'All',
+        'filter_label'  => 'Filter by status',
+        'loading'       => 'Loading...',
+        'load_failed'   => 'Could not load your tickets. Please try again.',
+        'none'          => 'Nothing here',
+        'select'        => 'Select a ticket to read it',
     ],
 
     'ticket' => [

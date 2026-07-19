@@ -31,10 +31,12 @@ try {
 
     // Ticket counts by status for this user
     $countStmt = $conn->prepare(
+        // Deleted tickets must not be counted — the customer can't open them, so
+        // including them makes the summary disagree with the list underneath it.
         "SELECT ts.name AS status, COUNT(*) as count
          FROM tickets t
          LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
-         WHERE t.user_id = ?
+         WHERE t.user_id = ? AND t.deleted_datetime IS NULL
          GROUP BY ts.name"
     );
     $countStmt->execute([$userId]);
@@ -80,7 +82,7 @@ try {
          LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
          LEFT JOIN ticket_priorities tp ON tp.id = t.priority_id
          LEFT JOIN departments d ON t.department_id = d.id
-         WHERE t.user_id = ?
+         WHERE t.user_id = ? AND t.deleted_datetime IS NULL
          ORDER BY t.updated_datetime DESC
          LIMIT 10"
     );

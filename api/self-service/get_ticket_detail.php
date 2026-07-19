@@ -37,7 +37,7 @@ try {
          LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
          LEFT JOIN ticket_priorities tp ON tp.id = t.priority_id
          LEFT JOIN departments d ON t.department_id = d.id
-         WHERE t.id = ? AND t.user_id = ?"
+         WHERE t.id = ? AND t.user_id = ? AND t.deleted_datetime IS NULL"
     );
     $ticketStmt->execute([$ticketId, $userId]);
     $ticket = $ticketStmt->fetch(PDO::FETCH_ASSOC);

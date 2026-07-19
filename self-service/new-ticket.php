@@ -749,7 +749,7 @@ let attachments = [];
                 document.getElementById('formCard').style.display = 'none';
                 successEl.innerHTML = window.t('self-service.new_ticket.created', {
                     number: '<strong>' + escapeHtml(data.ticket_number) + '</strong>',
-                    view: '<a href="ticket.php?id=' + data.ticket_id + '">' + escapeHtml(window.t('self-service.new_ticket.view_ticket')) + '</a>',
+                    view: '<a href="tickets.php?id=' + data.ticket_id + '">' + escapeHtml(window.t('self-service.new_ticket.view_ticket')) + '</a>',
                     dashboard: '<a href="index.php">' + escapeHtml(window.t('self-service.new_ticket.return_dashboard')) + '</a>'
                 });
                 successEl.style.display = 'block';

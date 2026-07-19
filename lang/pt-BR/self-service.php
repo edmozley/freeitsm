@@ -8,10 +8,9 @@ return [
 
     'nav' => [
         'dashboard'   => 'Painel',
-        'new_ticket'  => 'Novo ticket',
-        'catalogue'   => 'Solicitar algo',
-        'help_centre' => 'Central de ajuda',
-        'help'        => 'Usando o portal',
+        'tickets'     => 'Meus tickets',
+        'help_centre' => 'Conhecimento',
+        'help'        => 'Ajuda',
     ],
 
     'catalogue' => [
@@ -77,6 +76,10 @@ return [
         'title'              => 'Portal de Autoatendimento',
         'welcome'            => 'Bem-vindo(a), {name}',
         'welcome_sub'        => 'Aqui está uma visão geral dos seus tickets e do status do sistema',
+        'action_new_ticket'     => 'Novo ticket',
+        'action_new_ticket_sub' => 'Relate um problema ou peça ajuda',
+        'action_catalogue'      => 'Solicitar',
+        'action_catalogue_sub'  => 'Peça no catálogo de solicitações',
         'recent_tickets'     => 'Tickets recentes',
         'system_status'      => 'Status do sistema',
         'loading_tickets'    => 'Carregando tickets...',
@@ -134,6 +137,19 @@ return [
         'view_ticket'        => 'Ver ticket',
         'return_dashboard'   => 'voltar ao painel',
         'create_failed'      => 'Falha ao criar o ticket. Tente novamente.',
+    ],
+
+    'tickets' => [
+        'title'         => 'Portal de Autoatendimento — Meus tickets',
+        'heading'       => 'Meus tickets',
+        'filter_open'   => 'Abertos',
+        'filter_closed' => 'Fechados',
+        'filter_all'    => 'Todos',
+        'filter_label'  => 'Filtrar por status',
+        'loading'       => 'Carregando...',
+        'load_failed'   => 'Não foi possível carregar seus tickets. Tente novamente.',
+        'none'          => 'Nada aqui',
+        'select'        => 'Selecione um ticket para ler',
     ],
 
     'ticket' => [

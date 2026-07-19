@@ -45,11 +45,13 @@ $translationNamespaces = ['common', 'self-service'];
  * appear; null means always shown.
  */
 $portalNav = [
-    'dashboard'   => ['href' => 'index.php',      'label' => t('self-service.nav.dashboard')],
-    'new_ticket'  => ['href' => 'new-ticket.php', 'label' => t('self-service.nav.new_ticket')],
-    // The knowledge base. 'help' below is the guide to using the portal ITSELF,
-    // relabelled "Using the portal" so there aren't two nav items called Help.
-    'catalogue'   => ['href' => 'catalogue.php',   'label' => t('self-service.nav.catalogue')],
+    // DESTINATIONS only. Raising a ticket and requesting something are ACTIONS —
+    // they are primary buttons on the dashboard, not nav items, so the bar stays
+    // short and the two things people actually come here to do are the most
+    // prominent thing on the page they land on.
+    'dashboard'   => ['href' => 'index.php',       'label' => t('self-service.nav.dashboard')],
+    'tickets'     => ['href' => 'tickets.php',     'label' => t('self-service.nav.tickets')],
+    // Named after the module it surfaces, so customers and analysts use one word.
     'help_centre' => ['href' => 'help-centre.php', 'label' => t('self-service.nav.help_centre')],
     'help'        => ['href' => 'help.php',        'label' => t('self-service.nav.help')],
 ];
@@ -71,7 +73,7 @@ $pageTitle  = isset($pageTitleKey) ? t($pageTitleKey) : t('self-service.portal')
     <title><?php echo htmlspecialchars($pageTitle); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=22">
     <link rel="stylesheet" href="../assets/css/inbox.css">
-    <link rel="stylesheet" href="../assets/css/self-service.css?v=1">
+    <link rel="stylesheet" href="../assets/css/self-service.css?v=2">
     <?php if ($pageStyles !== ''): ?>
     <style><?php echo $pageStyles; ?></style>
     <?php endif; ?>
@@ -84,7 +86,8 @@ $pageTitle  = isset($pageTitleKey) ? t($pageTitleKey) : t('self-service.portal')
         </div>
         <nav class="portal-nav">
             <?php foreach ($portalNav as $key => $item): ?>
-            <a href="<?php echo htmlspecialchars($item['href']); ?>"<?php echo $key === $activeNav ? ' class="active"' : ''; ?>>
+            <a href="<?php echo htmlspecialchars($item['href']); ?>"
+               class="nav-btn<?php echo $key === $activeNav ? ' active' : ''; ?>">
                 <?php echo htmlspecialchars($item['label']); ?>
             </a>
             <?php endforeach; ?>

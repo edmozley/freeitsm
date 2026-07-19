@@ -97,8 +97,8 @@ document.addEventListener('DOMContentLoaded', loadDashboard);
                 const date = formatDate(t.updated_datetime || t.created_datetime);
 
                 html += `<tr>
-                    <td><a href="ticket.php?id=${t.id}" class="ticket-link"><span class="ticket-number">${escapeHtml(t.ticket_number)}</span></a></td>
-                    <td><a href="ticket.php?id=${t.id}" class="ticket-link">${escapeHtml(t.subject)}</a></td>
+                    <td><a href="tickets.php?id=${t.id}" class="ticket-link"><span class="ticket-number">${escapeHtml(t.ticket_number)}</span></a></td>
+                    <td><a href="tickets.php?id=${t.id}" class="ticket-link">${escapeHtml(t.subject)}</a></td>
                     <td><span class="status-badge" style="${statusStyle}">${escapeHtml(t.status)}</span></td>
                     <td><span class="priority-badge ${priorityClass}">${escapeHtml(t.priority || 'Normal')}</span></td>
                     <td><span class="ticket-date">${date}</span></td>
@@ -194,6 +194,28 @@ require __DIR__ . "/includes/header.php";
         <div class="welcome-section">
             <h1><?php echo htmlspecialchars(t('self-service.dashboard.welcome', ['name' => $ss_user_name])); ?></h1>
             <p><?php echo htmlspecialchars(t('self-service.dashboard.welcome_sub')); ?></p>
+        </div>
+
+        <!-- The two things people come here to do. Moved out of the nav bar:
+             they are actions, not destinations. -->
+        <div class="portal-actions">
+            <!-- The explanatory line is a tooltip, not body text: it was the only
+                 thing forcing these wider than a status card, and they line up
+                 with the cards below because both use the same grid tracks. -->
+            <a class="portal-action" href="new-ticket.php"
+               title="<?php echo htmlspecialchars(t('self-service.dashboard.action_new_ticket_sub')); ?>">
+                <span class="portal-action-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                </span>
+                <span class="portal-action-title"><?php echo htmlspecialchars(t('self-service.dashboard.action_new_ticket')); ?></span>
+            </a>
+            <a class="portal-action" href="catalogue.php"
+               title="<?php echo htmlspecialchars(t('self-service.dashboard.action_catalogue_sub')); ?>">
+                <span class="portal-action-icon">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+                </span>
+                <span class="portal-action-title"><?php echo htmlspecialchars(t('self-service.dashboard.action_catalogue')); ?></span>
+            </a>
         </div>
 
         <!-- Summary Cards (rendered dynamically from active ticket_statuses) -->

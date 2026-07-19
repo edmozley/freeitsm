@@ -20,16 +20,23 @@ $statusFilter = $_GET['status'] ?? '';
 try {
     $conn = connectToDatabase();
 
+    // status_colour + is_closed drive the list pane's dot and its Open/Closed
+    // filter; `preview` is the newest message, so the list reads like a mailbox
+    // rather than a table of subjects.
     $sql = "SELECT t.id, t.ticket_number, t.subject, ts.name AS status, tp.name AS priority,
+                   ts.colour AS status_colour, ts.is_closed,
                    t.created_datetime, t.updated_datetime,
                    d.name as department_name,
-                   a.full_name as assigned_analyst_name
+                   a.full_name as assigned_analyst_name,
+                   (SELECT LEFT(e.body_preview, 160) FROM emails e
+                     WHERE e.ticket_id = t.id
+                     ORDER BY e.received_datetime DESC LIMIT 1) AS preview
             FROM tickets t
             LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
             LEFT JOIN ticket_priorities tp ON tp.id = t.priority_id
             LEFT JOIN departments d ON t.department_id = d.id
             LEFT JOIN analysts a ON t.assigned_analyst_id = a.id
-            WHERE t.user_id = ?";
+            WHERE t.user_id = ? AND t.deleted_datetime IS NULL";
     $params = [$userId];
 
     if (!empty($statusFilter)) {
