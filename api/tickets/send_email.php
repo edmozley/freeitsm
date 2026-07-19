@@ -45,9 +45,21 @@ try {
     $type = $input['type'] ?? 'new';
     $attachments = $input['attachments'] ?? [];
 
-    // Validate required fields
+    // Validate required fields.
+    //
+    // The address is VALIDATED, not merely checked for emptiness: a requester
+    // may have no mailbox, and a null address arriving from the browser
+    // stringifies to the literal "null", which is not empty and would sail
+    // through to the mail provider. Nothing on this path validated the address
+    // before, so junk of any shape reached Graph/Gmail/SMTP.
     if (empty($to)) {
         throw new Exception('Recipient email address is required');
+    }
+    // Only the first recipient is checked when several are given: this is a
+    // sanity gate against a broken address, not a full RFC 5322 parser.
+    $firstTo = trim(explode(',', str_replace(';', ',', $to))[0]);
+    if (!filter_var($firstTo, FILTER_VALIDATE_EMAIL)) {
+        throw new Exception('That is not a valid email address. If this person has no mailbox, share a note on the ticket instead — they will see it in the portal.');
     }
     if (empty($subject)) {
         throw new Exception('Subject is required');
@@ -567,12 +579,18 @@ function buildFullEmailBody($conn, $ticketId, $analystBody, $type) {
         // Clean control characters
         $bodyContent = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/', '', $bodyContent);
 
-        $fromName = htmlspecialchars($e['from_name'] ?: $e['from_address'], ENT_QUOTES, 'UTF-8');
-        $fromAddr = htmlspecialchars($e['from_address'], ENT_QUOTES, 'UTF-8');
+        // A portal message from a requester with no mailbox has NO address, so
+        // the name stands alone — passing null to htmlspecialchars() is also a
+        // deprecation on PHP 8.1+. Without the conditional below, every reply on
+        // a ticket that contains one such message quotes "Wendy Warehouse <>",
+        // including replies addressed to other people entirely.
+        $fromName = htmlspecialchars((string)($e['from_name'] ?: ($e['from_address'] ?? '')), ENT_QUOTES, 'UTF-8');
+        $fromAddr = htmlspecialchars((string)($e['from_address'] ?? ''), ENT_QUOTES, 'UTF-8');
+        $fromLabel = $fromAddr !== '' ? ($fromName . ' &lt;' . $fromAddr . '&gt;') : $fromName;
         $date = date('d M Y H:i', strtotime($e['received_datetime']));
 
         $threadParts[] = '<div style="margin-bottom: 15px;">'
-            . '<p style="margin: 0 0 5px 0; color: #666; font-size: 13px;"><strong>On ' . $date . ', ' . $fromName . ' &lt;' . $fromAddr . '&gt; wrote:</strong></p>'
+            . '<p style="margin: 0 0 5px 0; color: #666; font-size: 13px;"><strong>On ' . $date . ', ' . $fromLabel . ' wrote:</strong></p>'
             . '<blockquote style="margin: 0 0 0 10px; padding-left: 10px; border-left: 2px solid #ccc;">'
             . $bodyContent
             . '</blockquote>'

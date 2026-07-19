@@ -255,7 +255,19 @@ return [
 
     'users' => [
         'id'              => 'INT NOT NULL AUTO_INCREMENT',
-        'email'           => 'VARCHAR(255) NOT NULL',
+        // NULL because a directory (LDAP) user may genuinely have no mailbox —
+        // warehouse and shop-floor staff are never given one. The UNIQUE index
+        // stays: MySQL permits many NULLs in a unique index, so any number of
+        // mailbox-less people coexist while real addresses stay unique.
+        //
+        // ⚠️ ABSENT MUST BE NULL, NEVER ''. The analyst side gets away with ''
+        // (#872) only because analysts.email is NOT unique; here the second
+        // empty string collides. See usersIdentityMatch() in includes/users.php.
+        'email'           => 'VARCHAR(255) NULL',
+        // What a directory user types to sign in when they have no email.
+        // NULL for every local/registered account, which is why it is nullable
+        // and why UNIQUE tolerates it repeatedly.
+        'username'        => 'VARCHAR(50) NULL',
         'display_name'    => 'VARCHAR(255) NULL',
         'preferred_name'  => 'VARCHAR(100) NULL',
         'password_hash'   => 'VARCHAR(255) NULL',
@@ -638,7 +650,11 @@ return [
         'id'                      => 'INT NOT NULL AUTO_INCREMENT',
         'exchange_message_id'     => 'VARCHAR(255) NULL',
         'subject'                 => 'VARCHAR(500) NULL',
-        'from_address'            => 'VARCHAR(255) NOT NULL',
+        // NULL = the sender has no email address at all — a portal requester who
+        // signs in through a directory and was never given a mailbox. Only ever
+        // NULL for portal-raised messages; anything that arrived BY email has a
+        // sender by definition. `from_name` identifies these people instead.
+        'from_address'            => 'VARCHAR(255) NULL',
         'from_name'               => 'VARCHAR(255) NULL',
         'to_recipients'           => 'LONGTEXT NULL',
         'cc_recipients'           => 'LONGTEXT NULL',

@@ -86,7 +86,12 @@ st group add "NW-All-Staff"   --groupou="OU=Groups,OU=Northwind" 2>/dev/null || 
 
 st group addmembers "NW-IT-Support" r.patel,s.oconnor,j.muller
 st group addmembers "NW-IT-Admins"  a.chen
-st group addmembers "NW-Sales"      t.brooks,l.garcia
+# w.noemail is in the SELF-SERVICE user group deliberately. She is the scenario
+# GitHub #47 is actually about: warehouse staff who were never given a mailbox,
+# who need the PORTAL rather than analyst access. Before she was added here she
+# belonged to no group at all, which only ever exercised the "gate off" path —
+# so the whole no-mailbox portal journey was untestable and its gaps invisible.
+st group addmembers "NW-Sales"      t.brooks,l.garcia,w.noemail
 st group addmembers "NW-Finance"    p.ndlovu
 
 # NESTED: All-Staff contains the department GROUPS, not the people. Nobody has

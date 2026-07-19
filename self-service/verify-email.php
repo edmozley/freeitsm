@@ -36,13 +36,20 @@ if ($token !== '' && preg_match('/^[0-9a-f]{64}$/i', $token)) {
 
             // Guard against a race: if a real (password-set) account appeared in
             // the meantime, don't overwrite it.
-            $u = $conn->prepare("SELECT id, password_hash FROM users WHERE email = ?");
+            $u = $conn->prepare("SELECT id, password_hash, auth_provider_id FROM users WHERE email = ?");
             $u->execute([$email]);
             $existing = $u->fetch(PDO::FETCH_ASSOC);
 
             if ($existing && !empty($existing['password_hash'])) {
                 $heading = 'Already confirmed';
                 $message = 'This account is already set up. Please sign in.';
+            } elseif ($existing && (int)($existing['auth_provider_id'] ?? 0) > 0) {
+                // The same guard register.php applies, repeated here because the
+                // token may have been issued BEFORE the account was linked to a
+                // directory — a token minted yesterday must not be able to plant
+                // a local password on an account that is now directory-backed.
+                $heading = 'Use your work account';
+                $message = 'This account now signs in with your work details. Please use those on the sign-in page.';
             } else {
                 // Work out their company from the confirmed address. On the claim
                 // path we only FILL A BLANK — an admin who has already filed this

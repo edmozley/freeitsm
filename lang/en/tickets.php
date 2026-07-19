@@ -84,6 +84,7 @@ return [
     ],
 
     'reading_pane' => [
+        'unknown_sender'      => 'Unknown sender',
         'select_ticket' => 'Select a ticket to view details',
 
         // Ticket properties panel (collapsible) + field labels
@@ -956,6 +957,7 @@ return [
         'status_new_fallback'   => 'New',
         'info' => [
             'email'         => 'Email',
+            'username'      => 'Sign-in name',
             'first_seen'    => 'First Seen',
             'total_tickets' => 'Total Tickets',
             'company'       => 'Company',

@@ -49,9 +49,14 @@ try {
 
     // The requester's own address — the yardstick for "was this correspondence
     // with them, or about them" (see includes/portal_visibility.php).
+    // ⚠️ NULL is passed through DELIBERATELY and means "this person has no
+    // mailbox", which portal_visibility.php treats as the opposite of ''
+    // ("we don't know their address"). Casting it to '' here would fail the
+    // policy open and show them every forward on their ticket.
     $reqStmt = $conn->prepare("SELECT email FROM users WHERE id = ?");
     $reqStmt->execute([$userId]);
-    $requesterEmail = (string)($reqStmt->fetchColumn() ?: '');
+    $reqEmailRaw    = $reqStmt->fetchColumn();
+    $requesterEmail = ($reqEmailRaw === false || $reqEmailRaw === null) ? null : (string)$reqEmailRaw;
     $policy = portalThirdPartyPolicy($conn);
 
     // Fetch email thread

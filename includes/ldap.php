@@ -382,6 +382,88 @@ function ldapAccessRole(array $provider, array $ldapUser): ?string {
 }
 
 /**
+ * The LDAP providers a PORTAL sign-in attempt may be tried against.
+ *
+ * ⚠️ WHY THIS IS NOT `ldapAnalystProviders()` WITH A DIFFERENT FILTER
+ * -------------------------------------------------------------------
+ * Analyst directories are global (`tenant_id IS NULL`) and there is exactly one
+ * set of them, so trying each in turn costs nothing. The portal is different:
+ * on an MSP install each client company can own its own directory, and trying
+ * them all would mean
+ *
+ *   1. taking a password someone typed for THEIR employer and offering it to
+ *      every other client's domain controller, and
+ *   2. incrementing the AD lockout counter on every one of those directories —
+ *      so one person fat-fingering their password could lock accounts that
+ *      belong to a different company entirely.
+ *
+ * Neither is acceptable, and neither is visible in testing at N=1. So the
+ * candidate list is SCOPED:
+ *
+ *   • single-company install  → every enabled LDAP provider (no boundary exists)
+ *   • an identifier with a domain we recognise → that company's directories,
+ *     plus any global ones
+ *   • anything else (a bare username, or an unknown domain) → global only
+ *
+ * ⚠️ KNOWN LIMIT: on a MULTI-company install, a mailbox-less user signing in
+ * with a bare username can only be matched against a GLOBAL directory — there
+ * is nothing in "w.noemail" to say which company they belong to. A company-owned
+ * directory therefore needs its people to have addresses, or the portal needs a
+ * company hint we don't collect yet. Documented rather than guessed at, because
+ * guessing here means spraying passwords.
+ *
+ * @param ?string $identifier what the user typed (email or username), or null
+ */
+function ldapPortalProviders(PDO $conn, ?string $identifier = null): array {
+    $ids = [];
+    try {
+        require_once __DIR__ . '/tenancy.php';
+
+        if (!isMultiTenant($conn)) {
+            // One company: every directory is "the" directory.
+            $stmt = $conn->query(
+                "SELECT id FROM auth_providers
+                  WHERE protocol = 'ldap' AND enabled = 1
+                  ORDER BY sort_order, display_name"
+            );
+            $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        } else {
+            $tenantId = null;
+            $addr = strtolower(trim((string)$identifier));
+            if ($addr !== '' && strpos($addr, '@') !== false) {
+                $tenantId = resolveTenantIdForAddress($conn, $addr);
+            }
+
+            if ($tenantId !== null) {
+                $stmt = $conn->prepare(
+                    "SELECT id FROM auth_providers
+                      WHERE protocol = 'ldap' AND enabled = 1
+                        AND (tenant_id = ? OR tenant_id IS NULL)
+                      ORDER BY sort_order, display_name"
+                );
+                $stmt->execute([$tenantId]);
+            } else {
+                $stmt = $conn->query(
+                    "SELECT id FROM auth_providers
+                      WHERE protocol = 'ldap' AND enabled = 1 AND tenant_id IS NULL
+                      ORDER BY sort_order, display_name"
+                );
+            }
+            $ids = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        }
+    } catch (Exception $e) {
+        return []; // column/table not present yet (pre db-verify)
+    }
+
+    $out = [];
+    foreach ($ids as $id) {
+        $p = ldapGetProvider($conn, (int)$id);
+        if ($p) $out[] = $p;
+    }
+    return $out;
+}
+
+/**
  * Every enabled, analyst-facing LDAP provider, in display order.
  * tenant_id IS NULL = global/analyst-facing, matching how the OIDC analyst
  * login lists providers.
@@ -533,6 +615,156 @@ function ldapResolveAnalyst(PDO $conn, array $provider, array $ldapUser): array 
     }
 
     return ['ok' => true, 'analyst_id' => $analystId];
+}
+
+/**
+ * Map a directory user to a SELF-SERVICE PORTAL account (`users`), creating one
+ * if needed. The portal twin of ldapResolveAnalyst().
+ *
+ * Returns ['ok' => true, 'user_id' => int] or ['ok' => false, 'error' => string].
+ *
+ * THREE DELIBERATE DIVERGENCES FROM THE ANALYST VERSION
+ * -----------------------------------------------------
+ * 1. 🔑 **No mailbox means NULL, never `''`.** The analyst side stores `''`
+ *    (#872) and gets away with it only because `analysts.email` is not unique.
+ *    `users.email` IS unique, so the second mailbox-less warehouse worker would
+ *    collide on the first. MySQL allows many NULLs in a unique index, so NULL is
+ *    the representation that actually scales. Anything writing `''` here
+ *    re-introduces the bug.
+ *
+ * 2. 🔑 **An unclaimed existing account is CLAIMED, not refused.** The analyst
+ *    version rejects a local-only match as strict isolation. The portal cannot:
+ *    `users` rows are auto-created without a password all over the product —
+ *    inbound email, web chat, WhatsApp, workflows, the API — so the person
+ *    signing in for the first time usually ALREADY has a row holding their
+ *    ticket history. Refusing would strand them beside their own tickets. This
+ *    matches what portal OIDC already does. An account belonging to a DIFFERENT
+ *    provider is still refused.
+ *
+ * 3. 🔑 **The company comes from the provider first.** A directory owned by a
+ *    company vouches for its people, which is the only thing that works for a
+ *    user with no address to derive a domain from — precisely the people this
+ *    exists for. Domain matching is the fallback for everyone else.
+ */
+function ldapResolveUser(PDO $conn, array $provider, array $ldapUser): array {
+    $providerId = (int)$provider['id'];
+    $subject    = (string)$ldapUser['guid'];
+    $email      = strtolower(trim((string)$ldapUser['email']));
+    $username   = trim((string)$ldapUser['username']);
+    $name       = trim((string)$ldapUser['name']);
+
+    // See divergence 1. Everything below passes $emailOrNull to the database.
+    $emailOrNull = ($email !== '') ? $email : null;
+
+    // 1) Existing directory link.
+    $stmt = $conn->prepare("SELECT user_id FROM user_sso_identities WHERE provider_id = ? AND subject = ?");
+    $stmt->execute([$providerId, $subject]);
+    $userId = $stmt->fetchColumn();
+
+    if ($userId) {
+        $userId = (int)$userId;
+        $stmt = $conn->prepare("SELECT id, auth_provider_id, email FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$user) {
+            return ['ok' => false, 'error' => 'Your account could not be found. Contact your service desk.'];
+        }
+        if ((int)($user['auth_provider_id'] ?? 0) !== $providerId) {
+            return ['ok' => false, 'error' => 'Your account is not assigned to this sign-in method.'];
+        }
+        // People get renamed and given mailboxes; keep the cached copies fresh.
+        $conn->prepare(
+            "UPDATE user_sso_identities SET last_login_datetime = UTC_TIMESTAMP(), email = ?
+              WHERE provider_id = ? AND subject = ?"
+        )->execute([$emailOrNull, $providerId, $subject]);
+
+        if ($emailOrNull !== null && strtolower((string)$user['email']) !== $email) {
+            $conn->prepare("UPDATE users SET email = ? WHERE id = ?")->execute([$emailOrNull, $userId]);
+        }
+        return ['ok' => true, 'user_id' => $userId];
+    }
+
+    // 2) Match an existing account by email.
+    //
+    // ⚠️ Guarded on a non-empty address. Without this, a mailbox-less user would
+    // match every OTHER mailbox-less user and sign in as them — the same trap
+    // the analyst version documents, and the reason NULL beats ''. (A NULL
+    // parameter would never match in SQL anyway; the guard makes the intent
+    // explicit rather than relying on that.)
+    $user = null;
+    if ($emailOrNull !== null) {
+        $stmt = $conn->prepare("SELECT id, auth_provider_id FROM users WHERE LOWER(email) = ? LIMIT 1");
+        $stmt->execute([$email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    if ($user) {
+        $userId   = (int)$user['id'];
+        $assigned = (int)($user['auth_provider_id'] ?? 0);
+
+        if ($assigned === 0) {
+            // See divergence 2 — claim it, don't strand them.
+            $conn->prepare("UPDATE users SET auth_provider_id = ? WHERE id = ?")->execute([$providerId, $userId]);
+        } elseif ($assigned !== $providerId) {
+            return ['ok' => false, 'error' => 'This account is not set up to sign in with this directory.'];
+        }
+
+        // Backfill a sign-in name if the row predates the directory link.
+        if ($username !== '') {
+            try {
+                $conn->prepare("UPDATE users SET username = ? WHERE id = ? AND (username IS NULL OR username = '')")
+                     ->execute([$username, $userId]);
+            } catch (Exception $e) {
+                // uq_users_username — another directory already uses that name.
+                // Harmless: they are identified by the link from here on.
+            }
+        }
+    } else {
+        // 3) Just-in-time create.
+        if ((int)$provider['auto_create_users'] !== 1) {
+            return ['ok' => false, 'error' => 'No account exists for you here. Ask your service desk to create one.'];
+        }
+
+        // See divergence 3. A company-owned directory vouches for its people;
+        // only fall back to the address domain when the provider is global.
+        $tenantId = null;
+        try {
+            require_once __DIR__ . '/tenancy.php';
+            $tenantId = ($provider['tenant_id'] !== null)
+                ? (int)$provider['tenant_id']
+                : ($emailOrNull !== null ? resolveTenantForNewUser($conn, $email) : null);
+        } catch (Exception $e) { /* leave NULL → triage, never a wrong company */ }
+
+        // display_name falls back through the directory name, then the sign-in
+        // name, then the address — never blank, because this is what an analyst
+        // sees on the ticket. NOTE password_hash is left NULL on purpose: a
+        // placeholder hash would make the local login path treat a directory
+        // user as having a password of their own.
+        $display = $name !== '' ? $name : ($username !== '' ? $username : (string)$email);
+
+        try {
+            $ins = $conn->prepare(
+                "INSERT INTO users (email, username, display_name, auth_provider_id, tenant_id, created_at)
+                 VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())"
+            );
+            $ins->execute([$emailOrNull, ($username !== '' ? $username : null), $display, $providerId, $tenantId]);
+            $userId = (int)$conn->lastInsertId();
+        } catch (Exception $e) {
+            return ['ok' => false, 'error' => 'Your account could not be created. Contact your service desk.'];
+        }
+    }
+
+    // Link the directory identity for next time.
+    try {
+        $conn->prepare(
+            "INSERT INTO user_sso_identities (user_id, provider_id, subject, email, linked_datetime, last_login_datetime)
+             VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+        )->execute([$userId, $providerId, $subject, $emailOrNull]);
+    } catch (Exception $e) {
+        // uq_user_sso_provider_user can trip on a concurrent link; resolved anyway.
+    }
+
+    return ['ok' => true, 'user_id' => $userId];
 }
 
 /**

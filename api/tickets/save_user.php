@@ -38,15 +38,17 @@ $tenantSent    = array_key_exists('tenant_id', $data);
 $tenantId      = ($tenantSent && $data['tenant_id'] !== '' && $data['tenant_id'] !== null)
     ? (int)$data['tenant_id'] : null;
 
-if (empty($email)) {
-    echo json_encode(['success' => false, 'error' => 'Email is required']);
-    exit;
-}
-
-if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+// An address is now OPTIONAL: staff who sign in through a directory may have
+// no mailbox (GitHub #47), and their sign-in name identifies them instead.
+// Supplying a malformed one is still an error — blank and wrong are different.
+if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
     echo json_encode(['success' => false, 'error' => 'Please enter a valid email address']);
     exit;
 }
+
+// Absent means NULL, never '': '' occupies the unique index, so the SECOND
+// person saved without an address would be refused as a duplicate.
+$emailOrNull = $email !== '' ? $email : null;
 
 if ($password !== '' && strlen($password) < 8) {
     echo json_encode(['success' => false, 'error' => 'Password must be at least 8 characters']);
@@ -57,18 +59,22 @@ try {
     $conn = connectToDatabase();
 
     // Email must be unique within users, and must not collide with an analyst account
-    $analystStmt = $conn->prepare("SELECT id FROM analysts WHERE LOWER(email) = ?");
-    $analystStmt->execute([$email]);
-    if ($analystStmt->fetch()) {
-        echo json_encode(['success' => false, 'error' => 'This email belongs to an analyst account']);
-        exit;
-    }
+    // Both checks are skipped when there is no address — otherwise every
+    // mailbox-less person would collide with every other one.
+    if ($emailOrNull !== null) {
+        $analystStmt = $conn->prepare("SELECT id FROM analysts WHERE LOWER(email) = ?");
+        $analystStmt->execute([$email]);
+        if ($analystStmt->fetch()) {
+            echo json_encode(['success' => false, 'error' => 'This email belongs to an analyst account']);
+            exit;
+        }
 
-    $dupeStmt = $conn->prepare("SELECT id FROM users WHERE LOWER(email) = ? AND id != ?");
-    $dupeStmt->execute([$email, $id ?? 0]);
-    if ($dupeStmt->fetch()) {
-        echo json_encode(['success' => false, 'error' => 'A user with this email already exists']);
-        exit;
+        $dupeStmt = $conn->prepare("SELECT id FROM users WHERE LOWER(email) = ? AND id != ?");
+        $dupeStmt->execute([$email, $id ?? 0]);
+        if ($dupeStmt->fetch()) {
+            echo json_encode(['success' => false, 'error' => 'A user with this email already exists']);
+            exit;
+        }
     }
 
     // You can only file someone into a company you yourself can reach. This binds
@@ -83,10 +89,10 @@ try {
         if ($password !== '') {
             $hash = password_hash($password, PASSWORD_BCRYPT);
             $stmt = $conn->prepare("UPDATE users SET email = ?, display_name = ?, preferred_name = ?, password_hash = ? WHERE id = ?");
-            $stmt->execute([$email, $displayName ?: null, $preferredName ?: null, $hash, $id]);
+            $stmt->execute([$emailOrNull, $displayName ?: null, $preferredName ?: null, $hash, $id]);
         } else {
             $stmt = $conn->prepare("UPDATE users SET email = ?, display_name = ?, preferred_name = ? WHERE id = ?");
-            $stmt->execute([$email, $displayName ?: null, $preferredName ?: null, $id]);
+            $stmt->execute([$emailOrNull, $displayName ?: null, $preferredName ?: null, $id]);
         }
         if ($tenantSent) {
             $conn->prepare("UPDATE users SET tenant_id = ? WHERE id = ?")->execute([$tenantId, $id]);
@@ -98,7 +104,7 @@ try {
         // start with every requester blank. Freemail stays blank by design.
         $newTenantId = $tenantSent ? $tenantId : resolveTenantForNewUser($conn, $email);
         $stmt = $conn->prepare("INSERT INTO users (email, display_name, preferred_name, password_hash, tenant_id, created_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())");
-        $stmt->execute([$email, $displayName ?: null, $preferredName ?: null, $hash, $newTenantId]);
+        $stmt->execute([$emailOrNull, $displayName ?: null, $preferredName ?: null, $hash, $newTenantId]);
         echo json_encode(['success' => true, 'id' => (int)$conn->lastInsertId(), 'message' => 'User created']);
     }
 

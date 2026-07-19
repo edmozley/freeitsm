@@ -37,6 +37,7 @@ return [
         'subtitle'           => 'Entre para ver seus tickets',
         'subtitle_mfa'       => 'Autenticação multifator',
         'email'              => 'E-mail',
+        'identifier'         => 'E-mail ou nome de usuário',
         'password'           => 'Senha',
         'sign_in'            => 'Entrar',
         'signing_in'         => 'Entrando...',

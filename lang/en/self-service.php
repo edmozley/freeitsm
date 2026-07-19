@@ -50,6 +50,7 @@ return [
         'subtitle'           => 'Sign in to view your tickets',
         'subtitle_mfa'       => 'Multi-factor authentication',
         'email'              => 'Email',
+        'identifier'         => 'Email or username',
         'password'           => 'Password',
         'sign_in'            => 'Sign In',
         'signing_in'         => 'Signing in...',

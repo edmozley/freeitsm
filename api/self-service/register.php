@@ -62,11 +62,25 @@ try {
     }
 
     // If a real (password-set) account already exists, don't start a registration.
-    $userStmt = $conn->prepare("SELECT id, password_hash FROM users WHERE email = ?");
+    $userStmt = $conn->prepare("SELECT id, password_hash, auth_provider_id FROM users WHERE email = ?");
     $userStmt->execute([$email]);
     $existingUser = $userStmt->fetch(PDO::FETCH_ASSOC);
     if ($existingUser && !empty($existingUser['password_hash'])) {
         echo json_encode(['success' => false, 'error' => 'An account with this email already exists. Please log in.']);
+        exit;
+    }
+
+    // An account that signs in through a directory or an identity provider has
+    // NO local password by design, so it looks "unclaimed" to the check above.
+    // Letting someone register against it would hand that account a second
+    // credential the directory cannot revoke — and would strand the real owner
+    // with a password that never works, because the login routes a pinned
+    // account to its provider and never checks a local hash.
+    if ($existingUser && (int)($existingUser['auth_provider_id'] ?? 0) > 0) {
+        echo json_encode([
+            'success' => false,
+            'error'   => 'This account signs in with your work account. Please use those details on the sign-in page.',
+        ]);
         exit;
     }
 

@@ -337,8 +337,10 @@ $translationNamespaces = ['common', 'tickets'];
                 <input type="hidden" id="userId">
 
                 <div class="form-group">
-                    <label for="userEmail"><?php echo htmlspecialchars(t('tickets.users.modal.email')); ?> *</label>
-                    <input type="email" id="userEmail" required autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.users.modal.email_placeholder')); ?>">
+                    <label for="userEmail"><?php echo htmlspecialchars(t('tickets.users.modal.email')); ?></label>
+                    <?php /* No longer required: staff who sign in through a directory may have
+                             no mailbox at all (GitHub #47), and the sign-in name identifies them. */ ?>
+                    <input type="email" id="userEmail" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.users.modal.email_placeholder')); ?>">
                 </div>
 
                 <div class="form-group">
@@ -462,7 +464,7 @@ $translationNamespaces = ['common', 'tickets'];
             container.innerHTML = users.map(user => `
                 <div class="user-item ${selectedUserId == user.id ? 'selected' : ''}" onclick="selectUser(${user.id})">
                     <div class="user-name">${escapeHtml(user.display_name || unknownName)}</div>
-                    <div class="user-email">${escapeHtml(user.email || '')}</div>
+                    <div class="user-email">${escapeHtml(user.email || user.username || '')}</div>
                     <div class="user-meta">
                         <span>${escapeHtml(t('tickets.users.ticket_count', { count: user.ticket_count }))}</span>
                     </div>
@@ -494,7 +496,7 @@ $translationNamespaces = ['common', 'tickets'];
                     <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
                         <div>
                             <h2 class="user-detail-name">${escapeHtml(user.display_name || unknownName)}</h2>
-                            <div class="user-detail-email">${escapeHtml(user.email || '')}</div>
+                            <div class="user-detail-email">${escapeHtml(user.email || user.username || '')}</div>
                         </div>
                         <div style="display: flex; gap: 8px; flex-shrink: 0;">
                             <button class="btn btn-secondary" onclick="openUserModal(${user.id})">${escapeHtml(t('common.edit'))}</button>
@@ -507,6 +509,10 @@ $translationNamespaces = ['common', 'tickets'];
                         <span class="info-label">${escapeHtml(t('tickets.users.info.email'))}</span>
                         <span class="info-value">${escapeHtml(user.email || '-')}</span>
                     </div>
+                    ${user.username ? `<div class="info-item">
+                        <span class="info-label">${escapeHtml(t('tickets.users.info.username'))}</span>
+                        <span class="info-value">${escapeHtml(user.username)}</span>
+                    </div>` : ''}
                     <div class="info-item">
                         <span class="info-label">${escapeHtml(t('tickets.users.info.first_seen'))}</span>
                         <span class="info-value">${formatDate(user.created_at)}</span>

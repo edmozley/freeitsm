@@ -67,6 +67,7 @@ return [
         'trash'              => 'Lixeira',
     ],
     'reading_pane' => [
+        'unknown_sender'      => 'Remetente desconhecido',
         'select_ticket' => 'Selecione um ticket para ver os detalhes',
 
         // Painel de propriedades do ticket (recolhível) + rótulos dos campos
@@ -862,6 +863,7 @@ Obrigado por entrar em contato conosco…',
         'status_new_fallback' => 'Novo',
         'info' => [
             'email' => 'E-mail',
+            'username' => 'Nome de acesso',
             'first_seen' => 'Visto pela primeira vez',
             'total_tickets' => 'Total de tickets',
             'company' => 'Empresa',

@@ -304,7 +304,19 @@ CREATE TABLE IF NOT EXISTS `ticket_prefixes` (
 
 CREATE TABLE IF NOT EXISTS `users` (
     `id`              INT NOT NULL AUTO_INCREMENT,
-    `email`           VARCHAR(255) NOT NULL,
+    -- NULL because a directory (LDAP) user may genuinely have no mailbox —
+    -- warehouse and shop-floor staff are never given one (GitHub #47). The
+    -- UNIQUE index below still applies: MySQL permits many NULLs in a unique
+    -- index, so any number of mailbox-less people coexist while real addresses
+    -- stay unique.
+    --
+    -- ⚠️ An absent address MUST be stored as NULL, never ''. The analyst table
+    -- gets away with '' because analysts.email is not unique; here the second
+    -- empty string would collide.
+    `email`           VARCHAR(255) NULL,
+    -- What a directory user types to sign in when they have no email address.
+    -- NULL for every local/registered account.
+    `username`        VARCHAR(50) NULL,
     `display_name`    VARCHAR(255) NULL,
     `preferred_name`  VARCHAR(100) NULL,
     `password_hash`   VARCHAR(255) NULL,
@@ -325,6 +337,10 @@ CREATE TABLE IF NOT EXISTS `users` (
     `created_at`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_users_email` (`email`),
+    -- Same rationale as the email index: UNIQUE so two directory users can't
+    -- share a sign-in name, nullable so the many local accounts that have no
+    -- username don't fight over a single NULL.
+    UNIQUE KEY `uq_users_username` (`username`),
     KEY `idx_users_tenant` (`tenant_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -767,7 +783,17 @@ CREATE TABLE IF NOT EXISTS `emails` (
     `id`                    INT NOT NULL AUTO_INCREMENT,
     `exchange_message_id`   VARCHAR(255) NULL,
     `subject`               VARCHAR(500) NULL,
-    `from_address`          VARCHAR(255) NOT NULL,
+    -- NULL = the sender genuinely has no email address. That happens when a
+    -- self-service requester signs in through a directory and was never given a
+    -- mailbox (GitHub #47 — warehouse and shop-floor staff). Every message that
+    -- ARRIVED by email necessarily has one; this is only ever NULL for messages
+    -- raised inside the portal.
+    --
+    -- Deliberately not a synthesised placeholder like `someone@company.local`:
+    -- a fake address is indistinguishable from a real one, so an analyst would
+    -- reply to it and the reply would bounce into nowhere. NULL is the truth and
+    -- the UI can say so. `from_name` is what identifies these people.
+    `from_address`          VARCHAR(255) NULL,
     `from_name`             VARCHAR(255) NULL,
     `to_recipients`         LONGTEXT NULL,
     `cc_recipients`         LONGTEXT NULL,

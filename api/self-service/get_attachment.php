@@ -61,9 +61,13 @@ try {
     // HERE as well as in the listing, because hiding a link while the URL still
     // works is decoration — the id is trivially guessable and the file is the
     // sensitive part. See includes/portal_visibility.php.
+    // ⚠️ NULL is preserved, NOT cast to '': the two mean opposite things to the
+    // policy (see includes/portal_visibility.php). A requester with no mailbox
+    // must have the policy APPLIED, not bypassed — and this endpoint is the one
+    // that actually serves the file.
     $decision = portalEmailVisibility(
         $attachment,
-        (string)($attachment['requester_email'] ?? ''),
+        $attachment['requester_email'] !== null ? (string)$attachment['requester_email'] : null,
         portalThirdPartyPolicy($conn)
     );
     if (!$decision['attachments']) {

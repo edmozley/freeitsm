@@ -505,7 +505,14 @@ $translationNamespaces = ['common', 'tickets'];
                     const badge = e.action === 'imported'
                         ? '<span class="badge-imported">' + escapeHtml(window.t('tickets.activity.badge_imported')) + '</span>'
                         : '<span class="badge-rejected">' + escapeHtml(window.t('tickets.activity.badge_rejected')) + '</span>';
-                    const from = escapeHtml(e.from_name ? e.from_name + ' <' + e.from_address + '>' : e.from_address);
+                    const fromAddr = (e.from_address || '').trim();
+                    const fromNm   = (e.from_name || '').trim();
+                    // A portal requester with no mailbox has a name and no address.
+                    // Plain + concatenation would render the literal text "null" here,
+                    // since this is not passed through escapeHtml first.
+                    const from = escapeHtml(
+                        fromNm && fromAddr ? fromNm + ' <' + fromAddr + '>' : (fromNm || fromAddr)
+                    );
                     return `<tr onclick="showLog(${idx})">
                         <td style="white-space: nowrap;">${dt}</td>
                         <td>${escapeHtml(mbName)}</td>
@@ -566,7 +573,14 @@ $translationNamespaces = ['common', 'tickets'];
                     const badge = e.action === 'imported'
                         ? '<span class="badge-imported">' + escapeHtml(window.t('tickets.activity.badge_imported')) + '</span>'
                         : '<span class="badge-rejected">' + escapeHtml(window.t('tickets.activity.badge_rejected')) + '</span>';
-                    const from = escapeHtml(e.from_name ? e.from_name + ' <' + e.from_address + '>' : e.from_address);
+                    const fromAddr = (e.from_address || '').trim();
+                    const fromNm   = (e.from_name || '').trim();
+                    // A portal requester with no mailbox has a name and no address.
+                    // Plain + concatenation would render the literal text "null" here,
+                    // since this is not passed through escapeHtml first.
+                    const from = escapeHtml(
+                        fromNm && fromAddr ? fromNm + ' <' + fromAddr + '>' : (fromNm || fromAddr)
+                    );
                     return `<tr onclick="showLog(${idx})">
                         <td style="white-space: nowrap;">${dt}</td>
                         <td>${escapeHtml(e._mailbox_name || '')}</td>

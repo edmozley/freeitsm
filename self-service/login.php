@@ -44,12 +44,22 @@ try {
         // On a multi-tenant install we never list providers up front — the
         // email-first router reveals only the requester's own company's IdP(s).
         // protocol='oidc' ONLY — an LDAP provider has no button and nothing to
-        // redirect to. (LDAP sign-in for this portal isn't built yet; see the
-        // LDAP developer guide.)
+        // redirect to. Directory users type their password into the ordinary
+        // form and api/self-service/login.php checks it by bind, so LDAP never
+        // needs a button; it only changes what the first field will accept.
         $ssoProviders = $ssoConn->query("SELECT id, display_name FROM auth_providers WHERE enabled = 1 AND tenant_id IS NULL AND protocol = 'oidc' ORDER BY sort_order, display_name")->fetchAll(PDO::FETCH_ASSOC);
     }
     $multiTenant = isMultiTenant($ssoConn);
-} catch (Exception $e) { $ssoProviders = []; }
+
+    // Is ANY directory available to the portal (global or company-owned)? This
+    // only decides the first field's type and label. `type="email"` would have
+    // the browser refuse a bare username outright — and a username is the whole
+    // point for staff who were never given a mailbox.
+    $hasLdap = (int)$ssoConn->query(
+        "SELECT COUNT(*) FROM auth_providers WHERE enabled = 1 AND protocol = 'ldap'"
+    )->fetchColumn() > 0;
+} catch (Exception $e) { $ssoProviders = []; $hasLdap = false; }
+$hasLdap = $hasLdap ?? false;
 // On a multi-tenant install the router is active whenever SSO is on (companies
 // own their own providers, resolved per-email — there may be no global ones).
 $ssoActive = $ssoOn && ($multiTenant || !empty($ssoProviders));
@@ -225,8 +235,11 @@ $localAllowed = $localOn || $forceLocal;
         <div id="loginSection">
             <form id="loginForm" onsubmit="return handleLogin(event)" autocomplete="off">
                 <div class="form-group">
-                    <label for="email"><?php echo htmlspecialchars(t('self-service.login.email')); ?></label>
-                    <input type="email" id="email" required autofocus autocomplete="off">
+                    <label for="email"><?php echo htmlspecialchars(t($hasLdap ? 'self-service.login.identifier' : 'self-service.login.email')); ?></label>
+                    <?php /* text, not email, once a directory exists: staff with no mailbox sign in
+                             with the username their directory knows them by, and the browser's own
+                             email validation would refuse to submit it. */ ?>
+                    <input type="<?php echo $hasLdap ? 'text' : 'email'; ?>" id="email" required autofocus autocomplete="off">
                 </div>
                 <div class="form-group" id="passwordGroup"<?php if ($ssoActive): ?> style="display:none;"<?php endif; ?>>
                     <label for="password"><?php echo htmlspecialchars(t('self-service.login.password')); ?></label>
@@ -297,7 +310,9 @@ $localAllowed = $localOn || $forceLocal;
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    email: document.getElementById('email').value.trim(),
+                    // May be an email OR a directory username — the endpoint
+                    // looks the account up on both columns.
+                    identifier: document.getElementById('email').value.trim(),
                     password: document.getElementById('password').value
                 })
             });

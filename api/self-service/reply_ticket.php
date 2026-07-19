@@ -72,15 +72,17 @@ try {
         exit;
     }
 
-    $userStmt = $conn->prepare("SELECT email, display_name FROM users WHERE id = ?");
+    $userStmt = $conn->prepare("SELECT email, username, display_name FROM users WHERE id = ?");
     $userStmt->execute([$userId]);
     $user = $userStmt->fetch(PDO::FETCH_ASSOC);
     if (!$user) {
         throw new Exception('User not found');
     }
 
-    $fromEmail = $user['email'];
-    $fromName  = $user['display_name'] ?: $user['email'];
+    // NULL, not '' — see create_ticket.php. A requester who signs in through a
+    // directory may have no mailbox, and the name is then their only identifier.
+    $fromEmail = ($user['email'] !== null && $user['email'] !== '') ? $user['email'] : null;
+    $fromName  = $user['display_name'] ?: ($user['username'] ?: ($fromEmail ?: ('#' . $userId)));
 
     // Keep the reply on the same mailbox as the rest of the thread, so an
     // analyst's next outbound reply goes out from the address the requester has

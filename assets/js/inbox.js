@@ -1034,7 +1034,7 @@ function renderEmailList() {
                  draggable="true" data-email-id="${email.id}" data-ticket-id="${ticketId}" data-ticket-number="${escapeHtml(email.ticket_number || '')}"
                  onclick="selectEmail(${email.id})" ondblclick="selectEmailFullScreen(${email.id})"
                  oncontextmenu="openTicketContextMenu(event, ${ticketId}, '${escapeHtml(email.ticket_number || '')}')">
-                <div class="email-from">${escapeHtml(email.ticket_number || '')} - ${escapeHtml(email.from_name || email.from_address)} ${countBadge}</div>
+                <div class="email-from">${escapeHtml(email.ticket_number || '')} - ${senderLabel(email.from_name, email.from_address, false)} ${countBadge}</div>
                 <div class="email-subject">${escapeHtml(email.subject)}</div>
                 <div class="email-preview">${escapeHtml(email.body_preview || '')}</div>
                 <div class="email-footer-row">
@@ -1391,7 +1391,7 @@ function displayEmail(email, recordings) {
             <div class="email-meta">
                 <div class="email-meta-row">
                     <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_from'))}</div>
-                    <div class="email-meta-value">${escapeHtml(email.from_name)} &lt;${escapeHtml(email.from_address)}&gt;</div>
+                    <div class="email-meta-value">${senderLabel(email.from_name, email.from_address, true)}</div>
                 </div>
                 <div class="email-meta-row">
                     <div class="email-meta-label">${escapeHtml(t('tickets.reading_pane.meta_to'))}</div>
@@ -1852,8 +1852,8 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                     ${index > 0 ? '<div class="thread-separator"></div>' : ''}
                     <div class="thread-meta">
                         <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${escapeHtml(isOutbound ? t('tickets.reading_pane.badge_sent') : t('tickets.reading_pane.badge_received'))}</span>
-                        <strong>${escapeHtml(e.from_name || e.from_address)}</strong>
-                        &lt;${escapeHtml(e.from_address)}&gt; &mdash; ${formatFullDateTime(e.received_datetime)}
+                        <strong>${senderLabel(e.from_name, e.from_address, false)}</strong>
+                        ${e.from_address ? '&lt;' + escapeHtml(e.from_address) + '&gt; ' : ''}&mdash; ${formatFullDateTime(e.received_datetime)}
                     </div>
                     ${emailBodyHost(e.body_content, 'thread-message-body', e.body_type)}
                 `;
@@ -2558,6 +2558,34 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+/**
+ * How a message's sender is labelled, given that from_address may be NULL.
+ *
+ * A self-service requester who signs in through a directory may have no mailbox
+ * at all (GitHub #47), so their messages carry a name and nothing else. Every
+ * site that renders "Name <address>" has to cope, or it prints `Wendy <>`.
+ *
+ * Returns escaped HTML, ready to interpolate.
+ *
+ * @param {string} name
+ * @param {string|null} address
+ * @param {boolean} withAngles include " <address>" when there is one
+ */
+function senderLabel(name, address, withAngles) {
+    const n = (name || '').trim();
+    const a = (address || '').trim();
+
+    // Neither recorded — say so rather than rendering a blank where a person
+    // should be, which reads as a broken row.
+    if (!n && !a) return escapeHtml(t('tickets.reading_pane.unknown_sender'));
+    if (!a) return escapeHtml(n);
+    if (!n) return escapeHtml(a);
+
+    return withAngles
+        ? `${escapeHtml(n)} &lt;${escapeHtml(a)}&gt;`
+        : escapeHtml(n);
+}
+
 // Utility: Format date/time
 // Parse a DB datetime string as UTC (append Z if no timezone indicator)
 function parseUTCDate(dateStr) {
@@ -3061,8 +3089,22 @@ function openReplyModal() {
         return;
     }
     composeMode = 'reply';
-    document.getElementById('emailTo').value = currentEmail.from_address;
+    // The sender may have NO address: a self-service requester who signs in
+    // through a directory and was never given a mailbox (GitHub #47). Assigning
+    // null straight into .value stringifies it to the literal text "null" —
+    // which is truthy, passes every emptiness check on the way out, and gets
+    // handed to Graph/Gmail/SMTP as a recipient. Fall back to the requester's
+    // address if the payload has one, else leave it empty so the send is
+    // refused rather than sent somewhere meaningless.
+    const replyTo = currentEmail.from_address || currentEmail.requester_email || '';
+    document.getElementById('emailTo').value = replyTo;
     document.getElementById('emailCc').value = '';
+    if (!replyTo) {
+        // Say why, rather than letting them write a reply that cannot be sent.
+        // A note is how you reach someone with no mailbox — they read it in the
+        // portal.
+        showToast('This person has no email address on file — add a recipient, or share a note on the ticket instead.', 'warning');
+    }
     // Add ticket reference to subject if not already present
     let subject = currentEmail.subject;
     const ticketRef = `[SDREF:${currentEmail.ticket_number}]`;
@@ -3700,7 +3742,7 @@ function renderSearchResults(results) {
                 <div class="search-result-ticket">${escapeHtml(ticket.ticket_number)}</div>
                 <div class="search-result-subject">${escapeHtml(ticket.subject)}</div>
                 <div class="search-result-meta">
-                    <span>${escapeHtml(ticket.from_name || ticket.from_address)}</span>
+                    <span>${senderLabel(ticket.from_name, ticket.from_address, false)}</span>
                     <span>${ticket.status}</span>
                     <span>${formatDateTime(ticket.received_datetime)}</span>
                 </div>

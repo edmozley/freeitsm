@@ -33,6 +33,7 @@ try {
     $sql = "SELECT
                 u.id,
                 u.email,
+                u.username,
                 u.display_name,
                 u.preferred_name,
                 u.created_at,
@@ -45,9 +46,13 @@ try {
     $params = $ttParams;
 
     if (!empty($search)) {
-        $sql .= " WHERE u.display_name LIKE ? OR u.email LIKE ?";
+        // Username is searched too: a directory requester with no mailbox has
+        // nothing else to type. Without this rung they are findable only by
+        // display name — and an analyst who knows them as "w.noemail" would
+        // conclude the account doesn't exist.
+        $sql .= " WHERE u.display_name LIKE ? OR u.email LIKE ? OR u.username LIKE ?";
         $searchParam = '%' . $search . '%';
-        $params = array_merge($params, [$searchParam, $searchParam]);
+        $params = array_merge($params, [$searchParam, $searchParam, $searchParam]);
     }
 
     $sql .= " ORDER BY u.display_name ASC";

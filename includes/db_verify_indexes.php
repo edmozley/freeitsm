@@ -23,6 +23,7 @@ return [
     ['ticket_types', 'uq_ticket_types_tenant_name', true, '(`tenant_id`,`name`)'],
     ['ticket_prefixes', 'uq_ticket_prefixes_prefix', true, '(`prefix`)'],
     ['users', 'uq_users_email', true, '(`email`)'],
+    ['users', 'uq_users_username', true, '(`username`)'],
     ['users', 'idx_users_tenant', false, '(`tenant_id`)'],
     ['user_sso_identities', 'uq_user_sso_provider_subject', true, '(`provider_id`,`subject`)'],
     ['user_sso_identities', 'uq_user_sso_provider_user', true, '(`provider_id`,`user_id`)'],

@@ -7,7 +7,10 @@
 function apiSerializeUser(array $u): array {
     return [
         'id'             => (int)$u['id'],
+        // NULL for a requester who signs in through a directory and was never
+        // given a mailbox. Consumers must expect null here.
         'email'          => $u['email'],
+        'username'       => $u['username'] ?? null,
         'display_name'   => $u['display_name'],
         'preferred_name' => $u['preferred_name'],
         // The company this requester belongs to; null = not known, and tickets
@@ -26,9 +29,9 @@ function apiUsersList(PDO $conn, array $apiKey, array $params, array $body): voi
         $args[]  = strtolower(trim($_GET['email']));
     }
     if (isset($_GET['q']) && trim($_GET['q']) !== '') {
-        $where[] = '(email LIKE ? OR display_name LIKE ? OR preferred_name LIKE ?)';
+        $where[] = '(email LIKE ? OR username LIKE ? OR display_name LIKE ? OR preferred_name LIKE ?)';
         $like = '%' . trim($_GET['q']) . '%';
-        array_push($args, $like, $like, $like);
+        array_push($args, $like, $like, $like, $like);
     }
     $whereSql = implode(' AND ', $where);
     [$page, $perPage, $offset] = apiPagination();
@@ -38,8 +41,10 @@ function apiUsersList(PDO $conn, array $apiKey, array $params, array $body): voi
     $total = (int)$countStmt->fetchColumn();
 
     $stmt = $conn->prepare(
-        "SELECT id, email, display_name, preferred_name, tenant_id, created_at
-         FROM users WHERE $whereSql ORDER BY email ASC LIMIT $perPage OFFSET $offset"
+        // COALESCE so mailbox-less requesters sort among everyone else rather
+         // than being bunched at the top, where MySQL puts NULLs.
+        "SELECT id, email, username, display_name, preferred_name, tenant_id, created_at
+         FROM users WHERE $whereSql ORDER BY COALESCE(email, username, display_name) ASC LIMIT $perPage OFFSET $offset"
     );
     $stmt->execute($args);
     apiRespond(array_map('apiSerializeUser', $stmt->fetchAll(PDO::FETCH_ASSOC)), 200, [
@@ -50,7 +55,7 @@ function apiUsersList(PDO $conn, array $apiKey, array $params, array $body): voi
 
 // GET /users/{id}
 function apiUsersGet(PDO $conn, array $apiKey, array $params, array $body): void {
-    $stmt = $conn->prepare("SELECT id, email, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT id, email, username, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
     $stmt->execute([$params[0]]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$user) {
@@ -77,17 +82,42 @@ function apiUsersGet(PDO $conn, array $apiKey, array $params, array $body): void
 
 // POST /users
 function apiUsersCreate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $email = strtolower(trim((string)($body['email'] ?? '')));
-    if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        apiError(422, 'missing_field', "'email' is required and must be a valid email address.");
+    // EITHER an email or a username identifies a requester — staff who sign in
+    // through a directory may have no mailbox at all (GitHub #47), and the admin
+    // UI accepts them, so the API must too or the two disagree about who can
+    // exist. A malformed address is still an error; an absent one is not.
+    $email    = strtolower(trim((string)($body['email'] ?? '')));
+    $username = trim((string)($body['username'] ?? ''));
+
+    if ($email === '' && $username === '') {
+        apiError(422, 'missing_field', "Provide 'email' or 'username' — a requester needs at least one.");
     }
-    $displayName   = trim((string)($body['display_name'] ?? '')) ?: ucfirst(explode('@', $email)[0]);
+    if ($email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        apiError(422, 'invalid_field', "'email' must be a valid email address.");
+    }
+
+    // Absent means NULL, never '' — '' occupies the unique index, so the second
+    // requester created without one would be rejected as a duplicate.
+    $emailOrNull    = $email !== '' ? $email : null;
+    $usernameOrNull = $username !== '' ? $username : null;
+
+    $displayName   = trim((string)($body['display_name'] ?? ''))
+        ?: ($email !== '' ? ucfirst(explode('@', $email)[0]) : $username);
     $preferredName = trim((string)($body['preferred_name'] ?? '')) ?: null;
 
-    $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
-    $check->execute([$email]);
-    if ($check->fetchColumn()) {
-        apiError(409, 'conflict', 'A requester with this email already exists.');
+    if ($emailOrNull !== null) {
+        $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
+        $check->execute([$email]);
+        if ($check->fetchColumn()) {
+            apiError(409, 'conflict', 'A requester with this email already exists.');
+        }
+    }
+    if ($usernameOrNull !== null) {
+        $check = $conn->prepare("SELECT id FROM users WHERE username = ?");
+        $check->execute([$username]);
+        if ($check->fetchColumn()) {
+            apiError(409, 'conflict', 'A requester with this username already exists.');
+        }
     }
     // Told a company → use it, but only one this key may reach. Not told → infer
     // it from the address, the same pre-fill the admin UI does.
@@ -97,21 +127,23 @@ function apiUsersCreate(PDO $conn, array $apiKey, array $params, array $body): v
             apiError(403, 'forbidden', 'This API key cannot assign requesters to that company.');
         }
     } else {
-        $tenantId = array_key_exists('tenant_id', $body) ? null : resolveTenantForNewUser($conn, $email);
+        // No address to infer a domain from → no company, which means triage.
+        $tenantId = (array_key_exists('tenant_id', $body) || $emailOrNull === null)
+            ? null : resolveTenantForNewUser($conn, $email);
     }
 
-    $stmt = $conn->prepare("INSERT INTO users (email, display_name, preferred_name, tenant_id, created_at) VALUES (?, ?, ?, ?, UTC_TIMESTAMP())");
-    $stmt->execute([$email, $displayName, $preferredName, $tenantId]);
+    $stmt = $conn->prepare("INSERT INTO users (email, username, display_name, preferred_name, tenant_id, created_at) VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())");
+    $stmt->execute([$emailOrNull, $usernameOrNull, $displayName, $preferredName, $tenantId]);
     $id = (int)$conn->lastInsertId();
 
-    $get = $conn->prepare("SELECT id, email, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
+    $get = $conn->prepare("SELECT id, email, username, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
     $get->execute([$id]);
     apiRespond(apiSerializeUser($get->fetch(PDO::FETCH_ASSOC)), 201);
 }
 
 // PATCH /users/{id}
 function apiUsersUpdate(PDO $conn, array $apiKey, array $params, array $body): void {
-    $stmt = $conn->prepare("SELECT id, email, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT id, email, username, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
     $stmt->execute([$params[0]]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
     if (!$user) {
@@ -160,7 +192,7 @@ function apiUsersUpdate(PDO $conn, array $apiKey, array $params, array $body): v
     $args[] = $params[0];
     $conn->prepare('UPDATE users SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
 
-    $get = $conn->prepare("SELECT id, email, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
+    $get = $conn->prepare("SELECT id, email, username, display_name, preferred_name, tenant_id, created_at FROM users WHERE id = ?");
     $get->execute([$params[0]]);
     apiRespond(apiSerializeUser($get->fetch(PDO::FETCH_ASSOC)));
 }

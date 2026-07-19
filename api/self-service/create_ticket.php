@@ -55,7 +55,7 @@ try {
     $conn->beginTransaction();
 
     // Get user details
-    $userStmt = $conn->prepare("SELECT email, display_name, tenant_id FROM users WHERE id = ?");
+    $userStmt = $conn->prepare("SELECT email, username, display_name, tenant_id FROM users WHERE id = ?");
     $userStmt->execute([$userId]);
     $user = $userStmt->fetch(PDO::FETCH_ASSOC);
 
@@ -63,8 +63,12 @@ try {
         throw new Exception('User not found');
     }
 
-    $fromEmail = $user['email'];
-    $fromName = $user['display_name'] ?: $user['email'];
+    // NULL, not '': a directory requester with no mailbox genuinely has no
+    // address, and '' would look like an address everywhere downstream while
+    // being useless to reply to. The name carries the identity for these people,
+    // so it must never fall through to a blank.
+    $fromEmail = ($user['email'] !== null && $user['email'] !== '') ? $user['email'] : null;
+    $fromName  = $user['display_name'] ?: ($user['username'] ?: ($fromEmail ?: ('#' . $userId)));
 
     // Which company does this ticket belong to? The portal has no mailbox and no
     // sender to route on, so the answer is simply whose account raised it. A user

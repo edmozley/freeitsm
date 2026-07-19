@@ -109,6 +109,65 @@ try {
         $userTenantColWasMissing = ((int)$utProbe->fetchColumn() === 0);
     } catch (Exception $e) {}
 
+    // `users.email` was NOT NULL. A directory user may genuinely have no mailbox
+    // (GitHub #47 — warehouse and shop-floor staff are never given one), so it
+    // has to become nullable. Relaxing NOT NULL is safe in a way that tightening
+    // never is: every existing row already satisfies the looser rule.
+    //
+    // Only ADDing columns is the convention for the $schema array, not a wall —
+    // there are five MODIFY precedents in this file. Probed first, so it fires
+    // once and is a no-op on every later run.
+    try {
+        $emailCol = $conn->prepare(
+            "SELECT IS_NULLABLE FROM information_schema.columns
+             WHERE table_schema = ? AND table_name = 'users' AND column_name = 'email'"
+        );
+        $emailCol->execute([$dbName]);
+        $emailRow = $emailCol->fetch(PDO::FETCH_ASSOC);
+        if ($emailRow && strtoupper($emailRow['IS_NULLABLE']) === 'NO') {
+            $conn->exec("ALTER TABLE `users` MODIFY `email` VARCHAR(255) NULL");
+
+            // Any address already stored as '' must become NULL, or it occupies
+            // the unique index and the NEXT mailbox-less person cannot be
+            // created. '' and NULL look equally empty on screen, so this would
+            // surface as an inexplicable "email already in use".
+            $blanked = $conn->exec("UPDATE `users` SET `email` = NULL WHERE `email` = ''");
+
+            $detail = "email: NOT NULL → NULL (directory users may have no mailbox)";
+            if ($blanked > 0) {
+                $detail .= "; converted $blanked empty address(es) to NULL so they stop occupying the unique index";
+            }
+            $results[] = ['table' => 'users', 'status' => 'updated', 'details' => [$detail]];
+        }
+    } catch (Exception $e) {
+        // Non-fatal: the portal keeps working for everyone who has an address.
+    }
+
+    // `emails.from_address` was NOT NULL. A portal requester who signs in
+    // through a directory may have no mailbox at all (GitHub #47), and their
+    // ticket has no sender address to record — the INSERT failed outright, so
+    // the person could sign in and then not raise a ticket. Same probe-then-
+    // MODIFY shape as users.email above; relaxing NOT NULL can't invalidate an
+    // existing row.
+    try {
+        $fromCol = $conn->prepare(
+            "SELECT IS_NULLABLE FROM information_schema.columns
+             WHERE table_schema = ? AND table_name = 'emails' AND column_name = 'from_address'"
+        );
+        $fromCol->execute([$dbName]);
+        $fromRow = $fromCol->fetch(PDO::FETCH_ASSOC);
+        if ($fromRow && strtoupper($fromRow['IS_NULLABLE']) === 'NO') {
+            $conn->exec("ALTER TABLE `emails` MODIFY `from_address` VARCHAR(255) NULL");
+            $results[] = [
+                'table'   => 'emails',
+                'status'  => 'updated',
+                'details' => ['from_address: NOT NULL → NULL (a portal requester may have no mailbox)'],
+            ];
+        }
+    } catch (Exception $e) {
+        // Non-fatal — everyone with an address is unaffected either way.
+    }
+
     foreach ($schema as $tableName => $columns) {
         $tableResult = ['table' => $tableName, 'status' => 'ok', 'details' => []];
 

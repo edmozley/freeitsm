@@ -5818,20 +5818,28 @@ return array (
         ),
       ),
     ),
-    'Requester' => 
+    'Requester' =>
     array (
       'type' => 'object',
-      'properties' => 
+      'properties' =>
       array (
-        'id' => 
+        'id' =>
         array (
           'type' => 'integer',
         ),
-        'email' => 
+        'email' =>
         array (
           'type' => 'string',
+          'nullable' => true,
+          'description' => 'Null when the requester has no mailbox — staff who sign in through a directory are often never given one. Use `username` or `display_name` to identify them.',
         ),
-        'display_name' => 
+        'username' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+          'description' => 'Directory sign-in name. Null for locally registered requesters.',
+        ),
+        'display_name' =>
         array (
           'type' => 'string',
           'nullable' => true,

@@ -33,12 +33,23 @@
  *     addresses there would hide the customer's entire conversation from their
  *     own portal. There is also no "forward" on those channels — the exchange is
  *     between the visitor and the desk by definition. Always visible.
- *   - A message with no recipients recorded, or a requester with no email on
- *     file, cannot be judged. Visible.
+ *   - A message with no recipients recorded cannot be judged. Visible.
+ *   - A requester whose address is simply UNKNOWN to us ('') cannot be judged.
+ *     Visible.
  *
  * Hiding an analyst's genuine reply is a worse failure than showing a forward:
  * the customer is left believing nobody answered them. The strict direction is
  * the one an admin opts into per-message-type, not one we guess at.
+ *
+ * ⚠️ THE ONE CASE THAT IS NOT AMBIGUOUS
+ * -------------------------------------
+ * A requester who has NO MAILBOX AT ALL (`$requesterEmail === null`) is a
+ * different thing entirely from one whose address we don't know. Directory
+ * users may genuinely have none (GitHub #47). No email can ever have been
+ * addressed to them, so every email-channel message on their ticket is
+ * third-party by definition and the policy APPLIES — it is not ambiguous and
+ * must not fail open. Their own messages arrive by the portal and are matched
+ * on `direction` well before any address comparison.
  */
 
 require_once __DIR__ . '/functions.php';
@@ -78,10 +89,12 @@ function portalThirdPartyPolicy(PDO $conn): string {
  *
  * @param array  $email           needs: channel, direction, from_address,
  *                                to_recipients, cc_recipients
- * @param string $requesterEmail  the ticket owner's address ('' if unknown)
+ * @param ?string $requesterEmail the ticket owner's address. NULL = they have
+ *                                NO mailbox (a directory user); '' = unknown.
+ *                                The two mean opposite things here.
  * @return bool true = the requester's own conversation (always portal-visible)
  */
-function portalEmailInvolvesRequester(array $email, string $requesterEmail): bool {
+function portalEmailInvolvesRequester(array $email, ?string $requesterEmail): bool {
     // Non-email channels: addressed by phone number / visitor id, never by the
     // requester's email. Judging them by address would hide their own chat.
     $channel = strtolower(trim((string)($email['channel'] ?? 'email')));
@@ -89,6 +102,24 @@ function portalEmailInvolvesRequester(array $email, string $requesterEmail): boo
 
     // The requester typed it in the portal themselves.
     if (strtolower(trim((string)($email['direction'] ?? ''))) === 'portal') return true;
+
+    // 🔴 "This person HAS no address" is not the same as "we don't know their
+    // address", and conflating the two silently defeats the whole privacy
+    // policy. NULL means the former; '' means the latter.
+    //
+    // Directory users may genuinely have no mailbox (GitHub #47). For them an
+    // EMAIL-channel message cannot possibly be to or from them — there is no
+    // address it could have been sent to. So every email on their ticket is
+    // third-party correspondence by definition and the configured policy must
+    // apply. Treating it as "involves them", which the old `$needle === ''`
+    // branch did, would show a mailbox-less requester every forward to a
+    // supplier and every copied-in colleague's reply — precisely the disclosure
+    // #892 exists to prevent, aimed at the people least likely to notice.
+    //
+    // Their own conversation is already covered above: what they typed returns
+    // at the `direction === 'portal'` check, and anything an analyst chooses to
+    // share with them is a NOTE, which never reaches this function.
+    if ($requesterEmail === null) return false;
 
     $needle = strtolower(trim($requesterEmail));
     if ($needle === '' || strpos($needle, '@') === false) return true;   // can't judge → visible
@@ -111,7 +142,7 @@ function portalEmailInvolvesRequester(array $email, string $requesterEmail): boo
  *         visible     — show the message in the thread at all
  *         attachments — allow its attachments to be listed AND downloaded
  */
-function portalEmailVisibility(array $email, string $requesterEmail, string $policy): array {
+function portalEmailVisibility(array $email, ?string $requesterEmail, string $policy): array {
     if (portalEmailInvolvesRequester($email, $requesterEmail)) {
         return ['visible' => true, 'attachments' => true];
     }

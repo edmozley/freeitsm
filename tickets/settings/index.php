@@ -4161,7 +4161,14 @@ $translationNamespaces = ['common', 'tickets'];
                     const badge = e.action === 'imported'
                         ? '<span style="display: inline-block; padding: 2px 8px; background: #d4edda; color: #155724; border-radius: 10px; font-size: 11px;">Imported</span>'
                         : '<span style="display: inline-block; padding: 2px 8px; background: #f8d7da; color: #721c24; border-radius: 10px; font-size: 11px;">Rejected</span>';
-                    const from = escapeHtml(e.from_name ? e.from_name + ' <' + e.from_address + '>' : e.from_address);
+                    const fromAddr = (e.from_address || '').trim();
+                    const fromNm   = (e.from_name || '').trim();
+                    // A portal requester with no mailbox has a name and no address.
+                    // Plain + concatenation would render the literal text "null" here,
+                    // since this is not passed through escapeHtml first.
+                    const from = escapeHtml(
+                        fromNm && fromAddr ? fromNm + ' <' + fromAddr + '>' : (fromNm || fromAddr)
+                    );
                     return `<tr style="cursor: pointer;" onclick="showProcessingLog(window._activityLogs[${idx}])">
                         <td style="white-space: nowrap;">${dt}</td>
                         <td>${from}</td>
