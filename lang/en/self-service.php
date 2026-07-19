@@ -107,6 +107,10 @@ return [
         'create_first'       => 'Create your first ticket',
         'no_services'        => 'No services configured',
         'all_operational'    => 'All systems operational',
+        'popular_articles'   => 'Popular articles',
+        'browse_knowledge'   => 'Browse all',
+        'loading_articles'   => 'Loading articles...',
+        'no_articles'        => 'No articles have been published for you yet.',
     ],
 
     'new_ticket' => [

@@ -32,6 +32,38 @@ document.addEventListener('DOMContentLoaded', loadDashboard);
             } catch (err) {
                 console.error('Failed to load dashboard:', err);
             }
+
+            // Separate call, deliberately not awaited above: knowledge is a nice
+            // extra, and a slow or failing article fetch must not hold up the
+            // tickets the page actually exists for.
+            loadPopularArticles();
+        }
+
+        // Reuses the Help Centre's own endpoint with sort=popular — no second
+        // article query, and therefore no second copy of the visibility rules.
+        async function loadPopularArticles() {
+            const container = document.getElementById('articlesContainer');
+            if (!container) return;
+            try {
+                const resp = await fetch(API_BASE + 'get_knowledge_articles.php?sort=popular&limit=6');
+                const data = await resp.json();
+                const list = (data.success && Array.isArray(data.articles)) ? data.articles : [];
+
+                if (list.length === 0) {
+                    container.innerHTML = '<div class="empty-state">' + escapeHtml(window.t('self-service.dashboard.no_articles')) + '</div>';
+                    return;
+                }
+
+                container.innerHTML = '<div class="article-grid">' + list.map(a => `
+                    <a class="article-card" href="help-centre.php?id=${encodeURIComponent(a.id)}">
+                        <div class="article-card-title">${escapeHtml(a.title)}</div>
+                        <div class="article-card-preview">${escapeHtml(a.preview || '')}</div>
+                    </a>
+                `).join('') + '</div>';
+            } catch (err) {
+                console.error('Failed to load articles:', err);
+                container.innerHTML = '';
+            }
         }
 
         // Lookup map populated from the dashboard payload — used by recent-tickets
@@ -241,6 +273,20 @@ require __DIR__ . "/includes/header.php";
                 <div id="statusContainer">
                     <div class="loading-state"><?php echo htmlspecialchars(t('self-service.dashboard.loading_status')); ?></div>
                 </div>
+            </div>
+        </div>
+
+        <!-- Popular articles. Deflection: the answer someone came to raise a
+             ticket about is often already written down. Links into the existing
+             Knowledge reader (help-centre.php?id=) rather than rendering the
+             article here — there is exactly one portal article viewer. -->
+        <div class="portal-section">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('self-service.dashboard.popular_articles')); ?></h2>
+                <a class="section-link" href="help-centre.php"><?php echo htmlspecialchars(t('self-service.dashboard.browse_knowledge')); ?></a>
+            </div>
+            <div id="articlesContainer">
+                <div class="loading-state"><?php echo htmlspecialchars(t('self-service.dashboard.loading_articles')); ?></div>
             </div>
         </div>
 <?php require __DIR__ . "/includes/footer.php";

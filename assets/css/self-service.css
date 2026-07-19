@@ -150,6 +150,47 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 }
 .section-header a:hover { text-decoration: underline; }
 
+/* ── Popular articles (dashboard) ───────────────────────────────────────── */
+/* Same auto-fill track sizing as .portal-actions and .summary-cards so the
+ * three grids on the dashboard line up down the page rather than each choosing
+ * its own column width. */
+.article-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+    padding: 16px 20px;
+}
+.article-card {
+    display: block;
+    padding: 14px 16px;
+    border: 1px solid var(--border, #e5e7eb);
+    border-radius: 6px;
+    background: var(--surface-2, #fafafa);
+    text-decoration: none;
+    transition: border-color 0.15s, transform 0.15s;
+}
+.article-card:hover {
+    border-color: var(--ss-accent, #0078d4);
+    transform: translateY(-1px);
+}
+.article-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text, #333);
+    margin-bottom: 6px;
+}
+/* The preview is a whole paragraph of body text; clamp it so one long article
+ * cannot make its card three times the height of its neighbours. */
+.article-card-preview {
+    font-size: 12px;
+    line-height: 1.5;
+    color: var(--text-muted, #666);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 /* ── Summary cards ──────────────────────────────────────────────────────── */
 /* The cards are DYNAMIC — one per active ticket status, plus a total — so the
  * count varies per install (six statuses = seven cards). A fixed four-column

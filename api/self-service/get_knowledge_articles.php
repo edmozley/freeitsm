@@ -29,8 +29,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
-require_once '../../includes/tenancy.php';
-require_once '../../includes/knowledge/audience.php';
+require_once '../../includes/knowledge/portal_reader.php';
 
 header('Content-Type: application/json');
 
@@ -41,32 +40,17 @@ if (!isset($_SESSION['ss_user_id'])) {
 
 $userId = (int)$_SESSION['ss_user_id'];
 $search = trim((string)($_GET['q'] ?? ''));
+$sort   = (string)($_GET['sort'] ?? '');
 $limit  = (int)($_GET['limit'] ?? 50);
 if ($limit < 1 || $limit > 100) $limit = 50;
 
 try {
     $conn = connectToDatabase();
 
-    $uStmt = $conn->prepare("SELECT tenant_id FROM users WHERE id = ?");
-    $uStmt->execute([$userId]);
-    $row = $uStmt->fetch(PDO::FETCH_ASSOC);
-    $userTenantId = ($row && $row['tenant_id'] !== null) ? (int)$row['tenant_id'] : null;
-
-    // Published AND not archived — archiving doesn't unpublish.
-    $where  = "a.is_published = 1 AND (a.is_archived = 0 OR a.is_archived IS NULL)";
-    $params = [];
-
-    [$tenantSql, $tenantParams] = knowledgeTenantFilterForCompany($conn, $userTenantId, 'a');
-    $where  .= $tenantSql;
-    $params  = array_merge($params, $tenantParams);
-
-    // Defensive: an install that predates the column has no audience to filter on
-    // (every article is shared and internal-by-absence there anyway).
-    if (tenancyColumnExists($conn, 'knowledge_articles', 'audience')) {
-        [$audSql, $audParams] = Audience::sqlFilter(Audience::CUSTOMER, 'a');
-        $where  .= $audSql;
-        $params  = array_merge($params, $audParams);
-    }
+    // The whole "what may this requester read" question, answered in ONE place —
+    // see includes/knowledge/portal_reader.php for the two traps it encodes.
+    $userTenantId = portalUserTenantId($conn, $userId);
+    [$where, $params] = portalKnowledgeScope($conn, $userTenantId, 'a');
 
     if ($search !== '') {
         $where .= " AND (a.title LIKE ? OR a.body LIKE ?)";
@@ -75,10 +59,17 @@ try {
         $params[] = $like;
     }
 
-    $sql = "SELECT a.id, a.title, a.modified_datetime, LEFT(a.body, 400) AS preview
+    // Ordering is a fixed allow-list, never interpolated from the request:
+    // ORDER BY cannot take a bound parameter, so anything user-supplied reaching
+    // it would be injection.
+    $order = ($sort === 'popular')
+        ? 'a.view_count DESC, a.title ASC'    // what most people needed
+        : 'a.title ASC';
+
+    $sql = "SELECT a.id, a.title, a.modified_datetime, a.view_count, LEFT(a.body, 400) AS preview
             FROM knowledge_articles a
             WHERE $where
-            ORDER BY a.title ASC
+            ORDER BY $order
             LIMIT $limit";
 
     $stmt = $conn->prepare($sql);
@@ -109,12 +100,7 @@ try {
         // The preview is plain text: the body is TinyMCE HTML and a truncated
         // fragment would be unbalanced markup.
         //
-        // strip_tags() removes the TAGS but keeps their CONTENTS, so a <script> or
-        // <style> block would spill its source into the preview as readable text
-        // ("...sign in.alert(1)"). Drop those elements whole first. Not a security
-        // control — the preview is escaped on render — just correctness.
-        $raw = preg_replace('#<(script|style)\b[^>]*>.*?</\1>#is', ' ', (string)$a['preview']);
-        $a['preview'] = trim(preg_replace('/\s+/', ' ', strip_tags((string)$raw)));
+        $a['preview'] = portalArticlePreview($a['preview']);
         $a['tags']    = $tagsById[(int)$a['id']] ?? [];
     }
     unset($a);

@@ -94,6 +94,10 @@ return [
         'create_first'       => 'Crie seu primeiro ticket',
         'no_services'        => 'Nenhum serviço configurado',
         'all_operational'    => 'Todos os sistemas operacionais',
+        'popular_articles'   => 'Artigos populares',
+        'browse_knowledge'   => 'Ver todos',
+        'loading_articles'   => 'Carregando artigos...',
+        'no_articles'        => 'Ainda não há artigos publicados para você.',
     ],
 
     'new_ticket' => [

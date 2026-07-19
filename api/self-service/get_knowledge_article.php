@@ -15,8 +15,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
-require_once '../../includes/tenancy.php';
-require_once '../../includes/knowledge/audience.php';
+require_once '../../includes/knowledge/portal_reader.php';
 
 header('Content-Type: application/json');
 
@@ -36,23 +35,12 @@ if (!$articleId) {
 try {
     $conn = connectToDatabase();
 
-    $uStmt = $conn->prepare("SELECT tenant_id FROM users WHERE id = ?");
-    $uStmt->execute([$userId]);
-    $row = $uStmt->fetch(PDO::FETCH_ASSOC);
-    $userTenantId = ($row && $row['tenant_id'] !== null) ? (int)$row['tenant_id'] : null;
+    // The same one scope the list uses — see includes/knowledge/portal_reader.php.
+    $userTenantId = portalUserTenantId($conn, $userId);
+    [$where, $params] = portalKnowledgeScope($conn, $userTenantId, 'a');
 
-    $where  = "a.id = ? AND a.is_published = 1 AND (a.is_archived = 0 OR a.is_archived IS NULL)";
-    $params = [$articleId];
-
-    [$tenantSql, $tenantParams] = knowledgeTenantFilterForCompany($conn, $userTenantId, 'a');
-    $where  .= $tenantSql;
-    $params  = array_merge($params, $tenantParams);
-
-    if (tenancyColumnExists($conn, 'knowledge_articles', 'audience')) {
-        [$audSql, $audParams] = Audience::sqlFilter(Audience::CUSTOMER, 'a');
-        $where  .= $audSql;
-        $params  = array_merge($params, $audParams);
-    }
+    $where   .= " AND a.id = ?";
+    $params[] = $articleId;
 
     $stmt = $conn->prepare(
         "SELECT a.id, a.title, a.body, a.modified_datetime
