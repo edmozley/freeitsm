@@ -509,17 +509,32 @@ function ldapCreateAnalyst(PDO $conn, int $providerId, string $preferredUser, st
         $username = $base . $i++;
     }
 
+    $mods = ($defaultModules !== null && trim($defaultModules) !== '')
+        ? array_values(array_filter(array_map('trim', explode(',', $defaultModules))))
+        : [];
+
+    // 🔴 `can_access_all_modules` MUST be set to 0 when a module list is
+    // configured. It defaults to 1, and getAnalystAllowedModules() short-circuits
+    // on it and returns "everything" WITHOUT ever reading `analyst_modules` — so
+    // writing those rows while leaving the flag at 1 restricts nobody. That was
+    // the behaviour until this was fixed: an admin could set "Default module
+    // access for auto-created users" to `tickets, knowledge`, watch the rows
+    // appear, and every auto-created directory user still got the lot.
+    //
+    // No list configured → flag stays 1, which is the documented "leave it blank
+    // and they get every module" behaviour.
+    $restricted = !empty($mods) ? 0 : 1;
+
     $unusable = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
     $stmt = $conn->prepare(
-        "INSERT INTO analysts (username, password_hash, full_name, email, is_active, created_datetime, auth_provider_id)
-         VALUES (?, ?, ?, ?, 1, UTC_TIMESTAMP(), ?)"
+        "INSERT INTO analysts (username, password_hash, full_name, email, is_active, created_datetime, auth_provider_id, can_access_all_modules)
+         VALUES (?, ?, ?, ?, 1, UTC_TIMESTAMP(), ?, ?)"
     );
-    $stmt->execute([$username, $unusable, $name ?: $username, $email, $providerId]);
+    $stmt->execute([$username, $unusable, $name ?: $username, $email, $providerId, $restricted]);
     $analystId = (int)$conn->lastInsertId();
 
-    if ($defaultModules !== null && trim($defaultModules) !== '') {
-        $mods = array_filter(array_map('trim', explode(',', $defaultModules)));
-        $ins  = $conn->prepare("INSERT INTO analyst_modules (analyst_id, module_key) VALUES (?, ?)");
+    if (!empty($mods)) {
+        $ins = $conn->prepare("INSERT INTO analyst_modules (analyst_id, module_key) VALUES (?, ?)");
         foreach ($mods as $m) {
             try { $ins->execute([$analystId, $m]); } catch (Exception $e) { /* ignore dupes */ }
         }

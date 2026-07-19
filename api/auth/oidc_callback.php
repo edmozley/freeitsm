@@ -310,18 +310,27 @@ function oidcCreateAnalyst(PDO $conn, int $providerId, string $preferredUser, st
         $username = $base . $i++;
     }
 
+    $mods = ($defaultModules !== null && trim($defaultModules) !== '')
+        ? array_values(array_filter(array_map('trim', explode(',', $defaultModules))))
+        : [];
+
+    // 🔴 Must be 0 when a module list is configured — see the same note in
+    // ldapCreateAnalyst() (includes/ldap.php). `can_access_all_modules` defaults
+    // to 1 and getAnalystAllowedModules() short-circuits on it without ever
+    // reading `analyst_modules`, so writing those rows alone restricts nobody.
+    // Empty list → 1, the documented "blank means every module".
+    $restricted = !empty($mods) ? 0 : 1;
+
     $unusable = password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT);
     $stmt = $conn->prepare(
-        "INSERT INTO analysts (username, password_hash, full_name, email, is_active, created_datetime, auth_provider_id)
-         VALUES (?, ?, ?, ?, 1, UTC_TIMESTAMP(), ?)"
+        "INSERT INTO analysts (username, password_hash, full_name, email, is_active, created_datetime, auth_provider_id, can_access_all_modules)
+         VALUES (?, ?, ?, ?, 1, UTC_TIMESTAMP(), ?, ?)"
     );
-    $stmt->execute([$username, $unusable, $name ?: $username, $email, $providerId]);
+    $stmt->execute([$username, $unusable, $name ?: $username, $email, $providerId, $restricted]);
     $analystId = (int)$conn->lastInsertId();
 
-    // Optional per-provider default module grants. Empty => no rows => full access.
-    if ($defaultModules !== null && trim($defaultModules) !== '') {
-        $mods = array_filter(array_map('trim', explode(',', $defaultModules)));
-        $ins  = $conn->prepare("INSERT INTO analyst_modules (analyst_id, module_key) VALUES (?, ?)");
+    if (!empty($mods)) {
+        $ins = $conn->prepare("INSERT INTO analyst_modules (analyst_id, module_key) VALUES (?, ?)");
         foreach ($mods as $m) {
             try { $ins->execute([$analystId, $m]); } catch (Exception $e) { /* ignore dupes */ }
         }
