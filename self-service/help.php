@@ -7,10 +7,144 @@
  */
 $pageTitleKey = 'self-service.help.title';   // a KEY: i18n starts in header.php
 $activeNav    = 'help';
+// App-shell: the sidebar stays put and only the content column scrolls, which
+// is how every analyst help page behaves.
+$bodyClass    = 'portal-app';
+
+$pageScripts = <<<'JS'
+/*
+ * Scroll-spy for the section sidebar.
+ *
+ * Listens on .ss-help-main, NOT window: the container is a fixed viewport
+ * height and that element is the only thing that scrolls, so window never
+ * fires.
+ *
+ * ⚠️ The selector filters on [data-section]. The workflow help page documents
+ * why: matching every .ss-help-nav-link swept up real page links too, and the
+ * click handler's preventDefault() then broke them.
+ */
+document.addEventListener('DOMContentLoaded', function () {
+            var main  = document.getElementById('helpMain');
+            var links = Array.prototype.slice.call(document.querySelectorAll('.ss-help-nav-link[data-section]'));
+            if (!main || !links.length) return;
+
+            var sections = links.map(function (l) {
+                return { id: l.dataset.section, el: document.getElementById(l.dataset.section) };
+            }).filter(function (s) { return s.el; });
+
+            function markActive(id) {
+                links.forEach(function (l) { l.classList.toggle('active', l.dataset.section === id); });
+            }
+
+            main.addEventListener('scroll', function () {
+                var top = main.scrollTop;
+                var current = sections.length ? sections[0].id : null;
+                sections.forEach(function (s) {
+                    // offsetTop is relative to the scrolling parent; the 160px lead
+                    // means a section counts as "current" just before it reaches
+                    // the top, which is what reading feels like.
+                    if (s.el.offsetTop - 160 <= top) current = s.id;
+                });
+                markActive(current);
+            });
+
+            links.forEach(function (l) {
+                l.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    var el = document.getElementById(l.dataset.section);
+                    if (el) {
+                        var containerTop = main.getBoundingClientRect().top;
+                        var elTop = el.getBoundingClientRect().top;
+                        main.scrollTo({ top: main.scrollTop + (elTop - containerTop) - 16, behavior: 'smooth' });
+                    }
+                    markActive(l.dataset.section);
+                });
+            });
+        });
+JS;
 
 // Page-specific styling only — shared chrome lives in self-service.css.
 $pageStyles = <<<'CSS'
-.ss-help-page {
+/* ── Module help-page layout ────────────────────────────────────────────
+   Same shape as every analyst module's help page (system/help/_top.php): a
+   fixed sidebar of section links beside a scrolling column.
+
+   ⚠️ The sidebar is NOT position:sticky. The CONTAINER is a fixed viewport
+   height and only .ss-help-main scrolls — which is why the scroll-spy listens
+   on that element rather than on window. */
+.ss-help-container {
+            display: flex;
+            height: calc(100vh - 48px);   /* 48px = the portal header */
+        }
+        .ss-help-sidebar {
+            width: 250px;
+            flex-shrink: 0;
+            background: var(--surface, #fff);
+            border-right: 1px solid var(--border, #e5e7eb);
+            padding: 20px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+        .ss-help-sidebar h3 {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--text-dim, #9aa);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin: 0 0 12px;
+        }
+        .ss-help-nav-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 11px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-muted, #555);
+            text-decoration: none;
+            margin-bottom: 2px;
+        }
+        .ss-help-nav-link:hover { background: var(--surface-hover, #f3f4f6); color: var(--text, #222); }
+        /* Active state tinted with the PORTAL's accent, the way each module
+           tints its own (workflow uses --wf-accent-soft, etc.). */
+        .ss-help-nav-link.active {
+            background: var(--ss-accent-soft, #d1fae5);
+            color: var(--ss-accent-hover, #059669);
+            font-weight: 600;
+        }
+        .ss-help-nav-num {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--surface-hover, #eee);
+            color: var(--text-dim, #888);
+            font-weight: 700;
+            font-size: 11px;
+            flex-shrink: 0;
+        }
+        .ss-help-nav-link.active .ss-help-nav-num { background: var(--ss-accent, #10b981); color: #fff; }
+
+        .ss-help-main { flex: 1; overflow-y: auto; min-width: 0; }
+        .ss-help-hero {
+            background: linear-gradient(135deg, var(--ss-accent, #10b981) 0%, var(--ss-accent-hover, #059669) 50%, #047857 100%);
+            color: #fff;
+            padding: 36px 40px 30px;
+        }
+        .ss-help-hero h1 { font-size: 24px; font-weight: 600; margin: 0 0 6px; color: #fff; }
+        .ss-help-hero p  { margin: 0; font-size: 14px; opacity: 0.92; }
+        /* The hero is a saturated brand block; dark palettes knock it back so it
+           doesn't glare, exactly as the module help pages do. */
+        [data-theme-mode="dark"] .ss-help-hero { filter: brightness(0.82); }
+
+        @media (max-width: 900px) {
+            .ss-help-container { flex-direction: column; height: auto; }
+            .ss-help-sidebar { display: none; }   /* the content reads fine linearly */
+        }
+
+        .ss-help-page {
             max-width: 800px;
             margin: 0 auto;
             padding: 32px 24px 64px;
@@ -97,21 +231,45 @@ $pageStyles = <<<'CSS'
         }
 CSS;
 
+// The sidebar's sections, in page order. One list drives both the nav and the
+// numbering, so a section can't be added to the page and forgotten in the
+// sidebar — the failure the analyst help pages avoid the same way.
+//
+// ⚠️ KEYS, not translated strings: t() does not exist until header.php has
+// booted i18n, and calling it up here is a fatal. The same reason $pageTitleKey
+// is a key rather than a title.
+$helpNav = ['s1', 's2', 's3', 's4', 's5', 's6', 's7'];
+
 require __DIR__ . '/includes/header.php';
 ?>
-    <div class="ss-help-page">
-        <h1><?php echo htmlspecialchars(t('self-service.help.heading')); ?></h1>
-        <p class="lede"><?php echo htmlspecialchars(t('self-service.help.lede')); ?></p>
+    <div class="ss-help-container">
+        <nav class="ss-help-sidebar">
+            <h3><?php echo htmlspecialchars(t('self-service.help.on_this_page')); ?></h3>
+            <?php $i = 0; foreach ($helpNav as $id): $i++; ?>
+            <a href="#<?php echo $id; ?>" class="ss-help-nav-link<?php echo $i === 1 ? ' active' : ''; ?>" data-section="<?php echo $id; ?>">
+                <span class="ss-help-nav-num"><?php echo $i; ?></span>
+                <?php echo htmlspecialchars(t('self-service.help.' . $id . '_title')); ?>
+            </a>
+            <?php endforeach; ?>
+        </nav>
+
+        <div class="ss-help-main" id="helpMain">
+            <div class="ss-help-hero">
+                <h1><?php echo htmlspecialchars(t('self-service.help.heading')); ?></h1>
+                <p><?php echo htmlspecialchars(t('self-service.help.lede')); ?></p>
+            </div>
+
+            <div class="ss-help-page">
 
         <!-- 1. Welcome -->
-        <div class="ss-help-section">
+        <div class="ss-help-section" id="s1">
             <h2><span class="num">1</span> <?php echo htmlspecialchars(t('self-service.help.s1_title')); ?></h2>
             <p><?php echo t('self-service.help.s1_p1'); ?></p>
             <p><?php echo t('self-service.help.s1_p2'); ?></p>
         </div>
 
         <!-- 2. Signing in -->
-        <div class="ss-help-section">
+        <div class="ss-help-section" id="s2">
             <h2><span class="num">2</span> <?php echo htmlspecialchars(t('self-service.help.s2_title')); ?></h2>
             <p><?php echo htmlspecialchars(t('self-service.help.s2_p1')); ?></p>
             <ol>
@@ -123,7 +281,7 @@ require __DIR__ . '/includes/header.php';
         </div>
 
         <!-- 3. Raising a ticket -->
-        <div class="ss-help-section">
+        <div class="ss-help-section" id="s3">
             <h2><span class="num">3</span> <?php echo htmlspecialchars(t('self-service.help.s3_title')); ?></h2>
             <p><?php echo t('self-service.help.s3_p1'); ?></p>
             <ul>
@@ -138,7 +296,7 @@ require __DIR__ . '/includes/header.php';
         </div>
 
         <!-- 4. Screen recording -->
-        <div class="ss-help-section">
+        <div class="ss-help-section" id="s4">
             <h2><span class="num">4</span> <?php echo htmlspecialchars(t('self-service.help.s4_title')); ?></h2>
             <p><?php echo t('self-service.help.s4_p1'); ?></p>
             <ol>
@@ -155,7 +313,7 @@ require __DIR__ . '/includes/header.php';
         </div>
 
         <!-- 5. Viewing & tracking tickets -->
-        <div class="ss-help-section">
+        <div class="ss-help-section" id="s5">
             <h2><span class="num">5</span> <?php echo htmlspecialchars(t('self-service.help.s5_title')); ?></h2>
             <p><?php echo t('self-service.help.s5_p1'); ?></p>
             <ul>
@@ -174,7 +332,7 @@ require __DIR__ . '/includes/header.php';
         </div>
 
         <!-- 6. Account & security -->
-        <div class="ss-help-section">
+        <div class="ss-help-section" id="s6">
             <h2><span class="num">6</span> <?php echo htmlspecialchars(t('self-service.help.s6_title')); ?></h2>
             <p><?php echo t('self-service.help.s6_p1'); ?></p>
             <ul>
@@ -186,7 +344,7 @@ require __DIR__ . '/includes/header.php';
         </div>
 
         <!-- 7. Tips -->
-        <div class="ss-help-section">
+        <div class="ss-help-section" id="s7">
             <h2><span class="num">7</span> <?php echo htmlspecialchars(t('self-service.help.s7_title')); ?></h2>
             <ul>
                 <li><?php echo t('self-service.help.s7_li1'); ?></li>
@@ -197,5 +355,7 @@ require __DIR__ . '/includes/header.php';
             </ul>
         </div>
 
-    </div>
+            </div><!-- /.ss-help-page -->
+        </div><!-- /.ss-help-main -->
+    </div><!-- /.ss-help-container -->
 <?php require __DIR__ . '/includes/footer.php';

@@ -202,6 +202,7 @@ return [
     'help' => [
         'title'              => 'Portal de Autoatendimento — Ajuda',
         'heading'            => 'Ajuda e guia',
+        'on_this_page'       => 'Nesta página',
         'lede'               => 'Tudo o que você precisa saber sobre o Portal de Autoatendimento — como abrir um ticket, anexar uma gravação de tela, acompanhar o progresso dos tickets existentes e gerenciar a segurança da sua conta.',
 
         's1_title'           => 'Bem-vindo',

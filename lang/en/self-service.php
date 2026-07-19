@@ -215,6 +215,7 @@ return [
     'help' => [
         'title'              => 'Self-Service Portal — Help',
         'heading'            => 'Help & Guide',
+        'on_this_page'       => 'On this page',
         'lede'               => 'Everything you need to know about the Self-Service Portal — how to raise a ticket, attach a screen recording, track progress on existing tickets, and manage your account security.',
 
         's1_title'           => 'Welcome',
