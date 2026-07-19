@@ -276,7 +276,15 @@ function ldapAuthenticate(array $provider, string $login, string $password): arr
     // whoever was found — i.e. log in as anyone. Our OpenLDAP and Samba AD
     // test rigs both happen to REJECT it, so no amount of local testing would
     // catch a regression here. Never remove this; never rely on the server.
-    if ($password === '') {
+    // ⚠️ Also refuse anything that becomes empty AT THE C BOUNDARY. libldap
+    // takes a NUL-terminated string, so a password of "\0" — or "\0anything" —
+    // is truncated to "" by the library and becomes exactly the unauthenticated
+    // bind this guard exists to prevent, having sailed past a `=== ''` check in
+    // PHP. Deliberately NOT trimming whitespace: "   " is a real (if daft)
+    // password of non-zero length, the directory checks it properly, and
+    // silently trimming would mean rejecting a password some directory might
+    // legitimately hold.
+    if ($password === '' || strpos($password, "\0") !== false) {
         return ['ok' => false, 'reason' => 'credentials', 'error' => 'A password is required.'];
     }
     if ($login === '') {
