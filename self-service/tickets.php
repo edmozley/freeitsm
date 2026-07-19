@@ -206,8 +206,6 @@ $pageStyles = <<<'CSS'
 .tk-chip button { border: none; background: none; cursor: pointer; color: var(--text-muted, #777); font-size: 15px; line-height: 1; padding: 0; }
 .tk-chip button:hover { color: var(--danger-text, #c33); }
 .tk-note-line { font-size: 12px; color: var(--text-muted, #666); }
-.tk-flash { margin-top: 10px; padding: 9px 12px; border-radius: 6px; font-size: 13px; background: var(--success-bg, #d1fae5); color: var(--text, #065f46); }
-.tk-flash.is-error { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #c33); }
 
 @media (max-width: 900px) {
     .tk-shell { flex-direction: column; height: auto; }
@@ -419,7 +417,6 @@ let ssTickets = [];
                  +     '<button type="button" class="btn btn-secondary" id="ssAttach">' + esc(window.t('self-service.ticket.reply_attach')) + '</button>'
                  +     '<span class="tk-note-line">' + esc(window.t('self-service.ticket.reply_hint')) + '</span>'
                  +   '</div>'
-                 +   '<div id="ssFlash"></div>'
                  + '</div>';
         }
 
@@ -489,9 +486,25 @@ let ssTickets = [];
             }
         }
 
+        /**
+         * Confirmations use the APP-WIDE toast (assets/js/toast.js), so the
+         * portal behaves like the rest of FreeITSM instead of growing its own
+         * message strip.
+         *
+         * It also fixes a real problem this page had: the strip lived INSIDE the
+         * composer, and sending a reply re-renders the whole pane — so the
+         * confirmation had to be written after the re-render or it was wiped out
+         * by it. A toast lives outside the pane and simply survives.
+         *
+         * Falls back to alert() if toast.js somehow didn't load: silently
+         * swallowing "your reply has been sent" is worse than an ugly box.
+         */
         function flash(msg, isError) {
-            const host = document.getElementById('ssFlash');
-            if (host) host.innerHTML = '<div class="tk-flash' + (isError ? ' is-error' : '') + '">' + esc(msg) + '</div>';
+            if (typeof showToast === 'function') {
+                showToast(msg, isError ? 'error' : 'success');
+                return;
+            }
+            alert(msg);
         }
 
         function safeBody(html, type) {

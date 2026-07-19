@@ -124,15 +124,6 @@ $pageStyles = <<<'CSS'
             font-family: inherit;
         }
         .cat-back:hover { text-decoration: underline; }
-        .cat-notice {
-            margin-top: 14px;
-            padding: 10px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            background: var(--success-bg, #d1fae5);
-            color: var(--text, #065f46);
-        }
-        .cat-notice.is-error { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #c33); }
         .cat-empty {
             background: var(--surface, #fff);
             border: 1px solid var(--border, #e5e7eb);
@@ -249,7 +240,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 +     '<button type="button" class="btn btn-primary" id="catSubmit" onclick="submitForm(' + form.id + ')">'
                 +       esc(window.t('self-service.catalogue.submit')) + '</button>'
                 +   '</div>'
-                +   '<div id="catNotice"></div>'
                 + '</div>';
         }
 
@@ -312,9 +302,21 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
+        /**
+         * The app-wide toast, so portal messages match the rest of FreeITSM.
+         *
+         * Note what does NOT use it: the "Request submitted" confirmation is a
+         * page STATE, not a passing message — the form is replaced by it and the
+         * person needs to see where they've got to. A toast that fades after a
+         * few seconds would leave them staring at a blank panel wondering
+         * whether it worked.
+         */
         function notice(message, isError) {
-            const host = document.getElementById('catNotice');
-            if (host) host.innerHTML = '<div class="cat-notice' + (isError ? ' is-error' : '') + '">' + esc(message) + '</div>';
+            if (typeof showToast === 'function') {
+                showToast(message, isError ? 'error' : 'success');
+                return;
+            }
+            alert(message);
         }
 
         function backBtn() {

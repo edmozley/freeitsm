@@ -29,6 +29,12 @@ $pageData    = $pageData ?? [];
     <script src="../assets/js/i18n.js?v=2"></script>
     <!-- Cleans untrusted message bodies; shared with the analyst inbox. -->
     <script src="../assets/js/safe-html.js?v=1"></script>
+    <!-- The app-wide toast. Self-contained (injects its own CSS) and falls back
+         to sensible defaults for position/animation, which are analyst
+         preferences the portal has no equivalent of. Using it here means portal
+         confirmations look and behave exactly like the rest of FreeITSM instead
+         of each page inventing its own little message strip. -->
+    <script src="../assets/js/toast.js"></script>
     <script>const API_BASE = '../api/self-service/';</script>
     <script>window.PAGE = <?php echo json_encode($pageData, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php if ($pageScripts !== ''): ?>
