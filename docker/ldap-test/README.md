@@ -117,7 +117,7 @@ because the cases that break LDAP code only exist in a realistic tree:
 | `l.garcia` | `Nw!Garc2026` | `Lucía García` — same |
 | `t.brooks` | `Nw!Broo2026` | Sales — gate him to the self-service user group, not analyst |
 | `p.ndlovu` | `Nw!Ndlo2026` | Finance — in **neither** ITSM group, so must be **denied despite a correct password** |
-| `w.noemail` | `Nw!NoMa2026` | Has **no email attribute** — JIT must **provision them anyway** with an empty email (GitHub #47) |
+| `w.noemail` | `Nw!NoMa2026` | Has **no email attribute**, and is in **`NW-Sales`** (the self-service group). The whole no-mailbox journey: JIT must provision her, she must reach the **portal**, and she must be able to **raise a ticket** — `users.email` and `emails.from_address` are both nullable for her sake (GitHub #47). She was in *no* group until #902, which only ever exercised the gate-off path and left this untestable |
 | `x.leaver` | `Nw!Leav2026` | **Disabled** — must never sign in, even with the right password |
 
 Groups live in `OU=Groups,OU=Northwind`: `NW-IT-Support`, `NW-IT-Admins`,
