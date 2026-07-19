@@ -152,10 +152,15 @@ try {
     $displayName = $user['preferred_name']
         ?: ($user['display_name'] ?: ($user['username'] ?: ($user['email'] ?: ('#' . (int)$user['id']))));
 
-    // TOTP is a LOCAL second factor. A directory bind has already been checked
-    // by the directory, which enforces its own policy — and a portal user who
-    // signs in with their AD password has no way to have set up TOTP here.
-    if (!$ldapProviderUsed && $user['totp_enabled']) {
+    // 🔑 TOTP applies to DIRECTORY sign-ins too, exactly as it does on the
+    // analyst side (login.php:299 checks it regardless of how the password was
+    // verified). An earlier version of this skipped it after a successful bind,
+    // reasoning that a directory user could never have set TOTP up here — which
+    // is wrong: ldapResolveUser() CLAIMS an existing unassigned account, so
+    // someone who enabled a second factor as a local user and was later linked
+    // to a directory would have silently stopped being asked for it. Turning
+    // somebody's second factor off without telling them is not a thing to do.
+    if ($user['totp_enabled']) {
         $_SESSION['mfa_pending_ss_user_id'] = (int)$user['id'];
         $_SESSION['mfa_pending_ss_email']   = $user['email'];
         $_SESSION['mfa_pending_ss_name']    = $displayName;
