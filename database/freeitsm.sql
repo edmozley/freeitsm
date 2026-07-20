@@ -52,9 +52,10 @@ CREATE TABLE IF NOT EXISTS `analysts` (
 --            password into our own login form; NOT single sign-on).
 --            Uses the ldap_* columns below.
 -- The two column groups are mutually exclusive; the unused group is left
--- empty. issuer_url/client_id stay NOT NULL (db_verify only ever ADDS
--- columns, so relaxing them would not reach upgraded installs) — LDAP rows
--- therefore store '' in them rather than NULL.
+-- empty. issuer_url/client_id stay NOT NULL by convention — LDAP rows store
+-- '' in them rather than NULL, which reads unambiguously as "not applicable
+-- to this protocol". (Not a limitation: db_verify can relax a column with a
+-- probe-then-MODIFY block, as it does for users.email and emails.from_address.)
 -- ----------------------------------------------------------
 
 CREATE TABLE IF NOT EXISTS `auth_providers` (

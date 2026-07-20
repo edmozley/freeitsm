@@ -78,8 +78,11 @@ if ($protocol === 'oidc') {
     $ldapSecretInput = '';
 
 } else {
-    // issuer_url / client_id are NOT NULL and db_verify only ever ADDS columns,
-    // so they cannot be relaxed on upgraded installs — an LDAP row stores ''.
+    // issuer_url / client_id are NOT NULL, so an LDAP row stores '' in them.
+    // (Kept as a convention, not a necessity: db_verify CAN relax a column via
+    // a probe-then-MODIFY block — it does exactly that for users.email and
+    // emails.from_address. Relaxing these two would simply buy nothing, since
+    // '' already reads unambiguously as "not applicable to this protocol".)
     $issuerUrl = '';
     $clientId  = '';
     $scopes    = 'openid email profile'; // column default; unused by LDAP

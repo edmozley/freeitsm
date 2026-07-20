@@ -5,7 +5,8 @@
 # Deliberately includes the awkward cases a real directory has and a flat
 # test fixture never does:
 #   - people nested in per-department OUs (not all in CN=Users)
-#   - an account with NO email address        -> JIT must refuse it cleanly
+#   - an account with NO email address        -> JIT must PROVISION them anyway
+#     (and, being in NW-Sales, reach the self-service portal and raise a ticket)
 #   - a DISABLED leaver                       -> must never be able to sign in
 #   - names with an apostrophe and an umlaut  -> filter escaping / UTF-8
 #   - nested groups (All-Staff contains the dept groups, not the people)
