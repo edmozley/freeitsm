@@ -158,6 +158,9 @@ return [
         'note_label' => 'Nota',
         'placeholder' => 'Digite sua nota aqui…',
         'save_btn' => 'Salvar',
+        'share_label'           => 'Compartilhar com o solicitante',
+        'share_hint'            => 'Ele verá isto no portal de autoatendimento. Deixe desmarcado para manter interno.',
+        'share_hint_no_mailbox' => 'Esta pessoa não tem e-mail, então uma nota compartilhada é a única forma de contatá-la. Ela verá isto no portal.',
     ],
     'reply_modal' => [
         'to' => 'Para',

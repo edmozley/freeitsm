@@ -94,6 +94,21 @@ $translationNamespaces = ['common', 'tickets'];
                     <label class="form-label"><?php echo htmlspecialchars(t('tickets.note_modal.note_label')); ?></label>
                     <textarea class="form-textarea" id="noteText" placeholder="<?php echo htmlspecialchars(t('tickets.note_modal.placeholder')); ?>"></textarea>
                 </div>
+                <?php /* Notes have ALWAYS supported being shared with the requester — the
+                         column, the API and the portal all handle it — but the inbox
+                         hardcoded is_internal:true, so there was no way to actually do
+                         it. That mattered little until requesters could exist with no
+                         mailbox: for them a shared note is the ONLY way to reach them,
+                         and the reply screen tells analysts to use one. */ ?>
+                <div class="form-group">
+                    <label class="form-label" style="display:flex;align-items:center;gap:8px;font-weight:500;cursor:pointer;">
+                        <input type="checkbox" id="noteShared" style="width:auto;margin:0;">
+                        <span><?php echo htmlspecialchars(t('tickets.note_modal.share_label')); ?></span>
+                    </label>
+                    <div class="form-hint" id="noteSharedHint" style="font-size:12px;color:#666;margin-top:4px;">
+                        <?php echo htmlspecialchars(t('tickets.note_modal.share_hint')); ?>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeNoteModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>

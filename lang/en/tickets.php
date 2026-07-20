@@ -182,6 +182,9 @@ return [
         'note_label'  => 'Note',
         'placeholder' => 'Enter your note here...',
         'save_btn'    => 'Save',
+        'share_label'           => 'Share this with the requester',
+        'share_hint'            => 'They will see it in the self-service portal. Leave unticked to keep it internal.',
+        'share_hint_no_mailbox' => 'This person has no email address, so a shared note is the only way to reach them. They will see it in the portal.',
     ],
 
     'reply_modal' => [

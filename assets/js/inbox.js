@@ -3035,6 +3035,23 @@ function renderNotes() {
 // Open note modal
 function openNoteModal() {
     document.getElementById('noteText').value = '';
+
+    // Always reset to INTERNAL. Leaving it ticked from a previous note is how
+    // somebody shares an internal remark with a customer by accident.
+    const shared = document.getElementById('noteShared');
+    if (shared) shared.checked = false;
+
+    // If the requester has no mailbox, a shared note is the only way to reach
+    // them at all — so say so here rather than leaving them to work it out.
+    const hint = document.getElementById('noteSharedHint');
+    if (hint) {
+        const noMailbox = currentEmail && !currentEmail.from_address && !currentEmail.requester_email;
+        hint.textContent = noMailbox
+            ? t('tickets.note_modal.share_hint_no_mailbox')
+            : t('tickets.note_modal.share_hint');
+        hint.style.color = noMailbox ? '#b45309' : '#666';
+    }
+
     document.getElementById('noteModal').classList.add('active');
 }
 
@@ -3059,7 +3076,11 @@ async function saveNote() {
             body: JSON.stringify({
                 ticket_id: currentEmail.ticket_id,
                 note_text: noteText,
-                is_internal: true
+                // Ticked = the requester reads this in the self-service portal.
+                // Defaults to unticked, so a note is internal unless someone
+                // deliberately says otherwise — the behaviour this replaced,
+                // and the safe direction.
+                is_internal: !document.getElementById('noteShared').checked
             })
         });
         const data = await response.json();
