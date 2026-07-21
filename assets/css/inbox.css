@@ -530,6 +530,16 @@ body {
     background: var(--surface, #fff);
     display: flex;
     flex-direction: column;
+    /* THE FLEXBOX min-width:auto TRAP.
+       A flex item defaults to min-width:auto, which means it refuses to shrink
+       below its widest content. One unbreakable string — a bounce email's
+       microsoftexchange329e...@domain address, a long URL, a wide table — and this
+       pane grows to thousands of pixels instead of scrolling, pushing the action
+       toolbar (and everything else) off the right of the screen. Measured: 702px on
+       an ordinary ticket, 5234px on one containing an Office 365 bounce.
+       min-width:0 lets it shrink to its flex share; long content then wraps or
+       scrolls inside, which is what the layout always intended. */
+    min-width: 0;
 }
 
 .reading-pane-empty {
@@ -906,6 +916,12 @@ body.ticket-popout .ticket-toolbar {
     border-bottom: 1px solid var(--border, #e0e0e0);
     display: flex;
     gap: 8px;
+    /* Eleven buttons on one non-wrapping row will always spill off the right
+       eventually — a narrow reading pane, a long translation, or one more button
+       added later. Shortening a label only buys time; wrapping fixes the class of
+       problem. Buttons flow onto a second line instead of disappearing. */
+    flex-wrap: wrap;
+    row-gap: 8px;
 }
 
 .action-btn {
