@@ -164,6 +164,32 @@ return [
         'share_hint_no_mailbox' => 'Esta pessoa não tem e-mail, então uma nota compartilhada é a única forma de contatá-la. Ela verá isto no portal.',
     ],
     // Seleção múltipla + ações em massa na lista de tickets (#910)
+    // Divisão de tickets (#914). "mais recentes", nunca "seguintes": a conversa é
+    // exibida do mais recente para o mais antigo.
+    'split' => [
+        'from_here'       => 'Dividir',
+        'from_here_title' => 'Dividir esta mensagem em um novo ticket',
+        'title'           => 'Dividir em um novo ticket',
+        'intro'           => 'As mensagens abaixo serão movidas para um ticket totalmente novo. Este mantém o restante, com uma nota indicando para onde foram.',
+        'include_newer'      => 'Incluir também as mensagens mais recentes',
+        'include_newer_one'  => 'Incluir também a 1 mensagem mais recente',
+        'include_newer_n'    => 'Incluir também as %d mensagens mais recentes',
+        'include_newer_none' => 'Não há mensagens mais recentes',
+        'will_move'       => 'Movendo para o novo ticket',
+        'loading'         => 'Calculando o que será movido…',
+        'none'            => 'Nenhuma mensagem selecionada',
+        'subject'         => 'Assunto do novo ticket',
+        'subject_help'    => 'Usa por padrão a primeira mensagem movida. Vale reescrever — normalmente é um "RE:" do problema antigo, não do novo.',
+        'confirm'         => 'Dividir',
+        'done'            => '%d mensagens movidas para %s',
+        'would_empty'     => 'Isso moveria todas as mensagens e deixaria este ticket vazio. Mantenha ao menos uma mensagem aqui, ou mescle o ticket.',
+        'banner_from_one' => 'Dividido a partir de 1 mensagem de',
+        'banner_from'     => 'Dividido a partir de %d mensagens de',
+        'banner_out_one'  => 'Mensagens foram divididas para:',
+        'banner_out'      => 'Mensagens foram divididas para %d tickets:',
+        'done_one'        => '1 mensagem movida para %s',
+    ],
+
     // Mesclagem de tickets (#912)
     'merge' => [
         'title'                   => 'Mesclar tickets',
@@ -196,7 +222,8 @@ return [
         'banner_away_title'       => 'Este ticket foi mesclado.',
         'banner_away_body'        => 'A conversa continua em outro lugar. Responder aqui não chegará ao solicitante.',
         'banner_go'               => 'Ir para %s',
-        'banner_in'               => 'Responde por %d ticket(s) mesclado(s):',
+        'banner_in_one'           => 'Responde por 1 ticket mesclado:',
+        'banner_in'               => 'Responde por %d tickets mesclados:',
     ],
 
     'bulk' => [

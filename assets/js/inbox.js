@@ -2398,13 +2398,43 @@ function buildMergeBanner(email) {
         </div>`;
     }
 
+    // Split banners. Quieter than the merged-away one: nothing here is a redirect,
+    // both tickets are live, and this is context rather than a warning.
+    if (email.split_from && email.split_from.source_ticket_number) {
+        const ref = email.split_from.source_ticket_number;
+        return `
+        <div class="merge-banner merge-banner-in">
+            <span class="merge-banner-icon">⑂</span>
+            <div class="merge-banner-text">
+                ${escapeHtml(splitPlural(email.split_from.message_count || 0, 'tickets.split.banner_from'))}
+                <span class="merge-banner-refs">${escapeHtml(ref)}</span>
+            </div>
+            <button type="button" class="btn btn-secondary merge-banner-btn"
+                    onclick="openTicketByNumber('${escapeHtml(ref).replace(/'/g, "\\'")}')">
+                ${escapeHtml(t('tickets.merge.banner_go').replace('%s', ref))}
+            </button>
+        </div>`;
+    }
+
+    if (Array.isArray(email.split_out) && email.split_out.length) {
+        const refs = email.split_out.map(s => escapeHtml(s.new_ticket_number || ('#' + s.new_ticket_id))).join(', ');
+        return `
+        <div class="merge-banner merge-banner-in">
+            <span class="merge-banner-icon">⑂</span>
+            <div class="merge-banner-text">
+                ${escapeHtml(splitPlural(email.split_out.length, 'tickets.split.banner_out'))}
+                <span class="merge-banner-refs">${refs}</span>
+            </div>
+        </div>`;
+    }
+
     if (Array.isArray(email.merged_in) && email.merged_in.length) {
         const refs = email.merged_in.map(m => escapeHtml(m.source_ticket_number || ('#' + m.source_ticket_id))).join(', ');
         return `
         <div class="merge-banner merge-banner-in">
             <span class="merge-banner-icon">⤴</span>
             <div class="merge-banner-text">
-                ${escapeHtml(t('tickets.merge.banner_in').replace('%d', String(email.merged_in.length)))}
+                ${escapeHtml(splitPlural(email.merged_in.length, 'tickets.merge.banner_in'))}
                 <span class="merge-banner-refs">${refs}</span>
             </div>
         </div>`;
@@ -2632,6 +2662,15 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                         <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${escapeHtml(isOutbound ? t('tickets.reading_pane.badge_sent') : t('tickets.reading_pane.badge_received'))}</span>
                         <strong>${senderLabel(e.from_name, e.from_address, false)}</strong>
                         ${e.from_address ? '&lt;' + escapeHtml(e.from_address) + '&gt; ' : ''}&mdash; ${formatFullDateTime(e.received_datetime)}
+                        ${/* Split starts FROM a message, so the control belongs on the
+                              message — not in the toolbar, where you would first have to
+                              say which one. Revealed on hover: it is an occasional action
+                              and eleven of them would shout over the conversation. */''}
+                        <button type="button" class="thread-split-btn" title="${escapeHtml(t('tickets.split.from_here_title'))}"
+                                onclick="openSplitModal(${ticketId}, ${e.id})">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v6a3 3 0 0 0 3 3h6"/><path d="M6 21v-6"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="12" r="3"/></svg>
+                            <span>${escapeHtml(t('tickets.split.from_here'))}</span>
+                        </button>
                     </div>
                     ${emailBodyHost(e.body_content, 'thread-message-body', e.body_type)}
                 `;
@@ -3960,6 +3999,167 @@ function closeEmailModal() {
     renderAttachments();
     hideReplyCleanupUndoBar();
     closeReplyTemplateMenu();
+}
+
+// ===========================================================================
+// Splitting a ticket (#914)
+// ===========================================================================
+//
+// Reached from a message in the thread, because a split starts FROM a message —
+// putting it in the toolbar would mean asking "which one?" first.
+//
+// ⚠️ THE THREAD IS RENDERED NEWEST-FIRST. "Everything after" in the data sense
+// means LATER IN TIME, which appears ABOVE the chosen message on screen. Every
+// user-facing string here says "newer" rather than "after" for that reason —
+// "after" would point the analyst's eye the wrong way down the page.
+
+let splitTicketId  = null;
+let splitEmailId   = null;
+let splitPreviewMessages = [];
+
+/**
+ * Pick the singular or plural translation for a count.
+ *
+ * "1 message(s)" reads as a bug to anyone who sees it, and these counts are shown
+ * at the exact moment an analyst is deciding whether to commit. Convention: the
+ * base key is the plural and `<key>_one` is the singular.
+ */
+function splitPlural(n, baseKey) {
+    const count = Number(n) || 0;
+    if (count === 1) {
+        const one = t(baseKey + '_one');
+        // t() echoes the key back when it is missing; fall through rather than
+        // printing "tickets.split.done_one" at somebody.
+        if (one && one !== baseKey + '_one') return one;
+    }
+    return t(baseKey).replace('%d', String(count));
+}
+
+async function openSplitModal(ticketId, emailId) {
+    splitTicketId = ticketId;
+    splitEmailId  = emailId;
+
+    document.getElementById('splitIncludeNewer').checked = false;
+    document.getElementById('splitSubject').value = '';
+    document.getElementById('splitWarning').style.display = 'none';
+    document.getElementById('splitConfirmBtn').disabled = false;
+    document.getElementById('splitModal').classList.add('active');
+
+    await refreshSplitPreview();
+}
+
+function closeSplitModal() {
+    document.getElementById('splitModal').classList.remove('active');
+}
+
+/** Ask the server what would move. Never counted client-side — see the endpoint. */
+async function refreshSplitPreview() {
+    if (!splitTicketId || !splitEmailId) return;
+    const includeNewer = document.getElementById('splitIncludeNewer').checked ? 1 : 0;
+    const list = document.getElementById('splitPreviewList');
+    list.innerHTML = '<div class="split-preview-empty">' + escapeHtml(t('tickets.split.loading')) + '</div>';
+
+    try {
+        const res = await fetch(API_BASE + 'split_ticket_preview.php?ticket_id=' + splitTicketId
+            + '&from_email_id=' + splitEmailId + '&include_newer=' + includeNewer);
+        const data = await res.json();
+        if (!data.success) {
+            list.innerHTML = '<div class="split-preview-empty">' + escapeHtml(data.error || 'Could not load') + '</div>';
+            return;
+        }
+
+        splitPreviewMessages = data.messages || [];
+        list.innerHTML = splitPreviewMessages.map(m => `
+            <div class="split-preview-row">
+                <span class="split-preview-dir ${String(m.direction).toLowerCase() === 'outbound' ? 'outbound' : 'inbound'}">${escapeHtml(m.direction || '')}</span>
+                <span class="split-preview-who">${escapeHtml(m.from_name || m.from_address || '')}</span>
+                <span class="split-preview-when">${escapeHtml(formatFullDateTime(m.received_datetime))}</span>
+            </div>`).join('') || ('<div class="split-preview-empty">' + escapeHtml(t('tickets.split.none')) + '</div>');
+
+        // How many newer messages there are, so the checkbox states the real number
+        // rather than a vague "and the rest". Counted from the ticked preview when
+        // it is ticked, and asked for separately when it is not — otherwise the
+        // label would read "0 newer messages" whenever the box was clear.
+        let newerCount = includeNewer
+            ? Math.max(0, splitPreviewMessages.length - 1)
+            : await splitCountNewer();
+        const lbl = document.getElementById('splitIncludeNewerLabel');
+        const box = document.getElementById('splitIncludeNewer');
+        if (newerCount === 0) {
+            lbl.textContent = t('tickets.split.include_newer_none');
+            box.disabled = true;              // nothing to include; don't offer it
+        } else {
+            box.disabled = false;
+            lbl.textContent = newerCount === 1
+                ? t('tickets.split.include_newer_one')
+                : t('tickets.split.include_newer_n').replace('%d', String(newerCount));
+        }
+
+        // Default the subject from the first message being moved — usually the
+        // customer saying what the new problem is.
+        const subjBox = document.getElementById('splitSubject');
+        if (!subjBox.value && splitPreviewMessages.length) {
+            subjBox.value = splitPreviewMessages[0].subject || '';
+        }
+
+        const warn = document.getElementById('splitWarning');
+        if (data.would_empty) {
+            warn.textContent = t('tickets.split.would_empty');
+            warn.style.display = '';
+            document.getElementById('splitConfirmBtn').disabled = true;
+        } else {
+            warn.style.display = 'none';
+            document.getElementById('splitConfirmBtn').disabled = false;
+        }
+    } catch (e) {
+        list.innerHTML = '<div class="split-preview-empty">Could not load</div>';
+    }
+}
+
+/** How many messages are newer than the chosen one, for the checkbox label. */
+async function splitCountNewer() {
+    try {
+        const res = await fetch(API_BASE + 'split_ticket_preview.php?ticket_id=' + splitTicketId
+            + '&from_email_id=' + splitEmailId + '&include_newer=1');
+        const data = await res.json();
+        return data.success ? Math.max(0, (data.messages || []).length - 1) : 0;
+    } catch (e) {
+        return 0;
+    }
+}
+
+async function confirmSplit() {
+    const btn = document.getElementById('splitConfirmBtn');
+    btn.disabled = true;
+    try {
+        const res = await fetch(API_BASE + 'split_ticket.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ticket_id: splitTicketId,
+                from_email_id: splitEmailId,
+                include_newer: document.getElementById('splitIncludeNewer').checked,
+                subject: document.getElementById('splitSubject').value
+            })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || 'Split failed', 'error');
+            btn.disabled = false;
+            return;
+        }
+        showToast(splitPlural(data.moved, 'tickets.split.done').replace('%s', data.new_ticket_number), 'success');
+        closeSplitModal();
+
+        await loadEmails();
+        if (typeof loadFolderCounts === 'function') loadFolderCounts();
+        // Land on the NEW ticket: it is the thing that did not exist a moment ago and
+        // the one that now needs triage.
+        selectEmailByTicketId(data.new_ticket_id);
+    } catch (e) {
+        showToast('Split failed', 'error');
+        btn.disabled = false;
+    }
 }
 
 // ===========================================================================

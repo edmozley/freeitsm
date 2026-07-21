@@ -188,6 +188,34 @@ return [
         'share_hint_no_mailbox' => 'This person has no email address, so a shared note is the only way to reach them. They will see it in the portal.',
     ],
 
+    // Splitting a ticket (#914). Note "newer", never "after": the thread is shown
+    // newest-first, so later-in-time messages appear ABOVE the chosen one.
+    'split' => [
+        'from_here'         => 'Split',
+        'from_here_title'   => 'Split this message into a new ticket',
+        'title'             => 'Split into a new ticket',
+        'intro'             => 'The messages below will move to a brand-new ticket. This one keeps the rest, with a note showing where they went.',
+        'include_newer'     => 'Include newer messages too',
+        // Separate singular/plural rather than "message(s)" — the count is shown to
+        // the analyst at the moment they decide, and "1 message(s)" reads as a bug.
+        'include_newer_one' => 'Include the 1 newer message too',
+        'include_newer_n'   => 'Include the %d newer messages too',
+        'include_newer_none'=> 'There are no newer messages',
+        'will_move'         => 'Moving to the new ticket',
+        'loading'           => 'Working out what will move…',
+        'none'              => 'No messages selected',
+        'subject'           => 'Subject for the new ticket',
+        'subject_help'      => 'Defaults to the first moved message. Worth rewriting — it is usually a "RE:" of the old problem, not the new one.',
+        'confirm'           => 'Split',
+        'done'              => 'Moved %d messages to %s',
+        'would_empty'       => 'That would move every message and leave this ticket empty. Keep at least one message here, or merge the ticket instead.',
+        'banner_from_one'   => 'Split from 1 message on',
+        'banner_from'       => 'Split from %d messages on',
+        'banner_out_one'    => 'Messages were split out to:',
+        'banner_out'        => 'Messages were split out to %d tickets:',
+        'done_one'          => 'Moved 1 message to %s',
+    ],
+
     // Merging tickets (#912)
     'merge' => [
         'title'                 => 'Merge tickets',
@@ -220,7 +248,8 @@ return [
         'banner_away_title'     => 'This ticket has been merged.',
         'banner_away_body'      => 'Its conversation continues elsewhere. Replying here will not reach the requester.',
         'banner_go'             => 'Go to %s',
-        'banner_in'             => 'Answers for %d merged ticket(s):',
+        'banner_in_one'         => 'Answers for 1 merged ticket:',
+        'banner_in'             => 'Answers for %d merged tickets:',
     ],
 
     // Multi-select + bulk actions in the ticket list (#910)

@@ -591,6 +591,28 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     CONSTRAINT `fk_tickets_merged_into` FOREIGN KEY (`merged_into_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- One split: messages moved OUT of a ticket into a new one. The mirror of
+-- ticket_merges. Note the asymmetry: a split creates a reference nobody has ever
+-- seen, so unlike a merge there is nothing to redirect and both tickets stay live.
+-- message_count is denormalised because it cannot be recomputed once those messages
+-- move again.
+CREATE TABLE IF NOT EXISTS `ticket_splits` (
+    `id`                   INT NOT NULL AUTO_INCREMENT,
+    `source_ticket_id`     INT NOT NULL,
+    `source_ticket_number` VARCHAR(50) NULL,
+    `new_ticket_id`        INT NOT NULL,
+    `new_ticket_number`    VARCHAR(50) NULL,
+    `message_count`        INT NOT NULL DEFAULT 0,
+    `split_by_id`          INT NULL,
+    `split_datetime`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_ticket_splits_source` (`source_ticket_id`),
+    KEY `ix_ticket_splits_new` (`new_ticket_id`),
+    CONSTRAINT `fk_ticket_splits_source` FOREIGN KEY (`source_ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ticket_splits_new` FOREIGN KEY (`new_ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ticket_splits_analyst` FOREIGN KEY (`split_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- One merge: which ticket was folded away, and into what. Never deleted — this is
 -- what answers "whatever happened to ABC?" and what redirects inbound email still
 -- quoting the old [SDREF:ABC-...] from notifications sent before the merge.

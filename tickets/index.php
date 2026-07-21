@@ -29,7 +29,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.title')); ?> - <?php echo htmlspecialchars(t('tickets.nav.inbox')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=22">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=49">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=50">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=29">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -176,6 +176,42 @@ $translationNamespaces = ['common', 'tickets'];
                     <?php echo htmlspecialchars(t('tickets.reply_modal.cleanup')); ?>
                 </button>
                 <button class="btn btn-primary" onclick="sendEmail()" id="replySendBtn"><?php echo htmlspecialchars(t('tickets.reply_modal.send')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <?php /* Split a ticket (#914). The message list is fetched from the server rather
+             than counted in JS, so what the dialog promises and what the split does
+             are computed by the same function. */ ?>
+    <div class="modal" id="splitModal">
+        <div class="modal-content" style="max-width: 620px;">
+            <div class="modal-header"><?php echo htmlspecialchars(t('tickets.split.title')); ?></div>
+            <div class="modal-body">
+                <p style="margin:0 0 14px;color:var(--text-muted,#666);font-size:13px;"><?php echo htmlspecialchars(t('tickets.split.intro')); ?></p>
+
+                <div class="form-group">
+                    <label class="form-label" style="display:flex;align-items:center;gap:8px;font-weight:500;cursor:pointer;">
+                        <input type="checkbox" id="splitIncludeNewer" style="width:auto;margin:0;" onchange="refreshSplitPreview()">
+                        <span id="splitIncludeNewerLabel"><?php echo htmlspecialchars(t('tickets.split.include_newer')); ?></span>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><?php echo htmlspecialchars(t('tickets.split.will_move')); ?></label>
+                    <div id="splitPreviewList" class="split-preview"></div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="splitSubject"><?php echo htmlspecialchars(t('tickets.split.subject')); ?></label>
+                    <input type="text" class="form-input" id="splitSubject" maxlength="255" autocomplete="off">
+                    <small style="color:var(--text-muted,#666);"><?php echo htmlspecialchars(t('tickets.split.subject_help')); ?></small>
+                </div>
+
+                <div class="info-box" id="splitWarning" style="display:none;margin-top:6px;padding:10px 13px;border-radius:6px;background:var(--warning-bg,#fff4e5);border-left:4px solid var(--warning-border,#ffd9a8);color:var(--warning-text,#8a5300);font-size:12.5px;"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSplitModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="splitConfirmBtn" onclick="confirmSplit()"><?php echo htmlspecialchars(t('tickets.split.confirm')); ?></button>
             </div>
         </div>
     </div>
@@ -579,7 +615,7 @@ $translationNamespaces = ['common', 'tickets'];
     </script>
     <!-- Must load BEFORE inbox.js: it cleans every untrusted message body. -->
     <script src="../assets/js/safe-html.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=65"></script>
+    <script src="../assets/js/inbox.js?v=68"></script>
     <script src="../assets/js/mobile.js?v=12"></script>
     <script>
     // Auto-check mailboxes every 60 seconds

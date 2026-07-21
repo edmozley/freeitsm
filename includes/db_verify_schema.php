@@ -791,6 +791,34 @@ return [
     ],
 
     /**
+     * One split: messages that were moved OUT of a ticket into a new one.
+     *
+     * The mirror of ticket_merges, and needed for the same reason: "why does this
+     * conversation jump from Tuesday to Friday?" must be answerable. The original
+     * also carries an inline marker message where the split happened, but that is a
+     * display convenience — this is the record.
+     *
+     * NOTE the asymmetry with merging. A merge leaves a REDIRECT, because the
+     * merged-away reference is one the customer already holds and may reply to. A
+     * split creates a reference nobody has ever seen, so there is nothing to redirect
+     * and no equivalent of merged_into_id: both tickets stay live and independent.
+     *
+     * message_count is denormalised on purpose — it is the one fact you want when
+     * reading the log ("four messages left here") and recomputing it later is
+     * impossible once those messages have moved on again.
+     */
+    'ticket_splits' => [
+        'id'                   => 'INT NOT NULL AUTO_INCREMENT',
+        'source_ticket_id'     => 'INT NOT NULL',
+        'source_ticket_number' => 'VARCHAR(50) NULL',
+        'new_ticket_id'        => 'INT NOT NULL',
+        'new_ticket_number'    => 'VARCHAR(50) NULL',
+        'message_count'        => 'INT NOT NULL DEFAULT 0',
+        'split_by_id'          => 'INT NULL',
+        'split_datetime'       => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    /**
      * Canned responses an ANALYST inserts into a reply by hand.
      *
      * Not to be confused with `ticket_email_templates` directly above, which is the

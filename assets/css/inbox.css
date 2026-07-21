@@ -3664,3 +3664,45 @@ body.ticket-popout .ticket-toolbar {
     color: var(--text-muted, #555);
     font-size: 12.5px;
 }
+
+/* --- Splitting a ticket (#914) --- */
+
+/* The per-message split control. Hidden until the message is hovered: an
+   occasional action, and one on every message would shout over the conversation. */
+.thread-split-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-left: 10px; padding: 2px 7px;
+    background: none; border: 1px solid transparent; border-radius: 4px;
+    color: var(--text-muted, #666); font-size: 11px; cursor: pointer;
+    opacity: 0; transition: opacity 0.12s ease;
+}
+.thread-meta:hover .thread-split-btn { opacity: 1; }
+.thread-split-btn:hover {
+    background: var(--surface-3, #f2f2f2);
+    border-color: var(--border, #ddd);
+    color: var(--accent, #0078d4);
+}
+/* Keyboard users never hover, so focus must reveal it too. */
+.thread-split-btn:focus-visible { opacity: 1; outline: 2px solid var(--accent, #0078d4); }
+
+/* The dialog's list of what will move. */
+.split-preview {
+    border: 1px solid var(--border, #ddd); border-radius: 6px;
+    max-height: 190px; overflow-y: auto;
+    background: var(--surface-2, #fafafa);
+}
+.split-preview-row {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 7px 11px; font-size: 12.5px;
+    border-bottom: 1px solid var(--border, #ececec);
+}
+.split-preview-row:last-child { border-bottom: none; }
+.split-preview-dir {
+    flex: 0 0 auto; font-size: 10px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.3px; padding: 1px 6px; border-radius: 9px;
+}
+.split-preview-dir.inbound  { background: var(--accent-soft, #eff6ff); color: var(--accent, #0078d4); }
+.split-preview-dir.outbound { background: var(--surface-3, #eee); color: var(--text-muted, #666); }
+.split-preview-who  { font-weight: 600; color: var(--text, #333); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.split-preview-when { margin-left: auto; color: var(--text-muted, #666); white-space: nowrap; }
+.split-preview-empty { padding: 10px 12px; font-size: 12px; color: var(--text-faint, #999); }

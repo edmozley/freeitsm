@@ -216,6 +216,17 @@ try {
         $email['merged_in'] = $ms->fetchAll(PDO::FETCH_ASSOC);
     } catch (Exception $e) { /* pre-upgrade install */ }
 
+    // Split state, both directions: what was split OUT of this ticket, and whether
+    // this ticket was itself split off another one.
+    $email['split_out']  = [];
+    $email['split_from'] = null;
+    try {
+        require_once '../../includes/ticket_split.php';
+        $si = splitInfoFor($conn, (int) $email['ticket_id']);
+        $email['split_out']  = $si['split_out'];
+        $email['split_from'] = $si['split_from'];
+    } catch (Exception $e) { /* pre-upgrade install */ }
+
     // Screen recordings attached to the ticket
     $recordings = [];
     try {

@@ -962,6 +962,19 @@ try {
         }
     }
 
+    // ticket_splits: the mirror of ticket_merges, same FK reasoning.
+    if ($tableExists('ticket_splits')) {
+        if ($tableExists('tickets') && !$fkExists('ticket_splits', 'fk_ticket_splits_source')) {
+            try { $conn->exec("ALTER TABLE ticket_splits ADD CONSTRAINT fk_ticket_splits_source FOREIGN KEY (source_ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+        if ($tableExists('tickets') && !$fkExists('ticket_splits', 'fk_ticket_splits_new')) {
+            try { $conn->exec("ALTER TABLE ticket_splits ADD CONSTRAINT fk_ticket_splits_new FOREIGN KEY (new_ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+        if ($tableExists('analysts') && !$fkExists('ticket_splits', 'fk_ticket_splits_analyst')) {
+            try { $conn->exec("ALTER TABLE ticket_splits ADD CONSTRAINT fk_ticket_splits_analyst FOREIGN KEY (split_by_id) REFERENCES analysts (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+    }
+
     // tickets.merged_into_id is a SELF-reference, and deliberately SET NULL rather
     // than CASCADE: hard-deleting a surviving ticket must never drag the tickets that
     // were merged into it out of the database along with it.
