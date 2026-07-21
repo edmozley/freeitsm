@@ -1300,6 +1300,7 @@ return [
             'overview'             => 'Overview',
             'inbox'                => 'The inbox',
             'working_with_tickets' => 'Working with tickets',
+            'working_faster'       => 'Working faster',
             'comments_attachments' => 'Comments &amp; attachments',
             'ai_tools'             => 'AI tools',
             'csat'                 => 'CSAT surveys',
@@ -1336,6 +1337,38 @@ return [
             'p_actions'      => 'Above the ticket list, you have three action buttons: <strong>New</strong> to create a ticket, <strong>Search</strong> to find tickets by keyword, reference, or requester, and <strong>Refresh</strong> to reload the current folder.',
             'tip'            => 'Click any ticket in the list to load it in the reading pane. From there you can update fields, add comments, reply by email, or attach files &mdash; all without navigating away from the inbox.',
         ],
+        // Section 4 — the analyst speed-ups added in #909–#916.
+        'faster' => [
+            'heading' => 'Working faster',
+            'intro'   => 'Four things that turn a busy morning into a manageable one: saved replies, acting on many tickets at once, and putting conversations where they belong.',
+
+            'templates_heading' => 'Canned responses',
+            'templates_body'    => 'You send the same handful of replies constantly. Write one once, then click <strong>Templates</strong> above the reply editor to drop it in at your cursor &mdash; it adds to what you have already typed rather than replacing it. Templates are rich text and support the same <code>[merge_code]</code> placeholders as the automated emails, so <code>[requester_first_name]</code> becomes the real name as you insert it.',
+            'templates_team'    => '<strong>Team templates</strong> &mdash; shared with everyone, set up in Settings &rarr; Reply templates.',
+            'templates_mine'    => '<strong>Your own</strong> &mdash; save a draft with <em>Save draft as template</em>. Private to you, and no permission needed.',
+            'templates_tip'     => 'Name a template for the situation ("Printer offline &mdash; first steps"), not for its wording. It is what you will be scanning for at 9am.',
+
+            'select_heading' => 'Selecting several tickets',
+            'select_body'    => 'The ticket list works like Outlook or File Explorer. No checkboxes.',
+            'key_click'      => 'Click',      'key_click_d' => 'select one and open it',
+            'key_ctrl'       => 'Ctrl+click', 'key_ctrl_d'  => 'add or remove one, leaving the rest alone',
+            'key_shift'      => 'Shift+click','key_shift_d' => 'select a whole block from where you last clicked',
+            'key_kb'         => 'Keyboard',   'key_kb_d'    => 'arrows to move, Shift+arrows to extend, Ctrl+arrows and Space to pick out scattered tickets, Ctrl+A for everything, Escape to clear',
+            'select_actions' => 'With several selected, <strong>right-click any of them</strong> to set status, priority, department, type or assignee for all of them at once &mdash; or drag the whole set onto a folder. What the screen shows while several are selected is your choice, in the account menu under Preferences.',
+            'select_tip'     => 'Right-clicking a ticket that is <em>not</em> in your selection clears the selection and targets just that one. That is deliberate &mdash; you can never act on a set you thought you had moved on from.',
+
+            'merge_heading' => 'Merging duplicates',
+            'merge_body'    => 'Two people reported the same outage? Select the tickets, right-click, <strong>Merge</strong>. The conversations come together, and if you have an AI provider configured FreeITSM writes a short briefing of what everyone asked and what has already been done, so whoever picks it up does not have to read four threads.',
+            'merge_tip'     => 'Nothing is ever deleted. The merged-away ticket keeps its reference, stays searchable, shows where it went &mdash; and a customer replying to an old email about it still reaches you.',
+
+            'split_heading' => 'Splitting a ticket',
+            'split_body'    => 'The opposite job. When someone raises a second, unrelated thing halfway down a conversation, click <strong>Split</strong> on that message (or right-click the message header). It moves to a new ticket, optionally taking every newer message with it, and the original keeps a marker showing where they went.',
+            'split_tip'     => 'Give the new ticket a proper subject. It defaults to the moved message&rsquo;s, which is usually a "RE:" of the <em>old</em> problem.',
+
+            'undo_heading' => 'Changed your mind',
+            'undo_body'    => 'Both can be undone from the banner on the ticket. Undoing a <strong>split</strong> is refused once somebody has replied on the new ticket, added a note or logged time &mdash; you are told exactly what is in the way. Undoing a <strong>merge</strong> gives the ticket its messages, notes and logged time back and reopens it exactly as it was, but replies written on the other ticket since the merge stay there.',
+        ],
+
         'working' => [
             'heading' => 'Working with tickets',
             'intro'   => 'Every support request follows a lifecycle: it is created, triaged, worked on, and eventually resolved. The Tickets module gives you the tools to manage each stage efficiently, from initial logging through to closure.',

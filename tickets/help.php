@@ -453,46 +453,50 @@ try {
                 <span class="tk-help-nav-num">3</span>
                 <?php echo t('tickets.help.nav.working_with_tickets'); ?>
             </a>
-            <a href="#comments-attachments" class="tk-help-nav-link" data-section="comments-attachments">
+            <a href="#working-faster" class="tk-help-nav-link" data-section="working-faster">
                 <span class="tk-help-nav-num">4</span>
+                <?php echo t('tickets.help.nav.working_faster'); ?>
+            </a>
+            <a href="#comments-attachments" class="tk-help-nav-link" data-section="comments-attachments">
+                <span class="tk-help-nav-num">5</span>
                 <?php echo t('tickets.help.nav.comments_attachments'); ?>
             </a>
             <a href="#ai-tools" class="tk-help-nav-link" data-section="ai-tools">
-                <span class="tk-help-nav-num">5</span>
+                <span class="tk-help-nav-num">6</span>
                 <?php echo t('tickets.help.nav.ai_tools'); ?>
             </a>
             <a href="#csat" class="tk-help-nav-link" data-section="csat">
-                <span class="tk-help-nav-num">6</span>
+                <span class="tk-help-nav-num">7</span>
                 <?php echo t('tickets.help.nav.csat'); ?>
             </a>
             <a href="#user-management" class="tk-help-nav-link" data-section="user-management">
-                <span class="tk-help-nav-num">7</span>
+                <span class="tk-help-nav-num">8</span>
                 <?php echo t('tickets.help.nav.user_management'); ?>
             </a>
             <a href="#dashboard" class="tk-help-nav-link" data-section="dashboard">
-                <span class="tk-help-nav-num">8</span>
+                <span class="tk-help-nav-num">9</span>
                 <?php echo t('tickets.help.nav.dashboard'); ?>
             </a>
             <a href="#calendar-rota" class="tk-help-nav-link" data-section="calendar-rota">
-                <span class="tk-help-nav-num">9</span>
+                <span class="tk-help-nav-num">10</span>
                 <?php echo t('tickets.help.nav.calendar_rota'); ?>
             </a>
             <a href="#settings" class="tk-help-nav-link" data-section="settings">
-                <span class="tk-help-nav-num">10</span>
+                <span class="tk-help-nav-num">11</span>
                 <?php echo t('tickets.help.nav.settings'); ?>
             </a>
             <a href="#tips" class="tk-help-nav-link" data-section="tips">
-                <span class="tk-help-nav-num">11</span>
+                <span class="tk-help-nav-num">12</span>
                 <?php echo t('tickets.help.nav.tips'); ?>
             </a>
             <?php if ($showTenancyHelp): ?>
             <a href="#companies" class="tk-help-nav-link" data-section="companies">
-                <span class="tk-help-nav-num">12</span>
+                <span class="tk-help-nav-num">13</span>
                 <?php echo t('tickets.help.nav.companies'); ?>
             </a>
             <?php endif; ?>
             <a href="#whatsapp" class="tk-help-nav-link" data-section="whatsapp">
-                <span class="tk-help-nav-num"><?php echo $showTenancyHelp ? 13 : 12; ?></span>
+                <span class="tk-help-nav-num"><?php echo $showTenancyHelp ? 14 : 13; ?></span>
                 WhatsApp channel
             </a>
         </div>
@@ -708,10 +712,52 @@ try {
                     <p class="tk-help-tip"><?php echo t('tickets.help.working.time_tip2'); ?></p>
                 </div>
 
-                <!-- Section 4: Comments & Attachments -->
+                <!-- Section 4: Working faster — templates, bulk actions, merge & split -->
+                <div class="tk-help-section tk-help-section-highlight" id="working-faster">
+                    <div class="tk-help-section-header">
+                        <span class="tk-help-section-num highlight">4</span>
+                        <h3><?php echo t('tickets.help.faster.heading'); ?></h3>
+                    </div>
+                    <p class="tk-help-intro"><?php echo t('tickets.help.faster.intro'); ?></p>
+
+                    <p><strong><?php echo t('tickets.help.faster.templates_heading'); ?></strong></p>
+                    <p><?php echo t('tickets.help.faster.templates_body'); ?></p>
+                    <ul>
+                        <li><?php echo t('tickets.help.faster.templates_team'); ?></li>
+                        <li><?php echo t('tickets.help.faster.templates_mine'); ?></li>
+                    </ul>
+                    <p class="tk-help-tip"><?php echo t('tickets.help.faster.templates_tip'); ?></p>
+
+                    <p><strong><?php echo t('tickets.help.faster.select_heading'); ?></strong></p>
+                    <p><?php echo t('tickets.help.faster.select_body'); ?></p>
+                    <?php /* tk-help-fields, not a table: the page already styles this
+                             pattern and inventing a new class would be a stylesheet
+                             change for one list. */ ?>
+                    <div class="tk-help-fields">
+                        <div><strong><?php echo t('tickets.help.faster.key_click'); ?></strong> &mdash; <?php echo t('tickets.help.faster.key_click_d'); ?></div>
+                        <div><strong><?php echo t('tickets.help.faster.key_ctrl'); ?></strong> &mdash; <?php echo t('tickets.help.faster.key_ctrl_d'); ?></div>
+                        <div><strong><?php echo t('tickets.help.faster.key_shift'); ?></strong> &mdash; <?php echo t('tickets.help.faster.key_shift_d'); ?></div>
+                        <div><strong><?php echo t('tickets.help.faster.key_kb'); ?></strong> &mdash; <?php echo t('tickets.help.faster.key_kb_d'); ?></div>
+                    </div>
+                    <p><?php echo t('tickets.help.faster.select_actions'); ?></p>
+                    <p class="tk-help-tip"><?php echo t('tickets.help.faster.select_tip'); ?></p>
+
+                    <p><strong><?php echo t('tickets.help.faster.merge_heading'); ?></strong></p>
+                    <p><?php echo t('tickets.help.faster.merge_body'); ?></p>
+                    <p class="tk-help-tip"><?php echo t('tickets.help.faster.merge_tip'); ?></p>
+
+                    <p><strong><?php echo t('tickets.help.faster.split_heading'); ?></strong></p>
+                    <p><?php echo t('tickets.help.faster.split_body'); ?></p>
+                    <p class="tk-help-tip"><?php echo t('tickets.help.faster.split_tip'); ?></p>
+
+                    <p><strong><?php echo t('tickets.help.faster.undo_heading'); ?></strong></p>
+                    <p><?php echo t('tickets.help.faster.undo_body'); ?></p>
+                </div>
+
+                <!-- Section 5: Comments & Attachments -->
                 <div class="tk-help-section" id="comments-attachments">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">4</span>
+                        <span class="tk-help-section-num">5</span>
                         <div>
                             <h3><?php echo t('tickets.help.comments.heading'); ?></h3>
                             <p><?php echo t('tickets.help.comments.intro'); ?></p>
@@ -752,7 +798,7 @@ try {
                 <!-- Section 5: AI tools -->
                 <div class="tk-help-section" id="ai-tools">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">5</span>
+                        <span class="tk-help-section-num">6</span>
                         <div>
                             <h3><?php echo t('tickets.help.ai.heading'); ?></h3>
                             <p><?php echo t('tickets.help.ai.intro'); ?></p>
@@ -781,7 +827,7 @@ try {
                 <!-- Section 6: CSAT surveys -->
                 <div class="tk-help-section" id="csat">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">6</span>
+                        <span class="tk-help-section-num">7</span>
                         <div>
                             <h3><?php echo t('tickets.help.csat.heading'); ?></h3>
                             <p><?php echo t('tickets.help.csat.intro'); ?></p>
@@ -837,7 +883,7 @@ try {
                 <!-- Section 7: User management -->
                 <div class="tk-help-section" id="user-management">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">7</span>
+                        <span class="tk-help-section-num">8</span>
                         <div>
                             <h3><?php echo t('tickets.help.users.heading'); ?></h3>
                             <p><?php echo t('tickets.help.users.intro'); ?></p>
@@ -865,7 +911,7 @@ try {
                 <!-- Section 8: Dashboard -->
                 <div class="tk-help-section" id="dashboard">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">8</span>
+                        <span class="tk-help-section-num">9</span>
                         <div>
                             <h3><?php echo t('tickets.help.dash.heading'); ?></h3>
                             <p><?php echo t('tickets.help.dash.intro'); ?></p>
@@ -904,7 +950,7 @@ try {
                 <!-- Section 9: Calendar & Rota (highlighted) -->
                 <div class="tk-help-section tk-help-section-highlight" id="calendar-rota">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num highlight">9</span>
+                        <span class="tk-help-section-num highlight">10</span>
                         <h3><?php echo t('tickets.help.cal_rota.heading'); ?></h3>
                     </div>
                     <p class="tk-help-intro"><?php echo t('tickets.help.cal_rota.intro'); ?></p>
@@ -946,7 +992,7 @@ try {
                 <!-- Section 10: Settings -->
                 <div class="tk-help-section" id="settings">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">10</span>
+                        <span class="tk-help-section-num">11</span>
                         <div>
                             <h3><?php echo t('tickets.help.settings.heading'); ?></h3>
                             <p><?php echo t('tickets.help.settings.intro'); ?></p>
@@ -1053,7 +1099,7 @@ try {
                 <!-- Section 11: Quick Tips -->
                 <div class="tk-help-section" id="tips">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">11</span>
+                        <span class="tk-help-section-num">12</span>
                         <h3><?php echo t('tickets.help.tips.heading'); ?></h3>
                     </div>
                     <div class="tk-help-tips-grid">
@@ -1112,7 +1158,7 @@ try {
                 <!-- Section 12: Companies & email routing (multi-tenancy) -->
                 <div class="tk-help-section" id="companies">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num">12</span>
+                        <span class="tk-help-section-num">13</span>
                         <div>
                             <h3><?php echo t('tickets.help.companies.heading'); ?></h3>
                             <p><?php echo t('tickets.help.companies.intro'); ?></p>
@@ -1216,7 +1262,7 @@ try {
                 <!-- WhatsApp channel -->
                 <div class="tk-help-section" id="whatsapp">
                     <div class="tk-help-section-header">
-                        <span class="tk-help-section-num"><?php echo $showTenancyHelp ? 13 : 12; ?></span>
+                        <span class="tk-help-section-num"><?php echo $showTenancyHelp ? 14 : 13; ?></span>
                         <div>
                             <h3>WhatsApp channel</h3>
                             <p>Let customers chat with an analyst over WhatsApp — each message becomes a ticket, just like email.</p>

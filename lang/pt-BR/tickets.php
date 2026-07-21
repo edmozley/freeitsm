@@ -1192,6 +1192,7 @@ Obrigado por entrar em contato conosco…',
             'overview' => 'Visão geral',
             'inbox' => 'A caixa de entrada',
             'working_with_tickets' => 'Trabalhando com tickets',
+            'working_faster'       => 'Trabalhando mais rápido',
             'comments_attachments' => 'Comentários &amp; anexos',
             'ai_tools' => 'Ferramentas de IA',
             'csat' => 'Pesquisas CSAT',
@@ -1228,6 +1229,38 @@ Obrigado por entrar em contato conosco…',
             'p_actions' => 'Acima da lista de tickets, você tem três botões de ação: <strong>Novo</strong> para criar um ticket, <strong>Pesquisar</strong> para encontrar tickets por palavra-chave, referência ou solicitante, e <strong>Atualizar</strong> para recarregar a pasta atual.',
             'tip' => 'Clique em qualquer ticket na lista para carregá-lo no painel de leitura. A partir dali, você pode atualizar campos, adicionar comentários, responder por e-mail ou anexar arquivos &mdash; tudo sem sair da caixa de entrada.',
         ],
+        // Seção 4 — os agilizadores para analistas (#909–#916).
+        'faster' => [
+            'heading' => 'Trabalhando mais rápido',
+            'intro'   => 'Quatro coisas que transformam uma manhã cheia em algo gerenciável: respostas salvas, agir em vários tickets de uma vez e colocar as conversas onde elas pertencem.',
+
+            'templates_heading' => 'Respostas prontas',
+            'templates_body'    => 'Você envia as mesmas poucas respostas o tempo todo. Escreva uma vez e clique em <strong>Modelos</strong> acima do editor de resposta para inseri-la na posição do cursor &mdash; ela é adicionada ao que você já escreveu, sem substituir. Os modelos são rich text e aceitam os mesmos códigos <code>[merge_code]</code> dos e-mails automáticos, então <code>[requester_first_name]</code> vira o nome real ao inserir.',
+            'templates_team'    => '<strong>Modelos da equipe</strong> &mdash; compartilhados com todos, configurados em Configurações &rarr; Modelos de resposta.',
+            'templates_mine'    => '<strong>Os seus</strong> &mdash; salve um rascunho com <em>Salvar rascunho como modelo</em>. Particular e sem necessidade de permissão.',
+            'templates_tip'     => 'Dê ao modelo um nome pela situação ("Impressora offline &mdash; primeiros passos"), não pelo texto. É o que você vai procurar às 9h.',
+
+            'select_heading' => 'Selecionar vários tickets',
+            'select_body'    => 'A lista de tickets funciona como o Outlook ou o Explorador de Arquivos. Sem caixas de seleção.',
+            'key_click'      => 'Clique',        'key_click_d' => 'seleciona um e o abre',
+            'key_ctrl'       => 'Ctrl+clique',   'key_ctrl_d'  => 'adiciona ou remove um, sem mexer nos demais',
+            'key_shift'      => 'Shift+clique',  'key_shift_d' => 'seleciona um bloco inteiro a partir do último clique',
+            'key_kb'         => 'Teclado',       'key_kb_d'    => 'setas para mover, Shift+setas para estender, Ctrl+setas e Espaço para escolher tickets avulsos, Ctrl+A para tudo, Esc para limpar',
+            'select_actions' => 'Com vários selecionados, <strong>clique com o botão direito em qualquer um</strong> para definir status, prioridade, departamento, tipo ou responsável de todos de uma vez &mdash; ou arraste o conjunto para uma pasta. O que a tela mostra enquanto vários estão selecionados é escolha sua, no menu da conta em Preferências.',
+            'select_tip'     => 'Clicar com o botão direito em um ticket que <em>não</em> está na seleção limpa a seleção e mira apenas nele. Isso é proposital &mdash; você nunca age sobre um conjunto que achava ter deixado para trás.',
+
+            'merge_heading' => 'Mesclar duplicados',
+            'merge_body'    => 'Duas pessoas relataram a mesma queda? Selecione os tickets, clique com o botão direito, <strong>Mesclar</strong>. As conversas se juntam e, se houver um provedor de IA configurado, o FreeITSM escreve um resumo do que cada um pediu e do que já foi feito, para quem assumir não precisar ler quatro conversas.',
+            'merge_tip'     => 'Nada é excluído. O ticket mesclado mantém sua referência, continua pesquisável, mostra para onde foi &mdash; e um cliente que responder a um e-mail antigo ainda chega até você.',
+
+            'split_heading' => 'Dividir um ticket',
+            'split_body'    => 'O trabalho oposto. Quando alguém levanta um segundo assunto no meio da conversa, clique em <strong>Dividir</strong> naquela mensagem (ou botão direito no cabeçalho dela). Ela vai para um novo ticket, opcionalmente levando todas as mensagens mais recentes, e o original mantém uma marca indicando para onde foram.',
+            'split_tip'     => 'Dê um assunto adequado ao novo ticket. O padrão é o da mensagem movida, que normalmente é um "RE:" do problema <em>antigo</em>.',
+
+            'undo_heading' => 'Mudou de ideia',
+            'undo_body'    => 'Ambos podem ser desfeitos pelo aviso no ticket. Desfazer uma <strong>divisão</strong> é recusado assim que alguém responde no novo ticket, adiciona uma nota ou registra tempo &mdash; e você é informado exatamente do que está no caminho. Desfazer uma <strong>mesclagem</strong> devolve mensagens, notas e tempo registrado e reabre o ticket exatamente como estava, mas as respostas escritas no outro ticket desde a mesclagem permanecem lá.',
+        ],
+
         'working' => [
             'heading' => 'Trabalhando com tickets',
             'intro' => 'Toda solicitação de suporte segue um ciclo de vida: ela é criada, triada, trabalhada e, por fim, resolvida. O módulo de Tickets oferece as ferramentas para gerenciar cada etapa com eficiência, do registro inicial até o encerramento.',
