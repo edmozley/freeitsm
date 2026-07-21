@@ -3667,14 +3667,18 @@ body.ticket-popout .ticket-toolbar {
 
 /* --- Splitting a ticket (#914) --- */
 
-/* The per-message split control. Hidden until the message is hovered: an
-   occasional action, and one on every message would shout over the conversation. */
+/* The per-message split control.
+   Originally hover-only, on the reasoning that it is an occasional action and one
+   per message would shout over the conversation. That was wrong: Ed went looking
+   for split, tried right-clicking, and never found it. A control nobody can find
+   is not a subtle control, it is a missing feature — so it is always visible, just
+   quiet, and comes up to full strength on hover. */
 .thread-split-btn {
     display: inline-flex; align-items: center; gap: 4px;
     margin-left: 10px; padding: 2px 7px;
-    background: none; border: 1px solid transparent; border-radius: 4px;
+    background: none; border: 1px solid var(--border, #ddd); border-radius: 4px;
     color: var(--text-muted, #666); font-size: 11px; cursor: pointer;
-    opacity: 0; transition: opacity 0.12s ease;
+    opacity: 0.72; transition: opacity 0.12s ease, background 0.12s ease, color 0.12s ease;
 }
 .thread-meta:hover .thread-split-btn { opacity: 1; }
 .thread-split-btn:hover {

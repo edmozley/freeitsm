@@ -2658,7 +2658,12 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                 const isOutbound = e.direction === 'Outbound';
                 return `
                     ${index > 0 ? '<div class="thread-separator"></div>' : ''}
-                    <div class="thread-meta">
+                    ${/* Right-click on the message HEADER opens split too — that is what
+                          an analyst reaches for, and it was the first thing Ed tried.
+                          Deliberately NOT on the message body: analysts copy text out of
+                          messages constantly, and stealing the browser's own context menu
+                          to save one click would be a bad trade. */''}
+                    <div class="thread-meta" oncontextmenu="event.preventDefault(); openSplitModal(${ticketId}, ${e.id}); return false;">
                         <span class="thread-direction-badge ${isOutbound ? 'outbound' : 'inbound'}">${escapeHtml(isOutbound ? t('tickets.reading_pane.badge_sent') : t('tickets.reading_pane.badge_received'))}</span>
                         <strong>${senderLabel(e.from_name, e.from_address, false)}</strong>
                         ${e.from_address ? '&lt;' + escapeHtml(e.from_address) + '&gt; ' : ''}&mdash; ${formatFullDateTime(e.received_datetime)}
