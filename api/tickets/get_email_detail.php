@@ -198,6 +198,24 @@ try {
         $email['linked_tickets'] = ticketLinksFor($conn, (int) $email['ticket_id']);
     } catch (Exception $e) { /* table not present yet */ }
 
+    // Merge state, both directions. `merged_away` is what drives the banner telling
+    // an analyst that this ticket is a redirect and where it points — the answer to
+    // "whatever happened to ABC?". `merged_in` lists what was folded INTO this one,
+    // so the surviving ticket can show which references it now answers for.
+    $email['merged_away'] = null;
+    $email['merged_in']   = [];
+    try {
+        require_once '../../includes/ticket_merge.php';
+        $email['merged_away'] = mergedAwayInfo($conn, (int) $email['ticket_id']);
+
+        $ms = $conn->prepare(
+            "SELECT source_ticket_id, source_ticket_number, merged_datetime
+               FROM ticket_merges WHERE target_ticket_id = ? ORDER BY id"
+        );
+        $ms->execute([(int) $email['ticket_id']]);
+        $email['merged_in'] = $ms->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) { /* pre-upgrade install */ }
+
     // Screen recordings attached to the ticket
     $recordings = [];
     try {

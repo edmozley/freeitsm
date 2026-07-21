@@ -947,6 +947,28 @@ try {
         }
     }
 
+    // ticket_merges: the merge log. CASCADE on either ticket being hard-deleted (the
+    // row describes a relationship between two tickets and means nothing without
+    // them), SET NULL on the analyst so a merge record survives a leaver.
+    if ($tableExists('ticket_merges')) {
+        if ($tableExists('tickets') && !$fkExists('ticket_merges', 'fk_ticket_merges_source')) {
+            try { $conn->exec("ALTER TABLE ticket_merges ADD CONSTRAINT fk_ticket_merges_source FOREIGN KEY (source_ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+        if ($tableExists('tickets') && !$fkExists('ticket_merges', 'fk_ticket_merges_target')) {
+            try { $conn->exec("ALTER TABLE ticket_merges ADD CONSTRAINT fk_ticket_merges_target FOREIGN KEY (target_ticket_id) REFERENCES tickets (id) ON DELETE CASCADE"); } catch (Exception $e) {}
+        }
+        if ($tableExists('analysts') && !$fkExists('ticket_merges', 'fk_ticket_merges_analyst')) {
+            try { $conn->exec("ALTER TABLE ticket_merges ADD CONSTRAINT fk_ticket_merges_analyst FOREIGN KEY (merged_by_id) REFERENCES analysts (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+        }
+    }
+
+    // tickets.merged_into_id is a SELF-reference, and deliberately SET NULL rather
+    // than CASCADE: hard-deleting a surviving ticket must never drag the tickets that
+    // were merged into it out of the database along with it.
+    if ($tableExists('tickets') && !$fkExists('tickets', 'fk_tickets_merged_into')) {
+        try { $conn->exec("ALTER TABLE tickets ADD CONSTRAINT fk_tickets_merged_into FOREIGN KEY (merged_into_id) REFERENCES tickets (id) ON DELETE SET NULL"); } catch (Exception $e) {}
+    }
+
     // Seed a default Mon-Fri 09:00-17:00 calendar in Europe/London if no
     // calendars exist yet. Detected installs that pre-date the SLA module
     // will pick this up on first verify; the freeitsm.sql seed handles fresh.

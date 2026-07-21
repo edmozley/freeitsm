@@ -136,6 +136,18 @@ return [
             'grant'     => 'Manage the shared reply templates the whole team can insert',
         ],
         [
+            // How merging behaves, install-wide. Deliberately NOT a per-analyst
+            // preference like the multi-select pane: whether a merge keeps the
+            // requester's reference alive decides what the CUSTOMER sees, so two
+            // analysts answering the same mailbox must not be able to disagree
+            // about it.
+            'id'           => 'merge-behaviour',
+            'cap'          => Cap::TICKETS_MERGE,
+            'label_key'    => 'tickets.settings.tabs.merge_behaviour',
+            'grant'        => 'Decide what happens to ticket references and conversations when tickets are merged',
+            'setting_keys' => ['merge_reference_mode', 'merge_originals_mode', 'merge_ai_summary'],
+        ],
+        [
             'id'        => 'rota',
             'cap'       => Cap::TICKETS_ROTA,
             'label_key' => 'tickets.settings.tabs.rota',

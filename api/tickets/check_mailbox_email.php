@@ -751,14 +751,32 @@ function extractTicketReference($subject) {
 }
 
 /**
- * Find existing ticket by number
+ * Find existing ticket by number.
+ *
+ * FOLLOWS MERGES. Every notification FreeITSM has ever sent carries [SDREF:ABC-…] in
+ * its subject, and those emails live in customers' inboxes forever. When ABC is later
+ * merged into DEF, a reply to any of them still quotes ABC — and without this it would
+ * append to a ticket that is closed, flagged as merged, and which nobody is watching.
+ * The customer would get silence.
+ *
+ * This is the single point every inbound reply passes through, which is exactly why
+ * the redirect belongs here rather than at each call site.
  */
 function findTicketByNumber($conn, $ticketNumber) {
     $sql = "SELECT id FROM tickets WHERE ticket_number = ?";
     $stmt = $conn->prepare($sql);
     $stmt->execute([$ticketNumber]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $result ? $result['id'] : null;
+    if (!$result) {
+        return null;
+    }
+
+    require_once __DIR__ . '/../../includes/ticket_merge.php';
+    $liveId = resolveMergedTicket($conn, (int)$result['id']);
+    if ($liveId !== (int)$result['id']) {
+        error_log("Inbound reply quoted $ticketNumber, which was merged — routing to ticket $liveId");
+    }
+    return $liveId;
 }
 
 /**

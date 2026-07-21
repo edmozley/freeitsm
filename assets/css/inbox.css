@@ -3571,3 +3571,57 @@ body.ticket-popout .ticket-toolbar {
     font-size: 13px; color: var(--text, #333); text-align: left;
 }
 .sel-dropdown-item:hover { background: var(--surface-3, #f5f5f5); }
+
+/* --- Merging tickets (#912) --- */
+
+/* Banner on a merged-AWAY ticket. Loud on purpose: this conversation has moved,
+   and an analyst who starts typing here is talking into a closed ticket. */
+.merge-banner {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px; margin: 0 0 2px;
+    font-size: 13px;
+}
+.merge-banner-away {
+    background: var(--warning-bg, #fff4e5);
+    border-bottom: 1px solid var(--warning-border, #ffd9a8);
+    color: var(--warning-text, #8a5300);
+}
+/* Quieter counterpart on the surviving ticket: useful, not urgent. */
+.merge-banner-in {
+    background: var(--surface-2, #f3f6fa);
+    border-bottom: 1px solid var(--border, #dde3ea);
+    color: var(--text-muted, #555);
+    font-size: 12.5px;
+}
+.merge-banner-icon { font-size: 17px; line-height: 1; flex: 0 0 auto; }
+.merge-banner-text { flex: 1 1 auto; min-width: 0; }
+.merge-banner-refs { font-weight: 600; color: var(--text, #333); }
+.merge-banner-btn { flex: 0 0 auto; padding: 5px 11px; font-size: 12px; }
+
+/* Merge dialog: choosing what survives. */
+.merge-candidates {
+    border: 1px solid var(--border, #ddd); border-radius: 6px;
+    max-height: 240px; overflow-y: auto;
+}
+.merge-candidate {
+    display: flex; align-items: baseline; gap: 10px;
+    padding: 9px 12px; cursor: pointer; font-weight: 400;
+    border-bottom: 1px solid var(--border, #eee);
+}
+.merge-candidate:last-child { border-bottom: none; }
+.merge-candidate:hover { background: var(--surface-3, #f5f5f5); }
+.merge-candidate input { width: auto; margin: 0; flex: 0 0 auto; }
+.merge-candidate-ref { font-weight: 600; white-space: nowrap; color: var(--text, #333); }
+.merge-candidate-subj {
+    color: var(--text-muted, #666);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* "AI wrote this" chip on the summary stage. The label is part of the note text
+   too — this is the visual half of the same promise. */
+.merge-ai-badge {
+    display: inline-block; margin-left: 8px; padding: 1px 7px;
+    border-radius: 10px; font-size: 10.5px; font-weight: 600;
+    letter-spacing: 0.3px; text-transform: uppercase;
+    background: var(--accent-soft, #eff6ff); color: var(--accent, #0078d4);
+}

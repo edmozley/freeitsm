@@ -875,6 +875,73 @@ $translationNamespaces = ['common', 'tickets'];
             </table>
         </div>
 
+        <!-- Merge Behaviour Tab -->
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'merge-behaviour')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'merge-behaviour' ? ' active' : ''; ?>" id="merge-behaviour-tab" data-capability="<?php echo Cap::TICKETS_MERGE; ?>">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.merge_behaviour')); ?></h2>
+            </div>
+            <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.merge_behaviour'); ?></p>
+            <form id="mergeBehaviourForm" style="max-width: 820px;">
+
+                <div class="form-group">
+                    <label><?php echo htmlspecialchars(t('tickets.settings.merge.reference_label')); ?></label>
+
+                    <label style="display:block;margin-top:10px;font-weight:400;">
+                        <input type="radio" name="mergeReferenceMode" value="survivor">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.merge.ref_survivor')); ?></strong>
+                        <small style="display:block;margin-left:22px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.merge.ref_survivor_help')); ?></small>
+                    </label>
+
+                    <label style="display:block;margin-top:10px;font-weight:400;">
+                        <input type="radio" name="mergeReferenceMode" value="new">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.merge.ref_new')); ?></strong>
+                        <small style="display:block;margin-left:22px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.merge.ref_new_help')); ?></small>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top:28px;">
+                    <label><?php echo htmlspecialchars(t('tickets.settings.merge.originals_label')); ?></label>
+
+                    <label style="display:block;margin-top:10px;font-weight:400;">
+                        <input type="radio" name="mergeOriginalsMode" value="thread">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.merge.orig_thread')); ?></strong>
+                        <small style="display:block;margin-left:22px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.merge.orig_thread_help')); ?></small>
+                    </label>
+
+                    <label style="display:block;margin-top:10px;font-weight:400;">
+                        <input type="radio" name="mergeOriginalsMode" value="thread_html">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.merge.orig_thread_html')); ?></strong>
+                        <small style="display:block;margin-left:22px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.merge.orig_thread_html_help')); ?></small>
+                    </label>
+
+                    <label style="display:block;margin-top:10px;font-weight:400;">
+                        <input type="radio" name="mergeOriginalsMode" value="html">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.merge.orig_html')); ?></strong>
+                        <small style="display:block;margin-left:22px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.merge.orig_html_help')); ?></small>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top:28px;">
+                    <label style="display:flex;align-items:center;gap:10px;font-weight:500;cursor:pointer;">
+                        <input type="checkbox" id="mergeAiSummary" style="width:auto;margin:0;">
+                        <span><?php echo htmlspecialchars(t('tickets.settings.merge.ai_label')); ?></span>
+                    </label>
+                    <small style="display:block;margin-left:26px;color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.merge.ai_help')); ?></small>
+                </div>
+
+                <div class="info-box" style="margin-top:22px;padding:12px 14px;border-radius:6px;background: var(--accent-soft, #eff6ff);border-left:4px solid var(--accent, #0078d4);">
+                    <small><?php echo t('tickets.settings.merge.note'); ?></small>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-start; margin-top: 30px;">
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                </div>
+            </form>
+        </div>
+
         <!-- Reply Templates Tab -->
         <?php endif; ?>
 
@@ -4289,6 +4356,7 @@ $translationNamespaces = ['common', 'tickets'];
         document.addEventListener('DOMContentLoaded', function() {
             loadGeneralSettings();
             loadPrivacySettings();
+            loadMergeSettings();
             loadReplyCleanupSettings();
             loadCsatSettings();
         });
@@ -4416,6 +4484,63 @@ $translationNamespaces = ['common', 'tickets'];
             } catch (error) {
                 console.error('Error loading settings:', error);
             }
+        }
+
+        // Merge behaviour — install-wide policy for what a merge does.
+        // Defaults here MUST match mergeSettings() in includes/ticket_merge.php:
+        // survivor + thread, the pair that keeps the requester's reference alive and
+        // the conversation searchable. A screen that defaulted differently from the
+        // engine would show the wrong answer on a fresh install.
+        async function loadMergeSettings() {
+            const form = document.getElementById('mergeBehaviourForm');
+            if (!form) return;                       // tab not visible to this analyst
+            try {
+                const response = await fetch(API_SETTINGS + 'get_system_settings.php');
+                const data = await response.json();
+                if (!data.success) return;
+
+                const ref  = data.settings.merge_reference_mode || 'survivor';
+                const orig = data.settings.merge_originals_mode || 'thread';
+                const ai   = data.settings.merge_ai_summary;
+
+                const refEl = document.querySelector('input[name="mergeReferenceMode"][value="' + ref + '"]')
+                           || document.querySelector('input[name="mergeReferenceMode"][value="survivor"]');
+                if (refEl) refEl.checked = true;
+
+                const origEl = document.querySelector('input[name="mergeOriginalsMode"][value="' + orig + '"]')
+                            || document.querySelector('input[name="mergeOriginalsMode"][value="thread"]');
+                if (origEl) origEl.checked = true;
+
+                // Absent = on: the summary is the point of the feature, and it is
+                // harmless when no AI provider is configured (it simply doesn't run).
+                document.getElementById('mergeAiSummary').checked = (ai === undefined || ai === null || ai === '' || ai === '1');
+            } catch (e) {
+                console.error('Error loading merge settings:', e);
+            }
+        }
+
+        const mergeForm = document.getElementById('mergeBehaviourForm');
+        if (mergeForm) {
+            mergeForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const ref  = document.querySelector('input[name="mergeReferenceMode"]:checked');
+                const orig = document.querySelector('input[name="mergeOriginalsMode"]:checked');
+                try {
+                    const response = await fetch(API_SETTINGS + 'save_system_settings.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ settings: {
+                            merge_reference_mode: ref  ? ref.value  : 'survivor',
+                            merge_originals_mode: orig ? orig.value : 'thread',
+                            merge_ai_summary:     document.getElementById('mergeAiSummary').checked ? '1' : '0'
+                        } })
+                    });
+                    const data = await response.json();
+                    showToast(data.success ? t('tickets.settings.merge.saved') : ('Error: ' + data.error), data.success ? 'success' : 'error');
+                } catch (err) {
+                    showToast('Failed to save settings', 'error');
+                }
+            });
         }
 
         // Privacy settings (what a requester sees of their own ticket in the portal)

@@ -563,8 +563,13 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     -- Messaging channels (WhatsApp etc.): when the customer last messaged in. Drives
     -- the provider 24h service window — outside it, only template replies are allowed.
     `last_inbound_at`       DATETIME NULL,
+    -- Set when this ticket has been merged AWAY into another. NULL = live.
+    -- The banner, search redirect and inbound-email redirect key off this column,
+    -- never off a status name (statuses are user-configurable).
+    `merged_into_id`        INT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_tickets_number` (`ticket_number`),
+    KEY `ix_tickets_merged_into_id` (`merged_into_id`),
     KEY `ix_tickets_status_id` (`status_id`),
     KEY `ix_tickets_priority_id` (`priority_id`),
     KEY `ix_tickets_assigned_analyst_id` (`assigned_analyst_id`),
@@ -579,7 +584,33 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     CONSTRAINT `fk_tickets_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     CONSTRAINT `fk_tickets_status` FOREIGN KEY (`status_id`) REFERENCES `ticket_statuses` (`id`),
     CONSTRAINT `fk_tickets_priority` FOREIGN KEY (`priority_id`) REFERENCES `ticket_priorities` (`id`),
-    CONSTRAINT `fk_tickets_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`)
+    CONSTRAINT `fk_tickets_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`),
+    -- Self-reference. ON DELETE SET NULL, not CASCADE: hard-deleting the surviving
+    -- ticket must never take the merged-away ones with it — they would be the only
+    -- remaining record of the conversation.
+    CONSTRAINT `fk_tickets_merged_into` FOREIGN KEY (`merged_into_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- One merge: which ticket was folded away, and into what. Never deleted — this is
+-- what answers "whatever happened to ABC?" and what redirects inbound email still
+-- quoting the old [SDREF:ABC-...] from notifications sent before the merge.
+-- source_ticket_number is a deliberate snapshot so the log reads without a join.
+-- reference_mode/originals_mode record the policy AS IT WAS at the time.
+CREATE TABLE IF NOT EXISTS `ticket_merges` (
+    `id`                   INT NOT NULL AUTO_INCREMENT,
+    `source_ticket_id`     INT NOT NULL,
+    `source_ticket_number` VARCHAR(50) NULL,
+    `target_ticket_id`     INT NOT NULL,
+    `reference_mode`       VARCHAR(20) NOT NULL DEFAULT 'survivor',
+    `originals_mode`       VARCHAR(20) NOT NULL DEFAULT 'thread',
+    `merged_by_id`         INT NULL,
+    `merged_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `ix_ticket_merges_source` (`source_ticket_id`),
+    KEY `ix_ticket_merges_target` (`target_ticket_id`),
+    CONSTRAINT `fk_ticket_merges_source` FOREIGN KEY (`source_ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ticket_merges_target` FOREIGN KEY (`target_ticket_id`) REFERENCES `tickets` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_ticket_merges_analyst` FOREIGN KEY (`merged_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `ticket_audit` (

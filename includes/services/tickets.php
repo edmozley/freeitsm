@@ -563,8 +563,17 @@ class TicketsService
     //  Internals
     // ======================================================================
 
-    /** Load the joined ticket row, enforcing the actor's company scope; 404 otherwise. */
-    private static function loadTicket(PDO $conn, ActorContext $ctx, int $ticketId): array
+    /**
+     * Load the joined ticket row, enforcing the actor's company scope; 404 otherwise.
+     *
+     * PUBLIC rather than private since #912: the merge engine (includes/ticket_merge.php)
+     * has to check every ticket in a merge before moving a single row, and it must use
+     * THIS scope rule rather than its own copy. A second implementation of "may this
+     * actor see this ticket" is exactly the duplication that goes wrong silently —
+     * nothing breaks when the copies drift, one of them just quietly shows more.
+     * Read-only and side-effect free, so widening it changes no behaviour.
+     */
+    public static function loadTicket(PDO $conn, ActorContext $ctx, int $ticketId): array
     {
         $stmt = $conn->prepare(
             "SELECT t.*,

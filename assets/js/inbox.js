@@ -2123,6 +2123,7 @@ function displayEmail(email, recordings) {
         <div class="attachment-info-bar" id="attachmentInfoBar" onclick="showAttachmentList()" style="display: none;">
             <span>${escapeHtml(t('tickets.actions.loading_attachments'))}</span>
         </div>
+        ${buildMergeBanner(email)}
         ${buildLinksSection(email)}
         ${buildRecordingsStrip(currentRecordings)}
         <div class="action-toolbar">
@@ -2368,6 +2369,65 @@ async function unlinkTicketFromChange(changeId) {
 // problem / change / ticket, plus a single "Link to…" menu. Replaces the three
 // separate strips — far better use of space on a wide reading pane.
 // ============================================================
+/**
+ * The merge banner, in both directions.
+ *
+ * On a MERGED-AWAY ticket this is the most important thing on the screen: the
+ * conversation has moved, this ticket is a redirect, and an analyst who starts
+ * typing a reply here is talking into a closed ticket nobody is watching. It says
+ * so first, before anything else in the pane.
+ *
+ * On a SURVIVING ticket it is quieter — a note of which references now resolve
+ * here, so an analyst asked about ABC can see at a glance that they are already
+ * looking at the right conversation.
+ */
+function buildMergeBanner(email) {
+    if (email.merged_away && email.merged_away.merged_into_id) {
+        const ref = email.merged_away.ticket_number || ('#' + email.merged_away.merged_into_id);
+        return `
+        <div class="merge-banner merge-banner-away">
+            <span class="merge-banner-icon">⤵</span>
+            <div class="merge-banner-text">
+                <strong>${escapeHtml(t('tickets.merge.banner_away_title'))}</strong>
+                <div>${escapeHtml(t('tickets.merge.banner_away_body'))}</div>
+            </div>
+            <button type="button" class="btn btn-secondary merge-banner-btn"
+                    onclick="openTicketByNumber('${escapeHtml(ref).replace(/'/g, "\\'")}')">
+                ${escapeHtml(t('tickets.merge.banner_go').replace('%s', ref))}
+            </button>
+        </div>`;
+    }
+
+    if (Array.isArray(email.merged_in) && email.merged_in.length) {
+        const refs = email.merged_in.map(m => escapeHtml(m.source_ticket_number || ('#' + m.source_ticket_id))).join(', ');
+        return `
+        <div class="merge-banner merge-banner-in">
+            <span class="merge-banner-icon">⤴</span>
+            <div class="merge-banner-text">
+                ${escapeHtml(t('tickets.merge.banner_in').replace('%d', String(email.merged_in.length)))}
+                <span class="merge-banner-refs">${refs}</span>
+            </div>
+        </div>`;
+    }
+    return '';
+}
+
+/** Jump to a ticket by its reference — used by the merge banner's button. */
+async function openTicketByNumber(ticketNumber) {
+    const row = Array.from(document.querySelectorAll('#emailList .email-item'))
+        .find(el => (el.dataset.ticketNumber || '') === ticketNumber);
+    if (row) { handleEmailRowClick({ ctrlKey: false, shiftKey: false, metaKey: false }, Number(row.dataset.emailId)); return; }
+    // Not in the current folder's list — search for it so the jump works from
+    // anywhere, which is the whole point of a redirect.
+    if (typeof openSearchModal === 'function') {
+        openSearchModal();
+        const box = document.getElementById('searchInput');
+        if (box) { box.value = ticketNumber; box.dispatchEvent(new Event('input', { bubbles: true })); }
+    } else {
+        showToast(ticketNumber, 'info');
+    }
+}
+
 function buildLinksSection(email) {
     const pills = [];
 
@@ -3902,6 +3962,250 @@ function closeEmailModal() {
     closeReplyTemplateMenu();
 }
 
+// ===========================================================================
+// Merging tickets (#912)
+// ===========================================================================
+//
+// Reached from the multi-select right-click menu, which is the natural home for
+// it: you have already gathered the tickets that are the same thing, so merging
+// them is the next thought. Two or more selected, right-click, Merge.
+//
+// The dialog does NOT decide policy — the install does (Tickets → Settings →
+// Merge behaviour). It reads that policy so it can say plainly what is about to
+// happen, because "merge" means two quite different things depending on the
+// reference mode and an analyst should not have to remember which is configured.
+
+let mergeSettingsCache = null;
+let mergeCandidateList = [];
+let mergeResultTicketId = null;
+
+async function loadMergeSettings() {
+    if (mergeSettingsCache) return mergeSettingsCache;
+    try {
+        const res  = await fetch(API_BASE + 'get_merge_settings.php');
+        const data = await res.json();
+        mergeSettingsCache = data.success ? data.settings
+                                          : { reference_mode: 'survivor', originals_mode: 'thread', ai_summary: '1' };
+    } catch (e) {
+        mergeSettingsCache = { reference_mode: 'survivor', originals_mode: 'thread', ai_summary: '1' };
+    }
+    return mergeSettingsCache;
+}
+
+async function openMergeModal() {
+    closeTicketContextMenu();
+
+    const ids = visibleEmailIds().filter(id => selectedEmailIds.has(id));
+    if (ids.length < 2) {
+        showToast(t('tickets.merge.need_two'), 'error');
+        return;
+    }
+
+    const s = await loadMergeSettings();
+
+    mergeCandidateList = ids.map(id => {
+        const row = document.querySelector(`#emailList .email-item[data-email-id="${id}"]`);
+        const rec = emails.find(e => e.id == id);
+        return {
+            emailId:  id,
+            ticketId: row ? Number(row.dataset.ticketId) : null,
+            ref:      row ? (row.dataset.ticketNumber || '') : '',
+            subject:  rec ? (rec.subject || '') : ''
+        };
+    }).filter(c => c.ticketId);
+
+    // In 'new' mode nothing survives, so asking "which one lives?" would be a lie.
+    // The choice still matters — the picked ticket donates its department, priority
+    // and so on to the new one — so the question is reworded rather than removed.
+    const isNew = (s.reference_mode === 'new');
+    document.getElementById('mergePickLabel').textContent = isNew
+        ? t('tickets.merge.pick_model')
+        : t('tickets.merge.pick_survivor');
+    document.getElementById('mergeIntro').textContent =
+        t('tickets.merge.intro').replace('%d', String(mergeCandidateList.length));
+
+    document.getElementById('mergeCandidates').innerHTML = mergeCandidateList.map((c, i) => `
+        <label class="merge-candidate">
+            <input type="radio" name="mergeTarget" value="${c.ticketId}" ${i === 0 ? 'checked' : ''}>
+            <span class="merge-candidate-ref">${escapeHtml(c.ref)}</span>
+            <span class="merge-candidate-subj">${escapeHtml(c.subject)}</span>
+        </label>`).join('');
+
+    document.getElementById('mergeEffect').innerHTML = mergeEffectText(s, mergeCandidateList.length);
+
+    // Reset to stage one — the modal is reused across merges.
+    document.getElementById('mergeStageChoose').style.display  = '';
+    document.getElementById('mergeStageSummary').style.display = 'none';
+    document.getElementById('mergeFooterChoose').style.display  = '';
+    document.getElementById('mergeFooterSummary').style.display = 'none';
+    document.getElementById('mergeSummaryText').value = '';
+    document.getElementById('mergeConfirmBtn').disabled = false;
+    mergeResultTicketId = null;
+
+    document.getElementById('mergeModal').classList.add('active');
+}
+
+/** Spell out what the configured policy will actually do, in plain words. */
+function mergeEffectText(s, count) {
+    const parts = [];
+    parts.push(s.reference_mode === 'new'
+        ? t('tickets.merge.effect_ref_new')
+        : t('tickets.merge.effect_ref_survivor'));
+    if (s.originals_mode === 'thread')           parts.push(t('tickets.merge.effect_orig_thread'));
+    else if (s.originals_mode === 'thread_html') parts.push(t('tickets.merge.effect_orig_thread_html'));
+    else                                         parts.push(t('tickets.merge.effect_orig_html'));
+    parts.push(t('tickets.merge.effect_kept'));
+    return parts.map(p => '• ' + escapeHtml(p)).join('<br>');
+}
+
+function closeMergeModal() {
+    document.getElementById('mergeModal').classList.remove('active');
+}
+
+async function confirmMerge() {
+    const chosen = document.querySelector('input[name="mergeTarget"]:checked');
+    if (!chosen) return;
+    const targetId  = Number(chosen.value);
+    const sourceIds = mergeCandidateList.map(c => c.ticketId).filter(id => id !== targetId);
+
+    const btn = document.getElementById('mergeConfirmBtn');
+    btn.disabled = true;
+
+    try {
+        const res = await fetch(API_BASE + 'merge_tickets.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ source_ids: sourceIds, target_id: targetId })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || 'Merge failed', 'error');
+            btn.disabled = false;
+            return;
+        }
+
+        mergeResultTicketId = data.target_id;
+        showToast(t('tickets.merge.done').replace('%d', String(data.merged.length)).replace('%s', data.target_number), 'success');
+
+        clearSelectionToNone();
+        await loadEmails();
+        if (typeof loadFolderCounts === 'function') loadFolderCounts();
+
+        // Stage two: the AI briefing, if the install wants one.
+        const s = mergeSettingsCache || {};
+        if (String(s.ai_summary) === '1') {
+            showMergeSummaryStage(data);
+            streamMergeSummary(data.target_id);
+        } else {
+            closeMergeModal();
+            selectEmailByTicketId(data.target_id);
+        }
+    } catch (e) {
+        showToast('Merge failed', 'error');
+        btn.disabled = false;
+    }
+}
+
+function showMergeSummaryStage(data) {
+    document.getElementById('mergeStageChoose').style.display  = 'none';
+    document.getElementById('mergeStageSummary').style.display = '';
+    document.getElementById('mergeFooterChoose').style.display  = 'none';
+    document.getElementById('mergeFooterSummary').style.display = '';
+    document.getElementById('mergeModalTitle').textContent = t('tickets.merge.summary_title');
+    document.getElementById('mergeResultLine').textContent =
+        t('tickets.merge.done').replace('%d', String(data.merged.length)).replace('%s', data.target_number);
+    document.getElementById('mergeSaveSummaryBtn').disabled = true;
+}
+
+/**
+ * Stream the briefing into the textarea as it is written.
+ *
+ * Streaming rather than a spinner because this call takes many seconds on a long
+ * merged thread, and watching it appear is the difference between "it's working"
+ * and "it's hung" — the same reason reply cleanup streams.
+ */
+function streamMergeSummary(ticketId) {
+    const box  = document.getElementById('mergeSummaryText');
+    const save = document.getElementById('mergeSaveSummaryBtn');
+    box.value = '';
+    box.placeholder = t('tickets.merge.ai_thinking');
+
+    fetch(API_BASE + 'ai_merge_summary.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ticket_id: ticketId })
+    }).then(response => {
+        if (!response.body) throw new Error('No stream');
+        const reader  = response.body.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        function pump() {
+            return reader.read().then(({ done, value }) => {
+                if (done) { save.disabled = (box.value.trim() === ''); return; }
+                buffer += decoder.decode(value, { stream: true });
+
+                // SSE frames are separated by a blank line.
+                const frames = buffer.split('\n\n');
+                buffer = frames.pop();
+                frames.forEach(frame => {
+                    const evMatch = frame.match(/^event: (.+)$/m);
+                    const dtMatch = frame.match(/^data: (.+)$/m);
+                    if (!evMatch || !dtMatch) return;
+                    let payload;
+                    try { payload = JSON.parse(dtMatch[1]); } catch (e) { return; }
+
+                    if (evMatch[1] === 'text') {
+                        box.value += (payload.delta || '');
+                        box.scrollTop = box.scrollHeight;
+                    } else if (evMatch[1] === 'unconfigured') {
+                        // No AI provider: not a failure. Say so and let the analyst
+                        // write their own note, or just close.
+                        box.placeholder = t('tickets.merge.ai_unconfigured');
+                    } else if (evMatch[1] === 'error') {
+                        showToast(payload.message || 'AI summary failed', 'error');
+                    }
+                });
+                return pump();
+            });
+        }
+        return pump();
+    }).catch(() => {
+        showToast(t('tickets.merge.ai_failed'), 'error');
+        save.disabled = (box.value.trim() === '');
+    });
+}
+
+async function saveMergeSummary() {
+    const text = document.getElementById('mergeSummaryText').value.trim();
+    if (!text || !mergeResultTicketId) { closeMergeModal(); return; }
+    try {
+        const res = await fetch(API_BASE + 'save_merge_summary.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: mergeResultTicketId, summary: text })
+        });
+        const data = await res.json();
+        showToast(data.success ? t('tickets.merge.summary_saved') : (data.error || 'Could not save'), data.success ? 'success' : 'error');
+    } catch (e) {
+        showToast('Could not save the summary', 'error');
+    }
+    closeMergeModal();
+    selectEmailByTicketId(mergeResultTicketId);
+}
+
+function discardMergeSummary() {
+    // The merge itself already happened and stands; only the briefing is discarded.
+    closeMergeModal();
+    if (mergeResultTicketId) selectEmailByTicketId(mergeResultTicketId);
+}
+
+/** Open whichever list row belongs to a ticket id (after a merge, the survivor). */
+function selectEmailByTicketId(ticketId) {
+    const row = document.querySelector(`#emailList .email-item[data-ticket-id="${ticketId}"]`);
+    if (row) handleEmailRowClick({ ctrlKey: false, shiftKey: false, metaKey: false }, Number(row.dataset.emailId));
+}
+
 // ===== Reply templates (canned responses) =====
 //
 // Two lists in one menu: the team's SHARED templates (curated in Tickets →
@@ -5226,6 +5530,14 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
         renderSelectionUi();
     }
     ctxActsOnSelection = selectionCount() > 1;
+
+    // Merge only makes sense for two or more, so the item appears only then.
+    const mergeItem = document.getElementById('ctxMergeItem');
+    if (mergeItem) {
+        mergeItem.style.display = ctxActsOnSelection ? '' : 'none';
+        const lbl = document.getElementById('ctxMergeLabel');
+        if (lbl) lbl.textContent = t('tickets.context.merge').replace('%d', String(selectionCount()));
+    }
 
     document.getElementById('ticketContextMenuHeader').textContent = ctxActsOnSelection
         ? t('tickets.bulk.n_selected').replace('%d', String(selectionCount()))

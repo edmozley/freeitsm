@@ -156,6 +156,7 @@ return [
         'link_cmdb'        => 'Link CMDB object…',
         'link_problem'     => 'Link to problem…',
         'link_change'      => 'Link to change…',
+        'merge'            => 'Merge %d tickets…',
         'link_ticket'      => 'Link to ticket…',
         'record_time'      => 'Record time…',
         'set_status'       => 'Set status',
@@ -185,6 +186,40 @@ return [
         'share_label'           => 'Share this with the requester',
         'share_hint'            => 'They will see it in the self-service portal. Leave unticked to keep it internal.',
         'share_hint_no_mailbox' => 'This person has no email address, so a shared note is the only way to reach them. They will see it in the portal.',
+    ],
+
+    // Merging tickets (#912)
+    'merge' => [
+        'title'                 => 'Merge tickets',
+        'need_two'              => 'Select two or more tickets to merge',
+        'intro'                 => 'You are merging %d tickets. This cannot be undone from here.',
+        'pick_survivor'         => 'Which ticket should the others be merged into?',
+        'pick_model'            => 'Which ticket should the new one take its details from?',
+        'confirm'               => 'Merge',
+        'done'                  => 'Merged %d tickets into %s',
+
+        'effect_ref_survivor'   => 'The ticket you pick keeps its reference. The others close and point at it.',
+        'effect_ref_new'        => 'A brand-new ticket is created and all of these close and point at it.',
+        'effect_orig_thread'    => 'The conversations move onto the merged ticket.',
+        'effect_orig_thread_html' => 'The conversations move across, and a copy of each is also attached as an HTML file.',
+        'effect_orig_html'      => 'The conversations stay put; copies are attached to the merged ticket as HTML files.',
+        'effect_kept'           => 'Nothing is deleted — old references stay searchable, and replies to old emails still reach you.',
+
+        'summary_title'         => 'Merged — here is the briefing',
+        'ai_heading'            => 'Summary',
+        'ai_badge'              => 'AI',
+        'ai_editable'           => 'Written by AI from the merged conversations. Edit it however you like — it saves as an internal note and is never shown to the requester.',
+        'ai_thinking'           => 'Reading the merged conversations…',
+        'ai_unconfigured'       => 'No AI provider is set up, so there is no automatic summary. You can type your own note here, or just close.',
+        'ai_failed'             => 'Could not write the summary — the merge itself was fine',
+        'save_summary'          => 'Save note',
+        'discard_summary'       => 'No note',
+        'summary_saved'         => 'Summary saved to the ticket',
+
+        'banner_away_title'     => 'This ticket has been merged.',
+        'banner_away_body'      => 'Its conversation continues elsewhere. Replying here will not reach the requester.',
+        'banner_go'             => 'Go to %s',
+        'banner_in'             => 'Answers for %d merged ticket(s):',
     ],
 
     // Multi-select + bulk actions in the ticket list (#910)
@@ -354,6 +389,7 @@ return [
             'mailboxes'       => 'Mailboxes',
             'email_templates' => 'Templates',
             'reply_templates' => 'Reply templates',
+            'merge_behaviour' => 'Merge behaviour',
             'rota'            => 'Rota',
             'analysts'        => 'Analysts',
             'general'         => 'General',
@@ -375,6 +411,7 @@ return [
             'mailboxes'        => 'Mailboxes',
             'email_templates'  => 'Email templates',
             'reply_templates'  => 'Shared reply templates',
+            'merge_behaviour'  => 'Merge behaviour',
             'rota_shifts'      => 'Rota shifts',
             'rota_settings'    => 'Rota settings',
             'analysts'         => 'Analysts',
@@ -740,6 +777,28 @@ return [
         // Shared empty/loading state for the settings tables.
         'loading' => 'Loading...',
 
+        'merge' => [
+            'reference_label'      => 'When tickets are merged, the reference should be',
+            'ref_survivor'         => 'One of the existing tickets',
+            'ref_survivor_help'    => 'The analyst picks which ticket lives on and keeps its reference. The others close, keep their own references, and point at it. Nothing a requester has already been told becomes a dead reference, and replies to their old emails still arrive.',
+            'ref_new'              => 'A brand-new ticket',
+            'ref_new_help'         => 'Every merged ticket closes and a new reference is created holding all of them. A clean slate — but every reference your requesters already have becomes a redirect, and the new ticket\'s clock starts today.',
+
+            'originals_label'      => 'The original conversations should be',
+            'orig_thread'          => 'Moved into the merged ticket',
+            'orig_thread_help'     => 'Every message becomes part of the merged ticket\'s conversation, labelled with the ticket it came from. Readable inline, quotable in a reply, and found by search.',
+            'orig_thread_html'     => 'Moved in, and also attached as HTML files',
+            'orig_thread_html_help'=> 'As above, plus a self-contained HTML copy of each original ticket attached to the merged one — handy when you need to hand a complete record to somebody outside FreeITSM.',
+            'orig_html'            => 'Attached as HTML files only',
+            'orig_html_help'       => 'The messages stay on their original tickets and the merged ticket gets only the attached copies. Tidiest merged ticket, but search no longer finds the merged conversations, because search reads messages and not attachments.',
+
+            'ai_label'             => 'Write an AI summary when tickets are merged',
+            'ai_help'              => 'Adds a note to the merged ticket summarising what each requester asked and what has already been done, so whoever picks it up does not have to read every conversation. Needs an AI provider configured on the Reply cleanup tab. Merging still works without one.',
+
+            'note'                 => 'Merged tickets are never deleted. Whichever option you choose, an old reference always remains searchable and shows where it went &mdash; and a customer replying to an email about it still reaches you.',
+            'saved'                => 'Merge behaviour saved',
+        ],
+
         'reply_templates_empty'   => 'No shared reply templates yet',
         'reply_template_saved'    => 'Template saved',
         'reply_template_deleted'  => 'Template deleted',
@@ -767,6 +826,7 @@ return [
             'ticket_origins'  => 'Ticket origins record how a ticket came in (e.g. Email, Phone, Portal) — define the origins analysts can choose from.',
             'mailboxes'       => 'Mailboxes connect FreeITSM to email accounts so incoming messages become tickets and replies go back out — add and authenticate the ones your service desk monitors.',
             'privacy'         => 'A ticket does not only hold your conversation with the person who raised it. Forwarding to a supplier, or copying in a colleague, puts that message on the same ticket — and their reply lands there too. This decides how much of that the requester sees in the self-service portal.',
+            'merge_behaviour' => 'When two tickets turn out to be the same thing, an analyst can merge them. These settings decide what that does to the ticket references your requesters are holding, and what happens to the conversations. They apply to everyone — a merge changes what the customer sees, so two analysts on the same mailbox must not be able to disagree about it.',
             'reply_templates' => 'Canned responses your analysts can drop into a reply instead of retyping them. These are the shared ones the whole team sees — an analyst\'s own private templates are saved from the reply window and are not listed here.',
             'rota_shifts'     => 'Shifts are the working-pattern templates (e.g. Early, Late, On-call) that analysts are assigned on the staff rota — define them here before building the rota.',
             'analysts'        => 'Analysts are the staff who log in and work tickets — add them, reset passwords, and assign them to teams to control their access.',

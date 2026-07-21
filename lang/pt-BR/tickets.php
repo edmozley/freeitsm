@@ -132,6 +132,7 @@ return [
     // as linhas de limpeza são construídos em inbox.js.
     'context' => [
         'link_cmdb'        => 'Vincular objeto do CMDB…',
+        'merge'            => 'Mesclar %d tickets…',
         'link_problem'     => 'Vincular a um problema…',
         'record_time'      => 'Registrar tempo…',
         'set_status'       => 'Definir status',
@@ -163,6 +164,40 @@ return [
         'share_hint_no_mailbox' => 'Esta pessoa não tem e-mail, então uma nota compartilhada é a única forma de contatá-la. Ela verá isto no portal.',
     ],
     // Seleção múltipla + ações em massa na lista de tickets (#910)
+    // Mesclagem de tickets (#912)
+    'merge' => [
+        'title'                   => 'Mesclar tickets',
+        'need_two'                => 'Selecione dois ou mais tickets para mesclar',
+        'intro'                   => 'Você está mesclando %d tickets. Isso não pode ser desfeito por aqui.',
+        'pick_survivor'           => 'Em qual ticket os outros devem ser mesclados?',
+        'pick_model'              => 'De qual ticket o novo deve herdar os detalhes?',
+        'confirm'                 => 'Mesclar',
+        'done'                    => '%d tickets mesclados em %s',
+
+        'effect_ref_survivor'     => 'O ticket escolhido mantém a referência. Os outros são fechados e apontam para ele.',
+        'effect_ref_new'          => 'Um ticket totalmente novo é criado e todos estes são fechados e apontam para ele.',
+        'effect_orig_thread'      => 'As conversas passam para o ticket mesclado.',
+        'effect_orig_thread_html' => 'As conversas passam para o ticket mesclado e uma cópia de cada uma também é anexada como arquivo HTML.',
+        'effect_orig_html'        => 'As conversas permanecem onde estão; as cópias são anexadas ao ticket mesclado como arquivos HTML.',
+        'effect_kept'             => 'Nada é excluído — referências antigas continuam pesquisáveis e respostas a e-mails antigos ainda chegam até você.',
+
+        'summary_title'           => 'Mesclado — veja o resumo',
+        'ai_heading'              => 'Resumo',
+        'ai_badge'                => 'IA',
+        'ai_editable'             => 'Escrito por IA a partir das conversas mescladas. Edite como quiser — é salvo como nota interna e nunca é mostrado ao solicitante.',
+        'ai_thinking'             => 'Lendo as conversas mescladas…',
+        'ai_unconfigured'         => 'Nenhum provedor de IA configurado, então não há resumo automático. Você pode escrever sua própria nota aqui ou apenas fechar.',
+        'ai_failed'               => 'Não foi possível escrever o resumo — a mesclagem em si funcionou',
+        'save_summary'            => 'Salvar nota',
+        'discard_summary'         => 'Sem nota',
+        'summary_saved'           => 'Resumo salvo no ticket',
+
+        'banner_away_title'       => 'Este ticket foi mesclado.',
+        'banner_away_body'        => 'A conversa continua em outro lugar. Responder aqui não chegará ao solicitante.',
+        'banner_go'               => 'Ir para %s',
+        'banner_in'               => 'Responde por %d ticket(s) mesclado(s):',
+    ],
+
     'bulk' => [
         'n_selected' => '%d tickets selecionados',
         'clear' => 'Limpar seleção',
@@ -315,6 +350,7 @@ return [
             'mailboxes' => 'Caixas postais',
             'email_templates' => 'Modelos',
             'reply_templates' => 'Modelos de resposta',
+            'merge_behaviour' => 'Comportamento da mesclagem',
             'rota' => 'Escala',
             'analysts' => 'Analistas',
             'general' => 'Geral',
@@ -333,6 +369,7 @@ return [
             'mailboxes' => 'Caixas postais',
             'email_templates' => 'Modelos de e-mail',
             'reply_templates' => 'Modelos de resposta compartilhados',
+            'merge_behaviour' => 'Comportamento da mesclagem',
             'rota_shifts' => 'Turnos da escala',
             'rota_settings' => 'Configurações da escala',
             'analysts' => 'Analistas',
@@ -665,6 +702,28 @@ Obrigado por entrar em contato conosco…',
 
         'loading' => 'Carregando...',
 
+        'merge' => [
+            'reference_label'       => 'Ao mesclar tickets, a referência deve ser',
+            'ref_survivor'          => 'Um dos tickets existentes',
+            'ref_survivor_help'     => 'O analista escolhe qual ticket continua e mantém sua referência. Os outros são fechados, mantêm suas próprias referências e apontam para ele. Nenhuma referência já informada ao solicitante deixa de funcionar, e respostas aos e-mails antigos continuam chegando.',
+            'ref_new'               => 'Um ticket totalmente novo',
+            'ref_new_help'          => 'Todos os tickets mesclados são fechados e uma nova referência é criada contendo todos eles. Um recomeço limpo — mas todas as referências que seus solicitantes já têm viram redirecionamentos, e o relógio do novo ticket começa hoje.',
+
+            'originals_label'       => 'As conversas originais devem ser',
+            'orig_thread'           => 'Movidas para o ticket mesclado',
+            'orig_thread_help'      => 'Cada mensagem passa a fazer parte da conversa do ticket mesclado, identificada com o ticket de origem. Legível na tela, citável em uma resposta e encontrada pela busca.',
+            'orig_thread_html'      => 'Movidas e também anexadas como arquivos HTML',
+            'orig_thread_html_help' => 'Como acima, mais uma cópia HTML independente de cada ticket original anexada ao ticket mesclado — útil para entregar um registro completo a alguém fora do FreeITSM.',
+            'orig_html'             => 'Apenas anexadas como arquivos HTML',
+            'orig_html_help'        => 'As mensagens permanecem nos tickets originais e o ticket mesclado recebe apenas as cópias anexadas. O ticket mesclado fica mais limpo, mas a busca não encontra mais as conversas mescladas, pois a busca lê mensagens e não anexos.',
+
+            'ai_label'              => 'Gerar um resumo com IA ao mesclar tickets',
+            'ai_help'               => 'Adiciona uma nota ao ticket mesclado resumindo o que cada solicitante pediu e o que já foi feito, para que quem assumir não precise ler todas as conversas. Requer um provedor de IA configurado na aba Limpeza de respostas. A mesclagem funciona mesmo sem um.',
+
+            'note'                  => 'Tickets mesclados nunca são excluídos. Qualquer que seja a opção, uma referência antiga continua pesquisável e mostra para onde foi &mdash; e um cliente que responder a um e-mail sobre ela ainda chega até você.',
+            'saved'                 => 'Comportamento da mesclagem salvo',
+        ],
+
         'reply_templates_empty'  => 'Nenhum modelo de resposta compartilhado ainda',
         'reply_template_saved'   => 'Modelo salvo',
         'reply_template_deleted' => 'Modelo excluído',
@@ -694,6 +753,7 @@ Obrigado por entrar em contato conosco…',
             'priorities' => 'Faixas de prioridade exibidas nos tickets. Exatamente uma prioridade é a padrão para novos tickets.',
             'rota_locations' => 'Onde cada analista está trabalhando em um determinado dia — usado pela escala de equipe e exibido como um emblema colorido em cada entrada. Exatamente um local é o padrão para novas entradas de escala.',
             'email_templates' => 'Respostas de e-mail automatizadas acionadas por eventos de ticket. Apenas o primeiro modelo ativo por evento é usado.',
+            'merge_behaviour' => 'Quando dois tickets são a mesma coisa, um analista pode mesclá-los. Estas configurações definem o que isso faz com as referências de ticket que seus solicitantes já têm, e o que acontece com as conversas. Valem para todos — uma mesclagem muda o que o cliente vê, então dois analistas na mesma caixa postal não podem discordar sobre isso.',
             'reply_templates' => 'Respostas prontas que seus analistas podem inserir em uma resposta em vez de redigitá-las. Estes são os modelos compartilhados que toda a equipe vê — os modelos particulares de cada analista são salvos na janela de resposta e não aparecem aqui.',
         ],
 

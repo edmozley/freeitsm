@@ -416,6 +416,16 @@ return [
         // Messaging channels: when the customer last messaged in (drives the 24h
         // provider service window on the reply box). NULL for non-channel tickets.
         'last_inbound_at'       => 'DATETIME NULL',
+        // Set when this ticket has been merged AWAY into another one. NULL = a live
+        // ticket, which is every ticket until somebody merges it.
+        //
+        // The banner, the search redirect and the inbound-email redirect all key off
+        // THIS COLUMN and never off a status name. Statuses are user-configurable
+        // (an install may rename or add its own), so "merged" as a status string
+        // would be a rule that quietly stops working the day somebody edits a list
+        // in settings — the same trap the reopen-on-reply rule avoids by reading
+        // ticket_statuses.is_closed rather than hardcoding "Closed".
+        'merged_into_id'        => 'INT NULL',
     ],
 
     'ticket_audit' => [
@@ -746,6 +756,38 @@ return [
         'display_order'     => 'INT NOT NULL DEFAULT 0',
         'created_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
+    /**
+     * One merge: which ticket was folded away, and into what.
+     *
+     * WHY THIS TABLE EXISTS AT ALL
+     * ---------------------------
+     * "Whatever happened to ticket ABC?" has to have an answer years later. The
+     * merged-away ticket is never deleted, so the row it points at here is what turns
+     * a dead end into a redirect — and not only for humans: inbound email still
+     * arrives quoting `[SDREF:ABC-…]` from notifications sent before the merge, and
+     * this is the lookup that lands those replies on the surviving ticket instead of
+     * on a closed one nobody reads.
+     *
+     * `source_ticket_number` is a SNAPSHOT, deliberately duplicating what the source
+     * ticket row already says. It costs nothing and makes the record self-describing:
+     * a merge log you can read without a join is a merge log people will actually
+     * consult, and it survives any future decision to hard-delete very old tickets.
+     *
+     * `reference_mode` / `originals_mode` record the settings AS THEY WERE at the time
+     * (Tickets → Settings → Merge behaviour). An admin who changes the policy next
+     * month must not silently rewrite the history of merges done under the old one.
+     */
+    'ticket_merges' => [
+        'id'                   => 'INT NOT NULL AUTO_INCREMENT',
+        'source_ticket_id'     => 'INT NOT NULL',
+        'source_ticket_number' => 'VARCHAR(50) NULL',
+        'target_ticket_id'     => 'INT NOT NULL',
+        'reference_mode'       => "VARCHAR(20) NOT NULL DEFAULT 'survivor'",
+        'originals_mode'       => "VARCHAR(20) NOT NULL DEFAULT 'thread'",
+        'merged_by_id'         => 'INT NULL',
+        'merged_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
     /**

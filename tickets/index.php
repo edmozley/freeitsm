@@ -29,7 +29,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.title')); ?> - <?php echo htmlspecialchars(t('tickets.nav.inbox')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=22">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=43">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=44">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=29">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -180,6 +180,49 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
+    <?php /* Merge tickets (#912). Two stages in one modal: choose what survives and
+             confirm what will happen, then — once merged — watch the AI briefing
+             stream in and decide whether to keep it. The second stage only appears
+             after the merge has actually succeeded, so there is never a summary on
+             screen for a merge that did not happen. */ ?>
+    <div class="modal" id="mergeModal">
+        <div class="modal-content" style="max-width: 660px;">
+            <div class="modal-header" id="mergeModalTitle"><?php echo htmlspecialchars(t('tickets.merge.title')); ?></div>
+            <div class="modal-body">
+
+                <div id="mergeStageChoose">
+                    <p style="margin:0 0 14px;color:var(--text-muted,#666);font-size:13px;" id="mergeIntro"></p>
+                    <div class="form-group">
+                        <label class="form-label" id="mergePickLabel"><?php echo htmlspecialchars(t('tickets.merge.pick_survivor')); ?></label>
+                        <div id="mergeCandidates" class="merge-candidates"></div>
+                    </div>
+                    <div class="info-box" id="mergeEffect" style="margin-top:14px;padding:11px 13px;border-radius:6px;background:var(--accent-soft,#eff6ff);border-left:4px solid var(--accent,#0078d4);font-size:12.5px;"></div>
+                </div>
+
+                <div id="mergeStageSummary" style="display:none;">
+                    <div id="mergeResultLine" style="font-size:13px;margin-bottom:12px;"></div>
+                    <div class="form-group">
+                        <label class="form-label">
+                            <?php echo htmlspecialchars(t('tickets.merge.ai_heading')); ?>
+                            <span class="merge-ai-badge"><?php echo htmlspecialchars(t('tickets.merge.ai_badge')); ?></span>
+                        </label>
+                        <textarea id="mergeSummaryText" rows="12" class="form-textarea" style="width:100%;font-family:inherit;"></textarea>
+                        <small style="color:var(--text-muted,#666);"><?php echo htmlspecialchars(t('tickets.merge.ai_editable')); ?></small>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer" id="mergeFooterChoose">
+                <button class="btn btn-secondary" onclick="closeMergeModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="mergeConfirmBtn" onclick="confirmMerge()"><?php echo htmlspecialchars(t('tickets.merge.confirm')); ?></button>
+            </div>
+            <div class="modal-footer" id="mergeFooterSummary" style="display:none;">
+                <button class="btn btn-secondary" onclick="discardMergeSummary()"><?php echo htmlspecialchars(t('tickets.merge.discard_summary')); ?></button>
+                <button class="btn btn-primary" id="mergeSaveSummaryBtn" onclick="saveMergeSummary()"><?php echo htmlspecialchars(t('tickets.merge.save_summary')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <?php /* Naming a personal template saved straight from the draft. Deliberately a
              tiny modal and not a settings screen — the moment worth capturing is the one
              just after you finish typing something you know you will type again. */ ?>
@@ -320,6 +363,12 @@ $translationNamespaces = ['common', 'tickets'];
     <!-- Right-click context menu for email rows. Positioned in JS at cursor. -->
     <div class="ticket-context-menu" id="ticketContextMenu" role="menu">
         <div class="ticket-context-menu-header" id="ticketContextMenuHeader"></div>
+        <?php /* Only shown when several tickets are selected — merging one ticket is
+                 not a thing, and an always-visible disabled item is just clutter. */ ?>
+        <button class="ticket-context-menu-item" type="button" id="ctxMergeItem" style="display:none;" onclick="openMergeModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
+            <span id="ctxMergeLabel"><?php echo htmlspecialchars(t('tickets.context.merge')); ?></span>
+        </button>
         <button class="ticket-context-menu-item" type="button" onclick="openContextLinkCmdb()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
             <span><?php echo htmlspecialchars(t('tickets.context.link_cmdb')); ?></span>
@@ -526,7 +575,7 @@ $translationNamespaces = ['common', 'tickets'];
     </script>
     <!-- Must load BEFORE inbox.js: it cleans every untrusted message body. -->
     <script src="../assets/js/safe-html.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=63"></script>
+    <script src="../assets/js/inbox.js?v=64"></script>
     <script src="../assets/js/mobile.js?v=12"></script>
     <script>
     // Auto-check mailboxes every 60 seconds
