@@ -801,17 +801,42 @@ function attachEmailDragHandlers() {
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', draggedTicketId);
 
-            // Every dragged row dims, not just the one under the cursor, so the
-            // drag visibly carries the set.
-            document.querySelectorAll('#emailList .email-item.selected').forEach(r => r.classList.add('dragging'));
+            // Every dragged row dims, not just the one under the cursor, so the drag
+            // visibly carries the set. Driven from the selection SET rather than from
+            // whichever rows happen to be painted `.selected`, so the dimming can
+            // never disagree with what is actually being dragged.
+            selectedEmailIds.forEach(id => {
+                const r = document.querySelector(`#emailList .email-item[data-email-id="${id}"]`);
+                if (r) r.classList.add('dragging');
+            });
 
-            // A count badge on the drag image when it's more than one.
+            // Dragging several shows a STACK OF SHEETS with the count on it, rather
+            // than the browser's default ghost of the single row under the cursor —
+            // which would say "one ticket" while carrying twelve. Three offset,
+            // slightly-rotated sheets read as "a pile" at a glance; the badge gives
+            // the exact number.
+            //
+            // Built from real child elements, not ::before/::after, because
+            // setDragImage rasterises the element and pseudo-element support in that
+            // snapshot is not something to rely on across browsers. It has to be in
+            // the document to rasterise at all, so it is parked off-screen and
+            // removed on the next tick — by then the browser has taken its bitmap.
             if (draggedTicketIds.length > 1 && e.dataTransfer.setDragImage) {
                 const ghost = document.createElement('div');
-                ghost.className = 'drag-count-ghost';
-                ghost.textContent = t('tickets.bulk.n_selected').replace('%d', String(draggedTicketIds.length));
+                ghost.className = 'drag-stack-ghost';
+                ghost.innerHTML =
+                    '<span class="drag-sheet drag-sheet-3"></span>' +
+                    '<span class="drag-sheet drag-sheet-2"></span>' +
+                    '<span class="drag-sheet drag-sheet-1">' +
+                        '<span class="drag-sheet-line"></span>' +
+                        '<span class="drag-sheet-line short"></span>' +
+                        '<span class="drag-sheet-line"></span>' +
+                    '</span>' +
+                    '<span class="drag-stack-badge">' + draggedTicketIds.length + '</span>';
                 document.body.appendChild(ghost);
-                e.dataTransfer.setDragImage(ghost, 12, 12);
+                // Grab point near the top-left of the front sheet, so the stack sits
+                // under the pointer the way a picked-up pile would.
+                e.dataTransfer.setDragImage(ghost, 26, 22);
                 setTimeout(() => ghost.remove(), 0);
             }
         });
@@ -1394,12 +1419,22 @@ function onSelectionChanged({ clickedId = null } = {}) {
     }
 }
 
-/** Re-run the surface rendering without recomputing the selection. */
+/**
+ * Re-run the surface rendering without recomputing the selection.
+ *
+ * The n <= 1 branch is NOT optional tidying. A plain click already collapses the
+ * selection correctly, but without this the bar (or the "keep" warning strip) was
+ * left on screen still reading "5 tickets selected" while exactly one was held —
+ * a surface lying about what an action would hit. Every path that changes the
+ * selection funnels through renderSelectionUi() into here, so hiding belongs at
+ * this one choke point rather than at each of the callers.
+ */
 function updateSelectionSurfaces() {
     const n = selectionCount();
-    if (n > 1 && multiSelectPaneMode === 'summary') renderSelectionSummaryPane();
-    else if (n > 1 && multiSelectPaneMode === 'bar') renderSelectionBar();
-    else if (n > 1)                                  renderKeepModeWarning();
+    if (n <= 1) { hideSelectionBar(); hideKeepModeWarning(); return; }
+    if (multiSelectPaneMode === 'summary')    renderSelectionSummaryPane();
+    else if (multiSelectPaneMode === 'bar')   renderSelectionBar();
+    else                                      renderKeepModeWarning();
 }
 
 /** The shared action buttons, used by both the summary pane and the bar. */

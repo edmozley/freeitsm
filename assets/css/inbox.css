@@ -3430,12 +3430,47 @@ body.ticket-popout .ticket-toolbar {
 }
 
 /* Count badge that follows the pointer when dragging several at once. */
-.drag-count-ghost {
+/* A stack of sheets with the count, used as the drag image when several tickets
+   travel together. Parked off-screen: it exists only to be rasterised by
+   setDragImage(). Sizes are fixed in px rather than tokenised because this is a
+   BITMAP the browser snapshots — it never reflows, and a theme that changed its
+   metrics would only move the grab point away from the pointer. */
+.drag-stack-ghost {
     position: absolute; top: -1000px; left: -1000px;
+    width: 92px; height: 76px;
+}
+.drag-sheet {
+    position: absolute;
+    width: 54px; height: 62px;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #c9d1d9);
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.22);
+}
+/* Back to front, each one nudged and tilted so the pile reads as separate sheets
+   rather than one thick card. */
+.drag-sheet-3 { left: 16px; top: 10px; transform: rotate(7deg);  opacity: 0.75; }
+.drag-sheet-2 { left: 12px; top: 6px;  transform: rotate(3.5deg); opacity: 0.9; }
+.drag-sheet-1 {
+    left: 8px; top: 2px; transform: rotate(0deg);
+    display: flex; flex-direction: column; justify-content: center;
+    gap: 6px; padding: 0 9px;
+}
+/* Suggestion of text on the front sheet — enough to read as a document. */
+.drag-sheet-line {
+    display: block; height: 3px; border-radius: 2px;
+    background: var(--border, #d7dde3);
+}
+.drag-sheet-line.short { width: 60%; }
+.drag-stack-badge {
+    position: absolute; right: 0; bottom: 0;
+    min-width: 24px; height: 24px; padding: 0 6px;
+    display: flex; align-items: center; justify-content: center;
     background: var(--accent, #0078d4); color: var(--on-accent, #fff);
-    padding: 6px 12px; border-radius: 6px;
-    font-size: 12px; font-weight: 600; white-space: nowrap;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+    border: 2px solid var(--surface, #fff);
+    border-radius: 12px;
+    font-size: 12px; font-weight: 700; line-height: 1;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.3);
 }
 
 /* ---- Mode 1: the summary reading pane ---- */
