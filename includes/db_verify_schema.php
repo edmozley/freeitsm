@@ -786,6 +786,11 @@ return [
         'target_ticket_id'     => 'INT NOT NULL',
         'reference_mode'       => "VARCHAR(20) NOT NULL DEFAULT 'survivor'",
         'originals_mode'       => "VARCHAR(20) NOT NULL DEFAULT 'thread'",
+        // Which messages moved, as a JSON array of email ids — see the same column on
+        // ticket_splits for why text and not a child table. Recorded now so unmerge
+        // becomes possible later; merges done BEFORE this column existed cannot be
+        // reconstructed, which is the whole reason for adding it early.
+        'moved_email_ids'      => 'TEXT NULL',
         'merged_by_id'         => 'INT NULL',
         'merged_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
@@ -814,6 +819,22 @@ return [
         'new_ticket_id'        => 'INT NOT NULL',
         'new_ticket_number'    => 'VARCHAR(50) NULL',
         'message_count'        => 'INT NOT NULL DEFAULT 0',
+        // EXACTLY which messages moved, as a JSON array of email ids. A count alone
+        // cannot be undone: you would have to guess which rows to send back, and
+        // guessing wrong scatters a conversation across two tickets permanently.
+        //
+        // Stored as text rather than a child table on purpose. This list is only ever
+        // read whole ("undo this split") — never joined, filtered or aggregated — and
+        // a child table with an FK to `emails` would CASCADE the record away the day
+        // one of those messages is deleted, which is precisely when you most want to
+        // know what happened.
+        'moved_email_ids'      => 'TEXT NULL',
+        // The system message left behind in the original thread, so an undo can
+        // remove it rather than leaving a marker pointing at a split that no longer
+        // exists.
+        'marker_email_id'      => 'INT NULL',
+        'undone_datetime'      => 'DATETIME NULL',
+        'undone_by_id'         => 'INT NULL',
         'split_by_id'          => 'INT NULL',
         'split_datetime'       => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],

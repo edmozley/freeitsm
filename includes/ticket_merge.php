@@ -300,7 +300,15 @@ function mergeOneTicket(PDO $conn, int $actorId, int $sourceId, int $targetId, a
     // target there is no longer a "source conversation" to render.
     $snapshotHtml = $makeSnapshot ? mergeBuildSnapshotHtml($conn, $sourceId, $source) : null;
 
+    // Capture which messages are about to move BEFORE moving them — afterwards they
+    // are indistinguishable from the target's own. Recorded so unmerge is possible
+    // later; a count would leave an undo guessing.
+    $movedIds = [];
     if ($moveMessages) {
+        $q = $conn->prepare("SELECT id FROM emails WHERE ticket_id = ?");
+        $q->execute([$sourceId]);
+        $movedIds = array_map('intval', $q->fetchAll(PDO::FETCH_COLUMN));
+
         $stmt = $conn->prepare("UPDATE emails SET ticket_id = ? WHERE ticket_id = ?");
         $stmt->execute([$targetId, $sourceId]);
     }
@@ -362,11 +370,13 @@ function mergeOneTicket(PDO $conn, int $actorId, int $sourceId, int $targetId, a
     $targetNumber = mergeTicketNumber($conn, $targetId);
     $conn->prepare(
         "INSERT INTO ticket_merges
-            (source_ticket_id, source_ticket_number, target_ticket_id, reference_mode, originals_mode, merged_by_id, merged_datetime)
-         VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
+            (source_ticket_id, source_ticket_number, target_ticket_id, reference_mode,
+             originals_mode, moved_email_ids, merged_by_id, merged_datetime)
+         VALUES (?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
     )->execute([
         $sourceId, $source['ticket_number'] ?? null, $targetId,
-        $settings['reference_mode'], $settings['originals_mode'], $actorId ?: null,
+        $settings['reference_mode'], $settings['originals_mode'],
+        json_encode($movedIds), $actorId ?: null,
     ]);
 
     mergeAudit($conn, $sourceId, $actorId, 'Merged', $source['ticket_number'] ?? '', 'Merged into ' . $targetNumber);

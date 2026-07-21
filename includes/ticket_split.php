@@ -119,13 +119,19 @@ function splitTicket(PDO $conn, int $actorId, int $ticketId, int $fromEmailId, b
         // the email row is enough — nothing else to re-point.
         $conn->exec("UPDATE emails SET ticket_id = " . (int)$newId . " WHERE id IN ($in)");
 
-        splitLeaveMarker($conn, $ticketId, $newNumber, $moving);
+        $markerId = splitLeaveMarker($conn, $ticketId, $newNumber, $moving);
 
+        // Record EXACTLY which messages moved, and the marker, so this is reversible.
+        // A count would not be enough: an undo has to know which rows to send back.
         $conn->prepare(
             "INSERT INTO ticket_splits
-                (source_ticket_id, source_ticket_number, new_ticket_id, new_ticket_number, message_count, split_by_id, split_datetime)
-             VALUES (?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
-        )->execute([$ticketId, $source['ticket_number'] ?? null, $newId, $newNumber, count($moving), $actorId ?: null]);
+                (source_ticket_id, source_ticket_number, new_ticket_id, new_ticket_number,
+                 message_count, moved_email_ids, marker_email_id, split_by_id, split_datetime)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP())"
+        )->execute([
+            $ticketId, $source['ticket_number'] ?? null, $newId, $newNumber,
+            count($moving), json_encode(array_values($ids)), $markerId ?: null, $actorId ?: null,
+        ]);
 
         splitAudit($conn, $ticketId, $actorId, 'Split', null, count($moving) . ' message(s) split to ' . $newNumber);
         splitAudit($conn, $newId, $actorId, 'Split', null, 'Split from ' . ($source['ticket_number'] ?? ('#' . $ticketId)));
@@ -213,7 +219,7 @@ function splitCreateTicket(PDO $conn, array $source, array $moving, int $actorId
  * rather than jumping to the top of the conversation — the point is to explain the
  * hole, and a marker somewhere else explains nothing.
  */
-function splitLeaveMarker(PDO $conn, int $ticketId, string $newNumber, array $moving): void {
+function splitLeaveMarker(PDO $conn, int $ticketId, string $newNumber, array $moving): int {
     $when  = $moving[0]['received_datetime'] ?? null;
     $count = count($moving);
     $body  = '<p><em>' . $count . ' message' . ($count === 1 ? '' : 's')
@@ -227,6 +233,7 @@ function splitLeaveMarker(PDO $conn, int $ticketId, string $newNumber, array $mo
          VALUES (?, '', 'FreeITSM', COALESCE(?, UTC_TIMESTAMP()), ?, 'html', 0, 1, ?, 'Manual', 'email', 0, UTC_TIMESTAMP(), 1)"
     );
     $stmt->execute(['Split to ' . $newNumber, $when, $body, $ticketId]);
+    return (int)$conn->lastInsertId();
 }
 
 function splitAudit(PDO $conn, int $ticketId, int $actorId, string $field, ?string $old, ?string $new): void {
@@ -238,19 +245,131 @@ function splitAudit(PDO $conn, int $ticketId, int $actorId, string $field, ?stri
     } catch (Exception $e) { /* audit is best-effort, never fail a split for it */ }
 }
 
-/** Splits recorded against a ticket, in both directions, for the banner. */
+/**
+ * Splits recorded against a ticket, in both directions, for the banner.
+ *
+ * Undone splits are excluded: the messages are back where they started, so a banner
+ * announcing a split that no longer exists would be a lie. The row stays in the table
+ * as history.
+ */
 function splitInfoFor(PDO $conn, int $ticketId): array {
     $out = ['split_out' => [], 'split_from' => null];
     try {
-        $s = $conn->prepare("SELECT new_ticket_id, new_ticket_number, message_count, split_datetime
-                               FROM ticket_splits WHERE source_ticket_id = ? ORDER BY id");
+        $s = $conn->prepare("SELECT id, new_ticket_id, new_ticket_number, message_count, split_datetime
+                               FROM ticket_splits
+                              WHERE source_ticket_id = ? AND undone_datetime IS NULL ORDER BY id");
         $s->execute([$ticketId]);
         $out['split_out'] = $s->fetchAll(PDO::FETCH_ASSOC);
 
-        $s = $conn->prepare("SELECT source_ticket_id, source_ticket_number, message_count, split_datetime
-                               FROM ticket_splits WHERE new_ticket_id = ? LIMIT 1");
+        $s = $conn->prepare("SELECT id, source_ticket_id, source_ticket_number, message_count, split_datetime
+                               FROM ticket_splits
+                              WHERE new_ticket_id = ? AND undone_datetime IS NULL LIMIT 1");
         $s->execute([$ticketId]);
         $out['split_from'] = $s->fetch(PDO::FETCH_ASSOC) ?: null;
     } catch (Exception $e) { /* pre-upgrade install */ }
     return $out;
+}
+
+/**
+ * Undo a split: send the messages back and remove the ticket that was created.
+ *
+ * WHY THIS IS ALLOWED TO REFUSE
+ * -----------------------------
+ * An undo is only safe while the split is still the last thing that happened. The
+ * moment somebody replies on the new ticket, adds a note, or logs time against it,
+ * "put it back" stops having an obvious meaning — that reply was written to a
+ * different ticket, about a different problem, and dragging it into the original is
+ * not a reversal, it is a second mistake.
+ *
+ * So this refuses rather than guessing, and says which kind of work is in the way.
+ * "You cannot undo this because somebody has worked on it" is a sentence an analyst
+ * can act on; a silently mangled conversation is not.
+ *
+ * Splits made before the moved ids were recorded (#915) cannot be undone at all —
+ * there is nothing to identify which messages to send back, and guessing would
+ * scatter a conversation permanently.
+ */
+function undoSplit(PDO $conn, int $actorId, int $splitId): array {
+    $ctx = ActorContext::fromSession($conn);
+
+    $s = $conn->prepare("SELECT * FROM ticket_splits WHERE id = ?");
+    $s->execute([$splitId]);
+    $split = $s->fetch(PDO::FETCH_ASSOC);
+    if (!$split)                              throw new Exception('That split was not found');
+    if (!empty($split['undone_datetime']))    throw new Exception('That split has already been undone');
+
+    $sourceId = (int)$split['source_ticket_id'];
+    $newId    = (int)$split['new_ticket_id'];
+
+    // Access to BOTH, before anything moves.
+    foreach ([$sourceId, $newId] as $id) {
+        try { TicketsService::loadTicket($conn, $ctx, $id); }
+        catch (Throwable $e) { throw new Exception('Could not load ticket #' . $id . ' (' . $e->getMessage() . ')'); }
+    }
+
+    $ids = json_decode((string)$split['moved_email_ids'], true);
+    if (!is_array($ids) || !$ids) {
+        throw new Exception('This split was made before FreeITSM recorded which messages moved, so it cannot be undone automatically');
+    }
+    $ids = array_values(array_filter(array_map('intval', $ids)));
+    $in  = implode(',', $ids);
+
+    // Every recorded message must still be on the new ticket. If one has been moved
+    // on again — split a second time, merged elsewhere — this is no longer a simple
+    // reversal and pretending otherwise would strand messages.
+    $still = (int)$conn->query("SELECT COUNT(*) FROM emails WHERE id IN ($in) AND ticket_id = " . $newId)->fetchColumn();
+    if ($still !== count($ids)) {
+        throw new Exception('Those messages have since been moved again, so this split can no longer be undone');
+    }
+
+    // Nothing may have happened on the new ticket since.
+    $extraMsgs = (int)$conn->query("SELECT COUNT(*) FROM emails WHERE ticket_id = $newId AND id NOT IN ($in)")->fetchColumn();
+    if ($extraMsgs > 0) {
+        throw new Exception('There ' . ($extraMsgs === 1 ? 'is 1 newer message' : "are $extraMsgs newer messages")
+            . ' on ' . $split['new_ticket_number'] . ' — undoing would drag ' . ($extraMsgs === 1 ? 'it' : 'them')
+            . ' back onto the original ticket');
+    }
+    foreach ([['ticket_notes', 'note'], ['ticket_time_entries', 'time entry']] as [$table, $label]) {
+        try {
+            $n = (int)$conn->query("SELECT COUNT(*) FROM `$table` WHERE ticket_id = $newId")->fetchColumn();
+            if ($n > 0) {
+                throw new Exception($split['new_ticket_number'] . ' has ' . $n . ' ' . $label . ($n === 1 ? '' : 's')
+                    . ' added since the split — undoing would lose ' . ($n === 1 ? 'it' : 'them'));
+            }
+        } catch (PDOException $e) { /* table absent on a part-upgraded install */ }
+    }
+
+    $conn->beginTransaction();
+    try {
+        // Messages home. Attachments follow by email_id, as always.
+        $conn->exec("UPDATE emails SET ticket_id = $sourceId WHERE id IN ($in)");
+
+        // The marker explained a gap that no longer exists.
+        if (!empty($split['marker_email_id'])) {
+            $conn->prepare("DELETE FROM emails WHERE id = ? AND ticket_id = ?")
+                 ->execute([(int)$split['marker_email_id'], $sourceId]);
+        }
+
+        try {
+            $conn->prepare("DELETE FROM ticket_links WHERE source_ticket_id = ? AND target_ticket_id = ? AND relation_type = 'related'")
+                 ->execute([$sourceId, $newId]);
+        } catch (Exception $e) { /* linking not installed */ }
+
+        // The new ticket is now empty. Soft-delete through the service so it lands in
+        // the Trash with an audit row rather than vanishing — the reference may have
+        // been quoted somewhere in the few minutes it existed.
+        TicketsService::deleteTicket($conn, $ctx, $newId, true);
+
+        $conn->prepare("UPDATE ticket_splits SET undone_datetime = UTC_TIMESTAMP(), undone_by_id = ? WHERE id = ?")
+             ->execute([$actorId ?: null, $splitId]);
+
+        splitAudit($conn, $sourceId, $actorId, 'Split undone', null,
+            count($ids) . ' message(s) returned from ' . $split['new_ticket_number']);
+
+        $conn->commit();
+        return ['source_ticket_id' => $sourceId, 'returned' => count($ids), 'new_ticket_number' => $split['new_ticket_number']];
+    } catch (Exception $e) {
+        $conn->rollBack();
+        throw $e;
+    }
 }

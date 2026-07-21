@@ -603,6 +603,15 @@ CREATE TABLE IF NOT EXISTS `ticket_splits` (
     `new_ticket_id`        INT NOT NULL,
     `new_ticket_number`    VARCHAR(50) NULL,
     `message_count`        INT NOT NULL DEFAULT 0,
+    -- EXACTLY which messages moved (JSON array of email ids). A count alone cannot be
+    -- undone — you would have to guess which rows to send back. Text rather than a
+    -- child table: read whole, never joined, and an FK would CASCADE the record away
+    -- exactly when you most want to know what happened.
+    `moved_email_ids`      TEXT NULL,
+    -- The marker left in the original thread, so an undo can remove it.
+    `marker_email_id`      INT NULL,
+    `undone_datetime`      DATETIME NULL,
+    `undone_by_id`         INT NULL,
     `split_by_id`          INT NULL,
     `split_datetime`       DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
@@ -625,6 +634,10 @@ CREATE TABLE IF NOT EXISTS `ticket_merges` (
     `target_ticket_id`     INT NOT NULL,
     `reference_mode`       VARCHAR(20) NOT NULL DEFAULT 'survivor',
     `originals_mode`       VARCHAR(20) NOT NULL DEFAULT 'thread',
+    -- Which messages moved (JSON array of email ids), so unmerge becomes possible.
+    -- Merges done before this column existed cannot be reconstructed — which is
+    -- exactly why it is being added before there are many of them.
+    `moved_email_ids`      TEXT NULL,
     `merged_by_id`         INT NULL,
     `merged_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),

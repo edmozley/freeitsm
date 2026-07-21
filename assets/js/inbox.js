@@ -2418,6 +2418,13 @@ function buildMergeBanner(email) {
 
     if (Array.isArray(email.split_out) && email.split_out.length) {
         const refs = email.split_out.map(s => escapeHtml(s.new_ticket_number || ('#' + s.new_ticket_id))).join(', ');
+        // Undo is offered only for the MOST RECENT split, and only when there is
+        // exactly one — "undo" with several candidates is a menu, not a button, and
+        // the engine will refuse anything that has been worked on anyway.
+        const undoBtn = email.split_out.length === 1
+            ? `<button type="button" class="btn btn-secondary merge-banner-btn"
+                       onclick="undoSplit(${email.split_out[0].id})">${escapeHtml(t('tickets.split.undo'))}</button>`
+            : '';
         return `
         <div class="merge-banner merge-banner-in">
             <span class="merge-banner-icon">⑂</span>
@@ -2425,6 +2432,7 @@ function buildMergeBanner(email) {
                 ${escapeHtml(splitPlural(email.split_out.length, 'tickets.split.banner_out'))}
                 <span class="merge-banner-refs">${refs}</span>
             </div>
+            ${undoBtn}
         </div>`;
     }
 
@@ -4118,6 +4126,43 @@ async function refreshSplitPreview() {
         }
     } catch (e) {
         list.innerHTML = '<div class="split-preview-empty">Could not load</div>';
+    }
+}
+
+/**
+ * Undo a split — send the messages back and bin the ticket that was created.
+ *
+ * Confirms first: it is reversing something deliberate, and the new ticket may
+ * already have been mentioned to somebody.
+ */
+async function undoSplit(splitId) {
+    const ok = await showConfirm({
+        title: t('tickets.split.undo_title'),
+        message: t('tickets.split.undo_message'),
+        okLabel: t('tickets.split.undo'),
+        okClass: 'danger'
+    });
+    if (!ok) return;
+
+    try {
+        const res = await fetch(API_BASE + 'undo_split.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ split_id: splitId })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            // These refusals explain themselves ("3 newer messages on X…"), so show
+            // the server's wording rather than a generic failure.
+            showToast(data.error || 'Could not undo the split', 'error');
+            return;
+        }
+        showToast(splitPlural(data.returned, 'tickets.split.undo_done').replace('%s', data.new_ticket_number), 'success');
+        await loadEmails();
+        if (typeof loadFolderCounts === 'function') loadFolderCounts();
+        selectEmailByTicketId(data.source_ticket_id);
+    } catch (e) {
+        showToast('Could not undo the split', 'error');
     }
 }
 
