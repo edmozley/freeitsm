@@ -927,8 +927,14 @@ body.ticket-popout .ticket-toolbar {
 .action-btn {
     display: flex;
     align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
+    /* Compact by design: this is a dense toolbar of eight-plus actions, not a
+       page's primary call to action. Half the old padding (was 8px 16px) fits
+       the row comfortably at ordinary pane widths instead of relying on the
+       wrap, and reads as a toolbar rather than a row of buttons. Mobile keeps
+       its own larger touch targets — mobile.css overrides this inside its
+       media queries. */
+    gap: 5px;
+    padding: 4px 10px;
     background: var(--surface, #fff);
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
