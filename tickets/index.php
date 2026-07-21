@@ -29,7 +29,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.title')); ?> - <?php echo htmlspecialchars(t('tickets.nav.inbox')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=22">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=41">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=42">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=29">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -72,6 +72,11 @@ $translationNamespaces = ['common', 'tickets'];
                     </button>
                 </div>
             </div>
+            <?php /* Multi-select (#910): the "bar" pane mode puts the count and the
+                     bulk actions here, directly above the rows they affect. Hidden
+                     until more than one ticket is selected AND that mode is chosen —
+                     the other two modes never show it. */ ?>
+            <div class="selection-bar" id="selectionBar" style="display: none;"></div>
             <div class="email-list" id="emailList">
                 <div class="reading-pane-empty"><?php echo htmlspecialchars(t('tickets.list.select_folder')); ?></div>
             </div>
@@ -521,7 +526,7 @@ $translationNamespaces = ['common', 'tickets'];
     </script>
     <!-- Must load BEFORE inbox.js: it cleans every untrusted message body. -->
     <script src="../assets/js/safe-html.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=61"></script>
+    <script src="../assets/js/inbox.js?v=62"></script>
     <script src="../assets/js/mobile.js?v=12"></script>
     <script>
     // Auto-check mailboxes every 60 seconds

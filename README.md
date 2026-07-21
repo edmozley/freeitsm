@@ -66,7 +66,7 @@ Then open [http://localhost:8080/setup/](http://localhost:8080/setup/) to verify
 | Module | What it does |
 |--------|--------------|
 | [Watchtower](https://github.com/edmozley/freeitsm/wiki/Watchtower) | Unified attention dashboard — one glance shows what needs you across every module |
-| [Tickets](https://github.com/edmozley/freeitsm/wiki/Tickets) | Outlook-style inbox with email, WhatsApp and web chat channels, SLAs, CSAT, canned responses, AI reply cleanup |
+| [Tickets](https://github.com/edmozley/freeitsm/wiki/Tickets) | Outlook-style inbox with email, WhatsApp and web chat channels, SLAs, CSAT, canned responses, multi-select bulk actions, AI reply cleanup |
 | [Self-Service Portal](https://github.com/edmozley/freeitsm/wiki/Self-Service-Portal) | End-user portal — request catalogue, knowledge, replies, screen recording; works even with no email address |
 | [Tasks](https://github.com/edmozley/freeitsm/wiki/Tasks) | Kanban board, list, calendar and timeline views for internal work |
 | [Assets](https://github.com/edmozley/freeitsm/wiki/Assets) | Asset register with custody tracking, locations, warranties, vCenter and Intune sync |

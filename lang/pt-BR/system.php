@@ -308,6 +308,16 @@ return [
         'panel_asset_management'  => 'Gestão de ativos',
         'panel_system_wiki'       => 'Wiki do sistema',
 
+        // Caixa de entrada: o que acontece quando vários tickets são selecionados.
+        'multiselect_heading'      => 'Selecionar vários tickets',
+        'multiselect_desc'         => 'Na caixa de entrada você pode selecionar vários tickets de uma vez — Ctrl+clique para escolher um a um, Shift+clique para um bloco. Isto define o que a tela mostra enquanto mais de um está selecionado.',
+        'multiselect_summary'      => 'Painel de resumo',
+        'multiselect_keep'         => 'Manter o ticket aberto',
+        'multiselect_bar'          => 'Barra acima da lista',
+        'multiselect_summary_hint' => 'O painel de leitura lista o que você selecionou, com as ações em massa nele.',
+        'multiselect_keep_hint'    => 'O painel de leitura continua mostrando o ticket aberto, com um aviso de que a ação afetará todos.',
+        'multiselect_bar_hint'     => 'Uma faixa compacta aparece acima da lista com a contagem e as ações.',
+
         'mc_heading' => 'Preenchimento das barras das verificações matinais',
         'mc_desc'    => 'Preenchimento sólido ou em gradiente para o gráfico de tendência de 30 dias das Verificações matinais. Também disponível na página de configurações das Verificações matinais.',
         'fill_plain'    => 'Sólido',

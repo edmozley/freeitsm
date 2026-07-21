@@ -227,6 +227,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTicketPriorities();
     loadAnalysts();
     loadMoveCompanies();
+    loadMultiSelectPanePreference();
     loadFolderGroupingPreference().then(loadFolderCounts);
     initTinyMCE();
     initAttachmentHandlers();
@@ -772,22 +773,53 @@ function selectAnalystStatus(analystId, status) {
 // ===== Drag-and-drop: tickets onto folders =====
 let draggedTicketId = null;
 let draggedTicketNumber = null;
+// Every ticket travelling in the current drag. Length 1 for an ordinary drag, so
+// the single-ticket path below stays the path it always was.
+let draggedTicketIds = [];
 let dragHoverTimer = null;
 let dragHoverFolderId = null;
 
 function attachEmailDragHandlers() {
     document.querySelectorAll('#emailList .email-item').forEach(el => {
         el.addEventListener('dragstart', (e) => {
+            const mailId = Number(el.dataset.emailId);
+
+            // Dragging a row that is part of the selection drags the WHOLE
+            // selection — same rule as the right-click menu, for the same reason.
+            // Dragging a row outside it collapses the selection to that row first,
+            // so you can never drop a set you thought you had deselected.
+            if (!selectedEmailIds.has(mailId)) {
+                selectedEmailIds  = new Set([mailId]);
+                selectionAnchorId = mailId;
+                selectionFocusId  = mailId;
+                renderSelectionUi();
+            }
+            draggedTicketIds = selectedTicketIds();
+
             draggedTicketId = el.dataset.ticketId;
             draggedTicketNumber = el.dataset.ticketNumber;
             e.dataTransfer.effectAllowed = 'move';
             e.dataTransfer.setData('text/plain', draggedTicketId);
-            el.classList.add('dragging');
+
+            // Every dragged row dims, not just the one under the cursor, so the
+            // drag visibly carries the set.
+            document.querySelectorAll('#emailList .email-item.selected').forEach(r => r.classList.add('dragging'));
+
+            // A count badge on the drag image when it's more than one.
+            if (draggedTicketIds.length > 1 && e.dataTransfer.setDragImage) {
+                const ghost = document.createElement('div');
+                ghost.className = 'drag-count-ghost';
+                ghost.textContent = t('tickets.bulk.n_selected').replace('%d', String(draggedTicketIds.length));
+                document.body.appendChild(ghost);
+                e.dataTransfer.setDragImage(ghost, 12, 12);
+                setTimeout(() => ghost.remove(), 0);
+            }
         });
         el.addEventListener('dragend', () => {
-            el.classList.remove('dragging');
+            document.querySelectorAll('#emailList .email-item.dragging').forEach(r => r.classList.remove('dragging'));
             draggedTicketId = null;
             draggedTicketNumber = null;
+            draggedTicketIds = [];
             cancelDragHover();
             document.querySelectorAll('.drop-target').forEach(t => t.classList.remove('drop-target'));
         });
@@ -868,6 +900,15 @@ async function handleTicketDrop(targetEl, ticketId, ticketNumber) {
 
     // Dropping onto the Trash folder soft-deletes the ticket.
     if (dropType === 'trash') {
+        if (draggedTicketIds.length > 1) {
+            // Dragging to Trash is already a deliberate gesture and the delete is
+            // soft, so this does NOT re-ask for confirmation the way the Delete
+            // button does — Restore is the undo.
+            await applyToSelection('bulk_delete_tickets.php',
+                chunk => ({ ticket_ids: chunk }), t('tickets.bulk.label_delete'));
+            clearSelectionToNone();
+            return;
+        }
         try {
             const res = await fetch(API_BASE + 'delete_ticket.php', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -930,6 +971,17 @@ async function handleTicketDrop(targetEl, ticketId, ticketNumber) {
         newStatusName = payload.status;
         toastMsg = `${ticketNumber || 'Ticket'} → ${newAnalystName || 'Analyst'} / ${payload.status}`;
     } else {
+        return;
+    }
+
+    // Multi-drag: the payload above already says what the drop MEANS; send it for
+    // every dragged ticket through the same service the single drop uses. The
+    // values are passed through byte-for-byte (including '' for "clear"), so a
+    // dropped set is treated exactly as N dropped tickets would have been.
+    if (draggedTicketIds.length > 1) {
+        const fields = Object.assign({}, payload);
+        delete fields.ticket_id;
+        await bulkSetField(fields, t('tickets.bulk.label_move'));
         return;
     }
 
@@ -1032,7 +1084,7 @@ function renderEmailList() {
         return `
             <div class="email-item ${email.id === selectedEmailId ? 'selected' : ''} ${!email.is_read ? 'unread' : ''}"
                  draggable="true" data-email-id="${email.id}" data-ticket-id="${ticketId}" data-ticket-number="${escapeHtml(email.ticket_number || '')}"
-                 onclick="selectEmail(${email.id})" ondblclick="selectEmailFullScreen(${email.id})"
+                 onclick="handleEmailRowClick(event, ${email.id})" ondblclick="selectEmailFullScreen(${email.id})"
                  oncontextmenu="openTicketContextMenu(event, ${ticketId}, '${escapeHtml(email.ticket_number || '')}')">
                 <div class="email-from">${escapeHtml(email.ticket_number || '')} - ${senderLabel(email.from_name, email.from_address, false)} ${countBadge}</div>
                 <div class="email-subject">${escapeHtml(email.subject)}</div>
@@ -1047,6 +1099,15 @@ function renderEmailList() {
 
     // Wire drag handlers on freshly rendered email rows
     attachEmailDragHandlers();
+
+    // The rows are new DOM, so the selection highlight has to be repainted. Rows
+    // that scrolled out of the result set drop out of the selection here too —
+    // acting on a ticket you can no longer see is worse than losing it from the set.
+    if (selectedEmailIds && selectedEmailIds.size) {
+        const present = new Set(visibleEmailIds());
+        Array.from(selectedEmailIds).forEach(id => { if (!present.has(id)) selectedEmailIds.delete(id); });
+        renderSelectionUi();
+    }
 
     // Fire-and-forget batch SLA fetch to colour the dots in
     loadInboxSlaIndicators();
@@ -1129,15 +1190,633 @@ function renderInboxSlaIndicator(row) {
 // Rebuilding (renderEmailList) on every click also re-fired the batch SLA fetch,
 // which made the SLA pills flash off and back on — this just toggles a class.
 function setSelectedEmailRow(emailId) {
+    // With a block selected, the multi-select painter owns the highlight — this
+    // function would otherwise strip `.selected` off the other rows and leave the
+    // list looking like one ticket is selected while an action hits several.
+    if (selectedEmailIds && selectedEmailIds.size > 1) { renderSelectionUi(); return; }
     document.querySelectorAll('#emailList .email-item.selected')
         .forEach(el => el.classList.remove('selected'));
     const row = document.querySelector(`#emailList .email-item[data-email-id="${emailId}"]`);
     if (row) row.classList.add('selected');
 }
 
+// ===========================================================================
+// Multi-select (#910)
+// ===========================================================================
+//
+// The Explorer/Outlook model, because that is the one every analyst already has
+// in their fingers:
+//
+//   click              select just this one, and open it
+//   Ctrl+click         toggle this one in or out, leaving the rest alone
+//   Shift+click        select the block from the ANCHOR to here
+//   Ctrl+Shift+click   extend the block without discarding what is already picked
+//
+// Deliberately NO checkboxes. A checkbox column costs horizontal space on every
+// row forever to serve the rare case, and it trains people to reach for the mouse
+// when the keyboard is faster.
+//
+// THE ANCHOR IS THE PART PEOPLE GET WRONG. Shift+click extends from the last
+// PLAIN click (the anchor), not from the last row touched. That is what makes
+// "click row 3, shift+click row 9, shift+click row 6" narrow the block to 3-6
+// instead of leaving 3-9 stuck. Ctrl+click moves the anchor to itself, so a
+// Ctrl+click followed by a Shift+click ranges from the Ctrl+clicked row.
+//
+// `selectedEmailIds` is the truth. `selectedEmailId` (singular, pre-existing)
+// stays as "what the reading pane is showing" so every existing caller keeps
+// working untouched.
+
+let selectedEmailIds   = new Set();   // every row in the selection
+let selectionAnchorId  = null;        // where a Shift range measures from
+let selectionFocusId   = null;        // the keyboard cursor
+
+/** Email ids in the order they are on screen — range selection follows what you SEE. */
+function visibleEmailIds() {
+    return Array.from(document.querySelectorAll('#emailList .email-item'))
+        .map(el => Number(el.dataset.emailId));
+}
+
+/** The ticket id behind a row (actions work on tickets; rows are keyed by email). */
+function ticketIdForEmail(emailId) {
+    const row = document.querySelector(`#emailList .email-item[data-email-id="${emailId}"]`);
+    if (row && row.dataset.ticketId) return Number(row.dataset.ticketId);
+    const rec = emails.find(e => e.id == emailId);
+    return rec ? Number(rec.ticket_id) : null;
+}
+
+function selectedTicketIds() {
+    return Array.from(selectedEmailIds).map(ticketIdForEmail).filter(id => id);
+}
+
+function selectionCount() {
+    return selectedEmailIds.size;
+}
+
+/** Paint the list: `.selected` on every chosen row, `.kb-focus` on the cursor. */
+function renderSelectionUi() {
+    document.querySelectorAll('#emailList .email-item').forEach(el => {
+        const id = Number(el.dataset.emailId);
+        el.classList.toggle('selected', selectedEmailIds.has(id));
+        el.classList.toggle('kb-focus', selectionFocusId === id);
+    });
+    // Suppress the browser's blue text-drag highlight while a block is selected —
+    // Shift+click across rows would otherwise smear text selection over the list.
+    const list = document.getElementById('emailList');
+    if (list) list.classList.toggle('multi-selecting', selectedEmailIds.size > 1);
+    updateSelectionSurfaces();
+}
+
+function clearMultiSelection({ repaint = true } = {}) {
+    selectedEmailIds.clear();
+    if (selectedEmailId) selectedEmailIds.add(selectedEmailId);
+    selectionAnchorId = selectedEmailId;
+    selectionFocusId  = selectedEmailId;
+    if (repaint) renderSelectionUi();
+}
+
+/**
+ * The one entry point for a click on a row. Every modifier combination lands here
+ * so the rules live in one readable place rather than spread across handlers.
+ */
+function handleEmailRowClick(event, emailId) {
+    const ctrl  = event.ctrlKey || event.metaKey;   // ⌘ on a Mac does the same job
+    const shift = event.shiftKey;
+
+    if (shift) {
+        // Shift, with or without Ctrl: take the block from the anchor to here.
+        // Plain Shift replaces the selection; Ctrl+Shift adds the block to it.
+        const ids   = visibleEmailIds();
+        const from  = ids.indexOf(selectionAnchorId !== null ? selectionAnchorId : emailId);
+        const to    = ids.indexOf(emailId);
+        if (from === -1 || to === -1) return;
+
+        const block = ids.slice(Math.min(from, to), Math.max(from, to) + 1);
+        if (!ctrl) selectedEmailIds.clear();
+        block.forEach(id => selectedEmailIds.add(id));
+
+        // The anchor deliberately STAYS PUT so a second Shift+click re-measures
+        // from the same origin and can shrink the block as well as grow it.
+        selectionFocusId = emailId;
+        renderSelectionUi();
+        onSelectionChanged({ clickedId: emailId });
+        return;
+    }
+
+    if (ctrl) {
+        // Toggle this one. Ctrl+clicking the only selected row leaves nothing
+        // selected, which is legitimate — the reading pane empties.
+        if (selectedEmailIds.has(emailId)) selectedEmailIds.delete(emailId);
+        else                               selectedEmailIds.add(emailId);
+        selectionAnchorId = emailId;
+        selectionFocusId  = emailId;
+        renderSelectionUi();
+        onSelectionChanged({ clickedId: emailId });
+        return;
+    }
+
+    // Plain click — collapse to this one and open it, exactly as before.
+    selectedEmailIds = new Set([emailId]);
+    selectionAnchorId = emailId;
+    selectionFocusId  = emailId;
+    renderSelectionUi();
+    selectEmail(emailId);
+}
+
+// ---------------------------------------------------------------------------
+// What the screen does when more than one is selected — the analyst's choice.
+// ---------------------------------------------------------------------------
+//
+// There is no single right answer here, so it is a per-analyst preference
+// (`tickets_multiselect_pane`, set in the account menu → Preferences):
+//
+//   summary  the reading pane becomes a "5 tickets selected" panel with the
+//            actions on it. The default: what you are about to act on is on
+//            screen, and the actions are discoverable without right-clicking.
+//   keep     the reading pane carries on showing the ticket you opened, with a
+//            warning strip — because the pane showing ONE while an action hits
+//            FIVE is exactly the mistake worth warning about.
+//   bar      a compact strip above the list instead, keeping the actions beside
+//            the rows they affect.
+//
+// All three share the same actions and the same code path; only the container
+// differs. Nothing below decides what an action DOES.
+
+let multiSelectPaneMode = 'summary';
+
+async function loadMultiSelectPanePreference() {
+    try {
+        const res  = await fetch(sharedApiBase() + 'system/get_user_preference.php?key=tickets_multiselect_pane');
+        const data = await res.json();
+        if (data.success && data.value && ['summary', 'keep', 'bar'].includes(data.value)) {
+            multiSelectPaneMode = data.value;
+        }
+    } catch (e) { /* default stands */ }
+}
+
+/** Called whenever the selection changes. Routes to whichever surface is chosen. */
+function onSelectionChanged({ clickedId = null } = {}) {
+    const n = selectionCount();
+
+    if (n === 0) {
+        hideSelectionBar();
+        hideKeepModeWarning();
+        selectedEmailId = null;
+        currentEmail = null;
+        const pane = document.getElementById('readingPane');
+        if (pane) pane.innerHTML = `<div class="reading-pane-empty">${escapeHtml(t('tickets.reading_pane.select_ticket'))}</div>`;
+        return;
+    }
+
+    if (n === 1) {
+        // Back to ordinary single-ticket behaviour, whatever the mode.
+        hideSelectionBar();
+        hideKeepModeWarning();
+        const only = Array.from(selectedEmailIds)[0];
+        if (only !== selectedEmailId) selectEmail(only);
+        return;
+    }
+
+    // n > 1
+    if (multiSelectPaneMode === 'summary') {
+        hideSelectionBar();
+        hideKeepModeWarning();
+        renderSelectionSummaryPane();
+    } else if (multiSelectPaneMode === 'bar') {
+        hideKeepModeWarning();
+        renderSelectionBar();
+        // If nothing has ever been opened, the pane would sit empty and confusing;
+        // open whatever was clicked so there is context beside the bar.
+        if (!currentEmail && clickedId) selectEmail(clickedId);
+    } else { // 'keep'
+        hideSelectionBar();
+        if (!currentEmail && clickedId) selectEmail(clickedId);
+        renderKeepModeWarning();
+    }
+}
+
+/** Re-run the surface rendering without recomputing the selection. */
+function updateSelectionSurfaces() {
+    const n = selectionCount();
+    if (n > 1 && multiSelectPaneMode === 'summary') renderSelectionSummaryPane();
+    else if (n > 1 && multiSelectPaneMode === 'bar') renderSelectionBar();
+    else if (n > 1)                                  renderKeepModeWarning();
+}
+
+/** The shared action buttons, used by both the summary pane and the bar. */
+function selectionActionsHtml(compact) {
+    const cls = compact ? 'btn btn-secondary sel-act-btn' : 'btn btn-secondary';
+    return `
+        <button type="button" class="${cls}" onclick="openSelectionMenu(event, 'assignee')">${escapeHtml(t('tickets.bulk.assign'))} ▾</button>
+        <button type="button" class="${cls}" onclick="openSelectionMenu(event, 'status')">${escapeHtml(t('tickets.bulk.status'))} ▾</button>
+        <button type="button" class="${cls}" onclick="openSelectionMenu(event, 'priority')">${escapeHtml(t('tickets.bulk.priority'))} ▾</button>
+        <button type="button" class="${cls}" onclick="openSelectionMenu(event, 'department')">${escapeHtml(t('tickets.bulk.department'))} ▾</button>
+        <button type="button" class="${cls} sel-act-danger" onclick="bulkDeleteSelection()">${escapeHtml(t('tickets.bulk.delete'))}</button>
+    `;
+}
+
+function renderSelectionSummaryPane() {
+    const pane = document.getElementById('readingPane');
+    if (!pane) return;
+    const ids  = visibleEmailIds().filter(id => selectedEmailIds.has(id));   // keep list order
+    const rows = ids.map(id => {
+        const row = document.querySelector(`#emailList .email-item[data-email-id="${id}"]`);
+        const ref = row ? (row.dataset.ticketNumber || '') : '';
+        const rec = emails.find(e => e.id == id);
+        return `<div class="sel-summary-row">
+                    <span class="sel-summary-ref">${escapeHtml(ref)}</span>
+                    <span class="sel-summary-subj">${escapeHtml(rec ? (rec.subject || '') : '')}</span>
+                </div>`;
+    }).join('');
+
+    pane.innerHTML = `
+        <div class="sel-summary">
+            <div class="sel-summary-count">${escapeHtml(t('tickets.bulk.n_selected').replace('%d', ids.length))}</div>
+            <div class="sel-summary-list">${rows}</div>
+            ${bulkProgressHtml()}
+            <div class="sel-summary-actions">${selectionActionsHtml(false)}</div>
+            <button type="button" class="sel-summary-clear" onclick="clearSelectionToNone()">${escapeHtml(t('tickets.bulk.clear'))}</button>
+            <div class="sel-summary-hint">${escapeHtml(t('tickets.bulk.right_click_hint'))}</div>
+        </div>`;
+}
+
+function renderSelectionBar() {
+    const bar = document.getElementById('selectionBar');
+    if (!bar) return;
+    // Count + actions wrap together inside sel-bar-main; the ✕ stays pinned to the
+    // right of the bar rather than wrapping onto a line of its own.
+    bar.innerHTML = `
+        <span class="sel-bar-main">
+            <span class="sel-bar-count">${escapeHtml(t('tickets.bulk.n_selected').replace('%d', String(selectionCount())))}</span>
+            ${bulkProgressHtml()}
+            <span class="sel-bar-actions">${selectionActionsHtml(true)}</span>
+        </span>
+        <button type="button" class="sel-bar-close" onclick="clearSelectionToNone()" title="${escapeHtml(t('tickets.bulk.clear'))}">✕</button>
+    `;
+    bar.style.display = 'flex';
+}
+
+function hideSelectionBar() {
+    const bar = document.getElementById('selectionBar');
+    if (bar) { bar.style.display = 'none'; bar.innerHTML = ''; }
+}
+
+// The strip is CREATED here rather than living in the page markup, because
+// selectEmail() replaces the whole reading pane's innerHTML — a static element
+// would be destroyed the moment the ticket it warns about finished loading.
+// Re-prepending is self-healing and needs no change to the pane's layout.
+function renderKeepModeWarning() {
+    const pane = document.getElementById('readingPane');
+    if (!pane) return;
+    let strip = document.getElementById('keepModeWarning');
+    if (!strip) {
+        strip = document.createElement('div');
+        strip.className = 'keep-mode-warning';
+        strip.id = 'keepModeWarning';
+    }
+    strip.innerHTML = `<span>⚠ ${escapeHtml(t('tickets.bulk.keep_warning').replace('%d', String(selectionCount())))}</span>
+        ${bulkProgressHtml()}
+        <span class="sel-keep-actions">${selectionActionsHtml(true)}</span>
+        <button type="button" class="sel-keep-clear" onclick="clearSelectionToNone()">${escapeHtml(t('tickets.bulk.clear'))}</button>`;
+    if (strip.parentElement !== pane || pane.firstChild !== strip) {
+        pane.insertBefore(strip, pane.firstChild);
+    }
+    strip.style.display = 'flex';
+}
+
+function hideKeepModeWarning() {
+    const strip = document.getElementById('keepModeWarning');
+    if (strip) strip.remove();
+}
+
+/** Clear right down to nothing selected (the ✕ / Escape route). */
+function clearSelectionToNone() {
+    selectedEmailIds.clear();
+    selectionAnchorId = null;
+    selectionFocusId  = null;
+    selectedEmailId   = null;
+    renderSelectionUi();
+    onSelectionChanged({});
+}
+
+/** Select every row currently listed (Ctrl+A). */
+function selectAllVisible() {
+    const ids = visibleEmailIds();
+    if (!ids.length) return;
+    selectedEmailIds = new Set(ids);
+    if (selectionAnchorId === null) selectionAnchorId = ids[0];
+    selectionFocusId = ids[ids.length - 1];
+    renderSelectionUi();
+    onSelectionChanged({});
+}
+
+// ---------------------------------------------------------------------------
+// Keyboard
+// ---------------------------------------------------------------------------
+//
+//   ↑ / ↓              move the cursor and select just that row (and open it)
+//   Shift + ↑ / ↓      extend the block from the anchor
+//   Ctrl + ↑ / ↓       move the cursor WITHOUT changing the selection
+//   Space              toggle the row under the cursor (pairs with Ctrl+arrows)
+//   Ctrl + A           select everything listed
+//   Escape             clear the selection
+//
+// Ctrl+arrows + Space is the pair that makes a keyboard-only analyst able to
+// build a scattered selection — the keyboard equivalent of Ctrl+click, and the
+// reason the cursor is tracked separately from the selection at all.
+
+function moveSelectionCursor(delta, { extend = false, keepSelection = false }) {
+    const ids = visibleEmailIds();
+    if (!ids.length) return;
+
+    const from = selectionFocusId !== null ? ids.indexOf(selectionFocusId) : -1;
+    let next = from === -1 ? (delta > 0 ? 0 : ids.length - 1) : from + delta;
+    next = Math.max(0, Math.min(ids.length - 1, next));
+    const nextId = ids[next];
+
+    if (keepSelection) {                 // Ctrl+arrow — cursor only
+        selectionFocusId = nextId;
+        renderSelectionUi();
+        scrollRowIntoView(nextId);
+        return;
+    }
+
+    if (extend) {                        // Shift+arrow — range from the anchor
+        if (selectionAnchorId === null) selectionAnchorId = selectionFocusId !== null ? selectionFocusId : nextId;
+        const a = ids.indexOf(selectionAnchorId);
+        const block = ids.slice(Math.min(a, next), Math.max(a, next) + 1);
+        selectedEmailIds = new Set(block);
+        selectionFocusId = nextId;
+        renderSelectionUi();
+        scrollRowIntoView(nextId);
+        onSelectionChanged({ clickedId: nextId });
+        return;
+    }
+
+    // Plain arrow — behave like a plain click.
+    selectedEmailIds  = new Set([nextId]);
+    selectionAnchorId = nextId;
+    selectionFocusId  = nextId;
+    renderSelectionUi();
+    scrollRowIntoView(nextId);
+    selectEmail(nextId);
+}
+
+function scrollRowIntoView(emailId) {
+    const row = document.querySelector(`#emailList .email-item[data-email-id="${emailId}"]`);
+    if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+}
+
+/** Space — toggle the row under the cursor, the keyboard's Ctrl+click. */
+function toggleFocusedRow() {
+    if (selectionFocusId === null) return;
+    if (selectedEmailIds.has(selectionFocusId)) selectedEmailIds.delete(selectionFocusId);
+    else                                        selectedEmailIds.add(selectionFocusId);
+    selectionAnchorId = selectionFocusId;
+    renderSelectionUi();
+    onSelectionChanged({ clickedId: selectionFocusId });
+}
+
+document.addEventListener('keydown', function (e) {
+    // Never steal keys from a field, an editor, or an open modal — the inbox
+    // shares this page with TinyMCE, the search box and a dozen dialogs.
+    const el = document.activeElement;
+    if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT' || el.isContentEditable)) return;
+    if (document.querySelector('.modal.active')) return;
+    if (typeof tinymce !== 'undefined' && tinymce.activeEditor && tinymce.activeEditor.hasFocus && tinymce.activeEditor.hasFocus()) return;
+
+    const ctrl = e.ctrlKey || e.metaKey;
+
+    if (ctrl && (e.key === 'a' || e.key === 'A')) {
+        if (!document.getElementById('emailList')) return;
+        e.preventDefault();
+        selectAllVisible();
+        return;
+    }
+    if (e.key === 'Escape' && selectionCount() > 1) {
+        e.preventDefault();
+        clearSelectionToNone();
+        return;
+    }
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        if (!document.getElementById('emailList')) return;
+        e.preventDefault();
+        moveSelectionCursor(e.key === 'ArrowDown' ? 1 : -1, { extend: e.shiftKey, keepSelection: ctrl && !e.shiftKey });
+        return;
+    }
+    if (e.key === ' ' && selectionFocusId !== null) {
+        e.preventDefault();
+        toggleFocusedRow();
+    }
+});
+
+// ---------------------------------------------------------------------------
+// Applying an action to the whole selection
+// ---------------------------------------------------------------------------
+//
+// 🔑 A bulk action is deliberately "do the SINGLE action, N times" — the very
+// same endpoint the one-ticket path uses, not a new bulk endpoint with its own
+// SQL. Tickets is the busiest and most side-effect-laden module in the product
+// (audit rows, SLA clocks, workflow triggers, notifications): a second write
+// path would eventually drift from the first, and the symptom would be an
+// action that silently skips an audit entry only when done in bulk.
+//
+// The cost is N requests. That is paid for with a small concurrency window so
+// fifty tickets do not open fifty sockets, and a progress toast so a long run
+// does not look like a hang.
+
+// Chunk size. The server caps a single request at 100; chunking below that keeps
+// each request short enough to stay well inside PHP's execution limit (each ticket
+// runs the full service: audit, workflow dispatch, possibly a template email) and
+// gives the progress counter something honest to count.
+const BULK_CHUNK = 25;
+
+// Live progress goes in OUR OWN surface, not the toast. `showToast(msg, type)`
+// is a fire-and-forget shared component that auto-dismisses after four seconds
+// and returns nothing — there is no handle to update. Teaching it to be sticky
+// and updatable would change a component every module in the app depends on, for
+// the benefit of one screen. The summary pane and the bar are both ours, so the
+// counter lives there and the toast just reports the outcome.
+let bulkBusy = null;   // { done, total, label } while a run is in flight
+
+/**
+ * Apply one change to every selected ticket.
+ *
+ * @param endpoint 'bulk_update_tickets.php' | 'bulk_delete_tickets.php'
+ * @param payloadFor  (idsChunk) => body object
+ * @param label       human label for the progress line and the result toast
+ */
+async function applyToSelection(endpoint, payloadFor, label) {
+    const ids = selectedTicketIds();
+    if (!ids.length) return;
+    if (bulkBusy) return;                     // one run at a time
+
+    const total = ids.length;
+    let ok = 0;
+    const failures = [];
+
+    bulkBusy = { done: 0, total, label };
+    updateSelectionSurfaces();
+
+    for (let i = 0; i < ids.length; i += BULK_CHUNK) {
+        const chunk = ids.slice(i, i + BULK_CHUNK);
+        try {
+            const res = await fetch(API_BASE + endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payloadFor(chunk))
+            });
+            const data = await res.json();
+            if (data.success) {
+                ok += (data.updated ?? data.deleted ?? 0);
+                (data.failed || []).forEach(f => failures.push(f));
+            } else {
+                chunk.forEach(id => failures.push({ id, error: data.error || 'unknown' }));
+            }
+        } catch (err) {
+            chunk.forEach(id => failures.push({ id, error: String(err) }));
+        }
+        bulkBusy.done = Math.min(total, i + chunk.length);
+        updateSelectionSurfaces();
+    }
+
+    bulkBusy = null;
+
+    if (!failures.length) {
+        showToast(t('tickets.bulk.done').replace('%d', String(ok)).replace('%s', label), 'success');
+    } else {
+        // Never report a partial run as a success — say exactly how many failed.
+        showToast(t('tickets.bulk.partial').replace('%d', String(ok)).replace('%f', String(failures.length)), 'error');
+        console.warn('Bulk action failures:', failures);
+    }
+
+    await loadEmails();
+    if (typeof loadFolderCounts === 'function') loadFolderCounts();
+    renderSelectionUi();
+}
+
+/** Set one field across the selection. */
+function bulkSetField(fields, label) {
+    return applyToSelection('bulk_update_tickets.php',
+        chunk => ({ ticket_ids: chunk, fields: fields }), label);
+}
+
+// ---------------------------------------------------------------------------
+// The action dropdown on the summary pane / bar
+// ---------------------------------------------------------------------------
+// Built from the SAME lookups the right-click submenus use, so a status added in
+// settings appears in both without a second registration.
+
+function openSelectionMenu(event, kind) {
+    event.stopPropagation();
+    closeSelectionMenu();
+
+    let items = [];
+    if (kind === 'status') {
+        items = ticketStatuses.map(s => ({
+            label: s.name,
+            colour: s.colour,
+            run: () => bulkSetField({ status: s.name }, t('tickets.bulk.label_status'))
+        }));
+    } else if (kind === 'priority') {
+        items = [{ label: t('tickets.context.clear_priority'), italic: true,
+                   run: () => bulkSetField({ priority_id: null }, t('tickets.bulk.label_priority')) }]
+            .concat(ticketPriorities.map(p => ({
+                label: p.name,
+                colour: p.colour,
+                run: () => bulkSetField({ priority_id: p.id }, t('tickets.bulk.label_priority'))
+            })));
+    } else if (kind === 'department') {
+        items = [{ label: t('tickets.context.clear_department'), italic: true,
+                   run: () => bulkSetField({ department_id: null }, t('tickets.bulk.label_department')) }]
+            .concat(departments.map(d => ({
+                label: d.name,
+                run: () => bulkSetField({ department_id: d.id }, t('tickets.bulk.label_department'))
+            })));
+    } else if (kind === 'assignee') {
+        items = [{ label: t('tickets.context.clear_assignee'), italic: true,
+                   run: () => bulkSetField({ assigned_analyst_id: null }, t('tickets.bulk.label_assignee')) }]
+            .concat(analysts.map(a => ({
+                label: a.full_name || a.username,
+                run: () => bulkSetField({ assigned_analyst_id: a.id }, t('tickets.bulk.label_assignee'))
+            })));
+    }
+
+    if (!items.length) return;
+
+    const menu = document.createElement('div');
+    menu.className = 'sel-dropdown';
+    menu.id = 'selectionDropdown';
+    menu.innerHTML = items.map((it, i) => `
+        <button type="button" class="sel-dropdown-item" data-i="${i}">
+            ${it.colour ? `<span class="ctx-status-swatch" style="background:${escapeHtml(it.colour)};"></span>` : ''}
+            <span${it.italic ? ' style="font-style:italic;color:var(--text-muted,#888);"' : ''}>${escapeHtml(it.label)}</span>
+        </button>`).join('');
+    document.body.appendChild(menu);
+
+    menu.querySelectorAll('.sel-dropdown-item').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const it = items[Number(btn.dataset.i)];
+            closeSelectionMenu();
+            it.run();
+        });
+    });
+
+    // Position under the button that opened it, flipped if it would overflow.
+    const r = event.currentTarget.getBoundingClientRect();
+    const mr = menu.getBoundingClientRect();
+    let x = r.left, y = r.bottom + 4;
+    if (x + mr.width  > window.innerWidth)  x = window.innerWidth  - mr.width  - 8;
+    if (y + mr.height > window.innerHeight) y = Math.max(8, r.top - mr.height - 4);
+    menu.style.left = x + 'px';
+    menu.style.top  = y + 'px';
+}
+
+function closeSelectionMenu() {
+    const m = document.getElementById('selectionDropdown');
+    if (m) m.remove();
+}
+document.addEventListener('click', function (e) {
+    const m = document.getElementById('selectionDropdown');
+    if (m && !m.contains(e.target)) closeSelectionMenu();
+});
+window.addEventListener('scroll', closeSelectionMenu, true);
+
+async function bulkDeleteSelection() {
+    const n = selectionCount();
+    if (!n) return;
+    const okToGo = await showConfirm({
+        title: t('tickets.bulk.delete_title'),
+        message: t('tickets.bulk.delete_message').replace('%d', String(n)),
+        okLabel: t('tickets.bulk.delete'),
+        okClass: 'danger'
+    });
+    if (!okToGo) return;
+
+    await applyToSelection('bulk_delete_tickets.php',
+        chunk => ({ ticket_ids: chunk }), t('tickets.bulk.label_delete'));
+    clearSelectionToNone();
+}
+
+/** The progress line both surfaces show mid-run. */
+function bulkProgressHtml() {
+    if (!bulkBusy) return '';
+    return `<div class="sel-progress">
+                <span class="spinner-inline"></span>
+                ${escapeHtml(bulkBusy.label)} — ${bulkBusy.done}/${bulkBusy.total}
+            </div>`;
+}
+
 // Select and display email by email ID
 async function selectEmail(emailId) {
     selectedEmailId = emailId;
+    // Opening a single ticket collapses the selection to it, so the highlight,
+    // the reading pane and what an action would hit can never disagree. Callers
+    // that want a multi-selection never route through here.
+    if (!(selectedEmailIds.size > 1 && selectedEmailIds.has(emailId))) {
+        selectedEmailIds  = new Set([emailId]);
+        selectionAnchorId = emailId;
+        selectionFocusId  = emailId;
+    }
     setSelectedEmailRow(emailId);
 
     const readingPane = document.getElementById('readingPane');
@@ -1469,6 +2148,10 @@ function displayEmail(email, recordings) {
 
     // A ticket is now displayed — apply popout class if the saved pref says so.
     syncPopoutToTicketState(true);
+
+    // Rendering the ticket has just replaced the pane's contents, which takes the
+    // "keep" mode's warning strip with it. Put the selection surfaces back.
+    updateSelectionSurfaces();
 }
 
 // Render the recordings strip that sits between the email header and the action
@@ -4480,6 +5163,10 @@ function syncPopoutToTicketState(hasTicket) {
  * against ticket B without losing your place.
  */
 let ctxTargetTicketId = null;
+// Set when the menu opens: does this menu act on the whole selection or one row?
+// Read by the setXFromContext handlers below, which fan out to the bulk path
+// instead of their single-ticket path when it is true.
+let ctxActsOnSelection = false;
 let ctxTargetTicketRef = '';
 let ctxCmdbAcTimer = null;
 let ctxCmdbSessionCount = 0;
@@ -4491,7 +5178,23 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
     const menu = document.getElementById('ticketContextMenu');
     if (!menu) return;
 
-    document.getElementById('ticketContextMenuHeader').textContent = ctxTargetTicketRef;
+    // Outlook's rule, and the one people expect without being able to name it:
+    // right-clicking a row INSIDE the selection acts on the whole selection;
+    // right-clicking a row OUTSIDE it throws the selection away and targets just
+    // that row. Getting this backwards is how a bulk action hits the wrong set.
+    const rowEl   = event.target.closest ? event.target.closest('.email-item') : null;
+    const rowMail = rowEl ? Number(rowEl.dataset.emailId) : null;
+    if (rowMail !== null && !selectedEmailIds.has(rowMail)) {
+        selectedEmailIds  = new Set([rowMail]);
+        selectionAnchorId = rowMail;
+        selectionFocusId  = rowMail;
+        renderSelectionUi();
+    }
+    ctxActsOnSelection = selectionCount() > 1;
+
+    document.getElementById('ticketContextMenuHeader').textContent = ctxActsOnSelection
+        ? t('tickets.bulk.n_selected').replace('%d', String(selectionCount()))
+        : ctxTargetTicketRef;
 
     // Populate the Set-status / Set-priority / Assign-to submenus from
     // their lookups. Rebuilt each time so newly-added entries appear
@@ -4581,6 +5284,11 @@ function populateContextPrioritySubmenu() {
 // the next ticket fetch — no explicit recompute call needed.
 async function setPriorityFromContext(priorityId) {
     closeTicketContextMenu();
+    // Fan out to the whole selection when the menu was opened on one. The
+    // single-ticket path below is left EXACTLY as it was — this module is the
+    // busiest in the product and a bulk feature is no reason to rewrite the
+    // one-ticket flow every analyst uses all day.
+    if (ctxActsOnSelection) return bulkSetField({ priority_id: priorityId === '' ? null : priorityId }, t('tickets.bulk.label_priority'));
     if (!ctxTargetTicketId) return;
     const targetId = ctxTargetTicketId;
     const newRow   = priorityId !== '' ? ticketPriorities.find(p => p.id == priorityId) : null;
@@ -4653,6 +5361,7 @@ function populateContextDepartmentSubmenu() {
 // inbox can be grouped by department.
 async function setDepartmentFromContext(departmentId) {
     closeTicketContextMenu();
+    if (ctxActsOnSelection) return bulkSetField({ department_id: departmentId === '' ? null : departmentId }, t('tickets.bulk.label_department'));
     if (!ctxTargetTicketId) return;
     const targetId = ctxTargetTicketId;
     const newRow   = departmentId !== '' ? departments.find(d => d.id == departmentId) : null;
@@ -4776,6 +5485,7 @@ function populateContextTypeSubmenu() {
 // (ticket_type_id is nullable).
 async function setTypeFromContext(typeId) {
     closeTicketContextMenu();
+    if (ctxActsOnSelection) return bulkSetField({ ticket_type_id: typeId === '' ? null : typeId }, t('tickets.bulk.label_type'));
     if (!ctxTargetTicketId) return;
     const targetId = ctxTargetTicketId;
     const newRow   = typeId !== '' ? ticketTypes.find(t => t.id == typeId) : null;
@@ -4854,6 +5564,7 @@ function populateContextAssigneeSubmenu() {
 // assigned_analyst_id and owner_id (same behaviour as drag-to-folder).
 async function setAssigneeFromContext(analystId) {
     closeTicketContextMenu();
+    if (ctxActsOnSelection) return bulkSetField({ assigned_analyst_id: analystId === '' ? null : analystId }, t('tickets.bulk.label_assignee'));
     if (!ctxTargetTicketId) return;
     const targetId = ctxTargetTicketId;
     const newRow   = analystId !== '' ? analysts.find(a => a.id == analystId) : null;
@@ -4899,6 +5610,7 @@ async function setAssigneeFromContext(analystId) {
 // was right-clicked, even if a different ticket is open in the reading pane.
 async function setStatusFromContext(statusName) {
     closeTicketContextMenu();
+    if (ctxActsOnSelection) return bulkSetField({ status: statusName }, t('tickets.bulk.label_status'));
     if (!ctxTargetTicketId) return;
     const targetId = ctxTargetTicketId;
     try {

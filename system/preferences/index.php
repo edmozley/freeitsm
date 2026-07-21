@@ -39,6 +39,10 @@ $prefDefaults = [
     'asset_management_sidebar_mode'  => 'always',
     'system_wiki_sidebar_mode'       => 'always',
     'mc_chart_fill_style'        => 'plain',
+    // Tickets inbox: what the screen does when several tickets are selected at
+    // once. Read by assets/js/inbox.js. 'summary' is the default because it puts
+    // what you are about to act on, and the actions themselves, on screen.
+    'tickets_multiselect_pane'   => 'summary',
 ];
 $prefs = $prefDefaults;
 if (isset($_SESSION['analyst_id'])) {
@@ -62,7 +66,7 @@ if (isset($_SESSION['analyst_id'])) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="<?php echo htmlspecialchars(); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
+<html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -307,6 +311,17 @@ if (isset($_SESSION['analyst_id'])) {
             </div>
 
             <div class="pref-section">
+                <h3><?php echo htmlspecialchars(t('system.preferences.multiselect_heading')); ?></h3>
+                <p><?php echo htmlspecialchars(t('system.preferences.multiselect_desc')); ?></p>
+                <div class="anim-toggle" id="multiSelectPaneToggle">
+                    <button class="anim-option" data-msmode="summary"><?php echo htmlspecialchars(t('system.preferences.multiselect_summary')); ?></button>
+                    <button class="anim-option" data-msmode="keep"><?php echo htmlspecialchars(t('system.preferences.multiselect_keep')); ?></button>
+                    <button class="anim-option" data-msmode="bar"><?php echo htmlspecialchars(t('system.preferences.multiselect_bar')); ?></button>
+                </div>
+                <p class="pref-hint" id="multiSelectPaneHint" style="margin-top:8px;color:var(--text-muted,#666);font-size:12px;"></p>
+            </div>
+
+            <div class="pref-section">
                 <h3><?php echo htmlspecialchars(t('system.preferences.mc_heading')); ?></h3>
                 <p><?php echo htmlspecialchars(t('system.preferences.mc_desc')); ?></p>
                 <div class="anim-toggle" id="mcFillToggle">
@@ -441,6 +456,21 @@ if (isset($_SESSION['analyst_id'])) {
         wireToggle('animToggle',      'anim', 'toast_animation',            INITIAL_PREFS.toast_animation,
                    v => showToast(window.t('system.preferences.anim_preview', { anim: v }), 'info'));
         wireToggle('mcFillToggle',    'fill', 'mc_chart_fill_style',        INITIAL_PREFS.mc_chart_fill_style);
+
+        // Tickets inbox multi-select behaviour. The hint text changes with the
+        // choice — the three modes are hard to tell apart from their names alone.
+        const MULTISELECT_HINTS = {
+            summary: window.t('system.preferences.multiselect_summary_hint'),
+            keep:    window.t('system.preferences.multiselect_keep_hint'),
+            bar:     window.t('system.preferences.multiselect_bar_hint')
+        };
+        function setMultiSelectHint(v) {
+            const el = document.getElementById('multiSelectPaneHint');
+            if (el) el.textContent = MULTISELECT_HINTS[v] || '';
+        }
+        setMultiSelectHint(INITIAL_PREFS.tickets_multiselect_pane);
+        wireToggle('multiSelectPaneToggle', 'msmode', 'tickets_multiselect_pane',
+                   INITIAL_PREFS.tickets_multiselect_pane, setMultiSelectHint);
 
         // ===== Left-panel visibility, one toggle per module =====
         // Rows are generated here so the markup stays a single container.

@@ -328,6 +328,16 @@ return [
         'panel_asset_management'  => 'Asset Management',
         'panel_system_wiki'       => 'System Wiki',
 
+        // Tickets inbox: what happens when several tickets are selected at once.
+        'multiselect_heading'      => 'Selecting several tickets',
+        'multiselect_desc'         => 'In the ticket inbox you can select several tickets at once — Ctrl+click to pick them one by one, Shift+click for a block. This decides what the screen shows while more than one is selected.',
+        'multiselect_summary'      => 'Summary panel',
+        'multiselect_keep'         => 'Keep the ticket open',
+        'multiselect_bar'          => 'Bar above the list',
+        'multiselect_summary_hint' => 'The reading pane lists what you have selected, with the bulk actions on it.',
+        'multiselect_keep_hint'    => 'The reading pane carries on showing the ticket you opened, with a reminder that an action will hit all of them.',
+        'multiselect_bar_hint'     => 'A compact strip appears above the ticket list with the count and the actions.',
+
         'mc_heading' => 'Morning checks bar fill',
         'mc_desc'    => 'Solid or gradient fill for the Morning Checks 30-day trend chart. Also available on the Morning Checks settings page.',
         'fill_plain'    => 'Plain',

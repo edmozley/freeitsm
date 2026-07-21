@@ -187,6 +187,31 @@ return [
         'share_hint_no_mailbox' => 'This person has no email address, so a shared note is the only way to reach them. They will see it in the portal.',
     ],
 
+    // Multi-select + bulk actions in the ticket list (#910)
+    'bulk' => [
+        'n_selected'       => '%d tickets selected',
+        'clear'            => 'Clear selection',
+        'assign'           => 'Assign',
+        'status'           => 'Status',
+        'priority'         => 'Priority',
+        'department'       => 'Department',
+        'delete'           => 'Delete',
+        'right_click_hint' => 'Tip: right-click any selected ticket for the full menu, or drag them onto a folder.',
+        'keep_warning'     => '%d tickets are selected — an action will apply to all of them.',
+        'delete_title'     => 'Delete tickets',
+        'delete_message'   => 'Move %d tickets to the trash? You can restore them from there.',
+        'done'             => '%s applied to %d tickets',
+        'partial'          => 'Applied to %d tickets, %f failed',
+        // Labels used in the progress line and the result toast.
+        'label_status'     => 'Setting status',
+        'label_priority'   => 'Setting priority',
+        'label_department' => 'Setting department',
+        'label_assignee'   => 'Assigning',
+        'label_type'       => 'Setting type',
+        'label_move'       => 'Moving',
+        'label_delete'     => 'Deleting',
+    ],
+
     'reply_modal' => [
         'to'             => 'To',
         'cc'             => 'Cc',

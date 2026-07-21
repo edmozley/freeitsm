@@ -3403,7 +3403,7 @@ body.ticket-popout .ticket-toolbar {
 }
 .reply-tpl-menu-row:hover .reply-tpl-mini { opacity: 1; }
 .reply-tpl-mini:hover { background: var(--surface-2, #ebebeb); color: var(--text, #333); }
-.reply-tpl-mini.danger:hover { color: var(--danger, #c42b1c); }
+.reply-tpl-mini.danger:hover { color: var(--danger-text, #c42b1c); }
 .reply-tpl-menu-sep {
     height: 1px; margin: 4px 0; background: var(--border, #e5e5e5);
 }
@@ -3413,3 +3413,126 @@ body.ticket-popout .ticket-toolbar {
     cursor: pointer; font-size: 13px; color: var(--accent, #0078d4);
 }
 .reply-tpl-menu-action:hover { background: var(--surface-3, #f5f5f5); }
+
+/* --- Multi-select in the ticket list (#910) --- */
+
+/* Shift+click across rows would otherwise smear the browser's text selection
+   over the list. Only applied while a block is actually selected, so ordinary
+   single-ticket use keeps normal text behaviour. */
+#emailList.multi-selecting { user-select: none; -webkit-user-select: none; }
+
+/* The keyboard cursor. Deliberately an OUTLINE, not a fill: with Ctrl+arrows the
+   cursor moves over rows that are NOT selected, so it has to read as "here" and
+   never as "chosen". */
+.email-item.kb-focus {
+    outline: 2px solid var(--accent, #0078d4);
+    outline-offset: -2px;
+}
+
+/* Count badge that follows the pointer when dragging several at once. */
+.drag-count-ghost {
+    position: absolute; top: -1000px; left: -1000px;
+    background: var(--accent, #0078d4); color: var(--on-accent, #fff);
+    padding: 6px 12px; border-radius: 6px;
+    font-size: 12px; font-weight: 600; white-space: nowrap;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.25);
+}
+
+/* ---- Mode 1: the summary reading pane ---- */
+.sel-summary {
+    padding: 28px 24px;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; height: 100%;
+}
+.sel-summary-count {
+    font-size: 20px; font-weight: 600; color: var(--text, #333);
+    margin-bottom: 16px;
+}
+.sel-summary-list {
+    width: 100%; max-width: 520px; max-height: 40vh; overflow-y: auto;
+    border: 1px solid var(--border, #e5e5e5); border-radius: 8px;
+    background: var(--surface-2, #fafafa); margin-bottom: 18px;
+}
+.sel-summary-row {
+    display: flex; gap: 12px; align-items: baseline;
+    padding: 7px 12px; font-size: 13px;
+    border-bottom: 1px solid var(--border, #ececec);
+}
+.sel-summary-row:last-child { border-bottom: none; }
+.sel-summary-ref   { font-weight: 600; color: var(--text, #333); white-space: nowrap; }
+.sel-summary-subj  { color: var(--text-muted, #666); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sel-summary-actions {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+    margin-bottom: 14px;
+}
+.sel-summary-clear {
+    background: none; border: none; cursor: pointer;
+    color: var(--accent, #0078d4); font-size: 13px; text-decoration: underline;
+}
+.sel-summary-hint {
+    margin-top: 10px; font-size: 12px; color: var(--text-faint, #999);
+}
+
+/* ---- Mode 2: the thin bar above the list ---- */
+.selection-bar {
+    display: none;            /* JS flips to flex */
+    align-items: center; gap: 10px;
+    padding: 8px 12px;
+    background: var(--surface-2, #f3f6fa);
+    border-bottom: 1px solid var(--border, #dde3ea);
+}
+/* Count + actions wrap as a unit; the close button never joins the wrap. */
+.sel-bar-main {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    flex: 1 1 auto; min-width: 0;
+}
+.sel-bar-count { font-size: 13px; font-weight: 600; color: var(--text, #333); white-space: nowrap; }
+.sel-bar-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.sel-bar-close {
+    margin-left: auto; background: none; border: none; cursor: pointer;
+    color: var(--text-muted, #666); font-size: 15px; line-height: 1; padding: 2px 6px;
+    border-radius: 4px;
+}
+.sel-bar-close:hover { background: var(--surface-3, #e6e6e6); color: var(--text, #333); }
+
+/* ---- Mode 3: the "keep the ticket showing" warning strip ---- */
+.keep-mode-warning {
+    display: none;            /* JS flips to flex */
+    align-items: center; gap: 10px; flex-wrap: wrap;
+    padding: 8px 14px;
+    background: var(--warning-bg, #fff4e5);
+    border-bottom: 1px solid var(--warning-border, #ffd9a8);
+    color: var(--warning-text, #8a5300);
+    font-size: 13px;
+}
+.sel-keep-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.sel-keep-clear {
+    margin-left: auto; background: none; border: none; cursor: pointer;
+    color: inherit; font-size: 12px; text-decoration: underline;
+}
+
+/* Compact action buttons shared by the bar and the warning strip. */
+.sel-act-btn { padding: 4px 9px; font-size: 12px; }
+.sel-act-danger { color: var(--danger-text, #c42b1c); }
+
+/* Progress line, shown inside whichever surface is active mid-run. */
+.sel-progress {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text-muted, #666);
+    margin-bottom: 10px;
+}
+
+/* The action dropdown opened from a surface button. */
+.sel-dropdown {
+    position: fixed; z-index: 2200;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #ddd); border-radius: 6px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    min-width: 200px; max-height: 320px; overflow-y: auto; padding: 4px 0;
+}
+.sel-dropdown-item {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    padding: 7px 12px; background: none; border: none; cursor: pointer;
+    font-size: 13px; color: var(--text, #333); text-align: left;
+}
+.sel-dropdown-item:hover { background: var(--surface-3, #f5f5f5); }
