@@ -4,8 +4,8 @@
  * Destroys the session and redirects to login page
  */
 session_start();
-require_once 'config.php';
-require_once 'includes/functions.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 // Capture any SSO context before we wipe the session.
 $ssoProviderId = $_SESSION['sso_provider_id'] ?? null;
@@ -26,7 +26,7 @@ session_destroy();
 // (single logout), then let it redirect back to the app's front door.
 if ($ssoProviderId) {
     try {
-        require_once 'includes/oidc.php';
+        require_once __DIR__ . '/../includes/oidc.php';
         $conn = connectToDatabase();
         $provider = oidcGetProvider($conn, (int)$ssoProviderId);
         if ($provider) {

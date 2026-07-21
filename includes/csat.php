@@ -56,7 +56,9 @@ function csatBuildUrl(string $token): string {
     $appPath = $docRoot && strpos($appRoot, $docRoot) === 0
         ? substr($appRoot, strlen($docRoot))
         : '';
-    return $scheme . '://' . $host . $appPath . '/csat.php?token=' . urlencode($token);
+    // Canonical survey URL since the root-folder tidy (the old /csat.php
+    // form still 301s here, so links in already-sent emails keep working).
+    return $scheme . '://' . $host . $appPath . '/csat?token=' . urlencode($token);
 }
 
 /**

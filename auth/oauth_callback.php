@@ -8,9 +8,9 @@
  * Supports mailbox-specific authentication via state parameter.
  */
 
-require_once 'config.php';
-require_once 'includes/encryption.php';
-require_once 'includes/mailbox_graph.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/encryption.php';
+require_once __DIR__ . '/../includes/mailbox_graph.php';
 
 // Check if we received an authorization code
 if (!isset($_GET['code'])) {

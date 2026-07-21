@@ -19,9 +19,9 @@ if ($jobId <= 0) {
 set_time_limit(0);
 ignore_user_abort(true);
 
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/includes/functions.php';
-require_once __DIR__ . '/includes/intune.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/intune.php';
 
 $conn = connectToDatabase();
 intuneRunAppSyncJob($conn, $jobId);

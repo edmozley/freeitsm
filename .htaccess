@@ -1,0 +1,89 @@
+# FreeITSM root URL routing
+# ------------------------------------------------------------------
+# This file is the compatibility layer for the root-folder tidy: the
+# auth pages moved into auth/, the CSAT survey into tickets/csat/, and
+# the pretty URLs below became canonical. Full documentation (what
+# moved where, and why each rule exists) lives on the wiki:
+#   https://github.com/edmozley/freeitsm/wiki/Root-Folder-Tidy
+#
+# All substitutions are RELATIVE (no RewriteBase, no leading slash) so
+# the same rules work whether the app is served from a subfolder
+# (http://localhost/freeitsm-app/) or a domain root (Docker).
+# ------------------------------------------------------------------
+
+# MultiViews was what made /login "work" by accident (mapping it onto
+# login.php, and serving /login/index.php as login.php with PATH_INFO —
+# the half-broken page with relative assets resolving against a phantom
+# /login/ folder). Explicit rewrites replace it. -Indexes stops
+# directory listings while we're here.
+Options -MultiViews -Indexes
+
+# House style (matches api/v1/.htaccess): guarded so a server without
+# mod_rewrite serves the rest of the app rather than 500ing everywhere.
+# NOTE: on such a server the auth pages are unreachable — mod_rewrite is
+# effectively required since the root-folder tidy. Docker enables it.
+<IfModule mod_rewrite.c>
+RewriteEngine On
+
+# --- Canonical pretty URLs (internal rewrites — URL bar keeps the pretty form)
+RewriteRule ^login$              auth/login.php                 [L]
+RewriteRule ^logout$             auth/analyst_logout.php        [L]
+RewriteRule ^forgot-password$    auth/forgot-password.php       [L]
+RewriteRule ^reset-password$     auth/reset-password.php        [L]
+RewriteRule ^csat$               tickets/csat/survey.php        [L]
+
+# --- Phantom-folder forms of the pretty URLs (the old MultiViews bug):
+#     /login/, /login/index.php, /login/anything -> the pretty URL.
+#     %1 captures the URL base ("/freeitsm-app/" locally, "/" in Docker)
+#     from REQUEST_URI — a bare relative substitution in an R= rule
+#     would leak the filesystem path into the redirect.
+RewriteCond %{REQUEST_URI} ^(.*/)login/
+RewriteRule ^login/.*$           %1login            [R=301,L]
+RewriteCond %{REQUEST_URI} ^(.*/)forgot-password/
+RewriteRule ^forgot-password/.*$ %1forgot-password  [R=301,L]
+RewriteCond %{REQUEST_URI} ^(.*/)reset-password/
+RewriteRule ^reset-password/.*$  %1reset-password   [R=301,L]
+RewriteCond %{REQUEST_URI} ^(.*/)csat/
+RewriteRule ^csat/.*$            %1csat             [R=301,L]
+
+# --- Legacy .php URLs -> pretty URLs.
+#     GET redirects (301, query string preserved) so old bookmarks and
+#     the ~100 in-app references land on the canonical URL.
+#     Non-GET (form POSTs) must NOT redirect (the body would be lost),
+#     so they are internally rewritten to the moved file instead.
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteCond %{REQUEST_URI} ^(.*/)login\.php$
+RewriteRule ^login\.php$             %1login            [R=301,L]
+RewriteRule ^login\.php$             auth/login.php     [L]
+
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteCond %{REQUEST_URI} ^(.*/)forgot-password\.php$
+RewriteRule ^forgot-password\.php$   %1forgot-password  [R=301,L]
+RewriteRule ^forgot-password\.php$   auth/forgot-password.php [L]
+
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteCond %{REQUEST_URI} ^(.*/)reset-password\.php$
+RewriteRule ^reset-password\.php$    %1reset-password   [R=301,L]
+RewriteRule ^reset-password\.php$    auth/reset-password.php  [L]
+
+# CSAT survey links are embedded in already-sent emails and must work
+# forever: csat.php?token=... -> /csat?token=... (301 keeps the query).
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteCond %{REQUEST_URI} ^(.*/)csat\.php$
+RewriteRule ^csat\.php$              %1csat             [R=301,L]
+RewriteRule ^csat\.php$              tickets/csat/survey.php  [L]
+
+# --- Moved files with no pretty URL: internal rewrite only, the URL
+#     never changes. force_password_change is a POST-heavy interstitial;
+#     analyst_logout is referenced by name across the app.
+RewriteRule ^analyst_logout\.php$        auth/analyst_logout.php        [L]
+RewriteRule ^force_password_change\.php$ auth/force_password_change.php [L]
+RewriteRule ^logout\.php$                auth/logout.php                [L]
+
+# --- OAuth callbacks: EXTERNAL CONTRACT — these exact URLs are
+#     registered in Azure app registrations, Google Cloud Console, and
+#     stored (encrypted) per-mailbox in the database. They must never
+#     change or redirect, so they are internally rewritten only.
+RewriteRule ^oauth_callback\.php$        auth/oauth_callback.php        [L]
+RewriteRule ^google_oauth_callback\.php$ auth/google_oauth_callback.php [L]
+</IfModule>

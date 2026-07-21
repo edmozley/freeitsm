@@ -4,7 +4,7 @@
  * Shown when a user's password has expired per the password policy
  */
 session_start();
-require_once 'config.php';
+require_once __DIR__ . '/../config.php';
 
 // Must be logged in with expired password flag
 if (!isset($_SESSION['analyst_id']) || empty($_SESSION['password_expired'])) {

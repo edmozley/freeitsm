@@ -3,9 +3,9 @@
  * Login page for Service Desk Ticketing System
  */
 session_start();
-require_once 'config.php';
-require_once 'includes/functions.php';
-require_once 'includes/ldap.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/ldap.php';
 
 // An SSO sign-in attempt that failed bounces back here with a message.
 $sso_error = $_SESSION['sso_error'] ?? null;

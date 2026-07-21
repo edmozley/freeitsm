@@ -1,0 +1,10 @@
+# survey.php (the public CSAT survey page, formerly /csat.php) is served
+# only through the root rewrites: /csat is canonical, /csat.php 301s to
+# it. A direct hit here would be a third URL for the same page. The
+# analytics page (index.php) is a normal in-app page and stays reachable.
+# See: https://github.com/edmozley/freeitsm/wiki/Root-Folder-Tidy
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{ENV:REDIRECT_STATUS} ^$
+    RewriteRule ^survey\.php$ - [R=404,L]
+</IfModule>

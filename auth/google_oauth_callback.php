@@ -6,8 +6,8 @@
  * for access + refresh tokens. Mirrors oauth_callback.php for Microsoft.
  */
 
-require_once 'config.php';
-require_once 'includes/encryption.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/encryption.php';
 
 if (!isset($_GET['code'])) {
     if (isset($_GET['error'])) {

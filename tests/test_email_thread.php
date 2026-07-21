@@ -4,8 +4,8 @@
  * Completely flat - no boxes, no indentation, no coloured borders
  */
 session_start();
-require_once 'config.php';
-require_once 'includes/functions.php';
+require_once __DIR__ . '/../config.php';
+require_once __DIR__ . '/../includes/functions.php';
 
 $ticketId = 45;
 $conn = connectToDatabase();

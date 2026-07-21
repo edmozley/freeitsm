@@ -524,7 +524,7 @@ function intuneSpawnWorker(int $jobId, ?string $phpExeOverride): bool {
  * Generic spawn helper used by both the device sync and the app sync workers.
  */
 function intuneSpawnGenericWorker(string $workerScriptName, int $jobId, ?string $phpExeOverride): bool {
-    $worker = realpath(__DIR__ . '/../' . $workerScriptName);
+    $worker = realpath(__DIR__ . '/../scripts/' . $workerScriptName);
     if (!$worker) return false;
 
     $phpExe = intuneFindPhpExe($phpExeOverride);

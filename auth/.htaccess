@@ -1,0 +1,12 @@
+# The pages in auth/ are served ONLY through the root .htaccess rewrites
+# (/login, /logout, oauth_callback.php, ...). Direct hits on
+# /auth/login.php would be a third URL for the same page — with relative
+# assets resolving against /auth/ and breaking, which is exactly the
+# mess the root-folder tidy removed. Internal rewrites arrive with
+# REDIRECT_STATUS set; direct requests don't, and get a 404.
+# See: https://github.com/edmozley/freeitsm/wiki/Root-Folder-Tidy
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{ENV:REDIRECT_STATUS} ^$
+    RewriteRule ^ - [R=404,L]
+</IfModule>

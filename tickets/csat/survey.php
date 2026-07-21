@@ -6,9 +6,9 @@
  * against ticket_csat_responses.token; an invalid or already-responded token
  * shows a friendly error rather than leaking which is which (timing-safe).
  */
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/includes/functions.php';
-require_once __DIR__ . '/includes/csat.php';
+require_once __DIR__ . '/../../config.php';
+require_once __DIR__ . '/../../includes/functions.php';
+require_once __DIR__ . '/../../includes/csat.php';
 
 $token = isset($_GET['token']) ? trim($_GET['token']) : '';
 $conn  = connectToDatabase();
