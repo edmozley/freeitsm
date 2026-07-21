@@ -911,11 +911,15 @@ body.ticket-popout .ticket-toolbar {
 
 /* Action Toolbar */
 .action-toolbar {
-    padding: 10px 30px;
+    /* Side padding deliberately much tighter than the 30px the message bodies
+       below use. The toolbar gives up aligning with the text in exchange for
+       fitting all eight actions on one line — a row of buttons reads as a unit
+       whether or not it lines up with prose. */
+    padding: 10px 14px;
     background: var(--surface-3, #f8f9fa);
     border-bottom: 1px solid var(--border, #e0e0e0);
     display: flex;
-    gap: 8px;
+    gap: 5px;
     /* Eleven buttons on one non-wrapping row will always spill off the right
        eventually — a narrow reading pane, a long translation, or one more button
        added later. Shortening a label only buys time; wrapping fixes the class of
@@ -934,7 +938,7 @@ body.ticket-popout .ticket-toolbar {
        its own larger touch targets — mobile.css overrides this inside its
        media queries. */
     gap: 5px;
-    padding: 4px 10px;
+    padding: 4px 9px;
     background: var(--surface, #fff);
     border: 1px solid var(--border, #ddd);
     border-radius: 4px;
