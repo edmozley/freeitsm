@@ -748,6 +748,40 @@ return [
         'updated_datetime'  => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    /**
+     * Canned responses an ANALYST inserts into a reply by hand.
+     *
+     * Not to be confused with `ticket_email_templates` directly above, which is the
+     * automated mail the SYSTEM sends a requester on an event ("your ticket has been
+     * logged"). Nobody clicks those. These are the opposite: a human picks one
+     * mid-conversation because they have typed it two hundred times already.
+     *
+     * TWO nullable columns, and they mean DIFFERENT things — read carefully:
+     *
+     *   analyst_id  NULL = a SHARED team template, curated on the settings tab under
+     *                      Cap::TICKETS_REPLY_TEMPLATES. Set = one analyst's private
+     *                      template, saved straight from the reply box, visible to
+     *                      nobody else — not even to an administrator's picker.
+     *   tenant_id   NULL = a global default shared by every company. Set = a template
+     *                      one company added for itself. This is the *config* meaning
+     *                      of tenant_id (as ticket_types), NOT the scoped-data meaning
+     *                      used by `tickets`. Resolved via getTenantConfigRows().
+     *
+     * A private template is therefore analyst_id = me, and a global shared one is both
+     * columns NULL. The pair is never a wildcard: reads filter on both axes.
+     */
+    'ticket_reply_templates' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'name'              => 'VARCHAR(100) NOT NULL',
+        'body'              => 'LONGTEXT NOT NULL',
+        'analyst_id'        => 'INT NULL',
+        'tenant_id'         => 'INT NULL',
+        'is_active'         => 'TINYINT(1) NOT NULL DEFAULT 1',
+        'display_order'     => 'INT NOT NULL DEFAULT 0',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'updated_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'ticket_csat_responses' => [
         'id'                 => 'INT NOT NULL AUTO_INCREMENT',
         'ticket_id'          => 'INT NOT NULL',

@@ -29,7 +29,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.title')); ?> - <?php echo htmlspecialchars(t('tickets.nav.inbox')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=22">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=40">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=41">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=29">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -133,7 +133,20 @@ $translationNamespaces = ['common', 'tickets'];
                 </div>
                 <input type="hidden" id="emailSubject">
                 <div class="form-group">
-                    <label class="form-label"><?php echo htmlspecialchars(t('tickets.reply_modal.message')); ?></label>
+                    <?php /* The templates control sits ON the message label rather than in the
+                             footer next to Cleanup: it is something you reach for BEFORE typing,
+                             so it belongs at the top of the editor, not beside Send. */ ?>
+                    <div class="reply-tpl-labelrow">
+                        <label class="form-label" style="margin: 0;"><?php echo htmlspecialchars(t('tickets.reply_modal.message')); ?></label>
+                        <div class="reply-tpl-wrap">
+                            <button type="button" class="btn btn-secondary reply-tpl-btn" id="replyTemplatesBtn" onclick="toggleReplyTemplateMenu(event)">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+                                <?php echo htmlspecialchars(t('tickets.reply_modal.templates')); ?>
+                                <span class="reply-tpl-caret">▾</span>
+                            </button>
+                            <div class="reply-tpl-menu" id="replyTemplateMenu" style="display: none;"></div>
+                        </div>
+                    </div>
                     <textarea id="emailBody"></textarea>
                 </div>
                 <div class="form-group">
@@ -158,6 +171,28 @@ $translationNamespaces = ['common', 'tickets'];
                     <?php echo htmlspecialchars(t('tickets.reply_modal.cleanup')); ?>
                 </button>
                 <button class="btn btn-primary" onclick="sendEmail()" id="replySendBtn"><?php echo htmlspecialchars(t('tickets.reply_modal.send')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <?php /* Naming a personal template saved straight from the draft. Deliberately a
+             tiny modal and not a settings screen — the moment worth capturing is the one
+             just after you finish typing something you know you will type again. */ ?>
+    <div class="modal" id="saveReplyTemplateModal">
+        <div class="modal-content" style="max-width: 460px;">
+            <div class="modal-header"><?php echo htmlspecialchars(t('tickets.reply_modal.save_template_title')); ?></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label"><?php echo htmlspecialchars(t('tickets.reply_modal.save_template_name')); ?></label>
+                    <input type="text" class="form-input" id="saveReplyTemplateName" maxlength="100" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.reply_modal.save_template_placeholder')); ?>">
+                    <div class="form-hint" style="font-size:12px;color:var(--text-muted,#666);margin-top:6px;">
+                        <?php echo htmlspecialchars(t('tickets.reply_modal.save_template_hint')); ?>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSaveReplyTemplateModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" onclick="savePersonalReplyTemplate()"><?php echo htmlspecialchars(t('common.save')); ?></button>
             </div>
         </div>
     </div>
@@ -486,7 +521,7 @@ $translationNamespaces = ['common', 'tickets'];
     </script>
     <!-- Must load BEFORE inbox.js: it cleans every untrusted message body. -->
     <script src="../assets/js/safe-html.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=60"></script>
+    <script src="../assets/js/inbox.js?v=61"></script>
     <script src="../assets/js/mobile.js?v=12"></script>
     <script>
     // Auto-check mailboxes every 60 seconds

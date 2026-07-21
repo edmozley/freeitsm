@@ -66,6 +66,8 @@ return [
     ['webchat_messages', 'ix_webchat_messages_conversation', false, '(`conversation_id`)'],
     ['ticket_recordings', 'ix_ticket_recordings_ticket_id', false, '(`ticket_id`)'],
     ['ticket_recordings', 'ix_ticket_recordings_pending', false, '(`ticket_id`,`created_at`)'],
+    ['ticket_reply_templates', 'idx_reply_tpl_analyst', false, '(`analyst_id`)'],
+    ['ticket_reply_templates', 'idx_reply_tpl_tenant', false, '(`tenant_id`)'],
     ['ticket_csat_responses', 'uq_ticket_csat_token', true, '(`token`)'],
     ['ticket_csat_responses', 'ix_ticket_csat_ticket_id', false, '(`ticket_id`)'],
     ['ticket_csat_responses', 'ix_ticket_csat_responded', false, '(`responded_datetime`)'],

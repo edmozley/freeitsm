@@ -200,6 +200,27 @@ return [
         'undo'           => 'Undo',
         'cleanup'        => 'Cleanup',
         'send'           => 'Send',
+
+        // Canned responses picker
+        'templates'                => 'Templates',
+        'templates_team'           => 'Team',
+        'templates_mine'           => 'Mine',
+        'templates_none_team'      => 'No shared templates yet',
+        'templates_none_mine'      => 'None yet — save a draft below',
+        'save_draft_as_template'   => 'Save draft as template',
+        'template_update'          => 'Replace with current draft',
+        'save_template_title'      => 'Save as template',
+        'save_template_update_title' => 'Update template',
+        'save_template_name'       => 'Template name',
+        'save_template_placeholder' => 'e.g., Password reset done',
+        'save_template_hint'       => 'Saved to your own list only — nobody else sees it. Use merge codes like [requester_first_name] and they will be filled in each time you insert it.',
+        'template_no_ticket'       => 'Open a ticket first',
+        'template_empty_draft'     => 'Type your reply first, then save it as a template',
+        'template_name_required'   => 'Give the template a name',
+        'template_saved'           => 'Template saved',
+        'template_deleted'         => 'Template deleted',
+        'template_delete_title'    => 'Delete template',
+        'template_delete_message'  => 'Delete your template "%s"?',
     ],
 
     'new_ticket_modal' => [
@@ -307,6 +328,7 @@ return [
             'rota_locations'  => 'Rota locations',
             'mailboxes'       => 'Mailboxes',
             'email_templates' => 'Templates',
+            'reply_templates' => 'Reply templates',
             'rota'            => 'Rota',
             'analysts'        => 'Analysts',
             'general'         => 'General',
@@ -327,6 +349,7 @@ return [
             'rota_locations'   => 'Rota locations',
             'mailboxes'        => 'Mailboxes',
             'email_templates'  => 'Email templates',
+            'reply_templates'  => 'Shared reply templates',
             'rota_shifts'      => 'Rota shifts',
             'rota_settings'    => 'Rota settings',
             'analysts'         => 'Analysts',
@@ -361,6 +384,7 @@ return [
             'last_checked' => 'Last checked',
             'event'        => 'Event',
             'subject'      => 'Subject',
+            'preview'      => 'Preview',
             'start'        => 'Start',
             'end'          => 'End',
             'username'     => 'Username',
@@ -543,6 +567,21 @@ return [
             ],
 
             // Email template modal
+            'reply_template' => [
+                'add_title'        => 'Add reply template',
+                'edit_title'       => 'Edit reply template',
+                'name'             => 'Name',
+                'name_placeholder' => 'e.g., Password reset done',
+                'name_help'        => 'What analysts will see in the Templates menu — name it for the situation, not the wording.',
+                'body'             => 'Template text',
+                'body_required'    => 'Please enter the template text.',
+                'merge_codes'      => 'Merge codes',
+                'merge_help'       => 'Click one to drop it in at the cursor. It is replaced with the real value when an analyst inserts the template into a ticket.',
+                'display_order'    => 'Display order',
+                'active'           => 'Active',
+                'delete_title'     => 'Delete template',
+                'delete_message'   => 'Delete the shared template "%s"? It will disappear from everyone\'s Templates menu.',
+            ],
             'template' => [
                 'add_title'           => 'Add email template',
                 'edit_title'          => 'Edit email template',
@@ -676,6 +715,10 @@ return [
         // Shared empty/loading state for the settings tables.
         'loading' => 'Loading...',
 
+        'reply_templates_empty'   => 'No shared reply templates yet',
+        'reply_template_saved'    => 'Template saved',
+        'reply_template_deleted'  => 'Template deleted',
+
         // Tab label not mirrored in the headings group.
         'tab_messaging' => 'Messaging',
         'tab_webchat'   => 'Web chat',
@@ -699,6 +742,7 @@ return [
             'ticket_origins'  => 'Ticket origins record how a ticket came in (e.g. Email, Phone, Portal) — define the origins analysts can choose from.',
             'mailboxes'       => 'Mailboxes connect FreeITSM to email accounts so incoming messages become tickets and replies go back out — add and authenticate the ones your service desk monitors.',
             'privacy'         => 'A ticket does not only hold your conversation with the person who raised it. Forwarding to a supplier, or copying in a colleague, puts that message on the same ticket — and their reply lands there too. This decides how much of that the requester sees in the self-service portal.',
+            'reply_templates' => 'Canned responses your analysts can drop into a reply instead of retyping them. These are the shared ones the whole team sees — an analyst\'s own private templates are saved from the reply window and are not listed here.',
             'rota_shifts'     => 'Shifts are the working-pattern templates (e.g. Early, Late, On-call) that analysts are assigned on the staff rota — define them here before building the rota.',
             'analysts'        => 'Analysts are the staff who log in and work tickets — add them, reset passwords, and assign them to teams to control their access.',
             'general'         => 'General settings control system-wide options such as the service desk name and defaults — adjust them to match your organisation.',

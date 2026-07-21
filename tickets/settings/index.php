@@ -53,6 +53,10 @@ $translationNamespaces = ['common', 'tickets'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=2"></script>
     <script src="../../assets/js/ai-settings.js"></script>
+    <!-- Reply templates are rich text, so this page needs the same editor the reply
+         box uses. Loaded for every tab because the tab bar is server-rendered and
+         there is no navigation event to lazy-load on. -->
+    <script src="../../assets/js/tinymce/tinymce.min.js"></script>
     <style>
         /* Page-specific overrides for settings page */
 
@@ -867,6 +871,32 @@ $translationNamespaces = ['common', 'tickets'];
                 </thead>
                 <tbody id="email-templates-list">
                     <tr><td colspan="6" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Reply Templates Tab -->
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'reply-templates')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'reply-templates' ? ' active' : ''; ?>" id="reply-templates-tab" data-capability="<?php echo Cap::TICKETS_REPLY_TEMPLATES; ?>">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.reply_templates')); ?></h2>
+                <button class="add-btn" onclick="openReplyTemplateModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
+            </div>
+            <p style="margin-bottom: 15px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.intros.reply_templates'); ?></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.name')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.preview')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.order')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.status')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.columns.actions')); ?></th>
+                    </tr>
+                </thead>
+                <tbody id="reply-templates-list">
+                    <tr><td colspan="5" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -1772,6 +1802,56 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
+    <!-- Reply Template Modal -->
+    <div class="modal" id="replyTemplateModal">
+        <div class="modal-content" style="max-width: 780px;">
+            <div class="modal-header" id="replyTemplateModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.add_title')); ?></div>
+            <div class="modal-body">
+            <form id="replyTemplateForm">
+                <input type="hidden" id="replyTemplateId">
+
+                <div class="form-group">
+                    <label for="replyTemplateName"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.name')); ?> *</label>
+                    <input type="text" id="replyTemplateName" required maxlength="100" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.name_placeholder')); ?>" autocomplete="off">
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.name_help')); ?></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="replyTemplateBody"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.body')); ?> *</label>
+                    <textarea id="replyTemplateBody" rows="12"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label style="margin-bottom: 6px;"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.merge_codes')); ?></label>
+                    <p style="margin: 0 0 8px; color: var(--text-muted, #666); font-size: 12px;"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.merge_help')); ?></p>
+                    <div id="replyTemplateMergeCodes" style="display: flex; flex-wrap: wrap; gap: 6px;"></div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div class="form-group">
+                        <label for="replyTemplateOrder"><?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.display_order')); ?></label>
+                        <input type="number" id="replyTemplateOrder" value="0" autocomplete="off">
+                    </div>
+
+                    <div class="form-group" style="display: flex; align-items: center;">
+                        <label style="display: flex; align-items: center; gap: 10px; margin: 0;">
+                            <?php echo htmlspecialchars(t('tickets.settings.modals.reply_template.active')); ?>
+                            <label class="toggle-switch" style="margin: 0;">
+                                <input type="checkbox" id="replyTemplateActive" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </label>
+                    </div>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeReplyTemplateModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button type="submit" form="replyTemplateForm" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <!-- Rota Shift Modal -->
     <div class="modal" id="rotaShiftModal">
         <div class="modal-content">
@@ -1905,6 +1985,7 @@ $translationNamespaces = ['common', 'tickets'];
             loadWidgets();
             loadMsgTemplates();
             loadEmailTemplates();
+            loadReplyTemplates();
             loadRotaShifts();
             loadRotaWeekendSetting();
             loadSlaTab();
@@ -4545,6 +4626,209 @@ $translationNamespaces = ['common', 'tickets'];
             } catch (error) {
                 showToast('Failed to delete template', 'error');
             }
+        }
+
+        // ------------------------------------------------------------------
+        // Reply templates (canned responses) — the SHARED ones only.
+        //
+        // An analyst's private templates never appear on this tab, by design: they
+        // are saved from the reply box and managed in its picker, so that having a
+        // personal template does not require this settings permission. Everything
+        // saved here posts scope 'shared', which the endpoint re-checks against
+        // Cap::TICKETS_REPLY_TEMPLATES — the client naming its own scope proves
+        // nothing.
+        // ------------------------------------------------------------------
+        let replyTemplateEditor = null;
+
+        function initReplyTemplateEditor() {
+            if (replyTemplateEditor || !document.getElementById('replyTemplateBody')) return;
+            const isDark = (document.documentElement.getAttribute('data-theme-mode') || 'light') === 'dark';
+            tinymce.init({
+                selector: '#replyTemplateBody',
+                license_key: 'gpl',
+                height: 300,
+                menubar: false,
+                skin: isDark ? 'oxide-dark' : 'oxide',
+                content_css: isDark ? 'dark' : 'default',
+                plugins: ['advlist', 'autolink', 'lists', 'link', 'charmap', 'code', 'table'],
+                toolbar: 'undo redo | blocks | bold italic forecolor backcolor | ' +
+                         'bullist numlist outdent indent | link | removeformat | code',
+                content_style: 'body { font-family: Segoe UI, Tahoma, Geneva, Verdana, sans-serif; font-size: 14px; }',
+                setup: function(editor) { replyTemplateEditor = editor; }
+            });
+        }
+
+        async function loadReplyTemplates() {
+            // The tab is capability-gated, so on most analysts' pages this element
+            // does not exist at all. Leaving early is the whole guard.
+            const tbody = document.getElementById('reply-templates-list');
+            if (!tbody) return;
+
+            initReplyTemplateEditor();
+            try {
+                const response = await fetch(API_BASE + 'get_reply_templates.php?all=1');
+                const data = await response.json();
+                if (data.success) {
+                    renderReplyTemplateMergeCodes(data.merge_codes || {});
+                    // Only the shared ones belong on a settings tab. The endpoint also
+                    // returns this analyst's own; filtering here keeps one endpoint
+                    // serving both callers.
+                    renderReplyTemplates(data.templates.filter(tpl => tpl.scope === 'shared'));
+                } else {
+                    showToast('Error loading reply templates: ' + data.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error loading reply templates:', error);
+            }
+        }
+
+        function renderReplyTemplates(templates) {
+            const tbody = document.getElementById('reply-templates-list');
+            if (!tbody) return;
+
+            if (templates.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-faint, #999);">' +
+                    escapeHtml(t('tickets.settings.reply_templates_empty')) + '</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = templates.map(tpl => {
+                // Strip the markup for the list preview: the column is a reminder of
+                // which template this is, not a rendering of it.
+                const plain = tpl.body.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+                const snippet = plain.length > 70 ? plain.slice(0, 70) + '…' : plain;
+                return `
+                <tr>
+                    <td>${escapeHtml(tpl.name)}</td>
+                    <td style="color: var(--text-muted, #666);">${escapeHtml(snippet)}</td>
+                    <td>${tpl.display_order}</td>
+                    <td><span class="status-badge status-${tpl.is_active == 1 ? 'active' : 'inactive'}">${tpl.is_active == 1 ? 'Active' : 'Inactive'}</span></td>
+                    <td>
+                        <button class="action-btn" onclick="editReplyTemplate(${tpl.id})" title="${t('common.edit')}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteReplyTemplate(${tpl.id}, ${JSON.stringify(tpl.name).replace(/"/g, '&quot;')})" title="${t('common.delete')}">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                        </button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Clickable chips that insert a merge code at the cursor — nobody remembers
+        // the exact spelling of [requester_first_name], and a typo fails silently by
+        // sending the literal text to a customer.
+        function renderReplyTemplateMergeCodes(codes) {
+            const wrap = document.getElementById('replyTemplateMergeCodes');
+            if (!wrap) return;
+            wrap.innerHTML = Object.keys(codes).map(code => `
+                <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 12px;"
+                        onclick="insertReplyTemplateMergeCode('${escapeHtml(code)}')"
+                        title="[${escapeHtml(code)}]">${escapeHtml(codes[code])}</button>
+            `).join('');
+        }
+
+        function insertReplyTemplateMergeCode(code) {
+            if (replyTemplateEditor) replyTemplateEditor.insertContent('[' + code + ']');
+        }
+
+        let replyTemplatesCache = [];
+
+        function openReplyTemplateModal(tpl = null) {
+            initReplyTemplateEditor();
+            document.getElementById('replyTemplateId').value      = tpl ? tpl.id : '';
+            document.getElementById('replyTemplateName').value    = tpl ? tpl.name : '';
+            document.getElementById('replyTemplateOrder').value   = tpl ? tpl.display_order : 0;
+            document.getElementById('replyTemplateActive').checked = tpl ? tpl.is_active == 1 : true;
+            document.getElementById('replyTemplateModalTitle').textContent = tpl
+                ? t('tickets.settings.modals.reply_template.edit_title')
+                : t('tickets.settings.modals.reply_template.add_title');
+            if (replyTemplateEditor) replyTemplateEditor.setContent(tpl ? tpl.body : '');
+            document.getElementById('replyTemplateModal').classList.add('active');
+        }
+
+        function closeReplyTemplateModal() {
+            document.getElementById('replyTemplateModal').classList.remove('active');
+        }
+
+        async function editReplyTemplate(id) {
+            // Re-read rather than trusting a stale render: another admin may have
+            // changed it in the meantime.
+            const response = await fetch(API_BASE + 'get_reply_templates.php?all=1');
+            const data = await response.json();
+            if (!data.success) { showToast('Could not load template', 'error'); return; }
+            replyTemplatesCache = data.templates;
+            const tpl = replyTemplatesCache.find(x => x.id == id);
+            if (tpl) openReplyTemplateModal(tpl);
+        }
+
+        async function deleteReplyTemplate(id, name) {
+            const ok = await showConfirm({
+                title: t('tickets.settings.modals.reply_template.delete_title'),
+                message: t('tickets.settings.modals.reply_template.delete_message').replace('%s', name),
+                okLabel: t('common.delete'),
+                okClass: 'danger'
+            });
+            if (!ok) return;
+
+            try {
+                const response = await fetch(API_BASE + 'delete_reply_template.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    showToast(t('tickets.settings.reply_template_deleted'), 'success');
+                    loadReplyTemplates();
+                } else {
+                    showToast('Error: ' + data.error, 'error');
+                }
+            } catch (error) {
+                showToast('Failed to delete template', 'error');
+            }
+        }
+
+        const replyTemplateForm = document.getElementById('replyTemplateForm');
+        if (replyTemplateForm) {
+            replyTemplateForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+
+                const body = replyTemplateEditor ? replyTemplateEditor.getContent() : '';
+                // Validated here rather than with `required`: the real input is the
+                // TinyMCE iframe, which native form validation cannot see.
+                if (!body.replace(/<[^>]*>/g, '').trim()) {
+                    showToast(t('tickets.settings.modals.reply_template.body_required'), 'error');
+                    return;
+                }
+
+                const payload = {
+                    id: document.getElementById('replyTemplateId').value || null,
+                    name: document.getElementById('replyTemplateName').value,
+                    body: body,
+                    scope: 'shared',
+                    display_order: parseInt(document.getElementById('replyTemplateOrder').value) || 0,
+                    is_active: document.getElementById('replyTemplateActive').checked ? 1 : 0
+                };
+
+                try {
+                    const response = await fetch(API_BASE + 'save_reply_template.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const data = await response.json();
+                    if (data.success) {
+                        showToast(t('tickets.settings.reply_template_saved'), 'success');
+                        closeReplyTemplateModal();
+                        loadReplyTemplates();
+                    } else {
+                        showToast('Error: ' + data.error, 'error');
+                    }
+                } catch (error) {
+                    showToast('Failed to save template', 'error');
+                }
+            });
         }
 
         document.getElementById('templateForm').addEventListener('submit', async function(e) {

@@ -3181,6 +3181,225 @@ function closeEmailModal() {
     emailAttachments = [];
     renderAttachments();
     hideReplyCleanupUndoBar();
+    closeReplyTemplateMenu();
+}
+
+// ===== Reply templates (canned responses) =====
+//
+// Two lists in one menu: the team's SHARED templates (curated in Tickets →
+// Settings → Reply templates, behind a capability) and the analyst's OWN, which
+// are saved from right here and need no permission at all. The server decides
+// which is which; this file only renders what it is handed.
+//
+// Merge codes are resolved SERVER-side (render_reply_template.php), not here.
+// The values substituted in — a requester's name, ultimately from the From header
+// of a stranger's email — have to be escaped before they are dropped into an HTML
+// editor, and that rule lives once, in includes/reply_templates.php.
+
+let replyTemplateCache = null;
+let saveReplyTemplateMode = { mode: 'new', id: null };
+
+async function loadReplyTemplatesForPicker(force = false) {
+    if (replyTemplateCache && !force) return replyTemplateCache;
+    try {
+        const res = await fetch(API_BASE + 'get_reply_templates.php');
+        const data = await res.json();
+        replyTemplateCache = data.success ? data.templates : [];
+    } catch (e) {
+        replyTemplateCache = [];
+    }
+    return replyTemplateCache;
+}
+
+async function toggleReplyTemplateMenu(event) {
+    if (event) event.stopPropagation();
+    const menu = document.getElementById('replyTemplateMenu');
+    if (!menu) return;
+
+    if (menu.style.display === 'block') {
+        menu.style.display = 'none';
+        return;
+    }
+
+    // Always re-fetch on open: a colleague may have added a shared template since
+    // this page was loaded, and the inbox stays open for a whole shift.
+    await loadReplyTemplatesForPicker(true);
+    renderReplyTemplateMenu();
+    menu.style.display = 'block';
+}
+
+function closeReplyTemplateMenu() {
+    const menu = document.getElementById('replyTemplateMenu');
+    if (menu) menu.style.display = 'none';
+}
+
+// Any click outside the menu dismisses it — the button itself stops propagation.
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('replyTemplateMenu');
+    if (menu && menu.style.display === 'block' && !menu.contains(e.target)) {
+        closeReplyTemplateMenu();
+    }
+});
+
+function renderReplyTemplateMenu() {
+    const menu = document.getElementById('replyTemplateMenu');
+    if (!menu) return;
+
+    const shared = (replyTemplateCache || []).filter(t => t.scope === 'shared');
+    const mine   = (replyTemplateCache || []).filter(t => t.scope === 'mine');
+
+    const editIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+    const binIcon  = '<svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+
+    let html = '';
+
+    html += '<div class="reply-tpl-menu-heading">' + escapeHtml(t('tickets.reply_modal.templates_team')) + '</div>';
+    if (shared.length === 0) {
+        html += '<div class="reply-tpl-menu-empty">' + escapeHtml(t('tickets.reply_modal.templates_none_team')) + '</div>';
+    } else {
+        html += shared.map(tpl => `
+            <div class="reply-tpl-menu-row">
+                <button type="button" class="reply-tpl-insert" onclick="insertReplyTemplate(${tpl.id})" title="${escapeHtml(tpl.name)}">${escapeHtml(tpl.name)}</button>
+            </div>`).join('');
+    }
+
+    html += '<div class="reply-tpl-menu-sep"></div>';
+    html += '<div class="reply-tpl-menu-heading">' + escapeHtml(t('tickets.reply_modal.templates_mine')) + '</div>';
+    if (mine.length === 0) {
+        html += '<div class="reply-tpl-menu-empty">' + escapeHtml(t('tickets.reply_modal.templates_none_mine')) + '</div>';
+    } else {
+        html += mine.map(tpl => `
+            <div class="reply-tpl-menu-row">
+                <button type="button" class="reply-tpl-insert" onclick="insertReplyTemplate(${tpl.id})" title="${escapeHtml(tpl.name)}">${escapeHtml(tpl.name)}</button>
+                <button type="button" class="reply-tpl-mini" onclick="event.stopPropagation(); openSaveReplyTemplateModal('update', ${tpl.id})" title="${escapeHtml(t('tickets.reply_modal.template_update'))}">${editIcon}</button>
+                <button type="button" class="reply-tpl-mini danger" onclick="event.stopPropagation(); deleteMyReplyTemplate(${tpl.id})" title="${escapeHtml(t('common.delete'))}">${binIcon}</button>
+            </div>`).join('');
+    }
+
+    html += '<div class="reply-tpl-menu-sep"></div>';
+    html += `<button type="button" class="reply-tpl-menu-action" onclick="event.stopPropagation(); openSaveReplyTemplateModal('new', null)">
+                <span style="font-size:15px;line-height:1;">+</span> ${escapeHtml(t('tickets.reply_modal.save_draft_as_template'))}
+             </button>`;
+
+    menu.innerHTML = html;
+}
+
+async function insertReplyTemplate(templateId) {
+    closeReplyTemplateMenu();
+    if (!emailEditor) return;
+
+    if (!currentEmail || !currentEmail.ticket_id) {
+        showToast(t('tickets.reply_modal.template_no_ticket'), 'error');
+        return;
+    }
+
+    try {
+        const res = await fetch(API_BASE + 'render_reply_template.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ template_id: templateId, ticket_id: currentEmail.ticket_id })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || 'Could not load template', 'error');
+            return;
+        }
+        // Inserted at the cursor, NOT replacing the draft: a canned response is
+        // usually the middle of a reply, and silently discarding something the
+        // analyst had already typed would be unforgivable.
+        emailEditor.insertContent(data.body);
+        emailEditor.focus();
+    } catch (e) {
+        showToast('Could not load template', 'error');
+    }
+}
+
+function openSaveReplyTemplateModal(mode, id) {
+    closeReplyTemplateMenu();
+
+    const draft = emailEditor ? emailEditor.getContent() : '';
+    if (!draft.replace(/<[^>]*>/g, '').trim()) {
+        showToast(t('tickets.reply_modal.template_empty_draft'), 'error');
+        return;
+    }
+
+    saveReplyTemplateMode = { mode: mode, id: id };
+    const existing = (replyTemplateCache || []).find(x => x.id == id);
+
+    document.getElementById('saveReplyTemplateName').value = existing ? existing.name : '';
+    const modal = document.getElementById('saveReplyTemplateModal');
+    modal.querySelector('.modal-header').textContent = (mode === 'update')
+        ? t('tickets.reply_modal.save_template_update_title')
+        : t('tickets.reply_modal.save_template_title');
+    modal.classList.add('active');
+    document.getElementById('saveReplyTemplateName').focus();
+}
+
+function closeSaveReplyTemplateModal() {
+    document.getElementById('saveReplyTemplateModal').classList.remove('active');
+}
+
+async function savePersonalReplyTemplate() {
+    const name = document.getElementById('saveReplyTemplateName').value.trim();
+    if (name === '') {
+        showToast(t('tickets.reply_modal.template_name_required'), 'error');
+        return;
+    }
+    const body = emailEditor ? emailEditor.getContent() : '';
+
+    try {
+        const res = await fetch(API_BASE + 'save_reply_template.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            // scope 'mine' is what makes this need no permission. The server does not
+            // take the client's word for it — it re-checks ownership before writing.
+            body: JSON.stringify({
+                id: saveReplyTemplateMode.mode === 'update' ? saveReplyTemplateMode.id : null,
+                name: name,
+                body: body,
+                scope: 'mine'
+            })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(t('tickets.reply_modal.template_saved'), 'success');
+            closeSaveReplyTemplateModal();
+            await loadReplyTemplatesForPicker(true);
+        } else {
+            showToast(data.error || 'Could not save template', 'error');
+        }
+    } catch (e) {
+        showToast('Could not save template', 'error');
+    }
+}
+
+async function deleteMyReplyTemplate(id) {
+    const tpl = (replyTemplateCache || []).find(x => x.id == id);
+    const ok = await showConfirm({
+        title: t('tickets.reply_modal.template_delete_title'),
+        message: t('tickets.reply_modal.template_delete_message').replace('%s', tpl ? tpl.name : ''),
+        okLabel: t('common.delete'),
+        okClass: 'danger'
+    });
+    if (!ok) { return; }
+
+    try {
+        const res = await fetch(API_BASE + 'delete_reply_template.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id: id })
+        });
+        const data = await res.json();
+        if (data.success) {
+            showToast(t('tickets.reply_modal.template_deleted'), 'success');
+            await loadReplyTemplatesForPicker(true);
+            renderReplyTemplateMenu();
+        } else {
+            showToast(data.error || 'Could not delete template', 'error');
+        }
+    } catch (e) {
+        showToast('Could not delete template', 'error');
+    }
 }
 
 // ===== Reply Cleanup AI =====

@@ -125,6 +125,17 @@ return [
             'grant'     => 'Manage the email templates sent to requesters',
         ],
         [
+            // The team's shared canned responses. Note the scope in the grant: an
+            // analyst's OWN private templates are deliberately NOT behind this cap —
+            // they are saved from the reply box and managed in its picker. Gating
+            // those here would have meant only settings administrators could have a
+            // personal template, which is most of the feature gone.
+            'id'        => 'reply-templates',
+            'cap'       => Cap::TICKETS_REPLY_TEMPLATES,
+            'label_key' => 'tickets.settings.tabs.reply_templates',
+            'grant'     => 'Manage the shared reply templates the whole team can insert',
+        ],
+        [
             'id'        => 'rota',
             'cap'       => Cap::TICKETS_ROTA,
             'label_key' => 'tickets.settings.tabs.rota',

@@ -1063,6 +1063,27 @@ CREATE TABLE IF NOT EXISTS `ticket_email_templates` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Canned responses an analyst inserts into a reply by hand. Distinct from
+-- ticket_email_templates above (automated mail the system sends on an event).
+-- analyst_id NULL = a shared team template; set = that analyst's private one.
+-- tenant_id  NULL = a global default (the config meaning, as ticket_types).
+CREATE TABLE IF NOT EXISTS `ticket_reply_templates` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(100) NOT NULL,
+    `body`              LONGTEXT NOT NULL,
+    `analyst_id`        INT NULL,
+    `tenant_id`         INT NULL,
+    `is_active`         TINYINT(1) NOT NULL DEFAULT 1,
+    `display_order`     INT NOT NULL DEFAULT 0,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `updated_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_reply_tpl_analyst` (`analyst_id`),
+    KEY `idx_reply_tpl_tenant` (`tenant_id`),
+    CONSTRAINT `fk_reply_tpl_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_reply_tpl_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `ticket_csat_responses` (
     `id`                 INT NOT NULL AUTO_INCREMENT,
     `ticket_id`          INT NOT NULL,

@@ -3357,3 +3357,59 @@ body.ticket-popout .ticket-toolbar {
     border-bottom: 1px solid currentColor;
 }
 .wf-diagnosis-link:hover { opacity: 0.75; }
+
+/* --- Reply templates (canned responses) picker, on the reply modal --- */
+.reply-tpl-labelrow {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 6px;
+}
+.reply-tpl-wrap { position: relative; }
+.reply-tpl-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 10px; font-size: 12px; line-height: 1.2;
+}
+.reply-tpl-caret { font-size: 10px; opacity: 0.7; }
+.reply-tpl-menu {
+    position: absolute; right: 0; top: calc(100% + 4px);
+    background: var(--surface, #fff); border: 1px solid var(--border, #ddd);
+    border-radius: 6px; box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+    z-index: 1200; min-width: 280px; max-height: 340px; overflow-y: auto;
+    padding: 4px 0;
+}
+.reply-tpl-menu-heading {
+    padding: 6px 12px 4px; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.4px;
+    color: var(--text-muted, #666);
+}
+.reply-tpl-menu-empty {
+    padding: 8px 12px; font-size: 12px; color: var(--text-faint, #999);
+}
+.reply-tpl-menu-row {
+    display: flex; align-items: center; gap: 4px; padding: 0 6px 0 0;
+}
+.reply-tpl-menu-row:hover { background: var(--surface-3, #f5f5f5); }
+.reply-tpl-menu-row > button.reply-tpl-insert {
+    flex: 1; display: block; text-align: left; padding: 7px 12px;
+    background: none; border: none; cursor: pointer;
+    font-size: 13px; color: var(--text, #333); overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap;
+}
+.reply-tpl-menu-row .reply-tpl-mini {
+    background: none; border: none; cursor: pointer; padding: 4px;
+    color: var(--text-muted, #666); line-height: 0; border-radius: 4px;
+    /* Only surfaced on hover: these act on the analyst's OWN templates and would
+       otherwise compete for attention with the thing you came here to do. */
+    opacity: 0; transition: opacity 0.12s ease;
+}
+.reply-tpl-menu-row:hover .reply-tpl-mini { opacity: 1; }
+.reply-tpl-mini:hover { background: var(--surface-2, #ebebeb); color: var(--text, #333); }
+.reply-tpl-mini.danger:hover { color: var(--danger, #c42b1c); }
+.reply-tpl-menu-sep {
+    height: 1px; margin: 4px 0; background: var(--border, #e5e5e5);
+}
+.reply-tpl-menu-action {
+    display: flex; align-items: center; gap: 7px; width: 100%;
+    text-align: left; padding: 8px 12px; background: none; border: none;
+    cursor: pointer; font-size: 13px; color: var(--accent, #0078d4);
+}
+.reply-tpl-menu-action:hover { background: var(--surface-3, #f5f5f5); }
