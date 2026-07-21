@@ -2384,6 +2384,13 @@ async function unlinkTicketFromChange(changeId) {
 function buildMergeBanner(email) {
     if (email.merged_away && email.merged_away.merged_into_id) {
         const ref = email.merged_away.ticket_number || ('#' + email.merged_away.merged_into_id);
+        // Undo is offered only when the merge recorded what it moved. Merges made
+        // before that recording existed cannot be reversed, and a button that always
+        // fails is worse than no button.
+        const undoBtn = (email.merged_away.merge_id && Number(email.merged_away.can_undo))
+            ? `<button type="button" class="btn btn-secondary merge-banner-btn"
+                       onclick="undoMerge(${email.merged_away.merge_id})">${escapeHtml(t('tickets.merge.undo'))}</button>`
+            : '';
         return `
         <div class="merge-banner merge-banner-away">
             <span class="merge-banner-icon">⤵</span>
@@ -2391,6 +2398,7 @@ function buildMergeBanner(email) {
                 <strong>${escapeHtml(t('tickets.merge.banner_away_title'))}</strong>
                 <div>${escapeHtml(t('tickets.merge.banner_away_body'))}</div>
             </div>
+            ${undoBtn}
             <button type="button" class="btn btn-secondary merge-banner-btn"
                     onclick="openTicketByNumber('${escapeHtml(ref).replace(/'/g, "\\'")}')">
                 ${escapeHtml(t('tickets.merge.banner_go').replace('%s', ref))}
@@ -2448,6 +2456,42 @@ function buildMergeBanner(email) {
         </div>`;
     }
     return '';
+}
+
+/**
+ * Undo a merge — take the messages back and reopen this ticket.
+ *
+ * The confirm spells out what is NOT reversed: replies written on the surviving
+ * ticket since the merge stay there. Somebody expecting a clean rewind should be
+ * told before they press the button, not after.
+ */
+async function undoMerge(mergeId) {
+    const ok = await showConfirm({
+        title: t('tickets.merge.undo_title'),
+        message: t('tickets.merge.undo_message'),
+        okLabel: t('tickets.merge.undo'),
+        okClass: 'danger'
+    });
+    if (!ok) return;
+
+    try {
+        const res = await fetch(API_BASE + 'undo_merge.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ merge_id: mergeId })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || 'Could not undo the merge', 'error');
+            return;
+        }
+        showToast(t('tickets.merge.undo_done').replace('%s', data.source_ticket_number || ''), 'success');
+        await loadEmails();
+        if (typeof loadFolderCounts === 'function') loadFolderCounts();
+        selectEmailByTicketId(data.source_ticket_id);
+    } catch (e) {
+        showToast('Could not undo the merge', 'error');
+    }
 }
 
 /** Jump to a ticket by its reference — used by the merge banner's button. */

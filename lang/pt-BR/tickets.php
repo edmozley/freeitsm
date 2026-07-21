@@ -224,6 +224,11 @@ return [
         'discard_summary'         => 'Sem nota',
         'summary_saved'           => 'Resumo salvo no ticket',
 
+        'undo'                    => 'Desfazer mesclagem',
+        'undo_title'              => 'Desfazer esta mesclagem?',
+        'undo_message'            => 'As mensagens, notas e o tempo registrado que este ticket trouxe consigo voltam, e ele reabre exatamente como estava. As respostas escritas no outro ticket desde a mesclagem permanecem lá — isto não é um retorno completo.',
+        'undo_done'               => 'Mesclagem desfeita — %s está de volta',
+
         'banner_away_title'       => 'Este ticket foi mesclado.',
         'banner_away_body'        => 'A conversa continua em outro lugar. Responder aqui não chegará ao solicitante.',
         'banner_go'               => 'Ir para %s',

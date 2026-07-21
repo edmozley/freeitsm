@@ -250,6 +250,11 @@ return [
         'discard_summary'       => 'No note',
         'summary_saved'         => 'Summary saved to the ticket',
 
+        'undo'                  => 'Undo merge',
+        'undo_title'            => 'Undo this merge?',
+        'undo_message'          => 'The messages, notes and logged time this ticket brought with it come back, and it reopens exactly as it was. Replies written on the other ticket since the merge stay there — this is not a full rewind.',
+        'undo_done'             => 'Unmerged — %s is back',
+
         'banner_away_title'     => 'This ticket has been merged.',
         'banner_away_body'      => 'Its conversation continues elsewhere. Replying here will not reach the requester.',
         'banner_go'             => 'Go to %s',

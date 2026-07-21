@@ -791,6 +791,23 @@ return [
         // becomes possible later; merges done BEFORE this column existed cannot be
         // reconstructed, which is the whole reason for adding it early.
         'moved_email_ids'      => 'TEXT NULL',
+        // Everything ELSE the merge moved, as JSON {table: [row ids]} — notes, time
+        // entries, recordings, tasks, form submissions, CMDB/problem/change links.
+        // Messages alone are not a merge: unmerging without these would leave a
+        // ticket's notes and logged time stranded on somebody else's ticket.
+        'moved_related'        => 'TEXT NULL',
+        // The system message carrying the HTML snapshot, when the originals mode made
+        // one. Created by the merge rather than moved, so it is not in
+        // moved_email_ids, and an unmerge has to delete it (and its file).
+        'snapshot_email_id'    => 'INT NULL',
+        // What the source ticket looked like before it was closed by the merge. A
+        // merge sets it to the install's first closed status; putting it back to
+        // "Open" would be a guess, and a wrong one for anything that had been
+        // resolved before it was merged.
+        'source_prev_status_id'       => 'INT NULL',
+        'source_prev_closed_datetime' => 'DATETIME NULL',
+        'undone_datetime'      => 'DATETIME NULL',
+        'undone_by_id'         => 'INT NULL',
         'merged_by_id'         => 'INT NULL',
         'merged_datetime'      => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],

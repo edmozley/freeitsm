@@ -638,6 +638,18 @@ CREATE TABLE IF NOT EXISTS `ticket_merges` (
     -- Merges done before this column existed cannot be reconstructed — which is
     -- exactly why it is being added before there are many of them.
     `moved_email_ids`      TEXT NULL,
+    -- Everything else the merge moved, {table: [row ids]}. Messages alone are not a
+    -- merge: without this an unmerge strands notes and logged time on the survivor.
+    `moved_related`        TEXT NULL,
+    -- The system message carrying the HTML snapshot (created, not moved), so an
+    -- unmerge can delete it and its file.
+    `snapshot_email_id`    INT NULL,
+    -- What the source looked like before the merge closed it. Restoring to "Open"
+    -- would be a guess, and wrong for anything already resolved when it was merged.
+    `source_prev_status_id`       INT NULL,
+    `source_prev_closed_datetime` DATETIME NULL,
+    `undone_datetime`      DATETIME NULL,
+    `undone_by_id`         INT NULL,
     `merged_by_id`         INT NULL,
     `merged_datetime`      DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
