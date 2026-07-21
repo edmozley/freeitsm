@@ -210,6 +210,7 @@ return [
         'ai_badge'              => 'AI',
         'ai_editable'           => 'Written by AI from the merged conversations. Edit it however you like — it saves as an internal note and is never shown to the requester.',
         'ai_thinking'           => 'Reading the merged conversations…',
+        'ai_progress'           => 'Reading the merged conversations… %ds. This can take up to a minute on a long thread.',
         'ai_unconfigured'       => 'No AI provider is set up, so there is no automatic summary. You can type your own note here, or just close.',
         'ai_failed'             => 'Could not write the summary — the merge itself was fine',
         'save_summary'          => 'Save note',

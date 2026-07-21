@@ -173,9 +173,17 @@ function mergeTickets(PDO $conn, int $actorId, array $sourceIds, int $targetId):
     $all = array_merge($sourceIds, [$targetId]);
     $tickets = [];
     foreach ($all as $id) {
-        $tickets[$id] = TicketsService::loadTicket($conn, $ctx, $id);
+        try {
+            $tickets[$id] = TicketsService::loadTicket($conn, $ctx, $id);
+        } catch (Throwable $e) {
+            // The service says a bare "Ticket not found." which, in a multi-ticket
+            // action, tells the analyst nothing about WHICH one — and it means two
+            // different things (no such id, or out of your company scope). Name the id
+            // so a failed merge is diagnosable from the toast alone.
+            throw new Exception('Could not load ticket #' . $id . ' (' . $e->getMessage() . ')');
+        }
         if ($tickets[$id]['deleted_datetime'] !== null) {
-            throw new Exception('Ticket ' . $tickets[$id]['ticket_number'] . ' is in the trash');
+            throw new Exception('Ticket ' . $tickets[$id]['ticket_number'] . ' is in the trash — restore it first');
         }
         if (!empty($tickets[$id]['merged_into_id'])) {
             throw new Exception('Ticket ' . $tickets[$id]['ticket_number'] . ' has already been merged');
@@ -185,11 +193,25 @@ function mergeTickets(PDO $conn, int $actorId, array $sourceIds, int $targetId):
     // Same-company only. Folding a client's conversation into another client's ticket
     // would be a data leak dressed up as an action, and it must be refused for an
     // all-access analyst too — a same-company invariant binds every actor.
-    $targetTenant = $tickets[$targetId]['tenant_id'] ?? null;
+    //
+    // ⚠️ `tickets.tenant_id` NULL does NOT mean "no company": for this table it means
+    // the DEFAULT company (an unrouted ticket). Comparing the raw values rejected a
+    // perfectly ordinary merge between an older NULL ticket and a Default-company one
+    // as "different companies" — which is most merges on an install that predates
+    // multi-tenancy. Normalise both sides through the default id before comparing.
+    // (This is the scoped-data meaning of NULL; config lists like ticket_types use
+    // the opposite convention. Always check which shape the table is.)
+    $normaliseTenant = function ($raw) use ($conn) {
+        if ($raw === null || $raw === '') return getDefaultTenantId($conn);
+        return (int)$raw;
+    };
+    $targetTenant = $normaliseTenant($tickets[$targetId]['tenant_id'] ?? null);
     foreach ($sourceIds as $sid) {
-        $srcTenant = $tickets[$sid]['tenant_id'] ?? null;
-        if ((string)$srcTenant !== (string)$targetTenant) {
-            throw new Exception('Tickets belong to different companies and cannot be merged');
+        if ($normaliseTenant($tickets[$sid]['tenant_id'] ?? null) !== $targetTenant) {
+            throw new Exception(
+                'Ticket ' . ($tickets[$sid]['ticket_number'] ?? $sid) . ' belongs to a different company from '
+                . ($tickets[$targetId]['ticket_number'] ?? $targetId) . ' — tickets can only be merged within one company'
+            );
         }
     }
 

@@ -186,6 +186,7 @@ return [
         'ai_badge'                => 'IA',
         'ai_editable'             => 'Escrito por IA a partir das conversas mescladas. Edite como quiser — é salvo como nota interna e nunca é mostrado ao solicitante.',
         'ai_thinking'             => 'Lendo as conversas mescladas…',
+        'ai_progress'             => 'Lendo as conversas mescladas… %ds. Pode levar até um minuto em uma conversa longa.',
         'ai_unconfigured'         => 'Nenhum provedor de IA configurado, então não há resumo automático. Você pode escrever sua própria nota aqui ou apenas fechar.',
         'ai_failed'               => 'Não foi possível escrever o resumo — a mesclagem em si funcionou',
         'save_summary'            => 'Salvar nota',

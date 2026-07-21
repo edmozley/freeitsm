@@ -3625,3 +3625,16 @@ body.ticket-popout .ticket-toolbar {
     letter-spacing: 0.3px; text-transform: uppercase;
     background: var(--accent-soft, #eff6ff); color: var(--accent, #0078d4);
 }
+
+/* Liveness for the AI merge briefing. Deliberately independent of tokens arriving:
+   only Anthropic streams, so on other providers this is the ONLY sign of life. */
+.merge-ai-progress {
+    display: none;            /* JS flips to flex */
+    align-items: center; gap: 9px;
+    padding: 9px 12px; margin-bottom: 8px;
+    border-radius: 6px;
+    background: var(--surface-2, #f3f6fa);
+    border: 1px solid var(--border, #dde3ea);
+    color: var(--text-muted, #555);
+    font-size: 12.5px;
+}

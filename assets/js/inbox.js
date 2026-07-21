@@ -4124,11 +4124,48 @@ function showMergeSummaryStage(data) {
  * merged thread, and watching it appear is the difference between "it's working"
  * and "it's hung" — the same reason reply cleanup streams.
  */
+/**
+ * Progress for the AI briefing.
+ *
+ * 🔑 ONLY ANTHROPIC STREAMS TOKEN BY TOKEN. OpenAI and OpenRouter go through the
+ * shared one-shot client, which returns the whole answer at the end and is emitted
+ * as a single chunk — so on those providers the textarea sits empty for the entire
+ * call. On a long merged thread that is ~30 seconds of a blank box, which reads as
+ * "it has crashed" and gets X-ed out (Ed hit exactly this).
+ *
+ * So the liveness signal must NOT depend on tokens arriving. This runs a spinner and
+ * an elapsed-seconds counter from the moment the request starts, and says out loud
+ * that it can take up to a minute. Tokens, when a provider does stream them, are a
+ * bonus on top rather than the only evidence anything is happening.
+ */
+let mergeSummaryTimer = null;
+
+function startMergeSummaryProgress() {
+    const el = document.getElementById('mergeSummaryProgress');
+    if (!el) return;
+    const started = Date.now();
+    el.style.display = 'flex';
+    const paint = () => {
+        const secs = Math.floor((Date.now() - started) / 1000);
+        el.innerHTML = '<span class="spinner-inline"></span><span>'
+            + escapeHtml(t('tickets.merge.ai_progress').replace('%d', String(secs))) + '</span>';
+    };
+    paint();
+    mergeSummaryTimer = setInterval(paint, 1000);
+}
+
+function stopMergeSummaryProgress() {
+    if (mergeSummaryTimer) { clearInterval(mergeSummaryTimer); mergeSummaryTimer = null; }
+    const el = document.getElementById('mergeSummaryProgress');
+    if (el) { el.style.display = 'none'; el.innerHTML = ''; }
+}
+
 function streamMergeSummary(ticketId) {
     const box  = document.getElementById('mergeSummaryText');
     const save = document.getElementById('mergeSaveSummaryBtn');
     box.value = '';
     box.placeholder = t('tickets.merge.ai_thinking');
+    startMergeSummaryProgress();
 
     fetch(API_BASE + 'ai_merge_summary.php', {
         method: 'POST',
@@ -4142,7 +4179,7 @@ function streamMergeSummary(ticketId) {
 
         function pump() {
             return reader.read().then(({ done, value }) => {
-                if (done) { save.disabled = (box.value.trim() === ''); return; }
+                if (done) { stopMergeSummaryProgress(); save.disabled = (box.value.trim() === ''); return; }
                 buffer += decoder.decode(value, { stream: true });
 
                 // SSE frames are separated by a blank line.
@@ -4161,8 +4198,10 @@ function streamMergeSummary(ticketId) {
                     } else if (evMatch[1] === 'unconfigured') {
                         // No AI provider: not a failure. Say so and let the analyst
                         // write their own note, or just close.
+                        stopMergeSummaryProgress();
                         box.placeholder = t('tickets.merge.ai_unconfigured');
                     } else if (evMatch[1] === 'error') {
+                        stopMergeSummaryProgress();
                         showToast(payload.message || 'AI summary failed', 'error');
                     }
                 });
@@ -4171,6 +4210,7 @@ function streamMergeSummary(ticketId) {
         }
         return pump();
     }).catch(() => {
+        stopMergeSummaryProgress();
         showToast(t('tickets.merge.ai_failed'), 'error');
         save.disabled = (box.value.trim() === '');
     });

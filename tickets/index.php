@@ -29,7 +29,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.title')); ?> - <?php echo htmlspecialchars(t('tickets.nav.inbox')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=22">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=44">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=45">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=29">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -206,6 +206,10 @@ $translationNamespaces = ['common', 'tickets'];
                             <?php echo htmlspecialchars(t('tickets.merge.ai_heading')); ?>
                             <span class="merge-ai-badge"><?php echo htmlspecialchars(t('tickets.merge.ai_badge')); ?></span>
                         </label>
+                    <?php /* Liveness that does NOT depend on tokens arriving: only
+                             Anthropic streams token-by-token, so on OpenAI/OpenRouter
+                             the box would sit empty for the whole call. */ ?>
+                    <div class="merge-ai-progress" id="mergeSummaryProgress" style="display:none;"></div>
                         <textarea id="mergeSummaryText" rows="12" class="form-textarea" style="width:100%;font-family:inherit;"></textarea>
                         <small style="color:var(--text-muted,#666);"><?php echo htmlspecialchars(t('tickets.merge.ai_editable')); ?></small>
                     </div>
@@ -575,7 +579,7 @@ $translationNamespaces = ['common', 'tickets'];
     </script>
     <!-- Must load BEFORE inbox.js: it cleans every untrusted message body. -->
     <script src="../assets/js/safe-html.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=64"></script>
+    <script src="../assets/js/inbox.js?v=65"></script>
     <script src="../assets/js/mobile.js?v=12"></script>
     <script>
     // Auto-check mailboxes every 60 seconds
