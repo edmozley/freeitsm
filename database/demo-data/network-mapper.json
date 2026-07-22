@@ -1,0 +1,66 @@
+{
+    "_note": "Depends on the CMDB demo data. Every node points at a real cmdb_objects row (FK, NOT NULL), matched by name below via _skip_insert. If the CMDB demo has not been imported those lookups find nothing, the @cmdb_objects refs stay unresolved, and the whole import rolls back cleanly with an 'Unresolved reference' error rather than writing a broken diagram. Import CMDB first.",
+    "tier1": {
+        "analysts": [
+            { "_ref": "admin", "_skip_insert": true, "_match_by": "username", "_match_value": "admin" }
+        ],
+        "cmdb_objects": [
+            { "_ref": "o_fw",   "_skip_insert": true, "_match_by": "name", "_match_value": "FW01" },
+            { "_ref": "o_rtr",  "_skip_insert": true, "_match_by": "name", "_match_value": "CORE-RTR01" },
+            { "_ref": "o_sw",   "_skip_insert": true, "_match_by": "name", "_match_value": "CORE-SW01" },
+            { "_ref": "o_web",  "_skip_insert": true, "_match_by": "name", "_match_value": "WEBSVR01" },
+            { "_ref": "o_app",  "_skip_insert": true, "_match_by": "name", "_match_value": "APPSVR01" },
+            { "_ref": "o_sql1", "_skip_insert": true, "_match_by": "name", "_match_value": "SQLSVR01" },
+            { "_ref": "o_sql2", "_skip_insert": true, "_match_by": "name", "_match_value": "SQLSVR02" },
+            { "_ref": "o_dc",   "_skip_insert": true, "_match_by": "name", "_match_value": "DCSVR01" },
+            { "_ref": "o_wks_s","_skip_insert": true, "_match_by": "name", "_match_value": "WKS-SARAH" },
+            { "_ref": "o_wks_m","_skip_insert": true, "_match_by": "name", "_match_value": "WKS-MIKE" },
+            { "_ref": "o_wks_d","_skip_insert": true, "_match_by": "name", "_match_value": "WKS-DAVID" }
+        ]
+    },
+    "tier2": {
+        "network_diagrams": [
+            {
+                "_ref": "core",
+                "title": "Core Network Topology",
+                "description": "A worked example built from the CMDB demo data: the perimeter firewall, core router and switch, the server estate, and a few staff workstations. Open it in the Network Mapper to see how a diagram is assembled from configuration items.",
+                "version_label": "v1.0",
+                "created_by_analyst_id": "@analysts.admin",
+                "paper_size": "A4",
+                "paper_orientation": "landscape",
+                "header_center": "Core Network Topology",
+                "footer_right": "FreeITSM demo data",
+                "created_datetime": "__RELATIVE_DATE:-20d__"
+            }
+        ]
+    },
+    "tier3": {
+        "network_diagram_nodes": [
+            { "_ref": "n_fw",   "diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_fw",   "x": 420, "y": 40,  "size": "medium" },
+            { "_ref": "n_rtr",  "diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_rtr",  "x": 420, "y": 170, "size": "medium" },
+            { "_ref": "n_sw",   "diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_sw",   "x": 420, "y": 300, "size": "large"  },
+            { "_ref": "n_web",  "diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_web",  "x": 60,  "y": 460, "size": "medium" },
+            { "_ref": "n_app",  "diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_app",  "x": 230, "y": 460, "size": "medium" },
+            { "_ref": "n_sql1", "diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_sql1", "x": 400, "y": 460, "size": "medium" },
+            { "_ref": "n_sql2", "diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_sql2", "x": 570, "y": 460, "size": "medium" },
+            { "_ref": "n_dc",   "diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_dc",   "x": 740, "y": 460, "size": "medium" },
+            { "_ref": "n_wks_s","diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_wks_s","x": 200, "y": 600, "size": "small"  },
+            { "_ref": "n_wks_m","diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_wks_m","x": 420, "y": 600, "size": "small"  },
+            { "_ref": "n_wks_d","diagram_id": "@network_diagrams.core", "cmdb_object_id": "@cmdb_objects.o_wks_d","x": 640, "y": 600, "size": "small"  }
+        ]
+    },
+    "tier4": {
+        "network_diagram_connectors": [
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_fw",  "to_node_id": "@network_diagram_nodes.n_rtr",  "label": "WAN",      "line_style": "solid" },
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_rtr", "to_node_id": "@network_diagram_nodes.n_sw",   "label": "Core",     "line_style": "solid" },
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_sw",  "to_node_id": "@network_diagram_nodes.n_web",  "label": null,       "line_style": "solid" },
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_sw",  "to_node_id": "@network_diagram_nodes.n_app",  "label": null,       "line_style": "solid" },
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_sw",  "to_node_id": "@network_diagram_nodes.n_sql1", "label": null,       "line_style": "solid" },
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_sw",  "to_node_id": "@network_diagram_nodes.n_sql2", "label": "replica",  "line_style": "dashed" },
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_sw",  "to_node_id": "@network_diagram_nodes.n_dc",   "label": null,       "line_style": "solid" },
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_sw",  "to_node_id": "@network_diagram_nodes.n_wks_s","label": null,       "line_style": "solid" },
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_sw",  "to_node_id": "@network_diagram_nodes.n_wks_m","label": null,       "line_style": "solid" },
+            { "diagram_id": "@network_diagrams.core", "from_node_id": "@network_diagram_nodes.n_sw",  "to_node_id": "@network_diagram_nodes.n_wks_d","label": null,       "line_style": "solid" }
+        ]
+    }
+}

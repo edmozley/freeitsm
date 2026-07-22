@@ -1,0 +1,119 @@
+{
+    "tier1": {
+        "analysts": [
+            { "_ref": "admin", "_skip_insert": true, "_match_by": "username", "_match_value": "admin" }
+        ]
+    },
+    "tier2": {
+        "lms_courses": [
+            {
+                "_ref": "sec",
+                "title": "Cyber Security Essentials",
+                "description": "A short introduction to keeping yourself and the organisation safe online: strong sign-in, spotting phishing, and handling data responsibly. Finishes with a quick knowledge check.",
+                "content_type": "native",
+                "pass_mark": 70,
+                "is_active": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-40d__"
+            },
+            {
+                "_ref": "induction",
+                "title": "Service Desk Induction",
+                "description": "Everything a new first-line analyst needs on day one: how to work a ticket in FreeITSM, the tone we use with customers, and what our SLAs actually mean.",
+                "content_type": "native",
+                "pass_mark": null,
+                "is_active": 1,
+                "created_by_id": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-25d__"
+            }
+        ]
+    },
+    "tier3": {
+        "lms_lessons": [
+            {
+                "_ref": "sec_l1",
+                "course_id": "@lms_courses.sec",
+                "title": "Strong sign-in: passwords and MFA",
+                "body": "<p>Your password is the front door to everything you can reach. Two rules do most of the work:</p><ul><li><strong>Length beats complexity.</strong> A passphrase of three or four unrelated words is easier to remember and harder to crack than <code>P@ssw0rd!</code>.</li><li><strong>Never reuse a work password anywhere else.</strong> If another site is breached, attackers try the same password against your work accounts.</li></ul><p>Multi-factor authentication (MFA) adds a second check — usually a code from an app on your phone — so a stolen password on its own is not enough. Turn it on wherever it is offered.</p>",
+                "display_order": 1
+            },
+            {
+                "_ref": "sec_l2",
+                "course_id": "@lms_courses.sec",
+                "title": "Spotting a phishing email",
+                "body": "<p>Phishing is a fake message designed to make you click a link, open an attachment, or hand over a password. Watch for:</p><ul><li>A sense of <strong>urgency</strong> — \"your account will be closed in 24 hours\".</li><li>A <strong>mismatched sender or link</strong> — hover over links before clicking and check the real address.</li><li>Requests for <strong>credentials or payment</strong> that bypass the normal process.</li></ul><p>When in doubt, do not click. Report it to the service desk and let them check.</p>",
+                "display_order": 2
+            },
+            {
+                "_ref": "sec_l3",
+                "course_id": "@lms_courses.sec",
+                "title": "Handling data responsibly",
+                "body": "<p>Share information on a <strong>need-to-know</strong> basis, store it only where it is meant to live, and lock your screen when you step away (<kbd>Win</kbd> + <kbd>L</kbd>). If you think data has been lost or exposed, report it straight away — a fast, honest report is always better than a quiet one.</p>",
+                "display_order": 3
+            },
+            {
+                "_ref": "ind_l1",
+                "course_id": "@lms_courses.induction",
+                "title": "Working a ticket in FreeITSM",
+                "body": "<p>Every request becomes a <strong>ticket</strong>. Your job on first line: acknowledge it, understand what the customer actually needs, and either resolve it or route it to the right team. Keep the ticket updated as you go — the notes are how everyone else knows what has happened.</p>",
+                "display_order": 1
+            },
+            {
+                "_ref": "ind_l2",
+                "course_id": "@lms_courses.induction",
+                "title": "Talking to customers",
+                "body": "<p>Be human. Open with a greeting, say what you are going to do, and avoid jargon. \"I've restarted the print service and your job should go through now\" beats \"spooler bounced\". If you cannot fix it today, say so and say when you will next update them.</p>",
+                "display_order": 2
+            },
+            {
+                "_ref": "ind_l3",
+                "course_id": "@lms_courses.induction",
+                "title": "What an SLA means",
+                "body": "<p>A Service Level Agreement is a promise about <em>time</em>: how quickly we will first respond, and how quickly we aim to resolve, based on the ticket's priority. The clock only runs during business hours. If a ticket is at risk of breaching, escalate early — an SLA is a commitment to the customer, not a target to quietly miss.</p>",
+                "display_order": 3
+            }
+        ]
+    },
+    "tier4": {
+        "lms_questions": [
+            {
+                "_ref": "q1",
+                "lesson_id": "@lms_lessons.sec_l2",
+                "question_text": "An email says your mailbox is full and will be deleted in 2 hours unless you 'verify your password' via a link. What is the safest first step?",
+                "question_type": "single",
+                "explanation": "Urgency plus a request for your password is the classic phishing pattern. Don't click — let the service desk verify it.",
+                "display_order": 1
+            },
+            {
+                "_ref": "q2",
+                "lesson_id": "@lms_lessons.sec_l2",
+                "question_text": "Which of these is the strongest reason to turn on multi-factor authentication?",
+                "question_type": "single",
+                "explanation": "MFA means a stolen or guessed password on its own is not enough to get in.",
+                "display_order": 2
+            },
+            {
+                "_ref": "q3",
+                "lesson_id": "@lms_lessons.sec_l2",
+                "question_text": "You are about to step away from your desk for lunch. What should you do?",
+                "question_type": "single",
+                "explanation": "Locking the screen (Win+L) stops anyone using your session while you're away.",
+                "display_order": 3
+            }
+        ]
+    },
+    "tier5": {
+        "lms_answers": [
+            { "question_id": "@lms_questions.q1", "answer_text": "Click the link quickly before the mailbox is deleted", "is_correct": 0, "display_order": 1 },
+            { "question_id": "@lms_questions.q1", "answer_text": "Do not click; report the email to the service desk", "is_correct": 1, "display_order": 2 },
+            { "question_id": "@lms_questions.q1", "answer_text": "Reply asking if the email is genuine", "is_correct": 0, "display_order": 3 },
+            { "question_id": "@lms_questions.q1", "answer_text": "Forward it to your team so they can verify their passwords too", "is_correct": 0, "display_order": 4 },
+            { "question_id": "@lms_questions.q2", "answer_text": "It makes your password longer", "is_correct": 0, "display_order": 1 },
+            { "question_id": "@lms_questions.q2", "answer_text": "A stolen password on its own is no longer enough to sign in", "is_correct": 1, "display_order": 2 },
+            { "question_id": "@lms_questions.q2", "answer_text": "It lets you reuse the same password everywhere safely", "is_correct": 0, "display_order": 3 },
+            { "question_id": "@lms_questions.q3", "answer_text": "Leave it as is — you'll only be gone a few minutes", "is_correct": 0, "display_order": 1 },
+            { "question_id": "@lms_questions.q3", "answer_text": "Turn off the monitor", "is_correct": 0, "display_order": 2 },
+            { "question_id": "@lms_questions.q3", "answer_text": "Lock the screen with Win+L", "is_correct": 1, "display_order": 3 }
+        ]
+    }
+}

@@ -16,7 +16,7 @@ if (!isset($_SESSION['analyst_id'])) {
     exit;
 }
 
-$allowedModules = ['core', 'tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks', 'contracts', 'services', 'software', 'forms', 'software-assets', 'dashboards', 'tasks', 'process-mapper', 'cmdb'];
+$allowedModules = ['core', 'tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks', 'contracts', 'services', 'software', 'forms', 'software-assets', 'dashboards', 'tasks', 'process-mapper', 'cmdb', 'lms', 'workflow', 'network-mapper'];
 $module = $_POST['module'] ?? '';
 if (!in_array($module, $allowedModules)) {
     echo json_encode(['success' => false, 'error' => 'Invalid module: ' . $module]);

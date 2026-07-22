@@ -475,6 +475,36 @@ if (!isset($_SESSION['analyst_id'])) {
                 </div>
                 <div class="error-text" id="err-cmdb" style="display:none"></div>
             </div>
+
+            <div class="module-card" data-module="lms">
+                <h4>Learning (LMS)</h4>
+                <p class="module-desc">2 authored courses &mdash; Cyber Security Essentials (with a 3-question quiz) and Service Desk Induction &mdash; with 6 lessons between them.</p>
+                <div class="module-footer">
+                    <span class="record-count">~22 records</span>
+                    <button class="import-btn" id="btn-lms" onclick="importModule('lms', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
+                </div>
+                <div class="error-text" id="err-lms" style="display:none"></div>
+            </div>
+
+            <div class="module-card" data-module="workflow">
+                <h4>Workflows</h4>
+                <p class="module-desc">4 example automations: auto-acknowledge new tickets, flag "urgent" subjects, broadcast status-page incidents to chat, and log every binned ticket.</p>
+                <div class="module-footer">
+                    <span class="record-count">~4 records</span>
+                    <button class="import-btn" id="btn-workflow" onclick="importModule('workflow', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
+                </div>
+                <div class="error-text" id="err-workflow" style="display:none"></div>
+            </div>
+
+            <div class="module-card" data-module="network-mapper">
+                <h4>Network Mapper</h4>
+                <p class="module-desc">A <em>Core Network Topology</em> diagram &mdash; firewall, core router and switch, five servers and three workstations &mdash; built from CMDB objects. <strong>Import CMDB first:</strong> every node points at a real configuration item, so without the CMDB demo this import is refused cleanly rather than half-built.</p>
+                <div class="module-footer">
+                    <span class="record-count">~22 records</span>
+                    <button class="import-btn" id="btn-network-mapper" onclick="importModule('network-mapper', this)" disabled><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
+                </div>
+                <div class="error-text" id="err-network-mapper" style="display:none"></div>
+            </div>
         </div>
 
         <!-- Bonus: cross-module linking (appears after both software + assets imported) -->
@@ -560,7 +590,7 @@ if (!isset($_SESSION['analyst_id'])) {
         }
 
         function enableModuleButtons() {
-            const modules = ['tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks', 'contracts', 'services', 'software', 'forms', 'tasks', 'process-mapper', 'cmdb'];
+            const modules = ['tickets', 'assets', 'knowledge', 'changes', 'calendar', 'checks', 'contracts', 'services', 'software', 'forms', 'tasks', 'process-mapper', 'cmdb', 'lms', 'workflow', 'network-mapper'];
             modules.forEach(function(m) {
                 const btn = document.getElementById('btn-' + m);
                 if (btn && !btn.classList.contains('success')) {

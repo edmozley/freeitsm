@@ -1,0 +1,60 @@
+{
+    "tier1": {
+        "analysts": [
+            {
+                "_ref": "admin",
+                "_skip_insert": true,
+                "_match_by": "username",
+                "_match_value": "admin"
+            }
+        ]
+    },
+    "tier2": {
+        "workflows": [
+            {
+                "_ref": "ack",
+                "name": "Auto-acknowledge a new ticket",
+                "description": "Emails the requester the moment their ticket lands, so nobody is left wondering whether it arrived.",
+                "trigger_event": "ticket.created",
+                "conditions": "[]",
+                "actions": "[{\"type\":\"send_email\",\"args\":{\"ticket_id\":\"{{ticket.id}}\",\"subject\":\"We have received your request [{{ticket.number}}]\",\"body\":\"Hello,\\n\\nThanks for getting in touch — we have logged your request and the service desk will pick it up shortly.\\n\\nReference: {{ticket.number}}\\nSubject: {{ticket.subject}}\\n\\nYou can simply reply to this email to add more detail.\\n\\nThe Service Desk\"}}]",
+                "is_active": 1,
+                "created_by": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "urgent",
+                "name": "Flag tickets that say \"urgent\"",
+                "description": "When a new ticket has \"urgent\" in its subject, drop an internal note so the desk gives it a second look. A simple example of a condition driving an action.",
+                "trigger_event": "ticket.created",
+                "conditions": "[{\"field\":\"ticket.subject\",\"op\":\"contains\",\"value\":\"urgent\"}]",
+                "actions": "[{\"type\":\"add_ticket_note\",\"args\":{\"ticket_id\":\"{{ticket.id}}\",\"note\":\"The requester used the word \\\"urgent\\\" in the subject — worth a quick triage to confirm the priority is right.\"}}]",
+                "is_active": 1,
+                "created_by": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "incident",
+                "name": "Broadcast a status-page incident to the team",
+                "description": "When you open an incident on the status page, push it straight into your team chat so internal staff hear it at the same time as customers. Ships OFF — add your chat webhook URL and switch it on.",
+                "trigger_event": "service_status.incident_created",
+                "conditions": "[]",
+                "actions": "[{\"type\":\"send_webhook\",\"args\":{\"preset\":\"teams\",\"url\":\"https://example.com/your-teams-webhook-url\",\"message\":\"Status page incident opened: {{incident.title}}\"}}]",
+                "is_active": 0,
+                "created_by": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__"
+            },
+            {
+                "_ref": "binned",
+                "name": "Log every ticket that is binned",
+                "description": "Writes an execution-log entry for every deletion, naming the ticket — a quiet, permanent record that answers \"what happened to it?\" months later.",
+                "trigger_event": "ticket.deleted",
+                "conditions": "[]",
+                "actions": "[{\"type\":\"log_message\",\"args\":{\"message\":\"Ticket binned: #{{ticket.number}} — {{ticket.subject}} (requester {{ticket.requester_email}})\"}}]",
+                "is_active": 1,
+                "created_by": "@analysts.admin",
+                "created_datetime": "__RELATIVE_DATE:-30d__"
+            }
+        ]
+    }
+}
