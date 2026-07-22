@@ -46,6 +46,7 @@ return [
         'ssl_broken'               => 'On, but the server could not verify a certificate — outbound HTTPS (email, AI, webhooks, sign-in) will fail. Configure a CA bundle: see the HTTPS Certificates help page. Error: {error}',
         'ssl_untested'             => 'On, but a live test request could not be completed (no outbound network?), so verification could not be confirmed. Error: {error}',
         'ssl_bundle_system'        => 'system store',
+        'help_link'                => 'How to fix this — HTTPS certificates guide →',
         'ssl_disabled'             => 'Disabled — enable for production (set SSL_VERIFY_PEER to true in config.php)',
         'ssl_undefined'            => 'SSL_VERIFY_PEER not defined in config.php',
         'display_errors_enabled'   => 'Enabled — disable for production (set display_errors to 0 in config.php)',

@@ -78,10 +78,12 @@ if (file_exists($configPath)) {
     // every outbound call (mail, AI, webhooks, sign-in). So we run a live probe
     // through the same sslApplyCurl() path the app uses, and tell cert failures
     // (actionable — configure a bundle) apart from no-network (inconclusive).
+    // Any problem state links to the HTTPS-certificates wiki page for the fix.
+    $sslHelp = 'https://github.com/edmozley/freeitsm/wiki/HTTPS-Certificates-and-CA-Bundles';
     if (!defined('SSL_VERIFY_PEER')) {
-        $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_undefined')];
+        $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_undefined'), 'help' => $sslHelp];
     } elseif (!SSL_VERIFY_PEER) {
-        $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_disabled')];
+        $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_disabled'), 'help' => $sslHelp];
     } elseif (function_exists('curl_init') && function_exists('sslApplyCurl')) {
         $ch = curl_init('https://curl.se/');
         curl_setopt($ch, CURLOPT_NOBODY, true);
@@ -105,10 +107,10 @@ if (file_exists($configPath)) {
         if ($sslOk) {
             $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_verified', ['bundle' => $bundle])];
         } elseif (in_array($sslErrno, $certErrnos, true) || stripos($sslErr, 'certificate') !== false) {
-            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'fail', 'detail' => t('setup.detail.ssl_broken', ['error' => $sslErr])];
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'fail', 'detail' => t('setup.detail.ssl_broken', ['error' => $sslErr]), 'help' => $sslHelp];
         } else {
             // DNS / connection refused / timeout — inconclusive, don't cry wolf.
-            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_untested', ['error' => $sslErr])];
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_untested', ['error' => $sslErr]), 'help' => $sslHelp];
         }
     } else {
         $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_enabled')];
@@ -351,6 +353,16 @@ $translationNamespaces = ['common', 'setup'];
             font-size: 12px;
             margin-top: 15px;
         }
+
+        .check-help {
+            display: inline-block;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .check-help:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -379,6 +391,9 @@ $translationNamespaces = ['common', 'setup'];
                     <div class="check-info">
                         <div class="check-name"><?= htmlspecialchars($check['name']) ?></div>
                         <div class="check-detail <?= $check['status'] ?>"><?= htmlspecialchars($check['detail']) ?></div>
+                        <?php if (!empty($check['help'])): ?>
+                            <a class="check-help" href="<?= htmlspecialchars($check['help']) ?>" target="_blank" rel="noopener noreferrer"><?= htmlspecialchars(t('setup.detail.help_link')) ?></a>
+                        <?php endif; ?>
                     </div>
                 </li>
             <?php endforeach; ?>

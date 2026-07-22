@@ -40,6 +40,7 @@ return [
         'ssl_broken'               => 'Ativada, mas o servidor não conseguiu verificar um certificado — chamadas HTTPS de saída (e-mail, IA, webhooks, login) irão falhar. Configure um pacote CA: consulte a página de ajuda Certificados HTTPS. Erro: {error}',
         'ssl_untested'             => 'Ativada, mas não foi possível concluir uma requisição de teste (sem rede de saída?), então a verificação não pôde ser confirmada. Erro: {error}',
         'ssl_bundle_system'        => 'armazenamento do sistema',
+        'help_link'                => 'Como corrigir isto — guia de certificados HTTPS →',
         'ssl_disabled'             => 'Desativada — ative para produção (defina SSL_VERIFY_PEER como true em config.php)',
         'ssl_undefined'            => 'SSL_VERIFY_PEER não definida em config.php',
         'display_errors_enabled'   => 'Ativada — desative para produção (defina display_errors como 0 em config.php)',
