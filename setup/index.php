@@ -116,6 +116,28 @@ if (file_exists($configPath)) {
         $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_enabled')];
     }
 
+    // 5b. CA bundle configured in php.ini (curl.cainfo / openssl.cafile). Now that
+    // FreeITSM ships its own bundle this is optional, but it's useful to see the
+    // state — especially a path that IS set but points at a missing file, the
+    // classic silent misconfiguration. Reflects the WEB SERVER's PHP; the
+    // background worker runs under a separate CLI php.ini that this can't see.
+    $curlCa   = ini_get('curl.cainfo');
+    $osslCa   = ini_get('openssl.cafile');
+    $curlCaOk = $curlCa && is_readable($curlCa);
+    $osslCaOk = $osslCa && is_readable($osslCa);
+    $curlDisp = $curlCa ? ($curlCaOk ? $curlCa : t('setup.detail.ca_ini_missing', ['path' => $curlCa])) : t('setup.detail.ca_ini_none');
+    $osslDisp = $osslCa ? ($osslCaOk ? $osslCa : t('setup.detail.ca_ini_missing', ['path' => $osslCa])) : t('setup.detail.ca_ini_none');
+    $caIniDetail = t('setup.detail.ca_ini_status', ['curl' => $curlDisp, 'ossl' => $osslDisp]);
+    if (($curlCa && !$curlCaOk) || ($osslCa && !$osslCaOk)) {
+        // Set, but pointing at a file that isn't there — a real misconfiguration.
+        $checks[] = ['name' => t('setup.checks.ca_bundle_ini'), 'status' => 'warn', 'detail' => $caIniDetail . t('setup.detail.ca_ini_note_fix'), 'help' => $sslHelp];
+    } elseif ($curlCaOk && $osslCaOk) {
+        $checks[] = ['name' => t('setup.checks.ca_bundle_ini'), 'status' => 'pass', 'detail' => $caIniDetail];
+    } else {
+        // Not set — fine, the app falls back to its bundled cert / the OS store.
+        $checks[] = ['name' => t('setup.checks.ca_bundle_ini'), 'status' => 'pass', 'detail' => $caIniDetail . t('setup.detail.ca_ini_note_fallback')];
+    }
+
     // 5. Display errors
     if (ini_get('display_errors') && ini_get('display_errors') !== 'Off') {
         $checks[] = ['name' => t('setup.checks.display_errors'), 'status' => 'warn', 'detail' => t('setup.detail.display_errors_enabled')];
