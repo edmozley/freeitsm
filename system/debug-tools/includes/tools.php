@@ -144,6 +144,28 @@ function getDebugTools() {
             'duration' => '~2 seconds',
             'persists' => 'None. Read-only — it reads source files and writes nothing. Prints no secrets. It is a STATIC scan, so it cannot prove an endpoint is safe (one may do its own bespoke checking) — findings are ranked "worth a look", not "definitely broken". Endpoints that are public by design (login, self-service, the REST API, inbound webhooks) and those that act only on the caller\'s own account (your own password, your own MFA) are excluded and listed separately.',
         ],
+        [
+            'id'       => 'D006',
+            'slug'     => 'd006',
+            'file'     => 'D006_ssl_verify.php',
+            'title'    => 'SSL / HTTPS verification check',
+            'category' => 'Security',
+            'icon'     => 'shield',
+            'desc'     => 'Confirm the server can actually make certificate-verified HTTPS calls — and if not, tell you exactly how to fix it.',
+            'keywords' => 'ssl tls https certificate verify cainfo cacert ca bundle openssl curl mailbox webhook ai man in the middle unable to get local issuer certificate d006',
+            'when'     => 'Run this when outbound HTTPS misbehaves — a mailbox won\'t connect, an AI test fails, a webhook errors with "unable to get local issuer certificate" — or simply to confirm a fresh install is secure. It traces the whole chain: the global SSL_VERIFY_PEER switch, the php.ini CA settings, the shipped includes/cacert.pem, which bundle actually gets used, and a batch of LIVE certificate-verified requests to the real services the app talks to (Microsoft Graph, Anthropic, OpenAI, Google, Slack), ending in a plain-English verdict and the fix.',
+            'checks'   => [
+                'Environment — PHP version, OS, the libcurl build and its TLS backend, and which PHP (web vs CLI worker) this reflects',
+                'The global switch — SSL_VERIFY_PEER (on/off/undefined) and whether the shared sslApplyCurl() helper is loaded',
+                'php.ini CA configuration — curl.cainfo and openssl.cafile: set or not, and crucially whether a path that IS set points at a file that actually exists',
+                'The shipped bundle — includes/cacert.pem: present, readable, its size and certificate count (catching a truncated or HTML-error-page download)',
+                'Which CA bundle actually wins, and why (configured php.ini bundle → shipped cert on Windows → the OS trust store on Linux)',
+                'Live verification — a certificate-verified request to each real service the app calls, distinguishing a genuine certificate failure from a plain no-network SKIP',
+                'A plain-English verdict: working, off, or failing — with the one-line fix (drop a cacert.pem into includes/)',
+            ],
+            'duration' => '~1–8 seconds (depends on how quickly the tested services answer)',
+            'persists' => 'None. Read-only — it makes unauthenticated HEAD requests to public endpoints and writes nothing. Prints no secrets (no API keys, no request bodies) — only certificate/verification signals.',
+        ],
     ];
 }
 
@@ -165,6 +187,7 @@ function debugToolIcon($key) {
         'ticket' => '<polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line>',
         'sso'    => '<path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line>',
         'key'    => '<path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3"></path>',
+        'shield' => '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline>',
     ];
     $inner = $icons[$key] ?? '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>';
     return '<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' . $inner . '</svg>';
