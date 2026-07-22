@@ -21,7 +21,10 @@ require_once($db_config_path);
 // define('ENCRYPTION_KEY_PATH', '/your/path/encryption_keys/freeitsm.key');
 
 // Timezone
-date_default_timezone_set('America/New_York');
+// Fallback timezone for bare date() calls. Datetimes are stored in UTC and
+// converted per-user (Settings > Preferences); SLA uses its own calendar zone.
+// Matches the app's seeded defaults (SLA calendars default to Europe/London).
+date_default_timezone_set('Europe/London');
 
 // SSL Certificate Verification
 // WARNING: Setting this to false is INSECURE and should ONLY be used for testing!
