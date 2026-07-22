@@ -23,7 +23,19 @@ require_once($db_config_path);
 date_default_timezone_set('UTC');
 
 // SSL Certificate Verification
-define('SSL_VERIFY_PEER', false);
+// Single global switch for outbound HTTPS certificate verification — see
+// includes/ssl.php and workflow/help-ssl.php. Leave ON in production. In the
+// Docker image (Debian php:8.4-apache) the OS ships a CA bundle that libcurl
+// finds automatically, so verification works out of the box with no cacert.pem.
+define('SSL_VERIFY_PEER', true);
+
+// Load the shared SSL helper (sslApplyCurl) and resolve the CA bundle. REQUIRED:
+// every outbound curl handle calls sslApplyCurl(), which is defined here. This
+// config.php is copied to /var/www/html/config.php, so __DIR__ is the app root.
+require_once(__DIR__ . '/includes/ssl.php');
+if (!defined('SSL_CA_BUNDLE')) {
+    define('SSL_CA_BUNDLE', sslResolveCaBundle());
+}
 
 // Error reporting (set to 0 in production)
 error_reporting(E_ALL);
