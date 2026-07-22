@@ -72,15 +72,46 @@ if (file_exists($configPath)) {
         $checks[] = ['name' => t('setup.checks.encryption_key'), 'status' => 'warn', 'detail' => t('setup.detail.encryption_key_undefined')];
     }
 
-    // 5. SSL verify peer
-    if (defined('SSL_VERIFY_PEER')) {
-        if (SSL_VERIFY_PEER) {
-            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_enabled')];
+    // 5. HTTPS certificate verification — is it on, AND can the server actually do it?
+    // A "pass" for the setting alone is hollow now that verification ships ON: the
+    // real failure is verify-on with no working CA bundle, which silently breaks
+    // every outbound call (mail, AI, webhooks, sign-in). So we run a live probe
+    // through the same sslApplyCurl() path the app uses, and tell cert failures
+    // (actionable — configure a bundle) apart from no-network (inconclusive).
+    if (!defined('SSL_VERIFY_PEER')) {
+        $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_undefined')];
+    } elseif (!SSL_VERIFY_PEER) {
+        $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_disabled')];
+    } elseif (function_exists('curl_init') && function_exists('sslApplyCurl')) {
+        $ch = curl_init('https://curl.se/');
+        curl_setopt($ch, CURLOPT_NOBODY, true);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 8);
+        sslApplyCurl($ch);
+        $sslOk    = curl_exec($ch) !== false;
+        $sslErrno = curl_errno($ch);
+        $sslErr   = curl_error($ch);
+        curl_close($ch);
+        $bundle = (defined('SSL_CA_BUNDLE') && SSL_CA_BUNDLE !== '') ? SSL_CA_BUNDLE : t('setup.detail.ssl_bundle_system');
+        // cert-trust failures: no/invalid CA bundle, or the peer failed verification.
+        // Build from constants that actually exist — not every CURLE_* is defined in
+        // every PHP build (CURLE_PEER_FAILED_VERIFICATION isn't). The message match
+        // below is the real workhorse; the errno list is belt-and-braces.
+        $certErrnos = [];
+        foreach (['CURLE_SSL_CACERT', 'CURLE_SSL_CACERT_BADFILE', 'CURLE_SSL_CONNECT_ERROR', 'CURLE_PEER_FAILED_VERIFICATION'] as $ce) {
+            if (defined($ce)) { $certErrnos[] = constant($ce); }
+        }
+        if ($sslOk) {
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_verified', ['bundle' => $bundle])];
+        } elseif (in_array($sslErrno, $certErrnos, true) || stripos($sslErr, 'certificate') !== false) {
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'fail', 'detail' => t('setup.detail.ssl_broken', ['error' => $sslErr])];
         } else {
-            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_disabled')];
+            // DNS / connection refused / timeout — inconclusive, don't cry wolf.
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_untested', ['error' => $sslErr])];
         }
     } else {
-        $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_undefined')];
+        $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_enabled')];
     }
 
     // 5. Display errors
