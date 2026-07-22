@@ -592,7 +592,18 @@ body {
 
 .lms-answer-rows { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
 .lms-answer-row { display: flex; align-items: center; gap: 8px; }
-.lms-answer-row .answer-text { flex: 1; }
+.lms-answer-row .answer-text { flex: 1 1 auto; min-width: 0; }
+/* The blanket ".form-group input" rule (width:100% + padding) is right for the
+   answer text box but wrong for the correct-answer radio/checkbox: it stretched
+   them to fill the row, squashing the text box to an invisible sliver. Keep the
+   toggles at their natural size so the text box actually shows. */
+.lms-answer-row input[type="radio"],
+.lms-answer-row input[type="checkbox"] {
+    width: auto;
+    flex: 0 0 auto;
+    margin: 0;
+    padding: 0;
+}
 
 /* ---- Learner's player ---- */
 .lms-native { display: flex; flex-direction: column; height: calc(100vh - 48px); background: var(--app-bg, #f5f6fa); }
