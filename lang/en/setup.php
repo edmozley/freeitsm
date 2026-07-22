@@ -44,7 +44,7 @@ return [
         'encryption_key_undefined' => 'ENCRYPTION_KEY_PATH not defined in includes/encryption.php',
         'ssl_enabled'              => 'Enabled',
         'ssl_verified'             => 'On and working — a live HTTPS request was certificate-verified (CA bundle: {bundle})',
-        'ssl_broken'               => 'On, but the server could not verify a certificate — outbound HTTPS (email, AI, webhooks, sign-in) will fail. Configure a CA bundle: see the HTTPS Certificates help page. Error: {error}',
+        'ssl_broken'               => 'On, but the server could not verify a certificate — outbound HTTPS (email, AI, webhooks, sign-in) will fail. Simplest fix: put a cacert.pem file in the app\'s includes/ folder (download from https://curl.se/ca/cacert.pem) — no php.ini changes needed. Error: {error}',
         'ssl_untested'             => 'On, but a live test request could not be completed (no outbound network?), so verification could not be confirmed. Error: {error}',
         'ssl_bundle_system'        => 'system store',
         'help_link'                => 'How to fix this — HTTPS certificates guide →',

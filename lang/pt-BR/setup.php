@@ -38,7 +38,7 @@ return [
         'encryption_key_undefined' => 'ENCRYPTION_KEY_PATH não definida em includes/encryption.php',
         'ssl_enabled'              => 'Ativada',
         'ssl_verified'             => 'Ativada e funcionando — uma requisição HTTPS de teste teve o certificado verificado (pacote CA: {bundle})',
-        'ssl_broken'               => 'Ativada, mas o servidor não conseguiu verificar um certificado — chamadas HTTPS de saída (e-mail, IA, webhooks, login) irão falhar. Configure um pacote CA: consulte a página de ajuda Certificados HTTPS. Erro: {error}',
+        'ssl_broken'               => 'Ativada, mas o servidor não conseguiu verificar um certificado — chamadas HTTPS de saída (e-mail, IA, webhooks, login) irão falhar. Solução mais simples: coloque um arquivo cacert.pem na pasta includes/ da aplicação (baixe de https://curl.se/ca/cacert.pem) — sem alterar o php.ini. Erro: {error}',
         'ssl_untested'             => 'Ativada, mas não foi possível concluir uma requisição de teste (sem rede de saída?), então a verificação não pôde ser confirmada. Erro: {error}',
         'ssl_bundle_system'        => 'armazenamento do sistema',
         'help_link'                => 'Como corrigir isto — guia de certificados HTTPS →',
