@@ -337,8 +337,8 @@ if (!isset($_SESSION['analyst_id'])) {
         <div class="core-card" id="core-card">
             <div class="core-info">
                 <h3>Core Data</h3>
-                <p>Analysts, departments, teams, ticket types, origins, and end users. All other modules depend on this.</p>
-                <p class="core-detail">4 analysts (password: demo1234) &bull; 5 departments &bull; 2 teams &bull; 15 end users &bull; 5 ticket types &bull; 4 origins</p>
+                <p>Analysts, departments, teams with roles and module access, ticket types, origins, and end users. All other modules depend on this.</p>
+                <p class="core-detail">4 analysts, none admin (password: demo1234) &bull; 5 departments &bull; 2 teams with matching roles &amp; module access &bull; 15 end users &bull; 5 ticket types &bull; 4 origins</p>
             </div>
             <button class="import-btn import-btn-lg" id="btn-core" onclick="importModule('core', this)"><?php echo htmlspecialchars(t('system.demo.import')); ?></button>
         </div>
