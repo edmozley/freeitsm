@@ -59,9 +59,9 @@ try {
             'content-type: application/json',
         ],
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => SSL_VERIFY_PEER,
         CURLOPT_TIMEOUT        => 15,
     ]);
+    sslApplyCurl($ch);
 
     $resp = curl_exec($ch);
     $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);

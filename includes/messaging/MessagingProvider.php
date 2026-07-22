@@ -117,9 +117,7 @@ abstract class MessagingProvider
         // Honour the app-wide SSL verification setting (config.php SSL_VERIFY_PEER),
         // exactly like the email/AI/vCenter cURL calls — so a dev box without a CA
         // bundle behaves consistently, and production can turn verification back on.
-        $verifyPeer = defined('SSL_VERIFY_PEER') ? SSL_VERIFY_PEER : true;
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $verifyPeer);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $verifyPeer ? 2 : 0);
+        sslApplyCurl($ch);
         curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $opts['method'] ?? 'GET');
         if (!empty($opts['follow'])) {
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);

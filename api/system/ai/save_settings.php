@@ -1,7 +1,7 @@
 <?php
 /**
  * API: Save the AI config for a namespace.
- * POST JSON { ns, provider, model, api_key?, verify_ssl }
+ * POST JSON { ns, provider, model, api_key? }
  * A masked/empty api_key leaves the stored key untouched.
  */
 session_start(['read_and_close' => true]);
@@ -37,7 +37,6 @@ try {
         'provider'   => $data['provider']   ?? 'anthropic',
         'model'      => $data['model']       ?? '',
         'api_key'    => $data['api_key']     ?? '',
-        'verify_ssl' => !empty($data['verify_ssl']),
     ]);
     echo json_encode(['success' => true]);
 } catch (Exception $e) {

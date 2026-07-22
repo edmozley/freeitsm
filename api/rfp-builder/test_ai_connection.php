@@ -88,9 +88,8 @@ function rfpTestAnthropic(string $apiKey, string $model, bool $verifySsl): array
         ],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 30,
-        CURLOPT_SSL_VERIFYPEER => $verifySsl,
-        CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0,
     ]);
+    sslApplyCurl($ch);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
@@ -137,9 +136,8 @@ function rfpTestOpenAI(string $apiKey, string $model, bool $verifySsl): array {
         ],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 30,
-        CURLOPT_SSL_VERIFYPEER => $verifySsl,
-        CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0,
     ]);
+    sslApplyCurl($ch);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);

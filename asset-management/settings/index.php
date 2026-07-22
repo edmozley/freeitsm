@@ -145,18 +145,6 @@ $translationNamespaces = ['common', 'asset-management'];
         .intune-progress-meta { font-size: 12px; color: var(--text-muted, #666); margin-top: 6px; }
         .intune-progress.intune-error .intune-progress-fill { background: #d13438; }
 
-        .intune-ssl-warning {
-            margin-top: 10px;
-            padding: 10px 14px;
-            background: var(--danger-bg, #fdecea);
-            border: 1px solid #f5c2c0;
-            border-left: 4px solid var(--danger-accent, #d13438);
-            border-radius: 4px;
-            font-size: 13px;
-            line-height: 1.5;
-            color: var(--danger-text, #5a1c1c);
-        }
-        .intune-ssl-warning strong { color: var(--danger-text, #b71c1c); }
 
         .intune-software-section { margin-top: 30px; padding-top: 25px; border-top: 1px solid var(--border-soft, #eee); }
         .intune-subsection-title { font-size: 15px; font-weight: 600; color: var(--text, #333); margin: 0 0 8px 0; }
@@ -508,16 +496,6 @@ $translationNamespaces = ['common', 'asset-management'];
                                 <button type="button" class="password-toggle" onclick="toggleIntuneSecret()"><?php echo htmlspecialchars(t('asset-management.settings.show')); ?></button>
                             </div>
                             <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.intune_secret_hint')); ?></div>
-                        </div>
-                        <div class="form-group">
-                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer;">
-                                <input type="checkbox" id="intuneVerifySsl" checked style="width: auto;" onchange="updateVerifySslWarning()">
-                                <?php echo htmlspecialchars(t('asset-management.settings.verify_ssl')); ?>
-                            </label>
-                            <div class="form-hint"><?php echo htmlspecialchars(t('asset-management.settings.verify_ssl_hint')); ?></div>
-                            <div id="intuneVerifySslWarning" class="intune-ssl-warning" style="display: none;">
-                                <?php echo t('asset-management.settings.verify_ssl_warning'); ?>
-                            </div>
                         </div>
                         <div class="form-group">
                             <label class="form-label" for="intuneAppBatchSize"><?php echo htmlspecialchars(t('asset-management.settings.batch_size_label')); ?></label>
@@ -953,9 +931,6 @@ $translationNamespaces = ['common', 'asset-management'];
                     intSecField.placeholder = data.settings.intune_client_secret
                         ? window.t('asset-management.settings.secret_saved_placeholder')
                         : window.t('asset-management.settings.intune_secret_placeholder');
-                    // verify_ssl: default to true unless explicitly stored as "0"
-                    document.getElementById('intuneVerifySsl').checked = data.settings.intune_verify_ssl !== '0';
-                    updateVerifySslWarning();
                     // batch size: default to 30 if not stored
                     const batch = parseInt(data.settings.intune_app_batch_size, 10);
                     document.getElementById('intuneAppBatchSize').value = (batch > 0 ? batch : 30);
@@ -1045,7 +1020,6 @@ $translationNamespaces = ['common', 'asset-management'];
                             intune_tenant_id: document.getElementById('intuneTenantId').value.trim(),
                             intune_client_id: document.getElementById('intuneClientId').value.trim(),
                             intune_client_secret: document.getElementById('intuneClientSecret').value,
-                            intune_verify_ssl: document.getElementById('intuneVerifySsl').checked ? '1' : '0',
                             intune_app_batch_size: String(Math.max(1, Math.min(500, parseInt(document.getElementById('intuneAppBatchSize').value, 10) || 30)))
                         }
                     })
@@ -1070,11 +1044,6 @@ $translationNamespaces = ['common', 'asset-management'];
             const btn = input.nextElementSibling;
             if (input.type === 'password') { input.type = 'text'; btn.textContent = window.t('asset-management.settings.hide'); }
             else { input.type = 'password'; btn.textContent = window.t('asset-management.settings.show'); }
-        }
-
-        function updateVerifySslWarning() {
-            const checked = document.getElementById('intuneVerifySsl').checked;
-            document.getElementById('intuneVerifySslWarning').style.display = checked ? 'none' : '';
         }
 
         function toggleIntuneSecret() {

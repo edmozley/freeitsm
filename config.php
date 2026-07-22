@@ -27,10 +27,21 @@ require_once($db_config_path);
 date_default_timezone_set('Europe/London');
 
 // SSL Certificate Verification
-// WARNING: Setting this to false is INSECURE and should ONLY be used for testing!
-// For production, configure php.ini with proper CA certificate bundle
-// Download from: https://curl.se/ca/cacert.pem
-define('SSL_VERIFY_PEER', false);
+// Single global switch for outbound HTTPS certificate verification. Leave this
+// ON in production — turning it off means the app stops checking who it is
+// talking to (Graph, mailboxes, AI providers, webhooks) and can be silently
+// man-in-the-middled. It is only ever a stopgap for a service you fully control
+// on your own network. There are no per-module SSL tick-boxes; this line governs
+// everything. See workflow/help-ssl.php for the full explanation.
+define('SSL_VERIFY_PEER', true);
+
+// CA bundle used for verification (CURLOPT_CAINFO). Prefers a bundle configured
+// in php.ini; on Windows falls back to the cacert.pem shipped in includes/ so a
+// fresh WAMP install verifies out of the box. See includes/ssl.php.
+require_once(__DIR__ . '/includes/ssl.php');
+if (!defined('SSL_CA_BUNDLE')) {
+    define('SSL_CA_BUNDLE', sslResolveCaBundle());
+}
 
 // Error reporting (set to 0 in production)
 error_reporting(E_ALL);

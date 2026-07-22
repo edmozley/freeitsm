@@ -2,7 +2,7 @@
 /**
  * API: Get the UI-safe AI config for a namespace.
  * GET ?ns=<namespace>
- * Returns: { success, provider, model, verify_ssl, has_key, masked_key }
+ * Returns: { success, provider, model, has_key, masked_key }
  * Never returns the plaintext API key.
  */
 session_start(['read_and_close' => true]);

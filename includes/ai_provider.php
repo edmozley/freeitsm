@@ -167,9 +167,8 @@ function aiProviderHttpPost(string $url, array $headers, string $body, bool $ver
             CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => AI_PROVIDER_HTTP_TIMEOUT,
-            CURLOPT_SSL_VERIFYPEER => $verifySsl,
-            CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0,
         ]);
+        sslApplyCurl($ch);
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err  = curl_error($ch);
@@ -239,10 +238,8 @@ function aiProviderListOpenRouterModels(PDO $conn, bool $force = false): array
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 30,
             CURLOPT_HTTPHEADER     => ['Accept: application/json'],
-            // The catalogue is public; honour the global SSL-verify default.
-            CURLOPT_SSL_VERIFYPEER => defined('SSL_VERIFY_PEER') ? SSL_VERIFY_PEER : true,
-            CURLOPT_SSL_VERIFYHOST => (defined('SSL_VERIFY_PEER') && SSL_VERIFY_PEER) ? 2 : 0,
         ]);
+        sslApplyCurl($ch);
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);

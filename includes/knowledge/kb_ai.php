@@ -45,7 +45,7 @@ function kbGenerateEmbedding(string $text, string $apiKey): ?array
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['model' => 'text-embedding-3-small', 'input' => $text]));
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Authorization: Bearer ' . $apiKey]);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, defined('SSL_VERIFY_PEER') ? SSL_VERIFY_PEER : true);
+    sslApplyCurl($ch);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     $res = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);

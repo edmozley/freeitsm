@@ -87,9 +87,7 @@ function testReachability(PDO $conn, int $channelId): array
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_TIMEOUT, 12);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    $verify = defined('SSL_VERIFY_PEER') ? SSL_VERIFY_PEER : true;
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, $verify);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, $verify ? 2 : 0);
+    sslApplyCurl($ch);
     $body = curl_exec($ch);
     if ($body === false) {
         $err = curl_error($ch);

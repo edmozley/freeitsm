@@ -192,10 +192,9 @@ function vcenterAuth($baseUrl, $user, $pass) {
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => ['Content-Type: application/json'],
         CURLOPT_USERPWD => $user . ':' . $pass,
-        CURLOPT_SSL_VERIFYPEER => SSL_VERIFY_PEER,
-        CURLOPT_SSL_VERIFYHOST => SSL_VERIFY_PEER ? 2 : 0,
         CURLOPT_TIMEOUT => 30
     ]);
+    sslApplyCurl($ch);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -228,10 +227,9 @@ function vcenterGetRaw($baseUrl, $path, $sessionToken) {
             'vmware-api-session-id: ' . $sessionToken,
             'Content-Type: application/json'
         ],
-        CURLOPT_SSL_VERIFYPEER => SSL_VERIFY_PEER,
-        CURLOPT_SSL_VERIFYHOST => SSL_VERIFY_PEER ? 2 : 0,
         CURLOPT_TIMEOUT => 60
     ]);
+    sslApplyCurl($ch);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -259,10 +257,9 @@ function vcenterLogout($baseUrl, $sessionToken) {
         CURLOPT_HTTPHEADER => [
             'vmware-api-session-id: ' . $sessionToken
         ],
-        CURLOPT_SSL_VERIFYPEER => SSL_VERIFY_PEER,
-        CURLOPT_SSL_VERIFYHOST => SSL_VERIFY_PEER ? 2 : 0,
         CURLOPT_TIMEOUT => 10
     ]);
+    sslApplyCurl($ch);
     curl_exec($ch);
     curl_close($ch);
 }

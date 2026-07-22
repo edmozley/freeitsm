@@ -284,8 +284,10 @@ function webhookHttpSend(string $url, array $headers, string $body, string $meth
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_CONNECTTIMEOUT => 5,
         CURLOPT_TIMEOUT        => 15,
-        CURLOPT_SSL_VERIFYPEER => true,
     ]);
+    // Webhooks always verify — they carry record data to third parties over the
+    // public internet, so there is deliberately no off switch (see help-ssl.php).
+    sslApplyCurl($ch, true);
     $respBody = curl_exec($ch);
     $status   = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err      = curl_error($ch);

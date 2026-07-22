@@ -69,9 +69,8 @@ function intuneGetToken(array $settings): string {
         CURLOPT_HTTPHEADER     => ['Content-Type: application/x-www-form-urlencoded'],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 60,
-        CURLOPT_SSL_VERIFYPEER => $settings['verify_ssl'],
-        CURLOPT_SSL_VERIFYHOST => $settings['verify_ssl'] ? 2 : 0,
     ]);
+    sslApplyCurl($ch);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
@@ -108,9 +107,8 @@ function intuneGraphGet(string $url, array $settings, int $maxRetries = 5): arra
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HEADER         => true,
             CURLOPT_TIMEOUT        => 60,
-            CURLOPT_SSL_VERIFYPEER => $settings['verify_ssl'],
-            CURLOPT_SSL_VERIFYHOST => $settings['verify_ssl'] ? 2 : 0,
         ]);
+        sslApplyCurl($ch);
         $raw    = curl_exec($ch);
         $code   = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $hdrLen = curl_getinfo($ch, CURLINFO_HEADER_SIZE);

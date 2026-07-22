@@ -311,7 +311,8 @@ $discover = function ($issuer) use ($sslVerify) {
     $url = rtrim($issuer, '/') . '/.well-known/openid-configuration';
     if (!function_exists('curl_init')) return ['ok' => false, 'error' => 'curl not available', 'url' => $url];
     $ch = curl_init();
-    curl_setopt_array($ch, [CURLOPT_URL => $url, CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 8, CURLOPT_SSL_VERIFYPEER => $sslVerify, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
+    curl_setopt_array($ch, [CURLOPT_URL => $url, CURLOPT_RETURNTRANSFER => true, CURLOPT_FOLLOWLOCATION => true, CURLOPT_TIMEOUT => 8, CURLOPT_HTTPHEADER => ['Accept: application/json']]);
+    sslApplyCurl($ch);
     $body = curl_exec($ch); $code = curl_getinfo($ch, CURLINFO_HTTP_CODE); $err = curl_error($ch); curl_close($ch);
     if ($body === false || $err) return ['ok' => false, 'error' => ($err ?: 'no response'), 'url' => $url];
     if ($code !== 200) return ['ok' => false, 'error' => "HTTP {$code}", 'url' => $url];

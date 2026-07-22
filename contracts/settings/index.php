@@ -77,24 +77,8 @@ $translationNamespaces = ['common', 'contracts'];
         .btn-primary { background-color: var(--con-accent, #f59e0b); color: white; }
         .btn-primary:hover { background-color: var(--con-accent-hover, #d97706); }
 
-        .rfp-ai-ssl-warning {
-            margin-top: 10px;
-            padding: 10px 14px;
-            background: #fdecea;
-            border: 1px solid #f5c6cb;
-            border-left: 4px solid #d13438;
-            border-radius: 4px;
-            font-size: 13px;
-            line-height: 1.5;
-            color: #5a1c1c;
-            max-width: 640px;
-        }
-        .rfp-ai-ssl-warning strong { color: #b71c1c; }
-
         /* Dark-mode overrides for pale semantic tints (keep light mode identical) */
         [data-theme-mode="dark"] .tab-content .action-btn.delete:hover { background: #3a1e1e; }
-        [data-theme-mode="dark"] .rfp-ai-ssl-warning { background: #3a1e1e; border-color: #7a2b2b; color: #f3c4c4; }
-        [data-theme-mode="dark"] .rfp-ai-ssl-warning strong { color: #ff9d9d; }
     </style>
 </head>
 <body>
@@ -294,21 +278,6 @@ $translationNamespaces = ['common', 'contracts'];
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="toggle-label">
-                            <span class="toggle-switch">
-                                <input type="checkbox" id="aiVerifySsl" checked onchange="updateAiSslWarning()">
-                                <span class="toggle-slider"></span>
-                            </span>
-                            <?php echo htmlspecialchars(t('contracts.settings.ai_verify_ssl')); ?>
-                        </label>
-                        <div style="font-size:12px; color:var(--text-dim, #888); margin-top:4px;">
-                            <?php echo htmlspecialchars(t('contracts.settings.ai_verify_ssl_help')); ?>
-                        </div>
-                        <div id="aiVerifySslWarning" class="rfp-ai-ssl-warning" style="display:none;">
-                            <?php echo t('contracts.settings.ai_ssl_warning'); ?>
-                        </div>
-                    </div>
 
                     <div class="form-group">
                         <label for="aiDefaultStyleGuide"><?php echo htmlspecialchars(t('contracts.settings.ai_style_guide')); ?></label>
@@ -688,18 +657,10 @@ $translationNamespaces = ['common', 'contracts'];
                 document.getElementById('aiApiKey').placeholder = data.has_key
                     ? window.t('contracts.settings.ai_api_key_ph_stored')
                     : window.t('contracts.settings.ai_api_key_ph_none');
-                // verify_ssl: default to true unless explicitly stored as "0"
-                document.getElementById('aiVerifySsl').checked = s.rfp_ai_verify_ssl !== '0';
-                updateAiSslWarning();
                 document.getElementById('aiDefaultStyleGuide').value = s.rfp_default_style_guide || '';
             } catch (err) {
                 setAiTestStatus(window.t('contracts.settings.ai_load_failed') + ' ' + err.message, 'error');
             }
-        }
-
-        function updateAiSslWarning() {
-            const checked = document.getElementById('aiVerifySsl').checked;
-            document.getElementById('aiVerifySslWarning').style.display = checked ? 'none' : '';
         }
 
         function setAiTestStatus(msg, kind) {
@@ -728,7 +689,6 @@ $translationNamespaces = ['common', 'contracts'];
                 provider:   document.getElementById('aiProvider').value,
                 model:      document.getElementById('aiModel').value.trim(),
                 api_key:    document.getElementById('aiApiKey').value,
-                verify_ssl: document.getElementById('aiVerifySsl').checked ? '1' : '0',
                 default_style_guide: document.getElementById('aiDefaultStyleGuide').value,
             };
             try {
@@ -752,7 +712,6 @@ $translationNamespaces = ['common', 'contracts'];
                 provider:   document.getElementById('aiProvider').value,
                 model:      document.getElementById('aiModel').value.trim(),
                 api_key:    document.getElementById('aiApiKey').value,
-                verify_ssl: document.getElementById('aiVerifySsl').checked ? '1' : '0',
             };
             if (!payload.model) {
                 setAiTestStatus(window.t('contracts.settings.ai_pick_model'), 'error');

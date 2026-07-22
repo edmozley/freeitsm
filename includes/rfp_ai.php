@@ -292,6 +292,7 @@ function rfpAiCallAnthropicStreaming(PDO $conn, array $opts, callable $onEvent, 
     $start = microtime(true);
 
     $ch = curl_init('https://api.anthropic.com/v1/messages');
+    sslApplyCurl($ch);
     curl_setopt_array($ch, [
         CURLOPT_POST           => true,
         CURLOPT_POSTFIELDS     => $body,
@@ -304,8 +305,6 @@ function rfpAiCallAnthropicStreaming(PDO $conn, array $opts, callable $onEvent, 
         CURLOPT_TIMEOUT        => 0,
         CURLOPT_LOW_SPEED_TIME => 60,
         CURLOPT_LOW_SPEED_LIMIT=> 1,
-        CURLOPT_SSL_VERIFYPEER => $settings['verify_ssl'],
-        CURLOPT_SSL_VERIFYHOST => $settings['verify_ssl'] ? 2 : 0,
         CURLOPT_WRITEFUNCTION  => function ($ch, $chunk) use (&$sseBuffer, &$accumulated, &$usage, &$streamError, $onEvent) {
             $sseBuffer .= $chunk;
             // SSE events end with a blank line (\n\n). Split there.
@@ -411,9 +410,8 @@ function rfpAiHttpPostWithRetry(string $url, array $headers, string $body, bool 
             CURLOPT_HTTPHEADER     => $headers,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => RFP_AI_HTTP_TIMEOUT,
-            CURLOPT_SSL_VERIFYPEER => $verifySsl,
-            CURLOPT_SSL_VERIFYHOST => $verifySsl ? 2 : 0,
         ]);
+        sslApplyCurl($ch);
         $resp = curl_exec($ch);
         $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $err  = curl_error($ch);

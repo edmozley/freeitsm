@@ -172,9 +172,9 @@ function oidcHttpGet(string $url): string {
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_TIMEOUT        => 10,
-        CURLOPT_SSL_VERIFYPEER => SSL_VERIFY_PEER,
         CURLOPT_HTTPHEADER     => ['Accept: application/json'],
     ]);
+    sslApplyCurl($ch);
     $body = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
@@ -192,12 +192,12 @@ function oidcHttpPost(string $url, array $fields): string {
         CURLOPT_POSTFIELDS     => http_build_query($fields),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 15,
-        CURLOPT_SSL_VERIFYPEER => SSL_VERIFY_PEER,
         CURLOPT_HTTPHEADER     => [
             'Content-Type: application/x-www-form-urlencoded',
             'Accept: application/json',
         ],
     ]);
+    sslApplyCurl($ch);
     $body = curl_exec($ch);
     $err  = curl_error($ch);
     curl_close($ch);

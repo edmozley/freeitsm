@@ -111,14 +111,6 @@ function renderAiSettingsPanel(string $ns, array $opts = []): void
             <small class="ai-model-hint" data-ai-key-hint><?php echo $t('api_key_help'); ?></small>
         </div>
 
-        <div class="form-group">
-            <label style="font-weight: normal; cursor: pointer;">
-                <input type="checkbox" data-ai-verify-ssl>
-                <?php echo $t('verify_ssl'); ?>
-            </label>
-            <small class="ai-model-hint"><?php echo $t('verify_ssl_help'); ?></small>
-        </div>
-
         <div class="form-actions">
             <button type="button" class="btn btn-primary" data-ai-save><?php echo $t('save'); ?></button>
             <button type="button" class="btn btn-test" data-ai-test><?php echo $t('test'); ?></button>

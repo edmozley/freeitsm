@@ -94,9 +94,8 @@ function formsTestAnthropic(string $apiKey, string $model, bool $verifySsl): arr
         ],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 30,
-        CURLOPT_SSL_VERIFYPEER => $verifyPeer,
-        CURLOPT_SSL_VERIFYHOST => $verifyPeer ? 2 : 0,
     ]);
+    sslApplyCurl($ch);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
@@ -136,9 +135,8 @@ function formsTestOpenAI(string $apiKey, string $model, bool $verifySsl): array
         ],
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT        => 30,
-        CURLOPT_SSL_VERIFYPEER => $verifyPeer,
-        CURLOPT_SSL_VERIFYHOST => $verifyPeer ? 2 : 0,
     ]);
+    sslApplyCurl($ch);
     $resp = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);

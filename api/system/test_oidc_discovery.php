@@ -36,9 +36,9 @@ try {
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_TIMEOUT        => 10,
-        CURLOPT_SSL_VERIFYPEER => SSL_VERIFY_PEER,
         CURLOPT_HTTPHEADER     => ['Accept: application/json'],
     ]);
+    sslApplyCurl($ch);
     $body     = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlErr  = curl_error($ch);

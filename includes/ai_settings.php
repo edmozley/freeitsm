@@ -3,11 +3,16 @@
  * Per-namespace AI configuration storage, shared by every module that offers
  * an AI provider/model/key panel.
  *
- * Config for a namespace `<ns>` lives in four system_settings rows:
+ * Config for a namespace `<ns>` lives in three system_settings rows:
  *   <ns>_provider     anthropic | openai | openrouter
  *   <ns>_model        model id (curated for anthropic/openai; namespaced for openrouter)
  *   <ns>_api_key      encrypted at rest (key must be in ENCRYPTED_SETTING_KEYS + MASKED_SETTING_KEYS)
- *   <ns>_verify_ssl   '1' | '0'  (absent → falls back to the global SSL_VERIFY_PEER)
+ *
+ * SSL certificate verification is NOT configured here — it is a single global
+ * switch (SSL_VERIFY_PEER in config.php, applied via sslApplyCurl). There is no
+ * per-provider toggle: the tick-box that used to live on each AI settings page
+ * was confusing (it ANDed with the global) and gave the false impression the UI
+ * could enable verification the server couldn't actually perform.
  *
  * SECURITY: the registry is an allowlist. The generic api/system/ai/* endpoints
  * only ever read/write keys derived from a REGISTERED namespace, so they can't be
@@ -85,7 +90,6 @@ function aiSettingsKeys(string $ns): array
         'provider'   => $ns . '_provider',
         'model'      => $ns . '_model',
         'api_key'    => $ns . '_api_key',
-        'verify_ssl' => $ns . '_verify_ssl',
     ];
 }
 
@@ -100,7 +104,7 @@ function aiSettingsLoad(PDO $conn, string $ns): array
     $keys  = aiSettingsKeys($ns);
 
     $rows = [];
-    $stmt = $conn->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN (?,?,?,?)");
+    $stmt = $conn->prepare("SELECT setting_key, setting_value FROM system_settings WHERE setting_key IN (?,?,?)");
     $stmt->execute(array_values($keys));
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
         $rows[$r['setting_key']] = $r['setting_value'];
@@ -121,23 +125,16 @@ function aiSettingsLoad(PDO $conn, string $ns): array
         $apiKey = (string)decryptValue($rows[$keys['api_key']]);
     }
 
-    // SSL verify follows the global SSL_VERIFY_PEER kill-switch ANDed with the
-    // per-namespace toggle (default on). So on a dev box where the global is
-    // false (no CA bundle), outbound HTTPS skips verification regardless of the
-    // toggle; in production set the global true and use the toggle to opt out.
-    $globalVerify = defined('SSL_VERIFY_PEER') ? (bool)SSL_VERIFY_PEER : true;
-    if (array_key_exists($keys['verify_ssl'], $rows) && $rows[$keys['verify_ssl']] !== null && $rows[$keys['verify_ssl']] !== '') {
-        $rowVerify = $rows[$keys['verify_ssl']] === '1';
-    } else {
-        $rowVerify = true;
-    }
-    $verifySsl = $globalVerify && $rowVerify;
-
+    // SSL verification is a single global switch now (SSL_VERIFY_PEER, applied
+    // via sslApplyCurl) — there is no per-namespace row or toggle. We still
+    // surface 'verify_ssl' here, mirroring the global, so existing callers that
+    // read $cfg['verify_ssl'] keep working; the value no longer drives any curl
+    // handle (they all go through sslApplyCurl), it is informational only.
     return [
         'provider'   => $provider,
         'model'      => $model,
         'api_key'    => $apiKey,
-        'verify_ssl' => $verifySsl,
+        'verify_ssl' => defined('SSL_VERIFY_PEER') ? (bool)SSL_VERIFY_PEER : true,
     ];
 }
 
@@ -151,7 +148,6 @@ function aiSettingsForUi(PDO $conn, string $ns): array
     return [
         'provider'   => $cfg['provider'],
         'model'      => $cfg['model'],
-        'verify_ssl' => $cfg['verify_ssl'] ? 1 : 0,
         'has_key'    => $cfg['api_key'] !== '',
         'masked_key' => $cfg['api_key'] !== '' ? maskSecret($cfg['api_key']) : '',
     ];
@@ -161,7 +157,7 @@ function aiSettingsForUi(PDO $conn, string $ns): array
  * Persist a config. Validates provider; encrypts the key; honours
  * masked/empty "no change" so saving provider+model alone never wipes the key.
  *
- * @param array $data ['provider','model','api_key'?,'verify_ssl'?]
+ * @param array $data ['provider','model','api_key'?]
  */
 function aiSettingsSave(PDO $conn, string $ns, array $data): void
 {
@@ -187,7 +183,6 @@ function aiSettingsSave(PDO $conn, string $ns, array $data): void
 
     $upsert($keys['provider'], $provider);
     $upsert($keys['model'], $model);
-    $upsert($keys['verify_ssl'], !empty($data['verify_ssl']) ? '1' : '0');
 
     // Key: only write when the user actually entered a new one.
     $rawKey = $data['api_key'] ?? '';

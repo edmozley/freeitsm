@@ -56,7 +56,6 @@
         var modelHint  = panel.querySelector('[data-ai-model-hint]');
         var keyEl      = panel.querySelector('[data-ai-key]');
         var keyHint    = panel.querySelector('[data-ai-key-hint]');
-        var sslEl      = panel.querySelector('[data-ai-verify-ssl]');
         var noteEl     = panel.querySelector('[data-ai-openrouter-note]');
         var saveBtn    = panel.querySelector('[data-ai-save]');
         var testBtn    = panel.querySelector('[data-ai-test]');
@@ -149,7 +148,6 @@
                 if (!d.success) { setResult(d.error || '', 'err'); return; }
                 providerEl.value = d.provider || 'anthropic';
                 modelEl.value = d.model || '';
-                sslEl.checked = !!d.verify_ssl;
                 if (d.has_key) {
                     keyEl.placeholder = d.masked_key || '••••';
                     keyHint.textContent = tr('api_key_set', 'A key is saved. Leave blank to keep it.');
@@ -170,7 +168,6 @@
                 ns: ns,
                 provider: providerEl.value,
                 model: modelEl.value.trim(),
-                verify_ssl: sslEl.checked,
                 api_key: keyEl.value // blank → server keeps existing key
             };
             fetch(apiBase + 'save_settings.php', {

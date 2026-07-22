@@ -386,8 +386,7 @@ function refreshAccessToken($mailbox, $refreshToken) {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postData));
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    sslApplyCurl($ch);
 
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -459,8 +458,7 @@ function getEmails($accessToken, $mailbox) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $graphUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    sslApplyCurl($ch);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $accessToken,
         'Content-Type: application/json'
@@ -493,8 +491,7 @@ function deleteEmailFromMailbox($accessToken, $messageId) {
     curl_setopt($ch, CURLOPT_URL, $graphUrl);
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'DELETE');
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    sslApplyCurl($ch);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $accessToken
     ]);
@@ -557,8 +554,7 @@ function resolveMailFolderId($accessToken, $folderName) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $graphUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    sslApplyCurl($ch);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $accessToken,
         'Content-Type: application/json'
@@ -605,8 +601,7 @@ function moveEmailToFolder($accessToken, $messageId, $folderName) {
     curl_setopt($ch, CURLOPT_POST, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    sslApplyCurl($ch);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $accessToken,
         'Content-Type: application/json'
@@ -642,8 +637,7 @@ function markEmailAsRead($accessToken, $messageId) {
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PATCH');
     curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    sslApplyCurl($ch);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $accessToken,
         'Content-Type: application/json'
@@ -820,8 +814,7 @@ function fetchEmailAttachments($accessToken, $emailId) {
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $graphUrl);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, SSL_VERIFY_PEER ? 2 : 0);
+    sslApplyCurl($ch);
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'Authorization: Bearer ' . $accessToken,
         'Content-Type: application/json'

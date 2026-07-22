@@ -72,7 +72,7 @@ function generateEmbedding($text, $apiKey) {
         'Content-Type: application/json',
         'Authorization: Bearer ' . $apiKey
     ]);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, SSL_VERIFY_PEER);
+    sslApplyCurl($ch);
     curl_setopt($ch, CURLOPT_TIMEOUT, 30);
 
     $response = curl_exec($ch);

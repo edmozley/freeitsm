@@ -127,10 +127,9 @@ function wfCallAnthropic(array $cfg, string $systemPrompt, string $userMessage, 
             'content-type: application/json',
         ],
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => $verifyPeer,
-        CURLOPT_SSL_VERIFYHOST => $verifyPeer ? 2 : 0,
         CURLOPT_TIMEOUT        => 60,
     ]);
+    sslApplyCurl($ch);
     $resp = curl_exec($ch);
     $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
@@ -171,10 +170,9 @@ function wfCallOpenAI(array $cfg, string $systemPrompt, string $userMessage, int
             'content-type: application/json',
         ],
         CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_SSL_VERIFYPEER => $verifyPeer,
-        CURLOPT_SSL_VERIFYHOST => $verifyPeer ? 2 : 0,
         CURLOPT_TIMEOUT        => 60,
     ]);
+    sslApplyCurl($ch);
     $resp = curl_exec($ch);
     $http = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $err  = curl_error($ch);
