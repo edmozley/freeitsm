@@ -1,14 +1,18 @@
 <?php
 /**
- * API Endpoint: what a split WOULD move.
+ * API Endpoint: what a split WOULD move, or the full list to pick from.
  *
+ * GET ?ticket_id=&list_all=1
+ *   -> { messages: [...], total_on_ticket }   // every movable message, to tick from
  * GET ?ticket_id=&from_email_id=&include_newer=0|1
- *   -> { messages: [...], total_on_ticket, would_empty: bool }
+ *   -> { messages: [...], total_on_ticket, would_empty: bool }   // the anchor path
  *
- * Exists so the dialog lists the exact messages the split will take, computed by the
- * same function the split itself uses (splitMessagesFrom). A dialog that counted them
- * separately in JavaScript would eventually disagree with the server — and the moment
- * it did, an analyst would confirm a move they hadn't been shown.
+ * The dialog lets the analyst tick individual messages, so it needs the whole movable
+ * set (list_all) — markers excluded, because you cannot split a marker off on its own.
+ * The anchor path stays for the "select newer" helper's count. Either way the messages
+ * are read from the server, not counted in JavaScript: a dialog that tallied them
+ * itself would eventually disagree with the server, and an analyst would confirm a move
+ * they had not been shown.
  */
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
@@ -23,10 +27,12 @@ requireModuleAccessJson('tickets');
 
 try {
     $ticketId     = (int)($_GET['ticket_id'] ?? 0);
+    $listAll      = !empty($_GET['list_all']) && $_GET['list_all'] !== '0';
     $fromEmailId  = (int)($_GET['from_email_id'] ?? 0);
     $includeNewer = !empty($_GET['include_newer']) && $_GET['include_newer'] !== '0';
 
-    if ($ticketId <= 0 || $fromEmailId <= 0) throw new Exception('ticket_id and from_email_id are required');
+    if ($ticketId <= 0) throw new Exception('ticket_id is required');
+    if (!$listAll && $fromEmailId <= 0) throw new Exception('from_email_id is required');
 
     $conn = connectToDatabase();
     if (!analystCanAccessTicket($conn, (int)$_SESSION['analyst_id'], $ticketId)) {
@@ -35,8 +41,22 @@ try {
         exit;
     }
 
+    // The dialog's checklist: every movable message on the ticket, oldest-first, with
+    // split markers left out — they are placeholders, not content to move.
+    if ($listAll) {
+        $markers   = splitMarkerEmailIds($conn, $ticketId);
+        $markerNot = $markers ? ' AND id NOT IN (' . implode(',', $markers) . ')' : '';
+        $rows = $conn->query(
+            "SELECT id, subject, from_name, from_address, received_datetime, direction
+               FROM emails WHERE ticket_id = " . $ticketId . $markerNot . "
+           ORDER BY received_datetime, id"
+        )->fetchAll(PDO::FETCH_ASSOC);
+        echo json_encode(['success' => true, 'messages' => $rows, 'total_on_ticket' => count($rows)]);
+        exit;
+    }
+
     $messages = splitMessagesFrom($conn, $ticketId, $fromEmailId, $includeNewer);
-    $total    = (int)$conn->query("SELECT COUNT(*) FROM emails WHERE ticket_id = " . $ticketId)->fetchColumn();
+    $total    = splitMovableCount($conn, $ticketId);
 
     echo json_encode([
         'success'         => true,

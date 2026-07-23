@@ -2,8 +2,12 @@
 /**
  * API Endpoint: split messages off a ticket into a new one.
  *
- * POST { ticket_id, from_email_id, include_newer: bool, subject? }
+ * POST { ticket_id, email_ids: [int], subject? }              // ticked messages
+ * POST { ticket_id, from_email_id, include_newer: bool, subject? }  // legacy anchor
  *   -> { success, new_ticket_id, new_ticket_number, moved }
+ *
+ * The dialog sends email_ids — the exact messages the analyst ticked. The anchor form
+ * is kept so an older cached client still works.
  *
  * Module access only, like merging: splitting is everyday service-desk work, not
  * administration. There is no settings tab for it either — unlike a merge, a split
@@ -30,10 +34,19 @@ try {
     $includeNewer = !empty($data['include_newer']);
     $subject      = isset($data['subject']) ? (string)$data['subject'] : null;
 
-    if ($ticketId <= 0 || $fromEmailId <= 0) throw new Exception('ticket_id and from_email_id are required');
+    // The ticked messages, when the dialog sends them. Anything falsy is filtered so a
+    // stray 0/null can't slip in; an empty result means "use the anchor form instead".
+    $emailIds = null;
+    if (isset($data['email_ids']) && is_array($data['email_ids'])) {
+        $emailIds = array_values(array_filter(array_map('intval', $data['email_ids'])));
+        if (!$emailIds) $emailIds = null;
+    }
+
+    if ($ticketId <= 0) throw new Exception('ticket_id is required');
+    if ($emailIds === null && $fromEmailId <= 0) throw new Exception('Select at least one message to split');
 
     $conn   = connectToDatabase();
-    $result = splitTicket($conn, (int)$_SESSION['analyst_id'], $ticketId, $fromEmailId, $includeNewer, $subject);
+    $result = splitTicket($conn, (int)$_SESSION['analyst_id'], $ticketId, $fromEmailId, $includeNewer, $subject, $emailIds);
 
     echo json_encode(array_merge(['success' => true], $result));
 

@@ -4071,8 +4071,9 @@ function closeEmailModal() {
 // "after" would point the analyst's eye the wrong way down the page.
 
 let splitTicketId  = null;
-let splitEmailId   = null;
-let splitPreviewMessages = [];
+let splitAnchorId  = null;          // the message the dialog was opened from
+let splitMessages  = [];            // every movable message on the ticket, oldest-first
+let splitSelected  = new Set();     // ids the analyst has ticked to move
 
 /**
  * Pick the singular or plural translation for a count.
@@ -4094,82 +4095,144 @@ function splitPlural(n, baseKey) {
 
 async function openSplitModal(ticketId, emailId) {
     splitTicketId = ticketId;
-    splitEmailId  = emailId;
+    splitAnchorId = Number(emailId) || null;
+    splitMessages = [];
+    splitSelected = new Set();
 
-    document.getElementById('splitIncludeNewer').checked = false;
     document.getElementById('splitSubject').value = '';
     document.getElementById('splitWarning').style.display = 'none';
-    document.getElementById('splitConfirmBtn').disabled = false;
+    document.getElementById('splitConfirmBtn').disabled = true;
+    document.getElementById('splitSelCount').textContent = '';
+    document.getElementById('splitPreviewList').innerHTML =
+        '<div class="split-preview-empty">' + escapeHtml(t('tickets.split.loading')) + '</div>';
     document.getElementById('splitModal').classList.add('active');
 
-    await refreshSplitPreview();
+    await loadSplitMessages();
 }
 
 function closeSplitModal() {
     document.getElementById('splitModal').classList.remove('active');
 }
 
-/** Ask the server what would move. Never counted client-side — see the endpoint. */
-async function refreshSplitPreview() {
-    if (!splitTicketId || !splitEmailId) return;
-    const includeNewer = document.getElementById('splitIncludeNewer').checked ? 1 : 0;
+/**
+ * Fetch every movable message on the ticket and paint the checklist. The whole set
+ * comes from the server (markers already excluded) so the dialog offers exactly what
+ * the split will accept — the same reason the anchor preview was never counted in JS.
+ */
+async function loadSplitMessages() {
+    if (!splitTicketId) return;
     const list = document.getElementById('splitPreviewList');
-    list.innerHTML = '<div class="split-preview-empty">' + escapeHtml(t('tickets.split.loading')) + '</div>';
-
     try {
-        const res = await fetch(API_BASE + 'split_ticket_preview.php?ticket_id=' + splitTicketId
-            + '&from_email_id=' + splitEmailId + '&include_newer=' + includeNewer);
+        const res = await fetch(API_BASE + 'split_ticket_preview.php?ticket_id=' + splitTicketId + '&list_all=1');
         const data = await res.json();
         if (!data.success) {
             list.innerHTML = '<div class="split-preview-empty">' + escapeHtml(data.error || 'Could not load') + '</div>';
             return;
         }
+        splitMessages = data.messages || [];
 
-        splitPreviewMessages = data.messages || [];
-        list.innerHTML = splitPreviewMessages.map(m => `
-            <div class="split-preview-row">
-                <span class="split-preview-dir ${String(m.direction).toLowerCase() === 'outbound' ? 'outbound' : 'inbound'}">${escapeHtml(m.direction || '')}</span>
-                <span class="split-preview-who">${escapeHtml(m.from_name || m.from_address || '')}</span>
-                <span class="split-preview-when">${escapeHtml(formatFullDateTime(m.received_datetime))}</span>
-            </div>`).join('') || ('<div class="split-preview-empty">' + escapeHtml(t('tickets.split.none')) + '</div>');
-
-        // How many newer messages there are, so the checkbox states the real number
-        // rather than a vague "and the rest". Counted from the ticked preview when
-        // it is ticked, and asked for separately when it is not — otherwise the
-        // label would read "0 newer messages" whenever the box was clear.
-        let newerCount = includeNewer
-            ? Math.max(0, splitPreviewMessages.length - 1)
-            : await splitCountNewer();
-        const lbl = document.getElementById('splitIncludeNewerLabel');
-        const box = document.getElementById('splitIncludeNewer');
-        if (newerCount === 0) {
-            lbl.textContent = t('tickets.split.include_newer_none');
-            box.disabled = true;              // nothing to include; don't offer it
-        } else {
-            box.disabled = false;
-            lbl.textContent = newerCount === 1
-                ? t('tickets.split.include_newer_one')
-                : t('tickets.split.include_newer_n').replace('%d', String(newerCount));
+        // Pre-tick the message the analyst opened the dialog from — the common case is
+        // "split this one (and maybe more) off". If it isn't movable, start with none.
+        splitSelected = new Set();
+        if (splitAnchorId && splitMessages.some(m => Number(m.id) === splitAnchorId)) {
+            splitSelected.add(splitAnchorId);
         }
-
-        // Default the subject from the first message being moved — usually the
-        // customer saying what the new problem is.
-        const subjBox = document.getElementById('splitSubject');
-        if (!subjBox.value && splitPreviewMessages.length) {
-            subjBox.value = splitPreviewMessages[0].subject || '';
-        }
-
-        const warn = document.getElementById('splitWarning');
-        if (data.would_empty) {
-            warn.textContent = t('tickets.split.would_empty');
-            warn.style.display = '';
-            document.getElementById('splitConfirmBtn').disabled = true;
-        } else {
-            warn.style.display = 'none';
-            document.getElementById('splitConfirmBtn').disabled = false;
-        }
+        renderSplitList();
+        splitUpdateState();
     } catch (e) {
         list.innerHTML = '<div class="split-preview-empty">Could not load</div>';
+    }
+}
+
+/** Paint the checklist newest-first (matching the reading pane) from splitSelected. */
+function renderSplitList() {
+    const list = document.getElementById('splitPreviewList');
+    if (!splitMessages.length) {
+        list.innerHTML = '<div class="split-preview-empty">' + escapeHtml(t('tickets.split.none')) + '</div>';
+        return;
+    }
+    // splitMessages is oldest-first; the thread shows newest-first, so reverse to match.
+    list.innerHTML = splitMessages.slice().reverse().map(m => {
+        const id  = Number(m.id);
+        const dir = String(m.direction).toLowerCase() === 'outbound' ? 'outbound' : 'inbound';
+        const subj = (m.subject || '').trim();
+        return `<label class="split-preview-row split-pick-row">
+            <input type="checkbox" class="split-pick-cb" ${splitSelected.has(id) ? 'checked' : ''} onchange="splitToggle(${id}, this.checked)">
+            <span class="split-preview-dir ${dir}">${escapeHtml(m.direction || '')}</span>
+            <span class="split-preview-who">${escapeHtml(m.from_name || m.from_address || '')}</span>
+            ${subj ? `<span class="split-preview-subj">${escapeHtml(subj)}</span>` : ''}
+            <span class="split-preview-when">${escapeHtml(formatFullDateTime(m.received_datetime))}</span>
+        </label>`;
+    }).join('');
+}
+
+function splitToggle(id, on) {
+    id = Number(id);
+    if (on) splitSelected.add(id); else splitSelected.delete(id);
+    splitUpdateState();
+}
+
+/**
+ * Tick the opened-from message and everything newer than it — the old contiguous
+ * default, now a one-click helper rather than the only option. "Newer" means later in
+ * time, which is ABOVE the anchor in the newest-first list.
+ */
+function splitSelectNewer(ev) {
+    if (ev) ev.preventDefault();
+    const anchor = splitMessages.find(m => Number(m.id) === splitAnchorId) || splitMessages[0];
+    if (!anchor) return;
+    splitSelected = new Set();
+    splitMessages.forEach(m => {
+        const newer = m.received_datetime > anchor.received_datetime
+            || (m.received_datetime === anchor.received_datetime && Number(m.id) >= Number(anchor.id));
+        if (newer) splitSelected.add(Number(m.id));
+    });
+    renderSplitList();
+    splitUpdateState();
+}
+
+function splitSelectAll(ev) {
+    if (ev) ev.preventDefault();
+    splitSelected = new Set(splitMessages.map(m => Number(m.id)));
+    renderSplitList();
+    splitUpdateState();
+}
+
+function splitClearSel(ev) {
+    if (ev) ev.preventDefault();
+    splitSelected = new Set();
+    renderSplitList();
+    splitUpdateState();
+}
+
+/** Recompute the count, subject default, warning and the Split button's state. */
+function splitUpdateState() {
+    const n = splitSelected.size;
+    document.getElementById('splitSelCount').textContent = splitPlural(n, 'tickets.split.selected');
+
+    // Default the subject from the OLDEST ticked message — usually the customer saying
+    // what the new problem is. splitMessages is oldest-first, so the first ticked one.
+    const subjBox = document.getElementById('splitSubject');
+    if (!subjBox.value) {
+        const oldest = splitMessages.find(m => splitSelected.has(Number(m.id)));
+        if (oldest) subjBox.value = oldest.subject || '';
+    }
+
+    // Refusing to move EVERY message is a server rule too; mirroring it here just means
+    // the analyst learns before they click rather than after.
+    const warn = document.getElementById('splitWarning');
+    const wouldEmpty = n > 0 && n >= splitMessages.length;
+    if (n === 0) {
+        warn.textContent = t('tickets.split.pick_none');
+        warn.style.display = '';
+        document.getElementById('splitConfirmBtn').disabled = true;
+    } else if (wouldEmpty) {
+        warn.textContent = t('tickets.split.would_empty');
+        warn.style.display = '';
+        document.getElementById('splitConfirmBtn').disabled = true;
+    } else {
+        warn.style.display = 'none';
+        document.getElementById('splitConfirmBtn').disabled = false;
     }
 }
 
@@ -4210,19 +4273,8 @@ async function undoSplit(splitId) {
     }
 }
 
-/** How many messages are newer than the chosen one, for the checkbox label. */
-async function splitCountNewer() {
-    try {
-        const res = await fetch(API_BASE + 'split_ticket_preview.php?ticket_id=' + splitTicketId
-            + '&from_email_id=' + splitEmailId + '&include_newer=1');
-        const data = await res.json();
-        return data.success ? Math.max(0, (data.messages || []).length - 1) : 0;
-    } catch (e) {
-        return 0;
-    }
-}
-
 async function confirmSplit() {
+    if (!splitSelected.size) return;
     const btn = document.getElementById('splitConfirmBtn');
     btn.disabled = true;
     try {
@@ -4231,8 +4283,7 @@ async function confirmSplit() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 ticket_id: splitTicketId,
-                from_email_id: splitEmailId,
-                include_newer: document.getElementById('splitIncludeNewer').checked,
+                email_ids: Array.from(splitSelected),
                 subject: document.getElementById('splitSubject').value
             })
         });

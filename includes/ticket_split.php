@@ -73,11 +73,80 @@ function splitMessagesFrom(PDO $conn, int $ticketId, int $fromEmailId, bool $inc
 }
 
 /**
+ * The email ids that are split MARKERS on this ticket — the "N messages moved to X"
+ * placeholders left behind by an earlier split.
+ *
+ * They are real rows in `emails`, but they are not content: an analyst cannot move a
+ * marker off on its own, and — crucially — a marker must not count towards "would this
+ * leave the ticket empty?". A ticket holding nothing but a marker is still empty of the
+ * real conversation. Markers from splits that were later undone have been deleted, so a
+ * stale id here simply matches no row.
+ */
+function splitMarkerEmailIds(PDO $conn, int $ticketId): array {
+    try {
+        $stmt = $conn->prepare(
+            "SELECT marker_email_id FROM ticket_splits
+              WHERE source_ticket_id = ? AND marker_email_id IS NOT NULL"
+        );
+        $stmt->execute([$ticketId]);
+        return array_values(array_filter(array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN))));
+    } catch (Exception $e) {
+        return []; // pre-#915 install without the column
+    }
+}
+
+/**
+ * How many movable (non-marker) messages a ticket has. This is the number that decides
+ * whether a split would empty it — see splitMarkerEmailIds for why markers don't count.
+ */
+function splitMovableCount(PDO $conn, int $ticketId): int {
+    $markers   = splitMarkerEmailIds($conn, $ticketId);
+    $markerNot = $markers ? ' AND id NOT IN (' . implode(',', $markers) . ')' : '';
+    return (int)$conn->query(
+        "SELECT COUNT(*) FROM emails WHERE ticket_id = " . (int)$ticketId . $markerNot
+    )->fetchColumn();
+}
+
+/**
+ * The messages a split would move when the analyst has ticked them INDIVIDUALLY, rather
+ * than choosing an anchor and "everything newer". Returned oldest-first so the new
+ * ticket, the marker timestamp and the subject default all behave exactly as they do on
+ * the anchor path.
+ *
+ * Every id must be a real, movable message on this ticket. A marker is refused (it is a
+ * placeholder, not content) and an id from another ticket — or one that has since moved
+ * away — is refused too: a split that quietly moved fewer messages than the analyst
+ * ticked would be its own small betrayal. So it throws rather than silently dropping.
+ */
+function splitMessagesByIds(PDO $conn, int $ticketId, array $emailIds): array {
+    $ids = array_values(array_unique(array_filter(array_map('intval', $emailIds))));
+    if (!$ids) throw new Exception('No messages were selected to split');
+
+    $markers = splitMarkerEmailIds($conn, $ticketId);
+    if (array_intersect($ids, $markers)) {
+        throw new Exception('A split marker cannot be moved — untick it and try again');
+    }
+
+    $in   = implode(',', $ids);
+    $rows = $conn->query(
+        "SELECT id, subject, from_name, from_address, received_datetime, direction
+           FROM emails
+          WHERE ticket_id = " . (int)$ticketId . " AND id IN ($in)
+       ORDER BY received_datetime, id"
+    )->fetchAll(PDO::FETCH_ASSOC);
+
+    if (count($rows) !== count($ids)) {
+        throw new Exception('Some of the selected messages are no longer on this ticket');
+    }
+    return $rows;
+}
+
+/**
  * Split messages off a ticket into a brand-new one.
  *
  * @return array {new_ticket_id, new_ticket_number, moved: int}
  */
-function splitTicket(PDO $conn, int $actorId, int $ticketId, int $fromEmailId, bool $includeNewer, ?string $newSubject = null): array {
+function splitTicket(PDO $conn, int $actorId, int $ticketId, int $fromEmailId, bool $includeNewer, ?string $newSubject = null, ?array $emailIds = null): array {
     $ctx = ActorContext::fromSession($conn);
 
     // Access first, before anything moves.
@@ -93,7 +162,12 @@ function splitTicket(PDO $conn, int $actorId, int $ticketId, int $fromEmailId, b
         throw new Exception('Ticket ' . $source['ticket_number'] . ' has been merged into another ticket — split that one instead');
     }
 
-    $moving = splitMessagesFrom($conn, $ticketId, $fromEmailId, $includeNewer);
+    // Two ways to say what moves: an explicit list of ticked messages, or the legacy
+    // anchor + "everything newer". The explicit list is what the dialog now sends;
+    // the anchor path stays for older clients and the preview's newer-count helper.
+    $moving = ($emailIds !== null)
+        ? splitMessagesByIds($conn, $ticketId, $emailIds)
+        : splitMessagesFrom($conn, $ticketId, $fromEmailId, $includeNewer);
     if (!$moving) {
         throw new Exception('Nothing to split');
     }
@@ -101,8 +175,9 @@ function splitTicket(PDO $conn, int $actorId, int $ticketId, int $fromEmailId, b
     // A ticket with no messages left is a broken ticket: the reading pane has nothing
     // to show, the requester's original request is gone, and the reference the
     // customer holds now points at an empty shell. If somebody wants ALL of it
-    // elsewhere they want a move or a merge, not a split.
-    $total = (int)$conn->query("SELECT COUNT(*) FROM emails WHERE ticket_id = " . (int)$ticketId)->fetchColumn();
+    // elsewhere they want a move or a merge, not a split. Markers don't count — a
+    // ticket left holding only a "moved to X" placeholder is empty of real content.
+    $total = splitMovableCount($conn, $ticketId);
     if (count($moving) >= $total) {
         throw new Exception('That would move every message and leave ' . $source['ticket_number'] . ' empty — keep at least one message on the original');
     }

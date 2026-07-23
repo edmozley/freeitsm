@@ -187,18 +187,18 @@ $translationNamespaces = ['common', 'tickets'];
         <div class="modal-content" style="max-width: 620px;">
             <div class="modal-header"><?php echo htmlspecialchars(t('tickets.split.title')); ?></div>
             <div class="modal-body">
-                <p style="margin:0 0 14px;color:var(--text-muted,#666);font-size:13px;"><?php echo htmlspecialchars(t('tickets.split.intro')); ?></p>
+                <p style="margin:0 0 14px;color:var(--text-muted,#666);font-size:13px;"><?php echo htmlspecialchars(t('tickets.split.pick_intro')); ?></p>
 
                 <div class="form-group">
-                    <label class="form-label" style="display:flex;align-items:center;gap:8px;font-weight:500;cursor:pointer;">
-                        <input type="checkbox" id="splitIncludeNewer" style="width:auto;margin:0;" onchange="refreshSplitPreview()">
-                        <span id="splitIncludeNewerLabel"><?php echo htmlspecialchars(t('tickets.split.include_newer')); ?></span>
-                    </label>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label"><?php echo htmlspecialchars(t('tickets.split.will_move')); ?></label>
-                    <div id="splitPreviewList" class="split-preview"></div>
+                    <div class="split-pick-bar">
+                        <span id="splitSelCount" class="split-sel-count"></span>
+                        <span class="split-pick-actions">
+                            <a href="#" onclick="splitSelectNewer(event)"><?php echo htmlspecialchars(t('tickets.split.select_newer')); ?></a>
+                            <a href="#" onclick="splitSelectAll(event)"><?php echo htmlspecialchars(t('tickets.split.select_all')); ?></a>
+                            <a href="#" onclick="splitClearSel(event)"><?php echo htmlspecialchars(t('tickets.split.select_clear')); ?></a>
+                        </span>
+                    </div>
+                    <div id="splitPreviewList" class="split-preview split-pick"></div>
                 </div>
 
                 <div class="form-group">

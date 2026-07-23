@@ -3707,6 +3707,23 @@ body.ticket-popout .ticket-toolbar {
 }
 .split-preview-dir.inbound  { background: var(--accent-soft, #eff6ff); color: var(--accent, #0078d4); }
 .split-preview-dir.outbound { background: var(--surface-3, #eee); color: var(--text-muted, #666); }
-.split-preview-who  { font-weight: 600; color: var(--text, #333); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.split-preview-when { margin-left: auto; color: var(--text-muted, #666); white-space: nowrap; }
+.split-preview-who  { font-weight: 600; color: var(--text, #333); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 0 1 auto; }
+.split-preview-subj { color: var(--text-muted, #666); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1 1 auto; min-width: 0; }
+.split-preview-when { margin-left: auto; color: var(--text-muted, #666); white-space: nowrap; flex: 0 0 auto; }
 .split-preview-empty { padding: 10px 12px; font-size: 12px; color: var(--text-faint, #999); }
+
+/* Individual-message picker: the list becomes tickable rows with a count + quick
+   actions above it, so an analyst can move any set of messages, not just a run. */
+.split-pick-bar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 12px; margin-bottom: 6px;
+}
+.split-sel-count { font-size: 12px; font-weight: 600; color: var(--text-muted, #666); }
+.split-pick-actions { display: flex; gap: 12px; }
+.split-pick-actions a {
+    font-size: 12px; color: var(--accent, #0078d4); cursor: pointer; text-decoration: none;
+}
+.split-pick-actions a:hover { text-decoration: underline; }
+.split-pick-row { cursor: pointer; align-items: center; }
+.split-pick-row:hover { background: var(--surface-hover, #f0f0f0); }
+.split-pick-cb { flex: 0 0 auto; margin: 0; width: auto; cursor: pointer; }

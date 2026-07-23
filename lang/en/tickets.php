@@ -195,9 +195,17 @@ return [
         'from_here_title'   => 'Split this message into a new ticket',
         'title'             => 'Split into a new ticket',
         'intro'             => 'The messages below will move to a brand-new ticket. This one keeps the rest, with a note showing where they went.',
-        'include_newer'     => 'Include newer messages too',
+        // The checklist dialog: tick exactly the messages that belong on the new ticket.
+        'pick_intro'        => 'Tick the messages that belong on a new ticket. They move across; this ticket keeps the rest, with a note showing where they went.',
+        'select_newer'      => 'This and newer',
+        'select_all'        => 'All',
+        'select_clear'      => 'Clear',
         // Separate singular/plural rather than "message(s)" — the count is shown to
         // the analyst at the moment they decide, and "1 message(s)" reads as a bug.
+        'selected_one'      => '1 message selected',
+        'selected'          => '%d messages selected',
+        'pick_none'         => 'Tick at least one message to move to the new ticket.',
+        'include_newer'     => 'Include newer messages too',
         'include_newer_one' => 'Include the 1 newer message too',
         'include_newer_n'   => 'Include the %d newer messages too',
         'include_newer_none'=> 'There are no newer messages',
