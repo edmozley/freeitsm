@@ -199,7 +199,7 @@ $modules = [
         top: 100%;
         left: 0;
         margin-top: 8px;
-        background: #fff;
+        background: var(--surface);
         border-radius: 8px;
         box-shadow: 0 6px 30px rgba(0, 0, 0, 0.25);
         padding: 20px;
@@ -217,10 +217,10 @@ $modules = [
     .waffle-panel-header {
         font-size: 14px;
         font-weight: 600;
-        color: #333;
+        color: var(--text);
         margin-bottom: 15px;
         padding-bottom: 10px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-soft);
     }
 
     .waffle-modules {
@@ -236,16 +236,16 @@ $modules = [
         padding: 12px 8px;
         border-radius: 8px;
         text-decoration: none;
-        color: #333;
+        color: var(--text);
         transition: background-color 0.15s;
     }
 
     .waffle-module-link:hover {
-        background-color: #f5f5f5;
+        background-color: var(--surface-hover);
     }
 
     .waffle-module-link.current {
-        background-color: #e8f4fd;
+        background-color: var(--accent-soft);
     }
 
     .waffle-module-icon {
@@ -390,11 +390,11 @@ $modules = [
             background: none;
             font-size: 26px;
             line-height: 1;
-            color: #666;
+            color: var(--text-muted);
             cursor: pointer;
             border-radius: 8px;
         }
-        .waffle-close:hover { background: #f0f0f0; }
+        .waffle-close:hover { background: var(--surface-hover); }
 
         /* Adaptive columns + roomier tap targets. */
         .waffle-modules {
@@ -629,7 +629,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             top: 100%;
             right: 0;
             margin-top: 8px;
-            background: #fff;
+            background: var(--surface);
             border-radius: 8px;
             box-shadow: 0 6px 30px rgba(0,0,0,0.25);
             min-width: 240px;
@@ -642,18 +642,18 @@ function renderHeaderRight($analyst_name, $path_prefix) {
 
         .user-menu-header {
             padding: 16px;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border-soft);
         }
 
         .user-menu-name {
             font-size: 14px;
             font-weight: 600;
-            color: #333;
+            color: var(--text);
         }
 
         .user-menu-username {
             font-size: 12px;
-            color: #999;
+            color: var(--text-faint);
             margin-top: 2px;
         }
 
@@ -664,7 +664,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             padding: 11px 16px;
             cursor: pointer;
             font-size: 13px;
-            color: #333;
+            color: var(--text);
             transition: background 0.15s;
             border: none;
             background: none;
@@ -672,26 +672,26 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             text-align: left;
         }
 
-        .user-menu-item:hover { background: #f5f5f5; }
+        .user-menu-item:hover { background: var(--surface-hover); }
 
         .user-menu-item svg {
             width: 16px;
             height: 16px;
-            color: #666;
+            color: var(--text-muted);
             flex-shrink: 0;
         }
 
         .user-menu-divider {
             height: 1px;
-            background: #eee;
+            background: var(--border-soft);
             margin: 0;
         }
 
         .user-menu-item.logout-item {
-            color: #d32f2f;
+            color: var(--danger-accent);
         }
 
-        .user-menu-item.logout-item svg { color: #d32f2f; }
+        .user-menu-item.logout-item svg { color: var(--danger-accent); }
 
         /* Palette / theme picker in the account menu */
         .user-menu-section-label {
@@ -700,7 +700,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.04em;
-            color: #999;
+            color: var(--text-faint);
         }
         .theme-picker { padding: 2px 8px 8px; }
         .theme-swatch {
@@ -713,20 +713,20 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             background: none;
             border-radius: 6px;
             font-size: 13px;
-            color: #333;
+            color: var(--text);
             text-align: left;
             cursor: pointer;
         }
-        .theme-swatch:hover { background: #f5f5f5; }
-        .theme-swatch.active { background: #e8f4fd; font-weight: 600; }
+        .theme-swatch:hover { background: var(--surface-hover); }
+        .theme-swatch.active { background: var(--accent-soft); font-weight: 600; }
         .theme-swatch-dot {
             width: 16px;
             height: 16px;
             border-radius: 50%;
-            border: 1px solid rgba(0,0,0,0.15);
+            border: 1px solid var(--border);
             flex-shrink: 0;
         }
-        .theme-swatch-check { margin-left: auto; color: #0078d4; font-weight: 700; }
+        .theme-swatch-check { margin-left: auto; color: var(--accent); font-weight: 700; }
         /* Per-palette preview swatch — extend as palettes are added */
         .theme-swatch-default { background: #ffffff; }
         .theme-swatch-dark { background: #1e2228; }
@@ -739,8 +739,8 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             border-radius: 3px;
         }
 
-        .mfa-badge.enabled { background: #e8f5e9; color: #2e7d32; }
-        .mfa-badge.disabled { background: #f5f5f5; color: #999; }
+        .mfa-badge.enabled { background: var(--success-bg); color: var(--success-text); }
+        .mfa-badge.disabled { background: var(--surface-2); color: var(--text-faint); }
 
         /* Account modals */
         .account-modal {
@@ -756,7 +756,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         .account-modal.active { display: flex; }
 
         .account-modal-box {
-            background: #fff;
+            background: var(--surface);
             border-radius: 8px;
             width: 90%;
             max-width: 460px;
@@ -767,10 +767,10 @@ function renderHeaderRight($analyst_name, $path_prefix) {
 
         .account-modal-header {
             padding: 20px 24px;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid var(--border);
             font-size: 18px;
             font-weight: 600;
-            color: #333;
+            color: var(--text);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -781,18 +781,18 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             border: none;
             cursor: pointer;
             padding: 4px;
-            color: #999;
+            color: var(--text-faint);
             font-size: 20px;
             line-height: 1;
         }
 
-        .account-modal-close:hover { color: #333; }
+        .account-modal-close:hover { color: var(--text); }
 
         .account-modal-body { padding: 24px; }
 
         .account-modal-footer {
             padding: 16px 24px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border);
             display: flex;
             gap: 10px;
             justify-content: flex-end;
@@ -804,20 +804,22 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             display: block;
             margin-bottom: 6px;
             font-weight: 500;
-            color: #333;
+            color: var(--text);
             font-size: 13px;
         }
 
         .acct-form-input {
             width: 100%;
             padding: 10px 12px;
-            border: 1px solid #ddd;
+            border: 1px solid var(--border);
             border-radius: 4px;
             font-size: 13px;
             font-family: inherit;
+            background: var(--surface);
+            color: var(--text);
         }
 
-        .acct-form-input:focus { outline: none; border-color: #546e7a; }
+        .acct-form-input:focus { outline: none; border-color: var(--accent); }
 
         .acct-btn {
             padding: 9px 18px;
@@ -831,10 +833,10 @@ function renderHeaderRight($analyst_name, $path_prefix) {
 
         .acct-btn-primary { background: #546e7a; color: #fff; }
         .acct-btn-primary:hover { background: #455a64; }
-        .acct-btn-secondary { background: #e0e0e0; color: #333; }
-        .acct-btn-secondary:hover { background: #d0d0d0; }
-        .acct-btn-danger { background: #fff; color: #d32f2f; border: 1px solid #d32f2f; }
-        .acct-btn-danger:hover { background: #ffebee; }
+        .acct-btn-secondary { background: var(--surface-2); color: var(--text); border: 1px solid var(--border); }
+        .acct-btn-secondary:hover { background: var(--surface-hover); }
+        .acct-btn-danger { background: var(--surface); color: var(--danger-accent); border: 1px solid var(--danger-accent); }
+        .acct-btn-danger:hover { background: var(--danger-bg); }
         .acct-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         .acct-msg {
@@ -845,8 +847,8 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             display: none;
         }
 
-        .acct-msg.success { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-        .acct-msg.error { display: block; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+        .acct-msg.success { display: block; background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+        .acct-msg.error { display: block; background: var(--danger-bg); color: var(--danger-text); border: 1px solid var(--danger-border); }
 
         /* MFA specific */
         .mfa-status-card {
@@ -856,13 +858,13 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         }
 
         .mfa-status-card.enabled {
-            background: #e8f5e9;
-            border: 1px solid #c8e6c9;
+            background: var(--success-bg);
+            border: 1px solid var(--success-border);
         }
 
         .mfa-status-card.not-enabled {
-            background: #f5f5f5;
-            border: 1px solid #e0e0e0;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
         }
 
         .mfa-status-title {
@@ -873,7 +875,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
 
         .mfa-status-desc {
             font-size: 12px;
-            color: #666;
+            color: var(--text-muted);
         }
 
         .mfa-setup-area { margin-top: 16px; }
@@ -895,7 +897,8 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         }
 
         .secret-display code {
-            background: #f5f5f5;
+            background: var(--surface-2);
+            color: var(--text);
             padding: 8px 14px;
             border-radius: 4px;
             font-size: 14px;
@@ -906,7 +909,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
 
         .secret-display p {
             font-size: 11px;
-            color: #999;
+            color: var(--text-faint);
             margin-top: 6px;
         }
 
@@ -1220,11 +1223,11 @@ function renderHeaderRight($analyst_name, $path_prefix) {
         if (mfaEnabled) {
             container.innerHTML = `
                 <div class="mfa-status-card enabled">
-                    <div class="mfa-status-title" style="color:#2e7d32;">MFA is enabled</div>
+                    <div class="mfa-status-title" style="color:var(--success-text);">MFA is enabled</div>
                     <div class="mfa-status-desc">Your account is protected with a time-based one-time password (TOTP). You will be asked for a code from your authenticator app each time you log in.</div>
                 </div>
                 <div class="mfa-disable-area">
-                    <p style="font-size:13px;color:#666;margin:0 0 12px 0;">To disable MFA, enter your password below:</p>
+                    <p style="font-size:13px;color:var(--text-muted);margin:0 0 12px 0;">To disable MFA, enter your password below:</p>
                     <div class="acct-form-group">
                         <input type="password" class="acct-form-input" id="mfaDisablePw" placeholder="Enter your password">
                     </div>
@@ -1244,7 +1247,7 @@ function renderHeaderRight($analyst_name, $path_prefix) {
 
     async function startMfaSetup() {
         const container = document.getElementById('mfaContent');
-        container.innerHTML = '<p style="color:#888;">Generating secret...</p>';
+        container.innerHTML = '<p style="color:var(--text-dim);">Generating secret...</p>';
 
         try {
             const resp = await fetch(_pathPrefix + 'api/myaccount/setup_mfa.php', {
@@ -1271,13 +1274,13 @@ function renderHeaderRight($analyst_name, $path_prefix) {
             }
 
             container.innerHTML = `
-                <p style="font-size:13px;color:#333;margin:0 0 16px 0;"><strong>Step 1:</strong> Scan this QR code with your authenticator app</p>
+                <p style="font-size:13px;color:var(--text);margin:0 0 16px 0;"><strong>Step 1:</strong> Scan this QR code with your authenticator app</p>
                 <div class="qr-container">${qrHtml}</div>
                 <div class="secret-display">
                     <code>${data.secret}</code>
                     <p>Or enter this key manually in your authenticator app</p>
                 </div>
-                <p style="font-size:13px;color:#333;margin:0 0 12px 0;"><strong>Step 2:</strong> Enter the 6-digit code from your app to verify</p>
+                <p style="font-size:13px;color:var(--text);margin:0 0 12px 0;"><strong>Step 2:</strong> Enter the 6-digit code from your app to verify</p>
                 <div class="verify-row">
                     <div class="acct-form-group">
                         <input type="text" class="acct-form-input otp-input" id="mfaVerifyCode" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">
