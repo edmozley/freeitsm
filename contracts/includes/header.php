@@ -18,6 +18,27 @@ $current_page = $current_page ?? '';
 
 // Include the shared waffle menu component
 require_once $path_prefix . 'includes/waffle-menu.php';
+
+// Read the per-analyst left-panel preference SERVER-SIDE, so the collapsed state is on
+// the page from the very first paint. Fetching it in JS after load made the 260px panel
+// render visible and then fly shut on every navigation — the flash Ed reported. Mirrors
+// the knowledge module, which fixed the same thing this way.
+$contractsSidebarMode = 'always';
+if (isset($_SESSION['analyst_id'])) {
+    try {
+        $__prefConn = connectToDatabase();
+        $__prefStmt = $__prefConn->prepare(
+            "SELECT preference_value FROM user_preferences WHERE analyst_id = ? AND preference_key = ? LIMIT 1"
+        );
+        $__prefStmt->execute([(int)$_SESSION['analyst_id'], 'contracts_sidebar_mode']);
+        $__prefRow = $__prefStmt->fetch(PDO::FETCH_ASSOC);
+        if ($__prefRow && $__prefRow['preference_value'] === 'hover') {
+            $contractsSidebarMode = 'hover';
+        }
+    } catch (Exception $e) {
+        // Non-fatal — fall through with the 'always' default.
+    }
+}
 ?>
 
 <div class="header contracts-header">
@@ -87,7 +108,7 @@ require_once $path_prefix . 'includes/waffle-menu.php';
    contracts page that uses .contracts-layout. Mirrors the knowledge /
    process-mapper pattern. */
 .contracts-layout { position: relative; }
-.contracts-layout.sidebar-hover .contracts-sidebar {
+.contracts-sidebar-hover .contracts-layout .contracts-sidebar {
     position: absolute;
     top: 0; left: 0; bottom: 0;
     width: 16px;
@@ -98,22 +119,22 @@ require_once $path_prefix . 'includes/waffle-menu.php';
     box-shadow: 2px 0 8px rgba(0, 0, 0, 0.12);
     padding: 0;
 }
-.contracts-layout.sidebar-hover .contracts-sidebar:hover {
+.contracts-sidebar-hover .contracts-layout .contracts-sidebar:hover {
     width: 260px;
     padding: 20px;
     overflow-y: auto;
 }
-.contracts-layout.sidebar-hover .contracts-sidebar > * {
+.contracts-sidebar-hover .contracts-layout .contracts-sidebar > * {
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.12s ease 0s;
 }
-.contracts-layout.sidebar-hover .contracts-sidebar:hover > * {
+.contracts-sidebar-hover .contracts-layout .contracts-sidebar:hover > * {
     opacity: 1;
     pointer-events: auto;
     transition-delay: 0.08s;
 }
-.contracts-layout.sidebar-hover .contracts-sidebar::before {
+.contracts-sidebar-hover .contracts-layout .contracts-sidebar::before {
     content: '';
     position: absolute;
     top: 50%;
@@ -126,15 +147,11 @@ require_once $path_prefix . 'includes/waffle-menu.php';
     transition: opacity 0.18s;
     pointer-events: none;
 }
-.contracts-layout.sidebar-hover .contracts-sidebar:hover::before { opacity: 0; }
+.contracts-sidebar-hover .contracts-layout .contracts-sidebar:hover::before { opacity: 0; }
 </style>
-<script>
-(async function() {
-    try {
-        const r = await fetch('<?php echo BASE_URL; ?>api/system/get_user_preference.php?key=contracts_sidebar_mode', { credentials: 'same-origin' });
-        const d = await r.json();
-        const mode = (d.success && d.value === 'hover') ? 'hover' : 'always';
-        document.querySelectorAll('.contracts-layout').forEach(el => el.classList.toggle('sidebar-hover', mode === 'hover'));
-    } catch (e) { /* no-op — default is always-visible */ }
-})();
-</script>
+<?php if ($contractsSidebarMode === 'hover'): ?>
+<?php /* Synchronous + server-resolved: the class lands on <html> before the parser
+         reaches the sidebar, so it paints collapsed from the start — no fetch latency,
+         no fly-shut animation. The CSS above keys off this ancestor class. */ ?>
+<script>document.documentElement.classList.add('contracts-sidebar-hover');</script>
+<?php endif; ?>
