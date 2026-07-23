@@ -111,10 +111,35 @@ try {
     $svcStmt->execute();
     $services = $svcStmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Catalogue requests the user has submitted that carry an approval state (#928).
+    // A pending request is NOT a ticket yet, so without this the requester has no way
+    // to see it — it would just vanish until (and unless) it is approved. Guarded so a
+    // pre-upgrade install without the approval columns degrades to "no requests"
+    // rather than a broken dashboard. Only gated submissions have a state to show.
+    $requests = [];
+    try {
+        $reqStmt = $conn->prepare(
+            "SELECT s.id, s.approval_status, s.submitted_date, s.ticket_id,
+                    f.title AS form_title, t.ticket_number
+               FROM form_submissions s
+               JOIN forms f       ON f.id = s.form_id
+               LEFT JOIN tickets t ON t.id = s.ticket_id AND t.deleted_datetime IS NULL
+              WHERE s.submitted_by_user_id = ?
+                AND s.approval_status IN ('pending','approved','rejected')
+           ORDER BY s.submitted_date DESC
+              LIMIT 15"
+        );
+        $reqStmt->execute([$userId]);
+        $requests = $reqStmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $requests = [];
+    }
+
     echo json_encode([
         'success' => true,
         'ticket_summary' => $ticketSummary,
         'recent_tickets' => $recentTickets,
+        'requests' => $requests,
         'services' => $services
     ]);
 

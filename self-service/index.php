@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', loadDashboard);
                 }
 
                 renderSummaryCards(data.ticket_summary);
+                renderRequests(data.requests);
                 renderRecentTickets(data.recent_tickets);
                 renderServiceStatus(data.services);
             } catch (err) {
@@ -101,6 +102,45 @@ document.addEventListener('DOMContentLoaded', loadDashboard);
             `;
 
             container.innerHTML = cards + totalCard;
+        }
+
+        // Catalogue requests awaiting / after approval (#928). Hidden entirely when
+        // the user has none, so it never adds noise for people who only raise tickets.
+        function renderRequests(requests) {
+            const section = document.getElementById('requestsSection');
+            const container = document.getElementById('requestsContainer');
+            if (!section || !container) return;
+
+            const list = Array.isArray(requests) ? requests : [];
+            if (list.length === 0) { section.style.display = 'none'; return; }
+            section.style.display = '';
+
+            const rows = list.map(r => {
+                let statusCell;
+                if (r.approval_status === 'approved') {
+                    const link = r.ticket_number
+                        ? ` <a href="tickets.php?id=${r.ticket_id}" class="ticket-link">${escapeHtml(r.ticket_number)}</a>` : '';
+                    statusCell = `<span class="req-pill approved">${escapeHtml(window.t('self-service.dashboard.req_approved'))}</span>${link}`;
+                } else if (r.approval_status === 'rejected') {
+                    statusCell = `<span class="req-pill rejected">${escapeHtml(window.t('self-service.dashboard.req_rejected'))}</span>`;
+                } else {
+                    statusCell = `<span class="req-pill pending">${escapeHtml(window.t('self-service.dashboard.req_pending'))}</span>`;
+                }
+                return `<tr>
+                    <td>${escapeHtml(r.form_title)}</td>
+                    <td>${statusCell}</td>
+                    <td><span class="ticket-date">${formatDate(r.submitted_date)}</span></td>
+                </tr>`;
+            }).join('');
+
+            container.innerHTML = `<table class="ticket-table">
+                <thead><tr>
+                    <th>${escapeHtml(window.t('self-service.dashboard.req_col_request'))}</th>
+                    <th>${escapeHtml(window.t('self-service.dashboard.req_col_status'))}</th>
+                    <th>${escapeHtml(window.t('self-service.dashboard.req_col_submitted'))}</th>
+                </tr></thead>
+                <tbody>${rows}</tbody>
+            </table>`;
         }
 
         function renderRecentTickets(tickets) {
@@ -252,6 +292,23 @@ require __DIR__ . "/includes/header.php";
 
         <!-- Summary Cards (rendered dynamically from active ticket_statuses) -->
         <div class="summary-cards" id="summaryCards"></div>
+
+        <!-- Your requests (#928): catalogue requests awaiting or after approval.
+             Hidden until JS finds at least one, so it costs nothing for ticket-only
+             users. A pending request isn't a ticket yet, so this is the ONLY place
+             the requester can see it. -->
+        <style>
+            .req-pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 11px; }
+            .req-pill.pending  { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
+            .req-pill.approved { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
+            .req-pill.rejected { background: var(--danger-bg, #fee2e2);  color: var(--danger-text, #991b1b); }
+        </style>
+        <div class="portal-section" id="requestsSection" style="display:none;">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('self-service.dashboard.your_requests')); ?></h2>
+            </div>
+            <div id="requestsContainer"></div>
+        </div>
 
         <!-- Two column layout -->
         <div class="portal-grid">
