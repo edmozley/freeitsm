@@ -2537,10 +2537,20 @@ CREATE TABLE IF NOT EXISTS `forms` (
     -- form is exposed by an upgrade — the same fail-closed rule as article
     -- visibility.
     `is_portal_visible` TINYINT(1) NOT NULL DEFAULT 0,
+    -- Catalogue-request approval (#928). When requires_approval is on, a portal
+    -- submission of this form waits for the designated approver before a ticket is
+    -- raised. approver_id is that single sign-off analyst. requires_approval on with
+    -- approver_id NULL means "needs approval but nobody assigned" — treated as
+    -- unconfigured so it can never hold requests hostage (submitForm skips the gate).
+    `requires_approval` TINYINT(1) NOT NULL DEFAULT 0,
+    `approver_id`       INT NULL,
     PRIMARY KEY (`id`),
     -- RESTRICT (no delete rule): a frozen version can't be deleted while
     -- newer versions chain off it — delete leaf-first (or the whole chain).
-    CONSTRAINT `fk_forms_parent` FOREIGN KEY (`parent_form_id`) REFERENCES `forms` (`id`)
+    CONSTRAINT `fk_forms_parent` FOREIGN KEY (`parent_form_id`) REFERENCES `forms` (`id`),
+    -- SET NULL: losing the approver shouldn't delete the catalogue item, it just
+    -- becomes unconfigured (and stops gating) until a new approver is chosen.
+    CONSTRAINT `fk_forms_approver` FOREIGN KEY (`approver_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `form_fields` (
@@ -2571,12 +2581,26 @@ CREATE TABLE IF NOT EXISTS `form_submissions` (
     -- means "not yet actioned", which is what the analyst queue filters on.
     `ticket_id`         INT NULL,
     `submitted_date`    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Catalogue-request approval (#928). approval_status is one of
+    -- 'not_required' (no gate, the default and every pre-#928 row), 'pending',
+    -- 'approved' or 'rejected'. approver_id is snapshotted from the form AT SUBMIT
+    -- TIME so later changes to the catalogue item never re-route history.
+    -- decided_by is who actually clicked (normally the approver). A fixed internal
+    -- vocabulary, not a user-configurable status, so string literals are safe.
+    `approval_status`            VARCHAR(20) NOT NULL DEFAULT 'not_required',
+    `approver_id`                INT NULL,
+    `approval_decided_by_id`     INT NULL,
+    `approval_decided_datetime`  DATETIME NULL,
+    `approval_comment`           TEXT NULL,
     PRIMARY KEY (`id`),
     KEY `idx_form_submissions_user` (`submitted_by_user_id`),
     KEY `idx_form_submissions_ticket` (`ticket_id`),
+    KEY `idx_form_submissions_approval` (`approval_status`, `approver_id`),
     CONSTRAINT `fk_form_submissions_form` FOREIGN KEY (`form_id`) REFERENCES `forms` (`id`),
     CONSTRAINT `fk_form_submissions_user` FOREIGN KEY (`submitted_by_user_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-    CONSTRAINT `fk_form_submissions_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL
+    CONSTRAINT `fk_form_submissions_ticket` FOREIGN KEY (`ticket_id`) REFERENCES `tickets` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_form_submissions_approver` FOREIGN KEY (`approver_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_form_submissions_decided_by` FOREIGN KEY (`approval_decided_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `form_submission_data` (

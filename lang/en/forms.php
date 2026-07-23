@@ -18,9 +18,10 @@ return [
     'title' => 'Forms',
 
     'nav' => [
-        'forms'    => 'Forms',
-        'settings' => 'Settings',
-        'help'     => 'Help',
+        'forms'     => 'Forms',
+        'approvals' => 'Approvals',
+        'settings'  => 'Settings',
+        'help'      => 'Help',
     ],
 
     // ── Dashboard / list (forms/index.php) ──────────────────────────
@@ -54,11 +55,53 @@ return [
         'unknown_user'       => '—',
         'fill_title'         => 'Fill in this form',
         'subs_title'         => 'View submissions',
+        'approval_title'     => 'Approval settings',
+        'approval_on'        => 'Needs approval',
+        'approval_on_title'  => 'Catalogue requests wait for {name} to approve before a ticket is raised',
         'delete_title'       => 'Delete form',
         'relative_just_now'  => 'Just now',
         'relative_min_ago'   => '{n} min ago',
         'relative_hr_ago'    => '{n} hr ago',
         'relative_days_ago'  => '{n} days ago',
+    ],
+
+    // ── Catalogue-request approval (#928): config modal + inbox ─────
+    'approval' => [
+        // Config modal (forms/index.php)
+        'modal_title'      => 'Approval settings',
+        'modal_intro'      => 'Require a member of staff to approve a catalogue request before a ticket is raised. Approving raises the ticket automatically; rejecting turns it down.',
+        'requires_label'   => 'Require approval before a ticket is raised',
+        'approver_label'   => 'Approver',
+        'approver_hint'    => 'Only this person (or an administrator) can approve or reject these requests.',
+        'approver_none'    => 'Choose an approver…',
+        'not_portal_note'  => 'This form is not in the request catalogue yet, so approval will only take effect once customers can request it.',
+        'save'             => 'Save',
+        'need_approver'    => 'Choose an approver, or turn approval off.',
+        'saved'            => 'Approval settings saved',
+        'save_failed'      => 'Could not save the approval settings',
+        // Inbox (forms/approvals.php)
+        'inbox_title'      => 'Request approvals',
+        'inbox_heading'    => 'Requests awaiting approval',
+        'filter'           => 'Show',
+        'filter_mine'      => 'For me',
+        'filter_all'       => 'All pending',
+        'filter_decided'   => 'Decided by me',
+        'loading'          => 'Loading…',
+        'empty_heading'    => 'Nothing waiting',
+        'empty_text'       => 'There are no catalogue requests awaiting your approval.',
+        'requester'        => 'Requester',
+        'submitted'        => 'Submitted',
+        'approver'         => 'Approver',
+        'unknown_requester'=> 'Unknown',
+        'no_answers'       => 'No details were submitted.',
+        'comment_placeholder' => 'Add a note (optional) — shared with no one for now',
+        'approve'          => 'Approve',
+        'reject'           => 'Reject',
+        'status_approved'  => 'Approved',
+        'status_rejected'  => 'Rejected',
+        'approved_toast'   => 'Approved — raised ticket {ref}',
+        'rejected_toast'   => 'Request rejected',
+        'decide_failed'    => 'Could not record that decision',
     ],
 
     // ── Delete confirmation + toasts (forms/index.php) ──────────────

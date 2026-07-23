@@ -22,6 +22,7 @@ try {
     // "no children" which works for both single-version forms (NULL
     // parent_form_id, no children) and forks (parent set, no children).
     $sql = "SELECT f.id, f.title, f.description, f.is_active, f.is_portal_visible,
+                   f.requires_approval, f.approver_id, apr.full_name AS approver_name,
                    f.created_by,  ca.full_name AS created_by_name,
                    DATE_FORMAT(f.created_date,  '%Y-%m-%d %H:%i:%s') AS created_date,
                    f.modified_by, ma.full_name AS modified_by_name,
@@ -30,8 +31,9 @@ try {
                    (SELECT COUNT(*) FROM form_fields      WHERE form_id = f.id) AS field_count,
                    (SELECT COUNT(*) FROM form_submissions WHERE form_id = f.id) AS submission_count
             FROM forms f
-            LEFT JOIN analysts ca ON f.created_by  = ca.id
-            LEFT JOIN analysts ma ON f.modified_by = ma.id
+            LEFT JOIN analysts ca  ON f.created_by  = ca.id
+            LEFT JOIN analysts ma  ON f.modified_by = ma.id
+            LEFT JOIN analysts apr ON f.approver_id = apr.id
             WHERE NOT EXISTS (SELECT 1 FROM forms ch WHERE ch.parent_form_id = f.id)
             ORDER BY f.modified_date DESC";
 

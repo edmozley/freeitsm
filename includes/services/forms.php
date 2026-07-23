@@ -60,6 +60,7 @@ class FormsService
             try {
                 $conn->prepare(
                     "UPDATE forms SET title = ?, description = ?, is_active = ?, is_portal_visible = ?,
+                            requires_approval = ?, approver_id = ?,
                             modified_by = ?, modified_date = UTC_TIMESTAMP()
                      WHERE id = ?"
                 )->execute([
@@ -71,6 +72,13 @@ class FormsService
                     array_key_exists('is_portal_visible', $in)
                         ? (int)(bool)$in['is_portal_visible']
                         : (int)($current['is_portal_visible'] ?? 0),
+                    // Catalogue-request approval (#928), same incremental rule.
+                    array_key_exists('requires_approval', $in)
+                        ? (int)(bool)$in['requires_approval']
+                        : (int)($current['requires_approval'] ?? 0),
+                    array_key_exists('approver_id', $in)
+                        ? (($in['approver_id'] === null || $in['approver_id'] === '') ? null : (int)$in['approver_id'])
+                        : ($current['approver_id'] ?? null),
                     $ctx->actorId,
                     $formId,
                 ]);
@@ -94,8 +102,8 @@ class FormsService
         $conn->beginTransaction();
         try {
             $conn->prepare(
-                "INSERT INTO forms (title, description, is_active, is_portal_visible, created_by, modified_by, version_number, created_date, modified_date)
-                 VALUES (?, ?, ?, ?, ?, ?, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+                "INSERT INTO forms (title, description, is_active, is_portal_visible, requires_approval, approver_id, created_by, modified_by, version_number, created_date, modified_date)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([
                 $title,
                 trim((string)($in['description'] ?? '')),
@@ -103,6 +111,8 @@ class FormsService
                 // Fail closed: a new form is NOT offered to customers unless
                 // someone deliberately says so.
                 isset($in['is_portal_visible']) ? (int)(bool)$in['is_portal_visible'] : 0,
+                isset($in['requires_approval']) ? (int)(bool)$in['requires_approval'] : 0,
+                (isset($in['approver_id']) && $in['approver_id'] !== null && $in['approver_id'] !== '') ? (int)$in['approver_id'] : null,
                 $ctx->actorId,
                 $ctx->actorId,
             ]);
@@ -333,17 +343,30 @@ class FormsService
             }
         }
 
+        // Catalogue-request approval (#928): gate a PORTAL submission behind the
+        // form's designated approver, if one is configured. Only portal submissions
+        // are gated — the feature auto-raises a ticket for the requester, and an
+        // analyst filling a form internally has no requester to raise one for. A form
+        // flagged requires_approval but with no approver is treated as unconfigured so
+        // it can never strand a request nobody can clear.
+        $gateApproverId = ($portalUserId !== null && !empty($form['requires_approval']) && !empty($form['approver_id']))
+            ? (int) $form['approver_id']
+            : null;
+        $approvalStatus = $gateApproverId !== null ? 'pending' : 'not_required';
+
         $conn->beginTransaction();
         try {
             // Exactly one submitter column is populated — see the $portalUserId
             // note on this method.
             $conn->prepare(
-                "INSERT INTO form_submissions (form_id, submitted_by, submitted_by_user_id, submitted_date)
-                 VALUES (?, ?, ?, UTC_TIMESTAMP())"
+                "INSERT INTO form_submissions (form_id, submitted_by, submitted_by_user_id, submitted_date, approval_status, approver_id)
+                 VALUES (?, ?, ?, UTC_TIMESTAMP(), ?, ?)"
             )->execute([
                 $formId,
                 $portalUserId !== null ? null : $ctx->actorId,
                 $portalUserId,
+                $approvalStatus,
+                $gateApproverId,
             ]);
             $submissionId = (int)$conn->lastInsertId();
 
@@ -357,8 +380,8 @@ class FormsService
             throw $e;
         }
 
-        // form.submitted workflow — label-keyed answers + first email answer,
-        // fired after commit and swallowed on error (never breaks a submission).
+        // Workflow dispatch — label-keyed answers + first email answer, fired after
+        // commit and swallowed on error (never breaks a submission).
         try {
             $submissionFields = [];
             $submissionEmail  = '';
@@ -372,7 +395,7 @@ class FormsService
                     $submissionEmail = $flat;
                 }
             }
-            WorkflowEngine::dispatch('form.submitted', [
+            $payload = [
                 'form' => [
                     'id'   => $formId,
                     'name' => $form['title'],
@@ -382,7 +405,17 @@ class FormsService
                     'email'  => $submissionEmail,
                     'fields' => $submissionFields,
                 ],
-            ]);
+            ];
+            // A gated request must NOT fire form.submitted: an admin's create-ticket
+            // rule on that event would jump the approval gate and raise the ticket
+            // anyway. It fires catalogue_request.submitted instead — the hook to
+            // notify the approver that something is waiting for them.
+            if ($gateApproverId !== null) {
+                $payload['approver'] = ['id' => $gateApproverId];
+                WorkflowEngine::dispatch('catalogue_request.submitted', $payload);
+            } else {
+                WorkflowEngine::dispatch('form.submitted', $payload);
+            }
         } catch (Exception $wfEx) {
             error_log('Workflow dispatch error in form submission: ' . $wfEx->getMessage());
         }

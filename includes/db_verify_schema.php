@@ -2126,6 +2126,11 @@ return [
         // Separate from is_active (the analyst-side on/off) and defaulting to 0,
         // so upgrading never exposes an existing internal form to customers.
         'is_portal_visible' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        // Catalogue-request approval (#928): gate a portal submission behind a
+        // designated approver before a ticket is raised. FK on approver_id lives
+        // in freeitsm.sql. requires_approval on + approver_id NULL = unconfigured.
+        'requires_approval' => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'approver_id'       => 'INT NULL',
     ],
 
     'form_fields' => [
@@ -2151,6 +2156,14 @@ return [
         // actioned, which is what the queue filters on.
         'ticket_id'         => 'INT NULL',
         'submitted_date'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+        // Catalogue-request approval (#928). approval_status: not_required (default,
+        // and every pre-#928 row) / pending / approved / rejected. approver_id is
+        // snapshotted from the form at submit time. FKs live in freeitsm.sql.
+        'approval_status'            => "VARCHAR(20) NOT NULL DEFAULT 'not_required'",
+        'approver_id'                => 'INT NULL',
+        'approval_decided_by_id'     => 'INT NULL',
+        'approval_decided_datetime'  => 'DATETIME NULL',
+        'approval_comment'           => 'TEXT NULL',
     ],
 
     'form_submission_data' => [

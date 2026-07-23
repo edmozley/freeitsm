@@ -274,6 +274,50 @@ $translationNamespaces = ['common', 'forms'];
         </div>
     </div>
 
+    <?php /* Catalogue-request approval settings (#928): per-item, opened from the
+             shield button. Requires-approval + a single designated approver. */ ?>
+    <style>
+        .ca-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 2000; display: none; align-items: center; justify-content: center; }
+        .ca-modal-box { background: var(--surface, #fff); color: var(--text, #333); border-radius: 8px; width: 90%; max-width: 480px; box-shadow: 0 8px 30px rgba(0,0,0,0.2); overflow: hidden; }
+        .ca-modal-header { padding: 18px 22px; border-bottom: 1px solid var(--border, #e0e0e0); font-size: 17px; font-weight: 600; }
+        .ca-modal-body { padding: 20px 22px; }
+        .ca-modal-intro { margin: 0 0 16px; font-size: 13px; color: var(--text-muted, #666); }
+        .ca-check { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 500; cursor: pointer; }
+        .ca-check input { width: auto; margin: 0; }
+        .ca-field { margin-top: 16px; }
+        .ca-field label { display: block; margin-bottom: 6px; font-size: 13px; font-weight: 500; }
+        .ca-field select { width: 100%; padding: 9px 11px; border: 1px solid var(--border, #ddd); border-radius: 5px; font-size: 13px; background: var(--surface, #fff); color: var(--text, #333); }
+        .ca-hint { display: block; margin-top: 6px; font-size: 12px; color: var(--text-faint, #999); }
+        .ca-note { margin: 14px 0 0; padding: 9px 12px; border-radius: 6px; font-size: 12.5px; background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
+        .ca-modal-footer { padding: 14px 22px; border-top: 1px solid var(--border, #e0e0e0); display: flex; gap: 10px; justify-content: flex-end; }
+        .ca-btn { padding: 9px 18px; border: none; border-radius: 5px; cursor: pointer; font-size: 13px; font-weight: 500; }
+        .ca-btn-secondary { background: var(--surface-2, #eee); color: var(--text, #333); border: 1px solid var(--border, #ddd); }
+        .ca-btn-primary { background: var(--accent, #0078d4); color: var(--on-accent, #fff); }
+        .ca-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    </style>
+    <div id="approvalModal" class="ca-modal-overlay" onclick="if(event.target===this)closeApprovalModal()">
+        <div class="ca-modal-box">
+            <div class="ca-modal-header"><?php echo htmlspecialchars(t('forms.approval.modal_title')); ?></div>
+            <div class="ca-modal-body">
+                <p class="ca-modal-intro"><?php echo htmlspecialchars(t('forms.approval.modal_intro')); ?></p>
+                <label class="ca-check">
+                    <input type="checkbox" id="approvalRequired" onchange="onApprovalRequiredChange()">
+                    <span><?php echo htmlspecialchars(t('forms.approval.requires_label')); ?></span>
+                </label>
+                <div class="ca-field" id="approverField" style="display:none;">
+                    <label for="approverSelect"><?php echo htmlspecialchars(t('forms.approval.approver_label')); ?></label>
+                    <select id="approverSelect"></select>
+                    <small class="ca-hint"><?php echo htmlspecialchars(t('forms.approval.approver_hint')); ?></small>
+                </div>
+                <p class="ca-note" id="approvalPortalNote" style="display:none;"><?php echo htmlspecialchars(t('forms.approval.not_portal_note')); ?></p>
+            </div>
+            <div class="ca-modal-footer">
+                <button class="ca-btn ca-btn-secondary" onclick="closeApprovalModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="ca-btn ca-btn-primary" id="approvalSaveBtn" onclick="saveApproval()"><?php echo htmlspecialchars(t('forms.approval.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
 
     <script>
         const API_BASE = '<?php echo BASE_URL; ?>api/forms/';
@@ -291,6 +335,8 @@ $translationNamespaces = ['common', 'forms'];
         // In the customer catalogue (filled globe) vs not (outline globe).
         const ICON_PORTAL_ON  = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12" stroke="#fff"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" fill="none" stroke="#fff"></path></svg>';
         const ICON_PORTAL_OFF = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>';
+        // Shield-check: catalogue-request approval settings.
+        const ICON_APPROVAL = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><polyline points="9 12 11 14 15 10"></polyline></svg>';
 
         document.addEventListener('DOMContentLoaded', function() {
             loadForms();
@@ -392,13 +438,20 @@ $translationNamespaces = ['common', 'forms'];
                     ? '<span class="ft-pill active" title="' + escAttr(window.t('forms.list.portal_on_title')) + '">'
                       + esc(window.t('forms.list.portal_on')) + '</span>'
                     : '';
+                // Catalogue-request approval (#928): a distinct amber pill so it reads
+                // as "gated", separate from being active or in the catalogue.
+                const approvalPill = (f.requires_approval == 1 && f.approver_id)
+                    ? '<span class="ft-pill" style="background:var(--warning-bg,#fef3c7);color:var(--warning-text,#92400e);" title="'
+                      + escAttr(window.t('forms.list.approval_on_title', { name: f.approver_name || '' })) + '">'
+                      + esc(window.t('forms.list.approval_on')) + '</span>'
+                    : '';
                 return `<tr onclick="openEdit(${f.id})">
                     <td class="col-title">
                         <strong>${esc(f.title)}</strong>
                         ${desc}
                     </td>
                     <td><span class="ft-pill version">v${f.version_number || 1}</span></td>
-                    <td>${statusPill} ${portalPill}</td>
+                    <td>${statusPill} ${portalPill} ${approvalPill}</td>
                     <td style="text-align: right;">${f.field_count}</td>
                     <td style="text-align: right;">${f.submission_count}</td>
                     <td title="${esc(fullLocalDate(f.modified_date))}">${esc(relativeDate(f.modified_date))}</td>
@@ -407,6 +460,7 @@ $translationNamespaces = ['common', 'forms'];
                         <a class="ft-action-btn" href="<?php echo BASE_URL; ?>forms/fill.php?id=${f.id}" title="${escAttr(window.t('forms.list.fill_title'))}">${ICON_FILL}</a>
                         <a class="ft-action-btn" href="<?php echo BASE_URL; ?>forms/submissions.php?id=${f.id}" title="${escAttr(window.t('forms.list.subs_title'))}">${ICON_SUBS}</a>
                         <button class="ft-action-btn" onclick="togglePortal(${f.id}, ${f.is_portal_visible == 1 ? 0 : 1})" title="${escAttr(window.t(f.is_portal_visible == 1 ? 'forms.list.portal_remove_title' : 'forms.list.portal_add_title'))}">${f.is_portal_visible == 1 ? ICON_PORTAL_ON : ICON_PORTAL_OFF}</button>
+                        <button class="ft-action-btn" onclick="openApprovalModal(${f.id})" title="${escAttr(window.t('forms.list.approval_title'))}">${ICON_APPROVAL}</button>
                         <button class="ft-action-btn danger" onclick="confirmDelete(${f.id})" title="${escAttr(window.t('forms.list.delete_title'))}">${ICON_DELETE}</button>
                     </td>
                 </tr>`;
@@ -494,6 +548,83 @@ $translationNamespaces = ['common', 'forms'];
             } catch (e) {
                 showToast(window.t('forms.list.portal_failed'), 'error');
             }
+        }
+
+        // ===== Catalogue-request approval (#928) =====
+        let approvalFormId = null;
+        let approvalAnalysts = null;   // active analysts, fetched once and cached
+
+        async function ensureApprovalAnalysts() {
+            if (approvalAnalysts) return approvalAnalysts;
+            try {
+                const res = await fetch('<?php echo BASE_URL; ?>api/tickets/get_analysts.php');
+                const data = await res.json();
+                approvalAnalysts = (data.success ? data.analysts : []).filter(a => a.is_active);
+            } catch (e) { approvalAnalysts = []; }
+            return approvalAnalysts;
+        }
+
+        async function openApprovalModal(id) {
+            const form = allForms.find(f => f.id == id);
+            if (!form) return;
+            approvalFormId = id;
+
+            const analysts = await ensureApprovalAnalysts();
+            const sel = document.getElementById('approverSelect');
+            sel.innerHTML = '<option value="">' + esc(window.t('forms.approval.approver_none')) + '</option>'
+                + analysts.map(a => `<option value="${a.id}">${esc(a.full_name || a.username || ('#' + a.id))}</option>`).join('');
+
+            document.getElementById('approvalRequired').checked = (form.requires_approval == 1);
+            sel.value = form.approver_id ? String(form.approver_id) : '';
+            // Approval only bites on catalogue (portal) submissions — flag it if this
+            // form isn't offered in the catalogue, so the setting isn't a silent no-op.
+            document.getElementById('approvalPortalNote').style.display = (form.is_portal_visible == 1) ? 'none' : '';
+
+            onApprovalRequiredChange();
+            document.getElementById('approvalModal').style.display = 'flex';
+        }
+
+        function onApprovalRequiredChange() {
+            const on = document.getElementById('approvalRequired').checked;
+            document.getElementById('approverField').style.display = on ? '' : 'none';
+        }
+
+        function closeApprovalModal() {
+            document.getElementById('approvalModal').style.display = 'none';
+            approvalFormId = null;
+        }
+
+        async function saveApproval() {
+            if (!approvalFormId) return;
+            const required = document.getElementById('approvalRequired').checked;
+            const approverId = document.getElementById('approverSelect').value;
+            if (required && !approverId) {
+                showToast(window.t('forms.approval.need_approver'), 'error');
+                return;
+            }
+            const btn = document.getElementById('approvalSaveBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'save_form.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    // Partial update — only these two keys, so nothing else about the
+                    // form is touched (same contract as togglePortal).
+                    body: JSON.stringify({
+                        id: approvalFormId,
+                        requires_approval: required ? 1 : 0,
+                        approver_id: required ? Number(approverId) : null
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) { showToast(data.error || window.t('forms.approval.save_failed'), 'error'); btn.disabled = false; return; }
+                showToast(window.t('forms.approval.saved'), 'success');
+                closeApprovalModal();
+                loadForms();
+            } catch (e) {
+                showToast(window.t('forms.approval.save_failed'), 'error');
+            }
+            btn.disabled = false;
         }
 
         async function confirmDelete(id) {
