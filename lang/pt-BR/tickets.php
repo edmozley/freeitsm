@@ -130,7 +130,18 @@ return [
     // Menu de contexto (clique direito) em um ticket — os itens de nível superior
     // ficam como marcação estática em index.php; os estados vazios dos submenus e
     // as linhas de limpeza são construídos em inbox.js.
+    // Modal de alterar assunto (#930)
+    'subject' => [
+        'title'  => 'Alterar assunto',
+        'label'  => 'Assunto',
+        'save'   => 'Salvar',
+        'empty'  => 'O assunto não pode ficar vazio',
+        'saved'  => 'Assunto atualizado',
+        'failed' => 'Não foi possível alterar o assunto',
+    ],
+
     'context' => [
+        'change_subject'   => 'Alterar assunto…',
         'link_cmdb'        => 'Vincular objeto do CMDB…',
         'merge'            => 'Mesclar %d tickets…',
         'link_problem'     => 'Vincular a um problema…',

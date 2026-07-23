@@ -4329,6 +4329,69 @@ async function confirmSplit() {
 }
 
 // ===========================================================================
+// Changing a ticket's subject (#930)
+// ===========================================================================
+//
+// Reached from the right-click menu, targeting whichever ticket was clicked
+// (ctxTargetTicketId) — not necessarily the one open in the reading pane.
+
+let subjectTicketId = null;
+
+function openSubjectModal() {
+    closeTicketContextMenu();
+    if (!ctxTargetTicketId) return;
+    subjectTicketId = ctxTargetTicketId;
+
+    // Prefill with the current subject. Read from the loaded list (t.subject), or the
+    // open ticket if it's the target — no round-trip needed just to show what's there.
+    const rec = emails.find(e => e.ticket_id == ctxTargetTicketId)
+        || (currentEmail && currentEmail.ticket_id == ctxTargetTicketId ? currentEmail : null);
+    const input = document.getElementById('subjectInput');
+    input.value = rec ? (rec.subject || '') : '';
+
+    document.getElementById('subjectSaveBtn').disabled = false;
+    document.getElementById('subjectModal').classList.add('active');
+    setTimeout(() => { input.focus(); input.select(); }, 50);
+}
+
+function closeSubjectModal() {
+    document.getElementById('subjectModal').classList.remove('active');
+    subjectTicketId = null;
+}
+
+async function saveSubject() {
+    if (!subjectTicketId) return;
+    const input = document.getElementById('subjectInput');
+    const subject = input.value.trim();
+    if (!subject) { showToast(t('tickets.subject.empty'), 'error'); return; }
+
+    const btn = document.getElementById('subjectSaveBtn');
+    btn.disabled = true;
+    try {
+        const res = await fetch(API_BASE + 'save_ticket_subject.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: subjectTicketId, subject: subject })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || t('tickets.subject.failed'), 'error');
+            btn.disabled = false;
+            return;
+        }
+        const openId = (currentEmail && currentEmail.ticket_id == subjectTicketId) ? currentEmail.id : null;
+        showToast(t('tickets.subject.saved'), 'success');
+        closeSubjectModal();
+        await loadEmails();
+        // Repaint the reading pane if the renamed ticket is the one on screen.
+        if (openId) selectEmail(openId);
+    } catch (e) {
+        showToast(t('tickets.subject.failed'), 'error');
+        btn.disabled = false;
+    }
+}
+
+// ===========================================================================
 // Merging tickets (#912)
 // ===========================================================================
 //
@@ -5944,6 +6007,10 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
         const lbl = document.getElementById('ctxMergeLabel');
         if (lbl) lbl.textContent = t('tickets.context.merge').replace('%d', String(selectionCount()));
     }
+
+    // Change subject is single-ticket only — the inverse of Merge.
+    const subjItem = document.getElementById('ctxSubjectItem');
+    if (subjItem) subjItem.style.display = ctxActsOnSelection ? 'none' : '';
 
     document.getElementById('ticketContextMenuHeader').textContent = ctxActsOnSelection
         ? t('tickets.bulk.n_selected').replace('%d', String(selectionCount()))

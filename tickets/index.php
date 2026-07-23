@@ -183,6 +183,24 @@ $translationNamespaces = ['common', 'tickets'];
     <?php /* Split a ticket (#914). The message list is fetched from the server rather
              than counted in JS, so what the dialog promises and what the split does
              are computed by the same function. */ ?>
+    <?php /* Change a ticket's subject (#930). Opened from the right-click menu. */ ?>
+    <div class="modal" id="subjectModal">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-header"><?php echo htmlspecialchars(t('tickets.subject.title')); ?></div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label" for="subjectInput"><?php echo htmlspecialchars(t('tickets.subject.label')); ?></label>
+                    <input type="text" class="form-input" id="subjectInput" maxlength="255" autocomplete="off"
+                           onkeydown="if(event.key==='Enter'){event.preventDefault();saveSubject();}">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeSubjectModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                <button class="btn btn-primary" id="subjectSaveBtn" onclick="saveSubject()"><?php echo htmlspecialchars(t('tickets.subject.save')); ?></button>
+            </div>
+        </div>
+    </div>
+
     <div class="modal" id="splitModal">
         <div class="modal-content" style="max-width: 620px;">
             <div class="modal-header"><?php echo htmlspecialchars(t('tickets.split.title')); ?></div>
@@ -409,6 +427,12 @@ $translationNamespaces = ['common', 'tickets'];
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
             <span id="ctxMergeLabel"><?php echo htmlspecialchars(t('tickets.context.merge')); ?></span>
         </button>
+        <?php /* Single-ticket only — renaming a whole selection to one subject is
+                 not a thing, so it's hidden when the menu acts on a selection. */ ?>
+        <button class="ticket-context-menu-item" type="button" id="ctxSubjectItem" onclick="openSubjectModal()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            <span><?php echo htmlspecialchars(t('tickets.context.change_subject')); ?></span>
+        </button>
         <button class="ticket-context-menu-item" type="button" onclick="openContextLinkCmdb()">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
             <span><?php echo htmlspecialchars(t('tickets.context.link_cmdb')); ?></span>
@@ -615,7 +639,7 @@ $translationNamespaces = ['common', 'tickets'];
     </script>
     <!-- Must load BEFORE inbox.js: it cleans every untrusted message body. -->
     <script src="../assets/js/safe-html.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=73"></script>
+    <script src="../assets/js/inbox.js?v=74"></script>
     <script src="../assets/js/mobile.js?v=12"></script>
     <script>
     // Auto-check mailboxes every 60 seconds

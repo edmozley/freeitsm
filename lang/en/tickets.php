@@ -152,7 +152,18 @@ return [
     // Right-click (context) menu on a ticket — top-level items live as static
     // markup in index.php; the submenu empty-states and clear rows are built
     // in inbox.js.
+    // Change-subject modal (#930)
+    'subject' => [
+        'title'  => 'Change subject',
+        'label'  => 'Subject',
+        'save'   => 'Save',
+        'empty'  => 'The subject cannot be empty',
+        'saved'  => 'Subject updated',
+        'failed' => 'Could not change the subject',
+    ],
+
     'context' => [
+        'change_subject'   => 'Change subject…',
         'link_cmdb'        => 'Link CMDB object…',
         'link_problem'     => 'Link to problem…',
         'link_change'      => 'Link to change…',
