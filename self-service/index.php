@@ -298,6 +298,10 @@ require __DIR__ . "/includes/header.php";
              users. A pending request isn't a ticket yet, so this is the ONLY place
              the requester can see it. -->
         <style>
+            /* Match the summary-cards bottom margin (22px) so this sits evenly between
+               the cards above and the Recent Tickets grid below, rather than butting
+               against it — .portal-section carries no margin of its own. */
+            #requestsSection { margin-bottom: 22px; }
             .req-pill { display: inline-block; font-size: 12px; font-weight: 600; padding: 2px 10px; border-radius: 11px; }
             .req-pill.pending  { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); }
             .req-pill.approved { background: var(--success-bg, #dcfce7); color: var(--success-text, #166534); }
