@@ -1598,7 +1598,28 @@ function moveSelectionCursor(delta, { extend = false, keepSelection = false }) {
 
 function scrollRowIntoView(emailId) {
     const row = document.querySelector(`#emailList .email-item[data-email-id="${emailId}"]`);
-    if (row && row.scrollIntoView) row.scrollIntoView({ block: 'nearest' });
+    if (!row) return;
+
+    // Scroll ONLY the list's own scroll container, never the page. Element.scrollIntoView()
+    // can't be scoped — it scrolls every scrollable ancestor up to the document, so at the
+    // end of the list it scrolls the whole window and drags the fixed header off the top
+    // (the bug this replaces). Nudge the container's scrollTop by hand instead, and stop
+    // short of <body>/<html> so nothing outside the pane ever moves.
+    let box = row.parentElement;
+    while (box && box !== document.body && box !== document.documentElement) {
+        const oy = getComputedStyle(box).overflowY;
+        if ((oy === 'auto' || oy === 'scroll') && box.scrollHeight > box.clientHeight) break;
+        box = box.parentElement;
+    }
+    if (!box || box === document.body || box === document.documentElement) return;
+
+    const rowRect = row.getBoundingClientRect();
+    const boxRect = box.getBoundingClientRect();
+    if (rowRect.top < boxRect.top) {
+        box.scrollTop -= (boxRect.top - rowRect.top);
+    } else if (rowRect.bottom > boxRect.bottom) {
+        box.scrollTop += (rowRect.bottom - boxRect.bottom);
+    }
 }
 
 /** Space — toggle the row under the cursor, the keyboard's Ctrl+click. */
