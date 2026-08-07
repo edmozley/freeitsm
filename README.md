@@ -121,6 +121,7 @@ FreeITSM is a one-developer project — your engagement is what keeps it moving:
 
 - ⭐ **If you use FreeITSM, please [star the repo](https://github.com/edmozley/freeitsm/stargazers)** — it's the single biggest signal that the work is landing.
 - 📬 **Feedback, ideas, bugs?** Email me directly at [ed@freeitsm.co.uk](mailto:ed@freeitsm.co.uk) — I read every message — or use [Discussions](https://github.com/edmozley/freeitsm/discussions) and [Issues](https://github.com/edmozley/freeitsm/issues).
+- 🔒 **Found a security problem?** Please report it privately rather than in an issue — see **[SECURITY.md](SECURITY.md)**. Every FreeITSM install is self-hosted, so operators need a chance to upgrade before anything is public.
 - 🌍 Mentioning [freeitsm.co.uk](https://freeitsm.co.uk) on Reddit, Hacker News, Spiceworks or LinkedIn genuinely helps and means a lot.
 
 Contributions are welcome — the first external pull request was merged in 2026 and more are encouraged.
