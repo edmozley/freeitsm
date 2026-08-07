@@ -242,14 +242,21 @@ and is deliberate follow-up rather than something to bolt on inside a security f
 `analysts.must_change_password` added, set on the seeded `admin` account, cleared when
 a password is changed.
 
-**And enforced, which the redirect alone was not.** Both this and the pre-existing
-password-expiry flow only redirected at the end of login — the session was fully
-authenticated by then, so typing `/tickets/` walked straight past it. Confirmed before
-fixing: a flagged account reached the inbox with a 200. `includes/password_gate.php`
-now runs on every request; HTML gets a redirect, API callers get a 403 with
-`password_change_required`. Without this the fix would have been cosmetic, which is
-the one outcome worth avoiding when the finding is "the default credentials are
-permanent".
+**And enforced, which it previously was not — for a more interesting reason than
+"nobody wrote a guard".** A guard *did* exist, in `includes/waffle-menu.php`: if
+`$_SESSION['password_expired']` is set, redirect. But it only runs on the 28 pages
+that draw the waffle menu, and it explicitly exempts any URL containing `api/`. So
+`/tickets/` — which does not include that file — let a flagged account straight
+through, and every API endpoint was exempt by design. Confirmed before fixing: a
+flagged account reached the inbox with a 200.
+
+That is the shape worth naming, because it is the same shape as the fail-open catch in
+F9: a control that exists, reads as present in the documentation, and has holes exactly
+where nobody looked. `includes/password_gate.php` now runs on every request from
+`functions.php`; HTML gets a redirect, API callers get a 403 carrying
+`password_change_required` so a `fetch()` does not chase a 302 to an HTML page. Without
+it the fix would have been cosmetic, which is the one outcome worth avoiding when the
+finding is "the default credentials are permanent".
 
 The five brute-force settings are now seeded. The report was right to flag the UI
 hardest: seeding the values the screen was *already claiming* is what makes it honest.
