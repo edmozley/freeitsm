@@ -16,6 +16,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/portal_visibility.php';
+require_once '../../includes/uploads.php';   // attachmentSendHeaders()
 
 if (!isset($_SESSION['ss_user_id'])) {
     http_response_code(401);
@@ -87,26 +88,15 @@ try {
         exit('Attachment file not found');
     }
 
-    header('Content-Type: ' . $attachment['content_type']);
-    header('Content-Length: ' . $attachment['file_size']);
     header('Cache-Control: private, max-age=86400');
 
-    // Never let the browser MIME-sniff a user-supplied file into something
-    // executable (e.g. a "photo" that is actually HTML/JS). Matters more here
-    // than on the analyst side: anyone can email the service desk, and this
-    // serves the result back into the requester's own session.
-    header('X-Content-Type-Options: nosniff');
-
-    // Media that is safe to render is shown inline so it previews in the thread;
-    // everything else downloads.
-    $ct = strtolower($attachment['content_type']);
-    $inlineSafe = strpos($ct, 'image/') === 0
-        || strpos($ct, 'audio/') === 0
-        || strpos($ct, 'video/') === 0
-        || $ct === 'application/pdf';
-
-    $disposition = $inlineSafe ? 'inline' : 'attachment';
-    header('Content-Disposition: ' . $disposition . '; filename="' . $attachment['filename'] . '"');
+    // ⚠️ Same fix as api/tickets/get_attachment.php, and it matters more here:
+    // anyone can email the service desk, and this serves the result back into the
+    // requester's own session. The served type comes from the file extension via
+    // our own map, never from the sender-supplied content_type — which let
+    // `image/svg+xml` through the old inline test and made a planted SVG run script
+    // on our origin. See includes/uploads.php.
+    attachmentSendHeaders((string)$attachment['filename'], (int)$attachment['file_size']);
 
     readfile($filePath);
 

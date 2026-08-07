@@ -228,3 +228,99 @@ function uploadFormatBytes(int $bytes): string
     if ($bytes >= 1024)    return round($bytes / 1024) . ' KB';
     return $bytes . ' bytes';
 }
+
+/**
+ * ─── Serving attachments back out ────────────────────────────────────────────
+ *
+ * ⚠️ WHY THIS EXISTS. email_attachments.content_type is stored verbatim from
+ * whoever sent the mail (check_mailbox_email.php, create_ticket.php, ingest.php),
+ * and the attachment endpoints echoed it straight into a Content-Type header, then
+ * decided whether to render inline with `strpos($ct, 'image/') === 0`.
+ *
+ * `image/svg+xml` passes that test. SVG is XML, it executes <script> when navigated
+ * to, and the inbox opens attachments with window.open() — i.e. as a top-level
+ * document on our own origin. nosniff does not help: the declared type IS the
+ * executable one. So anyone who could email the service desk could plant a file
+ * that ran script in an analyst's session the moment they clicked it.
+ *
+ * The fix is to stop believing the sender. The type served is derived from the
+ * file EXTENSION against the map below — our string, not theirs — and anything not
+ * on it is application/octet-stream as a download. A file named .png whose bytes
+ * are HTML is then served as image/png with nosniff, which a browser will not run.
+ */
+
+/** ext => [content type we will claim, may it be rendered inline?] */
+const ATTACHMENT_SERVE_TYPES = [
+    // Images. Note SVG is absent, exactly as it is absent from UPLOAD_TYPES_IMAGE.
+    'png'  => ['image/png',        true],
+    'jpg'  => ['image/jpeg',       true],
+    'jpeg' => ['image/jpeg',       true],
+    'gif'  => ['image/gif',        true],
+    'webp' => ['image/webp',       true],
+    'bmp'  => ['image/bmp',        true],
+    // PDF stays inline: it is what the reading pane previews, and browsers run PDF
+    // script inside the viewer's sandbox rather than as page script on our origin.
+    'pdf'  => ['application/pdf',  true],
+    // Media people genuinely mail in. Inline so it gets a player instead of a
+    // download prompt; none of these are script-bearing.
+    'mp3'  => ['audio/mpeg',       true],
+    'wav'  => ['audio/wav',        true],
+    'ogg'  => ['audio/ogg',        true],
+    'm4a'  => ['audio/mp4',        true],
+    'mp4'  => ['video/mp4',        true],
+    'webm' => ['video/webm',       true],
+    // Everything below is served as a download. Listed rather than left to the
+    // default only so the browser gets an honest type in the save dialog.
+    'txt'  => ['text/plain',       false],
+    'csv'  => ['text/csv',         false],
+    'log'  => ['text/plain',       false],
+    'md'   => ['text/markdown',    false],
+    'rtf'  => ['application/rtf',  false],
+    'json' => ['application/json', false],
+    'xml'  => ['application/xml',  false],
+    'zip'  => ['application/zip',  false],
+    'doc'  => ['application/msword', false],
+    'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', false],
+    'xls'  => ['application/vnd.ms-excel', false],
+    'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', false],
+    'ppt'  => ['application/vnd.ms-powerpoint', false],
+    'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', false],
+];
+
+/**
+ * Decide how to serve a stored attachment, from its filename alone.
+ *
+ * The stored content_type is deliberately NOT a parameter: there is no version of
+ * this decision that should consult a value the sender chose.
+ *
+ * @return array ['type' => string, 'inline' => bool, 'filename' => string]
+ *               filename is header-safe (quotes and CR/LF removed).
+ */
+function attachmentServeRules(string $filename): array
+{
+    $ext = strtolower((string)pathinfo($filename, PATHINFO_EXTENSION));
+    [$type, $inline] = ATTACHMENT_SERVE_TYPES[$ext] ?? ['application/octet-stream', false];
+
+    // A filename reaches a response header, so it must not be able to end it or
+    // to close the quoted string around it.
+    $safeName = str_replace(['"', "\r", "\n"], '', $filename);
+    if ($safeName === '') $safeName = 'attachment';
+
+    return ['type' => $type, 'inline' => $inline, 'filename' => $safeName];
+}
+
+/**
+ * Emit the Content-Type / Content-Disposition / nosniff headers for an attachment.
+ * Callers still do their own authorisation and file-existence checks first.
+ */
+function attachmentSendHeaders(string $filename, int $size): void
+{
+    $rules = attachmentServeRules($filename);
+
+    header('Content-Type: ' . $rules['type']);
+    header('Content-Length: ' . $size);
+    header('X-Content-Type-Options: nosniff');
+    header('Content-Disposition: ' . ($rules['inline'] ? 'inline' : 'attachment')
+         . '; filename="' . $rules['filename'] . '"'
+         . "; filename*=UTF-8''" . rawurlencode($rules['filename']));
+}
