@@ -52,6 +52,11 @@ return [
         // 1 so a new analyst is unrestricted; the upgrade back-fill sets it to 0 for
         // analysts who already had analyst_modules rows (i.e. were restricted).
         'can_access_all_modules' => 'TINYINT(1) NOT NULL DEFAULT 1',
+        // Make this analyst change their password before they can do anything else.
+        // Set on the seeded `admin` account, because admin/freeitsm was permanent:
+        // there was no column like this and nothing anywhere forced, warned about or
+        // even nagged on the change. Cleared the moment they set a new one.
+        'must_change_password'   => 'TINYINT(1) NOT NULL DEFAULT 0',
     ],
 
     'auth_providers' => [

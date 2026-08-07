@@ -26,6 +26,30 @@ function getSecuritySetting($conn, $key) {
 }
 
 /**
+ * Must this analyst change their password before they can go anywhere?
+ *
+ * Two separate reasons, deliberately kept apart:
+ *
+ *  - must_change_password is a FLAG ON THE ACCOUNT. It is set on the seeded `admin`
+ *    account, whose admin/freeitsm credentials were previously permanent — there was
+ *    no column like this and nothing in the app forced, warned about or even nagged
+ *    on the change, so the published default stayed valid on any install that never
+ *    got round to it.
+ *  - password expiry is a POLICY, off by default, driven by password_expiry_days.
+ *
+ * The column is read defensively: an install that has not run Database Verify since
+ * this shipped has no must_change_password column, and login must keep working.
+ */
+function loginRequiresPasswordChange($conn, $analyst, $skipPasswordExpiry): bool {
+    if (!empty($analyst['must_change_password'])) {
+        return true;
+    }
+    return !$skipPasswordExpiry
+        && isset($analyst['password_changed_datetime'])
+        && isPasswordExpired($conn, $analyst['password_changed_datetime']);
+}
+
+/**
  * Check if password is expired based on system setting
  */
 function isPasswordExpired($conn, $passwordChangedDatetime) {
@@ -172,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             try {
                 $sql = "SELECT id, username, password_hash, full_name, email, totp_enabled,
                                locked_until, failed_login_count, trust_device_enabled, password_changed_datetime,
-                               auth_provider_id
+                               auth_provider_id, must_change_password
                         FROM analysts WHERE username = ? AND is_active = 1";
                 $stmt = $conn->prepare($sql);
                 $stmt->execute([$username]);
@@ -269,7 +293,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $reload = $conn->prepare(
                     "SELECT id, username, password_hash, full_name, email, totp_enabled,
                             locked_until, failed_login_count, trust_device_enabled,
-                            password_changed_datetime, auth_provider_id
+                            password_changed_datetime, auth_provider_id, must_change_password
                        FROM analysts WHERE id = ? AND is_active = 1"
                 );
                 $reload->execute([$resolved['analyst_id']]);
@@ -326,8 +350,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $_SESSION['allowed_modules'] = getAnalystAllowedModules($conn, $analyst['id']);
                         logLoginAttempt($conn, $analyst['id'], $username, true);
 
-                        // Check password expiry
-                        if (!$skipPasswordExpiry && isset($analyst['password_changed_datetime']) && isPasswordExpired($conn, $analyst['password_changed_datetime'])) {
+                        // Must this password change before anything else?
+                        if (loginRequiresPasswordChange($conn, $analyst, $skipPasswordExpiry)) {
                             $_SESSION['password_expired'] = true;
                             header('Location: force_password_change.php');
                         } else {
@@ -367,8 +391,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Log successful login
                     logLoginAttempt($conn, $analyst['id'], $username, true);
 
-                    // Check password expiry
-                    if (!$skipPasswordExpiry && isset($analyst['password_changed_datetime']) && isPasswordExpired($conn, $analyst['password_changed_datetime'])) {
+                    // Must this password change before anything else?
+                    if (loginRequiresPasswordChange($conn, $analyst, $skipPasswordExpiry)) {
                         $_SESSION['password_expired'] = true;
                         header('Location: force_password_change.php');
                     } else {

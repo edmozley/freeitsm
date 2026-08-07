@@ -19,6 +19,11 @@ require_once __DIR__ . '/session_security.php';
 // check. See the file for why the rule is deliberately this narrow.
 require_once __DIR__ . '/request_guard.php';
 
+// Enforces "you must change your password" on every request, not just as a redirect
+// at the end of login — otherwise typing a URL walks straight past it, which would
+// make the seeded-credentials fix cosmetic. See the file.
+require_once __DIR__ . '/password_gate.php';
+
 /**
  * Connect to MySQL database using PDO
  *

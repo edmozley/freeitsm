@@ -39,6 +39,10 @@ CREATE TABLE IF NOT EXISTS `analysts` (
     -- Module access (issue #30). 1 = all modules; 0 = restricted to analyst_modules
     -- (+ team grants). New analysts default unrestricted.
     `can_access_all_modules`    TINYINT(1) NOT NULL DEFAULT 1,
+    -- Force a password change before this analyst can do anything else. Set on the
+    -- seeded `admin` account, whose admin/freeitsm credentials were otherwise
+    -- permanent — nothing forced, warned about or nagged on the change.
+    `must_change_password`      TINYINT(1) NOT NULL DEFAULT 0,
     PRIMARY KEY (`id`),
     UNIQUE KEY `uq_analysts_username` (`username`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

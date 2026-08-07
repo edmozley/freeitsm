@@ -50,11 +50,48 @@ try {
     // Decrypt the secret
     $secret = decryptValue($row['totp_secret']);
 
-    // Verify the code
+    // ⚠️ Verify the code — and COUNT the failures.
+    //
+    // This endpoint had no attempt counter, no delay and no logging, and it sits
+    // outside the IP-ban path that protects the password step. A six-digit TOTP is
+    // one million possibilities, which is nothing to a script: given a valid
+    // password, the second factor was brute-forceable.
+    //
+    // The counter lives in the session because the challenge does — mfa_pending_*
+    // is what makes this endpoint answer at all. An attacker who throws the session
+    // away to reset the count has to present the password again, and THAT path is
+    // rate-limited by account lockout and the IP ban. So this closes the loop rather
+    // than just narrowing it.
     if (!verifyTotpCode($secret, $code)) {
+        $_SESSION['mfa_attempts'] = ($_SESSION['mfa_attempts'] ?? 0) + 1;
+
+        if ($_SESSION['mfa_attempts'] >= 5) {
+            // Abandon the challenge entirely. Back to the password.
+            unset(
+                $_SESSION['mfa_pending_analyst_id'],
+                $_SESSION['mfa_pending_username'],
+                $_SESSION['mfa_pending_name'],
+                $_SESSION['mfa_pending_email'],
+                $_SESSION['mfa_pending_allowed_modules'],
+                $_SESSION['mfa_attempts']
+            );
+            if (function_exists('logLoginAttempt')) {
+                logLoginAttempt($conn, (int)$analystId, (string)($_SESSION['mfa_pending_username'] ?? 'unknown'), false);
+            }
+            error_log('MFA challenge abandoned after 5 failed codes for analyst ' . (int)$analystId
+                      . ' from ' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'));
+            echo json_encode(['success' => false, 'error' => 'Too many incorrect codes. Please sign in again.', 'restart' => true]);
+            exit;
+        }
+
+        error_log('Failed MFA code for analyst ' . (int)$analystId . ' from ' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown')
+                  . ' (attempt ' . (int)$_SESSION['mfa_attempts'] . ' of 5)');
         echo json_encode(['success' => false, 'error' => 'Invalid code. Please try again.']);
         exit;
     }
+
+    // Correct code — reset the counter so a later challenge starts clean.
+    unset($_SESSION['mfa_attempts']);
 
     // MFA verified — complete login. Rotate the session id first: this is the point
     // the session stops being anonymous, so it must not keep the id it arrived with.
@@ -125,6 +162,20 @@ try {
             $_SESSION['password_expired'] = true;
             $redirect = 'force_password_change.php';
         }
+    }
+
+    // The account-level flag, separate from the expiry policy above: it is what stops
+    // the seeded admin/freeitsm credentials being used indefinitely. Read defensively
+    // so an install that has not run Database Verify since this shipped still logs in.
+    try {
+        $mcStmt = $conn->prepare("SELECT must_change_password FROM analysts WHERE id = ?");
+        $mcStmt->execute([$analystId]);
+        if ((int)$mcStmt->fetchColumn() === 1) {
+            $_SESSION['password_expired'] = true;
+            $redirect = 'force_password_change.php';
+        }
+    } catch (Exception $mcEx) {
+        // column not migrated yet — nothing to enforce
     }
 
     echo json_encode(['success' => true, 'message' => 'Login successful', 'redirect' => $redirect]);

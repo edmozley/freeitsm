@@ -394,13 +394,17 @@ try {
     $countStmt = $conn->query("SELECT COUNT(*) FROM analysts");
     $analystCount = (int) $countStmt->fetchColumn();
     if ($analystCount === 0) {
+        // must_change_password = 1: admin/freeitsm used to be permanent. There was no
+        // column like this and nothing anywhere forced, warned about or nagged on the
+        // change, so the published default credentials stayed valid on installs that
+        // never got round to it. Now the first sign-in cannot go anywhere else.
         $defaultHash = password_hash('freeitsm', PASSWORD_DEFAULT);
-        $seedStmt = $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active, is_admin, created_datetime) VALUES (?, ?, ?, ?, 1, 1, UTC_TIMESTAMP())");
+        $seedStmt = $conn->prepare("INSERT INTO analysts (username, password_hash, full_name, email, is_active, is_admin, must_change_password, created_datetime) VALUES (?, ?, ?, ?, 1, 1, 1, UTC_TIMESTAMP())");
         $seedStmt->execute(['admin', $defaultHash, 'Administrator', 'admin@localhost']);
         $results[] = [
             'table' => 'analysts',
             'status' => 'seeded',
-            'details' => ['Created default admin account (username: admin, password: freeitsm)']
+            'details' => ['Created default admin account (username: admin, password: freeitsm) — it must be changed at first sign-in']
         ];
     }
 
@@ -1095,6 +1099,30 @@ try {
             // never disappears silently. Defaults to keeping, because losing
             // somebody's file is the worse surprise of the two.
             'attachment_rejected_behaviour'   => 'store',
+
+            // ── Brute-force protection ──────────────────────────────────────────
+            // None of these were ever seeded, and both call sites read a missing
+            // value as 0 and 0 as "off" — so every fresh install shipped with
+            // account lockout and IP banning entirely disabled. Worse, System →
+            // Security pre-filled "5" and "2" in the boxes from a hardcoded
+            // fallback, so an administrator looking at the page reasonably concluded
+            // the protection was on. It only became true if they happened to press
+            // Save. Seeding the values the UI was already claiming makes the screen
+            // honest and turns the protection on by default.
+            //
+            // The trade-off is real and deliberate: an attacker who knows a username
+            // can lock that account for 30 minutes. That is preferable to unlimited
+            // password guessing, and the IP ban below is what handles the broader
+            // sweep across many usernames.
+            'max_failed_logins'               => '5',
+            'lockout_duration_minutes'        => '30',
+            'max_ip_attempts'                 => '5',
+            'min_ip_attempts'                 => '2',
+            // 0 = passwords never expire. Left off on purpose: forced rotation on a
+            // timer is no longer considered good practice (it drives predictable
+            // increments), and unlike the settings above, turning it on silently at
+            // upgrade would lock people out of their own service desk.
+            'password_expiry_days'            => '0',
         ];
         // Secrets are seeded already encrypted. The whole block is best-effort: an
         // install that has no encryption key yet must still be able to build its

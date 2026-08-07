@@ -65,6 +65,16 @@ try {
     // Clear password expired flag if set
     unset($_SESSION['password_expired']);
 
+    // ...and clear the account-level "must change" flag, which is what the seeded
+    // admin account carries. Guarded: an install that has not run Database Verify
+    // since this shipped has no such column, and a change_password that fataled
+    // because of it would be worse than the problem.
+    try {
+        $conn->prepare("UPDATE analysts SET must_change_password = 0 WHERE id = ?")->execute([$analystId]);
+    } catch (Exception $mcEx) {
+        // column not migrated yet — nothing to clear
+    }
+
     // Changing a password is often somebody's response to thinking they have been
     // compromised. Without rotating the id here, the session an attacker already
     // holds survives the very action taken to shut them out.

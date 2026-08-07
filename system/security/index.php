@@ -248,7 +248,9 @@ $translationNamespaces = ['common', 'system'];
                         <strong><?php echo htmlspecialchars(t('system.security.first_ban')); ?></strong>
                         <?php echo htmlspecialchars(t('system.security.first_ban_hint')); ?>
                     </div>
-                    <input type="number" class="setting-input" id="maxIpAttempts" min="0" max="20" value="5">
+                    <?php /* value="0", not 5: this is what shows before loadSettings() replaces
+                             it, and it must not claim protection that may not be configured. */ ?>
+                    <input type="number" class="setting-input" id="maxIpAttempts" min="0" max="20" value="0">
                     <span class="setting-unit"><?php echo htmlspecialchars(t('system.security.unit_attempts')); ?></span>
                 </div>
                 <div class="setting-row">
@@ -256,7 +258,7 @@ $translationNamespaces = ['common', 'system'];
                         <strong><?php echo htmlspecialchars(t('system.security.min_threshold')); ?></strong>
                         <?php echo htmlspecialchars(t('system.security.min_threshold_hint')); ?>
                     </div>
-                    <input type="number" class="setting-input" id="minIpAttempts" min="1" max="10" value="2">
+                    <input type="number" class="setting-input" id="minIpAttempts" min="1" max="10" value="0">
                     <span class="setting-unit"><?php echo htmlspecialchars(t('system.security.unit_attempts')); ?></span>
                 </div>
                 <div class="info-note">
@@ -303,12 +305,27 @@ $translationNamespaces = ['common', 'system'];
             if (data.success) {
                 const s = data.settings;
                 document.getElementById('selfServiceRegistration').checked = (s.self_service_registration_enabled === '1');
-                document.getElementById('trustedDeviceDays').value = s.trusted_device_days || '0';
-                document.getElementById('passwordExpiryDays').value = s.password_expiry_days || '0';
-                document.getElementById('maxFailedLogins').value = s.max_failed_logins || '0';
-                document.getElementById('lockoutDuration').value = s.lockout_duration_minutes || '30';
-                document.getElementById('maxIpAttempts').value = s.max_ip_attempts || '5';
-                document.getElementById('minIpAttempts').value = s.min_ip_attempts || '2';
+                // ⚠️ These used to read `s.max_ip_attempts || '5'` and `|| '2'`. Nothing
+                // seeded those settings, so on a fresh install the boxes showed 5 and 2
+                // while the login code read the missing values as 0 and treated 0 as
+                // "off". An administrator opening this page saw brute-force protection
+                // configured and reasonably concluded it was on. It wasn't, unless they
+                // happened to press Save. A screen that overstates protection is worse
+                // than one that shows it switched off.
+                //
+                // Database Verify now seeds real values, so these normally just show
+                // what is stored. Where a value is genuinely absent the box shows 0,
+                // which is what the login code will actually do.
+                const shown = (v, ifMissing) => (v === undefined || v === null || v === '') ? ifMissing : v;
+                document.getElementById('trustedDeviceDays').value  = shown(s.trusted_device_days, '0');
+                document.getElementById('passwordExpiryDays').value = shown(s.password_expiry_days, '0');
+                document.getElementById('maxFailedLogins').value    = shown(s.max_failed_logins, '0');
+                document.getElementById('maxIpAttempts').value      = shown(s.max_ip_attempts, '0');
+                document.getElementById('minIpAttempts').value      = shown(s.min_ip_attempts, '0');
+                // A duration is not an on/off switch — 30 is a real default, not a claim
+                // that anything is enabled, and it only applies once the count above is
+                // greater than zero.
+                document.getElementById('lockoutDuration').value    = shown(s.lockout_duration_minutes, '30');
                 document.getElementById('attachmentRejectedBehaviour').value = s.attachment_rejected_behaviour || 'store';
             }
         } catch (e) {
