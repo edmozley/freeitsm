@@ -69,16 +69,42 @@ handling but not under F1. It is fixed alongside the other three.
 
 ### F1 — Attachments could name themselves on disk
 
-`uploadStoreFile()` already did the right thing but takes a `$_FILES` entry, and none
-of the four ingest paths have one — they hold decoded bytes. Added
-`uploadStoreBytes()` as its sibling in `includes/uploads.php`: same extension
-allow-list, same `finfo` cross-check against the content, same random stored name
-drawn from our own list. The sender's filename is kept in the database for display
-only, and the `content_type` recorded is the one we detected, not the one declared.
+**The suggested fix was to route the writers through `uploadStoreFile()`. That is not
+available, and the reason is worth setting out.** Its first two acts are
+`$file['error'] !== UPLOAD_ERR_OK` and `is_uploaded_file($file['tmp_name'])`, and it
+finishes with `move_uploaded_file()`. None of the four ingest paths have an uploaded
+file: inbound email is decoded MIME, the two portal paths are base64 out of a JSON
+body, and the messaging path is media we fetched over HTTP. Writing the bytes to a temp
+file first does not rescue it either, because `is_uploaded_file()` consults the real
+upload list and correctly refuses a file we wrote ourselves — so taking the suggestion
+literally would mean removing the check that makes that function safe for the form
+uploads it does serve.
+
+So: `uploadStoreBytes()` as its sibling in `includes/uploads.php` instead, with the
+same three gates — same extension allow-list, same `finfo` cross-check against the
+content, same random stored name drawn from our own list. The sender's filename is kept
+in the database for display only, and the `content_type` recorded is the one we
+detected, not the one declared.
+
+**On the fallback — "force the stored extension from an allow-list and reject any
+filename starting with `.`".** The first is done, and it is what makes the second
+unnecessary: the *whole* stored name is ours, not only the extension, so a name
+beginning with `.` cannot reach disk in any form. `.htaccess` in particular fails the
+allow-list for carrying no extension at all.
 
 It deliberately does **not** throw on a disallowed file the way `uploadStoreFile()`
 does. Inbound email is not somebody at a form who can choose a different file, and one
 odd attachment must never cost a person their ticket.
+
+**And one place the sibling is deliberately stricter than its parent.**
+`uploadStoreFile()` applies the content check only when it has an answer
+(`$mime !== null && !in_array(…)`), so on a server without `finfo` it accepts on the
+extension alone. `uploadStoreBytes()` fails closed instead: an undetectable type is
+recorded as `application/octet-stream`, which appears in no allow-list entry, so the
+file is quarantined rather than trusted. We have not retrofitted that onto
+`uploadStoreFile()` — it would change live behaviour on the change-management upload
+path, which is outside this finding — so the two functions genuinely disagree on that
+one case today. Listed under *Outstanding* rather than left to be discovered.
 
 **New setting, and the reasoning behind it.** The obvious fix — reject the file —
 loses a customer's attachment. The alternative — keep it inert — means storing content
@@ -422,6 +448,9 @@ redirecting to `auth/force_password_change.php`, which `auth/.htaccess` delibera
 - **F10** — `db_verify` still has no dry-run, preview or backup prompt, and the header
   comment claiming it "never drops anything" is still wrong.
 - **F4** and **F11** — SLA snapshotting and subject access / erasure. Both features.
+- `uploadStoreFile()` still skips the content check when `finfo` is unavailable, where
+  its F1 sibling `uploadStoreBytes()` refuses. The parent should adopt the stricter
+  rule, on its own change rather than inside a security fix.
 - `lms/content` and `system/uploads/branding` did not get the deny-all treatment;
   both may legitimately be fetched by the browser and breaking SCORM playback or
   branding to close a lesser risk was not a trade worth making blind.
