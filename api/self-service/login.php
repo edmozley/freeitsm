@@ -169,6 +169,7 @@ try {
         exit;
     }
 
+    sessionPromoteToAuthenticated();   // rotate the session id — see includes/session_security.php
     $_SESSION['ss_user_id']    = (int)$user['id'];
     $_SESSION['ss_user_email'] = $user['email'];   // may be NULL — no mailbox
     $_SESSION['ss_user_name']  = $displayName;

@@ -56,7 +56,9 @@ try {
         exit;
     }
 
-    // MFA verified — complete login
+    // MFA verified — complete login. Rotate the session id first: this is the point
+    // the session stops being anonymous, so it must not keep the id it arrived with.
+    sessionPromoteToAuthenticated();
     $_SESSION['analyst_id'] = $_SESSION['mfa_pending_analyst_id'];
     $_SESSION['analyst_username'] = $_SESSION['mfa_pending_username'];
     $_SESSION['analyst_name'] = $_SESSION['mfa_pending_name'];

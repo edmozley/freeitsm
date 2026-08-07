@@ -18,6 +18,39 @@
 # directory listings while we're here.
 Options -MultiViews -Indexes
 
+# ------------------------------------------------------------------
+# Session cookie hardening — the Apache/mod_php copy.
+#
+# Cookie parameters only apply BEFORE session_start(), and 809 of the 818 files
+# that call session_start() do so before they include config.php, so there is no
+# PHP file early enough in the request to set them. They are therefore shipped as
+# server configuration, in three places that must be kept in step:
+#
+#   .htaccess       <- you are here: Apache with mod_php
+#   .user.ini       PHP-FPM / CGI / FastCGI, i.e. nginx and IIS
+#   docker/php.ini  baked into the image
+#
+# Guarded, because php_value is a mod_php directive: on a server running PHP
+# through FPM these lines would be an unknown directive and 500 the whole app.
+# On such a server .user.ini is what applies instead.
+#
+# session.cookie_secure is deliberately absent — it cannot be conditional in a
+# static file, and forcing it on an install served over plain HTTP would stop the
+# cookie being sent at all. It is set per request in includes/session_security.php.
+# ------------------------------------------------------------------
+<IfModule mod_php.c>
+  php_value session.cookie_httponly 1
+  php_value session.cookie_samesite Lax
+  php_value session.use_strict_mode 1
+  php_value session.use_only_cookies 1
+</IfModule>
+<IfModule mod_php7.c>
+  php_value session.cookie_httponly 1
+  php_value session.cookie_samesite Lax
+  php_value session.use_strict_mode 1
+  php_value session.use_only_cookies 1
+</IfModule>
+
 # House style (matches api/v1/.htaccess): guarded so a server without
 # mod_rewrite serves the rest of the app rather than 500ing everywhere.
 # NOTE: on such a server the auth pages are unreachable — mod_rewrite is

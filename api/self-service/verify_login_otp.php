@@ -49,7 +49,8 @@ try {
         exit;
     }
 
-    // Complete login
+    // Complete login — rotate the session id first, see includes/session_security.php
+    sessionPromoteToAuthenticated();
     $_SESSION['ss_user_id'] = (int)$_SESSION['mfa_pending_ss_user_id'];
     $_SESSION['ss_user_email'] = $_SESSION['mfa_pending_ss_email'];
     $_SESSION['ss_user_name'] = $_SESSION['mfa_pending_ss_name'];

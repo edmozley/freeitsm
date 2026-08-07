@@ -21,6 +21,13 @@ COPY . /var/www/html/
 COPY docker/config.php /var/www/html/config.php
 COPY docker/db_config.php /var/www/html/db_config.php
 
+# Session cookie hardening. The image previously shipped no php.ini at all, so PHP's
+# compiled defaults applied — cookie_httponly=0, cookie_samesite="" and, worst of the
+# three, use_strict_mode=0, which makes PHP adopt an attacker-supplied session ID.
+# This base image is mod_php, which does NOT read .user.ini, so the file has to be
+# dropped into conf.d rather than relying on the copy in the app root.
+COPY docker/php.ini /usr/local/etc/php/conf.d/freeitsm.ini
+
 # Create directories for uploads, attachments, and encryption keys
 RUN mkdir -p /var/www/html/tickets/attachments \
     /var/www/html/change-management/attachments \

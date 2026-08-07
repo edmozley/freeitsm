@@ -7,6 +7,18 @@
  *        require_once 'includes/functions.php'; (from root folder)
  */
 
+// Session hardening helpers. Pulled in here rather than added to each of the ten
+// files that establish or change an identity, because every one of them already
+// includes this file — one require instead of ten, and a new sign-in path gets
+// sessionPromoteToAuthenticated() available without anyone having to remember.
+require_once __DIR__ . '/session_security.php';
+
+// Refuses a state-changing request declaring text/plain — the CORS-simple trick that
+// smuggles a JSON body past the preflight that would otherwise stop it. Runs on
+// include, for the same reason: 369 endpoints read php://input and none of them
+// check. See the file for why the rule is deliberately this narrow.
+require_once __DIR__ . '/request_guard.php';
+
 /**
  * Connect to MySQL database using PDO
  *

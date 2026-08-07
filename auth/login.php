@@ -310,6 +310,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     if ($trustedDeviceValid) {
                         // Trusted device — skip MFA, complete login directly
+                        // New identity, new session id: never carry on using the id the
+                        // browser arrived with, or anyone who could set it beforehand
+                        // shares the logged-in session. See includes/session_security.php.
+                        sessionPromoteToAuthenticated();
                         $_SESSION['analyst_id'] = $analyst['id'];
                         $_SESSION['analyst_username'] = $analyst['username'];
                         $_SESSION['analyst_name'] = $analyst['full_name'];
@@ -346,6 +350,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $mfa_required = true;
                 } else {
                     // No MFA - complete login directly
+                    sessionPromoteToAuthenticated();   // rotate the session id — see above
                     $_SESSION['analyst_id'] = $analyst['id'];
                     $_SESSION['analyst_username'] = $analyst['username'];
                     $_SESSION['analyst_name'] = $analyst['full_name'];

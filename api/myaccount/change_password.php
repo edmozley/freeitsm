@@ -65,6 +65,11 @@ try {
     // Clear password expired flag if set
     unset($_SESSION['password_expired']);
 
+    // Changing a password is often somebody's response to thinking they have been
+    // compromised. Without rotating the id here, the session an attacker already
+    // holds survives the very action taken to shut them out.
+    sessionPromoteToAuthenticated();
+
     echo json_encode(['success' => true, 'message' => 'Password changed successfully']);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

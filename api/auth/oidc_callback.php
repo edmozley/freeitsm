@@ -158,6 +158,7 @@ try {
     $conn->prepare("UPDATE analysts SET last_login_datetime = UTC_TIMESTAMP(), failed_login_count = 0 WHERE id = ?")
          ->execute([$analystId]);
 
+    sessionPromoteToAuthenticated();   // rotate the session id — see includes/session_security.php
     $_SESSION['analyst_id']       = $analystId;
     $_SESSION['analyst_username'] = $analyst['username'];
     $_SESSION['analyst_name']     = $analyst['full_name'];
@@ -280,6 +281,7 @@ function completeSelfServiceSso(PDO $conn, array $provider, int $providerId, str
 
     // --- Success: set the self-service session (SSO bypasses local TOTP) ---
     $displayName = $user['preferred_name'] ?: $user['display_name'] ?: $user['email'];
+    sessionPromoteToAuthenticated();   // rotate the session id — see includes/session_security.php
     $_SESSION['ss_user_id']    = $userId;
     $_SESSION['ss_user_email'] = $user['email'];
     $_SESSION['ss_user_name']  = $displayName;

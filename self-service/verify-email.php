@@ -74,6 +74,7 @@ if ($token !== '' && preg_match('/^[0-9a-f]{64}$/i', $token)) {
                 $conn->prepare("DELETE FROM user_verification_tokens WHERE email = ?")->execute([$email]);
 
                 // Sign them in (same session shape as login/register).
+                sessionPromoteToAuthenticated();   // rotate the session id — see includes/session_security.php
                 $_SESSION['ss_user_id']    = $userId;
                 $_SESSION['ss_user_email'] = $email;
                 $_SESSION['ss_user_name']  = $row['display_name'] ?: $email;

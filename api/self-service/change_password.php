@@ -57,6 +57,10 @@ try {
     $updateStmt = $conn->prepare("UPDATE users SET password_hash = ? WHERE id = ?");
     $updateStmt->execute([$newHash, $userId]);
 
+    // Rotate the session id: a stolen session must not outlive the password change
+    // made to end it. See includes/session_security.php.
+    sessionPromoteToAuthenticated();
+
     echo json_encode(['success' => true, 'message' => 'Password changed successfully']);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => 'Failed to change password']);
