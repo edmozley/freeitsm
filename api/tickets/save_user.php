@@ -98,16 +98,24 @@ try {
     }
 
     if ($id) {
-        if ($password !== '') {
-            $hash = password_hash($password, PASSWORD_BCRYPT);
-            $stmt = $conn->prepare("UPDATE users SET email = ?, display_name = ?, preferred_name = ?, password_hash = ? WHERE id = ?");
-            $stmt->execute([$emailOrNull, $displayName ?: null, $preferredName ?: null, $hash, $id]);
-        } else {
-            $stmt = $conn->prepare("UPDATE users SET email = ?, display_name = ?, preferred_name = ? WHERE id = ?");
-            $stmt->execute([$emailOrNull, $displayName ?: null, $preferredName ?: null, $id]);
-        }
-        if ($tenantSent) {
-            $conn->prepare("UPDATE users SET tenant_id = ? WHERE id = ?")->execute([$tenantId, $id]);
+        // ⚠️ An UPDATE used to write email, display_name and preferred_name
+        // unconditionally, so a request that simply did not mention a field WIPED it —
+        // absent read as "" read as NULL. Sending {"id":143,"display_name":"..."} silently
+        // deleted that person's email address, and for a portal account the address is
+        // how they sign in, so it deleted their access too. tenant_id already got this
+        // right with array_key_exists ("absent means don't touch"); the other three now
+        // follow the same rule. Found by tripping over it while testing the F9 fix.
+        $sets = [];
+        $args = [];
+        if (array_key_exists('email', $data))          { $sets[] = 'email = ?';          $args[] = $emailOrNull; }
+        if (array_key_exists('display_name', $data))   { $sets[] = 'display_name = ?';   $args[] = $displayName ?: null; }
+        if (array_key_exists('preferred_name', $data)) { $sets[] = 'preferred_name = ?'; $args[] = $preferredName ?: null; }
+        if ($password !== '')                          { $sets[] = 'password_hash = ?';  $args[] = password_hash($password, PASSWORD_BCRYPT); }
+        if ($tenantSent)                               { $sets[] = 'tenant_id = ?';      $args[] = $tenantId; }
+
+        if ($sets) {
+            $args[] = $id;
+            $conn->prepare("UPDATE users SET " . implode(', ', $sets) . " WHERE id = ?")->execute($args);
         }
         echo json_encode(['success' => true, 'id' => $id, 'message' => 'User updated']);
     } else {

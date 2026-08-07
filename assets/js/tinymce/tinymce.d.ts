@@ -172,6 +172,7 @@ interface BlobInfoData {
     base64: string;
     blobUri?: string;
     uri?: string;
+    allowEmptyFile?: boolean;
 }
 interface BlobInfo {
     id: () => string;
@@ -558,7 +559,7 @@ interface DOMUtils {
     dispatch: (target: Node | Window, name: string, evt?: {}) => EventUtils;
     getContentEditable: (node: Node) => string | null;
     getContentEditableParent: (node: Node) => string | null;
-    isEditable: (node: Node | null | undefined) => boolean;
+    isEditable: (node: Node | null | undefined) => node is HTMLElement;
     destroy: () => void;
     isChildOf: (node: Node, parent: Node) => boolean;
     dumpRng: (r: Range) => string;
@@ -683,6 +684,7 @@ interface DropZoneSpec extends FormComponentWithLabelSpec {
     buttonLabel?: string;
     allowedFileTypes?: string;
     allowedFileExtensions?: string[];
+    onInvalidFiles?: () => Promise<void>;
 }
 interface GridSpec {
     type: 'grid';
@@ -1129,6 +1131,7 @@ interface TabSpec {
 interface TabPanelSpec {
     type: 'tabpanel';
     tabs: TabSpec[];
+    dynamicHeight?: boolean;
 }
 type DialogDataItem = any;
 type DialogData = Record<string, DialogDataItem>;
@@ -2069,6 +2072,7 @@ interface BaseEditorOptions {
     allow_conditional_comments?: boolean;
     allow_html_data_urls?: boolean;
     allow_html_in_named_anchor?: boolean;
+    allow_noneditable?: boolean;
     allow_script_urls?: boolean;
     allow_svg_data_urls?: boolean;
     allow_unsafe_link_target?: boolean;
@@ -2098,6 +2102,7 @@ interface BaseEditorOptions {
     content_css_cors?: boolean;
     content_security_policy?: string;
     content_style?: string;
+    content_language?: string;
     content_langs?: ContentLanguage[];
     contextmenu?: string | string[] | false;
     contextmenu_never_use_native?: boolean;
@@ -2238,6 +2243,7 @@ interface BaseEditorOptions {
     submit_patch?: boolean;
     suffix?: string;
     user_id?: string;
+    content_id?: string;
     table_tab_navigation?: boolean;
     target?: HTMLElement;
     text_patterns?: RawPattern[] | false;
@@ -2269,6 +2275,7 @@ interface BaseEditorOptions {
     valid_elements?: string;
     valid_styles?: string | Record<string, string>;
     verify_html?: boolean;
+    view_show?: string;
     visual?: boolean;
     visual_anchor_class?: string;
     visual_table_class?: string;
@@ -2936,6 +2943,7 @@ interface Theme {
     getNotificationManagerImpl?: () => NotificationManagerImpl;
     getWindowManagerImpl?: () => WindowManagerImpl;
     getPromotionElement?: () => HTMLElement | null;
+    getSinkElement?: (type: 'dialog' | 'popup') => HTMLElement;
 }
 type ThemeManager = AddOnManager<void | Theme>;
 interface EditorConstructor {
@@ -3068,6 +3076,9 @@ declare class Editor implements EditorObservable {
     addVisual(elm?: HTMLElement): void;
     setEditableRoot(state: boolean): void;
     hasEditableRoot(): boolean;
+    announce(message: string, options?: {
+        assertive?: boolean;
+    }): void;
     remove(): void;
     destroy(automatic?: boolean): void;
     uploadImages(): Promise<UploadResult$1[]>;
@@ -3247,6 +3258,11 @@ type TextPatterns_d_InlineFormatPattern = InlineFormatPattern;
 declare namespace TextPatterns_d {
     export { TextPatterns_d_Pattern as Pattern, TextPatterns_d_RawPattern as RawPattern, TextPatterns_d_DynamicPatternsLookup as DynamicPatternsLookup, TextPatterns_d_RawDynamicPatternsLookup as RawDynamicPatternsLookup, TextPatterns_d_DynamicPatternContext as DynamicPatternContext, TextPatterns_d_BlockCmdPattern as BlockCmdPattern, TextPatterns_d_BlockPattern as BlockPattern, TextPatterns_d_BlockFormatPattern as BlockFormatPattern, TextPatterns_d_InlineCmdPattern as InlineCmdPattern, TextPatterns_d_InlinePattern as InlinePattern, TextPatterns_d_InlineFormatPattern as InlineFormatPattern, };
 }
+interface AriaAnnouncer {
+    readonly announce: (message: string, options?: {
+        assertive?: boolean;
+    }) => void;
+}
 interface Delay {
     setEditorInterval: (editor: Editor, callback: () => void, time?: number) => number;
     setEditorTimeout: (editor: Editor, callback: () => void, time?: number) => number;
@@ -3362,6 +3378,7 @@ interface TinyMCE extends EditorManager {
         BookmarkManager: BookmarkManagerNamespace;
         Selection: (dom: DOMUtils, win: Window, serializer: DomSerializer, editor: Editor) => EditorSelection;
         StyleSheetLoader: (documentOrShadowRoot: Document | ShadowRoot, settings: StyleSheetLoaderSettings) => StyleSheetLoader;
+        AriaAnnouncer: AriaAnnouncer;
         Event: EventUtils;
     };
     html: {
