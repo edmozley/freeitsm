@@ -1,4 +1,27 @@
-# Uploaded content. NEVER executed — see includes/uploads.php.
+# Uploaded content. NEVER executed, and never served directly.
+#
+# Everything in here reaches a browser through api/tickets/get_attachment.php or
+# api/self-service/get_attachment.php, which authorise the request and choose the
+# Content-Type themselves. Nothing needs to be fetchable at its own URL, so the
+# whole directory is denied rather than only the extensions that look dangerous —
+# the old rule blocked .php but happily served .html and .svg from our own origin,
+# which is same-origin script execution by another route.
+#
+# ⚠️ This file only does anything on Apache. See web.config beside it for IIS, and
+# note that nginx has no in-directory equivalent at all: the defence that works on
+# every server is that includes/uploads.php names stored files itself, from its own
+# extension allow-list, so a .php can never be written here in the first place.
+
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>
+
+# Belt and braces for a server that ignores the deny above: even if something is
+# reachable, it must never run.
 php_flag engine off
 RemoveHandler .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py .jsp .asp .aspx .shtml
 RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py
@@ -11,12 +34,3 @@ RemoveType .php .phtml .php3 .php4 .php5 .php7 .php8 .phps .cgi .pl .py
 <IfModule mod_php5.c>
   php_flag engine off
 </IfModule>
-<FilesMatch "\.(php|phtml|php[0-9]|phps|cgi|pl|py|jsp|asp|aspx|sh|shtml|htaccess)$">
-  <IfModule mod_authz_core.c>
-    Require all denied
-  </IfModule>
-  <IfModule !mod_authz_core.c>
-    Order allow,deny
-    Deny from all
-  </IfModule>
-</FilesMatch>

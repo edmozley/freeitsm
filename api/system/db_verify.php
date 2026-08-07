@@ -8,6 +8,7 @@ require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/setup_state.php';
 require_once '../../includes/encryption.php';   // seeds + migrates secret settings
+require_once '../../includes/uploads.php';      // ATTACHMENT_QUARANTINE_EXT
 
 header('Content-Type: application/json');
 
@@ -1087,6 +1088,13 @@ try {
             // would let anyone post ratings on behalf of users, so it stays in system_settings
             // rather than going to a public file or being printed in error pages.
             'csat_token_secret'                => bin2hex(random_bytes(32)),
+            // What to do with an inbound attachment whose type we do not accept
+            // (see includes/uploads.php). 'store' keeps it under a name of our own
+            // with an inert .bin extension, download-only; 'drop' does not write it
+            // at all. Either way the outcome is written onto the ticket, so a file
+            // never disappears silently. Defaults to keeping, because losing
+            // somebody's file is the worse surprise of the two.
+            'attachment_rejected_behaviour'   => 'store',
         ];
         // Secrets are seeded already encrypted. The whole block is best-effort: an
         // install that has no encryption key yet must still be able to build its
@@ -1134,6 +1142,51 @@ try {
                 $results[] = ['table' => 'system_settings', 'status' => 'warning',
                               'details' => ['Could not re-encrypt existing secrets: ' . $e->getMessage()]];
             }
+        }
+    }
+
+    // Attachments written before the ingest paths were fixed still carry the
+    // sender's own extension on disk — a real install had a .html sitting under
+    // tickets/attachments/. The new directory rules deny those on Apache and IIS and
+    // get_attachment.php forces a download, but nginx reads neither file, so the only
+    // way to be sure is to take the dangerous extension away. The displayed filename
+    // is a separate column and is untouched, so the attachment still downloads under
+    // the name the sender gave it. Idempotent: .bin files no longer match.
+    if ($tableExists('email_attachments') && $colExists('email_attachments', 'file_path')) {
+        try {
+            $riskyExt = '[.](php|phtml|php[0-9]|phps|cgi|pl|py|jsp|asp|aspx|sh|shtml|htaccess|html|htm|svg|xhtml)$';
+            $risky = $conn->query("SELECT id, file_path FROM email_attachments WHERE file_path REGEXP '$riskyExt'")->fetchAll(PDO::FETCH_ASSOC);
+            $renamed = 0;
+            $missing = 0;
+            $attachRoot = dirname(dirname(__DIR__)) . '/tickets/attachments/';
+            $updPath = $conn->prepare("UPDATE email_attachments SET file_path = ? WHERE id = ?");
+            foreach ($risky as $att) {
+                $rel = (string)$att['file_path'];
+                $newRel = preg_replace('/\.[^.\/\\\\]+$/', '.' . ATTACHMENT_QUARANTINE_EXT, $rel);
+                if ($newRel === null || $newRel === $rel) continue;
+
+                $oldAbs = $attachRoot . $rel;
+                $newAbs = $attachRoot . $newRel;
+                if (!file_exists($oldAbs)) {
+                    // Row points at a file that is already gone — still worth
+                    // correcting the path so nothing re-derives an extension from it.
+                    $updPath->execute([$newRel, $att['id']]);
+                    $missing++;
+                    continue;
+                }
+                if (@rename($oldAbs, $newAbs)) {
+                    $updPath->execute([$newRel, $att['id']]);
+                    $renamed++;
+                }
+            }
+            if ($renamed > 0 || $missing > 0) {
+                $detail = "Renamed $renamed existing attachment(s) with an executable or web extension to ." . ATTACHMENT_QUARANTINE_EXT;
+                if ($missing > 0) $detail .= " ($missing row(s) had no file on disk)";
+                $results[] = ['table' => 'email_attachments', 'status' => 'migrated', 'details' => [$detail]];
+            }
+        } catch (Exception $e) {
+            $results[] = ['table' => 'email_attachments', 'status' => 'warning',
+                          'details' => ['Could not rename legacy attachments: ' . $e->getMessage()]];
         }
     }
 

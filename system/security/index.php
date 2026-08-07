@@ -264,6 +264,25 @@ $translationNamespaces = ['common', 'system'];
                 </div>
             </div>
 
+            <!-- Attachments -->
+            <div class="settings-card">
+                <h3><?php echo htmlspecialchars(t('system.security.attachments_heading')); ?></h3>
+                <p class="card-desc"><?php echo htmlspecialchars(t('system.security.attachments_desc')); ?></p>
+                <div class="setting-row">
+                    <div class="setting-label">
+                        <strong><?php echo htmlspecialchars(t('system.security.rejected_behaviour')); ?></strong>
+                        <?php echo htmlspecialchars(t('system.security.rejected_behaviour_hint')); ?>
+                    </div>
+                    <select class="setting-input" id="attachmentRejectedBehaviour">
+                        <option value="store"><?php echo htmlspecialchars(t('system.security.rejected_store')); ?></option>
+                        <option value="drop"><?php echo htmlspecialchars(t('system.security.rejected_drop')); ?></option>
+                    </select>
+                </div>
+                <div class="info-note">
+                    <?php echo htmlspecialchars(t('system.security.rejected_note')); ?>
+                </div>
+            </div>
+
             <div class="save-area">
                 <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('system.security.save')); ?></button>
             </div>
@@ -290,6 +309,7 @@ $translationNamespaces = ['common', 'system'];
                 document.getElementById('lockoutDuration').value = s.lockout_duration_minutes || '30';
                 document.getElementById('maxIpAttempts').value = s.max_ip_attempts || '5';
                 document.getElementById('minIpAttempts').value = s.min_ip_attempts || '2';
+                document.getElementById('attachmentRejectedBehaviour').value = s.attachment_rejected_behaviour || 'store';
             }
         } catch (e) {
             console.error('Failed to load settings', e);
@@ -308,7 +328,8 @@ $translationNamespaces = ['common', 'system'];
             max_failed_logins: document.getElementById('maxFailedLogins').value,
             lockout_duration_minutes: document.getElementById('lockoutDuration').value,
             max_ip_attempts: document.getElementById('maxIpAttempts').value,
-            min_ip_attempts: document.getElementById('minIpAttempts').value
+            min_ip_attempts: document.getElementById('minIpAttempts').value,
+            attachment_rejected_behaviour: document.getElementById('attachmentRejectedBehaviour').value
         };
 
         try {

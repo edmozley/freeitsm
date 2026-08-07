@@ -12,6 +12,7 @@ require_once '../../includes/tenancy.php';
 require_once '../../includes/ticket_reply.php';
 require_once '../../includes/ticket_snooze.php';
 require_once '../../includes/mailbox_graph.php';
+require_once '../../includes/uploads.php';   // uploadStoreBytes() — see F1
 
 header('Content-Type: application/json');
 
@@ -855,53 +856,60 @@ function saveAttachment($conn, $dbEmailId, $attachment) {
     }
 
     $fileData = base64_decode($contentBytes);
-    $fileSize = strlen($fileData);
 
     $attachmentsDir = dirname(dirname(__DIR__)) . '/tickets/attachments';
-    if (!is_dir($attachmentsDir)) {
-        mkdir($attachmentsDir, 0755, true);
-    }
-
-    $subDir = floor($dbEmailId / 1000);
+    $subDir   = floor($dbEmailId / 1000);
     $emailDir = $attachmentsDir . '/' . $subDir . '/' . $dbEmailId;
-    if (!is_dir($emailDir)) {
-        mkdir($emailDir, 0755, true);
+
+    // ⚠️ This is the least authenticated path in the application — anyone who can
+    // send an email reaches it. It used to write the sender's own filename into the
+    // web root after only stripping the characters that make a path separator, so
+    // shell.php survived intact. uploadStoreBytes() applies the extension and
+    // content checks and, crucially, names the file itself.
+    $stored = uploadStoreBytes(
+        $fileData,
+        $filename,
+        $emailDir,
+        attachmentRejectPolicy($conn)
+    );
+
+    if (!$stored['stored']) {
+        // Not written. Reported to the caller so the ingest can note it on the
+        // ticket rather than losing the file in silence.
+        return [
+            'id'         => null,
+            'content_id' => $contentId,
+            'filename'   => $stored['original_name'],
+            'rejected'   => true,
+            'reason'     => $stored['reason'],
+        ];
     }
 
-    $safeFilename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
-    $filePath = $subDir . '/' . $dbEmailId . '/' . $safeFilename;
-    $fullPath = $attachmentsDir . '/' . $filePath;
-
-    $counter = 1;
-    $pathInfo = pathinfo($safeFilename);
-    while (file_exists($fullPath)) {
-        $newFilename = $pathInfo['filename'] . '_' . $counter . '.' . ($pathInfo['extension'] ?? '');
-        $filePath = $subDir . '/' . $dbEmailId . '/' . $newFilename;
-        $fullPath = $attachmentsDir . '/' . $filePath;
-        $counter++;
-    }
-
-    if (file_put_contents($fullPath, $fileData) === false) {
-        throw new Exception('Failed to save attachment file: ' . $filename);
-    }
+    $filePath = $subDir . '/' . $dbEmailId . '/' . $stored['stored_name'];
 
     $sql = "INSERT INTO email_attachments (
         email_id, exchange_attachment_id, filename, content_type,
         content_id, file_path, file_size, is_inline
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
+    // filename keeps the sender's name for DISPLAY only — the path above is ours.
+    // content_type is the type we detected from the bytes, not the one the sender
+    // declared on the MIME part; nothing downstream should ever trust theirs.
     $stmt = $conn->prepare($sql);
     $stmt->execute([
-        $dbEmailId, $attachmentId, $filename, $contentType,
-        $contentId, $filePath, $fileSize, $isInline ? 1 : 0
+        $dbEmailId, $attachmentId, $stored['original_name'], $stored['mime'],
+        $contentId, $filePath, $stored['size'], $isInline ? 1 : 0
     ]);
 
     $dbAttachmentId = $conn->lastInsertId();
 
     return [
-        'id' => $dbAttachmentId,
-        'content_id' => $contentId,
-        'filename' => $filename
+        'id'          => $dbAttachmentId,
+        'content_id'  => $contentId,
+        'filename'    => $stored['original_name'],
+        'rejected'    => false,
+        'quarantined' => $stored['quarantined'],
+        'reason'      => $stored['reason'],
     ];
 }
 
@@ -1089,32 +1097,46 @@ function saveEmailToDatabase($conn, $email, $accessToken, $mailboxId) {
                 ? $preloadedAttachments
                 : fetchEmailAttachments($accessToken, $providerMessageId);
             $savedAttachments = [];
+            $rejectedAttachments = [];
+            $quarantinedAttachments = [];
 
             foreach ($graphAttachments as $attachment) {
                 if (($attachment['@odata.type'] ?? '') === '#microsoft.graph.fileAttachment') {
                     $savedAttachment = saveAttachment($conn, $dbEmailId, $attachment);
-                    if ($savedAttachment) {
-                        $savedAttachments[] = $savedAttachment;
-                        // Collect attachment info for logging (only non-inline for the log)
-                        $isInline = $attachment['isInline'] ?? false;
-                        if (!$isInline) {
-                            $attachmentInfo[] = [
-                                'name' => $attachment['name'] ?? 'unknown',
-                                'type' => $attachment['contentType'] ?? 'unknown',
-                                'size' => $attachment['size'] ?? 0
-                            ];
-                        }
+                    if (!$savedAttachment) continue;
+
+                    // A file we would not store is reported, never dropped silently —
+                    // the sender is a person who thinks they attached something.
+                    if (!empty($savedAttachment['rejected'])) {
+                        $rejectedAttachments[] = ['name' => $savedAttachment['filename'], 'reason' => $savedAttachment['reason']];
+                        continue;
+                    }
+                    if (!empty($savedAttachment['quarantined'])) {
+                        $quarantinedAttachments[] = ['name' => $savedAttachment['filename'], 'reason' => $savedAttachment['reason']];
+                    }
+
+                    $savedAttachments[] = $savedAttachment;
+                    // Collect attachment info for logging (only non-inline for the log)
+                    $isInline = $attachment['isInline'] ?? false;
+                    if (!$isInline) {
+                        $attachmentInfo[] = [
+                            'name' => $attachment['name'] ?? 'unknown',
+                            'type' => $attachment['contentType'] ?? 'unknown',
+                            'size' => $attachment['size'] ?? 0
+                        ];
                     }
                 }
             }
 
-            if (!empty($savedAttachments)) {
-                $rewrittenBody = rewriteCidReferences($bodyContent, $dbEmailId, $savedAttachments);
+            $ingestNotice = attachmentIngestNotice($rejectedAttachments, $quarantinedAttachments);
+
+            if (!empty($savedAttachments) || $ingestNotice !== '') {
+                $rewrittenBody = rewriteCidReferences($bodyContent, $dbEmailId, $savedAttachments) . $ingestNotice;
 
                 // Update body content and ensure has_attachments is set to true
-                $updateSql = "UPDATE emails SET body_content = ?, has_attachments = 1 WHERE id = ?";
+                $updateSql = "UPDATE emails SET body_content = ?, has_attachments = ? WHERE id = ?";
                 $updateStmt = $conn->prepare($updateSql);
-                $updateStmt->execute([$rewrittenBody, $dbEmailId]);
+                $updateStmt->execute([$rewrittenBody, !empty($savedAttachments) ? 1 : 0, $dbEmailId]);
             }
         } catch (Exception $e) {
             error_log('Failed to process attachments for email ' . $emailId . ': ' . $e->getMessage());

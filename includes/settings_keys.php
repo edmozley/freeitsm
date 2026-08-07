@@ -99,6 +99,9 @@ function settingKeyOwners(): array
         'max_ip_attempts'          => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
         'min_ip_attempts'          => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
         'lockout_duration_minutes' => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
+        // What happens to an inbound attachment whose type we do not accept —
+        // keep it inert, or do not keep it. See includes/uploads.php.
+        'attachment_rejected_behaviour' => ['module' => 'system', 'cap' => null, 'tab' => 'security'],
 
         // --- System: SSO area ---
         'sso_enabled'              => ['module' => 'system', 'cap' => null, 'tab' => 'sso'],

@@ -9,6 +9,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/html_sanitise.php';
 require_once '../../includes/ticket_recordings.php';
+require_once '../../includes/uploads.php';   // uploadStoreBytes() — see F1
 
 header('Content-Type: application/json');
 
@@ -160,27 +161,39 @@ try {
              VALUES (?, ?, ?, ?, ?, 0, UTC_TIMESTAMP())"
         );
 
+        // ⚠️ The name and the declared type both come from the portal user. They
+        // used to be written into the web root as-is, minus path separators, so
+        // shell.php survived. uploadStoreBytes() checks the extension AND the bytes
+        // and names the stored file itself; the sender's name is kept for display
+        // only, and the type recorded is the one we detected.
+        $policy = attachmentRejectPolicy($conn);
+        $rejected = [];
+        $quarantined = [];
+        $storedAny = false;
+
         foreach ($inputAttachments as $att) {
-            $filename = preg_replace('/[^a-zA-Z0-9._\-]/', '_', $att['name'] ?? 'file');
             $fileData = base64_decode($att['content'] ?? '');
-            $fileSize = strlen($fileData);
+            $stored = uploadStoreBytes($fileData, (string)($att['name'] ?? 'file'), $emailDir, $policy);
 
-            // Handle duplicate filenames
-            $savePath = $emailDir . '/' . $filename;
-            $counter = 1;
-            $info = pathinfo($filename);
-            while (file_exists($savePath)) {
-                $filename = $info['filename'] . '_' . $counter . '.' . ($info['extension'] ?? '');
-                $savePath = $emailDir . '/' . $filename;
-                $counter++;
+            if (!$stored['stored']) {
+                $rejected[] = ['name' => $stored['original_name'], 'reason' => $stored['reason']];
+                continue;
             }
+            if ($stored['quarantined']) {
+                $quarantined[] = ['name' => $stored['original_name'], 'reason' => $stored['reason']];
+            }
+            $storedAny = true;
 
-            file_put_contents($savePath, $fileData);
+            $relPath = $subdir . '/' . $emailId . '/' . $stored['stored_name'];
+            $attachStmt->execute([$emailId, $stored['original_name'], $stored['mime'], $relPath, $stored['size']]);
+        }
 
-            $relPath = $subdir . '/' . $emailId . '/' . $filename;
-            $contentType = $att['type'] ?? 'application/octet-stream';
-
-            $attachStmt->execute([$emailId, $filename, $contentType, $relPath, $fileSize]);
+        // Say so on the ticket rather than letting a file disappear between the
+        // customer pressing Send and an analyst reading it.
+        $notice = attachmentIngestNotice($rejected, $quarantined);
+        if ($notice !== '' || !$storedAny) {
+            $conn->prepare("UPDATE emails SET body_content = CONCAT(body_content, ?), has_attachments = ? WHERE id = ?")
+                 ->execute([$notice, $storedAny ? 1 : 0, $emailId]);
         }
     }
 

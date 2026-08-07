@@ -15,6 +15,7 @@ require_once __DIR__ . '/messaging.php';
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../ticket_reply.php';
 require_once __DIR__ . '/../ticket_snooze.php';
+require_once __DIR__ . '/../uploads.php';   // uploadStoreBytes() — see F1
 
 /**
  * Ingest one normalised inbound message for a (decrypted) channel row.
@@ -138,19 +139,29 @@ function ingestInboundMessage(PDO $conn, array $channel, array $msg): array
     // in the reading pane's attachment bar like any email attachment).
     if ($hasMedia) {
         $saved = 0;
+        $mediaRejected = [];
+        $mediaQuarantined = [];
         try {
             $provider = messagingProvider($channel);
             foreach ($mediaItems as $mediaItem) {
                 try {
                     $dl = $provider->downloadMedia($mediaItem);
                     if (!empty($dl['data'])) {
-                        saveChannelMediaAttachment(
+                        $name = $dl['filename'] ?? 'media';
+                        $outcome = saveChannelMediaAttachment(
                             $conn, $dbEmailId,
-                            $dl['filename'] ?? 'media',
+                            $name,
                             $dl['content_type'] ?? 'application/octet-stream',
                             $dl['data']
                         );
-                        $saved++;
+                        if ($outcome['stored']) {
+                            $saved++;
+                            if ($outcome['reason'] !== null) {
+                                $mediaQuarantined[] = ['name' => $name, 'reason' => $outcome['reason']];
+                            }
+                        } else {
+                            $mediaRejected[] = ['name' => $name, 'reason' => $outcome['reason']];
+                        }
                     }
                 } catch (Exception $e) {
                     error_log('channel media download failed (email ' . $dbEmailId . '): ' . $e->getMessage());
@@ -160,11 +171,19 @@ function ingestInboundMessage(PDO $conn, array $channel, array $msg): array
             error_log('channel media: provider unavailable: ' . $e->getMessage());
         }
 
+        // A file we refused is a different thing from one we could not fetch, and the
+        // analyst needs to be able to tell them apart.
+        $mediaNotice = attachmentIngestNotice($mediaRejected, $mediaQuarantined);
+
         if ($saved > 0) {
             $conn->prepare("UPDATE emails SET has_attachments = 1 WHERE id = ?")->execute([$dbEmailId]);
+            if ($mediaNotice !== '') {
+                $conn->prepare("UPDATE emails SET body_content = CONCAT(body_content, ?) WHERE id = ?")
+                     ->execute([$mediaNotice, $dbEmailId]);
+            }
         } else {
-            // Couldn't fetch it — leave a marker so the analyst knows media was sent.
-            $note = '[media attachment could not be downloaded]';
+            // Nothing stored: either we refused it, or we couldn't fetch it at all.
+            $note = $mediaNotice !== '' ? $mediaNotice : '[media attachment could not be downloaded]';
             $newBody = ($body === '' || $body === '[empty message]') ? $note : ($body . "\n\n" . $note);
             $conn->prepare("UPDATE emails SET body_content = ? WHERE id = ?")->execute([$newBody, $dbEmailId]);
         }
@@ -359,40 +378,32 @@ function messagingGenerateTicketNumber(PDO $conn): string
  * convention as email attachments (tickets/attachments/{floor(id/1000)}/{emailId}/…),
  * so get_ticket_attachments.php and the reading-pane attachment bar pick it up.
  */
-function saveChannelMediaAttachment(PDO $conn, int $emailId, string $filename, string $contentType, string $data): void
+/** @return array{stored:bool, reason:?string} — reason is set when the file was rejected or quarantined. */
+function saveChannelMediaAttachment(PDO $conn, int $emailId, string $filename, string $contentType, string $data): array
 {
     $attachmentsDir = dirname(dirname(__DIR__)) . '/tickets/attachments';
-    if (!is_dir($attachmentsDir)) {
-        mkdir($attachmentsDir, 0755, true);
-    }
-    $subDir = floor($emailId / 1000);
+    $subDir   = floor($emailId / 1000);
     $emailDir = $attachmentsDir . '/' . $subDir . '/' . $emailId;
-    if (!is_dir($emailDir)) {
-        mkdir($emailDir, 0755, true);
+
+    // ⚠️ Media arrives from WhatsApp / web chat / Slack with a filename the SENDER
+    // controls, and this wrote it into the web root after only replacing the
+    // characters that make a path separator — so shell.php came through whole. The
+    // report listed three ingest paths for this; this is a fourth with the same
+    // shape. uploadStoreBytes() checks the extension AND the bytes, and picks the
+    // name on disk itself.
+    $stored = uploadStoreBytes($data, $filename, $emailDir, attachmentRejectPolicy($conn));
+
+    if (!$stored['stored']) {
+        return ['stored' => false, 'reason' => $stored['reason']];   // caller notes it on the ticket
     }
 
-    $safeFilename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
-    if ($safeFilename === '' || $safeFilename[0] === '.') {
-        $safeFilename = 'media' . $safeFilename;
-    }
-    $filePath = $subDir . '/' . $emailId . '/' . $safeFilename;
-    $fullPath = $attachmentsDir . '/' . $filePath;
+    $filePath = $subDir . '/' . $emailId . '/' . $stored['stored_name'];
 
-    // De-dup the filename if it already exists.
-    $counter = 1;
-    $pi = pathinfo($safeFilename);
-    while (file_exists($fullPath)) {
-        $newName = $pi['filename'] . '_' . $counter . (isset($pi['extension']) ? '.' . $pi['extension'] : '');
-        $filePath = $subDir . '/' . $emailId . '/' . $newName;
-        $fullPath = $attachmentsDir . '/' . $filePath;
-        $counter++;
-    }
-
-    if (file_put_contents($fullPath, $data) === false) {
-        throw new Exception('Failed to write media file: ' . $filename);
-    }
-
+    // filename is the sender's, for display only. content_type is what we detected
+    // from the bytes, not what the provider claimed.
     $sql = "INSERT INTO email_attachments (email_id, exchange_attachment_id, filename, content_type, content_id, file_path, file_size, is_inline)
             VALUES (?, NULL, ?, ?, NULL, ?, ?, 0)";
-    $conn->prepare($sql)->execute([$emailId, $filename, $contentType, $filePath, strlen($data)]);
+    $conn->prepare($sql)->execute([$emailId, $stored['original_name'], $stored['mime'], $filePath, $stored['size']]);
+
+    return ['stored' => true, 'reason' => $stored['quarantined'] ? $stored['reason'] : null];
 }

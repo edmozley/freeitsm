@@ -137,6 +137,38 @@ function uploadPrepareDir(string $dir): void
         throw new Exception('The upload folder could not be created.');
     }
 
+    // ⚠️ .htaccess ONLY exists on Apache. nginx ignores it entirely and IIS has
+    // never read it, and the README supports "Apache or any PHP-capable server" —
+    // so on two of the three this directory had no protection at all. A web.config
+    // covers IIS; nginx has no in-directory equivalent and must be configured by the
+    // operator, which is why gate 3 in uploadStoreFile/uploadStoreBytes matters most:
+    // a file that cannot be NAMED .php cannot be executed by any server.
+    $webConfig = rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . 'web.config';
+    if (!file_exists($webConfig)) {
+        // <handlers><clear/> removes the PHP handler so nothing here can execute;
+        // denyUrlSequences "." refuses any request for a file with an extension,
+        // which is every file in here. Served through PHP endpoints, never directly.
+        @file_put_contents($webConfig, <<<'IIS'
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Uploaded content. NEVER executed, never served directly — see includes/uploads.php. -->
+<configuration>
+  <system.webServer>
+    <handlers>
+      <clear />
+    </handlers>
+    <security>
+      <requestFiltering>
+        <denyUrlSequences>
+          <add sequence="." />
+        </denyUrlSequences>
+      </requestFiltering>
+    </security>
+  </system.webServer>
+</configuration>
+IIS
+        );
+    }
+
     $htaccess = rtrim($dir, '/\\') . DIRECTORY_SEPARATOR . '.htaccess';
     if (!file_exists($htaccess)) {
         // Covers Apache 2.2 and 2.4, mod_php and any handler-based PHP: turn the
@@ -323,4 +355,186 @@ function attachmentSendHeaders(string $filename, int $size): void
     header('Content-Disposition: ' . ($rules['inline'] ? 'inline' : 'attachment')
          . '; filename="' . $rules['filename'] . '"'
          . "; filename*=UTF-8''" . rawurlencode($rules['filename']));
+}
+
+/**
+ * ─── Ingested attachments (email, portal, chat channels) ─────────────────────
+ *
+ * ⚠️ WHY THIS EXISTS. Four ingest paths wrote attachments into the web root under
+ * the SENDER's own filename:
+ *
+ *   api/tickets/check_mailbox_email.php   inbound email — no authentication at all
+ *   api/self-service/create_ticket.php    portal user
+ *   api/self-service/reply_ticket.php     portal user
+ *   includes/messaging/ingest.php         WhatsApp / web chat / Slack media
+ *
+ * They ran the name through preg_replace('/[^a-zA-Z0-9._-]/', '_', …), which stops
+ * directory traversal but keeps the dot — so shell.php passed through unchanged,
+ * into a predictable path (floor($id/1000)/$id/$name) keyed on a small sequential
+ * integer. The only thing between that and remote code execution was
+ * tickets/attachments/.htaccess, and .htaccess does not exist on nginx or IIS, both
+ * of which the README supports. Even where PHP was blocked, .html and .svg were
+ * still served from our own origin, which is same-origin script execution.
+ *
+ * uploadStoreFile() already did the right thing but takes a $_FILES entry, and none
+ * of these four have one — they hold decoded bytes. This is that function's sibling:
+ * same three gates, same random stored name, for content already in memory.
+ */
+
+/** Keep the file but make it inert. */
+const ATTACHMENT_POLICY_STORE = 'store';
+/** Do not write the file; the caller notes the rejection on the ticket. */
+const ATTACHMENT_POLICY_DROP  = 'drop';
+
+/** The extension a quarantined file is stored under. Deliberately meaningless. */
+const ATTACHMENT_QUARANTINE_EXT = 'bin';
+
+/**
+ * Store ingested bytes safely, applying the install's policy for types we do not
+ * accept.
+ *
+ * Unlike uploadStoreFile() this does NOT throw when a file is disallowed: inbound
+ * email is not a user sitting in front of a form who can pick another file, and one
+ * odd attachment must never cost somebody their ticket. It reports what it did and
+ * lets the caller record it.
+ *
+ * @param string $policy ATTACHMENT_POLICY_STORE | ATTACHMENT_POLICY_DROP
+ * @return array{stored:bool, quarantined:bool, stored_name:?string, path:?string,
+ *               original_name:string, size:int, mime:string, reason:?string}
+ */
+function uploadStoreBytes(
+    string $bytes,
+    string $originalName,
+    string $destDir,
+    string $policy = ATTACHMENT_POLICY_STORE,
+    array $allowed = UPLOAD_TYPES_ATTACHMENT,
+    int $maxBytes = UPLOAD_MAX_BYTES
+): array {
+    $original = uploadCleanName($originalName);
+    $size     = strlen($bytes);
+    $mime     = uploadDetectMimeFromBytes($bytes) ?: 'application/octet-stream';
+
+    $result = [
+        'stored'        => false,
+        'quarantined'   => false,
+        'stored_name'   => null,
+        'path'          => null,
+        'original_name' => $original,
+        'size'          => $size,
+        'mime'          => $mime,
+        'reason'        => null,
+    ];
+
+    $ext = strtolower(pathinfo($original, PATHINFO_EXTENSION));
+
+    // Gate 1: an extension WE named. Gate 2: contents that match it. The same two
+    // gates as uploadStoreFile, and a failure of either means the same thing — we
+    // have nothing safe to store this as under its own name.
+    if ($size <= 0) {
+        $result['reason'] = 'the file was empty';
+    } elseif ($size > $maxBytes) {
+        $result['reason'] = 'it is larger than the ' . uploadFormatBytes($maxBytes) . ' limit';
+    } elseif ($ext === '' || !isset($allowed[$ext])) {
+        $result['reason'] = $ext === ''
+            ? 'it has no file extension'
+            : ($ext . ' files are not accepted');
+    } elseif (!in_array($mime, $allowed[$ext], true)) {
+        // uploadDetectMimeFromBytes returns null only when this server cannot tell,
+        // in which case $mime is octet-stream and this correctly refuses — gate 2
+        // fails closed rather than waving through what it could not check.
+        $result['reason'] = 'its contents do not match its ' . $ext . ' extension';
+    }
+
+    $accepted = $result['reason'] === null;
+
+    // An empty or oversized file is not worth keeping under any policy — there is
+    // nothing to quarantine and nothing a person could do with it.
+    if (!$accepted && ($size <= 0 || $size > $maxBytes)) {
+        return $result;
+    }
+    if (!$accepted && $policy === ATTACHMENT_POLICY_DROP) {
+        return $result;
+    }
+
+    uploadPrepareDir($destDir);
+
+    // Gate 3: the name on disk is OURS, and for a file we do not accept the
+    // extension is ours too. .bin is not something any server hands to an
+    // interpreter, and it is absent from ATTACHMENT_SERVE_TYPES as well, so the file
+    // can only ever come back out as an octet-stream download.
+    $storedExt  = $accepted ? $ext : ATTACHMENT_QUARANTINE_EXT;
+    $storedName = bin2hex(random_bytes(16)) . '.' . $storedExt;
+    $path       = rtrim($destDir, '/\\') . DIRECTORY_SEPARATOR . $storedName;
+
+    if (file_put_contents($path, $bytes) === false) {
+        $result['reason'] = 'it could not be written to disk';
+        return $result;
+    }
+    @chmod($path, 0644);
+
+    $result['stored']      = true;
+    $result['quarantined'] = !$accepted;
+    $result['stored_name'] = $storedName;
+    $result['path']        = $path;
+
+    return $result;
+}
+
+/** The real mime type of bytes held in memory, or null if this server cannot tell. */
+function uploadDetectMimeFromBytes(string $bytes): ?string
+{
+    if (class_exists('finfo')) {
+        $fi = new finfo(FILEINFO_MIME_TYPE);
+        $m  = @$fi->buffer($bytes);
+        if (is_string($m) && $m !== '') return $m;
+    }
+    return null;
+}
+
+/**
+ * The install's policy for an attachment whose type we do not accept.
+ *
+ * A setting rather than a decision made here, because both answers are defensible:
+ * keeping the file loses nothing and an analyst can still look at it out of band,
+ * while dropping it means the estate never stores content it has declared it does
+ * not want. Defaults to keeping, because silently losing somebody's file is the
+ * worse surprise.
+ */
+function attachmentRejectPolicy(PDO $conn): string
+{
+    static $cached = null;
+    if ($cached !== null) return $cached;
+    try {
+        $stmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'attachment_rejected_behaviour'");
+        $stmt->execute();
+        $v = (string)$stmt->fetchColumn();
+    } catch (Exception $e) {
+        $v = '';   // table not migrated yet — fall through to the default
+    }
+    return $cached = ($v === ATTACHMENT_POLICY_DROP ? ATTACHMENT_POLICY_DROP : ATTACHMENT_POLICY_STORE);
+}
+
+/**
+ * The block appended to a message body when attachments were not accepted, so the
+ * outcome is visible on the ticket instead of a file quietly vanishing.
+ * Returns '' when there is nothing to say.
+ */
+function attachmentIngestNotice(array $rejected, array $quarantined): string
+{
+    $parts = [];
+    foreach ($rejected as $r) {
+        $parts[] = '<li>' . htmlspecialchars($r['name'], ENT_QUOTES, 'UTF-8')
+                 . ' — not saved, because ' . htmlspecialchars($r['reason'], ENT_QUOTES, 'UTF-8') . '.</li>';
+    }
+    foreach ($quarantined as $q) {
+        $parts[] = '<li>' . htmlspecialchars($q['name'], ENT_QUOTES, 'UTF-8')
+                 . ' — kept, but ' . htmlspecialchars($q['reason'], ENT_QUOTES, 'UTF-8')
+                 . ', so it can only be downloaded, never opened in the browser.</li>';
+    }
+    if (!$parts) return '';
+
+    return '<div style="margin-top:16px;padding:10px 14px;border-left:3px solid #d97706;background:#fffbeb;'
+         . 'color:#78350f;font-size:13px;">FreeITSM did not accept '
+         . (count($parts) === 1 ? 'an attachment' : 'some attachments') . ' on this message:<ul style="margin:6px 0 0 18px;">'
+         . implode('', $parts) . '</ul></div>';
 }

@@ -21,6 +21,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/ticket_reply.php';
 require_once '../../includes/ticket_snooze.php';
 require_once '../../includes/ticket_recordings.php';
+require_once '../../includes/uploads.php';   // uploadStoreBytes() — see F1
 
 header('Content-Type: application/json');
 
@@ -145,26 +146,35 @@ try {
              VALUES (?, ?, ?, ?, ?, 0, UTC_TIMESTAMP())"
         );
 
+        // ⚠️ Same fix as create_ticket.php: the name and declared type are the portal
+        // user's, and were previously written into the web root as-is. See F1 and
+        // includes/uploads.php.
+        $policy = attachmentRejectPolicy($conn);
+        $rejected = [];
+        $quarantined = [];
+        $storedAny = false;
+
         foreach ($inputAttachments as $att) {
-            $filename = preg_replace('/[^a-zA-Z0-9._\-]/', '_', $att['name'] ?? 'file');
             $fileData = base64_decode($att['content'] ?? '');
-            $fileSize = strlen($fileData);
+            $stored = uploadStoreBytes($fileData, (string)($att['name'] ?? 'file'), $emailDir, $policy);
 
-            $savePath = $emailDir . '/' . $filename;
-            $counter  = 1;
-            $info     = pathinfo($filename);
-            while (file_exists($savePath)) {
-                $filename = $info['filename'] . '_' . $counter . '.' . ($info['extension'] ?? '');
-                $savePath = $emailDir . '/' . $filename;
-                $counter++;
+            if (!$stored['stored']) {
+                $rejected[] = ['name' => $stored['original_name'], 'reason' => $stored['reason']];
+                continue;
             }
+            if ($stored['quarantined']) {
+                $quarantined[] = ['name' => $stored['original_name'], 'reason' => $stored['reason']];
+            }
+            $storedAny = true;
 
-            file_put_contents($savePath, $fileData);
+            $relPath = $subdir . '/' . $emailId . '/' . $stored['stored_name'];
+            $attachStmt->execute([$emailId, $stored['original_name'], $stored['mime'], $relPath, $stored['size']]);
+        }
 
-            $relPath     = $subdir . '/' . $emailId . '/' . $filename;
-            $contentType = $att['type'] ?? 'application/octet-stream';
-
-            $attachStmt->execute([$emailId, $filename, $contentType, $relPath, $fileSize]);
+        $notice = attachmentIngestNotice($rejected, $quarantined);
+        if ($notice !== '' || !$storedAny) {
+            $conn->prepare("UPDATE emails SET body_content = CONCAT(body_content, ?), has_attachments = ? WHERE id = ?")
+                 ->execute([$notice, $storedAny ? 1 : 0, $emailId]);
         }
     }
 

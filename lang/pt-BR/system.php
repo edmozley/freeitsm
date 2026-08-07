@@ -502,6 +502,14 @@ return [
         'ipban_example_strong' => 'Exemplo:',
         'ipban_example_text'   => 'Com máximo 5 e mínimo 2, o primeiro banimento dispara após 5 tentativas falhas, o segundo após 4, depois 3, depois 2. Permanece em 2 para cada banimento subsequente. Apenas tentativas contra nomes de usuário inexistentes ou contas já bloqueadas contam.',
 
+        'attachments_heading'       => 'Anexos',
+        'attachments_desc'          => 'O FreeITSM só aceita tipos de anexo que reconhece. Qualquer outra coisa — um programa, um script, uma página web — nunca é armazenada com o próprio nome, então não pode ser executada.',
+        'rejected_behaviour'        => 'Quando um tipo de arquivo não é aceito',
+        'rejected_behaviour_hint'   => 'Vale para e-mail, portal e canais de chat.',
+        'rejected_store'            => 'Manter, apenas para download',
+        'rejected_drop'             => 'Não manter',
+        'rejected_note'             => 'De qualquer forma, o chamado registra o que aconteceu e por quê, para que ninguém fique se perguntando onde foi parar o arquivo.',
+
         'unit_days'     => 'dias',
         'unit_attempts' => 'tentativas',
         'unit_minutes'  => 'minutos',

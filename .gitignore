@@ -107,18 +107,26 @@ uploads/*
 # never have shipped. A fresh clone therefore had no execution guard until the
 # first upload created one at runtime — which is exactly the window in which a
 # new install is least likely to notice.
+#
+# web.config is the IIS half of the same guard and has to ship for exactly the same
+# reason — .htaccess does nothing on IIS, so a clone deployed there had no directory
+# protection whatsoever until the first upload wrote one.
 change-management/attachments/*
 !change-management/attachments/.htaccess
+!change-management/attachments/web.config
 lms/content/*
 !lms/content/.htaccess
 tickets/attachments/*
 !tickets/attachments/.htaccess
+!tickets/attachments/web.config
 contracts/rfp-builder/uploads/*
 !contracts/rfp-builder/uploads/.htaccess
+!contracts/rfp-builder/uploads/web.config
 system/uploads/branding/*
 !system/uploads/branding/.htaccess
 recordings/*
 !recordings/.htaccess
+!recordings/web.config
 
 # ============================================
 # NODE MODULES (if you use npm/Node.js)

@@ -529,6 +529,14 @@ return [
         'ipban_example_strong' => 'Example:',
         'ipban_example_text'   => 'With max 5 and min 2, the first ban triggers after 5 failed attempts, the second after 4, then 3, then 2. It stays at 2 for every subsequent ban. Only attempts against non-existent usernames or already-locked accounts count.',
 
+        'attachments_heading'       => 'Attachments',
+        'attachments_desc'          => 'FreeITSM only accepts attachment types it recognises. Anything else — a program, a script, a web page — is never stored under its own name, so it cannot be run.',
+        'rejected_behaviour'        => 'When a file type is not accepted',
+        'rejected_behaviour_hint'   => 'Applies to email, the portal, and chat channels.',
+        'rejected_store'            => 'Keep it, download only',
+        'rejected_drop'             => 'Do not keep it',
+        'rejected_note'             => 'Either way the ticket says what happened and why, so nobody has to wonder where their file went.',
+
         'unit_days'     => 'days',
         'unit_attempts' => 'attempts',
         'unit_minutes'  => 'minutes',
