@@ -6,13 +6,38 @@
  */
 
 session_start();
-$_SESSION['setup_access'] = true;
 
 require_once __DIR__ . '/../includes/i18n.php';
+require_once __DIR__ . '/../includes/setup_state.php';
 I18n::initFromSession();
 
 $checks = [];
 $dbConnected = false;
+
+// This page used to open with `$_SESSION['setup_access'] = true;` — a privilege flag
+// handed to every anonymous visitor, which api/system/db_verify.php then accepted in
+// place of a login. Loading this page was therefore enough to run schema migrations
+// against a live database. The flag is gone; db_verify now asks the database directly
+// whether any analyst exists. See includes/setup_state.php.
+//
+// What remains here is a disclosure question. The checks below name absolute filesystem
+// paths, raw driver errors (which quote the host and username) and the default
+// credentials. All of that is exactly what an installer needs, and equally exactly what
+// an attacker would like, because this folder stays reachable until someone deletes it
+// and plenty of installs never do. So detail is shown only to someone entitled to it:
+// a fresh install, where nobody can log in yet and there is nothing to protect, or a
+// signed-in administrator. Everyone else gets the same checks with the specifics removed.
+$installUnprovisioned = false;
+$setupUnlocked        = false;
+
+/**
+ * Keep the diagnostic part of a PDO connection error, drop the reconnaissance.
+ * PDO reports e.g. "SQLSTATE[HY000] [1045] Access denied for user 'root'@'localhost'":
+ * the code is what tells an installer what to fix, the tail names the account and host.
+ */
+function setupSafeDbError(string $message): string {
+    return preg_match('/^SQLSTATE\[[^\]]+\](?:\s*\[\d+\])?/', $message, $m) ? $m[0] : '';
+}
 
 // 1. Check config.php exists
 $configPath = __DIR__ . '/../config.php';
@@ -29,13 +54,13 @@ if (file_exists($configPath)) {
     // 2. Check db_config.php exists
     if ($db_config_path) {
         if (file_exists($db_config_path)) {
-            $checks[] = ['name' => t('setup.checks.db_config'), 'status' => 'pass', 'detail' => $db_config_path];
+            $checks[] = ['name' => t('setup.checks.db_config'), 'status' => 'pass', 'detail' => $db_config_path, 'safe_detail' => t('setup.detail.found')];
 
             // Safe to include config.php now (require_once inside it will succeed)
             require_once $configPath;
             require_once __DIR__ . '/../includes/functions.php';
         } else {
-            $checks[] = ['name' => t('setup.checks.db_config'), 'status' => 'fail', 'detail' => t('setup.detail.db_config_not_found', ['path' => $db_config_path])];
+            $checks[] = ['name' => t('setup.checks.db_config'), 'status' => 'fail', 'detail' => t('setup.detail.db_config_not_found', ['path' => $db_config_path]), 'safe_detail' => t('setup.detail.db_config_not_found_masked')];
         }
     } else {
         $checks[] = ['name' => t('setup.checks.db_config'), 'status' => 'fail', 'detail' => t('setup.detail.db_config_path_unset')];
@@ -46,12 +71,28 @@ if (file_exists($configPath)) {
         try {
             $conn = connectToDatabase();
             $dbConnected = true;
+
+            // Now that we can reach the database we can settle who is looking. Note the
+            // deliberate asymmetry: no connection means we cannot prove this is a fresh
+            // install, so both flags stay false and the page shows the redacted view.
+            $installUnprovisioned = installIsUnprovisioned($conn);
+            $setupUnlocked = $installUnprovisioned
+                || (isset($_SESSION['analyst_id']) && analystIsAdmin($conn, (int)$_SESSION['analyst_id']));
+
             // Identify which driver connected
             $driverInfo = $conn->getAttribute(PDO::ATTR_DRIVER_NAME);
             $checks[] = ['name' => t('setup.checks.db_connection'), 'status' => 'pass', 'detail' => t('setup.detail.db_connected', ['driver' => $driverInfo])];
 
         } catch (Exception $e) {
-            $checks[] = ['name' => t('setup.checks.db_connection'), 'status' => 'fail', 'detail' => $e->getMessage()];
+            $safeError = setupSafeDbError($e->getMessage());
+            $checks[] = [
+                'name'        => t('setup.checks.db_connection'),
+                'status'      => 'fail',
+                'detail'      => $e->getMessage(),
+                // The SQLSTATE/driver code alone is the actionable half (1045 = bad
+                // credentials, 2002 = unreachable host) and names nobody.
+                'safe_detail' => trim($safeError . ' ' . t('setup.detail.db_error_masked')),
+            ];
         }
     } else {
         $checks[] = ['name' => t('setup.checks.db_connection'), 'status' => 'fail', 'detail' => t('setup.detail.db_constants_undefined')];
@@ -64,9 +105,9 @@ if (file_exists($configPath)) {
     }
     if (defined('ENCRYPTION_KEY_PATH')) {
         if (file_exists(ENCRYPTION_KEY_PATH)) {
-            $checks[] = ['name' => t('setup.checks.encryption_key'), 'status' => 'pass', 'detail' => ENCRYPTION_KEY_PATH];
+            $checks[] = ['name' => t('setup.checks.encryption_key'), 'status' => 'pass', 'detail' => ENCRYPTION_KEY_PATH, 'safe_detail' => t('setup.detail.found')];
         } else {
-            $checks[] = ['name' => t('setup.checks.encryption_key'), 'status' => 'warn', 'detail' => t('setup.detail.encryption_key_missing', ['path' => ENCRYPTION_KEY_PATH])];
+            $checks[] = ['name' => t('setup.checks.encryption_key'), 'status' => 'warn', 'detail' => t('setup.detail.encryption_key_missing', ['path' => ENCRYPTION_KEY_PATH]), 'safe_detail' => t('setup.detail.encryption_key_missing_masked')];
         }
     } else {
         $checks[] = ['name' => t('setup.checks.encryption_key'), 'status' => 'warn', 'detail' => t('setup.detail.encryption_key_undefined')];
@@ -104,13 +145,15 @@ if (file_exists($configPath)) {
         foreach (['CURLE_SSL_CACERT', 'CURLE_SSL_CACERT_BADFILE', 'CURLE_SSL_CONNECT_ERROR', 'CURLE_PEER_FAILED_VERIFICATION'] as $ce) {
             if (defined($ce)) { $certErrnos[] = constant($ce); }
         }
+        // {bundle} is an absolute path and {error} is a raw curl string that can carry
+        // one, so all three branches need a path-free twin for the redacted view.
         if ($sslOk) {
-            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_verified', ['bundle' => $bundle])];
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_verified', ['bundle' => $bundle]), 'safe_detail' => t('setup.detail.ssl_verified_masked')];
         } elseif (in_array($sslErrno, $certErrnos, true) || stripos($sslErr, 'certificate') !== false) {
-            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'fail', 'detail' => t('setup.detail.ssl_broken', ['error' => $sslErr]), 'help' => $sslHelp];
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'fail', 'detail' => t('setup.detail.ssl_broken', ['error' => $sslErr]), 'safe_detail' => t('setup.detail.ssl_broken_masked'), 'help' => $sslHelp];
         } else {
             // DNS / connection refused / timeout — inconclusive, don't cry wolf.
-            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_untested', ['error' => $sslErr]), 'help' => $sslHelp];
+            $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'warn', 'detail' => t('setup.detail.ssl_untested', ['error' => $sslErr]), 'safe_detail' => t('setup.detail.ssl_untested_masked'), 'help' => $sslHelp];
         }
     } else {
         $checks[] = ['name' => t('setup.checks.ssl_verify'), 'status' => 'pass', 'detail' => t('setup.detail.ssl_enabled')];
@@ -128,14 +171,16 @@ if (file_exists($configPath)) {
     $curlDisp = $curlCa ? ($curlCaOk ? $curlCa : t('setup.detail.ca_ini_missing', ['path' => $curlCa])) : t('setup.detail.ca_ini_none');
     $osslDisp = $osslCa ? ($osslCaOk ? $osslCa : t('setup.detail.ca_ini_missing', ['path' => $osslCa])) : t('setup.detail.ca_ini_none');
     $caIniDetail = t('setup.detail.ca_ini_status', ['curl' => $curlDisp, 'ossl' => $osslDisp]);
+    // php.ini paths are filesystem disclosure too, so each of these carries a
+    // path-free twin for the redacted view.
     if (($curlCa && !$curlCaOk) || ($osslCa && !$osslCaOk)) {
         // Set, but pointing at a file that isn't there — a real misconfiguration.
-        $checks[] = ['name' => t('setup.checks.ca_bundle_ini'), 'status' => 'warn', 'detail' => $caIniDetail . t('setup.detail.ca_ini_note_fix'), 'help' => $sslHelp];
+        $checks[] = ['name' => t('setup.checks.ca_bundle_ini'), 'status' => 'warn', 'detail' => $caIniDetail . t('setup.detail.ca_ini_note_fix'), 'safe_detail' => t('setup.detail.ca_ini_masked_broken'), 'help' => $sslHelp];
     } elseif ($curlCaOk && $osslCaOk) {
-        $checks[] = ['name' => t('setup.checks.ca_bundle_ini'), 'status' => 'pass', 'detail' => $caIniDetail];
+        $checks[] = ['name' => t('setup.checks.ca_bundle_ini'), 'status' => 'pass', 'detail' => $caIniDetail, 'safe_detail' => t('setup.detail.ca_ini_masked_ok')];
     } else {
         // Not set — fine, the app falls back to its bundled cert / the OS store.
-        $checks[] = ['name' => t('setup.checks.ca_bundle_ini'), 'status' => 'pass', 'detail' => $caIniDetail . t('setup.detail.ca_ini_note_fallback')];
+        $checks[] = ['name' => t('setup.checks.ca_bundle_ini'), 'status' => 'pass', 'detail' => $caIniDetail . t('setup.detail.ca_ini_note_fallback'), 'safe_detail' => t('setup.detail.ca_ini_masked_ok')];
     }
 
     // 5. Display errors
@@ -187,6 +232,20 @@ if (extension_loaded('imap')) {
     $checks[] = ['name' => t('setup.checks.php_extension_optional', ['ext' => 'imap']), 'status' => 'pass', 'detail' => t('setup.detail.extension_loaded')];
 } else {
     $checks[] = ['name' => t('setup.checks.php_extension_optional', ['ext' => 'imap']), 'status' => 'warn', 'detail' => t('setup.detail.imap_not_loaded')];
+}
+
+// Apply the redaction decided above. Done as a single pass over the finished list
+// rather than at each call site, because the entitlement isn't known until the
+// database connection has been attempted — which is itself one of the checks.
+// Statuses are untouched: an anonymous visitor still sees WHICH check failed, just
+// not the path, account or host involved.
+if (!$setupUnlocked) {
+    foreach ($checks as &$check) {
+        if (isset($check['safe_detail'])) {
+            $check['detail'] = $check['safe_detail'];
+        }
+    }
+    unset($check);
 }
 
 // Count results
@@ -358,6 +417,20 @@ $translationNamespaces = ['common', 'setup'];
             color: #333;
         }
 
+        /* Shown when the checks are running in redacted form, so nobody mistakes a
+           path-free "Found" for the whole answer. Informational blue, not a warning:
+           nothing is wrong, there is just less on screen than an administrator sees. */
+        .locked-notice {
+            margin-bottom: 20px;
+            padding: 12px 15px;
+            background: #e7f1ff;
+            border: 1px solid #b6d4fe;
+            border-radius: 6px;
+            font-size: 13px;
+            color: #084298;
+            text-align: center;
+        }
+
         .footer-warning {
             margin-top: 25px;
             padding: 15px;
@@ -394,6 +467,10 @@ $translationNamespaces = ['common', 'setup'];
             <h1><?= htmlspecialchars(t('setup.heading')) ?></h1>
         </div>
 
+        <?php if (!$setupUnlocked): ?>
+        <div class="locked-notice"><?= htmlspecialchars(t('setup.locked.notice')) ?></div>
+        <?php endif; ?>
+
         <div class="summary">
             <span class="summary-badge summary-pass"><?= htmlspecialchars(t('setup.summary.passed', ['n' => $passCount])) ?></span>
             <?php if ($warnCount > 0): ?>
@@ -421,7 +498,9 @@ $translationNamespaces = ['common', 'setup'];
             <?php endforeach; ?>
         </ul>
 
-        <?php if ($dbConnected): ?>
+        <?php /* Offered only to whoever the endpoint itself would accept — a fresh
+                 install or a signed-in administrator — so the button and the API agree. */ ?>
+        <?php if ($dbConnected && $setupUnlocked): ?>
         <div class="admin-section" id="dbVerifySection">
             <h2><?= htmlspecialchars(t('setup.db_verify.heading')) ?></h2>
             <p><?= htmlspecialchars(t('setup.db_verify.intro')) ?></p>
@@ -430,7 +509,10 @@ $translationNamespaces = ['common', 'setup'];
         </div>
         <?php endif; ?>
 
-        <?php if ($dbConnected): ?>
+        <?php /* The seeded password, in plain text. Shown only while the account it
+                 describes might still exist unclaimed — once any analyst has been
+                 created this block is no longer information, only a hint. */ ?>
+        <?php if ($dbConnected && $installUnprovisioned): ?>
         <div class="admin-section">
             <h2><?= htmlspecialchars(t('setup.login.heading')) ?></h2>
             <p><?= htmlspecialchars(t('setup.login.intro')) ?></p>

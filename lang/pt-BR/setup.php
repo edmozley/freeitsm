@@ -57,7 +57,23 @@ return [
         'extension_loaded'         => 'Carregada',
         'extension_not_loaded'     => 'Não carregada — ative em php.ini',
         'pdo_mysql_not_loaded'     => 'Não carregada — ative pdo_mysql em php.ini',
-        'imap_not_loaded'          => 'Não carregada — necessária apenas para caixas de correio IMAP/SMTP básicas. O PHP 8.4 não inclui mais esta extensão; instale-a via PECL se você usar uma.',
+        // Gêmeos sem caminho, exibidos no lugar dos detalhes acima quando a página não
+        // está sendo vista nem por uma instalação nova nem por um administrador
+        // autenticado. Mesmo veredicto, sem a estrutura de arquivos nem nomes de contas.
+        'db_config_not_found_masked'     => 'Não encontrado no caminho definido em config.php',
+        'ssl_verified_masked'            => 'Ativada e funcionando — uma requisição HTTPS de teste teve o certificado verificado',
+        'ssl_broken_masked'              => 'Ativada, mas o servidor não conseguiu verificar um certificado — chamadas HTTPS de saída (e-mail, IA, webhooks, login) irão falhar. Entre como administrador para ver o erro.',
+        'ssl_untested_masked'            => 'Ativada, mas não foi possível concluir uma requisição de teste, então a verificação não pôde ser confirmada.',
+        'db_error_masked'                => 'Não foi possível conectar — entre como administrador para ver o erro completo',
+        'encryption_key_missing_masked'  => 'Não encontrada — necessária para criptografar configurações sensíveis',
+        'ca_ini_masked_ok'               => 'Configurado',
+        'ca_ini_masked_broken'           => 'Definido, mas apontando para um arquivo que não existe — corrija o caminho ou comente a configuração no php.ini.',
+
+        'imap_not_loaded'          =>'Não carregada — necessária apenas para caixas de correio IMAP/SMTP básicas. O PHP 8.4 não inclui mais esta extensão; instale-a via PECL se você usar uma.',
+    ],
+
+    'locked' => [
+        'notice' => 'A instalação já está concluída, portanto caminhos, erros de conexão e credenciais estão ocultos. Entre como administrador para ver os detalhes completos.',
     ],
 
     'db_verify' => [

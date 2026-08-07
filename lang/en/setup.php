@@ -64,6 +64,22 @@ return [
         'extension_not_loaded'     => 'Not loaded — enable in php.ini',
         'pdo_mysql_not_loaded'     => 'Not loaded — enable pdo_mysql in php.ini',
         'imap_not_loaded'          => 'Not loaded — only needed for basic IMAP/SMTP mailboxes. PHP 8.4 no longer bundles this extension; install it via PECL if you use one.',
+
+        // Path-free twins, shown instead of the detail above when the page is being
+        // viewed by neither a fresh install nor a signed-in administrator. Same
+        // pass/warn/fail verdict, none of the filesystem layout or account names.
+        'db_config_not_found_masked'     => 'Not found at the path set in config.php',
+        'ssl_verified_masked'            => 'On and working — a live HTTPS request was certificate-verified',
+        'ssl_broken_masked'              => 'On, but the server could not verify a certificate — outbound HTTPS (email, AI, webhooks, sign-in) will fail. Sign in as an administrator to see the error.',
+        'ssl_untested_masked'            => 'On, but a live test request could not be completed, so verification could not be confirmed.',
+        'db_error_masked'                => 'Could not connect — sign in as an administrator to see the full error',
+        'encryption_key_missing_masked'  => 'Not found — needed for encrypting sensitive settings',
+        'ca_ini_masked_ok'               => 'Configured',
+        'ca_ini_masked_broken'           => 'Set, but pointing at a file that is not there — fix the path or comment the setting out in php.ini.',
+    ],
+
+    'locked' => [
+        'notice' => 'Setup is complete on this install, so paths, connection errors and credentials are hidden. Sign in as an administrator to see full detail.',
     ],
 
     'db_verify' => [

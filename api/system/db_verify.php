@@ -6,6 +6,7 @@
 session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
+require_once '../../includes/setup_state.php';
 
 header('Content-Type: application/json');
 
@@ -15,9 +16,22 @@ header('Content-Type: application/json');
 // changes against the live database. (Found closing out the RBAC roll-out. D005 had missed
 // it too, for two separate reasons — see that tool's write-detection and signature patterns.)
 //
-// setup_access is preserved deliberately: on a fresh install there is no analyst yet, and
-// this is the endpoint that builds the schema they will log in against.
-if (empty($_SESSION['setup_access'])) {
+// There IS a real bootstrap problem underneath: on a fresh install no analyst exists yet,
+// and this is the endpoint that builds the table they will log in against. That used to be
+// solved with a $_SESSION['setup_access'] flag — but setup/index.php granted that flag to
+// every anonymous visitor, so `GET /setup/` then `POST` here ran migrations with no
+// credentials at any point. We now ask the database the question the flag was standing in
+// for, so there is nothing left to forge: the unauthenticated path exists only while it is
+// genuinely the only path. See includes/setup_state.php.
+try {
+    $conn = connectToDatabase();
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'error' => 'Database connection failed']);
+    exit;
+}
+
+if (!installIsUnprovisioned($conn)) {
     if (!isset($_SESSION['analyst_id'])) {
         http_response_code(401);
         echo json_encode(['success' => false, 'error' => 'Not authenticated']);
@@ -47,7 +61,8 @@ $primaryKeys = [
 ];
 
 try {
-    $conn = connectToDatabase();
+    // $conn was opened above, before the authorisation gate — that gate has to ask
+    // the database whether any analyst exists, so the connection has to come first.
     $results = [];
     $dbName = DB_NAME;
 
