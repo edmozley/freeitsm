@@ -85,6 +85,18 @@ try {
         exit;
     }
 
+    // ⚠️ ...and you can only edit someone you can already reach. The check above
+    // guards where the account is going; without this one, nothing guarded where it
+    // was. An analyst scoped to one company could set the email address and password
+    // on another company's portal account and then sign in as them. Guarding the
+    // destination alone guards nothing.
+    if ($id && !analystCanAccessUser($conn, (int)$_SESSION['analyst_id'], $id)) {
+        // Same answer as an id that does not exist: a scoped analyst learns nothing
+        // about another company's account either way.
+        echo json_encode(['success' => false, 'error' => 'User not found']);
+        exit;
+    }
+
     if ($id) {
         if ($password !== '') {
             $hash = password_hash($password, PASSWORD_BCRYPT);

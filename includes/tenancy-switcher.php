@@ -9,8 +9,9 @@
  * Pure presentation; all logic lives in tenancy.php. Defensive throughout — it
  * must never break the header, so any error simply renders nothing.
  *
- * NOTE: not yet wired into the header — included/called by a later slice once
- * verified in a running app.
+ * This IS wired into the header and has been for some time — the note that used to
+ * sit here said it wasn't, which is the kind of stale comment that makes a reviewer
+ * discount a live control as dead code.
  */
 require_once __DIR__ . '/tenancy.php';
 

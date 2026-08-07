@@ -15,12 +15,46 @@
  * All functions take the caller's PDO connection (matching the rest of the
  * codebase). Per-request results are cached in statics.
  *
- * NOTE: nothing wires these into queries yet — this is foundation only.
+ * These ARE wired in: 40-odd call sites across the modules, and the company
+ * switcher is live in the waffle menu. (The comment that used to sit here said
+ * "foundation only, nothing wires these into queries yet" — true when it was
+ * written, badly wrong by the time a security review read it and reasonably
+ * concluded these guards were inert.)
  */
+
+require_once __DIR__ . '/db_errors.php';
 
 /** Fallback tenant id used when the tenants table doesn't exist yet. */
 if (!defined('TENANCY_FALLBACK_TENANT_ID')) {
     define('TENANCY_FALLBACK_TENANT_ID', 1);
+}
+
+/**
+ * May an analystCanAccess*() guard degrade to "yes" after a database error?
+ *
+ * ⚠️ Every one of those guards used to end with a bare:
+ *
+ *     } catch (Exception $e) {
+ *         return true; // tenant_id column missing on a part-migrated install.
+ *     }
+ *
+ * The intent was right — an install that has not run Database Verify has no
+ * tenant_id column, and must keep working exactly as it did before multi-tenancy.
+ * The catch was the problem: it was untyped, so a lock-wait timeout, a dropped
+ * connection, a permissions error or a deadlock all looked identical to "not
+ * migrated yet", and every one of them GRANTED cross-tenant access. A transient
+ * database blip was an authorisation bypass.
+ *
+ * Only the two errors that genuinely mean "the schema hasn't caught up" are
+ * forgiven. Anything else denies and is logged, because a guard that cannot say
+ * no under load is not a guard.
+ */
+function tenancyDegradeAllowed(Exception $e): bool {
+    if ($e instanceof PDOException && dbErrorIsMissingSchema($e)) {
+        return true;   // genuinely a part-migrated install
+    }
+    error_log('tenancy: denying access after an unexpected database error: ' . $e->getMessage());
+    return false;
 }
 
 /**
@@ -222,7 +256,42 @@ function analystCanAccessTicket(PDO $conn, int $analystId, $ticketId): bool {
         $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
         return analystCanAccessTenant($conn, $analystId, $tid);
     } catch (Exception $e) {
-        return true; // tenant_id column missing on a part-migrated install.
+        return tenancyDegradeAllowed($e);
+    }
+}
+
+/**
+ * May this analyst act on this *end user / requester* (by their owning company)?
+ *
+ * ⚠️ This was the missing half of a real cross-company hole. api/tickets/save_user.php
+ * validated the DESTINATION company an account was being moved into, but never
+ * checked whether the account being edited was one the caller could reach at all —
+ * so an analyst scoped to company A could set the email address and password on
+ * company B's portal account, and then sign in as them. Guarding the destination
+ * without guarding the subject guards nothing.
+ *
+ * Same rules as analystCanAccessTicket(): single-company install → true; NULL
+ * tenant is Default-owned; unknown id → false.
+ */
+function analystCanAccessUser(PDO $conn, int $analystId, $userId): bool {
+    if (!isMultiTenant($conn)) {
+        return true;
+    }
+    $userId = (int) $userId;
+    if ($userId <= 0) {
+        return false;
+    }
+    try {
+        $stmt = $conn->prepare("SELECT tenant_id FROM users WHERE id = ?");
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$row) {
+            return false;
+        }
+        $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
+        return analystCanAccessTenant($conn, $analystId, $tid);
+    } catch (Exception $e) {
+        return tenancyDegradeAllowed($e);
     }
 }
 
@@ -250,7 +319,7 @@ function analystCanAccessProblem(PDO $conn, int $analystId, $problemId): bool {
         $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
         return analystCanAccessTenant($conn, $analystId, $tid);
     } catch (Exception $e) {
-        return true; // tenant_id column missing on a part-migrated install.
+        return tenancyDegradeAllowed($e);
     }
 }
 
@@ -278,7 +347,7 @@ function analystCanAccessChange(PDO $conn, int $analystId, $changeId): bool {
         $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
         return analystCanAccessTenant($conn, $analystId, $tid);
     } catch (Exception $e) {
-        return true; // tenant_id column missing on a part-migrated install.
+        return tenancyDegradeAllowed($e);
     }
 }
 
@@ -310,7 +379,7 @@ function analystCanAccessCmdbObject(PDO $conn, int $analystId, $objectId): bool 
         $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
         return analystCanAccessTenant($conn, $analystId, $tid);
     } catch (Exception $e) {
-        return true; // tenant_id column missing on a part-migrated install.
+        return tenancyDegradeAllowed($e);
     }
 }
 
@@ -353,7 +422,7 @@ function analystCanAccessChannel(PDO $conn, int $analystId, $channelId): bool {
         }
         return analystCanAccessTenant($conn, $analystId, (int) $row['tenant_id']);
     } catch (Exception $e) {
-        return true; // tenant_id column missing on a part-migrated install.
+        return tenancyDegradeAllowed($e);
     }
 }
 
@@ -398,7 +467,7 @@ function analystCanAccessAsset(PDO $conn, int $analystId, $assetId): bool {
         $tid = ($row['tenant_id'] === null) ? getDefaultTenantId($conn) : (int) $row['tenant_id'];
         return analystCanAccessTenant($conn, $analystId, $tid);
     } catch (Exception $e) {
-        return true; // tenant_id column missing on a part-migrated install.
+        return tenancyDegradeAllowed($e);
     }
 }
 
@@ -574,11 +643,16 @@ function analystCanAccessArticle(PDO $conn, int $analystId, $articleId): bool {
         $stmt = $conn->prepare("SELECT tenant_id FROM knowledge_articles WHERE id = ?");
         $stmt->execute([$articleId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$row) return true;                       // let the caller's own 404 handle it
+        // ⚠️ A missing row used to return true, which meant this guard could not
+        // deny anything for an id that did not resolve — "let the caller's own 404
+        // handle it" is only safe if every caller HAS a 404, and that is not a
+        // property this function can check. Denying is correct and indistinguishable
+        // to a legitimate user, who gets the same not-found either way.
+        if (!$row) return false;
         if ($row['tenant_id'] === null) return true;  // shared with everyone
         return analystCanAccessTenant($conn, $analystId, (int)$row['tenant_id']);
     } catch (Exception $e) {
-        return true;
+        return tenancyDegradeAllowed($e);
     }
 }
 
