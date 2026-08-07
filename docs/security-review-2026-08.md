@@ -20,16 +20,16 @@ surface is **68 files**.
 
 | Commit | Finding | Severity |
 | --- | --- | --- |
-| `e9ebd1f` | **F2** `setup/` granted a privilege flag to anonymous visitors | Critical |
-| `0693aac` | **F3** M365 / Gmail refresh tokens stored in cleartext | Critical |
-| `98e397f` | **F5** SVG served inline with a sender-supplied Content-Type | High |
-| `5267716` | **F1** attachments written to the web root under the sender's filename | Critical |
-| `172868c` | **F9** tenant guards failed open; two confirmed cross-tenant paths | High |
-| `a93a9b4` | **F6** bundled TinyMCE 8.3.2, four published XSS CVEs | High |
-| `435d450` | **F7** no session regeneration, no CSRF tokens, no cookie flags | High |
-| `fdc2727` | **F8** default credentials permanent; lockout disabled by default | High |
-| `61b5ec9` | `SECURITY.md` — a private reporting channel | — |
-| `fd1c8c5` | A verification suite for all of the above | — |
+| `c2ab86c` | **F2** `setup/` granted a privilege flag to anonymous visitors | Critical |
+| `bc4bd39` | **F3** M365 / Gmail refresh tokens stored in cleartext | Critical |
+| `b1bf35c` | **F5** SVG served inline with a sender-supplied Content-Type | High |
+| `6de2b4b` | **F1** attachments written to the web root under the sender's filename | Critical |
+| `77e0bb5` | **F9** tenant guards failed open; two confirmed cross-tenant paths | High |
+| `6e65445` | **F6** bundled TinyMCE 8.3.2, four published XSS CVEs | High |
+| `ad92fd3` | **F7** no session regeneration, no CSRF tokens, no cookie flags | High |
+| `ea72e6f` | **F8** default credentials permanent; lockout disabled by default | High |
+| `4744c71` | `SECURITY.md` — a private reporting channel | — |
+| `17c628e` | A verification suite for all of the above | — |
 
 Out of scope by decision, and tracked separately: **F4** (SLA determinations not
 reproducible) and **F11** (no subject-access or erasure capability). Both are
