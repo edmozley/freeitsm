@@ -1,7 +1,7 @@
 # Security review, August 2026 — what changed
 
 A point-in-time record of how FreeITSM responded to a private security audit by
-**Erlend Volden** (erlend@devinco.com), reported against commit `f7f1e9dd` on
+**Erlend Volden**, reported against commit `f7f1e9dd` on
 7 August 2026.
 
 Nine security findings and three correctness findings. **Every security finding was

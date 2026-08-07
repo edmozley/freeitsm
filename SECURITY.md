@@ -69,7 +69,7 @@ Written down so nobody spends an afternoon rediscovering them:
 
 ## Credits
 
-- **Erlend Volden** (erlend@devinco.com) — a private audit in August 2026 covering
+- **Erlend Volden** — a private audit in August 2026 covering
   attachment handling, credential storage at rest, session management, default
   credentials and multi-company isolation. Nine security findings, every one of them
   real, plus three correctness issues found while tracing them.
