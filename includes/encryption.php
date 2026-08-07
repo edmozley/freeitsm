@@ -122,13 +122,56 @@ define('ENCRYPTED_MAILBOX_COLUMNS', [
     'imap_username',
     'imap_password',
     'smtp_server',
+    // The OAuth access + refresh tokens, as JSON. This column was missing from the
+    // list, so azure_client_secret was encrypted while the tokens minted WITH it sat
+    // in the next column in the clear. That inversion matters: a refresh token is
+    // durable delegated mailbox access on its own — it needs no client secret, no
+    // tenant ID and no further interaction — so a read-only leak of this table (a
+    // backup, a replica, a dump) WAS immediate mailbox access, the exact outcome the
+    // encryption layer exists to prevent. decryptValue() passes unencrypted values
+    // straight through, so existing plaintext rows keep working and re-encrypt on the
+    // next token refresh. Reported privately by Erlend Volden against f7f1e9dd.
+    'token_data',
 ]);
 
 /**
- * Check if a system_settings key should be encrypted
+ * system_settings keys that match the secret-suffix rule below but must NOT be
+ * encrypted. Empty today, and that is the point: adding a key here is a decision
+ * someone has to write down and justify, whereas forgetting to add one to an
+ * allow-list is silent.
+ */
+define('SETTING_KEYS_NEVER_ENCRYPT', [
+]);
+
+/**
+ * Should this system_settings key be encrypted at rest?
+ *
+ * A RULE first, a list second. This used to be an allow-list of known secrets,
+ * which fails open by construction: every new secret is stored in the clear until
+ * somebody remembers to register it, and nothing anywhere complains. That is not a
+ * hypothetical — problem_ai_api_key shipped that way (see the comment on the list
+ * above), and auditing a live install while fixing F3 turned up five more nobody
+ * had registered: csat_token_secret and the four *_cron_token values, all sitting
+ * in plaintext. The cron tokens authenticate endpoints that are deliberately
+ * reachable without a login, so they are bearer credentials.
+ *
+ * Inverting it means a key called *_password / *_secret / *_token / *_api_key is
+ * encrypted the moment it exists, and the failure mode of forgetting becomes
+ * "encrypted something harmless" instead of "leaked something that mattered".
+ *
+ * Masking is deliberately NOT inverted — see isMaskedSettingKey(). Encryption is
+ * invisible to the user, so defaulting it on costs nothing; masking changes what an
+ * administrator can see and copy (the cron tokens have to stay readable to build a
+ * cron URL), so it stays an explicit, per-key decision.
+ *
+ * Safe to switch on for values already stored in plaintext: decryptValue() passes
+ * an unencrypted value straight through, so old rows keep reading and re-encrypt on
+ * the next save. db_verify re-encrypts the existing ones in place.
  */
 function isEncryptedSettingKey($key) {
-    return in_array($key, ENCRYPTED_SETTING_KEYS, true);
+    if (in_array($key, SETTING_KEYS_NEVER_ENCRYPT, true)) return false;
+    if (in_array($key, ENCRYPTED_SETTING_KEYS, true))     return true;
+    return (bool)preg_match('/_(password|secret|token|api_key)$/i', (string)$key);
 }
 
 /**

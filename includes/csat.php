@@ -15,6 +15,7 @@
  */
 
 require_once __DIR__ . '/template_email.php';
+require_once __DIR__ . '/encryption.php';   // csat_token_secret is stored encrypted
 
 /**
  * Read a system_settings key with a default fallback.
@@ -25,6 +26,12 @@ function csatGetSetting(PDO $conn, string $key, string $default = ''): string {
     $stmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = ?");
     $stmt->execute([$key]);
     $val = $stmt->fetchColumn();
+    // csat_token_secret is a signing key, so it is encrypted at rest. Decrypt on the
+    // way out; decryptValue() passes a plaintext value through untouched, so tokens
+    // issued before the change still verify against the same secret.
+    if ($val !== false && $val !== null && isEncryptedSettingKey($key)) {
+        $val = decryptValue($val);
+    }
     $cache[$key] = ($val === false || $val === null) ? $default : (string)$val;
     return $cache[$key];
 }

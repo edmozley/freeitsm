@@ -92,7 +92,9 @@ try {
 
     // Save tokens
     $stmt = $conn->prepare("UPDATE target_mailboxes SET token_data = ? WHERE id = ?");
-    $stmt->execute([json_encode($tokens), $mailboxId]);
+    // Encrypted at rest — see ENCRYPTED_MAILBOX_COLUMNS; decryptMailboxRow() reverses it.
+    // This is the Gmail refresh token: durable mailbox access on its own.
+    $stmt->execute([encryptValue(json_encode($tokens)), $mailboxId]);
 
     header('Location: tickets/settings/index.php?oauth=success&mailbox_id=' . $mailboxId);
     exit;

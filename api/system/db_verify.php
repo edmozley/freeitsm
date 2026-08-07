@@ -7,6 +7,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/setup_state.php';
+require_once '../../includes/encryption.php';   // seeds + migrates secret settings
 
 header('Content-Type: application/json');
 
@@ -1087,8 +1088,90 @@ try {
             // rather than going to a public file or being printed in error pages.
             'csat_token_secret'                => bin2hex(random_bytes(32)),
         ];
+        // Secrets are seeded already encrypted. The whole block is best-effort: an
+        // install that has no encryption key yet must still be able to build its
+        // schema, so a missing key downgrades to plaintext with a warning rather
+        // than aborting the verify.
+        $encryptionUsable = true;
         $stmt = $conn->prepare("INSERT IGNORE INTO system_settings (setting_key, setting_value) VALUES (?, ?)");
-        foreach ($defaults as $k => $v) { $stmt->execute([$k, $v]); }
+        foreach ($defaults as $k => $v) {
+            $toStore = $v;
+            if ($v !== null && $v !== '' && isEncryptedSettingKey($k) && $encryptionUsable) {
+                try {
+                    $toStore = encryptValue($v);
+                } catch (Exception $e) {
+                    $encryptionUsable = false;
+                    $results[] = ['table' => 'system_settings', 'status' => 'warning',
+                                  'details' => ['Could not encrypt seeded secrets (' . $e->getMessage() . ') — stored as-is. Fix the encryption key and re-run.']];
+                }
+            }
+            $stmt->execute([$k, $toStore]);
+        }
+
+        // Migrate secrets that were stored before isEncryptedSettingKey() covered
+        // them. csat_token_secret and the four *_cron_token values were seeded in
+        // plaintext by every release up to f7f1e9dd, and are never re-saved through
+        // the settings UI, so without this they would stay in the clear forever.
+        // Idempotent: anything already carrying the ENC: prefix is skipped.
+        if ($encryptionUsable) {
+            try {
+                $reencrypted = [];
+                $updSecret = $conn->prepare("UPDATE system_settings SET setting_value = ? WHERE setting_key = ?");
+                foreach ($conn->query("SELECT setting_key, setting_value FROM system_settings")->fetchAll(PDO::FETCH_ASSOC) as $row) {
+                    $k = $row['setting_key'];
+                    $v = $row['setting_value'];
+                    if ($v === null || $v === '') continue;
+                    if (!isEncryptedSettingKey($k)) continue;
+                    if (strpos($v, ENCRYPTION_PREFIX) === 0) continue;   // already ciphertext
+                    $updSecret->execute([encryptValue($v), $k]);
+                    $reencrypted[] = $k;
+                }
+                if ($reencrypted) {
+                    $results[] = ['table' => 'system_settings', 'status' => 'migrated',
+                                  'details' => ['Encrypted ' . count($reencrypted) . ' secret(s) that were stored in plaintext: ' . implode(', ', $reencrypted)]];
+                }
+            } catch (Exception $e) {
+                $results[] = ['table' => 'system_settings', 'status' => 'warning',
+                              'details' => ['Could not re-encrypt existing secrets: ' . $e->getMessage()]];
+            }
+        }
+    }
+
+    // Same migration for target_mailboxes. token_data was absent from
+    // ENCRYPTED_MAILBOX_COLUMNS, so on an existing install the azure_* columns are
+    // ciphertext while the access + refresh tokens minted with them sit in the next
+    // column in the clear. Writers encrypt from now on, but a mailbox only rewrites
+    // token_data when its token refreshes — a dormant or app-only mailbox could stay
+    // plaintext indefinitely, so bring the existing rows across here.
+    // Covers every column in the list, not just token_data, so any future addition
+    // migrates itself. Idempotent: ENC: values are skipped.
+    if ($tableExists('target_mailboxes')) {
+        try {
+            $mbCols = array_values(array_filter(ENCRYPTED_MAILBOX_COLUMNS, fn($c) => $colExists('target_mailboxes', $c)));
+            if ($mbCols) {
+                $encryptedCount = 0;
+                $touchedCols = [];
+                $mbRows = $conn->query("SELECT id, `" . implode('`, `', $mbCols) . "` FROM target_mailboxes")->fetchAll(PDO::FETCH_ASSOC);
+                foreach ($mbRows as $mbRow) {
+                    foreach ($mbCols as $col) {
+                        $v = $mbRow[$col] ?? null;
+                        if ($v === null || $v === '') continue;
+                        if (strpos($v, ENCRYPTION_PREFIX) === 0) continue;   // already ciphertext
+                        $conn->prepare("UPDATE target_mailboxes SET `$col` = ? WHERE id = ?")
+                             ->execute([encryptValue($v), $mbRow['id']]);
+                        $encryptedCount++;
+                        $touchedCols[$col] = true;
+                    }
+                }
+                if ($encryptedCount > 0) {
+                    $results[] = ['table' => 'target_mailboxes', 'status' => 'migrated',
+                                  'details' => ["Encrypted $encryptedCount mailbox value(s) previously stored in plaintext (" . implode(', ', array_keys($touchedCols)) . ')']];
+                }
+            }
+        } catch (Exception $e) {
+            $results[] = ['table' => 'target_mailboxes', 'status' => 'warning',
+                          'details' => ['Could not re-encrypt mailbox credentials: ' . $e->getMessage()]];
+        }
     }
 
     // Backfill tickets.status_id from legacy tickets.status

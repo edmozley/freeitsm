@@ -278,7 +278,8 @@ function templateGetValidAccessToken(PDO $conn, array $mailbox, array $tokenData
         // Save refreshed token
         $saveSql = "UPDATE target_mailboxes SET token_data = ? WHERE id = ?";
         $saveStmt = $conn->prepare($saveSql);
-        $saveStmt->execute([json_encode($tokenData), $mailbox['id']]);
+        // Encrypted at rest — see ENCRYPTED_MAILBOX_COLUMNS; decryptMailboxRow() reverses it.
+        $saveStmt->execute([encryptValue(json_encode($tokenData)), $mailbox['id']]);
     }
 
     return $tokenData['access_token'];

@@ -119,7 +119,8 @@ try {
 
         $saveSql = "UPDATE target_mailboxes SET token_data = ? WHERE id = ?";
         $saveStmt = $conn->prepare($saveSql);
-        $saveStmt->execute([json_encode($tokenData), $mailboxId]);
+        // Encrypted at rest — see ENCRYPTED_MAILBOX_COLUMNS; decryptMailboxRow() reverses it.
+        $saveStmt->execute([encryptValue(json_encode($tokenData)), $mailboxId]);
     }
 
         $accessToken = $tokenData['access_token'];

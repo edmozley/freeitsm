@@ -61,7 +61,8 @@ function gmailRefreshAccessToken(PDO $conn, array $mailbox, array $tokenData): a
 
     // Persist
     $stmt = $conn->prepare("UPDATE target_mailboxes SET token_data = ? WHERE id = ?");
-    $stmt->execute([json_encode($tokenData), $mailbox['id']]);
+    // Encrypted at rest — see ENCRYPTED_MAILBOX_COLUMNS; decryptMailboxRow() reverses it.
+    $stmt->execute([encryptValue(json_encode($tokenData)), $mailbox['id']]);
 
     return $tokenData;
 }

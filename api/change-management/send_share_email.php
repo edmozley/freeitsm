@@ -315,7 +315,8 @@ function refreshAccessToken($mailbox, $refreshToken) {
  * Save token data to database
  */
 function saveTokenData($conn, $mailboxId, $tokenData) {
-    $jsonData = json_encode($tokenData);
+    // Encrypted at rest — see ENCRYPTED_MAILBOX_COLUMNS; decryptMailboxRow() reverses it.
+    $jsonData = encryptValue(json_encode($tokenData));
 
     $sql = "UPDATE target_mailboxes SET token_data = ? WHERE id = ?";
     $stmt = $conn->prepare($sql);

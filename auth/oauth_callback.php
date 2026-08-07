@@ -165,7 +165,10 @@ function getGraphSignedInEmail($accessToken) {
  * accepted for backward compatibility.
  */
 function saveTokensToDatabase($conn, $mailboxId, $tokens, $record = null) {
-    $jsonData = json_encode($tokens);
+    // Encrypted at rest — see ENCRYPTED_MAILBOX_COLUMNS; decryptMailboxRow() reverses it.
+    // This is the Microsoft refresh token: durable delegated mailbox access on its own,
+    // needing neither the client secret nor the tenant ID to use.
+    $jsonData = encryptValue(json_encode($tokens));
 
     if (is_array($record)) {
         $primary   = $record['primary'] ?: null;

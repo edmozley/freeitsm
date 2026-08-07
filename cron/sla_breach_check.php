@@ -32,6 +32,7 @@ header('Content-Type: text/plain; charset=utf-8');
 
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/encryption.php';   // decryptValue() for the cron token
 require_once __DIR__ . '/../includes/sla_notifications.php';
 
 $isCli = (PHP_SAPI === 'cli');
@@ -111,7 +112,10 @@ try {
             }
         }
 
-        $expected = $settings['sla_cron_token'] ?? null;
+        // Stored encrypted (isEncryptedSettingKey matches *_token). decryptValue()
+        // returns an unencrypted value untouched, so installs that pre-date the
+        // change keep authenticating on the same plaintext token.
+        $expected = decryptValue($settings['sla_cron_token'] ?? null);
         if (empty($expected)) {
             http_response_code(503);
             sla_cron_log_finish($conn, $runId, 'config_missing', [], "sla_cron_token not seeded");

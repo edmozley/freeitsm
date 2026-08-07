@@ -13,8 +13,11 @@
  * adds the app-only token + the per-request Graph base path.
  *
  * Requires config.php (for SSL_VERIFY_PEER) to be loaded already. $mailbox must be
- * the DECRYPTED row (azure_* fields in clear text).
+ * the DECRYPTED row (azure_* fields in clear text) — which now includes token_data,
+ * so the cached app-only token read below is plaintext on the way in and re-encrypted
+ * on the way out.
  */
+require_once __DIR__ . '/encryption.php';   // encryptValue() for the token cache write
 
 if (!function_exists('mailboxAppOnlyToken')) {
 
@@ -61,7 +64,7 @@ if (!function_exists('mailboxAppOnlyToken')) {
             'created_at'   => time(),
         ]);
         $conn->prepare("UPDATE target_mailboxes SET token_data = ? WHERE id = ?")
-             ->execute([$cacheJson, $mailbox['id']]);
+             ->execute([encryptValue($cacheJson), $mailbox['id']]);
 
         return $data['access_token'];
     }

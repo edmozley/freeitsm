@@ -32,6 +32,7 @@ if (PHP_SAPI !== 'cli') header('Content-Type: text/plain; charset=utf-8');
 
 require_once __DIR__ . '/../config.php';
 require_once __DIR__ . '/../includes/functions.php';
+require_once __DIR__ . '/../includes/encryption.php';   // decryptValue() for the cron token
 require_once __DIR__ . '/../includes/workflow_scheduled.php';
 
 $isCli = (PHP_SAPI === 'cli');
@@ -50,7 +51,10 @@ try {
 
     // ---- HTTP token auth ----
     if (!$isCli) {
-        $expected = $settings['workflow_cron_token'] ?? null;
+        // Stored encrypted (isEncryptedSettingKey matches *_token). decryptValue()
+        // returns an unencrypted value untouched, so installs that pre-date the
+        // change keep authenticating on the same plaintext token.
+        $expected = decryptValue($settings['workflow_cron_token'] ?? null);
         if (empty($expected)) {
             http_response_code(503);
             echo "Cron token not set. Run Database Verification to seed workflow_cron_token.\n";
