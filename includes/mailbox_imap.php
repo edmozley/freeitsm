@@ -409,13 +409,26 @@ function imapHandleAfterProcessing(array $mailbox, int $uid, string $action, ?st
  *
  * $to / $cc are semicolon/comma separated address strings. Outbound attachments
  * are not supported (parity with the Gmail send path) — replies are HTML only.
+ *
+ * SMTP auth uses its own username/password (smtp_username/smtp_password), falling
+ * back to the IMAP credentials when SMTP-specific ones aren't set — so existing
+ * mailboxes configured before this split keep sending exactly as before.
  */
 function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, string $htmlBody): void {
     $host = $mailbox['smtp_server'] ?? '';
     $port = (int) ($mailbox['smtp_port'] ?? 587);
     $enc  = strtolower($mailbox['smtp_encryption'] ?? 'tls');
-    $user = $mailbox['imap_username'] ?? '';
-    $pass = $mailbox['imap_password'] ?? '';
+
+    // Independent SMTP login. Falls back to the IMAP credentials for mailboxes
+    // saved before smtp_username/smtp_password existed, and for the common case
+    // where they genuinely are the same account.
+    $user = $mailbox['smtp_username'] ?? '';
+    $pass = $mailbox['smtp_password'] ?? '';
+    if ($user === '') {
+        $user = $mailbox['imap_username'] ?? '';
+        $pass = $mailbox['imap_password'] ?? '';
+    }
+
     $from = $mailbox['target_mailbox'] ?? $user;
 
     if ($host === '') {
@@ -445,7 +458,6 @@ function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, s
         $ehloHost = imapSmtpClientHostname($from);
         imapSmtpCommand($fp, 'EHLO ' . $ehloHost, [250]);
 
-        // STARTTLS upgrade for the 'tls' setting.
         if ($enc === 'tls') {
             imapSmtpCommand($fp, 'STARTTLS', [220]);
             $crypto = STREAM_CRYPTO_METHOD_TLS_CLIENT;
@@ -458,7 +470,9 @@ function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, s
             imapSmtpCommand($fp, 'EHLO ' . $ehloHost, [250]);
         }
 
-        // AUTH LOGIN (username + password, each base64).
+        // AUTH LOGIN using the resolved SMTP credentials (may be the same as IMAP,
+        // may be entirely separate — a relay-only SMTP server with no auth at all
+        // is still supported: leave both smtp_username and imap_username blank).
         if ($user !== '') {
             imapSmtpCommand($fp, 'AUTH LOGIN', [334]);
             imapSmtpCommand($fp, base64_encode($user), [334]);
@@ -472,7 +486,6 @@ function imapSmtpSend(array $mailbox, string $to, string $cc, string $subject, s
 
         imapSmtpCommand($fp, 'DATA', [354]);
         $message = imapSmtpBuildMessage($from, $mailbox['name'] ?? '', $toList, $ccList, $subject, $htmlBody);
-        // Dot-stuff and terminate.
         $message = preg_replace('/^\./m', '..', $message);
         fwrite($fp, $message . "\r\n.\r\n");
         imapSmtpExpect($fp, [250]);

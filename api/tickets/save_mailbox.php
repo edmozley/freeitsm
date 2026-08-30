@@ -93,6 +93,9 @@ try {
     $smtp_server = encryptValue($data['smtp_server'] ?? '');
     $smtp_port = $data['smtp_port'] ?? 587;
     $smtp_encryption = $data['smtp_encryption'] ?? 'tls';
+    // Independent SMTP login — falls back to IMAP creds at send time if left blank.
+    $smtp_username = encryptValue($data['smtp_username'] ?? '');
+    $smtp_password_plain = $data['smtp_password'] ?? '';
     $target_mailbox = encryptValue($data['target_mailbox']);
     $email_folder = $data['email_folder'] ?? 'INBOX';
     $max_emails_per_check = $data['max_emails_per_check'] ?? 10;
@@ -189,6 +192,7 @@ try {
         'smtp_server'          => $smtp_server,
         'smtp_port'            => $smtp_port,
         'smtp_encryption'      => $smtp_encryption,
+        'smtp_username'        => $smtp_username,
         'target_mailbox'       => $target_mailbox,
         'email_folder'         => $email_folder,
         'max_emails_per_check' => $max_emails_per_check,
@@ -204,8 +208,11 @@ try {
 
     $secretProvided   = !(empty($azure_client_secret)  || preg_match('/^\*+/', $azure_client_secret));
     $passwordProvided = !(empty($imap_password_plain)   || preg_match('/^\*+/', $imap_password_plain));
+    $smtpPassProvided  = !(empty($smtp_password_plain)    || preg_match('/^\*+/', $smtp_password_plain));
+
     if ($secretProvided)   $cols['azure_client_secret'] = encryptValue($azure_client_secret);
     if ($passwordProvided) $cols['imap_password']        = encryptValue($imap_password_plain);
+    if ($smtpPassProvided) $cols['smtp_password']        = encryptValue($smtp_password_plain);
 
     if ($id) {
         // Update existing mailbox — write every provided column.

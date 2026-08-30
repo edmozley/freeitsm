@@ -124,6 +124,10 @@ define('ENCRYPTED_MAILBOX_COLUMNS', [
     'imap_username',
     'imap_password',
     'smtp_server',
+    // New: independent SMTP auth. Same reasoning as imap_username/imap_password —
+    // a plaintext SMTP login in a backup/replica/dump is immediate send-as access.
+    'smtp_username',
+    'smtp_password',
     // The OAuth access + refresh tokens, as JSON. This column was missing from the
     // list, so azure_client_secret was encrypted while the tokens minted WITH it sat
     // in the next column in the clear. That inversion matters: a refresh token is

@@ -1738,27 +1738,35 @@ class WorkflowEngine
         if (!$ticketId)        throw new Exception('ticket_id is required');
         if ($subject === '')   throw new Exception('subject is required');
         if ($body === '')      throw new Exception('body is required');
-
+    
         // Reuse template_email.php's helpers — they handle mailbox lookup,
         // token refresh, Graph / Gmail dispatch, and saving the sent email
         // to the emails table for the threading SDREF marker. We're sending
         // ad-hoc content (not an ITSM template), but the plumbing is the same.
         require_once dirname(dirname(__DIR__)) . '/includes/template_email.php';
         require_once dirname(dirname(__DIR__)) . '/includes/email_log.php';
-
+    
         $conn = connectToDatabase();
         $merge = buildTicketMergeData($conn, $ticketId);
         if (!$merge) throw new Exception("Ticket not found: {$ticketId}");
-
+    
         $recipient = $to !== '' ? $to : ($merge['requester_email'] ?? '');
         if ($recipient === '') throw new Exception('No recipient (and ticket has no requester email)');
-
+    
         $mailbox = templateGetMailboxForTicket($conn, $ticketId);
         if (!$mailbox) throw new Exception('Ticket has no associated mailbox — cannot send');
-
+    
         $provider  = $mailbox['provider'] ?? 'microsoft';
         $graphBase = '/me';
-        if ($provider === 'google') {
+        $accessToken = null;
+    
+        if ($provider === 'imap') {
+            // Basic IMAP/SMTP: username + password, no OAuth token at all. Nothing
+            // below this branch needs $accessToken, so it's left null on purpose —
+            // don't let a stray "Failed to obtain a valid access token" check trip
+            // on a provider that never has one.
+            require_once dirname(dirname(__DIR__)) . '/includes/mailbox_imap.php';
+        } elseif ($provider === 'google') {
             $tokenJson = preg_replace('/[\x00-\x1F\x7F]/', '', $mailbox['token_data'] ?? '');
             $tokenData = $tokenJson ? json_decode($tokenJson, true) : null;
             if (!$tokenData || !isset($tokenData['access_token'])) {
@@ -1766,6 +1774,7 @@ class WorkflowEngine
             }
             require_once dirname(dirname(__DIR__)) . '/includes/gmail.php';
             $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
+            if (!$accessToken) throw new Exception('Failed to obtain a valid access token');
         } else {
             // Microsoft: templateGraphContext() picks the token source AND the send
             // endpoint from auth_mode. An app-only mailbox has no stored token until it
@@ -1774,15 +1783,20 @@ class WorkflowEngine
             if (!$graph) throw new Exception('Failed to obtain a valid access token');
             $accessToken = $graph['token'];
             $graphBase   = $graph['base'];
+            if (!$accessToken) throw new Exception('Failed to obtain a valid access token');
         }
-        if (!$accessToken) throw new Exception('Failed to obtain a valid access token');
-
+    
         $ticketRef = $merge['ticket_reference'] ?? '';
         $fullSubject = $ticketRef !== '' ? "[SDREF:{$ticketRef}] {$subject}" : $subject;
         $fullBody    = buildTemplateEmailBody($body, $ticketRef);
-
+    
         try {
-            if ($provider === 'google') {
+            if ($provider === 'imap') {
+                // SMTP send with the stored username/password. HTML body only — no
+                // attachment support on this path, matching the parity note in
+                // send_email.php for IMAP/Gmail outbound.
+                imapSmtpSend($mailbox, $recipient, '', $fullSubject, $fullBody);
+            } elseif ($provider === 'google') {
                 $fromAddress = $mailbox['target_mailbox'] ?? '';
                 gmailSendEmail($accessToken, $recipient, $fullSubject, $fullBody, $fromAddress);
             } else {
@@ -1806,7 +1820,7 @@ class WorkflowEngine
         templateSaveSentEmail($conn, $ticketId, $mailbox, $recipient, $fullSubject, $body);
         return ['ticket_id' => $ticketId, 'to' => $recipient, 'subject' => $subject];
     }
-
+    
     private static function action_create_task(array $args, array $payload): array
     {
         $title       = self::argString($args, 'title',       $payload);

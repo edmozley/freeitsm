@@ -1179,6 +1179,11 @@ CREATE TABLE IF NOT EXISTS `target_mailboxes` (
     `smtp_server`           TEXT NULL,
     `smtp_port`             INT NULL DEFAULT 587,
     `smtp_encryption`       VARCHAR(10) NULL DEFAULT 'tls',
+    -- Independent SMTP auth: many providers use a different login for sending
+    -- than for IMAP (or none at all, for relay-only servers). Falls back to
+    -- imap_username/imap_password when empty, so existing mailboxes keep working.
+    `smtp_username`         TEXT NULL,
+    `smtp_password`         TEXT NULL,
     `target_mailbox`        TEXT NOT NULL,
     -- 'delegated' = OAuth sign-in (acts as the signed-in user, Graph /me);
     -- 'app_only'  = client-credentials (the app reads the specific /users/<target_mailbox>).

@@ -894,6 +894,8 @@ return [
         'smtp_server'             => 'TEXT NULL',
         'smtp_port'               => 'INT NULL DEFAULT 587',
         'smtp_encryption'         => 'VARCHAR(10) NULL DEFAULT \'tls\'',
+        'smtp_username'           => 'TEXT NULL',
+        'smtp_password'           => 'TEXT NULL',
         'target_mailbox'          => 'TEXT NOT NULL',
         // 'delegated' = OAuth sign-in (acts as the signed-in user, /me); 'app_only' =
         // client-credentials (the app reads the specific /users/<target_mailbox>).

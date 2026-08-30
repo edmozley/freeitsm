@@ -2026,6 +2026,18 @@ $translationNamespaces = ['common', 'tickets'];
                         </select>
                     </div>
 
+                    <!-- New: independent SMTP login, separate from the IMAP username/password above. -->
+                    <div class="form-group provider-imap">
+                        <label for="mailboxSmtpUsername"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_username')); ?></label>
+                        <input type="text" id="mailboxSmtpUsername" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_username_placeholder')); ?>">
+                        <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_username_help')); ?></small>
+                    </div>
+
+                    <div class="form-group provider-imap" style="grid-column: span 2;">
+                        <label for="mailboxSmtpPassword"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_password')); ?></label>
+                        <input type="password" id="mailboxSmtpPassword" autocomplete="new-password" placeholder="<?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.smtp_password_placeholder')); ?>">
+                    </div>
+
                     <div class="form-group">
                         <label for="mailboxFolder"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.email_folder')); ?></label>
                         <!-- The folder mail is READ from had no Verify, while the folder
@@ -4931,6 +4943,8 @@ $translationNamespaces = ['common', 'tickets'];
                 smtp_server: document.getElementById('mailboxSmtpServer').value,
                 smtp_port: parseInt(document.getElementById('mailboxSmtpPort').value) || 587,
                 smtp_encryption: document.getElementById('mailboxSmtpEncryption').value,
+                smtp_username: document.getElementById('mailboxSmtpUsername').value,
+                smtp_password: document.getElementById('mailboxSmtpPassword').value,
                 email_folder: document.getElementById('mailboxFolder').value,
                 max_emails_per_check: parseInt(document.getElementById('mailboxMaxEmails').value),
                 rejected_action: document.getElementById('mailboxRejectedAction').value,
