@@ -96,8 +96,10 @@ $translationNamespaces = ['common', 'cmdb'];
         .audit-fix a { color: var(--cmdb-accent,#be185d); font-weight: 600; text-decoration: none; }
         .audit-loading { color: var(--text-muted,#6b7280); font-size: 13px; }
     </style>
+    <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=127">
 </head>
-<body>
+<body data-mobile-module="cmdb" data-mobile-page="cmdb-audit">
     <?php include 'includes/header.php'; ?>
 
     <div class="container">
@@ -110,5 +112,6 @@ $translationNamespaces = ['common', 'cmdb'];
 
     <script src="../assets/js/theme.js?v=3"></script>
     <script src="audit.js?v=1"></script>
+    <script src="../assets/js/mobile.js?v=50"></script>
 </body>
 </html>

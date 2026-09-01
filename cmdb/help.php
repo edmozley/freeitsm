@@ -62,8 +62,10 @@ $translationNamespaces = ['common', 'cmdb'];
             --on-accent:    var(--cmdb-on-accent);
         }
     </style>
+    <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=127">
 </head>
-<body>
+<body data-mobile-module="cmdb" data-mobile-page="cmdb-help">
     <?php include 'includes/header.php'; ?>
 
     <div class="help-container">
@@ -631,5 +633,6 @@ $translationNamespaces = ['common', 'cmdb'];
             });
         });
     </script>
+    <script src="../assets/js/mobile.js?v=50"></script>
 </body>
 </html>

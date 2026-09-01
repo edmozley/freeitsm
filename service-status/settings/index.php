@@ -88,7 +88,7 @@ $translationNamespaces = ['common', 'service-status'];
         [data-theme-mode="dark"] .tab-content .action-btn.delete:hover { background: #3a1a1a; }
     </style>
     <!-- Mobile: LAYER 15e (container + tab bar + the .tab-content > table scroller). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=126">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=127">
 </head>
 <body data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
@@ -631,6 +631,6 @@ $translationNamespaces = ['common', 'service-status'];
             }
         }
     </script>
-    <script src="../../assets/js/mobile.js?v=49"></script>
+    <script src="../../assets/js/mobile.js?v=50"></script>
 </body>
 </html>

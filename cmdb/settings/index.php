@@ -210,8 +210,14 @@ $translationNamespaces = ['common', 'cmdb'];
         .ai-suggestion .sug-why { color: var(--text-muted,#4b5563); font-size: 13px; line-height: 1.4; margin-top: 4px; }
         .ai-suggestion .sug-meta { color: var(--text-muted,#6b7280); font-size: 12px; margin-top: 4px; }
     </style>
+    <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=127">
 </head>
-<body>
+<!-- 🔑 data-mobile-page="settings" is the FOURTH part of opting a settings screen
+     in, and the one that is silent when missing: the entire shared settings layer
+     is keyed on it. Two modules have shipped without it and gone on squeezing a
+     five-column table (Techniques, "Opting a page in has THREE parts, not two"). -->
+<body data-mobile-module="cmdb" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
 
     <div class="container">
@@ -614,5 +620,6 @@ $translationNamespaces = ['common', 'cmdb'];
     <script src="../../assets/js/ai-settings.js"></script>
     <script src="../options-editor.js?v=3"></script>
     <script src="settings.js?v=7"></script>
+    <script src="../../assets/js/mobile.js?v=50"></script>
 </body>
 </html>

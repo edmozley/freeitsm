@@ -265,7 +265,7 @@ $translationNamespaces = ['common', 'morning-checks'];
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the
          mobile rules must win on equal specificity, and a link placed above it
          would silently lose to the desktop block below (the load-order trap). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=126">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=127">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -1462,6 +1462,6 @@ $translationNamespaces = ['common', 'morning-checks'];
     <!-- The mobile layer's JS: gives this page the views hamburger (top right)
          and moves the page controls into that drawer on a phone. Loaded last so
          it can wrap the page's own globals rather than edit them. -->
-    <script src="../assets/js/mobile.js?v=49"></script>
+    <script src="../assets/js/mobile.js?v=50"></script>
 </body>
 </html>

@@ -74,7 +74,7 @@ $canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], Cap::LMS_
         }
     </style>
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=126">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=127">
 </head>
 <body data-mobile-module="lms">
     <?php include 'includes/header.php'; ?>
@@ -91,6 +91,6 @@ $canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], Cap::LMS_
 
     <script>window.API_BASE = '../api/lms/';</script>
     <script src="../assets/js/lms-my-courses.js?v=2"></script>
-    <script src="../assets/js/mobile.js?v=49"></script>
+    <script src="../assets/js/mobile.js?v=50"></script>
 </body>
 </html>

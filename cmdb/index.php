@@ -246,8 +246,11 @@ $translationNamespaces = ['common', 'cmdb'];
         [data-theme-mode="dark"] .ac-result:hover,
         [data-theme-mode="dark"] .ac-result.highlighted { background: rgba(190, 24, 93, 0.15); }
     </style>
+    <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules
+         win on ties (Mobile-Friendly-Techniques §9). -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=127">
 </head>
-<body>
+<body data-mobile-module="cmdb" data-mobile-page="cmdb-browse">
     <?php include 'includes/header.php'; ?>
 
     <div class="browse-container">
@@ -268,7 +271,20 @@ $translationNamespaces = ['common', 'cmdb'];
             </div>
             <div class="object-list" id="objectList">
                 <div class="empty-state">
-                    <h3><?php echo htmlspecialchars(t('cmdb.list.pick_class_heading')); ?></h3>
+                    <?php /* 🔴 "Pick a class ON THE LEFT" stops being true on a phone:
+                             the class list becomes a chip strip ACROSS THE TOP, so the
+                             one instruction on an otherwise empty screen points at
+                             nothing. Only a screenshot found it — every measurement
+                             passed, because a sentence that points the wrong way is
+                             exactly as wide as one that does not.
+
+                             On a phone the heading above this panel already reads
+                             "Select a class", so the mobile layer hides this line
+                             rather than restating it. No new string, and no reworded
+                             one either — the first attempt swapped in a translated
+                             synonym and the screenshot showed the same words twice,
+                             one under the other. */ ?>
+                    <h3 class="cmdb-empty-lead"><?php echo htmlspecialchars(t('cmdb.list.pick_class_heading')); ?></h3>
                     <p><?php echo str_replace('{link}', '<a href="settings/" style="color: var(--cmdb-accent, #be185d);">' . htmlspecialchars(t('cmdb.list.pick_class_link')) . '</a>', htmlspecialchars(t('cmdb.list.pick_class_hint'))); ?></p>
                 </div>
             </div>
@@ -307,5 +323,8 @@ $translationNamespaces = ['common', 'cmdb'];
     </div>
 
     <script src="browse.js?v=4"></script>
+    <!-- The mobile layer's JS. Without it the module nav has no hamburger and
+         sits off-screen — a CSS-only opt-in is not an opt-in (Techniques §25). -->
+    <script src="../assets/js/mobile.js?v=50"></script>
 </body>
 </html>

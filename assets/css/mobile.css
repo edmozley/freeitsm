@@ -8802,4 +8802,165 @@
     body[data-mobile-page="settings"][data-mobile-module="process-mapper"] #pmsRows tr td:empty:not(:first-child) {
         display: none;
     }
+
+    /* ====================================================================
+       LAYER 30 — CMDB (issue: 16th module)
+
+       Five pages: browse, the object page, data quality, settings, help.
+
+       🔑 MOST OF THIS MODULE ARRIVED ALREADY FIT FOR A PHONE, which is worth
+       recording because it is the first time. The object page carries its own
+       `@media (hover: none)` rules so its unlink and cog controls are not
+       hover-gated on touch (§26, applied by whoever built it rather than
+       retrofitted here), and its own `max-width: 900px` block that stacks the
+       connection columns and wraps the hero. Data quality and help needed
+       nothing at all beyond the shell. The measured work is on TWO pages.
+
+       ⚠️ WHAT THE CONTAINMENT CHECK COULD NOT SEE. `cmdb/index.php` sets
+       `body { overflow: hidden }`, so nothing on it can ever overflow the
+       document — the page reports `docScrollW === innerWidth` however badly it
+       is laid out, because the excess is CLIPPED rather than scrolled. The
+       browse page passed every width check while being unusable. What found it
+       was measuring the PANES:
+
+           .browse-sidebar   x=0    w=260
+           .browse-main      x=260  w=100   <- the object list, on a 360px screen
+           .main-header      x=260  w=100
+
+       A 260px sidebar takes 72% of the screen and leaves 100px for the thing
+       you came to look at. Exactly the Forms approvals-sidebar fault (LAYER 27),
+       reached by a different route, and the reason §28's question — "can you
+       reach it" — needs a horizontal twin: **a page whose body clips cannot
+       report an overflow, so measure the panes, not the document.**
+       ==================================================================== */
+
+    /* ---- 30a. Browse: the class sidebar becomes a chip strip -------------
+       The same answer Contracts reached for its own 260px sidebar (LAYER 28).
+       A class list is short, flat and mutually exclusive — a row of chips is a
+       better phone control than a drawer, and it keeps the object list at full
+       width where it belongs. */
+    [data-mobile-page="cmdb-browse"] .browse-container {
+        flex-direction: column;
+        height: auto;
+        min-height: 0;
+        flex: 1 1 auto;
+        overflow: hidden;
+    }
+    [data-mobile-page="cmdb-browse"] .browse-sidebar {
+        width: auto;
+        flex: 0 0 auto;
+        border-right: 0;
+        border-bottom: 1px solid var(--border, #e5e7eb);
+    }
+    /* "Classes" as a heading above a chip row is a line of screen for a word
+       the chips already say. */
+    [data-mobile-page="cmdb-browse"] .browse-sidebar .sidebar-header { display: none; }
+    [data-mobile-page="cmdb-browse"] .browse-sidebar .class-list {
+        display: flex;
+        flex-direction: row;
+        gap: 8px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        padding: 10px 12px;
+        flex: 0 0 auto;
+    }
+    [data-mobile-page="cmdb-browse"] .browse-sidebar .class-list::-webkit-scrollbar { display: none; }
+    [data-mobile-page="cmdb-browse"] .class-item {
+        flex: 0 0 auto;
+        padding: 8px 14px;
+        border: 1px solid var(--border, #e5e7eb);
+        border-radius: 999px;
+        background: var(--surface, #fff);
+        /* ⭐ The row is `justify-content: space-between` on desktop, which in a
+           999px pill pushes the name and its count to opposite ends of a chip
+           that is already only as wide as its content. Centre them and let the
+           gap do the spacing. */
+        justify-content: center;
+        gap: 8px;
+        white-space: nowrap;
+        min-height: 40px;
+        align-items: center;
+    }
+    /* 44px is the tap target; the count is decoration and must not shrink the
+       word next to it. */
+    [data-mobile-page="cmdb-browse"] .class-item .class-count { flex: 0 0 auto; }
+
+    /* ---- 30b. Browse: the main pane gets the whole width ---------------- */
+    [data-mobile-page="cmdb-browse"] .browse-main {
+        flex: 1 1 auto;
+        min-width: 0;      /* ⭐ §14 — without it a flex item will not shrink */
+        min-height: 0;
+    }
+    /* The header is a title and a 240px search box on one row; at 360px that is
+       386px of content in a 100px box even before the sidebar is dealt with. */
+    [data-mobile-page="cmdb-browse"] .main-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+        padding: 12px 14px;
+    }
+    [data-mobile-page="cmdb-browse"] .main-header .actions {
+        gap: 8px;
+    }
+    [data-mobile-page="cmdb-browse"] .main-header input[type="text"] {
+        /* ⭐ §23 — a middle value. `auto` lets the 240px width win and the
+           button falls off; `0` collapses the box to its padding. */
+        flex: 1 1 60%;
+        width: auto;
+        min-width: 0;
+        /* 🔴 16px or iOS zooms on focus and the whole 768px layer stops
+           matching — the reflow-to-desktop cascade (§3). */
+        font-size: 16px;
+        min-height: 40px;
+    }
+    [data-mobile-page="cmdb-browse"] .main-header .add-btn {
+        flex: 0 0 auto;
+        min-height: 40px;
+    }
+    /* The list itself scrolls; it is the only thing on the page that should. */
+    [data-mobile-page="cmdb-browse"] .object-list {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow: auto;
+    }
+
+    /* ---- 30c. The object page's own inputs ------------------------------
+       Its `max-width: 900px` block already stacks the connection columns and
+       wraps the hero, so the layout needed nothing. The typed fields did: the
+       property editor and the link picker sit at 13px, which springs the same
+       iOS zoom. Excluded rather than enumerated, so a field type added later is
+       covered by default (the Techniques rule that came out of a missed
+       `datetime-local`). */
+    [data-mobile-module="cmdb"] input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="range"]):not([type="color"]),
+    [data-mobile-module="cmdb"] select,
+    [data-mobile-module="cmdb"] textarea {
+        font-size: 16px;
+    }
+
+    /* ---- 30c-ii. The empty state's instruction stops being true ---------
+       "Pick a class on the left to see its objects" — and 30a has just moved
+       the class list to the TOP. Swap to the phone wording, which reuses an
+       existing translated string rather than inventing one.
+
+       🔑 ONLY A SCREENSHOT FOUND THIS. Every measurement passed: a sentence
+       that points the wrong way is exactly as wide as one that does not.
+
+       ⭐ And the fix that a screenshot ALSO corrected: the first attempt swapped
+       in `cmdb.list.select_class` — direction-free, already translated in 25
+       locales, seemingly ideal — and produced the same three words twice, once
+       as the panel heading and once again directly beneath it. The heading above
+       already says it, so the right move is to say it ONCE and drop this line,
+       keeping the hint underneath that actually adds something. */
+    [data-mobile-page="cmdb-browse"] .empty-state .cmdb-empty-lead { display: none; }
+    /* 80px of top padding on a phone pushes the whole message below the fold. */
+    [data-mobile-page="cmdb-browse"] .empty-state { padding: 40px 20px; }
+
+    /* ---- 30d. The object page's stat tiles ------------------------------
+       Left at two-up on purpose. Its own 900px rule already sets
+       `repeat(2, 1fr)`, which measures 146px a tile at 360px — comfortably
+       readable, and a status strip exists to be SCANNED, so density beats card
+       size (the Service Status lesson). Recorded here so the next sweep does
+       not "fix" it into a column of four. */
 }

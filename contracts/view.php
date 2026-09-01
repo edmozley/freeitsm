@@ -369,7 +369,7 @@ if (!$contract_id) {
         .checkbox-row label { margin: 0; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=126">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=127">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="contract-view">
     <?php include 'includes/header.php'; ?>
@@ -1390,6 +1390,6 @@ if (!$contract_id) {
             </div>
         </div>
     </div>
-    <script src="../assets/js/mobile.js?v=49"></script>
+    <script src="../assets/js/mobile.js?v=50"></script>
 </body>
 </html>
