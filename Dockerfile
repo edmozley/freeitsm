@@ -8,6 +8,19 @@ RUN a2enmod rewrite
 
 # Set the document root
 ENV APACHE_DOCUMENT_ROOT=/var/www/html
+
+# 🔴 How the application knows it is in a container, without reading the disk.
+#
+# includes/storage_persistence.php raises the issue #109 warning — the one that
+# tells an operator their uploads are about to be destroyed by the next
+# `docker compose up -d --build`. It decided this by looking for /.dockerenv at
+# the root of the filesystem, which a host with `open_basedir` set will refuse
+# (GH #127). A refused read must never be mistaken for "not a container", or the
+# warning disappears for the very people who need it.
+#
+# ⚠️ DO NOT REMOVE. Without it, container detection depends entirely on being
+# allowed to read the root of the filesystem.
+ENV FREEITSM_CONTAINER=1
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf \
     && sed -ri -e 's!/var/www/!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf /etc/apache2/conf-available/*.conf
 

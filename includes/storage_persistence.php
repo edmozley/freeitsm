@@ -57,19 +57,90 @@ if (!defined('STORAGE_PERSISTENCE_LOADED')) {
 }
 
 /**
+ * The environment variable our own image sets to identify itself.
+ *
+ * Set in the Dockerfile, so it is present in every container built from it and
+ * needs no filesystem access to read — which is the point (see below).
+ */
+const STORAGE_PERSISTENCE_ENV_MARKER = 'FREEITSM_CONTAINER';
+
+/**
  * Is this PHP running inside a container?
  *
- * /.dockerenv is created by the Docker daemon in every container it starts.
- * Absent means either a native install (WAMP, XAMPP, LAMP, a plain Debian box)
- * or a non-Docker runtime such as Podman.
+ * Two signals, asked in this order. Either can say YES; only both failing says no.
  *
- * Being wrong in that second direction is deliberately the safe way round: an
- * unrecognised runtime produces silence, never a false warning. Nothing in this
- * file should ever have anything to say to somebody running on WAMP.
+ * ─────────────────────────────────────────────────────────────────────────────
+ *  1. Our own image says so
+ * ─────────────────────────────────────────────────────────────────────────────
+ * The Dockerfile sets FREEITSM_CONTAINER=1, so the image identifies itself
+ * without touching the disk at all. 🔑 THIS IS THE SIGNAL THAT CANNOT BE
+ * SUPPRESSED, and it exists because the one below can be.
+ *
+ * ⚠️ Read with local_only = true, so the value comes from the real process
+ * environment and not from anything the SAPI folded into $_SERVER. A request
+ * header cannot reach it (a header would arrive as HTTP_FREEITSM_CONTAINER),
+ * but reading the process environment directly means not having to reason about
+ * that at all.
+ *
+ * ⭐ It is also an escape hatch worth having. Podman rebuilds with the same
+ * consequences as Docker and leaves no /.dockerenv, so until now this file had
+ * nothing to say to those operators. Setting the variable opts them in.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ *  2. /.dockerenv, which the Docker daemon writes into every container
+ * ─────────────────────────────────────────────────────────────────────────────
+ * 🔴 THE @ IS LOAD-BEARING (GH #127). That file lives at the ROOT of the
+ * filesystem, and a host with `open_basedir` set — shared hosting and control
+ * panels routinely set it — refuses the read and raises a WARNING. FreeITSM
+ * ships with display_errors on, and this runs before the System page emits its
+ * first byte, so the warning was rendered above the whole page. The reporter saw
+ * a wall of red text on an admin screen every time he opened it.
+ *
+ * ⚠️ The try/catch around the caller does NOT help: a PHP warning is not a
+ * Throwable, so the guard written to "never break the page over a diagnostic"
+ * cannot see this one.
+ *
+ * ⚠️ AND WHY THE PATH ITSELF MUST NOT MOVE. The obvious repair — point it
+ * somewhere open_basedir allows, such as under DOCUMENT_ROOT — silences the
+ * warning by asking a question with a permanently false answer. Docker writes
+ * /.dockerenv at the filesystem root and nowhere else; nothing puts one in the
+ * web root. Detection would fail for every Docker user and the storage warning
+ * this whole file exists to raise would go quiet for exactly the people it was
+ * built for. It tests clean on any machine that is not running Docker, because
+ * there the correct answer is false too.
+ *
+ * ─────────────────────────────────────────────────────────────────────────────
+ * Being wrong towards silence is otherwise deliberate: an unrecognised runtime
+ * produces nothing, never a false warning. Nothing in this file should ever have
+ * anything to say to somebody running on WAMP.
  */
 function storagePersistenceInContainer(): bool
 {
-    return file_exists('/.dockerenv');
+    $marker = getenv(STORAGE_PERSISTENCE_ENV_MARKER, true);
+    if ($marker !== false && filter_var($marker, FILTER_VALIDATE_BOOLEAN)) {
+        return true;
+    }
+
+    // @ — see above. Suppressed, never removed, and never re-pointed.
+    return @file_exists('/.dockerenv');
+}
+
+/**
+ * Would `open_basedir` stop us reading /.dockerenv?
+ *
+ * Diagnostics only — nothing decides anything on this. It exists so D013 can say
+ * "could not look" instead of reporting a blocked read as "not a container",
+ * which are very different statements to put in front of an operator.
+ */
+function storagePersistenceRootReadable(): bool
+{
+    $basedir = (string) ini_get('open_basedir');
+    if ($basedir === '') return true;   // unrestricted
+
+    foreach (explode(PATH_SEPARATOR, $basedir) as $allowed) {
+        if (rtrim(trim($allowed), '/\\') === '') return true;   // '/' is allowed
+    }
+    return false;
 }
 
 /**

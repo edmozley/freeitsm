@@ -70,8 +70,20 @@ $report = storagePersistenceReport();
 $env = [
     "PHP version        : " . PHP_VERSION,
     "Application root   : " . dirname(__DIR__, 3),
-    "/.dockerenv present: " . (storagePersistenceInContainer() ? 'YES — this is a container' : 'no'),
+    "Container detected : " . (storagePersistenceInContainer() ? 'YES — this is a container' : 'no'),
 ];
+// Say WHICH signal answered, and say so honestly when one of them could not be
+// asked. "no" and "could not look" are very different things to put in front of
+// an operator whose uploads may be about to be destroyed (GH #127).
+$env[] = "  via " . STORAGE_PERSISTENCE_ENV_MARKER . ": "
+       . (getenv(STORAGE_PERSISTENCE_ENV_MARKER, true) !== false
+            ? 'set — our own image identifies itself'
+            : 'not set');
+$env[] = "  via /.dockerenv    : "
+       . (!storagePersistenceRootReadable()
+            ? 'COULD NOT LOOK — open_basedir does not permit reading /. This is not '
+              . 'the same as "no"; the marker above is what answers here.'
+            : (@file_exists('/.dockerenv') ? 'present' : 'absent'));
 if ($report['applicable']) {
     $env[] = "Root filesystem dev: " . var_export($report['root_device'], true)
            . "   (a directory on a DIFFERENT device is on storage that outlives the container)";
