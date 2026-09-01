@@ -175,7 +175,24 @@ function brandingLoginFields(string $scope = 'login'): array
         // ---- logo ----
         // 250 for the same reason as the gradient above: it is what the page
         // already used, so nothing moves on an install that never touches this.
+        //
+        // 🔑 BOTH ARE MAXIMA, and the logo is drawn as large as it can be without
+        // exceeding either. One control cannot serve both logo shapes: the
+        // bundled logo is 1124×301, so its WIDTH is what needs holding back —
+        // but a square or portrait logo sized to 250px wide is 250px TALL, and
+        // swallows a 400px card. Reported by a customer whose logo is square.
+        // Constraining the height is the natural way to think about that one,
+        // and a single dimension cannot express it.
+        //
+        // ⚠️ Two fixed dimensions would DISTORT the logo, so neither is fixed —
+        // the aspect ratio is the browser's to keep. The cost is that a logo
+        // smaller than the setting is no longer stretched up to meet it, which
+        // is the better behaviour anyway: enlarging a bitmap only blurs it.
         'logo_size'       => ['type' => 'int',    'default' => 250, 'min' => 40, 'max' => 400],
+        // 0 = no limit, which is the old behaviour exactly — the height was
+        // never constrained, so an install that does not touch this sees no
+        // change at all.
+        'logo_height'     => ['type' => 'int',    'default' => 0,   'min' => 0,  'max' => 400],
         'logo_position'   => ['type' => 'enum',   'default' => 'above', 'values' => ['above', 'top-left', 'top-centre', 'hidden']],
 
         // ---- words ----
@@ -319,6 +336,10 @@ function brandingLoginCss(array $d): string
     $css = array_merge($css, [
         '--login-accent: ' . $d['accent'],
         '--login-logo-size: ' . (int)$d['logo_size'] . 'px',
+        // `none` rather than a very large number: the page reads this straight
+        // into a max-height, and "no limit" is a value CSS already has a word
+        // for. 0 is the stored form because the control is a slider.
+        '--login-logo-height: ' . ((int)$d['logo_height'] > 0 ? (int)$d['logo_height'] . 'px' : 'none'),
         // ⚠️ ONLY over an image. The dim exists so a form stays legible on top
         // of a busy photograph; applied to a gradient it just darkens the two
         // colours the administrator chose, which looks like the picker is

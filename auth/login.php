@@ -634,9 +634,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         .login-header img {
-            width: var(--login-logo-size, 250px);
-            max-width: 100%;
+            /* Both settings are MAXIMA and the logo fits inside them, keeping its
+               own proportions — a square logo held to 250px wide would otherwise
+               be 250px tall and swallow the card. `min(…, 100%)` keeps the phone
+               guarantee: the card is 400px but only ~296px of it is usable at
+               360px wide, and this logo is REPLACEABLE, so a customer's 600px
+               file must not push the card wider than the screen. */
+            width: auto;
             height: auto;
+            max-width: min(var(--login-logo-size, 250px), 100%);
+            max-height: var(--login-logo-height, none);
             margin-bottom: 25px;
         }
 

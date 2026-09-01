@@ -477,6 +477,10 @@ $translationNamespaces = ['common', 'system'];
                             <label class="dlabel"><?php echo htmlspecialchars(t('system.branding.login_logo_size')); ?> <output id="ln_logo_out"></output>
                                 <input type="range" id="ln_logo_size" min="40" max="400" step="10">
                             </label>
+                            <label class="dlabel"><?php echo htmlspecialchars(t('system.branding.login_logo_height')); ?> <output id="ln_logo_h_out"></output>
+                                <input type="range" id="ln_logo_height" min="0" max="400" step="10">
+                                <span class="logo-hint"><?php echo htmlspecialchars(t('system.branding.login_logo_height_hint')); ?></span>
+                            </label>
                             <label class="dlabel"><?php echo htmlspecialchars(t('system.branding.login_logo_position')); ?>
                                 <select id="ln_logo_position" class="slot-input">
                                     <option value="above"><?php echo htmlspecialchars(t('system.branding.login_logo_above')); ?></option>
@@ -758,6 +762,10 @@ $translationNamespaces = ['common', 'system'];
                 `--login-bg: ${bg}`,
                 `--login-accent: ${d.accent || '#2b88d8'}`,
                 `--login-logo-size: ${parseInt(d.logo_size, 10) || 250}px`,
+                // 0 means no limit — `none` is CSS's own word for it, and the
+                // page reads this straight into a max-height. See
+                // brandingLoginCss(); the two have to agree or it is not a preview.
+                `--login-logo-height: ${parseInt(d.logo_height, 10) > 0 ? parseInt(d.logo_height, 10) + 'px' : 'none'}`,
                 // Only over an image — see brandingLoginCss(); the preview has to
                 // agree with the page or it is not a preview.
                 `--login-dim: ${d.bg_style === 'image' ? (parseInt(d.bg_dim, 10) || 0) / 100 : 0}`,
@@ -793,6 +801,11 @@ $translationNamespaces = ['common', 'system'];
             });
             const size = lnEl('logo_size');
             document.getElementById('ln_logo_out').textContent = size.value + 'px';
+            // 0 reads as "no limit" rather than "0px", which would say the logo
+            // is not drawn at all.
+            const lh = parseInt(lnEl('logo_height').value, 10) || 0;
+            document.getElementById('ln_logo_h_out').textContent =
+                lh > 0 ? lh + 'px' : t('system.branding.login_logo_height_none');
             document.getElementById('ln_dim_out').textContent  = lnEl('bg_dim').value + '%';
 
             // Contrast is advice, not a gate — but silence here means somebody

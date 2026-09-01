@@ -151,14 +151,20 @@ $localAllowed = $localOn || $forceLocal;
             margin-bottom: 30px;
         }
         .login-header img {
-            width: 250px;
-            /* The card is 400px wide but only ~296px of that is usable on a
-               360px screen once its padding is taken off, so a fixed 250px is
-               already close to the edge — and this logo is REPLACEABLE. A
-               customer's own logo at 600px would push the card wider than the
-               phone. Cap it rather than trust the file. */
-            max-width: 100%;
+            /* 🔴 This was a hardcoded 250px, so the designer's logo size did
+               NOTHING on this screen — the control was offered on all three
+               tabs and only ever worked on the analyst one. Found while adding
+               the height setting.
+               Both settings are MAXIMA and the logo keeps its own proportions.
+               `min(…, 100%)` is the phone guarantee: the card is 400px wide but
+               only ~296px of that is usable on a 360px screen once its padding
+               is taken off — and this logo is REPLACEABLE, so a customer's own
+               600px file must not push the card wider than the phone. Cap it
+               rather than trust the file. */
+            width: auto;
             height: auto;
+            max-width: min(var(--login-logo-size, 250px), 100%);
+            max-height: var(--login-logo-height, none);
             margin-bottom: 25px;
         }
         .login-header h1 {

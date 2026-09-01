@@ -130,12 +130,17 @@ $translationNamespaces = ['common'];
         }
         body:has(.login-strip-banner[data-at="bottom"]) .login-strip-footer { bottom: 42px; }
         body[data-logo-pos="hidden"] .company-logo { display: none; }
-        .company-logo { width: var(--login-logo-size, 300px); max-width: 100%; }
-
-
+        /* 🔴 These were TWO rules, and the second one — a plain `width: 300px`
+           that predates the designer — sat after the first with the same
+           specificity, so it won every time and the logo size setting did
+           NOTHING on this screen. One rule now, so there is nothing left to
+           override it. Found while adding the height setting.
+           Both settings are MAXIMA and the logo keeps its own proportions. */
         .company-logo {
-            width: 300px;
+            width: auto;
             height: auto;
+            max-width: min(var(--login-logo-size, 300px), 100%);
+            max-height: var(--login-logo-height, none);
             margin-bottom: 30px;
         }
 
@@ -247,7 +252,10 @@ $translationNamespaces = ['common'];
 
             .landing-container { padding: 24px 14px 32px; justify-content: flex-start; }
 
-            .company-logo { width: 220px; max-width: 70%; margin-bottom: 20px; }
+            /* A cap, not a size — setting `width` here would override the
+               administrator's choice AND fix a dimension the logo needs free to
+               keep its shape. */
+            .company-logo { max-width: min(220px, 70%); margin-bottom: 20px; }
 
             .welcome-text { margin-bottom: 28px; }
             .welcome-text h2 { font-size: 24px; }
