@@ -589,7 +589,20 @@ class TicketsService
             throw new ServiceError('validation', 'missing_field', "'text' is required.");
         }
         $isInternal = array_key_exists('is_internal', $in) ? (bool)$in['is_internal'] : true;
-        $conn->prepare("INSERT INTO ticket_notes (ticket_id, analyst_id, note_text, is_internal) VALUES (?, ?, ?, ?)")
+        // 🔴 created_datetime IS NAMED HERE ON PURPOSE (GH #126). Leaving it out
+        // let the column's `DEFAULT CURRENT_TIMESTAMP` fire, and MySQL evaluates
+        // that in the CONNECTION'S SESSION ZONE — which is `SYSTEM`, the server's
+        // own clock. So the one datetime in the product that a person reads off
+        // a ticket was being written as a LOCAL WALL CLOCK while the reader
+        // converts it as a UTC instant, and the note landed the server's offset
+        // into the future: +2h in Vienna, +1h in the UK in summer, and 0 on a
+        // server running UTC, which is why it survived.
+        //
+        // ⭐ The tell was two lines below this one: `updated_datetime =
+        // UTC_TIMESTAMP()` in the same method, in the same transaction. The
+        // right answer was already here — the INSERT just did not list the
+        // column, so nothing overrode the default.
+        $conn->prepare("INSERT INTO ticket_notes (ticket_id, analyst_id, note_text, is_internal, created_datetime) VALUES (?, ?, ?, ?, UTC_TIMESTAMP())")
              ->execute([$ticketId, $ctx->actorId, $text, $isInternal ? 1 : 0]);
         $noteId = (int)$conn->lastInsertId();
         $conn->prepare("UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$ticketId]);
