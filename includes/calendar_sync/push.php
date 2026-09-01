@@ -104,7 +104,7 @@ function calendarSyncReconcileTicket(PDO $conn, int $ticketId, bool $gone = fals
             if ($mine) {
                 try {
                     $provider->updateEvent($mine['remote_calendar'], $mine['remote_event_id'], $event);
-                    $conn->prepare("UPDATE calendar_sync_events SET updated_datetime = NOW() WHERE id = ?")
+                    $conn->prepare("UPDATE calendar_sync_events SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
                          ->execute([(int)$mine['id']]);
                 } catch (CalendarEventMissing $e) {
                     // Somebody deleted it from their own calendar — ordinary, not
@@ -113,7 +113,7 @@ function calendarSyncReconcileTicket(PDO $conn, int $ticketId, bool $gone = fals
                     $newId = $provider->createEvent($address, $event);
                     $conn->prepare(
                         "UPDATE calendar_sync_events
-                            SET remote_event_id = ?, remote_calendar = ?, updated_datetime = NOW()
+                            SET remote_event_id = ?, remote_calendar = ?, updated_datetime = UTC_TIMESTAMP()
                           WHERE id = ?"
                     )->execute([$newId, $address, (int)$mine['id']]);
                 }
@@ -128,7 +128,7 @@ function calendarSyncReconcileTicket(PDO $conn, int $ticketId, bool $gone = fals
                      VALUES (?, ?, ?, ?, ?)
                      ON DUPLICATE KEY UPDATE remote_event_id = VALUES(remote_event_id),
                                              remote_calendar = VALUES(remote_calendar),
-                                             updated_datetime = NOW()"
+                                             updated_datetime = UTC_TIMESTAMP()"
                 )->execute([$ticketId, $wantAnalyst, (int)$connection['id'], $newId, $address]);
             }
             calendarSyncClearError($conn, $wantAnalyst);
@@ -246,7 +246,7 @@ function calendarSyncReconcileTask(PDO $conn, int $taskId, bool $gone = false): 
                 if ($mine) {
                     try {
                         $provider->updateEvent($mine['remote_calendar'], $mine['remote_event_id'], $event);
-                        $conn->prepare("UPDATE calendar_sync_events SET updated_datetime = NOW() WHERE id = ?")
+                        $conn->prepare("UPDATE calendar_sync_events SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
                              ->execute([(int)$mine['id']]);
                     } catch (CalendarEventMissing $e) {
                         // Deleted from their own calendar — ordinary. Put a fresh
@@ -254,7 +254,7 @@ function calendarSyncReconcileTask(PDO $conn, int $taskId, bool $gone = false): 
                         $newId = $provider->createEvent($address, $event);
                         $conn->prepare(
                             "UPDATE calendar_sync_events
-                                SET remote_event_id = ?, remote_calendar = ?, updated_datetime = NOW()
+                                SET remote_event_id = ?, remote_calendar = ?, updated_datetime = UTC_TIMESTAMP()
                               WHERE id = ?"
                         )->execute([$newId, $address, (int)$mine['id']]);
                     }
@@ -269,7 +269,7 @@ function calendarSyncReconcileTask(PDO $conn, int $taskId, bool $gone = false): 
                          VALUES (?, ?, ?, ?, ?, ?)
                          ON DUPLICATE KEY UPDATE remote_event_id = VALUES(remote_event_id),
                                                  remote_calendar = VALUES(remote_calendar),
-                                                 updated_datetime = NOW()"
+                                                 updated_datetime = UTC_TIMESTAMP()"
                     )->execute([$taskId, $kind, $wantAnalyst, (int)$connection['id'], $newId, $address]);
                 }
                 calendarSyncClearError($conn, $wantAnalyst);
@@ -442,7 +442,7 @@ function calendarSyncRecordError(PDO $conn, int $analystId, string $message): vo
         $conn->prepare(
             "INSERT INTO calendar_enrolments (analyst_id, mode, last_error)
              VALUES (?, 'off', ?)
-             ON DUPLICATE KEY UPDATE last_error = VALUES(last_error), updated_datetime = NOW()"
+             ON DUPLICATE KEY UPDATE last_error = VALUES(last_error), updated_datetime = UTC_TIMESTAMP()"
         )->execute([$analystId, substr($message, 0, 500)]);
     } catch (Exception $e) {
     }
@@ -452,7 +452,7 @@ function calendarSyncClearError(PDO $conn, int $analystId): void
 {
     try {
         $conn->prepare(
-            "UPDATE calendar_enrolments SET last_error = NULL, last_sync_datetime = NOW() WHERE analyst_id = ?"
+            "UPDATE calendar_enrolments SET last_error = NULL, last_sync_datetime = UTC_TIMESTAMP() WHERE analyst_id = ?"
         )->execute([$analystId]);
     } catch (Exception $e) {
     }

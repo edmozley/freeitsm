@@ -28,6 +28,7 @@
 
 require_once dirname(__DIR__, 3) . '/includes/service_context.php';
 require_once dirname(__DIR__, 3) . '/includes/services/assets.php';
+require_once dirname(__DIR__, 3) . '/includes/timezone.php';   // naive_today_sql() — warranty_expiry is a bare date (GH #126)
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -242,11 +243,11 @@ function apiAssetsList(PDO $conn, array $apiKey, array $params, array $body): vo
     }
     // Lifecycle filters — the same shapes Watchtower/dashboard use.
     if (isset($_GET['warranty_within_days']) && $_GET['warranty_within_days'] !== '') {
-        $where[] = 'a.warranty_expiry IS NOT NULL AND a.warranty_expiry <= DATE_ADD(CURDATE(), INTERVAL ? DAY)';
+        $where[] = 'a.warranty_expiry IS NOT NULL AND a.warranty_expiry <= DATE_ADD(' . naive_today_sql() . ', INTERVAL ? DAY)';
         $args[]  = max(0, (int)$_GET['warranty_within_days']);
     }
     if (($_GET['warranty_expired'] ?? '') === 'true') {
-        $where[] = 'a.warranty_expiry IS NOT NULL AND a.warranty_expiry < CURDATE()';
+        $where[] = 'a.warranty_expiry IS NOT NULL AND a.warranty_expiry < ' . naive_today_sql();
     }
     if (isset($_GET['not_seen_days']) && $_GET['not_seen_days'] !== '') {
         $where[] = '(a.last_seen IS NULL OR a.last_seen < DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? DAY))';

@@ -54,7 +54,9 @@ if (!headers_sent()) {
  */
 function connectToDatabase() {
     $dsn = "mysql:host=" . DB_SERVER . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-    $conn = new PDO($dsn, DB_USERNAME, DB_PASSWORD);
+    // dbConnectionOptions() pins the session to UTC — see config.php for why
+    // (GH #126). Every `new PDO` in the product passes it.
+    $conn = new PDO($dsn, DB_USERNAME, DB_PASSWORD, dbConnectionOptions());
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     return $conn;
 }

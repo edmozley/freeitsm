@@ -34,6 +34,7 @@ require_once '../../includes/ics.php';
 require_once '../../includes/tenancy.php';
 require_once '../../includes/services/tickets.php';
 require_once '../../includes/calendar_sync/calendar_sync.php';
+require_once '../../includes/timezone.php';   // naive_now(), for the work-window cutoffs (GH #126)
 
 function feed_deny($code, $msg) {
     header($_SERVER['SERVER_PROTOCOL'] . ' ' . $code);
@@ -80,12 +81,16 @@ try {
            LEFT JOIN ticket_priorities tp ON tp.id = t.priority_id
           WHERE t.owner_id = ?
             AND t.work_start_datetime IS NOT NULL
-            AND t.work_start_datetime >= (NOW() - INTERVAL 3 MONTH)
+            AND t.work_start_datetime >= (? - INTERVAL 3 MONTH)
             AND t.deleted_datetime IS NULL
             AND COALESCE(ts.is_closed, 0) = 0
           ORDER BY t.work_start_datetime"
     );
-    $stmt->execute([$analystId]);
+    // ⚠️ A wall clock, not UTC_TIMESTAMP() — work_start_datetime is a naive value
+    // (see includes/timezone.php). It is a three-month cutoff, so an hour either
+    // way changes nothing here, but the two kinds of date must not be mixed even
+    // where it is currently harmless (GH #126).
+    $stmt->execute([naive_now(), $analystId]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $detail = scheduleFeedDetail($conn, $analystId);
@@ -106,11 +111,15 @@ try {
           LEFT JOIN task_priorities p ON p.id = tk.priority_id
               WHERE tk.assigned_analyst_id = ?
                 AND COALESCE(s.is_closed, 0) = 0
-                AND (tk.work_start_datetime >= (NOW() - INTERVAL 3 MONTH)
-                     OR tk.due_date >= (CURDATE() - INTERVAL 3 MONTH))
+                AND (tk.work_start_datetime >= (? - INTERVAL 3 MONTH)
+                     OR tk.due_date >= (DATE(?) - INTERVAL 3 MONTH))
               ORDER BY COALESCE(tk.work_start_datetime, tk.due_date)"
         );
-        $stmt->execute([$analystId]);
+        // Both a wall clock: a work window is naive, and a due_date is a BARE DATE
+        // — the third kind, which has no time and no zone at all. CURDATE() would
+        // now be the UTC date, which crosses midnight an hour early here.
+        $tkNow = naive_now();
+        $stmt->execute([$tkNow, $tkNow, $analystId]);
         $taskRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 } catch (Exception $e) {

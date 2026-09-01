@@ -19,6 +19,7 @@ session_start(['read_and_close' => true]);
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/calendar_sync/calendar_sync.php';
+require_once '../../includes/timezone.php';   // naive_now(), for the work-window backfill (GH #126)
 
 header('Content-Type: application/json');
 
@@ -122,7 +123,7 @@ try {
          VALUES (?, ?, ?, ?)
          ON DUPLICATE KEY UPDATE mode = VALUES(mode), task_mode = VALUES(task_mode),
                                  connection_id = VALUES(connection_id),
-                                 last_error = NULL, updated_datetime = NOW()"
+                                 last_error = NULL, updated_datetime = UTC_TIMESTAMP()"
     )->execute([$analystId, $mode, $taskMode,
                 ($mode === CALENDAR_MODE_PUSH && $connection) ? (int)$connection['id'] : null]);
 
@@ -145,10 +146,11 @@ try {
                LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
               WHERE t.owner_id = ? AND t.work_start_datetime IS NOT NULL
                 AND t.deleted_datetime IS NULL AND COALESCE(ts.is_closed, 0) = 0
-                AND t.work_start_datetime >= (NOW() - INTERVAL 1 WEEK)
+                AND t.work_start_datetime >= (? - INTERVAL 1 WEEK)
               ORDER BY t.work_start_datetime"
         );
-        $st->execute([$analystId]);
+        // A wall clock — work_start_datetime is naive (GH #126).
+        $st->execute([naive_now(), $analystId]);
         // Bounded to the last week onwards on purpose: back-filling months of
         // finished work would fill a calendar with history nobody asked for, and
         // make opting in a very long request.

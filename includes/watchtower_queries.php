@@ -7,6 +7,7 @@
 require_once __DIR__ . '/tenancy.php';   // knowledgeTenantFilter() for the Knowledge card
 require_once __DIR__ . '/knowledge/visibility.php';   // the Knowledge card reads through the choke point
 require_once __DIR__ . '/watchtower_settings.php';   // which cards show, which statuses count
+require_once __DIR__ . '/timezone.php';   // naive_now(), for the change-window comparisons (GH #126)
 
 /**
  * $analystId is optional and only used to scope the Knowledge card to the
@@ -15,6 +16,12 @@ require_once __DIR__ . '/watchtower_settings.php';   // which cards show, which 
  */
 function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $today = date('Y-m-d');
+    // The same date as a SQL literal, for the bare-date comparisons below —
+    // contract ends, warranty expiries, due dates, review dates and the calendar.
+    // CURDATE() is the UTC date now that the connection is pinned (GH #126), and
+    // "due today" must not change its answer for the hour either side of UTC
+    // midnight. Morning Checks above already binds $today for exactly this reason.
+    $todaySql = naive_today_sql();
 
     // Whose work this dashboard is answering about (#58). 'all' reproduces the
     // behaviour every card had before, so nothing changes for anyone who never
@@ -244,7 +251,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
                    FROM ticket_audit a
                   WHERE a.ticket_id = t.id AND a.field_name = 'status'),
                 t.created_datetime
-            ) < DATE_SUB(NOW(), INTERVAL ? HOUR){$tkScopeSql}"
+            ) < DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? HOUR){$tkScopeSql}"
     );
     // ⚠️ Threshold FIRST, then the scope arguments — positional placeholders,
     // and the scope clause is appended after the interval.
@@ -269,14 +276,20 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
 
     [$chScopeSql, $chScopeArgs] = wtScopeClause($conn, $analystId, $scope, 'c.assigned_to_id');
 
+    // ⚠️ naive_now(), NOT UTC_TIMESTAMP(). A change window is a NAIVE WALL CLOCK
+    // (see includes/timezone.php) — comparing it against a UTC instant would judge
+    // every window the server's offset early. This used bare NOW(), which happened
+    // to be a wall clock only because the connection had not been pinned; it is
+    // now stated rather than assumed (GH #126).
+    $chNow = naive_now();
     $chUpcomingStmt = $conn->prepare(
         "SELECT COUNT(*)
          FROM changes c
          JOIN change_statuses cs ON cs.id = c.status_id
-         WHERE c.work_start_datetime BETWEEN NOW() AND DATE_ADD(NOW(), INTERVAL 7 DAY)
+         WHERE c.work_start_datetime BETWEEN ? AND DATE_ADD(?, INTERVAL 7 DAY)
            AND cs.is_closed = 0 AND cs.is_default = 0{$chScopeSql}"
     );
-    $chUpcomingStmt->execute($chScopeArgs);
+    $chUpcomingStmt->execute(array_merge([$chNow, $chNow], $chScopeArgs));
     $chUpcoming = (int)$chUpcomingStmt->fetchColumn();
     // Was NOT IN ('Closed','Cancelled') — and FreeITSM has never shipped a change
     // status called 'Closed'. Of the four finished statuses (Rejected, Completed,
@@ -311,10 +324,11 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
          FROM changes c
          JOIN change_statuses cs ON cs.id = c.status_id
          WHERE cs.is_closed = 0 AND cs.is_default = 0
-           AND c.work_start_datetime <= NOW()
-           AND (c.work_end_datetime >= NOW() OR c.work_end_datetime IS NULL){$chScopeSql}"
+           AND c.work_start_datetime <= ?
+           AND (c.work_end_datetime >= ? OR c.work_end_datetime IS NULL){$chScopeSql}"
     );
-    $chInProgressStmt->execute($chScopeArgs);
+    // A wall clock, as above — this is the card an hour actually moves.
+    $chInProgressStmt->execute(array_merge([$chNow, $chNow], $chScopeArgs));
     $chInProgress = (int)$chInProgressStmt->fetchColumn();
 
     // Changes broken down by status, the same as tickets and tasks. The three
@@ -359,9 +373,10 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
          JOIN change_statuses cs ON cs.id = c.status_id
          WHERE cs.is_closed = 0 AND cs.is_default = 0
            AND c.work_end_datetime IS NOT NULL
-           AND c.work_end_datetime < NOW(){$chScopeSql}"
+           AND c.work_end_datetime < ?{$chScopeSql}"
     );
-    $chOverrunningStmt->execute($chScopeArgs);
+    // A wall clock, as above.
+    $chOverrunningStmt->execute(array_merge([$chNow], $chScopeArgs));
     $chOverrunning = (int)$chOverrunningStmt->fetchColumn();
 
     $changes = [
@@ -378,8 +393,8 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $calTodayStmt = $conn->query(
         "SELECT id, title, start_datetime, end_datetime, all_day
          FROM calendar_events
-         WHERE DATE(start_datetime) = CURDATE()
-            OR (all_day = 1 AND DATE(start_datetime) <= CURDATE() AND (DATE(end_datetime) >= CURDATE() OR end_datetime IS NULL))
+         WHERE DATE(start_datetime) = {$todaySql}
+            OR (all_day = 1 AND DATE(start_datetime) <= {$todaySql} AND (DATE(end_datetime) >= {$todaySql} OR end_datetime IS NULL))
          ORDER BY all_day DESC, start_datetime
          LIMIT 10"
     );
@@ -387,7 +402,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
 
     $calWeek = (int)$conn->query(
         "SELECT COUNT(*) FROM calendar_events
-         WHERE start_datetime BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 7 DAY)"
+         WHERE start_datetime BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 7 DAY)"
     )->fetchColumn();
 
     $calendar = [
@@ -460,18 +475,18 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
 
     $ctExp30 = (int)$conn->query(
         "SELECT COUNT(*) FROM contracts
-         WHERE is_active = 1 AND contract_end BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)"
+         WHERE is_active = 1 AND contract_end BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 30 DAY)"
     )->fetchColumn();
 
     $ctExp90 = (int)$conn->query(
         "SELECT COUNT(*) FROM contracts
-         WHERE is_active = 1 AND contract_end BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 90 DAY)"
+         WHERE is_active = 1 AND contract_end BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 90 DAY)"
     )->fetchColumn();
 
     $ctNotice = (int)$conn->query(
         "SELECT COUNT(*) FROM contracts
          WHERE is_active = 1 AND notice_date IS NOT NULL
-           AND notice_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)"
+           AND notice_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 30 DAY)"
     )->fetchColumn();
 
     $contracts = [
@@ -506,7 +521,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $kbRecentStmt = $conn->prepare(
         "SELECT ka.id, ka.title, ka.created_datetime
          FROM knowledge_articles ka
-         WHERE ka.created_datetime >= DATE_SUB(NOW(), INTERVAL 7 DAY)"
+         WHERE ka.created_datetime >= DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)"
          . $kbTenantSql . "
          ORDER BY ka.created_datetime DESC
          LIMIT 5"
@@ -516,7 +531,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
 
     $kbOverdueStmt = $conn->prepare(
         "SELECT COUNT(*) FROM knowledge_articles ka
-         WHERE ka.next_review_date IS NOT NULL AND ka.next_review_date < CURDATE()"
+         WHERE ka.next_review_date IS NOT NULL AND ka.next_review_date < {$todaySql}"
          . $kbTenantSql
     );
     $kbOverdueStmt->execute($kbTenantParams);
@@ -533,7 +548,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
 
     $asNotSeen = (int)$conn->query(
         "SELECT COUNT(*) FROM assets
-         WHERE last_seen IS NOT NULL AND last_seen < DATE_SUB(NOW(), INTERVAL 7 DAY)"
+         WHERE last_seen IS NOT NULL AND last_seen < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 7 DAY)"
     )->fetchColumn();
 
     // Warranty expiries — only surfaced here when the asset_warranty_surface
@@ -551,7 +566,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $asWarranty = 0;
     if ($wtShowWarranty) {
         try {
-            $w = $conn->prepare("SELECT COUNT(*) FROM assets WHERE warranty_expiry IS NOT NULL AND warranty_expiry <= DATE_ADD(CURDATE(), INTERVAL ? DAY)");
+            $w = $conn->prepare("SELECT COUNT(*) FROM assets WHERE warranty_expiry IS NOT NULL AND warranty_expiry <= DATE_ADD({$todaySql}, INTERVAL ? DAY)");
             $w->execute([$wtDays]);
             $asWarranty = (int)$w->fetchColumn();
         } catch (Exception $e) { $wtShowWarranty = false; }
@@ -572,7 +587,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $taskOverdueStmt = $conn->prepare(
         "SELECT COUNT(*) FROM tasks t
          LEFT JOIN task_statuses ts ON ts.id = t.status_id
-         WHERE t.due_date < CURDATE()
+         WHERE t.due_date < {$todaySql}
            AND (ts.is_closed = 0 OR ts.id IS NULL)
            AND t.parent_task_id IS NULL{$tsScopeSql}"
     );
@@ -582,7 +597,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
     $taskDueTodayStmt = $conn->prepare(
         "SELECT COUNT(*) FROM tasks t
          LEFT JOIN task_statuses ts ON ts.id = t.status_id
-         WHERE t.due_date = CURDATE()
+         WHERE t.due_date = {$todaySql}
            AND (ts.is_closed = 0 OR ts.id IS NULL)
            AND t.parent_task_id IS NULL{$tsScopeSql}"
     );

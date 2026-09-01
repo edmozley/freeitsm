@@ -231,7 +231,7 @@ $searchWorks = null;
 try {
     $conn->prepare("DELETE FROM `$TABLE` WHERE source_type = ?")->execute([$PROBE]);
     $ins = $conn->prepare("INSERT INTO `$TABLE` (source_type, source_id, tenant_scope, title, body, source_datetime)
-                           VALUES (?, 1, 'default', ?, ?, NOW())");
+                           VALUES (?, 1, 'default', ?, ?, UTC_TIMESTAMP())");
     $ins->execute([$PROBE, 'D007 probe document', 'the quick brown fox jumps over the lazy dog']);
 
     $q = $conn->prepare("SELECT COUNT(*) FROM `$TABLE` WHERE source_type = ? AND MATCH(title,body) AGAINST (? IN BOOLEAN MODE)");

@@ -31,6 +31,7 @@
 // handlers + serializers stay here.
 require_once dirname(__DIR__, 3) . '/includes/service_context.php';
 require_once dirname(__DIR__, 3) . '/includes/services/tasks.php';
+require_once dirname(__DIR__, 3) . '/includes/timezone.php';   // naive_today_sql() — due_date is a bare date (GH #126)
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -176,7 +177,8 @@ function apiTasksList(PDO $conn, array $apiKey, array $params, array $body): voi
         }
     }
     if (($_GET['overdue'] ?? '') === 'true') {
-        $where[] = "t.due_date < CURDATE() AND (ts.is_closed IS NULL OR ts.is_closed = 0)";
+        // ⚠️ naive_today_sql(), not CURDATE() — due_date is a bare date (GH #126).
+        $where[] = "t.due_date < " . naive_today_sql() . " AND (ts.is_closed IS NULL OR ts.is_closed = 0)";
     }
 
     $sortable = [

@@ -103,7 +103,7 @@ try {
     $requestCount = (int)$stmt->fetchColumn();
 
     // Cleanup old windows (older than 5 minutes)
-    $conn->exec("DELETE FROM api_rate_limits WHERE window_start < DATE_SUB(NOW(), INTERVAL 5 MINUTE)");
+    $conn->exec("DELETE FROM api_rate_limits WHERE window_start < DATE_SUB(UTC_TIMESTAMP(), INTERVAL 5 MINUTE)");
 } catch (PDOException $e) {
     // If rate limiting fails, allow the request through
     $requestCount = 0;

@@ -13,6 +13,7 @@
 require_once '../../config.php';
 require_once '../../includes/functions.php';
 require_once '../../includes/ics.php';
+require_once '../../includes/timezone.php';   // naive_now() — calendar events are naive (GH #126)
 
 function feed_deny($code, $msg) {
     header($_SERVER['SERVER_PROTOCOL'] . ' ' . $code);
@@ -48,10 +49,13 @@ try {
                 c.name AS category_name
          FROM calendar_events e
          LEFT JOIN calendar_categories c ON e.category_id = c.id
-         WHERE COALESCE(e.end_datetime, e.start_datetime) >= (NOW() - INTERVAL 1 YEAR)
+         WHERE COALESCE(e.end_datetime, e.start_datetime) >= (? - INTERVAL 1 YEAR)
          ORDER BY e.start_datetime"
     );
-    $stmt->execute();
+    // ⚠️ A wall clock. A calendar event's times are stored NAIVE — the service
+    // writes them through parseNaiveDatetime(), so "2pm" means 2pm and is never
+    // converted. Comparing that to a UTC instant mixes the two kinds (GH #126).
+    $stmt->execute([naive_now()]);
     $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 } catch (Exception $e) {
     feed_deny('500 Internal Server Error', 'Calendar feed error.');

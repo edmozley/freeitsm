@@ -451,6 +451,73 @@ function fmt_month_year(?string $utc): string {
     return DateFmt::render($dt, 'MONTH YYYY');
 }
 
+/**
+ * 🔴 "NOW" FOR A NAIVE WALL-CLOCK COLUMN — not for anything else.
+ *
+ * Most datetimes in FreeITSM are UTC instants, and the way to ask the database
+ * what time it is now is `UTC_TIMESTAMP()`. A few columns are deliberately NOT
+ * instants: change windows, scheduled work and PIR actuals are stored as NAIVE
+ * WALL CLOCKS, without a zone, so that "2pm" reads 2pm for everybody wherever
+ * they are. See the three kinds of stored date in Timezones-and-Time-Handling.
+ *
+ * ⚠️ You cannot compare one of those against `UTC_TIMESTAMP()`. "Is this change
+ * window open right now" asks whether a wall clock has passed, and the answer
+ * has to be a wall clock too, or every window is judged an hour or two early.
+ *
+ * Those queries used bare `NOW()`, which worked only by accident: MySQL evaluated
+ * it in the DATABASE SERVER'S OS ZONE, which nothing declares and nothing
+ * documents. Pinning the connection to UTC (GH #126, see config.php) removed that
+ * accident, so the wall clock is now stated explicitly and comes from the
+ * application's own configured zone — `date_default_timezone_set()` in config.php
+ * — which is the zone every other "local" reading in the product already uses.
+ * Where the database server and PHP agreed, which is the ordinary case, nothing
+ * about these queries changes.
+ *
+ * 📌 OPEN QUESTION, deliberately not answered here: arguably this should be the
+ * VIEWER's display zone rather than the installation's, since the naive value is
+ * shown to them unconverted — an analyst in Vienna reads "14:00" and the dashboard
+ * decides whether that is in progress using London's clock. Making it per-viewer
+ * would mean two analysts seeing different counts on a shared dashboard, which is
+ * its own problem. Left as it was rather than changed on the way past.
+ */
+function naive_now(): string {
+    return date('Y-m-d H:i:s');
+}
+
+/**
+ * 🔴 "TODAY" FOR A BARE DATE COLUMN — the SQL literal, not a bound parameter.
+ *
+ * The third kind of stored date has no time and no zone at all: a contract's end,
+ * an asset's warranty expiry, a task's due date, a licence renewal, a knowledge
+ * article's review date. "Is this contract expiring in the next 30 days" is a
+ * question about a CALENDAR, and the answer must come from a calendar in the same
+ * frame the date was typed in.
+ *
+ * ⚠️ `CURDATE()` is not that any more. With the connection pinned to UTC (GH #126,
+ * config.php) it returns the UTC date, which rolls over an hour before the local
+ * one in British summer time and two hours before it in central Europe. Left
+ * alone, "due today" on Watchtower would change its answer for an hour every
+ * night — the kind of off-by-one that gets reported as a ghost.
+ *
+ * 🔑 WHY A LITERAL AND NOT A PLACEHOLDER. Every caller below builds SQL by
+ * assembling fragments and collecting bound parameters separately, several of
+ * them into a `$where[]` array. Threading an extra parameter through each one
+ * means getting its POSITION right in a list built somewhere else, which is a
+ * much better way to introduce a bug than the one it would be preventing.
+ *
+ * This is not user input and cannot become user input: the value is produced by
+ * PHP's own `date()` and the format is asserted before it is returned, so what
+ * comes back is always exactly `'YYYY-MM-DD'`, quotes included. If the assertion
+ * could ever fail it falls back to `CURDATE()`, which is wrong by an hour rather
+ * than wrong by being a syntax error on somebody's dashboard.
+ *
+ * @return string A quoted SQL date literal, e.g. `'2026-09-01'`.
+ */
+function naive_today_sql(): string {
+    $d = date('Y-m-d');
+    return preg_match('/^\d{4}-\d{2}-\d{2}$/', $d) ? "'" . $d . "'" : 'CURDATE()';
+}
+
 /** 'Tuesday' / 'Tue' */
 function fmt_weekday(?string $utc, bool $short = false): string {
     if ($utc === null || $utc === '') return '';

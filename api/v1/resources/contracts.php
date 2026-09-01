@@ -32,6 +32,7 @@
 
 require_once dirname(__DIR__, 3) . '/includes/service_context.php';
 require_once dirname(__DIR__, 3) . '/includes/services/contracts.php';
+require_once dirname(__DIR__, 3) . '/includes/timezone.php';   // naive_today_sql() — contract_end/notice_date are bare dates (GH #126)
 
 // ---------------------------------------------------------------------------
 // Serializers + loaders
@@ -181,15 +182,20 @@ function apiContractsList(PDO $conn, array $apiKey, array $params, array $body):
         array_push($args, $like, $like, $like);
     }
     // Renewal shapes — the Watchtower/dashboard windows as parameters.
+    // ⚠️ naive_today_sql(), not CURDATE(): contract_end and notice_date are BARE
+    // DATES with no zone, and CURDATE() is the UTC date now that the connection is
+    // pinned (GH #126) — so "expiring within 30 days" would answer to a calendar
+    // an hour ahead of the one the dates were typed against.
+    $today = naive_today_sql();
     if (isset($_GET['expiring_within_days']) && $_GET['expiring_within_days'] !== '') {
-        $where[] = 'c.is_active = 1 AND c.contract_end BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)';
+        $where[] = "c.is_active = 1 AND c.contract_end BETWEEN $today AND DATE_ADD($today, INTERVAL ? DAY)";
         $args[]  = max(0, (int)$_GET['expiring_within_days']);
     }
     if (($_GET['expired'] ?? '') === 'true') {
-        $where[] = 'c.contract_end IS NOT NULL AND c.contract_end < CURDATE()';
+        $where[] = "c.contract_end IS NOT NULL AND c.contract_end < $today";
     }
     if (isset($_GET['notice_within_days']) && $_GET['notice_within_days'] !== '') {
-        $where[] = 'c.is_active = 1 AND c.notice_date IS NOT NULL AND c.notice_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)';
+        $where[] = "c.is_active = 1 AND c.notice_date IS NOT NULL AND c.notice_date BETWEEN $today AND DATE_ADD($today, INTERVAL ? DAY)";
         $args[]  = max(0, (int)$_GET['notice_within_days']);
     }
     foreach (['ends_before' => ['c.contract_end', '<='], 'ends_after' => ['c.contract_end', '>=']] as $param => [$col, $op]) {

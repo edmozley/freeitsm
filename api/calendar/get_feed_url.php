@@ -43,8 +43,8 @@ try {
         $token = bin2hex(random_bytes(24)); // 48 hex chars
         $stmt = $conn->prepare(
             "INSERT INTO user_preferences (analyst_id, preference_key, preference_value, updated_datetime)
-             VALUES (?, 'calendar_feed_token', ?, NOW())
-             ON DUPLICATE KEY UPDATE preference_value = VALUES(preference_value), updated_datetime = NOW()"
+             VALUES (?, 'calendar_feed_token', ?, UTC_TIMESTAMP())
+             ON DUPLICATE KEY UPDATE preference_value = VALUES(preference_value), updated_datetime = UTC_TIMESTAMP()"
         );
         $stmt->execute([$analystId, $token]);
     }

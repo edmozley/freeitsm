@@ -86,7 +86,7 @@ function calendarSyncPullForAnalyst(PDO $conn, int $analystId): array
 
     // Always store the new token, even on a baseline — that IS the baseline.
     $conn->prepare(
-        "UPDATE calendar_enrolments SET delta_token = ?, delta_synced_datetime = NOW() WHERE analyst_id = ?"
+        "UPDATE calendar_enrolments SET delta_token = ?, delta_synced_datetime = UTC_TIMESTAMP() WHERE analyst_id = ?"
     )->execute([$result['token'], $analystId]);
 
     if (!empty($result['baseline'])) {
@@ -217,7 +217,7 @@ function calendarPullApply(PDO $conn, array $row, array $change, string $address
     calendarPullAudit($conn, (int)$row['ticket_id'], (int)$row['analyst_id'], 'Scheduled',
         (string)$row['work_start_datetime'], $change['start'] . ' (moved in ' . $address . ')');
 
-    $conn->prepare("UPDATE calendar_sync_events SET updated_datetime = NOW() WHERE id = ?")
+    $conn->prepare("UPDATE calendar_sync_events SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
          ->execute([(int)$row['id']]);
 }
 
@@ -244,7 +244,7 @@ function calendarPullAudit(PDO $conn, int $ticketId, int $analystId, string $fie
     try {
         $conn->prepare(
             "INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
-             VALUES (?, ?, ?, ?, ?, NOW())"
+             VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())"
         )->execute([$ticketId, $analystId, $field, substr($old, 0, 500), substr($new, 0, 500)]);
     } catch (Exception $e) {
         // An audit we cannot write must not stop the change the analyst asked for.
@@ -315,7 +315,7 @@ function calendarPullTaskAudit(PDO $conn, int $taskId, int $analystId, string $f
     try {
         $conn->prepare(
             "INSERT INTO task_audit (task_id, analyst_id, field_name, old_value, new_value, source, created_datetime)
-             VALUES (?, ?, ?, ?, ?, 'calendar', NOW())"
+             VALUES (?, ?, ?, ?, ?, 'calendar', UTC_TIMESTAMP())"
         )->execute([$taskId, $analystId, $field, substr($old, 0, 500), substr($new, 0, 500)]);
     } catch (Exception $e) {
         // An audit we cannot write must not stop the change — but this is the

@@ -101,7 +101,7 @@ function searchCorpusUpsert(PDO $conn, array $doc): void {
     $sql = "INSERT INTO search_documents
               (source_type, source_id, ticket_id, tenant_id, tenant_scope, is_internal,
                title, body, source_datetime, indexed_datetime)
-            VALUES (?,?,?,?,?,?,?,?,?,NOW())
+            VALUES (?,?,?,?,?,?,?,?,?,UTC_TIMESTAMP())
             ON DUPLICATE KEY UPDATE
                ticket_id        = VALUES(ticket_id),
                tenant_id        = VALUES(tenant_id),
@@ -110,7 +110,7 @@ function searchCorpusUpsert(PDO $conn, array $doc): void {
                title            = VALUES(title),
                body             = VALUES(body),
                source_datetime  = VALUES(source_datetime),
-               indexed_datetime = NOW()";
+               indexed_datetime = UTC_TIMESTAMP()";
 
     $conn->prepare($sql)->execute([
         $type,

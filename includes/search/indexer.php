@@ -268,11 +268,11 @@ function searchIndexTicketAttachments(PDO $conn, int $ticketId, ?int $tenantId, 
                 $ins = $conn->prepare(
                     "INSERT INTO attachment_text
                        (attachment_id, status, extractor, extracted_text, chars, extracted_datetime)
-                     VALUES (?, ?, ?, ?, ?, NOW())
+                     VALUES (?, ?, ?, ?, ?, UTC_TIMESTAMP())
                      ON DUPLICATE KEY UPDATE
                        status = VALUES(status), extractor = VALUES(extractor),
                        extracted_text = VALUES(extracted_text), chars = VALUES(chars),
-                       extracted_datetime = NOW()"
+                       extracted_datetime = UTC_TIMESTAMP()"
                 );
                 $ins->execute([$attId, $status, $extractor, $text, mb_strlen($text, 'UTF-8')]);
             } catch (Exception $e) {

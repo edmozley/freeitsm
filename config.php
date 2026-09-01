@@ -38,6 +38,50 @@ require_once($db_config_path);
 // Matches the app's seeded defaults (SLA calendars default to Europe/London).
 date_default_timezone_set('Europe/London');
 
+/**
+ * 🔴 THE DATABASE CONNECTION'S OWN CLOCK — read this before opening a PDO by hand.
+ *
+ * Every connection in the product MUST be opened with these options.
+ *
+ * MySQL evaluates `NOW()`, `CURRENT_TIMESTAMP` and `CURDATE()` in the CONNECTION'S
+ * SESSION TIME ZONE, which defaults to `SYSTEM` — the server's own clock. That is
+ * not UTC unless somebody happened to set the server to UTC, and FreeITSM stores
+ * every instant in UTC.
+ *
+ * The two met in GH #126. A note's INSERT did not name `created_datetime`, so the
+ * column's `DEFAULT CURRENT_TIMESTAMP` filled it in with a LOCAL WALL CLOCK, which
+ * the screen then converted as if it were a UTC instant — putting every note the
+ * server's own offset into the future. Two hours in Vienna, one in the UK in
+ * summer, and nothing at all on a server running UTC, which is why it survived.
+ *
+ * 🔑 That was not one bug. A sweep of the schema against every INSERT found 302
+ * statements letting one of 272 auto-stamped columns fire, across 220 tables. This
+ * line fixes all of them at once, and every one written from here on: with the
+ * session pinned to UTC, `CURRENT_TIMESTAMP` and `UTC_TIMESTAMP()` are the same
+ * instant, so a forgotten column can no longer be wrong.
+ *
+ * ⚠️ INIT_COMMAND rather than an `exec()` after connecting, because it re-runs on
+ * an automatic reconnect. A SET issued once by hand is lost the moment the client
+ * silently reopens the socket, and nothing announces that it has.
+ *
+ * ⚠️ WHAT THIS DOES NOT DO: existing rows are untouched. Nothing records which of
+ * the 302 routes wrote a given row, and the tables hold rows from both, so a
+ * migration would have to guess — and every wrong guess moves a row that was
+ * already right. Same call as GH #116.
+ *
+ * ⚠️ AND THE ONE THING TO WATCH: a few columns are stored as NAIVE WALL CLOCKS on
+ * purpose — change windows, scheduled work, PIR actuals — so that "2pm" reads 2pm
+ * for everybody. Those must be compared against a wall clock, never against this
+ * connection's now. See includes/timezone.php and the Timezones-and-Time-Handling
+ * page; the queries that do it are marked.
+ */
+function dbConnectionOptions(): array
+{
+    return [
+        PDO::MYSQL_ATTR_INIT_COMMAND => "SET time_zone = '+00:00'",
+    ];
+}
+
 // SSL Certificate Verification
 // Single global switch for outbound HTTPS certificate verification. Leave this
 // ON in production — turning it off means the app stops checking who it is

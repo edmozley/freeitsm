@@ -28,6 +28,7 @@
 
 require_once dirname(__DIR__, 3) . '/includes/service_context.php';
 require_once dirname(__DIR__, 3) . '/includes/services/software.php';
+require_once dirname(__DIR__, 3) . '/includes/timezone.php';   // naive_today_sql() — renewal_date is a bare date (GH #126)
 
 // ---------------------------------------------------------------------------
 // Apps (read-only inventory catalogue)
@@ -281,17 +282,19 @@ function apiSoftwareLicencesList(PDO $conn, array $apiKey, array $params, array 
         array_push($args, $like, $like, $like);
     }
     // Server-side versions of the licence screen's client-side renewal states.
+    // ⚠️ naive_today_sql(), not CURDATE() — renewal_date is a bare date (GH #126).
+    $today = naive_today_sql();
     if (isset($_GET['renewal_within_days']) && $_GET['renewal_within_days'] !== '') {
-        $where[] = 'l.renewal_date IS NOT NULL AND l.renewal_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL ? DAY)';
+        $where[] = "l.renewal_date IS NOT NULL AND l.renewal_date BETWEEN $today AND DATE_ADD($today, INTERVAL ? DAY)";
         $args[]  = max(0, (int)$_GET['renewal_within_days']);
     }
     if (($_GET['renewal_overdue'] ?? '') === 'true') {
-        $where[] = 'l.renewal_date IS NOT NULL AND l.renewal_date < CURDATE()';
+        $where[] = "l.renewal_date IS NOT NULL AND l.renewal_date < $today";
     }
     if (($_GET['due_soon'] ?? '') === 'true') {
         // Within each licence's own notice period (default 30), not yet overdue.
-        $where[] = "l.renewal_date IS NOT NULL AND l.renewal_date >= CURDATE()
-                    AND l.renewal_date <= DATE_ADD(CURDATE(), INTERVAL COALESCE(l.notice_period_days, 30) DAY)";
+        $where[] = "l.renewal_date IS NOT NULL AND l.renewal_date >= $today
+                    AND l.renewal_date <= DATE_ADD($today, INTERVAL COALESCE(l.notice_period_days, 30) DAY)";
     }
 
     $sortable = [

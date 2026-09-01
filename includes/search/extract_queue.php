@@ -122,7 +122,7 @@ function extractQueueDrain(PDO $conn, int $limit, float $deadline = 0): array {
             $conn->prepare(
                 "UPDATE attachment_text SET status = ?
                   WHERE status = ?
-                    AND extracted_datetime < DATE_SUB(NOW(), INTERVAL ? MINUTE)"
+                    AND extracted_datetime < DATE_SUB(UTC_TIMESTAMP(), INTERVAL ? MINUTE)"
             )->execute([ATT_TEXT_PENDING, ATT_TEXT_EXTRACTING, ATT_TEXT_CLAIM_STALE_MINUTES]);
         } catch (Exception $e) { /* best effort */ }
 
@@ -150,7 +150,7 @@ function extractQueueDrain(PDO $conn, int $limit, float $deadline = 0): array {
         // filtered on this worker's claim.
         $in = implode(',', array_fill(0, count($candidates), '?'));
         $claim = $conn->prepare(
-            "UPDATE attachment_text SET status = ?, extracted_datetime = NOW()
+            "UPDATE attachment_text SET status = ?, extracted_datetime = UTC_TIMESTAMP()
               WHERE attachment_id IN ($in) AND status = ?"
         );
         $claim->execute(array_merge([ATT_TEXT_EXTRACTING], $candidates, [ATT_TEXT_PENDING]));

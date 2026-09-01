@@ -71,8 +71,8 @@ try {
         $token = bin2hex(random_bytes(24));
         $conn->prepare(
             "INSERT INTO user_preferences (analyst_id, preference_key, preference_value, updated_datetime)
-             VALUES (?, 'tickets_schedule_feed_token', ?, NOW())
-             ON DUPLICATE KEY UPDATE preference_value = VALUES(preference_value), updated_datetime = NOW()"
+             VALUES (?, 'tickets_schedule_feed_token', ?, UTC_TIMESTAMP())
+             ON DUPLICATE KEY UPDATE preference_value = VALUES(preference_value), updated_datetime = UTC_TIMESTAMP()"
         )->execute([$analystId, $token]);
     }
 

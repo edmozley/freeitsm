@@ -21,6 +21,7 @@
  */
 
 require_once __DIR__ . '/../workflow/includes/engine.php';
+require_once __DIR__ . '/timezone.php';   // naive_today_sql() — expiry dates are bare dates (GH #126)
 
 /**
  * Dispatch a time-based event — but only the FIRST time this exact situation is
@@ -113,19 +114,26 @@ function workflowEmitContractExpiries(PDO $conn): int
     $fired = 0;
     $windows = workflowExpiryWindows();
     $maxWindow = max($windows);
+    $today = naive_today_sql();
 
     $rows = $conn->prepare(
         // Suppliers have no single `name`: trading_name is what people call them,
         // legal_name is what's on the contract. Prefer the former, fall back.
+        // ⚠️ naive_today_sql(), not CURDATE(). contract_end is a BARE DATE and
+        // days_remaining decides which reminder window fires (30/14/7). CURDATE()
+        // is the UTC date now that the connection is pinned (GH #126), so for the
+        // hour before local midnight it would count a day too many and send the
+        // 30-day reminder on day 31. This job runs from cron with no session, so
+        // the wall clock is the installation's own zone, which is right.
         "SELECT c.id, c.contract_number, c.title, c.contract_end, c.supplier_id,
                 COALESCE(NULLIF(s.trading_name, ''), s.legal_name) AS supplier_name,
-                DATEDIFF(c.contract_end, CURDATE()) AS days_remaining
+                DATEDIFF(c.contract_end, $today) AS days_remaining
            FROM contracts c
       LEFT JOIN suppliers s ON s.id = c.supplier_id
           WHERE c.is_active = 1
             AND c.contract_end IS NOT NULL
-            AND c.contract_end >= CURDATE()
-            AND c.contract_end <= DATE_ADD(CURDATE(), INTERVAL ? DAY)"
+            AND c.contract_end >= $today
+            AND c.contract_end <= DATE_ADD($today, INTERVAL ? DAY)"
     );
     $rows->execute([$maxWindow]);
 
@@ -167,14 +175,16 @@ function workflowEmitWarrantyExpiries(PDO $conn): int
     $fired = 0;
     $windows = workflowExpiryWindows();
     $maxWindow = max($windows);
+    $today = naive_today_sql();
 
     $rows = $conn->prepare(
+        // A bare date and a reminder window, exactly as above (GH #126).
         "SELECT a.id, a.hostname, a.warranty_expiry,
-                DATEDIFF(a.warranty_expiry, CURDATE()) AS days_remaining
+                DATEDIFF(a.warranty_expiry, $today) AS days_remaining
            FROM assets a
           WHERE a.warranty_expiry IS NOT NULL
-            AND a.warranty_expiry >= CURDATE()
-            AND a.warranty_expiry <= DATE_ADD(CURDATE(), INTERVAL ? DAY)"
+            AND a.warranty_expiry >= $today
+            AND a.warranty_expiry <= DATE_ADD($today, INTERVAL ? DAY)"
     );
     $rows->execute([$maxWindow]);
 

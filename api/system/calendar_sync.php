@@ -87,12 +87,12 @@ try {
             // like that for weeks. NULL means it has genuinely never run.
             //
             // Measured in SQL rather than by differencing against the browser's
-            // clock: delta_synced_datetime is written with NOW(), so comparing it
-            // to NOW() keeps both sides on one clock and sidesteps the timezone
+            // clock: delta_synced_datetime is written with UTC_TIMESTAMP(), so comparing it
+            // to UTC_TIMESTAMP() keeps both sides on one clock and sidesteps the timezone
             // question altogether.
             'last_poll_minutes' => (function () use ($conn) {
                 $v = $conn->query(
-                    "SELECT TIMESTAMPDIFF(MINUTE, MAX(delta_synced_datetime), NOW())
+                    "SELECT TIMESTAMPDIFF(MINUTE, MAX(delta_synced_datetime), UTC_TIMESTAMP())
                        FROM calendar_enrolments
                       WHERE mode <> 'off' AND delta_synced_datetime IS NOT NULL"
                 )->fetchColumn();
@@ -106,8 +106,8 @@ try {
             'analysts'   => $conn->query(
                 "SELECT a.id, a.full_name, a.email, e.calendar_address, e.mode, e.task_mode, e.last_error,
                         e.subscription_id,
-                        TIMESTAMPDIFF(HOUR, NOW(), e.subscription_expires) AS sub_hours,
-                        TIMESTAMPDIFF(MINUTE, e.delta_synced_datetime, NOW()) AS checked_minutes
+                        TIMESTAMPDIFF(HOUR, UTC_TIMESTAMP(), e.subscription_expires) AS sub_hours,
+                        TIMESTAMPDIFF(MINUTE, e.delta_synced_datetime, UTC_TIMESTAMP()) AS checked_minutes
                    FROM analysts a
                    LEFT JOIN calendar_enrolments e ON e.analyst_id = a.id
                   WHERE a.is_active = 1
@@ -190,7 +190,7 @@ try {
                 "UPDATE calendar_connections
                     SET name = ?, provider = 'microsoft', mailbox_id = ?, credentials = ?,
                         last_error = NULL, last_error_datetime = NULL,
-                        token_data = NULL, updated_datetime = NOW()
+                        token_data = NULL, updated_datetime = UTC_TIMESTAMP()
                   WHERE id = ?"
             )->execute([$name, $mailboxId, ($credentials === '' ? null : $credentials), (int)$existing['id']]);
             $id = (int)$existing['id'];
@@ -241,7 +241,7 @@ try {
             echo json_encode($result);
         } catch (Exception $e) {
             $msg = substr($e->getMessage(), 0, 500);
-            $conn->prepare("UPDATE calendar_connections SET last_error = ?, last_error_datetime = NOW() WHERE id = ?")
+            $conn->prepare("UPDATE calendar_connections SET last_error = ?, last_error_datetime = UTC_TIMESTAMP() WHERE id = ?")
                  ->execute([$msg, (int)$row['id']]);
             echo json_encode(['success' => false, 'token' => false, 'error' => $msg]);
         }
@@ -273,7 +273,7 @@ try {
         $conn->prepare(
             "INSERT INTO calendar_enrolments (analyst_id, calendar_address, mode)
              VALUES (?, ?, 'off')
-             ON DUPLICATE KEY UPDATE calendar_address = VALUES(calendar_address), updated_datetime = NOW()"
+             ON DUPLICATE KEY UPDATE calendar_address = VALUES(calendar_address), updated_datetime = UTC_TIMESTAMP()"
         )->execute([$analystId, ($address === '' ? null : $address)]);
 
         // Verify it while we are here, if we can, so the admin does not have to

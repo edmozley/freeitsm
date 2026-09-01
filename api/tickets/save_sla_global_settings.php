@@ -68,8 +68,8 @@ try {
 
     $conn = connectToDatabase();
     $upsert = $conn->prepare("INSERT INTO system_settings (setting_key, setting_value, updated_datetime)
-                              VALUES (?, ?, NOW())
-                              ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_datetime = NOW()");
+                              VALUES (?, ?, UTC_TIMESTAMP())
+                              ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value), updated_datetime = UTC_TIMESTAMP()");
 
     foreach ($values as $key => $val) {
         $upsert->execute([$key, $val]);
