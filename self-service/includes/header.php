@@ -36,6 +36,9 @@ require_once __DIR__ . '/../../config.php';
 require_once __DIR__ . '/../../includes/i18n.php';
 I18n::initFromSession();
 require_once __DIR__ . '/../../includes/theme.php';
+// The logo the header draws (GH #87). login.php and register.php require this
+// themselves; the six signed-in pages come through here, so it belongs here.
+require_once __DIR__ . '/../../includes/branding.php';
 require_once __DIR__ . '/../../includes/timezone.php';
 // The portal had NO timezone or date-format plumbing at all: its dates were
 // rendered from an unmarked `new Date(dbString)`, so they showed the browser's
