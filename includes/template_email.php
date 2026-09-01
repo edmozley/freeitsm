@@ -9,6 +9,7 @@
 require_once __DIR__ . '/encryption.php';
 require_once __DIR__ . '/email_log.php';
 require_once __DIR__ . '/public_url.php';   // publicAbsoluteUrl(), for the [ticket_url] merge code
+require_once __DIR__ . '/timezone.php';     // fmt_local(), for the [created_date] merge code (GH #126)
 
 /**
  * Main entry point — send a template email for a ticket event.
@@ -345,8 +346,21 @@ function buildTicketMergeData(PDO $conn, int $ticketId): ?array {
         'analyst_name' => $row['analyst_name'] ?? '',
         'analyst_email' => $row['analyst_email'] ?? '',
         'department_name' => $row['department_name'] ?? '',
-        'created_date' => $row['created_datetime'] ? date('d M Y H:i', strtotime($row['created_datetime'])) : '',
-        'closed_date' => $row['closed_datetime'] ? date('d M Y H:i', strtotime($row['closed_datetime'])) : '',
+        // 🔴 These were `date('d M Y H:i', strtotime($utc))` (GH #126). Both halves
+        // run in PHP's default zone — which config.php pins to Europe/London — so
+        // the value round-tripped through the same zone it went in by and came out
+        // as the UNCONVERTED digits of the stored UTC value. The email therefore
+        // showed a time converted for nobody: two hours BEHIND a reader in Vienna,
+        // which is the mirror image of the note bug in the same report.
+        //
+        // fmt_local() converts a stored UTC instant into the display zone, which is
+        // the analyst's own preference where there is a session and the install
+        // default where there is not. ⚠️ Most of this file's mail is sent by the
+        // collector from cron, so in practice that is usually the install default —
+        // which is the right answer available, but it is NOT the recipient's zone.
+        // A requester's timezone is not something FreeITSM stores.
+        'created_date' => fmt_local($row['created_datetime'] ?? null, 'd M Y H:i'),
+        'closed_date' => fmt_local($row['closed_datetime'] ?? null, 'd M Y H:i'),
     ];
 }
 
