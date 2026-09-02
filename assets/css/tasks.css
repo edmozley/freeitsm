@@ -1810,6 +1810,86 @@ body {
     .detail-panel.as-modal { top: 0; bottom: 0; left: 0; right: 0; border-radius: 0; }
 }
 
+/* ── The large window as TABS, the alternative to the two columns above ──────
+   Chosen per analyst with the button in the panel header; columns stay the
+   default. The same blocks, regrouped — see applyModalTabs() in tasks.js.
+   ────────────────────────────────────────────────────────────────────────── */
+.tdm-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    margin: 4px 0 18px;
+    border-bottom: 1px solid var(--border-soft, #eceff3);
+}
+.tdm-tab {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border: none;
+    background: transparent;
+    /* The underline is drawn on the button itself and only COLOURED when
+       active, so selecting a tab cannot change its height and shuffle the
+       fields below it by a pixel. */
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    color: var(--text-muted, #666);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.tdm-tab:hover { color: var(--text, #333); }
+.tdm-tab.active {
+    color: var(--tsk-accent, #7c3aed);
+    border-bottom-color: var(--tsk-accent, #7c3aed);
+}
+
+/* ⭐ The count is what stops a tab HIDING things: three subtasks behind a tab
+   with no number are indistinguishable from none. */
+.tdm-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 9px;
+    background: var(--surface-3, #e9ecf1);
+    color: var(--text-muted, #666);
+    font-size: 11px;
+    font-weight: 700;
+}
+.tdm-tab.active .tdm-tab-count {
+    background: var(--tsk-accent, #7c3aed);
+    color: #fff;
+}
+
+.tdm-tabpanel { display: none; }
+.tdm-tabpanel.active { display: block; }
+
+/* A tab panel holds blocks that were written to sit in a scrolling column, and
+   several of them open with their own heading. The first one loses its top
+   margin so the content starts against the tab strip rather than a gap. */
+.tdm-tabpanel.active > *:first-child { margin-top: 0; }
+.tdm-tabpanel .link-section,
+.tdm-tabpanel .subtask-section,
+.tdm-tabpanel .comments-section { border-top: none; padding-top: 0; }
+
+/* A phone: tabs beat columns here anyway, and the strip scrolls sideways rather
+   than wrapping into three rows that eat the screen the tabs were meant to save. */
+@media (max-width: 700px) {
+    .tdm-tabs {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    .tdm-tabs::-webkit-scrollbar { display: none; }
+    .tdm-tab { flex: 0 0 auto; padding: 11px 14px; font-size: 14px; }
+}
+
 /* Subtask due dates (#90). A subtask has always been able to carry a deadline;
    nothing asked for one at the point of creation, so none ever had one and the
    calendar had nothing to show. */

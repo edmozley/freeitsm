@@ -14,14 +14,24 @@ requireModuleAccess('tasks');
 // Read here and published to the page, the same way the theme and timezone are
 // — tasks.js must not have to fetch a preference before it can open anything.
 $taskDetailView = 'panel';
+// And, WITHIN the large window, whether the sections are laid out as two
+// columns (as they always have been) or split across tabs. A task now carries
+// enough — fields, involved people, tags, description, repeats, links,
+// subtasks, time, comments, documents — that one scroll is a long way for
+// somebody who only wants the comments. Offered as a choice rather than
+// swapped, because a long page is genuinely better when you want to read the
+// whole thing at once.
+$taskModalLayout = 'columns';
 try {
     $__p = connectToDatabase()->prepare(
-        "SELECT preference_value FROM user_preferences
-         WHERE analyst_id = ? AND preference_key = 'tasks_detail_view'"
+        "SELECT preference_key, preference_value FROM user_preferences
+         WHERE analyst_id = ? AND preference_key IN ('tasks_detail_view', 'tasks_modal_layout')"
     );
     $__p->execute([(int) ($_SESSION['analyst_id'] ?? 0)]);
-    $__v = $__p->fetchColumn();
-    if ($__v === 'modal') { $taskDetailView = 'modal'; }
+    foreach ($__p->fetchAll(PDO::FETCH_KEY_PAIR) as $__k => $__v) {
+        if ($__k === 'tasks_detail_view'  && $__v === 'modal') { $taskDetailView  = 'modal'; }
+        if ($__k === 'tasks_modal_layout' && $__v === 'tabs')  { $taskModalLayout = 'tabs'; }
+    }
 } catch (Throwable $e) {
     // Un-migrated install, or no preferences row: the side panel, as before.
 }
@@ -41,7 +51,7 @@ $translationNamespaces = ['common', 'tasks'];
     <title>Service Desk - <?php echo htmlspecialchars(t('tasks.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=62">
-    <link rel="stylesheet" href="../assets/css/tasks.css?v=29">
+    <link rel="stylesheet" href="../assets/css/tasks.css?v=30">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -156,6 +166,14 @@ $translationNamespaces = ['common', 'tasks'];
                 <button class="btn-icon" id="detailViewToggle" onclick="toggleTaskView()" title="">
                     <svg id="detailViewToggleIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
                 </button>
+                <!-- Columns or tabs, WITHIN the large window. Hidden entirely in
+                     the side panel, because there is nothing there it could
+                     apply to — a control that is present but does nothing is
+                     worse than one that is absent. Same reasoning as the button
+                     above: the choice is offered where you are wishing for it. -->
+                <button class="btn-icon" id="detailLayoutToggle" onclick="toggleModalLayout()" title="" style="display:none;">
+                    <svg id="detailLayoutToggleIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"></svg>
+                </button>
                 <button class="btn-icon" onclick="deleteCurrentTask()" title="<?php echo htmlspecialchars(t('tasks.detail.delete')); ?>">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                 </button>
@@ -235,10 +253,11 @@ $translationNamespaces = ['common', 'tasks'];
     <!-- Toast -->
     <script>window.API_BASE = '../api/tasks/';
     window.APP_BASE = '<?php echo defined('BASE_URL') ? BASE_URL : '/'; ?>';
-    window.TASK_DETAIL_VIEW = <?php echo json_encode($taskDetailView); ?>;</script>
+    window.TASK_DETAIL_VIEW = <?php echo json_encode($taskDetailView); ?>;
+    window.TASK_MODAL_LAYOUT = <?php echo json_encode($taskModalLayout); ?>;</script>
     <script src="../assets/js/tasks-priority.js?v=1"></script>
     <script src="../assets/js/tasks-ctx-menu.js?v=3"></script>
-    <script src="../assets/js/tasks.js?v=37"></script>
+    <script src="../assets/js/tasks.js?v=38"></script>
     <script src="../assets/js/mobile.js?v=50"></script>
 </body>
 </html>

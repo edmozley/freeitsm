@@ -80,6 +80,16 @@ return [
         'close'          => 'Close',
         'view_to_modal'  => 'Open in a large window',
         'view_to_panel'  => 'Show in the side panel',
+        // Columns or tabs, within the large window. A task carries enough now
+        // that one scroll is a long way if you only want the comments.
+        'layout_to_tabs'    => 'Split into tabs',
+        'layout_to_columns' => 'Show it all on one page',
+        'tab_details'    => 'Details',
+        'tab_subtasks'   => 'Subtasks',
+        'tab_time'       => 'Time',
+        'tab_comments'   => 'Comments',
+        'tab_links'      => 'Links',
+        'tab_documents'  => 'Documents',
         'view_not_saved' => 'View changed, but it could not be remembered for next time',
         'open_full'      => 'Open full editor',
         'description_preview_hint' => 'Open the full editor to edit the description.',

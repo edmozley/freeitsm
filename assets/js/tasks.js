@@ -882,6 +882,15 @@ function taskViewIsModal() {
 // Moving a node after TinyMCE has attached to it tears the editor's iframe out
 // of the document, and it does not come back.
 function applyModalLayout(body) {
+    // Two shapes for the large window, chosen per analyst. BOTH rearrange the
+    // markup that is already there — neither renders a second template. Two
+    // copies of this panel would be two things to keep in step, and the one
+    // nobody is looking at is the one that rots.
+    if (modalLayoutIsTabs()) {
+        applyModalTabs(body);
+        return;
+    }
+
     // The blocks that earn the wide column: prose and conversation. Everything
     // else is a short field and reads better in a narrow stack.
     const WIDE = '.detail-description, .subtask-section, .comments-section';
@@ -904,10 +913,151 @@ function applyModalLayout(body) {
     body.appendChild(layout);
 }
 
+// ── The large window as TABS ────────────────────────────────────────────────
+//
+// A task has grown a lot: fields, the people involved, tags, a description,
+// repeats, links, subtasks, time, comments and documents. As one column that is
+// a long scroll for somebody who only wants the comments. Tabs put each part one
+// click away instead.
+//
+// ⚠️ Offered rather than imposed, and columns stay the default. A long page is
+// genuinely better when you want to take the whole task in at once, and tabs
+// hide things — somebody who never scrolled past the fold will now never see the
+// subtasks either unless the tab tells them the count.
+
+function modalLayoutIsTabs() {
+    return window.TASK_MODAL_LAYOUT === 'tabs';
+}
+
+/**
+ * The tabs, in reading order. Each names the selectors it collects.
+ *
+ * 🔑 Anything NOT matched by one of these falls into the first tab. That is the
+ * rule that stops this becoming a maintenance trap: add a new section to the
+ * panel and it appears in Details rather than vanishing from the window
+ * entirely, which is what a hardcoded "everything else goes here" list would do
+ * the first time somebody forgot to update it.
+ */
+const TASK_MODAL_TABS = [
+    { key: 'details',  match: null },     // the catch-all, and deliberately first
+    { key: 'subtasks', match: '.subtask-section',  count: '.subtask-item, .subtask-row' },
+    { key: 'time',     match: '#taskTimeSection' },
+    { key: 'comments', match: '.comments-section', count: '.comment-item' },
+    { key: 'links',    match: '.link-section' },
+    { key: 'documents',match: '#taskDocuments' },
+];
+
+function applyModalTabs(body) {
+    const strip  = document.createElement('div');
+    strip.className = 'tdm-tabs';
+    strip.setAttribute('role', 'tablist');
+    const panels = document.createElement('div');
+    panels.className = 'tdm-tabpanels';
+
+    // One panel per tab, built up front so the sorting loop below can just file
+    // each block into the right one.
+    const panelFor = {};
+    TASK_MODAL_TABS.forEach(t => {
+        const p = document.createElement('div');
+        p.className = 'tdm-tabpanel';
+        p.id = 'tdmTab-' + t.key;
+        p.setAttribute('role', 'tabpanel');
+        panels.appendChild(p);
+        panelFor[t.key] = p;
+    });
+
+    Array.from(body.children).forEach(el => {
+        // The title stays across the top, above the tabs — it says which task
+        // you are looking at, which is true on every tab.
+        if (el.querySelector && el.querySelector('#detailTitle')) return;
+        // ⚠️ `matches` OR `querySelector`. Some blocks ARE the thing named
+        // (`#taskTimeSection` is itself the child); others are a plain wrapper
+        // around it (`#taskDocuments` sits inside an unclassed `.detail-section`).
+        // Testing only the element itself sent Documents to the catch-all — not
+        // lost, but not its own tab either, which is the quieter kind of wrong.
+        const hit = TASK_MODAL_TABS.find(t => t.match && el.matches &&
+            (el.matches(t.match) || el.querySelector(t.match)));
+        panelFor[hit ? hit.key : 'details'].appendChild(el);
+    });
+
+    // A tab with nothing in it is not drawn. Repeats and documents are optional,
+    // and a subtask section does not exist at all on a subtask — an empty tab
+    // would be a promise of content that is not there.
+    TASK_MODAL_TABS.forEach((t, i) => {
+        const panel = panelFor[t.key];
+        if (!panel.children.length) { panel.remove(); return; }
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tdm-tab';
+        btn.setAttribute('role', 'tab');
+        btn.dataset.tab = t.key;
+        btn.textContent = window.t('tasks.detail.tab_' + t.key);
+
+        // ⭐ The count is what stops tabs HIDING things. Without it, three
+        // subtasks behind a tab are indistinguishable from none, and the person
+        // who never scrolled simply never learns they exist.
+        if (t.count) {
+            const n = panel.querySelectorAll(t.count).length;
+            if (n) {
+                const badge = document.createElement('span');
+                badge.className = 'tdm-tab-count';
+                badge.textContent = n;
+                btn.appendChild(badge);
+            }
+        }
+        btn.onclick = () => showModalTab(t.key);
+        strip.appendChild(btn);
+    });
+
+    body.appendChild(strip);
+    body.appendChild(panels);
+
+    // Open on whichever tab survived and comes first — normally Details, but a
+    // subtask has no Subtasks tab, so never assume a fixed key exists.
+    const first = strip.querySelector('.tdm-tab');
+    if (first) showModalTab(first.dataset.tab);
+}
+
+function showModalTab(key) {
+    document.querySelectorAll('.tdm-tab').forEach(b => {
+        const on = b.dataset.tab === key;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-selected', on ? 'true' : 'false');
+    });
+    document.querySelectorAll('.tdm-tabpanel').forEach(p => {
+        p.classList.toggle('active', p.id === 'tdmTab-' + key);
+    });
+}
+
+/** Columns ⇄ tabs, remembered per analyst. Mirrors toggleTaskView(). */
+async function toggleModalLayout() {
+    window.TASK_MODAL_LAYOUT = modalLayoutIsTabs() ? 'columns' : 'tabs';
+    const id = selectedTaskId;
+    // Redraw first so the change is instant; storing the preference is a
+    // background detail and must not make the button feel slow.
+    if (id) await openDetailPanel(id);
+    try {
+        const r = await fetch(APP_BASE + 'api/system/set_user_preference.php', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ key: 'tasks_modal_layout', value: window.TASK_MODAL_LAYOUT })
+        }).then(r => r.json());
+        if (!r || !r.success) {
+            showToast(window.t('tasks.detail.view_not_saved'), 'error');
+        }
+    } catch (e) {
+        console.error(e);
+        showToast(window.t('tasks.detail.view_not_saved'), 'error');
+    }
+}
+
 // The header button that swaps between the side panel and the large window.
 // Drawn per state: an expand icon while you are in the drawer, a shrink icon
 // while you are in the window, so the icon shows what pressing it will DO.
 function paintViewToggle() {
+    paintLayoutToggle();
     const btn  = document.getElementById('detailViewToggle');
     const icon = document.getElementById('detailViewToggleIcon');
     if (!btn || !icon) return;
@@ -918,6 +1068,29 @@ function paintViewToggle() {
         // Grow into the large window
         : '<polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line>';
     btn.title = window.t(modal ? 'tasks.detail.view_to_panel' : 'tasks.detail.view_to_modal');
+}
+
+/**
+ * The columns/tabs button, which only exists in the large window.
+ *
+ * ⚠️ Hidden rather than disabled in the side panel. A greyed-out control still
+ * asks to be understood; one that is not there costs nothing.
+ */
+function paintLayoutToggle() {
+    const btn  = document.getElementById('detailLayoutToggle');
+    const icon = document.getElementById('detailLayoutToggleIcon');
+    if (!btn || !icon) return;
+
+    if (!taskViewIsModal()) { btn.style.display = 'none'; return; }
+    btn.style.display = '';
+
+    const tabs = modalLayoutIsTabs();
+    icon.innerHTML = tabs
+        // Back to one long page: a single column of stacked rows
+        ? '<rect x="3" y="4" width="18" height="4" rx="1"></rect><rect x="3" y="10" width="18" height="4" rx="1"></rect><rect x="3" y="16" width="18" height="4" rx="1"></rect>'
+        // Into tabs: a strip of headers above a pane
+        : '<path d="M3 8V5a1 1 0 0 1 1-1h5l2 2h9a1 1 0 0 1 1 1v1"></path><rect x="3" y="8" width="18" height="12" rx="1"></rect>';
+    btn.title = window.t(tabs ? 'tasks.detail.layout_to_columns' : 'tasks.detail.layout_to_tabs');
 }
 
 // Swap the view, remember it, and redraw the task that is already open.
