@@ -57,6 +57,12 @@
         var keyEl      = panel.querySelector('[data-ai-key]');
         var keyHint    = panel.querySelector('[data-ai-key-hint]');
         var noteEl     = panel.querySelector('[data-ai-openrouter-note]');
+        // Azure OpenAI deployment-based endpoints (discussion #86).
+        var azureBox   = panel.querySelector('[data-ai-azure]');
+        var azEndpoint = panel.querySelector('[data-ai-azure-endpoint]');
+        var azDeploy   = panel.querySelector('[data-ai-azure-deployment]');
+        var azVersion  = panel.querySelector('[data-ai-azure-api-version]');
+        var modelGroup = panel.querySelector('[data-ai-model-group]');
         var saveBtn    = panel.querySelector('[data-ai-save]');
         var testBtn    = panel.querySelector('[data-ai-test]');
         var resultEl   = panel.querySelector('[data-ai-result]');
@@ -130,6 +136,20 @@
         function applyProviderUi(provider, opts) {
             opts = opts || {};
             noteEl.classList.toggle('show', provider === 'openrouter');
+
+            /* Azure asks a different question, so it shows different boxes. The
+               Model field is HIDDEN rather than left alongside: on a
+               deployment-based endpoint the deployment already decides the
+               model, and showing both would be asking the same thing twice and
+               inviting somebody to fill in a box that is never sent. */
+            var isAzure = provider === 'azure';
+            if (azureBox)   azureBox.hidden = !isAzure;
+            if (modelGroup) modelGroup.hidden = isAzure;
+
+            if (isAzure) {
+                setCuratedModels(provider);   // empties the suggestion list
+                return;                       // no model default to apply below
+            }
             if (provider === 'openrouter') {
                 if (!orModelsLoaded) loadOpenRouterModels(); else if (menuOpen) renderMenu();
             } else {
@@ -148,6 +168,11 @@
                 if (!d.success) { setResult(d.error || '', 'err'); return; }
                 providerEl.value = d.provider || 'anthropic';
                 modelEl.value = d.model || '';
+                // Shown in the clear on purpose — an endpoint you cannot read
+                // back is an endpoint whose typo you cannot find.
+                if (azEndpoint) azEndpoint.value = d.azure_endpoint || '';
+                if (azDeploy)   azDeploy.value   = d.azure_deployment || '';
+                if (azVersion)  azVersion.value  = d.azure_api_version || '';
                 if (d.has_key) {
                     keyEl.placeholder = d.masked_key || '••••';
                     keyHint.textContent = tr('api_key_set', 'A key is saved. Leave blank to keep it.');
@@ -168,7 +193,13 @@
                 ns: ns,
                 provider: providerEl.value,
                 model: modelEl.value.trim(),
-                api_key: keyEl.value // blank → server keeps existing key
+                api_key: keyEl.value, // blank → server keeps existing key
+                // Always sent, whatever the provider — so switching to OpenAI
+                // and back does not quietly empty an endpoint somebody spent
+                // time getting right. The provider row decides what is used.
+                azure_endpoint:    azEndpoint ? azEndpoint.value.trim() : '',
+                azure_deployment:  azDeploy   ? azDeploy.value.trim()   : '',
+                azure_api_version: azVersion  ? azVersion.value.trim()  : ''
             };
             fetch(apiBase + 'save_settings.php', {
                 method: 'POST', credentials: 'same-origin',

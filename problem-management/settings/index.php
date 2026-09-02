@@ -106,7 +106,7 @@ $path_prefix = '../../';
 
     <script src="<?php echo BASE_URL; ?>assets/js/toast.js"></script>
     <script src="<?php echo BASE_URL; ?>assets/js/confirm.js"></script>
-    <script src="<?php echo BASE_URL; ?>assets/js/ai-settings.js"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/ai-settings.js?v=2"></script>
     <script>
     const PMS_API = '../../api/problem-management/';
     function pmsEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}

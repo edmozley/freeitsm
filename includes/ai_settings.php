@@ -113,6 +113,17 @@ function aiSettingsKeys(string $ns): array
         // Whether this feature may use a model's EXTENDED THINKING. Set from
         // System → AI thinking, one switch per feature. See aiSettingsLoad().
         'reasoning'  => $ns . '_reasoning',
+        /* Azure OpenAI deployment-based endpoints (discussion #86). Three rows
+           rather than one composed URL, because that is how they appear in the
+           Azure portal and how the administrator will have them written down —
+           and because a single pasted URL gives us nothing to say when it is
+           wrong beyond "that did not work".
+           ⚠️ NOT SECRETS: an endpoint host, a deployment name and a date-shaped
+           version string. Only the api_key is encrypted, and adding these to the
+           encrypted list would mean an existing key could not be read back. */
+        'azure_endpoint'    => $ns . '_azure_endpoint',
+        'azure_deployment'  => $ns . '_azure_deployment',
+        'azure_api_version' => $ns . '_azure_api_version',
     ];
 }
 
@@ -170,6 +181,10 @@ function aiSettingsLoad(PDO $conn, string $ns): array
         'api_key'    => $apiKey,
         'reasoning'  => !empty($rows[$keys['reasoning']]) && (int)$rows[$keys['reasoning']] === 1,
         'verify_ssl' => defined('SSL_VERIFY_PEER') ? (bool)SSL_VERIFY_PEER : true,
+        // Only meaningful when provider === 'azure'; harmless and empty otherwise.
+        'azure_endpoint'    => (string)($rows[$keys['azure_endpoint']]    ?? ''),
+        'azure_deployment'  => (string)($rows[$keys['azure_deployment']]  ?? ''),
+        'azure_api_version' => (string)($rows[$keys['azure_api_version']] ?? ''),
     ];
 }
 
@@ -186,6 +201,12 @@ function aiSettingsForUi(PDO $conn, string $ns): array
         'has_key'    => $cfg['api_key'] !== '',
         'masked_key' => $cfg['api_key'] !== '' ? maskSecret($cfg['api_key']) : '',
         'reasoning'  => $cfg['reasoning'],
+        // Returned in the clear: these are not secrets, and an administrator
+        // coming back to the page needs to SEE what is saved. Masking an
+        // endpoint would make a typo in it impossible to spot.
+        'azure_endpoint'    => $cfg['azure_endpoint'],
+        'azure_deployment'  => $cfg['azure_deployment'],
+        'azure_api_version' => $cfg['azure_api_version'],
     ];
 }
 
@@ -219,6 +240,16 @@ function aiSettingsSave(PDO $conn, string $ns, array $data): void
 
     $upsert($keys['provider'], $provider);
     $upsert($keys['model'], $model);
+
+    /* Azure's three fields. Written whenever they are PRESENT in the payload,
+       not only when the provider is Azure — so switching to OpenAI and back does
+       not silently empty an endpoint the administrator spent time getting right.
+       The provider row alone decides which configuration is actually used. */
+    foreach (['azure_endpoint', 'azure_deployment', 'azure_api_version'] as $f) {
+        if (array_key_exists($f, $data)) {
+            $upsert($keys[$f], trim((string)$data[$f]));
+        }
+    }
 
     // Key: only write when the user actually entered a new one.
     $rawKey = $data['api_key'] ?? '';

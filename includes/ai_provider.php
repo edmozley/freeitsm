@@ -14,6 +14,19 @@
  *   - openrouter  → POST https://openrouter.ai/api/v1/chat/completions
  *                   (OpenAI-wire-compatible; one key reaches hundreds of
  *                    models, model ids are namespaced e.g. "anthropic/claude-3.5-sonnet")
+ *   - azure       → POST {endpoint}/openai/deployments/{deployment}/chat/completions
+ *                        ?api-version={version}
+ *                   Azure OpenAI's DEPLOYMENT-BASED endpoints (discussion #86).
+ *                   Same request and response shape as `openai`; three things
+ *                   differ, and they are the whole of the new code:
+ *                     1. the URL names a DEPLOYMENT you created in your own
+ *                        Azure tenant, and carries a REQUIRED query string
+ *                     2. the key goes in an `api-key:` header, NOT
+ *                        `Authorization: Bearer`
+ *                     3. the deployment IS the model, so no `model` is sent
+ *                   Asked for by organisations whose governance will not let
+ *                   traffic leave their own Azure tenant — for them this is not
+ *                   a preference, it is the only way to switch AI on at all.
  *
  * Request shapes mirror the proven ones in includes/rfp_ai.php; this file is
  * intentionally independent so the RFP builder isn't affected.
@@ -24,7 +37,10 @@ require_once __DIR__ . '/encryption.php';
 const AI_PROVIDER_RETRY_MAX        = 3;
 const AI_PROVIDER_RETRY_BACKOFF_MS = 2000;
 const AI_PROVIDER_HTTP_TIMEOUT     = 120;
-const AI_PROVIDER_VALID            = ['anthropic', 'openai', 'openrouter'];
+const AI_PROVIDER_VALID            = ['anthropic', 'openai', 'openrouter', 'azure'];
+
+/** Used when an Azure config names no api-version. A widely-deployed, stable one. */
+const AI_AZURE_DEFAULT_API_VERSION = '2024-02-01';
 
 const AI_OPENROUTER_BASE  = 'https://openrouter.ai/api/v1';
 const AI_OPENAI_BASE      = 'https://api.openai.com/v1';
@@ -56,7 +72,18 @@ function aiProviderChat(array $cfg, array $opts): array
     if ($apiKey === '') {
         throw new RuntimeException('No API key configured.');
     }
-    if ($model === '') {
+    /* ⚠️ Azure names a DEPLOYMENT rather than a model, so it is checked against
+       its own fields. Saying "No model configured" to somebody who has correctly
+       filled in a deployment would send them looking for a box that is not on
+       their screen. */
+    if ($provider === 'azure') {
+        if (trim((string)($cfg['azure_endpoint'] ?? '')) === '') {
+            throw new RuntimeException('No Azure endpoint configured.');
+        }
+        if (trim((string)($cfg['azure_deployment'] ?? '')) === '') {
+            throw new RuntimeException('No Azure deployment name configured.');
+        }
+    } elseif ($model === '') {
         throw new RuntimeException('No model configured.');
     }
 
@@ -72,6 +99,24 @@ function aiProviderChat(array $cfg, array $opts): array
 
     if ($provider === 'anthropic') {
         $result = aiProviderCallAnthropic($model, $apiKey, $verify, $opts);
+    } elseif ($provider === 'azure') {
+        /* Azure IS the OpenAI wire format, at a different address and behind a
+           different header — so it reuses that call rather than copying it. The
+           deployment is reported back as the "model" because that is the name
+           the administrator chose and the only one they will recognise.
+
+           ⚠️ NO `model` IN THE BODY. On a deployment-based endpoint the
+           deployment already decides the model; some api-versions reject a
+           `model` that does not match the deployment, and there is nothing
+           useful to send that the URL has not already said. */
+        $model  = trim((string)$cfg['azure_deployment']);
+        $result = aiProviderCallOpenAICompatible(
+            aiAzureChatUrl($cfg),
+            '',
+            ['api-key: ' . $apiKey],
+            $verify,
+            $opts
+        );
     } else {
         // openai + openrouter share the OpenAI-compatible chat-completions wire format
         $base = $provider === 'openrouter'
@@ -83,7 +128,14 @@ function aiProviderChat(array $cfg, array $opts): array
             $extraHeaders[] = 'HTTP-Referer: ' . ($opts['referer'] ?? 'https://freeitsm.co.uk');
             $extraHeaders[] = 'X-Title: ' . ($opts['title'] ?? 'FreeITSM');
         }
-        $result = aiProviderCallOpenAICompatible($base, $model, $apiKey, $verify, $opts, $extraHeaders);
+        $result = aiProviderCallOpenAICompatible(
+            rtrim($base, '/') . '/chat/completions',
+            $model,
+            ['Authorization: Bearer ' . $apiKey],
+            $verify,
+            $opts,
+            $extraHeaders
+        );
     }
 
     $result['provider']    = $provider;
@@ -131,10 +183,51 @@ function aiProviderCallAnthropic(string $model, string $apiKey, bool $verify, ar
     ];
 }
 
-function aiProviderCallOpenAICompatible(string $base, string $model, string $apiKey, bool $verify, array $opts, array $extraHeaders = []): array
+/**
+ * Build the URL for an Azure OpenAI deployment-based chat call.
+ *
+ * ⚠️ THE QUERY STRING IS NOT OPTIONAL. Azure refuses the request outright
+ * without `api-version`, which is why this cannot be expressed as a base URL the
+ * way OpenAI and OpenRouter are — and why this helper exists rather than another
+ * entry in the base-URL ternary above.
+ *
+ * The endpoint is normalised: administrators copy it out of the Azure portal
+ * with or without a trailing slash, and sometimes with `/openai` already on the
+ * end. Both are the same intention and neither should be a support question.
+ */
+function aiAzureChatUrl(array $cfg): string
 {
+    $endpoint = rtrim(trim((string)$cfg['azure_endpoint']), '/');
+    // Tolerate a pasted ".../openai" so it is not doubled below.
+    if (substr($endpoint, -7) === '/openai') {
+        $endpoint = substr($endpoint, 0, -7);
+    }
+    $deployment = trim((string)$cfg['azure_deployment']);
+    $version    = trim((string)($cfg['azure_api_version'] ?? '')) ?: AI_AZURE_DEFAULT_API_VERSION;
+
+    return $endpoint . '/openai/deployments/' . rawurlencode($deployment)
+         . '/chat/completions?api-version=' . rawurlencode($version);
+}
+
+/**
+ * The OpenAI chat-completions wire format, at whatever URL and behind whatever
+ * auth header the caller names.
+ *
+ * ⚠️ It takes a FULL URL and an AUTH HEADER LIST rather than a base and a key,
+ * because Azure differs in exactly those two places (a required query string,
+ * and `api-key:` instead of `Authorization: Bearer`). Passing them in keeps one
+ * copy of the body-building, response-parsing and reasoning-token handling
+ * below — all of which Azure shares — instead of a near-identical second one
+ * that would drift.
+ *
+ * An empty $model omits the field entirely, which is what a deployment-based
+ * endpoint wants.
+ */
+function aiProviderCallOpenAICompatible(string $url, string $model, array $authHeaders, bool $verify, array $opts, array $extraHeaders = []): array
+{
+    $base = $url;                 // the reasoning guard below tests the address
+
     $payload = [
-        'model'       => $model,
         'max_tokens'  => $opts['max_tokens'],
         'temperature' => $opts['temperature'],
         'messages'    => [
@@ -142,6 +235,9 @@ function aiProviderCallOpenAICompatible(string $base, string $model, string $api
             ['role' => 'user',   'content' => (string)($opts['user']   ?? '')],
         ],
     ];
+    if ($model !== '') {
+        $payload = ['model' => $model] + $payload;
+    }
 
     /* ⚠️ ONLY ON OPENROUTER. `reasoning` is OpenRouter's own parameter; OpenAI's
        /chat/completions rejects an unknown field outright, so sending it to both
@@ -155,14 +251,29 @@ function aiProviderCallOpenAICompatible(string $base, string $model, string $api
         $payload['reasoning'] = ['enabled' => false];
     }
 
-    $body = json_encode($payload);
+    $headers = array_merge($authHeaders, ['content-type: application/json'], $extraHeaders);
 
-    $headers = array_merge([
-        'Authorization: Bearer ' . $apiKey,
-        'content-type: application/json',
-    ], $extraHeaders);
+    try {
+        $resp = aiProviderHttpPost($url, $headers, json_encode($payload), $verify);
+    } catch (RuntimeException $e) {
+        /* ⚠️ `max_tokens` VS `max_completion_tokens`. Newer deployments — the
+           o-series and after — refuse `max_tokens` outright and say so by name.
+           The two mean the same thing here, and which one is required depends on
+           the deployed model rather than on anything we can see from the config,
+           so the only honest way to know is to be told.
 
-    $resp = aiProviderHttpPost(rtrim($base, '/') . '/chat/completions', $headers, $body, $verify);
+           Retried ONCE, and only when the provider's own words name the
+           replacement — so this cannot loop, and it cannot fire on an unrelated
+           400 such as a bad key or a content filter. Without it, an
+           administrator with a current Azure deployment gets a flat refusal for
+           a field they never chose and cannot see. */
+        if (strpos($e->getMessage(), 'max_completion_tokens') === false) {
+            throw $e;
+        }
+        $payload['max_completion_tokens'] = $payload['max_tokens'];
+        unset($payload['max_tokens']);
+        $resp = aiProviderHttpPost($url, $headers, json_encode($payload), $verify);
+    }
     $data = $resp['data'];
 
     $text = $data['choices'][0]['message']['content'] ?? '';

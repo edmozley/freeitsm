@@ -43,7 +43,7 @@ $translationNamespaces = ['common', 'knowledge'];
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
-    <script src="../../assets/js/ai-settings.js"></script>
+    <script src="../../assets/js/ai-settings.js?v=2"></script>
     <style>
         /* Page-specific overrides for settings page */
         .container {

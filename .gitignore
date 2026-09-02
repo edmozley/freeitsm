@@ -181,3 +181,6 @@ yarn-error.log
 # the volumes they added, putting their uploads back at risk with nothing to say why.
 # Compose reads this file automatically and merges it, so it never has to be tracked.
 docker-compose.override.yml
+
+# The Azure mock records the last request it received (tests/azure-openai).
+tests/azure-openai/last-request.json

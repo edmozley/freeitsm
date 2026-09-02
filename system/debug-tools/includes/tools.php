@@ -333,6 +333,27 @@ function getDebugTools() {
             'duration' => 'Instant',
             'persists' => 'Nothing. It stats directories and reads no file contents, touches no database row, and writes nothing at all.',
         ],
+        [
+            'slug'     => 'd014',
+            'file'     => 'D014_azure_openai.php',
+            'title'    => 'Azure OpenAI — deployment endpoints',
+            'category' => 'Integrations',
+            'icon'     => 'cpu',
+            'desc'     => 'For installs using Azure OpenAI: show the exact URL and headers FreeITSM sends, make one live call, and read back what Azure said.',
+            'keywords' => 'azure openai deployment endpoint api-version api key 401 404 DeploymentNotFound content filter max_completion_tokens ai provider gpt enterprise tenant governance d014',
+            'when'     => 'Run this when an AI feature set to Azure OpenAI is not working, and paste the output into the discussion rather than describing the symptom. Azure support was written without an Azure subscription to test against: every byte FreeITSM sends is covered by an automated suite, but nothing had ever spoken to a real tenant before it shipped, so the first installs to use it are doing the verification. This tool exists to make that one round trip instead of five. It prints the URL it builds from your endpoint, deployment and API version, the headers it sends, and then makes a real call and shows Azure\'s answer word for word — with a reading of the failures worth naming, because a 404 here almost always means the deployment NAME rather than a missing endpoint, and a 401 usually means a key from a different Azure resource.',
+            'checks'   => [
+                'Which AI features on this install are set to Azure, and which are on another provider — so a feature that is quietly still on Anthropic is visible rather than assumed',
+                'The endpoint, deployment and API version exactly as saved, including whether the API version is falling back to the built-in default',
+                'The complete URL that will be called, assembled the same way the live code assembles it — this is the single most common thing to get wrong, and seeing it written out usually ends the question',
+                'That the key is sent in an api-key header and NOT as Authorization: Bearer, which is the difference between Azure and OpenAI',
+                'One live call per Azure-configured feature, reporting the reply, the token counts and how long it took',
+                'On failure, Azure\'s own words verbatim plus a reading: 404/DeploymentNotFound, 401, a bad api-version, the content filter, max_completion_tokens, or a network/TLS problem that never reached Azure at all',
+                'An empty answer with a successful call is named separately, because a deployment that reasons at length can spend its whole budget before writing a word and that looks like a failure without being one',
+            ],
+            'duration' => 'A few seconds, plus one live call per Azure-configured feature.',
+            'persists' => 'Nothing is written. It makes the same tiny live call the Test button makes, which spends a handful of tokens against your own deployment. No API key is printed — only its first four characters and its length — and no prompt or ticket content appears in the output.',
+        ],
     ];
 }
 

@@ -91,12 +91,50 @@ function renderAiSettingsPanel(string $ns, array $opts = []): void
                 <option value="anthropic"><?php echo $t('provider_anthropic'); ?></option>
                 <option value="openai"><?php echo $t('provider_openai'); ?></option>
                 <option value="openrouter"><?php echo $t('provider_openrouter'); ?></option>
+                <option value="azure"><?php echo $t('provider_azure'); ?></option>
             </select>
         </div>
 
         <div class="ai-note" data-ai-openrouter-note><?php echo $t('openrouter_note'); ?></div>
 
-        <div class="form-group">
+        <!--
+            Azure OpenAI's deployment-based endpoints (discussion #86). Shown
+            ONLY when Azure is the chosen provider — three fields that mean
+            nothing to anybody else, and the Model box below is hidden alongside
+            them, because on a deployment-based endpoint the deployment IS the
+            model and offering both would be asking the same question twice.
+
+            Every placeholder is a REAL example rather than a shape hint: these
+            are copied out of the Azure portal, and "2024-02-01" tells you what
+            an api-version looks like in a way that "version" never will.
+        -->
+        <div data-ai-azure hidden>
+            <div class="ai-note" data-ai-azure-note><?php echo $t('azure_note'); ?></div>
+
+            <div class="form-group">
+                <label><?php echo $t('azure_endpoint'); ?></label>
+                <input type="text" data-ai-azure-endpoint
+                       placeholder="https://company.openai.azure.com/"
+                       autocomplete="off" style="max-width: 420px;">
+                <small class="ai-model-hint"><?php echo $t('azure_endpoint_help'); ?></small>
+            </div>
+
+            <div class="form-group">
+                <label><?php echo $t('azure_deployment'); ?></label>
+                <input type="text" data-ai-azure-deployment
+                       placeholder="gpt-4o" autocomplete="off" style="max-width: 280px;">
+                <small class="ai-model-hint"><?php echo $t('azure_deployment_help'); ?></small>
+            </div>
+
+            <div class="form-group">
+                <label><?php echo $t('azure_api_version'); ?></label>
+                <input type="text" data-ai-azure-api-version
+                       placeholder="2024-02-01" autocomplete="off" style="max-width: 280px;">
+                <small class="ai-model-hint"><?php echo $t('azure_api_version_help'); ?></small>
+            </div>
+        </div>
+
+        <div class="form-group" data-ai-model-group>
             <label><?php echo $t('model'); ?></label>
             <div class="ai-model-combo">
                 <input type="text" data-ai-model placeholder="<?php echo $t('model_placeholder'); ?>" autocomplete="off">

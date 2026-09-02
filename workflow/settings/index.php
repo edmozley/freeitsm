@@ -166,7 +166,7 @@ $translationNamespaces = ['common', 'workflow'];
         </div>
     </div>
 
-    <script src="../../assets/js/ai-settings.js"></script>
+    <script src="../../assets/js/ai-settings.js?v=2"></script>
     <script>
     (() => {
         const API = '../../api/workflow/';

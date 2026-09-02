@@ -33,11 +33,21 @@ try {
     // unconverted one still requires is_admin, exactly as this file did before.
     requireAiNamespaceJson($conn, $ns);
 
-    aiSettingsSave($conn, $ns, [
+    /* ⚠️ The Azure fields are passed through only when the CLIENT SENT THEM.
+       aiSettingsSave() writes a field it is given and leaves alone one it is
+       not, so an older page — or any caller that predates discussion #86 —
+       cannot blank an endpoint simply by not knowing about it. */
+    $payload = [
         'provider'   => $data['provider']   ?? 'anthropic',
         'model'      => $data['model']       ?? '',
         'api_key'    => $data['api_key']     ?? '',
-    ]);
+    ];
+    foreach (['azure_endpoint', 'azure_deployment', 'azure_api_version'] as $f) {
+        if (array_key_exists($f, $data)) {
+            $payload[$f] = is_scalar($data[$f]) ? (string)$data[$f] : '';
+        }
+    }
+    aiSettingsSave($conn, $ns, $payload);
     echo json_encode(['success' => true]);
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

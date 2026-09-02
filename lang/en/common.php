@@ -36,6 +36,18 @@ return [
         'provider_openai'     => 'OpenAI (GPT)',
         'provider_openrouter' => 'OpenRouter (one key, many models)',
         'openrouter_note'     => 'With OpenRouter, a single key reaches hundreds of models. Note that prompts are routed through OpenRouter\'s service.',
+
+        // Azure OpenAI deployment-based endpoints (discussion #86). Named
+        // "Azure OpenAI" rather than "Azure" because Azure hosts a great many
+        // things and the distinction matters to the person choosing it.
+        'provider_azure'        => 'Azure OpenAI (your own deployment)',
+        'azure_note'            => 'Requests go to a deployment in your own Azure subscription rather than to a shared service, so prompts never leave your tenant. Copy all three values from the Azure portal, under your resource\'s Deployments.',
+        'azure_endpoint'        => 'Azure endpoint',
+        'azure_endpoint_help'   => 'The resource address from the Azure portal. A trailing slash, or a "/openai" on the end, makes no difference.',
+        'azure_deployment'      => 'Deployment name',
+        'azure_deployment_help' => 'The name YOU gave the deployment, which need not match the model it runs. This replaces the model box — on a deployment endpoint the deployment decides the model.',
+        'azure_api_version'     => 'API version',
+        'azure_api_version_help'=> 'Shown beside the deployment in the Azure portal. Leave it blank to use 2024-02-01.',
         'model'               => 'Model',
         'model_placeholder'   => 'Type or pick a model…',
         'model_set'           => 'Model',
