@@ -58,20 +58,11 @@ function notificationsHandleEvent(string $event, array $payload): void
         }
 
         [$actorId, $actorName] = notificationsCurrentActor();
-        $recipientId = notificationsRecipientFor($event, $payload);
 
-        if ($recipientId <= 0) {
+        $conn       = connectToDatabase();
+        $recipients = notificationsAudienceFor($conn, $event, $payload);
+        if (!$recipients) {
             return;                       // unassigned, or we cannot tell who
-        }
-        // Rule 1 — your own action. Repeated here purely to avoid the display
-        // lookup below; notify() enforces it authoritatively.
-        if ($actorId > 0 && $actorId === $recipientId) {
-            return;
-        }
-
-        $conn = connectToDatabase();
-        if (!NotificationsService::typeEnabled($conn, $recipientId, $event)) {
-            return;
         }
 
         $entityType = $types[$event]['entity'];
@@ -80,30 +71,101 @@ function notificationsHandleEvent(string $event, array $payload): void
             return;
         }
 
-        NotificationsService::notify($conn, [
-            'analyst_id'  => $recipientId,
-            'event_type'  => $event,
-            'entity_type' => $entityType,
-            'entity_id'   => $entity['id'],
-            'entity_ref'  => $entity['ref'],
-            'title'       => $entity['title'],
-            'body'        => notificationsBodyFor($event, $actorName),
-            'actor_id'    => $actorId,
-            'actor_name'  => $actorName,
-        ]);
+        foreach ($recipients as $recipientId) {
+            // Rule 1 — your own action, applied PER PERSON. This is what makes a
+            // multi-recipient event behave: comment on a task and the other four
+            // people on it are told while you are not, rather than the whole
+            // event being dropped because the actor happened to be in the list.
+            // notify() enforces it authoritatively; this is the cheap pre-check.
+            if ($actorId > 0 && $actorId === $recipientId) {
+                continue;
+            }
+            // Each person's OWN toggles decide. Somebody who has turned status
+            // changes off still gets the comments they left on.
+            if (!NotificationsService::typeEnabled($conn, $recipientId, $event)) {
+                continue;
+            }
+            NotificationsService::notify($conn, [
+                'analyst_id'  => $recipientId,
+                'event_type'  => $event,
+                'entity_type' => $entityType,
+                'entity_id'   => $entity['id'],
+                'entity_ref'  => $entity['ref'],
+                'title'       => $entity['title'],
+                'body'        => notificationsBodyFor($event, $actorName),
+                'actor_id'    => $actorId,
+                'actor_name'  => $actorName,
+            ]);
+        }
     } catch (Throwable $e) {
         error_log('[notificationsHandleEvent] ' . $e->getMessage());
     }
 }
 
 /**
- * Who gets told. Currently: the assignee, and only the assignee.
+ * EVERYBODY who gets told about this event.
  *
- * ⚠️ Deliberate limitation, chosen over "everyone who ever touched it" because
- * the second is impossible to switch off and turns the bell into a firehose.
- * The known cost is that a ticket you worked all week goes quiet the moment it
- * is reassigned. A watch/follow table is the answer if that becomes a problem —
- * this function is the only place that would need to change.
+ * ⭐ THE "WATCH/FOLLOW TABLE" THIS FILE PREDICTED NOW EXISTS. The note below used
+ * to say the assignee was the only recipient, that "everyone who ever touched it"
+ * was rejected because it is impossible to switch off, and that a watch/follow
+ * table would be the answer — with this function the only place needing to
+ * change. GH #89 built exactly that table for tasks: `task_collaborators` is a
+ * DELIBERATE list of people, put there by hand, and removable. So the task events
+ * that describe the task itself now reach the owner AND everybody involved.
+ *
+ * 🔴 THE DISTINCTION THAT KEEPS IT FROM BECOMING A FIREHOSE: an event about ONE
+ * PERSON'S place on a task goes to that person alone. Being handed a task, or
+ * being put on one, is news for the individual — sending "a task was assigned to
+ * me" to four other people would be both noisy and false. Events about the TASK —
+ * a comment, a status move, the due date, completion — go to everyone on it.
+ *
+ * Tickets are unchanged and still notify the assignee alone: there is no
+ * equivalent list of people on a ticket, and inventing one from "who has touched
+ * it" is the firehose that was rejected.
+ *
+ * @return array<int> analyst ids, de-duplicated. Empty when nobody can be named.
+ */
+function notificationsAudienceFor(PDO $conn, string $event, array $payload): array
+{
+    // Everyone on the task: the owner, plus the people listed as Involved.
+    $taskWide = [
+        'task.completed', 'task.comment_added',
+        'task.status_changed', 'task.due_date_changed',
+    ];
+
+    if (in_array($event, $taskWide, true)) {
+        $taskId = isset($payload['task']['id']) ? (int)$payload['task']['id'] : 0;
+        $ids    = [];
+        $owner  = isset($payload['task']['assignee_id']) ? (int)$payload['task']['assignee_id'] : 0;
+        if ($owner > 0) {
+            $ids[] = $owner;
+        }
+        if ($taskId > 0) {
+            try {
+                $stmt = $conn->prepare("SELECT analyst_id FROM task_collaborators WHERE task_id = ?");
+                $stmt->execute([$taskId]);
+                foreach ($stmt->fetchAll(PDO::FETCH_COLUMN) as $id) {
+                    $ids[] = (int)$id;
+                }
+            } catch (Exception $e) {
+                // An install that has not run Database Verification since
+                // upgrading has no table. The owner still gets told — a missing
+                // table must narrow the audience, never empty it.
+            }
+        }
+        return array_values(array_unique(array_filter($ids)));
+    }
+
+    $one = notificationsRecipientFor($event, $payload);
+    return $one > 0 ? [$one] : [];
+}
+
+/**
+ * The ONE person an event is about, for events that are about one person.
+ *
+ * Kept separate from the audience above because these two answer different
+ * questions: this one is "whose news is this?", and it is also what the
+ * ticket events — which have no list of involved people — still use.
  */
 function notificationsRecipientFor(string $event, array $payload): int
 {

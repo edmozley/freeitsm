@@ -272,10 +272,18 @@ return [
                 'warning'  => 'My ticket is approaching its SLA target',
                 'breached' => 'My ticket breaches its SLA target',
             ],
+            // ⚠️ "on a task I am on" rather than "my task": since GH #89 these
+            // reach the owner AND everybody listed as Involved, so wording them
+            // as ownership would be wrong for most of the people reading them.
             'task' => [
-                'assigned'  => 'A task is assigned to me',
-                'created'   => 'A task is created for me',
-                'completed' => 'A task of mine is completed',
+                'assigned'            => 'A task is assigned to me',
+                'created'             => 'A task is created for me',
+                'completed'           => 'A task I am on is completed',
+                'collaborator_added'  => 'I am added to a task',
+                'collaborator_removed'=> 'I am taken off a task',
+                'comment_added'       => 'Someone comments on a task I am on',
+                'status_changed'      => 'Someone changes the status of a task I am on',
+                'due_date_changed'    => 'Someone changes the due date of a task I am on',
             ],
         ],
     ],

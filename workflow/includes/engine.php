@@ -112,6 +112,12 @@ class WorkflowEngine
             // person would make a workflow that fired once fire four times.
             'task.collaborator_added'   => 'Somebody else is added to a task',
             'task.collaborator_removed' => 'Somebody else is taken off a task',
+            // Also GH #89. Until now nothing announced that a task had been
+            // commented on or moved, so nobody could be told and no workflow
+            // could act on it — the same gap ticket.note_added closed.
+            'task.comment_added'        => 'A comment is added to a task',
+            'task.status_changed'       => 'A task\'s status changes',
+            'task.due_date_changed'     => 'A task\'s due date changes',
             'task.completed'           => 'A task is marked complete',
             'task.deleted'             => 'A task is deleted',
             'change.created'           => 'A change request is created',
@@ -272,6 +278,18 @@ class WorkflowEngine
             'task.collaborator_removed' => [
                 'task.id', 'task.title', 'task.status_id', 'task.priority_id',
                 'task.assignee_id', 'task.collaborator_id',
+            ],
+            'task.comment_added' => [
+                'task.id', 'task.title', 'task.status_id', 'task.priority_id',
+                'task.assignee_id', 'task.due_date', 'task.comment_id',
+            ],
+            'task.status_changed' => [
+                'task.id', 'task.title', 'task.status_id', 'task.priority_id',
+                'task.assignee_id', 'task.due_date',
+            ],
+            'task.due_date_changed' => [
+                'task.id', 'task.title', 'task.status_id', 'task.priority_id',
+                'task.assignee_id', 'task.due_date',
             ],
             'task.completed' => [
                 'task.id', 'task.title', 'task.priority_id', 'task.assignee_id',

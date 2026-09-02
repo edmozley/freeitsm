@@ -105,6 +105,27 @@ class NotificationsService
             // ⚠️ The recipient is the person ADDED, not the owner — the router
             // names this event explicitly to get that right (GH #89).
             'task.collaborator_added' => ['default' => true,  'entity' => 'task'],
+            /**
+             * GH #89 — "once somebody is on a task, are they told about
+             * EVERYTHING on it, or only being added?" dschipfel's question,
+             * answered as: everything, and each part switchable on its own.
+             *
+             * These three go to the OWNER AND EVERYONE INVOLVED (see
+             * notificationsAudienceFor). Their defaults mirror the ticket
+             * equivalents, because the same reasoning applies — somebody else
+             * saying something, or moving the state, is news you cannot get any
+             * other way, and rule 1 means your own changes never reach you.
+             */
+            'task.comment_added'      => ['default' => true,  'entity' => 'task'],
+            'task.status_changed'     => ['default' => true,  'entity' => 'task'],
+            // ⚠️ The one exception, OFF by default: a due date is moved during
+            // planning far more often than the other two, frequently in a run of
+            // several, and it is the least likely to need acting on the moment it
+            // happens. Anybody who does want it is one switch away.
+            'task.due_date_changed'   => ['default' => false, 'entity' => 'task'],
+            // Off by default: being taken off a task is worth being able to hear
+            // about, and is not something most people need a bell for.
+            'task.collaborator_removed' => ['default' => false, 'entity' => 'task'],
             // Off by default: the inbox already shows you these, and a bell for
             // every ticket created on a busy desk is the definition of noise.
             'ticket.created'          => ['default' => false, 'entity' => 'ticket'],

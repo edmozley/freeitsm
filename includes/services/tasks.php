@@ -178,10 +178,12 @@ class TasksService
         // Status — completed_datetime mechanics + workflow dispatch.
         $wasClosed = (bool)($current['status_is_closed'] ?? false);
         $firesCompleted = false;
+        $statusChanged  = false;            // GH #89 — see the dispatches below
         $status = self::resolveLookup($conn, $in, 'status', 'task_statuses', true);
         if ($status !== null && $status[0] !== (int)$current['status_id']) {
             $updates[] = 'status_id = ?';
             $args[]    = $status[0];
+            $statusChanged = true;
             if ($status[2]) {
                 $updates[] = 'completed_datetime = COALESCE(completed_datetime, UTC_TIMESTAMP())';
                 $firesCompleted = !$wasClosed;
@@ -217,10 +219,19 @@ class TasksService
             $args[]    = $newTeam;
         }
 
+        $dueChanged = false;                // GH #89 — see the dispatches below
         foreach (['start_date', 'due_date'] as $field) {
             if (array_key_exists($field, $in)) {
+                $newDate   = self::parseDateOnly($in[$field], $field);
                 $updates[] = "$field = ?";
-                $args[]    = self::parseDateOnly($in[$field], $field);
+                $args[]    = $newDate;
+                // ⚠️ Compared, not merely PRESENT. The detail panel posts the due
+                // date on every save of that field, so "it was in the payload"
+                // would tell everybody on the task the date had moved each time
+                // somebody re-picked the day it already was.
+                if ($field === 'due_date' && $newDate !== ($current['due_date'] ?? null)) {
+                    $dueChanged = true;
+                }
             }
         }
 
@@ -302,6 +313,23 @@ class TasksService
         }
         if ($assignedTo !== null) {
             self::assignedDispatch($conn, $taskId, $assignedTo);
+        }
+        // GH #89. Once other people can be ON a task, "what happened to it" has an
+        // audience beyond the owner — so the moments that matter have to announce
+        // themselves. Each is separately switchable per analyst under
+        // Preferences → Notifications; the workflow engine gains the triggers for
+        // free, which is the right trade either way.
+        //
+        // ⚠️ status_changed fires on a CLOSING change too, alongside completed.
+        // Suppressing it there would make the event lie to any workflow filtering
+        // on "moved to Done". The two do not double up in the bell because
+        // task.completed is OFF by default, and anybody who turns it on has asked
+        // for both.
+        if ($statusChanged) {
+            self::taskEventDispatch($conn, 'task.status_changed', $taskId);
+        }
+        if ($dueChanged) {
+            self::taskEventDispatch($conn, 'task.due_date_changed', $taskId);
         }
         self::calendarOnTaskChanged($conn, $taskId);
         return $taskId;
@@ -457,7 +485,41 @@ class TasksService
              ->execute([$taskId, $ctx->actorId, $text]);
         $commentId = (int)$conn->lastInsertId();
         $conn->prepare("UPDATE tasks SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$taskId]);
+        // GH #89. Until now nothing announced that somebody had said something on
+        // a task, so nobody could be told and no workflow could act on it — the
+        // same gap ticket.note_added was added to close.
+        self::taskEventDispatch($conn, 'task.comment_added', $taskId, ['comment_id' => $commentId]);
         return $commentId;
+    }
+
+    /**
+     * One dispatch helper for the task events that describe a CHANGE TO THE TASK
+     * rather than to one person's place on it.
+     *
+     * ⚠️ assignee_id carries the OWNER, as it does on every other task event, so
+     * a workflow reading these the way it reads task.assigned finds the person
+     * accountable. Who is TOLD is a separate question, answered by the router:
+     * these events reach the owner AND everybody involved.
+     */
+    private static function taskEventDispatch(PDO $conn, string $event, int $taskId, array $extra = []): void
+    {
+        try {
+            $rb = $conn->prepare("SELECT title, status_id, priority_id, assigned_analyst_id, due_date FROM tasks WHERE id = ?");
+            $rb->execute([$taskId]);
+            $taskRow = $rb->fetch(PDO::FETCH_ASSOC) ?: [];
+            WorkflowEngine::dispatch($event, [
+                'task' => array_merge([
+                    'id'          => $taskId,
+                    'title'       => $taskRow['title'] ?? null,
+                    'status_id'   => isset($taskRow['status_id']) ? (int)$taskRow['status_id'] : null,
+                    'priority_id' => isset($taskRow['priority_id']) ? (int)$taskRow['priority_id'] : null,
+                    'assignee_id' => isset($taskRow['assigned_analyst_id']) ? (int)$taskRow['assigned_analyst_id'] : null,
+                    'due_date'    => $taskRow['due_date'] ?? null,
+                ], $extra),
+            ]);
+        } catch (Exception $wfEx) {
+            error_log('Workflow dispatch error in task service (' . $event . '): ' . $wfEx->getMessage());
+        }
     }
 
     // ======================================================================

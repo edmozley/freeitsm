@@ -230,9 +230,77 @@ ok('CONTROL — task.assigned still routes to the assignee',
 // above are not both passing on the same value.
 ok('CONTROL — owner and collaborator are different ids to begin with', $ownerId !== $strangerId);
 
+// ── 7. The audience: who hears about what ───────────────────────────────────
+section('7. 🔴 Everyone on the task hears about the TASK; only you hear about YOU');
+
+// A clean task with an owner and two people involved.
+$helper2Id = $mk('zz-helper89b', 'ZZ Helper Two');
+$conn->prepare("INSERT INTO tasks (title, status_id, assigned_analyst_id, created_datetime)
+                VALUES ('zz-collab-89-audience', ?, ?, UTC_TIMESTAMP())")->execute([$statusId, $ownerId]);
+$audienceTask = (int)$conn->lastInsertId();
+$ctx2 = new ActorContext($ownerId);
+TasksService::addCollaborator($conn, $ctx2, $audienceTask, $strangerId);
+TasksService::addCollaborator($conn, $ctx2, $audienceTask, $helper2Id);
+
+$p = ['task' => ['id' => $audienceTask, 'assignee_id' => $ownerId]];
+$aud = function (string $event, array $payload) use ($conn) {
+    $ids = notificationsAudienceFor($conn, $event, $payload);
+    sort($ids);
+    return $ids;
+};
+$everyone = [$ownerId, $strangerId, $helper2Id];
+sort($everyone);
+
+foreach (['task.comment_added', 'task.status_changed', 'task.due_date_changed', 'task.completed'] as $ev) {
+    ok("$ev reaches the owner AND both involved", $aud($ev, $p) === $everyone);
+}
+
+// 🔴 The distinction that stops this becoming a firehose: an event about ONE
+// PERSON'S place on the task goes to that person alone. Sending "a task was
+// assigned to me" to three people would be both noisy and false.
+ok('🔴 task.assigned reaches ONLY the new assignee',
+    $aud('task.assigned', ['task' => ['id' => $audienceTask, 'assignee_id' => $helper2Id]]) === [$helper2Id]);
+ok('🔴 task.collaborator_added reaches ONLY the person added',
+    $aud('task.collaborator_added',
+        ['task' => ['id' => $audienceTask, 'assignee_id' => $ownerId, 'collaborator_id' => $helper2Id]]) === [$helper2Id]);
+
+// CONTROL — prove the wide events are genuinely reading the table, rather than
+// returning everybody for every event. Take one person off and the audience shrinks.
+TasksService::removeCollaborator($conn, $ctx2, $audienceTask, $helper2Id);
+$smaller = [$ownerId, $strangerId];
+sort($smaller);
+ok('CONTROL — removing somebody shrinks the audience',
+    $aud('task.comment_added', $p) === $smaller);
+
+// CONTROL — a task nobody is involved in is still the owner's alone, so the wide
+// events have not quietly become "tell everybody".
+$conn->prepare("INSERT INTO tasks (title, status_id, assigned_analyst_id, created_datetime)
+                VALUES ('zz-collab-89-lonely', ?, ?, UTC_TIMESTAMP())")->execute([$statusId, $ownerId]);
+$lonely = (int)$conn->lastInsertId();
+ok('CONTROL — a task with nobody involved reaches the owner alone',
+    $aud('task.comment_added', ['task' => ['id' => $lonely, 'assignee_id' => $ownerId]]) === [$ownerId]);
+
+// Tickets are untouched: there is no list of people on a ticket, and inventing
+// one from "who has touched it" is the firehose that was rejected in #55.
+ok('tickets still notify the assignee alone',
+    $aud('ticket.status_changed', ['ticket' => ['id' => 1, 'assigned_analyst_id' => $ownerId]]) === [$ownerId]);
+
+// Every new toggle must actually exist, or the preferences screen — which is
+// generated from this registry — silently offers no way to turn it off.
+section('8. The toggles exist and are switchable');
+$types = NotificationsService::types();
+foreach (['task.comment_added', 'task.status_changed', 'task.due_date_changed',
+          'task.collaborator_added', 'task.collaborator_removed'] as $t) {
+    ok("Preferences offers a toggle for $t", isset($types[$t]));
+}
+ok('a due-date change is OFF by default (it moves most often)',
+    $types['task.due_date_changed']['default'] === false);
+ok('a comment is ON by default, like a note on a ticket',
+    $types['task.comment_added']['default'] === true);
+
 // ── Teardown ────────────────────────────────────────────────────────────────
 $conn->exec("DELETE FROM tasks WHERE title LIKE 'zz-collab-89%'");
-$conn->exec("DELETE FROM analysts WHERE username IN ('zz-owner89', 'zz-helper89', 'zz-stranger89')");
+$conn->exec("DELETE FROM analysts WHERE username IN ('zz-owner89', 'zz-helper89', 'zz-helper89b', 'zz-stranger89')");
 
 echo "\n" . str_repeat('=', 60) . "\n";
 echo "$pass passed, $fail failed\n";
