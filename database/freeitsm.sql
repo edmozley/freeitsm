@@ -4208,6 +4208,52 @@ CREATE TABLE IF NOT EXISTS `task_comments` (
     CONSTRAINT `fk_task_comments_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The other people on a task (GH #89, dschipfel). Shown as "Involved".
+--
+-- 🔴 THE OWNER IS NOT IN HERE, and that is the load-bearing decision. Who is
+-- accountable stays in `tasks.assigned_analyst_id` and nowhere else: two homes
+-- for one fact are two things that can disagree. Because that column keeps its
+-- exact meaning, the REST contract (`assignee_id` is a scalar), every stored
+-- workflow, and board grouping are unchanged BY DEFINITION rather than because
+-- somebody checked.
+--
+-- Shape copied from `change_cab_members` — Changes already solved "several named
+-- people on one record, each with their own state", and reusing it makes the
+-- optional per-person tick almost free. `is_required` is deliberately NOT copied.
+--
+-- ⚠️ ON DELETE CASCADE for `analyst_id`, which is where this DIVERGES from
+-- change_cab_members. A CAB row records a VOTE — a decision somebody made, worth
+-- keeping after they leave. A collaborator row is a MEMBERSHIP, and a membership
+-- held by an account that no longer exists means nothing. It also keeps
+-- api/tickets/delete_analyst.php working, which a restricting constraint would
+-- have blocked the first time anybody deleted an analyst who was helping on a task.
+--
+-- Must follow `tasks` and `analysts`: it points at both.
+CREATE TABLE IF NOT EXISTS `task_collaborators` (
+    `id`                 INT NOT NULL AUTO_INCREMENT,
+    `task_id`            INT NOT NULL,
+    `analyst_id`         INT NOT NULL,
+    -- Recorded whether or not the per-person setting is on. Switching the setting
+    -- off hides ticks; it must never destroy them, the same rule that governs
+    -- narrowing `tasks_time_scope` when somebody has already logged hours.
+    `is_completed`       TINYINT(1) NOT NULL DEFAULT 0,
+    `completed_datetime` DATETIME NULL,
+    `added_by_id`        INT NULL,
+    `added_datetime`     DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`            TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
+    PRIMARY KEY (`id`),
+    -- One row per person per task: adding somebody twice is not a second fact.
+    UNIQUE KEY `uq_task_collaborator` (`task_id`, `analyst_id`),
+    -- ⚠️ NOT redundant with the unique key above. "My tasks" now asks
+    -- "which tasks is THIS ANALYST on", which reads analyst-first; the composite
+    -- key is task-first and cannot serve it. Without this the new filter is a
+    -- full scan of the table on every board load.
+    KEY `ix_task_collaborators_analyst` (`analyst_id`),
+    CONSTRAINT `fk_task_collab_task` FOREIGN KEY (`task_id`) REFERENCES `tasks` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_task_collab_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE,
+    CONSTRAINT `fk_task_collab_added_by` FOREIGN KEY (`added_by_id`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `task_tags` (
     `id`                INT NOT NULL AUTO_INCREMENT,
     `name`              VARCHAR(50) NOT NULL,

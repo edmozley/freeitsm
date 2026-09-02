@@ -235,6 +235,8 @@ return [
     ['task_recurrences', 'ix_task_recurrences_due', 'key', '(`is_active`,`next_due_date`)'],
     ['task_time_entries', 'ix_task_time_entries_task_id', 'key', '(`task_id`)'],
     ['task_time_entries', 'ix_task_time_entries_analyst_date', 'key', '(`analyst_id`,`entry_datetime`)'],
+    ['task_collaborators', 'uq_task_collaborator', 'unique', '(`task_id`,`analyst_id`)'],
+    ['task_collaborators', 'ix_task_collaborators_analyst', 'key', '(`analyst_id`)'],
     ['task_tags', 'uq_task_tags_name', 'unique', '(`name`)'],
     ['form_submissions', 'idx_form_submissions_user', 'key', '(`submitted_by_user_id`)'],
     ['form_submissions', 'idx_form_submissions_ticket', 'key', '(`ticket_id`)'],

@@ -58,14 +58,38 @@ try {
     }
     $params = [];
 
+    /**
+     * "My tasks" and the analyst picker both mean OWNER **OR** COLLABORATOR
+     * (GH #89). Somebody put on a task needs it to appear where they look for
+     * their work, or being added to it achieves nothing.
+     *
+     * 🔴 THIS IS ONE OF FOUR PLACES THAT CAN HIDE A TASK — the others are
+     * api/v1/resources/tasks.php twice, and this file's own analyst branch below.
+     * Everything else that touches assignment is a display join, which can leave
+     * a name off a card but cannot make the card disappear. A task missing from
+     * ONE list is indistinguishable, to the person looking, from the collaborator
+     * never having been saved, so all four move together or none of them should.
+     *
+     * ⚠️ EXISTS, not a JOIN. A join to a one-to-many table returns the task once
+     * per collaborator, so a task with three of them would appear three times on
+     * the board — and the duplicate rows would then be counted by anything
+     * counting rows. EXISTS asks the same question and returns each task once.
+     */
+    $ownerOrCollaborator = '(t.assigned_analyst_id = ?
+                             OR EXISTS (SELECT 1 FROM task_collaborators tc
+                                         WHERE tc.task_id = t.id AND tc.analyst_id = ?))';
+
     if ($filter === 'my') {
-        $where[] = 't.assigned_analyst_id = ?';
+        $where[]  = $ownerOrCollaborator;
+        $params[] = $analystId;
         $params[] = $analystId;
     } elseif ($filter === 'team' && isset($_GET['team_id'])) {
         $where[] = 't.assigned_team_id = ?';
         $params[] = (int)$_GET['team_id'];
     } elseif ($filter === 'analyst' && isset($_GET['analyst_id'])) {
-        $where[] = 't.assigned_analyst_id = ?';
+        // The same question asked about somebody else, so it gets the same answer.
+        $where[]  = $ownerOrCollaborator;
+        $params[] = (int)$_GET['analyst_id'];
         $params[] = (int)$_GET['analyst_id'];
     } elseif ($filter === 'contract' && isset($_GET['contract_id'])) {
         $where[] = 't.contract_id = ?';
@@ -165,11 +189,33 @@ try {
         }
     }
 
-    // Attach subtask counts and tags
+    // Who else is on each task ("Involved", GH #89). One query for the whole
+    // board rather than one per card — see TasksService::collaboratorsForMany().
+    require_once '../../includes/services/tasks.php';
+    $collaboratorsByTask = TasksService::collaboratorsForMany($conn, $taskIds);
+
+    // Attach subtask counts, tags and collaborators
     foreach ($tasks as &$task) {
-        $task['subtasks'] = $subtaskCounts[$task['id']] ?? ['total' => 0, 'done' => 0];
-        $task['tags']     = $tagsByTask[$task['id']] ?? [];
+        $task['subtasks']      = $subtaskCounts[$task['id']] ?? ['total' => 0, 'done' => 0];
+        $task['tags']          = $tagsByTask[$task['id']] ?? [];
+        $task['collaborators'] = $collaboratorsByTask[$task['id']] ?? [];
+        // ⭐ Ed's call: one list, with the ones you don't own marked. Worked out
+        // HERE rather than in the browser, because the browser would have to know
+        // which analyst the list was filtered for — and gets it wrong the moment
+        // you point the analyst dropdown at somebody else.
+        $viewedAs = ($filter === 'analyst' && isset($_GET['analyst_id']))
+            ? (int)$_GET['analyst_id']
+            : (int)$analystId;
+        $task['viewer_is_owner'] = (int)$task['assigned_analyst_id'] === $viewedAs;
+        $task['viewer_is_collaborator'] = false;
+        foreach ($task['collaborators'] as $c) {
+            if ($c['analyst_id'] === $viewedAs) {
+                $task['viewer_is_collaborator'] = true;
+                break;
+            }
+        }
     }
+    unset($task);
 
     // Status counts for sidebar.
     // ⚠️ Scoped too. An aggregate is the easiest place to leak a company: the list

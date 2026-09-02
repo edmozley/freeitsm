@@ -115,6 +115,21 @@ function notificationsRecipientFor(string $event, array $payload): int
     if (isset($payload['ticket']['assigned_analyst_id'])) {
         return (int)$payload['ticket']['assigned_analyst_id'];
     }
+
+    /**
+     * 🔴 COLLABORATORS MUST BE NAMED EXPLICITLY, BEFORE THE assignee_id FALLBACK
+     * BELOW (GH #89). `task.collaborator_added` deliberately carries the OWNER in
+     * `assignee_id` — that is what keeps stored workflows reading the field they
+     * have always read — so without this branch the fallback would quietly send
+     * "you were added to a task" to the owner instead of to the person who was
+     * actually added. Both are real analysts and the notification would look
+     * perfectly normal; only the recipient would be wrong.
+     */
+    if (($event === 'task.collaborator_added' || $event === 'task.collaborator_removed')
+        && isset($payload['task']['collaborator_id'])) {
+        return (int)$payload['task']['collaborator_id'];
+    }
+
     if (isset($payload['task']['assignee_id'])) {
         return (int)$payload['task']['assignee_id'];
     }

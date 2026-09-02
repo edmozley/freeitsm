@@ -81,8 +81,22 @@ function apiSerializeTask(PDO $conn, array $r): array {
             'colour'    => $r['status_colour'] ?? null,
         ]),
         'priority'    => $rel($r['priority_id'], $r['priority_name'], ['colour' => $r['priority_colour'] ?? null]),
+        // ⚠️ `assigned_analyst` STILL MEANS ONE PERSON: the owner. Collaborators
+        // (GH #89) are a separate field rather than a widening of this one, so a
+        // client written before they existed keeps reading exactly what it read
+        // before. Shown as "Involved" in the interface; the API says
+        // "collaborators" because an API field name is never translated, and the
+        // cognate of that word is a slur in nine of the languages we ship.
         'assigned_analyst' => $rel($r['assigned_analyst_id'], $r['analyst_name']),
         'assigned_team'    => $rel($r['assigned_team_id'], $r['team_name']),
+        'collaborators'    => array_map(function ($c) {
+            return [
+                'id'           => $c['analyst_id'],
+                'name'         => $c['analyst_name'],
+                'is_completed' => $c['is_completed'],
+                'completed_at' => $c['completed_datetime'],
+            ];
+        }, TasksService::collaboratorsFor($conn, (int)$r['id'])),
         'start_date'  => $r['start_date'],
         'due_date'    => $r['due_date'],
         'parent_task_id' => $r['parent_task_id'] !== null ? (int)$r['parent_task_id'] : null,
@@ -158,6 +172,36 @@ function apiTasksList(PDO $conn, array $apiKey, array $params, array $body): voi
             $args[]  = trim($_GET[$param]);
         }
     }
+    /**
+     * Collaborators (GH #89). TWO new filters, and neither touches
+     * `assigned_analyst_id`, which keeps meaning the owner alone:
+     *
+     *   collaborator_id=N      tasks N is helping with, but does not own
+     *   involved_analyst_id=N  owner OR collaborator — what "My tasks" means in
+     *                          the interface, available here so a client can ask
+     *                          the same question the module asks
+     *
+     * ⚠️ EXISTS rather than a JOIN. A join to a one-to-many table would return a
+     * task once per collaborator, so a task with three of them would be three
+     * rows of a page — and `total` would count it three times, giving a paginated
+     * client a page count that never reconciles.
+     */
+    if (isset($_GET['collaborator_id']) && $_GET['collaborator_id'] !== '') {
+        $where[] = 'EXISTS (SELECT 1 FROM task_collaborators tc WHERE tc.task_id = t.id AND tc.analyst_id = ?)';
+        $args[]  = (int)$_GET['collaborator_id'];
+    }
+    if (isset($_GET['involved_analyst_id']) && $_GET['involved_analyst_id'] !== '') {
+        $where[] = '(t.assigned_analyst_id = ?
+                     OR EXISTS (SELECT 1 FROM task_collaborators tc WHERE tc.task_id = t.id AND tc.analyst_id = ?))';
+        $args[]  = (int)$_GET['involved_analyst_id'];
+        $args[]  = (int)$_GET['involved_analyst_id'];
+    }
+
+    // ⚠️ `unassigned` DELIBERATELY STILL MEANS "no owner", even when the task has
+    // collaborators. assigned_analyst_id is nullable, so a task really can end up
+    // with two people helping and nobody accountable — and that is exactly what
+    // this filter exists to surface. Treating it as assigned because somebody is
+    // helping would let work vanish from the queue that exists to catch it.
     if (($_GET['unassigned'] ?? '') === 'true') {
         $where[] = 't.assigned_analyst_id IS NULL';
     }

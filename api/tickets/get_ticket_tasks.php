@@ -57,12 +57,20 @@ try {
     $stmt->execute(array_merge([$ticketId], $tArgs));
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Who else is on each of these tasks ("Involved", GH #89). A display join,
+    // not a filter — it cannot hide a task here — but leaving it out would mean a
+    // task shows one name on the ticket and three in the Tasks module, which
+    // reads as a bug in whichever screen you saw second.
+    require_once '../../includes/services/tasks.php';
+    $collaboratorsByTask = TasksService::collaboratorsForMany($conn, array_column($rows, 'id'));
+
     $open = 0;
     foreach ($rows as &$r) {
         $r['id']              = (int)$r['id'];
         $r['status_is_closed'] = (int)($r['status_is_closed'] ?? 0) === 1;
         $r['subtasks_total']  = (int)$r['subtasks_total'];
         $r['subtasks_done']   = (int)$r['subtasks_done'];
+        $r['collaborators']   = $collaboratorsByTask[$r['id']] ?? [];
         if (!$r['status_is_closed']) $open++;
     }
     unset($r);

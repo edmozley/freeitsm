@@ -68,6 +68,12 @@ try {
     $task['ticket_url'] = $task['ticket_id'] ? entityLink('ticket', (int) $task['ticket_id']) : null;
     $task['change_url'] = $task['change_id'] ? entityLink('change', (int) $task['change_id']) : null;
 
+    // Who else is on this task ("Involved", GH #89), and whether the per-person
+    // tick is switched on — the panel needs both before it can draw the section.
+    require_once '../../includes/services/tasks.php';
+    $task['collaborators'] = TasksService::collaboratorsFor($conn, (int)$id);
+    $task['collaborator_completion'] = TasksService::collaboratorCompletionEnabled($conn);
+
     // Get parent task info if this is a subtask
     if ($task['parent_task_id']) {
         $stmt = $conn->prepare("SELECT id, title FROM tasks WHERE id = ?");

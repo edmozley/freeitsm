@@ -338,6 +338,93 @@ body {
     flex-shrink: 0;
 }
 
+/* ── Involved: the other people on a task (GH #89) ───────────────────────────
+   The screen says "Involved"; the code says "collaborator". See the note in
+   assets/js/tasks.js — the cognate of that word is a wartime slur in nine of the
+   languages FreeITSM ships in, and a current criminal charge in Ukrainian.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* On a card: the same disc as the owner's, outlined rather than filled, so the
+   person accountable still reads first at a glance. */
+.assignee-badge.involved-badge {
+    background: transparent;
+    border: 1px dashed var(--border, #c9c9c9);
+    color: var(--text-dim, #888);
+    margin-left: -4px;                 /* a slight overlap, so a row of them reads as a group */
+}
+.assignee-badge.involved-badge.is-done {
+    border-style: solid;
+    border-color: var(--success, #16a34a);
+    color: var(--success, #16a34a);
+}
+
+/* The mark on a task in "My Tasks" that you are helping with rather than own. */
+.involved-flag {
+    display: inline-flex;
+    align-items: center;
+    padding: 1px 6px;
+    border-radius: 10px;
+    border: 1px solid var(--border, #c9c9c9);
+    background: transparent;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-dim, #888);
+    white-space: nowrap;
+}
+
+/* In the detail panel. */
+.involved-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 8px;
+}
+.involved-empty {
+    font-size: 12px;
+    color: var(--text-dim, #888);
+}
+.involved-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 4px 4px 9px;
+    border-radius: 14px;
+    background: var(--surface-2, #f1f1f4);
+    font-size: 12px;
+    color: var(--text, #333);
+}
+.involved-chip.is-done .involved-chip-name {
+    text-decoration: line-through;
+    color: var(--text-dim, #888);
+}
+.involved-tick { margin: 0; }
+.involved-chip-x {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-dim, #888);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+}
+.involved-chip-x:hover {
+    background: var(--surface-3, #e0e0e0);
+    color: var(--text, #333);
+}
+.involved-add { margin-top: 2px; }
+
+/* A phone: a chip is a tap target, so it gets a tap target's height. */
+@media (max-width: 768px) {
+    .involved-chip   { padding: 7px 6px 7px 12px; font-size: 13px; }
+    .involved-chip-x { width: 26px; height: 26px; font-size: 18px; }
+    .involved-tick   { width: 18px; height: 18px; }
+}
+
 /* Due date */
 .due-badge {
     font-size: 11px;

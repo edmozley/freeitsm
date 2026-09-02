@@ -90,6 +90,22 @@ return [
         'team'           => 'Team',
         'unassigned'     => 'Unassigned',
         'no_team'        => 'No team',
+
+        // Who else is on the task (GH #89). ⚠️ TRANSLATORS: see the note beside
+        // 'tab_involved' in the settings block below — "collaborator" is the code
+        // word only, and its cognate is a slur in nine of our languages.
+        'involved'          => 'Involved',
+        'involved_add'      => 'Add someone',
+        'involved_none'     => 'Nobody else is on this task.',
+        'involved_remove'   => 'Take off this task',
+        'involved_search'   => 'Search analysts',
+        'involved_done'     => 'Finished their part',
+        'involved_subtask'  => 'People are listed on the main task rather than on a subtask.',
+        // The dismissible warning, not a block — the owner always closes the task.
+        'involved_outstanding' => '{n} of the people on this task have not ticked their part off yet. Close it anyway?',
+        // The mark on a row in "My Tasks" that you are helping with rather than own.
+        'involved_badge'       => 'Involved',
+        'involved_badge_title' => 'You are involved in this task. {owner} owns it.',
         'start_date'     => 'Start Date',
         'work_start'     => 'Work starts',
         'work_end'       => 'Work ends',
@@ -227,6 +243,23 @@ return [
         'time_subtasks'  => 'Subtasks only',
         'time_off'       => 'Nowhere',
         'time_note'      => 'Narrowing this only hides time that has already been recorded. Nothing is deleted, and it reappears if you widen the setting again.',
+
+        // Who else is on a task (GH #89).
+        //
+        // ⚠️ TRANSLATORS: the English word here is "Involved", and the code word
+        // "collaborator" must NEVER be used as the translation seed. Its cognate
+        // means someone who collaborated with an occupying enemy in German
+        // (Kollaborateur), Dutch, Danish, Norwegian, French, Polish and Russian —
+        // and in Ukrainian (колаборант) it is a current criminal charge, not a
+        // historical term. Translate "Involved" as the ordinary everyday word for
+        // people taking part: Beteiligte, Betrokkenen, Deltakere, Uczestnicy,
+        // Учасники.
+        'tab_involved'              => 'Involved',
+        'involved_heading'          => 'People involved in a task',
+        'involved_desc'             => 'A task has one owner, who is accountable for it. Anyone else working on it can be listed as involved, and the task then appears in their own list of tasks. Adding people needs no special permission.',
+        'involved_completion_name'  => 'Let each person tick off their own part',
+        'involved_completion_desc'  => 'Everyone listed on a task gets a tick of their own, so you can see who has finished and who has not.',
+        'involved_note'             => 'The owner still closes the task, whether or not everybody has ticked — the ticks show progress rather than granting a veto. Closing with people outstanding gives you a warning you can dismiss. Switching this off hides the ticks; it never deletes them.',
         'add'            => 'Add',
         'loading'        => 'Loading...',
         'no_items'       => 'No items found',

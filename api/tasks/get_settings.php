@@ -38,6 +38,13 @@ try {
     if (!isset($settings['time_scope'])) {
         $settings['time_scope'] = 'both';
     }
+    // Per-person completion on a task (GH #89). OFF by default, and the opposite
+    // call to time_scope's above for a reason: what was asked for was to SEE who
+    // else is on a task, which needs no setting and is always on. A tick box each
+    // is a heavier, more procedural thing, so it is offered rather than imposed.
+    if (!isset($settings['collaborator_completion'])) {
+        $settings['collaborator_completion'] = '0';
+    }
 
     // card_fields — which extras show on board cards. Stored as JSON;
     // always returned as a complete object so callers needn't merge defaults.

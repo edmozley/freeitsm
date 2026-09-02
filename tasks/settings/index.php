@@ -39,7 +39,7 @@ $translationNamespaces = ['common', 'tasks'];
     <title>Service Desk - <?php echo htmlspecialchars(t('tasks.title') . ' ' . t('tasks.nav.settings')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=62">
-    <link rel="stylesheet" href="../../assets/css/tasks.css?v=28">
+    <link rel="stylesheet" href="../../assets/css/tasks.css?v=29">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
@@ -242,6 +242,26 @@ $translationNamespaces = ['common', 'tasks'];
             <!-- Said plainly, because "will this delete the hours my team logged?"
                  is the first thing anybody narrowing this will want to know. -->
             <p style="color: var(--text-muted, #666); margin-top: 16px;"><?php echo htmlspecialchars(t('tasks.settings.time_note')); ?></p>
+        </div>
+        <?php endif; ?>
+
+        <!-- Involved Tab — who else is on a task (GH #89) -->
+        <?php if (settingsTabVisible($visibleTabs, 'involved')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'involved' ? ' active' : ''; ?>" id="involved-tab" data-capability="<?php echo Cap::TASKS_INVOLVED; ?>">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('tasks.settings.involved_heading')); ?></h2>
+            </div>
+            <p style="color: var(--text-muted, #666); margin-bottom: 16px;"><?php echo htmlspecialchars(t('tasks.settings.involved_desc')); ?></p>
+            <label class="card-field-row">
+                <input type="checkbox" id="collaboratorCompletion" onchange="saveCollaboratorCompletion(this.checked)">
+                <div>
+                    <div class="card-field-name"><?php echo htmlspecialchars(t('tasks.settings.involved_completion_name')); ?></div>
+                    <div class="card-field-desc"><?php echo htmlspecialchars(t('tasks.settings.involved_completion_desc')); ?></div>
+                </div>
+            </label>
+            <!-- Said plainly, because "does this stop me closing the task?" is the
+                 first thing anybody switching it on will want to know. -->
+            <p style="color: var(--text-muted, #666); margin-top: 16px;"><?php echo htmlspecialchars(t('tasks.settings.involved_note')); ?></p>
         </div>
         <?php endif; ?>
 
@@ -538,10 +558,11 @@ $translationNamespaces = ['common', 'tasks'];
             for (const kind of Object.keys(LOOKUP_KINDS)) loadLookup(kind);
             loadSpanMode();
             loadTimeScope();
+            loadCollaboratorCompletion();
             loadCardFields();
             loadTagSettings();
             const tabFromHash = location.hash.replace('#', '');
-            if (['calendar', 'time', 'card', 'tags'].includes(tabFromHash)) switchTab(tabFromHash);
+            if (['calendar', 'time', 'involved', 'card', 'tags'].includes(tabFromHash)) switchTab(tabFromHash);
         });
 
         // ── Tag display settings ──
@@ -623,6 +644,35 @@ $translationNamespaces = ['common', 'tasks'];
                 const res = await fetch(API_BASE + 'save_settings.php', {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ settings: { time_scope: value } })
+                });
+                const data = await res.json();
+                if (data.success) showToast(t('tasks.toast.saved'), 'success');
+                else showToast(data.error || t('tasks.toast.save_failed'), 'error');
+            } catch (e) { showToast(t('tasks.toast.save_failed'), 'error'); }
+        }
+
+        // ── Who else is on a task (GH #89) ──
+        // ⚠️ An unloaded checkbox looks EXACTLY like an unticked one, and Save
+        // would then write the guess back as fact. So the box starts disabled and
+        // is only enabled once a real value has come back; a failed fetch leaves
+        // it disabled rather than showing a confident "off".
+        async function loadCollaboratorCompletion() {
+            const box = document.getElementById('collaboratorCompletion');
+            if (!box) return;
+            box.disabled = true;
+            try {
+                const data = await fetch(API_BASE + 'get_settings.php').then(r => r.json());
+                if (!data.success) return;
+                box.checked  = String(data.settings.collaborator_completion || '0') === '1';
+                box.disabled = false;
+            } catch (e) { console.error(e); }
+        }
+
+        async function saveCollaboratorCompletion(on) {
+            try {
+                const res = await fetch(API_BASE + 'save_settings.php', {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ settings: { collaborator_completion: on ? '1' : '0' } })
                 });
                 const data = await res.json();
                 if (data.success) showToast(t('tasks.toast.saved'), 'success');

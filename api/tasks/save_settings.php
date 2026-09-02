@@ -53,7 +53,7 @@ try {
         }
     }
 
-    $allowed = ['calendar_span_mode', 'card_fields', 'tag_settings', 'time_scope'];
+    $allowed = ['calendar_span_mode', 'card_fields', 'tag_settings', 'time_scope', 'collaborator_completion'];
     // `priority` is absent from this list on purpose — it holds a placement,
     // not a boolean, and is normalised separately below. See get_settings.php.
     $cardFieldKeys = ['assignee', 'team', 'start_date',
@@ -71,6 +71,11 @@ try {
         } elseif ($key === 'time_scope') {
             // Where scheduled work and time entries are offered (GH #112).
             if (!in_array($value, ['both', 'tasks', 'subtasks', 'off'], true)) continue;
+        } elseif ($key === 'collaborator_completion') {
+            // Whether each person on a task ticks off their own part (GH #89).
+            // Normalised to '1'/'0' here so the column only ever holds one of two
+            // values — TasksService reads it with a whitelist for the same reason.
+            $value = !empty($value) && $value !== '0' && $value !== 'false' ? '1' : '0';
         } elseif ($key === 'card_fields') {
             // Rebuild from known keys only, coercing each to 0/1
             $clean = [];

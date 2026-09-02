@@ -417,6 +417,27 @@ function renderCard(t) {
     if (cf.assignee && initials) {
         meta.push(`<span class="assignee-badge" title="${esc(t.analyst_name)}">${esc(initials)}</span>`);
     }
+    // The other people on this task (GH #89), as initials beside the owner's.
+    // Rides on the SAME `assignee` card setting rather than adding a second one:
+    // somebody who has turned "who it is assigned to" off the card is saying they
+    // do not want people on the card, and a separate toggle would let the card
+    // show four helpers and not the person accountable.
+    if (cf.assignee && t.collaborators && t.collaborators.length) {
+        meta.push(t.collaborators.map(c => {
+            const ci = (c.analyst_name || '').split(' ').map(w => w[0]).join('').substring(0, 2);
+            const done = c.is_completed ? ' is-done' : '';
+            return `<span class="assignee-badge involved-badge${done}" title="${escAttr(window.t('tasks.detail.involved') + ': ' + (c.analyst_name || ''))}">${esc(ci)}</span>`;
+        }).join(''));
+    }
+    // ⭐ Ed's call: ONE list, with the ones you do not own marked. The server
+    // works out which those are, because it is the only side that knows which
+    // analyst the list was filtered for — the browser gets it wrong the moment
+    // the analyst dropdown is pointed at somebody else.
+    if (t.viewer_is_collaborator && !t.viewer_is_owner) {
+        meta.push(`<span class="involved-flag" title="${escAttr(
+            window.t('tasks.detail.involved_badge_title', { owner: t.analyst_name || window.t('tasks.detail.unassigned') })
+        )}">${esc(window.t('tasks.detail.involved_badge'))}</span>`);
+    }
     if (cf.team && t.team_name) {
         meta.push(`<span class="team-badge" title="${escAttr(window.t('tasks.detail.team'))}">${esc(t.team_name)}</span>`);
     }
@@ -945,6 +966,11 @@ async function openDetailPanel(taskId) {
         panel.classList.toggle('as-modal', taskViewIsModal());
         paintViewToggle();
         renderDetailPanel(data.task);
+        // Who else is on it (GH #89). Fetched separately from the task itself
+        // because the same call returns the CANDIDATE list, which is a different
+        // question — "who could be added" depends on who is already on it.
+        involvedState.ownerId = data.task.assigned_analyst_id ? Number(data.task.assigned_analyst_id) : null;
+        loadInvolved(taskId);
         // Back to the top on every open (Ed). Clicking a subtask replaces the
         // panel's contents but not its scroll position, so you arrived at the
         // NEW task already scrolled down to where the subtask list was on the
@@ -1034,6 +1060,16 @@ function renderDetailPanel(task) {
                 </select>
             </div>
         </div>
+
+        <!-- Who else is on this task (GH #89). Directly under Assignee, because
+             "who owns it" and "who else is on it" are one question asked twice,
+             and separating them would make the second look like an afterthought.
+             Top-level tasks only — a subtask already carries its own assignee. -->
+        ${!task.parent_task_id ? `
+        <div class="detail-field" id="involvedField">
+            <label>${esc(window.t('tasks.detail.involved'))}</label>
+            <div id="involvedList"></div>
+        </div>` : ''}
 
         <div class="detail-row">
             <div class="detail-field">
@@ -1255,6 +1291,105 @@ function renderDetailPanel(task) {
     });
 }
 
+// ── Who else is on the task — "Involved" (GH #89) ──────────────────
+//
+// ⚠️ THE CODE SAYS "collaborator" AND THE SCREEN SAYS "Involved", on purpose.
+// The API field and the table are English identifiers that are never translated;
+// the visible word is, and the cognate of "collaborator" means a wartime traitor
+// in German, Dutch, Danish, Norwegian, French, Polish and Russian — and in
+// Ukrainian it is a live criminal charge rather than a historical term. The
+// translation pipeline would have produced exactly that word in all nine.
+
+let involvedState = { taskId: null, rows: [], candidates: [], completion: false, ownerId: null };
+
+/** Fetch and draw the Involved section for the open task. */
+async function loadInvolved(taskId) {
+    const host = document.getElementById('involvedList');
+    if (!host) return;                       // a subtask — the section is not built
+    try {
+        const data = await fetch(API_BASE + 'collaborators.php?task_id=' + taskId).then(r => r.json());
+        if (!data.success) { host.textContent = ''; return; }
+        involvedState = {
+            taskId,
+            rows: data.collaborators || [],
+            candidates: data.candidates || [],
+            completion: !!data.completion_enabled,
+            ownerId: involvedState.ownerId,
+        };
+        renderInvolved();
+    } catch (e) {
+        // Silent: an install mid-upgrade has no table yet, and an empty section is
+        // the honest rendering of "there is nobody on this task".
+        host.textContent = '';
+    }
+}
+
+function renderInvolved() {
+    const host = document.getElementById('involvedList');
+    if (!host) return;
+    const s = involvedState;
+
+    const chips = s.rows.map(c => {
+        // The tick is only OFFERED when the setting is on; the value is stored
+        // either way, so switching the setting back on shows what was already
+        // recorded rather than starting everybody from nothing.
+        const tick = s.completion
+            ? `<input type="checkbox" class="involved-tick" ${c.is_completed ? 'checked' : ''}
+                      title="${escAttr(window.t('tasks.detail.involved_done'))}"
+                      onchange="setInvolvedDone(${c.analyst_id}, this.checked)">`
+            : '';
+        return `<span class="involved-chip${c.is_completed && s.completion ? ' is-done' : ''}">
+            ${tick}<span class="involved-chip-name">${esc(c.analyst_name)}</span>
+            <button type="button" class="involved-chip-x"
+                    title="${escAttr(window.t('tasks.detail.involved_remove'))}"
+                    onclick="removeInvolved(${c.analyst_id})" aria-label="${escAttr(window.t('tasks.detail.involved_remove'))}">&times;</button>
+        </span>`;
+    }).join('');
+
+    // ⚠️ The picker is built from the CANDIDATES the server sent, never from the
+    // module's own `analysts` list. That list is everybody; the candidates have
+    // already had the owner, the people already on the task, and — on a
+    // multi-company install — analysts who cannot reach this task's company taken
+    // out of them. Offering a name the save would refuse is the smaller problem;
+    // offering a name from another company is a disclosure on its own.
+    const options = s.candidates.map(a =>
+        `<option value="${a.id}">${esc(a.name)}</option>`).join('');
+
+    host.innerHTML = `
+        <div class="involved-chips">${chips || `<span class="involved-empty">${esc(window.t('tasks.detail.involved_none'))}</span>`}</div>
+        ${options ? `
+        <select class="detail-select involved-add" onchange="addInvolved(this.value); this.value='';">
+            <option value="">${esc(window.t('tasks.detail.involved_add'))}</option>
+            ${options}
+        </select>` : ''}`;
+}
+
+async function postInvolved(action, analystId) {
+    if (!involvedState.taskId) return;
+    try {
+        const res = await fetch(API_BASE + 'collaborators.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ task_id: involvedState.taskId, analyst_id: Number(analystId), action })
+        });
+        const data = await res.json();
+        if (!data.success) {
+            showToast(data.error || window.t('tasks.toast.save_failed'), 'error');
+            return;
+        }
+        // Re-read the candidate list too: adding somebody removes them from it,
+        // and removing somebody puts them back.
+        await loadInvolved(involvedState.taskId);
+        loadTasks();                     // the board's chips and marks move with it
+    } catch (e) {
+        showToast(window.t('tasks.toast.save_failed'), 'error');
+    }
+}
+
+function addInvolved(analystId)    { if (analystId) postInvolved('add', analystId); }
+function removeInvolved(analystId) { postInvolved('remove', analystId); }
+function setInvolvedDone(analystId, done) { postInvolved(done ? 'done' : 'undone', analystId); }
+
 // ── Field Save ─────────────────────────────────────────────────────
 
 // Post a change and SAY SO IF IT DID NOT HAPPEN. Returns true on success.
@@ -1297,7 +1432,30 @@ async function postTaskChange(payload, failedKey) {
 
 async function saveField(field, value) {
     if (!selectedTaskId) return;
+    if (field === 'status' && !(await confirmCloseWithInvolved(value))) return;
     await postTaskChange({ id: selectedTaskId, [field]: value }, 'tasks.toast.save_failed');
+}
+
+/**
+ * Closing a task while people on it have not ticked their part off.
+ *
+ * 🔴 A WARNING, NEVER A BLOCK. Ticks are progress, not a gate: making the close
+ * conditional on them would mean one person leaving makes a task permanently
+ * uncloseable, and would hand every person on it a veto — which is co-ownership
+ * again, the exact thing owner-plus-involved exists to avoid.
+ *
+ * Only asked when the per-person tick is switched ON. With the setting off there
+ * are no ticks to be outstanding, so the question would be meaningless.
+ */
+async function confirmCloseWithInvolved(newStatusName) {
+    if (!involvedState.completion || involvedState.taskId !== selectedTaskId) return true;
+    const status = (statusList || []).find(s => s.name === newStatusName);
+    if (!status || !status.is_closed) return true;
+
+    const outstanding = involvedState.rows.filter(r => !r.is_completed).length;
+    if (outstanding === 0) return true;
+
+    return window.confirm(window.t('tasks.detail.involved_outstanding', { n: outstanding }));
 }
 
 // ── Scheduled work (GH #112) ───────────────────────────────────────

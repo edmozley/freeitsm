@@ -106,6 +106,7 @@ final class Cap
     const TASKS_CARD       = 'tasks.card';
     const TASKS_TAGS       = 'tasks.tags';
     const TASKS_TIME       = 'tasks.time';
+    const TASKS_INVOLVED   = 'tasks.involved';    // who else is on a task (GH #89)
 
     // ---- Knowledge ---------------------------------------------------------
     const KNOWLEDGE_MANAGE      = 'knowledge.manage';       // umbrella

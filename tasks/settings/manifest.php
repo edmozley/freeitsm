@@ -70,6 +70,17 @@ return [
             'setting_keys' => ['tasks_time_scope'],
         ],
         [
+            // Who else is on a task (GH #89). Adding people is everyday work and
+            // stays on plain module access — the same rule that keeps creating a
+            // tag off the tags capability. What sits behind THIS is the one
+            // administrative choice: whether each person gets a tick of their own.
+            'id'           => 'involved',
+            'cap'          => Cap::TASKS_INVOLVED,
+            'label_key'    => 'tasks.settings.tab_involved',
+            'grant'        => 'Configure whether people on a task tick off their own part',
+            'setting_keys' => ['tasks_collaborator_completion'],
+        ],
+        [
             // Deleting tags and configuring them. Creating one inline from the board is
             // everyday work and deliberately stays on plain module access.
             'id'           => 'tags',

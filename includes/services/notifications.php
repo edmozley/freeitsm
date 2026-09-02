@@ -100,6 +100,11 @@ class NotificationsService
             // work is the one event you cannot afford to miss, and it is caused by
             // somebody else, so it cannot be self-inflicted noise (GH #110).
             'task.assigned'           => ['default' => true,  'entity' => 'task'],
+            // On for the same reason task.assigned is: being put on a piece of
+            // work is caused by somebody else and cannot be self-inflicted noise.
+            // ⚠️ The recipient is the person ADDED, not the owner — the router
+            // names this event explicitly to get that right (GH #89).
+            'task.collaborator_added' => ['default' => true,  'entity' => 'task'],
             // Off by default: the inbox already shows you these, and a bell for
             // every ticket created on a busy desk is the definition of noise.
             'ticket.created'          => ['default' => false, 'entity' => 'ticket'],

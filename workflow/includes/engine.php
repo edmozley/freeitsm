@@ -105,6 +105,13 @@ class WorkflowEngine
             'form.submitted'           => 'A form submission is received',
             'task.created'             => 'A task is created',
             'task.assigned'            => 'A task is assigned to somebody',
+            // GH #89. SEPARATE events, never a widened task.assigned: that one
+            // carries a SCALAR task.assignee_id and every stored workflow reads
+            // it, so turning it into a list would leave those workflows running
+            // and silently matching nothing, while firing task.assigned once per
+            // person would make a workflow that fired once fire four times.
+            'task.collaborator_added'   => 'Somebody else is added to a task',
+            'task.collaborator_removed' => 'Somebody else is taken off a task',
             'task.completed'           => 'A task is marked complete',
             'task.deleted'             => 'A task is deleted',
             'change.created'           => 'A change request is created',
@@ -254,6 +261,17 @@ class WorkflowEngine
             ],
             'task.assigned' => [
                 'task.id', 'task.title', 'task.status_id', 'task.priority_id', 'task.assignee_id',
+            ],
+            // ⚠️ task.assignee_id is still the OWNER on these two, deliberately,
+            // so anything reading them the way it reads task.assigned finds the
+            // person accountable. The person added or removed is collaborator_id.
+            'task.collaborator_added' => [
+                'task.id', 'task.title', 'task.status_id', 'task.priority_id',
+                'task.assignee_id', 'task.collaborator_id',
+            ],
+            'task.collaborator_removed' => [
+                'task.id', 'task.title', 'task.status_id', 'task.priority_id',
+                'task.assignee_id', 'task.collaborator_id',
             ],
             'task.completed' => [
                 'task.id', 'task.title', 'task.priority_id', 'task.assignee_id',

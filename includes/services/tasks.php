@@ -461,6 +461,288 @@ class TasksService
     }
 
     // ======================================================================
+    //  Collaborators — the other people on a task (GH #89)
+    //
+    //  Shown as "Involved" everywhere a person reads it. The code, the table,
+    //  the API field and the workflow events all say "collaborator" instead,
+    //  deliberately: that word is precise for a developer and NEVER translated,
+    //  whereas its cognate is a slur for a traitor in nine of the languages
+    //  FreeITSM ships in — squarely so in German, Dutch and the Nordics, and in
+    //  Ukrainian it is a live criminal charge rather than a historical one. The
+    //  machine translation pipeline would have produced exactly that word,
+    //  unprompted, in all nine. So the UI string is `tasks.involved.*` and the
+    //  English label is "Involved", which translates to a neutral everyday word
+    //  in every locale and leaves no trap for the next one added.
+    //
+    //  🔴 THE OWNER IS NEVER A COLLABORATOR. Accountability lives in
+    //  tasks.assigned_analyst_id, alone. See the schema comment.
+    // ======================================================================
+
+    /**
+     * Is per-person completion switched on? (Tasks → Settings)
+     *
+     * Off by default — the request was to SEE other people on a task, and a tick
+     * box each is a heavier thing that most desks will not want. Naming and shape
+     * follow timeScope() above.
+     */
+    public static function collaboratorCompletionEnabled(PDO $conn): bool
+    {
+        try {
+            $stmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'tasks_collaborator_completion'");
+            $stmt->execute();
+            $v = $stmt->fetchColumn();
+        } catch (Exception $e) {
+            return false;                      // pre-upgrade DB: behave as shipped
+        }
+        return is_string($v) && in_array(strtolower(trim($v)), ['1', 'on', 'true', 'yes'], true);
+    }
+
+    /**
+     * The task row, scoped — for a caller that needs the owner and company
+     * before it can decide what to offer.
+     *
+     * ⚠️ It exists so the READ path goes through loadTaskRow() like every write
+     * does. Letting the endpoint run its own `SELECT * FROM tasks` would be the
+     * one by-id route not covered by the company check, which is exactly how a
+     * child endpoint gets missed.
+     */
+    public static function taskForCollaborators(PDO $conn, ActorContext $ctx, int $taskId): array
+    {
+        return self::loadTaskRow($conn, $ctx, $taskId);
+    }
+
+    /**
+     * The collaborators on one task, in the order they were added.
+     *
+     * ⚠️ INNER JOIN on analysts, so a row whose analyst has been deleted simply
+     * does not come back. The FK cascades, so that should not happen — but a
+     * half-migrated install can have rows the constraint never covered, and a
+     * chip reading "undefined" is worse than a person quietly missing.
+     */
+    public static function collaboratorsFor(PDO $conn, int $taskId): array
+    {
+        $all = self::collaboratorsForMany($conn, [$taskId]);
+        return $all[$taskId] ?? [];
+    }
+
+    /**
+     * Collaborators for many tasks at once, as [task_id => [rows]].
+     *
+     * ⚠️ ONE QUERY, NOT ONE PER TASK. The board renders every task on the desk;
+     * a per-task lookup here would add a query per card to the module's busiest
+     * endpoint. Same reason list.php already batches its subtask and tag lookups.
+     */
+    public static function collaboratorsForMany(PDO $conn, array $taskIds): array
+    {
+        $taskIds = array_values(array_unique(array_filter(array_map('intval', $taskIds))));
+        if (!$taskIds) {
+            return [];
+        }
+        $in = implode(',', array_fill(0, count($taskIds), '?'));
+        try {
+            $stmt = $conn->prepare(
+                "SELECT tc.task_id, tc.analyst_id, tc.is_completed, tc.completed_datetime,
+                        a.full_name AS analyst_name
+                   FROM task_collaborators tc
+                   JOIN analysts a ON a.id = tc.analyst_id
+                  WHERE tc.task_id IN ($in)
+               ORDER BY tc.added_datetime, tc.id"
+            );
+            $stmt->execute($taskIds);
+        } catch (Exception $e) {
+            // An install that has not run Database Verification since upgrading
+            // has no table yet. No collaborators is the correct answer there, and
+            // it must not take the board down with it.
+            return [];
+        }
+
+        $out = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $out[(int)$r['task_id']][] = [
+                'analyst_id'         => (int)$r['analyst_id'],
+                'analyst_name'       => $r['analyst_name'],
+                'is_completed'       => (int)$r['is_completed'] === 1,
+                'completed_datetime' => $r['completed_datetime'],
+            ];
+        }
+        return $out;
+    }
+
+    /** Put somebody on a task. Idempotent — adding twice is not a second fact. */
+    public static function addCollaborator(PDO $conn, ActorContext $ctx, int $taskId, int $analystId): array
+    {
+        $task = self::loadTaskRow($conn, $ctx, $taskId);          // 404 + company scope
+        self::assertCollaboratorsAllowed($task);
+        self::resolveAnalyst($conn, $analystId);                  // exists and is active
+
+        // 🔴 The owner is not a collaborator. Allowing it would put one person in
+        // two roles on the same task and make every count ambiguous.
+        if ((int)($task['assigned_analyst_id'] ?? 0) === $analystId) {
+            throw new ServiceError('validation', 'invalid_field', 'That analyst already owns this task.');
+        }
+        self::assertAnalystInTaskCompany($conn, $task, $analystId);
+
+        // INSERT IGNORE would hide a genuine failure as a no-op, so ask first.
+        $exists = $conn->prepare("SELECT id FROM task_collaborators WHERE task_id = ? AND analyst_id = ?");
+        $exists->execute([$taskId, $analystId]);
+        if ($exists->fetchColumn()) {
+            return ['added' => false];
+        }
+
+        $conn->prepare(
+            "INSERT INTO task_collaborators (task_id, analyst_id, added_by_id, added_datetime)
+             VALUES (?, ?, ?, UTC_TIMESTAMP())"
+        )->execute([$taskId, $analystId, $ctx->actorId]);
+        $conn->prepare("UPDATE tasks SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$taskId]);
+
+        self::collaboratorDispatch($conn, 'task.collaborator_added', $taskId, $analystId);
+        return ['added' => true];
+    }
+
+    /** Take somebody off a task. */
+    public static function removeCollaborator(PDO $conn, ActorContext $ctx, int $taskId, int $analystId): array
+    {
+        self::loadTaskRow($conn, $ctx, $taskId);
+        $stmt = $conn->prepare("DELETE FROM task_collaborators WHERE task_id = ? AND analyst_id = ?");
+        $stmt->execute([$taskId, $analystId]);
+        if ($stmt->rowCount() === 0) {
+            return ['removed' => false];
+        }
+        $conn->prepare("UPDATE tasks SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$taskId]);
+        self::collaboratorDispatch($conn, 'task.collaborator_removed', $taskId, $analystId);
+        return ['removed' => true];
+    }
+
+    /**
+     * Tick or untick one person's part of the task.
+     *
+     * 🔴 A TICK IS PROGRESS, NOT A GATE. The owner still closes the task, whether
+     * or not everybody has ticked. Making completion conditional on the ticks
+     * would mean one person leaving makes a task permanently uncloseable, and
+     * would quietly hand every collaborator a veto — which is co-ownership again,
+     * the thing owner+collaborators exists to avoid.
+     *
+     * ⚠️ Only the person themselves, or the task's owner, may move a tick. Anyone
+     * else marking your work done is a statement about you that you did not make.
+     */
+    public static function setCollaboratorDone(PDO $conn, ActorContext $ctx, int $taskId, int $analystId, bool $done): array
+    {
+        $task = self::loadTaskRow($conn, $ctx, $taskId);
+        $isSelf  = $ctx->actorId === $analystId;
+        $isOwner = (int)($task['assigned_analyst_id'] ?? 0) === (int)$ctx->actorId;
+        if (!$isSelf && !$isOwner) {
+            throw new ServiceError('forbidden', 'forbidden', 'Only that analyst or the task owner can change this.');
+        }
+
+        $stmt = $conn->prepare(
+            "UPDATE task_collaborators
+                SET is_completed = ?, completed_datetime = " . ($done ? 'UTC_TIMESTAMP()' : 'NULL') . "
+              WHERE task_id = ? AND analyst_id = ?"
+        );
+        $stmt->execute([$done ? 1 : 0, $taskId, $analystId]);
+        if ($stmt->rowCount() === 0) {
+            // Either not a collaborator, or already in that state. Re-read rather
+            // than guessing which, so the caller gets the truth.
+            $probe = $conn->prepare("SELECT id FROM task_collaborators WHERE task_id = ? AND analyst_id = ?");
+            $probe->execute([$taskId, $analystId]);
+            if (!$probe->fetchColumn()) {
+                throw new ServiceError('not_found', 'not_found', 'That analyst is not on this task.');
+            }
+        }
+        $conn->prepare("UPDATE tasks SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?")->execute([$taskId]);
+        return ['is_completed' => $done];
+    }
+
+    /** How many collaborators have yet to tick — for the closing warning. */
+    public static function collaboratorsOutstanding(PDO $conn, int $taskId): int
+    {
+        try {
+            $stmt = $conn->prepare("SELECT COUNT(*) FROM task_collaborators WHERE task_id = ? AND is_completed = 0");
+            $stmt->execute([$taskId]);
+            return (int)$stmt->fetchColumn();
+        } catch (Exception $e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Collaborators are for TOP-LEVEL tasks only — Ed's call, and a sound one.
+     * A subtask already takes an assignee of its own, so people on a subtask is
+     * how you say "these four are each doing a piece"; collaborators on top of
+     * that would give two overlapping ways to express the same thing and no rule
+     * for which wins.
+     */
+    private static function assertCollaboratorsAllowed(array $taskRow): void
+    {
+        if (!empty($taskRow['parent_task_id'])) {
+            throw new ServiceError('validation', 'invalid_field',
+                'Collaborators are only available on top-level tasks. A subtask carries its own assignee.');
+        }
+    }
+
+    /**
+     * 🔒 The analyst being added must be able to reach the task's company.
+     *
+     * ⚠️ THE PICKER IS THE SAME QUESTION AND MUST USE THE SAME ANSWER. A list
+     * offering analysts from other companies is a disclosure on its own, before
+     * anybody is added — so api/tasks/collaborators.php filters its candidate
+     * list through this too, rather than validating only on save.
+     *
+     * Permissive on a single-company install, where the question does not arise.
+     */
+    private static function assertAnalystInTaskCompany(PDO $conn, array $taskRow, int $analystId): void
+    {
+        require_once __DIR__ . '/../tenancy.php';
+        if (!isMultiTenant($conn)) {
+            return;
+        }
+        $tenantId = $taskRow['tenant_id'] ?? null;
+        // A task with no company is the Default company's — the same rule
+        // activeTenantFilter() applies, and the reason every task created before
+        // multi-tenancy existed is still reachable.
+        $tenantId = ($tenantId === null) ? getDefaultTenantId($conn) : (int)$tenantId;
+        if (!analystCanAccessTenant($conn, $analystId, (int)$tenantId)) {
+            throw new ServiceError('validation', 'invalid_field',
+                'That analyst does not work for the company this task belongs to.');
+        }
+    }
+
+    /**
+     * A NEW workflow event, never a widened `task.assigned`.
+     *
+     * 🔴 THIS IS THE ONE THAT WOULD HAVE BROKEN EXISTING INSTALLS. `task.assigned`
+     * carries a SCALAR `assignee_id`, and the notification router reads the
+     * recipient from exactly that field (GH #110). Turning it into an array would
+     * leave every stored workflow running and quietly matching nothing; firing
+     * `task.assigned` once per collaborator instead would make workflows that
+     * fired once fire four times. Both failures are silent. A separate event
+     * cannot do either.
+     */
+    private static function collaboratorDispatch(PDO $conn, string $event, int $taskId, int $analystId): void
+    {
+        try {
+            $rb = $conn->prepare("SELECT title, status_id, priority_id, assigned_analyst_id FROM tasks WHERE id = ?");
+            $rb->execute([$taskId]);
+            $taskRow = $rb->fetch(PDO::FETCH_ASSOC) ?: [];
+            WorkflowEngine::dispatch($event, [
+                'task' => [
+                    'id'          => $taskId,
+                    'title'       => $taskRow['title'] ?? null,
+                    'status_id'   => isset($taskRow['status_id']) ? (int)$taskRow['status_id'] : null,
+                    'priority_id' => isset($taskRow['priority_id']) ? (int)$taskRow['priority_id'] : null,
+                    // The OWNER stays in assignee_id, so anything reading this
+                    // event the way it reads task.assigned still finds the person
+                    // accountable rather than the person just added.
+                    'assignee_id'     => isset($taskRow['assigned_analyst_id']) ? (int)$taskRow['assigned_analyst_id'] : null,
+                    'collaborator_id' => $analystId,
+                ],
+            ]);
+        } catch (Exception $wfEx) {
+            error_log('Workflow dispatch error in task service (collaborator): ' . $wfEx->getMessage());
+        }
+    }
+
+    // ======================================================================
     //  Internals
     // ======================================================================
 
