@@ -1925,6 +1925,9 @@ $translationNamespaces = ['common', 'asset-management'];
             selectedAssetId = assetId;
             selectedAsset = assets.find(a => a.id == assetId);
 
+            // The recent trail (#124).
+            if (window.trailVisit) window.trailVisit('asset', assetId);
+
             // Put the open asset in the address bar, so the URL can be copied,
             // bookmarked or reloaded and land back on the same asset. replaceState
             // rather than pushState: the list stays on screen, so choosing an

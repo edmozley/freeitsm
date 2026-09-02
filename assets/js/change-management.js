@@ -558,6 +558,8 @@ async function viewChange(id) {
         }
 
         currentChange = data.change;
+        // The recent trail (#124).
+        if (window.trailVisit) window.trailVisit('change', id);
         renderChangeDetail();
         showView('detail');
     } catch (error) {

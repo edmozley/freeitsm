@@ -6115,6 +6115,38 @@ CREATE TABLE IF NOT EXISTS `warroom_presence` (
     CONSTRAINT `fk_warroom_presence_channel` FOREIGN KEY (`channel_id`) REFERENCES `warroom_channels` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The recent trail (#124). Every record an analyst opens, in the order they
+-- opened it, so the waffle drawer can draw an outline of how they got where they
+-- are: a heading per run of records in one module, the records indented under it.
+-- includes/recent_trail.php carries the reasoning; the two properties that are
+-- easy to "correct" by mistake are these:
+--
+-- 🔴 NO UNIQUE KEY on (analyst_id, entity_type, entity_id), and that is the whole
+--    design rather than an omission. This is a LOG. Opening a ticket at 09:00 and
+--    again at 15:00 has to be two rows under two headings — deduplicating them
+--    into one would delete the fact the outline exists to show. recentTrailPrune()
+--    caps the table instead, by count and by age.
+--
+-- ⚠️ entity_type holds the ENTITY names from entityLinkTypes() — 'knowledge_article',
+--    not the module key 'knowledge'. The module a row is filed under is derived at
+--    render time, so moving a record type between modules is one edit in one PHP
+--    file and never a data migration.
+--
+-- Must follow `analysts`: it points at it, and CASCADE is right because a trail is
+-- one analyst's own history and means nothing once the account is gone.
+CREATE TABLE IF NOT EXISTS `analyst_recent_trail` (
+    `id`               INT NOT NULL AUTO_INCREMENT,
+    `analyst_id`       INT NOT NULL,
+    `entity_type`      VARCHAR(40) NOT NULL,
+    `entity_id`        INT NOT NULL,
+    `visited_datetime` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    -- Every read and every prune is "this analyst, newest first". One index does
+    -- both, and it is the only one the table needs.
+    KEY `ix_analyst_recent_trail_analyst` (`analyst_id`, `visited_datetime`),
+    CONSTRAINT `fk_analyst_recent_trail_analyst` FOREIGN KEY (`analyst_id`) REFERENCES `analysts` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- The all-hands room. Seeded rather than created on demand so a fresh install has
 -- somewhere to talk before anybody has a team; warRoomEnsureChannels() creates it
 -- too, for installations that predate this line.

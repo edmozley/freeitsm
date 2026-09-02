@@ -936,6 +936,8 @@ async function openDetailPanel(taskId) {
     try {
         const data = await fetch(API_BASE + 'get.php?id=' + taskId).then(r => r.json());
         if (!data.success) return;
+        // The recent trail (#124).
+        if (window.trailVisit) window.trailVisit('task', taskId);
         const panel = document.getElementById('detailPanel');
         // One panel, two shapes. The drawer is the default and is untouched;
         // the modal is the same element with a class on it, so there is no

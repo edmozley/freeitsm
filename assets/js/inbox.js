@@ -2291,6 +2291,12 @@ async function loadTicketById(ticketId) {
 function displayEmail(email, recordings) {
     currentEmail = email;
     currentRecordings = recordings || [];
+
+    // The recent trail (#124). Here rather than in loadTicketById() because
+    // EVERY way of putting a ticket in the reading pane ends up in this
+    // function — the list, a deep link, a search result, the previous/next
+    // keys — and a hook per entry point would have missed one.
+    if (window.trailVisit) window.trailVisit('ticket', email.ticket_id);
     const readingPane = document.getElementById('readingPane');
 
     // Build department dropdown
@@ -3612,8 +3618,8 @@ async function loadCorrespondenceThread(ticketId, isAuto = false) {
                         e.same_kind === 'identical'
                             ? t('tickets.reading.same_as_identical').replace('{time}', formatFullDateTime(e.same_as_time))
                             : t('tickets.reading.same_as_near').replace('{time}', formatFullDateTime(e.same_as_time)))}</div>` : ''}
-                    ${emailBodyHost(e.body_content, 'thread-message-body' + (e.same_kind && MC.flag_duplicates ? ' mc-force' : ''), e.body_type)}
-                `;
+                    ${emailBodyHost(e.body_content, 'thread-message-body' + (e.same_kind && MC.flag_duplicates ? ' mc-force' : ''), e.body_type)}
+                `;
             }).join('');
             // Isolate each thread body in a shadow root (see emailBodyHost).
             hydrateEmailBodies(container);

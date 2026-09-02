@@ -22,6 +22,12 @@ if (!$contract_id) {
     header('Location: index.php');
     exit;
 }
+
+// The recent trail (#124). Server-side here, rather than the JS ping the other
+// modules use, because a contract IS its own page — opening one is a real
+// navigation with a real URL, so the moment it is recorded is this one.
+require_once '../includes/recent_trail.php';
+entityVisit('contract', (int) $contract_id);
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">

@@ -2071,6 +2071,9 @@ async function viewArticle(articleId) {
 
         if (data.success) {
             currentArticle = data.article;
+            // The recent trail (#124) — recorded on success only, so an article
+            // that failed to open never appears as one you read.
+            if (window.trailVisit) window.trailVisit('knowledge_article', articleId);
             renderArticleDetail();
             showView('detail');
         } else {

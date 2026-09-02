@@ -354,4 +354,5 @@ return [
     ['warroom_reads', 'uq_warroom_read', 'unique', '(`analyst_id`,`channel_id`)'],
     ['warroom_presence', 'uq_warroom_presence', 'unique', '(`analyst_id`)'],
     ['warroom_presence', 'ix_warroom_presence_last_seen', 'key', '(`last_seen`)'],
+    ['analyst_recent_trail', 'ix_analyst_recent_trail_analyst', 'key', '(`analyst_id`,`visited_datetime`)'],
 ];

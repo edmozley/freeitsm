@@ -113,6 +113,18 @@ return [
     // Waffle module-switcher panel (shared header)
     'waffle' => [
         'title' => 'ITSM Modules',
+        // The recent trail (#124). "Recent" rather than "History": history is a
+        // record of what happened, and this is a way back to it.
+        'tab_modules'  => 'Modules',
+        'tab_recent'   => 'Recent',
+        'trail_search' => 'Search your trail',
+        'trail_loading' => 'Loading…',
+        // Shown before anybody has opened a record. It says what the pane WILL
+        // hold rather than that it is empty, because an empty list with no
+        // explanation reads as something that is broken.
+        'trail_empty'  => 'Records you open will appear here, grouped by the module you were in.',
+        'trail_no_matches' => 'Nothing in your trail matches that.',
+        'trail_unavailable' => 'Run Database Verification in System to switch this on.',
     ],
 
     // Per-module display name + one-line description.

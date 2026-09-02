@@ -224,6 +224,8 @@ async function pmOpenDetail(id, fromHistory) {
         const data = await res.json();
         if (!data.success) { pmToast(data.error || 'Not found', 'error'); return; }
         pmCurrentId = id; pmDetailCache = data;
+        // The recent trail (#124).
+        if (window.trailVisit) window.trailVisit('problem', id);
         pmRenderDetail(data);
         document.getElementById('pmListView').style.display = 'none';
         const dv = document.getElementById('pmDetailView'); dv.style.display = ''; dv.scrollTop = 0;

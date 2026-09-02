@@ -237,6 +237,164 @@ $modules = [
         gap: 8px;
     }
 
+    /* ====================================================================
+       The RECENT TRAIL (#124) — a second pane in this drawer.
+       Discussion #124 asked for internal tabs along the top of the page. This
+       is the answer to what that request was FOR ("get back to what you were
+       doing"), and it lives here rather than in the ⌘K palette on purpose: the
+       control you used to LEAVE a module is the one you come back through, it
+       is already the mobile drawer at 360px, and it disturbs no keyboard path —
+       ⌘K then Enter still means "go to Watchtower", as it always has.
+       ==================================================================== */
+    .waffle-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 14px;
+    }
+    .waffle-tab {
+        flex: 1;
+        padding: 7px 10px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-muted);
+        font-size: 13px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+    }
+    .waffle-tab:hover { background: var(--surface-hover); color: var(--text); }
+    .waffle-tab.active { background: var(--surface-hover); color: var(--text); }
+    .waffle-tabpanel { display: none; }
+    .waffle-tabpanel.active { display: block; }
+
+    /* The Recent pane is a column so its search box can sit at the BOTTOM: on a
+       phone that is where a thumb already is, and on a desktop it keeps the box
+       out of the way of the thing you actually came for. */
+    #waffleTabRecent.active {
+        display: flex;
+        flex-direction: column;
+        /* Desktop only — the drawer takes over the height on mobile, below. */
+        max-height: 60vh;
+    }
+    .waffle-trail {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        margin: -4px -6px 0;
+        padding: 4px 6px 0;
+    }
+
+    /* A level-1 heading: the module, and when that run of records started. */
+    .waffle-trail-group + .waffle-trail-group { margin-top: 2px; }
+    .waffle-trail-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        padding: 6px 6px;
+        border: none;
+        background: transparent;
+        border-radius: 6px;
+        cursor: pointer;
+        text-align: left;
+        font-family: inherit;
+    }
+    .waffle-trail-head:hover { background: var(--surface-hover); }
+    .waffle-trail-head .waffle-trail-icon {
+        width: 22px;
+        height: 22px;
+        flex: 0 0 22px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+    }
+    .waffle-trail-head .waffle-trail-icon svg { width: 13px; height: 13px; }
+    .waffle-trail-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--text);
+        white-space: nowrap;
+    }
+    .waffle-trail-when {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-left: auto;
+        white-space: nowrap;
+    }
+    .waffle-trail-caret {
+        flex: 0 0 auto;
+        color: var(--text-muted);
+        transition: transform 0.15s ease;
+    }
+    .waffle-trail-group.collapsed .waffle-trail-caret { transform: rotate(-90deg); }
+    .waffle-trail-group.collapsed .waffle-trail-records { display: none; }
+    @media (prefers-reduced-motion: reduce) {
+        .waffle-trail-caret { transition: none; }
+    }
+
+    /* Level 2: the records themselves. The rule down the left is what makes the
+       indent read as an OUTLINE rather than as rows that happen to be inset. */
+    .waffle-trail-records {
+        margin: 0 0 4px 17px;
+        padding-left: 10px;
+        border-left: 2px solid var(--border-soft);
+    }
+    .waffle-trail-record {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding: 5px 6px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: var(--text);
+        font-size: 13px;
+    }
+    .waffle-trail-record:hover { background: var(--surface-hover); }
+    .waffle-trail-label {
+        flex: 1 1 auto;
+        /* A subject can be a paragraph. One line, clipped — the timestamp beside
+           it must never be pushed off the edge of the drawer. */
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .waffle-trail-record .waffle-trail-when { font-size: 11px; }
+
+    /* The sticky footer: search across your own trail. NOT a global search —
+       the ⌘K palette already searches every record, and a second one here would
+       be the worse copy of it. This filters what is in front of you. */
+    .waffle-trail-search {
+        flex: 0 0 auto;
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-soft);
+    }
+    .waffle-trail-search input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border: 1px solid var(--border-soft);
+        border-radius: 6px;
+        background: var(--surface);
+        color: var(--text);
+        font-size: 13px;
+        font-family: inherit;
+    }
+    .waffle-trail-search input:focus {
+        outline: none;
+        border-color: var(--primary, #2563eb);
+    }
+    .waffle-trail-empty {
+        padding: 18px 6px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--text-muted);
+        text-align: center;
+    }
+
     .waffle-module-link {
         display: flex;
         flex-direction: column;
@@ -416,6 +574,50 @@ $modules = [
         /* Dim backdrop behind the drawer (transparent click-catcher on desktop). */
         .waffle-overlay { z-index: 2999; }
         .waffle-overlay.active { background: rgba(0, 0, 0, 0.4); }
+
+        /* ----------------------------------------------------------------
+           Recent trail on a phone. The drawer is already full height here, so
+           the scroll moves OUT of the panel and INTO whichever pane is open —
+           which is what pins the trail's search box to the bottom of the screen
+           instead of letting it scroll away with the list above it.
+
+           ⚠️ `overflow: hidden` on the panel is why the panes must own their own
+           scrolling. A container that clips cannot report an overflow, so if the
+           panes ever lose `overflow-y: auto` the modules grid silently becomes
+           unreachable below the fold rather than failing visibly.
+           ---------------------------------------------------------------- */
+        /* 🔴 `.waffle-panel.active`, not `.waffle-panel`. A MEDIA QUERY ADDS NO
+           SPECIFICITY, so the desktop rule `.waffle-panel.active { display:block }`
+           (two classes) outranks a one-class rule here however far down the file
+           it sits — the drawer silently stayed block, the pane never became a
+           flex column, and the search box fell 53px past the bottom edge where
+           the panel's own `overflow: hidden` hid it completely. Measuring the
+           BODY said everything was fine, because a container that clips cannot
+           report an overflow. */
+        .waffle-panel { overflow: hidden; }
+        .waffle-panel.active {
+            display: flex;
+            flex-direction: column;
+        }
+        .waffle-panel-header,
+        .waffle-tabs { flex: 0 0 auto; }
+        .waffle-tabpanel.active {
+            flex: 1 1 auto;
+            min-height: 0;
+        }
+        #waffleTabModules.active { overflow-y: auto; }
+        /* The height cap is a desktop dropdown's problem; here the drawer is the
+           height, and the pane simply fills what is left of it. */
+        #waffleTabRecent.active { max-height: none; }
+        .waffle-tab { padding: 10px; font-size: 14px; }
+        .waffle-trail-record { padding: 9px 6px; }
+        .waffle-trail-head { padding: 9px 6px; }
+        /* 16px, not 13 — anything smaller makes iOS Safari zoom on focus, and
+           the zoom does not come back out. That drops the whole phone layout. */
+        .waffle-trail-search input { font-size: 16px; padding: 10px 12px; }
+        .waffle-trail-search {
+            padding-bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+        }
     }
 </style>
 
@@ -443,9 +645,28 @@ function renderWaffleMenuPanel($modules, $current_module, $path_prefix) {
     ?>
     <div class="waffle-panel" id="wafflePanel">
         <div class="waffle-panel-header">
-            <span><?php echo htmlspecialchars(t('common.waffle.title')); ?></span>
+            <span id="wafflePanelTitle"
+                  data-title-modules="<?php echo htmlspecialchars(t('common.waffle.title')); ?>"
+                  data-title-recent="<?php echo htmlspecialchars(t('common.waffle.tab_recent')); ?>"><?php echo htmlspecialchars(t('common.waffle.title')); ?></span>
             <button type="button" class="waffle-close" onclick="closeWaffleMenu()" aria-label="Close">&times;</button>
         </div>
+        <!--
+            Two panes: the module launcher this drawer has always been, and the
+            recent trail (#124). The trail markup ships EMPTY and is filled the
+            first time the tab is opened — this drawer is on all 91 screens, and
+            resolving a trail into every page render would put that work on every
+            page load in the product to serve a pane most of them never open.
+        -->
+        <div class="waffle-tabs" role="tablist">
+            <button type="button" class="waffle-tab active" role="tab" aria-selected="true"
+                    aria-controls="waffleTabModules" data-waffle-tab="modules"
+                    onclick="waffleShowTab('modules')"><?php echo htmlspecialchars(t('common.waffle.tab_modules')); ?></button>
+            <button type="button" class="waffle-tab" role="tab" aria-selected="false"
+                    aria-controls="waffleTabRecent" data-waffle-tab="recent"
+                    onclick="waffleShowTab('recent')"><?php echo htmlspecialchars(t('common.waffle.tab_recent')); ?></button>
+        </div>
+
+        <div class="waffle-tabpanel active" id="waffleTabModules" role="tabpanel">
         <div class="waffle-modules">
             <?php foreach ($modules as $key => $module):
                 // System visibility is governed by admin status alone (not the per-analyst
@@ -466,6 +687,19 @@ function renderWaffleMenuPanel($modules, $current_module, $path_prefix) {
                 <span class="waffle-module-name"><?php echo $module['name']; ?></span>
             </a>
             <?php endforeach; ?>
+        </div>
+        </div>
+
+        <div class="waffle-tabpanel" id="waffleTabRecent" role="tabpanel">
+            <div class="waffle-trail" id="waffleTrail">
+                <div class="waffle-trail-empty"><?php echo htmlspecialchars(t('common.waffle.trail_loading')); ?></div>
+            </div>
+            <div class="waffle-trail-search">
+                <input type="search" id="waffleTrailSearch" autocomplete="off"
+                       placeholder="<?php echo htmlspecialchars(t('common.waffle.trail_search')); ?>"
+                       aria-label="<?php echo htmlspecialchars(t('common.waffle.trail_search')); ?>"
+                       oninput="waffleTrailFilter(this.value)">
+            </div>
         </div>
     </div>
     <?php
@@ -592,6 +826,312 @@ function renderWaffleMenuJS() {
             closeWaffleMenu();
         }
     });
+
+    /* ====================================================================
+       THE RECENT TRAIL (#124)
+
+       An outline of the records this analyst has opened, grouped under the
+       module each run of them happened in — the way headings and body text sit
+       in a word processor. Three tickets read one after another are one
+       "Tickets" heading with three rows beneath it; a detour into Knowledge
+       opens its own heading; coming BACK to tickets opens a SECOND Tickets
+       heading rather than reopening the first. That repetition is the whole
+       point — it is what turns a list of records into a picture of an
+       afternoon's work.
+
+       🔑 THE HEADINGS BORROW THEIR IDENTITY FROM THE TILES ABOVE. Icon, colour,
+       and translated name are cloned out of the module grid in the other pane
+       rather than shipped again by the API. That keeps one definition of what
+       "Tickets" looks like, gets the analyst's own language for free, and means
+       a module whose tile is absent (no access) also has no heading — which is
+       the same answer the server-side gate has already given for its records.
+       ==================================================================== */
+    window.WAFFLE_TRAIL_TEXT = <?php echo json_encode([
+        'empty'       => t('common.waffle.trail_empty'),
+        'noMatches'   => t('common.waffle.trail_no_matches'),
+        'unavailable' => t('common.waffle.trail_unavailable'),
+        'loading'     => t('common.waffle.trail_loading'),
+    ], JSON_UNESCAPED_UNICODE); ?>;
+
+    var waffleTrailLoaded = false;
+
+    /**
+     * "I have just opened this record" — call it from any module that opens one
+     * WITHOUT a page load, which is most of them.
+     *
+     * 🔑 IT LIVES HERE BECAUSE THE WAFFLE IS ON ALL 91 SCREENS. That makes this
+     * the one place a helper can be defined once and be callable from every
+     * module's own JS without another script tag on every page.
+     *
+     * Fire-and-forget by design: nothing on the page waits for it, a failure is
+     * swallowed, and `keepalive` lets the ping survive the navigation that
+     * sometimes immediately follows it. Repeats are cheap — opening the same
+     * record twice in a row moves a timestamp rather than adding a row, so a
+     * module may call this as often as it likes without polluting the trail.
+     */
+    window.trailVisit = function (type, id) {
+        id = parseInt(id, 10);
+        if (!type || !id || id <= 0) return;
+        try {
+            fetch('<?php echo BASE_URL; ?>api/system/recent_trail_visit.php', {
+                method: 'POST',
+                credentials: 'same-origin',
+                keepalive: true,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: type, id: id })
+            }).catch(function () {});
+        } catch (e) { /* never breaks the page it is hung off */ }
+
+        // The drawer may already be showing a trail from before this visit. Drop
+        // the cache so the next open re-reads it, rather than quietly showing a
+        // list that is missing the record you are looking at right now.
+        waffleTrailLoaded = false;
+    };
+
+    function waffleShowTab(name) {
+        document.querySelectorAll('.waffle-tab').forEach(function (b) {
+            var on = b.getAttribute('data-waffle-tab') === name;
+            b.classList.toggle('active', on);
+            b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        // The drawer names what it is showing. "ITSM Modules" sitting above an
+        // open Recent pane reads as a mislabelled window; both strings are
+        // rendered by PHP so this stays translated.
+        var title = document.getElementById('wafflePanelTitle');
+        if (title) title.textContent = title.getAttribute('data-title-' + name) || title.textContent;
+
+        var modules = document.getElementById('waffleTabModules');
+        var recent  = document.getElementById('waffleTabRecent');
+        if (modules) modules.classList.toggle('active', name === 'modules');
+        if (recent)  recent.classList.toggle('active', name === 'recent');
+
+        // Fetched on FIRST open only, and never on page load: this drawer is on
+        // every screen in the product, and a trail nobody looks at should cost
+        // nothing at all.
+        if (name === 'recent' && !waffleTrailLoaded) {
+            waffleTrailLoaded = true;
+            waffleTrailLoad();
+        }
+    }
+
+    function waffleTrailLoad() {
+        fetch('<?php echo BASE_URL; ?>api/system/recent_trail.php', { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (d) {
+                if (!d || !d.success) { waffleTrailMessage(window.WAFFLE_TRAIL_TEXT.empty); return; }
+                if (d.unavailable)    { waffleTrailMessage(window.WAFFLE_TRAIL_TEXT.unavailable); return; }
+                waffleTrailRender(d.groups || []);
+            })
+            .catch(function () {
+                // A failed fetch must not render as "you have looked at nothing":
+                // an empty state is a claim about the analyst's history, and a
+                // dropped request is not evidence for it.
+                waffleTrailMessage(window.WAFFLE_TRAIL_TEXT.unavailable);
+                waffleTrailLoaded = false;   // let the next open try again
+            });
+    }
+
+    function waffleTrailMessage(text) {
+        var box = document.getElementById('waffleTrail');
+        if (!box) return;
+        box.textContent = '';
+        var p = document.createElement('div');
+        p.className = 'waffle-trail-empty';
+        p.textContent = text;
+        box.appendChild(p);
+    }
+
+    function waffleTrailRender(groups) {
+        var box = document.getElementById('waffleTrail');
+        if (!box) return;
+        box.textContent = '';
+        if (!groups.length) { waffleTrailMessage(window.WAFFLE_TRAIL_TEXT.empty); return; }
+
+        groups.forEach(function (g, i) {
+            var tile = waffleModuleTile(g.module);
+
+            var group = document.createElement('div');
+            group.className = 'waffle-trail-group';
+            // ⭐ The newest run is open and everything above it is closed. Without
+            // this the pane is a wall of rows and the outline gets in the way of
+            // the one thing it is for — which is a short hop back to what you
+            // were just doing.
+            if (i > 0) group.classList.add('collapsed');
+
+            var head = document.createElement('button');
+            head.type = 'button';
+            head.className = 'waffle-trail-head';
+            head.setAttribute('aria-expanded', i === 0 ? 'true' : 'false');
+            head.onclick = function () {
+                var closed = group.classList.toggle('collapsed');
+                head.setAttribute('aria-expanded', closed ? 'false' : 'true');
+            };
+
+            var caret = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            caret.setAttribute('class', 'waffle-trail-caret');
+            caret.setAttribute('width', '12');
+            caret.setAttribute('height', '12');
+            caret.setAttribute('viewBox', '0 0 24 24');
+            caret.setAttribute('fill', 'none');
+            caret.setAttribute('stroke', 'currentColor');
+            caret.setAttribute('stroke-width', '3');
+            caret.setAttribute('stroke-linecap', 'round');
+            caret.setAttribute('stroke-linejoin', 'round');
+            var caretPath = document.createElementNS('http://www.w3.org/2000/svg', 'polyline');
+            caretPath.setAttribute('points', '6 9 12 15 18 9');
+            caret.appendChild(caretPath);
+            head.appendChild(caret);
+
+            var icon = document.createElement('div');
+            // Reuses the tile's own gradient class, so a module is the same
+            // colour here as it is everywhere else it appears.
+            icon.className = 'waffle-trail-icon waffle-module-icon ' + g.module;
+            if (tile && tile.svg) icon.appendChild(tile.svg.cloneNode(true));
+            head.appendChild(icon);
+
+            var name = document.createElement('span');
+            name.className = 'waffle-trail-name';
+            name.textContent = tile ? tile.name : g.module;
+            head.appendChild(name);
+
+            var when = document.createElement('span');
+            when.className = 'waffle-trail-when';
+            when.textContent = waffleTrailWhen(g.latest);
+            when.title = waffleTrailFull(g.latest);
+            head.appendChild(when);
+
+            group.appendChild(head);
+
+            var list = document.createElement('div');
+            list.className = 'waffle-trail-records';
+            (g.records || []).forEach(function (rec) {
+                var a = document.createElement('a');
+                a.className = 'waffle-trail-record';
+                a.href = '<?php echo BASE_URL; ?>' + rec.url;
+
+                var label = document.createElement('span');
+                label.className = 'waffle-trail-label';
+                // textContent, not innerHTML: a ticket subject is whatever a
+                // requester typed into an email.
+                label.textContent = rec.label;
+                label.title = rec.label;
+                a.appendChild(label);
+
+                var t = document.createElement('span');
+                t.className = 'waffle-trail-when';
+                t.textContent = waffleTrailWhen(rec.visited);
+                t.title = waffleTrailFull(rec.visited);
+                a.appendChild(t);
+
+                // Lower-cased once here so filtering does not re-do it per keystroke.
+                a.setAttribute('data-trail-search', (rec.label || '').toLowerCase());
+                list.appendChild(a);
+            });
+            group.appendChild(list);
+            box.appendChild(group);
+        });
+    }
+
+    /** Icon, colour and translated name for a module — read from its own tile. */
+    function waffleModuleTile(key) {
+        var safe = (window.CSS && CSS.escape) ? CSS.escape(key) : key;
+        var icon = document.querySelector('#waffleTabModules .waffle-module-icon.' + safe);
+        if (!icon) return null;
+        var link = icon.closest('.waffle-module-link');
+        var name = link ? link.querySelector('.waffle-module-name') : null;
+        return {
+            svg:  icon.querySelector('svg'),
+            name: name ? name.textContent.trim() : key
+        };
+    }
+
+    /**
+     * Filter the trail — YOUR history, not every record in the product. The ⌘K
+     * palette already searches all records and a second, weaker copy of it here
+     * would be the wrong tool in the right place.
+     *
+     * A group survives if any record in it matches, and is forced OPEN so the
+     * match is visible: a collapsed heading that happens to contain the answer is
+     * indistinguishable from one that does not.
+     */
+    function waffleTrailFilter(term) {
+        var box = document.getElementById('waffleTrail');
+        if (!box) return;
+        var q = (term || '').trim().toLowerCase();
+        var groups = box.querySelectorAll('.waffle-trail-group');
+        if (!groups.length) return;
+
+        var visible = 0;
+        groups.forEach(function (group, i) {
+            var hits = 0;
+            group.querySelectorAll('.waffle-trail-record').forEach(function (rec) {
+                var hit = !q || (rec.getAttribute('data-trail-search') || '').indexOf(q) !== -1;
+                rec.hidden = !hit;
+                if (hit) hits++;
+            });
+            group.hidden = hits === 0;
+            if (hits) visible++;
+            // Searching opens everything that matched; clearing the box puts the
+            // pane back exactly as it was found — newest open, the rest closed.
+            group.classList.toggle('collapsed', q ? false : i > 0);
+            var head = group.querySelector('.waffle-trail-head');
+            if (head) head.setAttribute('aria-expanded', group.classList.contains('collapsed') ? 'false' : 'true');
+        });
+
+        var none = box.querySelector('.waffle-trail-none');
+        if (!visible && q) {
+            if (!none) {
+                none = document.createElement('div');
+                none.className = 'waffle-trail-empty waffle-trail-none';
+                none.textContent = window.WAFFLE_TRAIL_TEXT.noMatches;
+                box.appendChild(none);
+            }
+        } else if (none) {
+            none.remove();
+        }
+    }
+
+    /** A trail is read in glances, so the stamp is relative near the top and a
+     *  plain date once it is old enough for "3 days ago" to stop meaning much. */
+    function waffleTrailWhen(iso) {
+        var d = new Date(iso);
+        if (isNaN(d)) return '';
+        var mins = Math.floor((Date.now() - d.getTime()) / 60000);
+        if (mins < 1)  return 'now';
+        if (mins < 60) return mins + ' min ago';
+
+        var opts = { hour: '2-digit', minute: '2-digit' };
+        if (window.USER_TIMEZONE) opts.timeZone = window.USER_TIMEZONE;
+        var clock = d.toLocaleTimeString([], opts);
+
+        var days = waffleTrailDayGap(d);
+        if (days === 0) return clock;
+        if (days === 1) return 'Yesterday ' + clock;
+
+        var dOpts = { day: 'numeric', month: 'short' };
+        if (window.USER_TIMEZONE) dOpts.timeZone = window.USER_TIMEZONE;
+        return d.toLocaleDateString([], dOpts);
+    }
+
+    /** Whole days between then and now IN THE READER'S ZONE — "yesterday" is a
+     *  question about calendar days, not about how many hours have passed. */
+    function waffleTrailDayGap(d) {
+        var opts = { year: 'numeric', month: '2-digit', day: '2-digit' };
+        if (window.USER_TIMEZONE) opts.timeZone = window.USER_TIMEZONE;
+        var key = function (x) { return x.toLocaleDateString('en-CA', opts); };
+        var a = new Date(key(d) + 'T00:00:00Z').getTime();
+        var b = new Date(key(new Date()) + 'T00:00:00Z').getTime();
+        return Math.round((b - a) / 86400000);
+    }
+
+    function waffleTrailFull(iso) {
+        var d = new Date(iso);
+        if (isNaN(d)) return '';
+        if (window.fmtDateTime) return window.fmtDateTime(iso);   // tz.js, where it is loaded
+        var opts = { dateStyle: 'medium', timeStyle: 'short' };
+        if (window.USER_TIMEZONE) opts.timeZone = window.USER_TIMEZONE;
+        return d.toLocaleString([], opts);
+    }
     </script>
     <?php
 }

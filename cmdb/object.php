@@ -54,6 +54,12 @@ requireModuleAccess('cmdb');
 // endpoint would refuse.
 $canMakeDiagram = analystCanAccessModule(connectToDatabase(), (int) $_SESSION['analyst_id'], 'network-mapper');
 
+// The recent trail (#124). Server-side here, rather than the JS ping the other
+// modules use, because a CI IS its own page — opening one is a real navigation
+// with a real URL, so the moment it is recorded is this one.
+require_once '../includes/recent_trail.php';
+entityVisit('cmdb_object', (int) ($_GET['id'] ?? 0));
+
 $current_page = 'browse';
 $translationNamespaces = ['common', 'cmdb'];
 ?>
