@@ -4,10 +4,15 @@
 
 // ── State ──────────────────────────────────────────────────────────
 
-let currentFilter = 'my';
+// The board/list choice and the my/all choice are this analyst's saved
+// preference (GH #131), handed over by tasks/index.php rather than fetched, so
+// the page is already painted the right way round before this file runs. The
+// fallbacks are the historical defaults, for a page served before the
+// preference existed.
+let currentFilter = window.TASK_FILTER === 'all' ? 'all' : 'my';
 let currentFilterTeamId = null;
 let currentFilterAnalystId = null;
-let currentView = 'board';
+let currentView = window.TASK_VIEW === 'list' ? 'list' : 'board';
 let tasks = [];
 let analysts = [];
 let teams = [];
@@ -187,6 +192,12 @@ function setFilter(filter) {
     document.getElementById('teamFilter').value = '';
     document.getElementById('analystFilter').value = '';
     loadTasks();
+    // Only the two coarse choices are remembered (GH #131). 'team' and
+    // 'analyst' reach currentFilter through the two dropdowns below and are
+    // deliberately left out: a stored analyst id can outlive the analyst, and
+    // coming back tomorrow to somebody else's tasks — or to an empty board —
+    // reads as data loss rather than as a filter.
+    if (filter === 'my' || filter === 'all') saveTaskPreference('tasks_filter', filter);
 }
 
 function setTeamFilter(teamId) {
@@ -272,6 +283,24 @@ function applyTagSettings() {
 
 // ── View Toggle ────────────────────────────────────────────────────
 
+// Remember a board preference for this analyst (GH #131).
+//
+// Fire-and-forget, and silent on failure, matching the two settings on the
+// tasks calendar: the board has already redrawn the way you asked, so a failed
+// save costs you the choice NEXT time and nothing now. Interrupting somebody
+// with a toast because a view preference did not persist would be worse than
+// quietly showing them the default tomorrow. (The detail-panel switch one
+// screen away DOES toast, deliberately — moving a task into the large window
+// is a considered choice you would want to know had not stuck.)
+function saveTaskPreference(key, value) {
+    fetch(APP_BASE + 'api/system/set_user_preference.php', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: key, value: value })
+    }).catch(() => {});
+}
+
 function switchView(view) {
     currentView = view;
     document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -280,6 +309,7 @@ function switchView(view) {
     document.getElementById('listView').style.display = view === 'list' ? 'block' : 'none';
     if (view === 'board') renderBoard();
     else renderList();
+    saveTaskPreference('tasks_view', view);
 }
 
 // ── Board Rendering ────────────────────────────────────────────────

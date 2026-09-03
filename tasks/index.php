@@ -22,15 +22,38 @@ $taskDetailView = 'panel';
 // swapped, because a long page is genuinely better when you want to read the
 // whole thing at once.
 $taskModalLayout = 'columns';
+
+// And how this analyst likes the board itself: the board or the list, showing
+// their own work or everybody's (GH #131). Both used to reset on every page
+// load, so choosing "All tasks" and refreshing put you back on your own board
+// — the one thing on this page that did not remember, while the detail panel,
+// the card fields and both settings on the tasks calendar all did.
+//
+// 🔑 ONLY THESE TWO. The team and analyst dropdowns, the tag filter and the
+// search box are deliberately NOT remembered. A filter is how you like to look
+// at things; a search is a question you asked once (discussion #96, and the
+// same reasoning as the saved views in data-table.js). Persisting a narrow one
+// is also how somebody opens Tasks tomorrow to an EMPTY BOARD and concludes
+// their tasks have been deleted — and a stored analyst id can outlive the
+// analyst. Board/list and my/all cannot do either: neither can hide a task
+// that is there, beyond the ordinary meaning of the button you pressed.
+$taskView   = 'board';
+$taskFilter = 'my';
 try {
     $__p = connectToDatabase()->prepare(
         "SELECT preference_key, preference_value FROM user_preferences
-         WHERE analyst_id = ? AND preference_key IN ('tasks_detail_view', 'tasks_modal_layout')"
+         WHERE analyst_id = ? AND preference_key IN
+               ('tasks_detail_view', 'tasks_modal_layout', 'tasks_view', 'tasks_filter')"
     );
     $__p->execute([(int) ($_SESSION['analyst_id'] ?? 0)]);
     foreach ($__p->fetchAll(PDO::FETCH_KEY_PAIR) as $__k => $__v) {
         if ($__k === 'tasks_detail_view'  && $__v === 'modal') { $taskDetailView  = 'modal'; }
         if ($__k === 'tasks_modal_layout' && $__v === 'tabs')  { $taskModalLayout = 'tabs'; }
+        // Whitelisted rather than trusted: the column is free text, and an
+        // unrecognised value must land on the default rather than on a view
+        // that does not exist and renders as a blank page.
+        if ($__k === 'tasks_view'   && $__v === 'list') { $taskView   = 'list'; }
+        if ($__k === 'tasks_filter' && $__v === 'all')  { $taskFilter = 'all'; }
     }
 } catch (Throwable $e) {
     // Un-migrated install, or no preferences row: the side panel, as before.
@@ -79,11 +102,11 @@ $translationNamespaces = ['common', 'tasks'];
             <div class="sidebar-section">
                 <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.view')); ?></div>
                 <div class="view-toggle">
-                    <button class="view-btn active" data-view="board" onclick="switchView('board')">
+                    <button class="view-btn<?php echo $taskView === 'board' ? ' active' : ''; ?>" data-view="board" onclick="switchView('board')">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>
                         <?php echo htmlspecialchars(t('tasks.view.board')); ?>
                     </button>
-                    <button class="view-btn" data-view="list" onclick="switchView('list')">
+                    <button class="view-btn<?php echo $taskView === 'list' ? ' active' : ''; ?>" data-view="list" onclick="switchView('list')">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                         <?php echo htmlspecialchars(t('tasks.view.list')); ?>
                     </button>
@@ -92,11 +115,11 @@ $translationNamespaces = ['common', 'tasks'];
 
             <div class="sidebar-section">
                 <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.filter')); ?></div>
-                <button class="filter-btn active" data-filter="my" onclick="setFilter('my')">
+                <button class="filter-btn<?php echo $taskFilter === 'my' ? ' active' : ''; ?>" data-filter="my" onclick="setFilter('my')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     <?php echo htmlspecialchars(t('tasks.filter.my')); ?>
                 </button>
-                <button class="filter-btn" data-filter="all" onclick="setFilter('all')">
+                <button class="filter-btn<?php echo $taskFilter === 'all' ? ' active' : ''; ?>" data-filter="all" onclick="setFilter('all')">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                     <?php echo htmlspecialchars(t('tasks.filter.all')); ?>
                 </button>
@@ -126,11 +149,14 @@ $translationNamespaces = ['common', 'tasks'];
 
         <!-- Main content -->
         <div class="tasks-main">
-            <!-- Board view — one column per status, generated by tasks.js -->
-            <div id="boardView" class="board-view"></div>
+            <!-- Board view — one column per status, generated by tasks.js.
+                 Which of the two panes starts visible is decided HERE rather
+                 than by tasks.js on load: a list-view analyst would otherwise
+                 see the board painted and then swapped out from under them. -->
+            <div id="boardView" class="board-view"<?php echo $taskView === 'board' ? '' : ' style="display:none;"'; ?>></div>
 
             <!-- List view -->
-            <div id="listView" class="list-view" style="display:none;">
+            <div id="listView" class="list-view"<?php echo $taskView === 'list' ? '' : ' style="display:none;"'; ?>>
                 <table class="task-table">
                     <thead>
                         <tr>
@@ -254,10 +280,12 @@ $translationNamespaces = ['common', 'tasks'];
     <script>window.API_BASE = '../api/tasks/';
     window.APP_BASE = '<?php echo defined('BASE_URL') ? BASE_URL : '/'; ?>';
     window.TASK_DETAIL_VIEW = <?php echo json_encode($taskDetailView); ?>;
-    window.TASK_MODAL_LAYOUT = <?php echo json_encode($taskModalLayout); ?>;</script>
+    window.TASK_MODAL_LAYOUT = <?php echo json_encode($taskModalLayout); ?>;
+    window.TASK_VIEW = <?php echo json_encode($taskView); ?>;
+    window.TASK_FILTER = <?php echo json_encode($taskFilter); ?>;</script>
     <script src="../assets/js/tasks-priority.js?v=1"></script>
     <script src="../assets/js/tasks-ctx-menu.js?v=3"></script>
-    <script src="../assets/js/tasks.js?v=38"></script>
+    <script src="../assets/js/tasks.js?v=39"></script>
     <script src="../assets/js/mobile.js?v=50"></script>
 </body>
 </html>
