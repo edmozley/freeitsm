@@ -11,6 +11,8 @@
 // files that establish or change an identity, because every one of them already
 // includes this file — one require instead of ten, and a new sign-in path gets
 // sessionPromoteToAuthenticated() available without anyone having to remember.
+require_once __DIR__ . '/db.php';    // dbConnectionOptions() — NOT in config.php, see GH #129
+require_once __DIR__ . '/ssl.php';   // sslApplyCurl() — same reason: 43 callers, config.php is the operator's
 require_once __DIR__ . '/session_security.php';
 
 // Keeps an ACTIVE session from being deleted by PHP's garbage collector. The 717
@@ -54,7 +56,7 @@ if (!headers_sent()) {
  */
 function connectToDatabase() {
     $dsn = "mysql:host=" . DB_SERVER . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-    // dbConnectionOptions() pins the session to UTC — see config.php for why
+    // dbConnectionOptions() pins the session to UTC — see includes/db.php for why
     // (GH #126). Every `new PDO` in the product passes it.
     $conn = new PDO($dsn, DB_USERNAME, DB_PASSWORD, dbConnectionOptions());
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);

@@ -255,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             // Connect to database
             $dsn = "mysql:host=" . DB_SERVER . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-            $conn = new PDO($dsn, DB_USERNAME, DB_PASSWORD, dbConnectionOptions());   // UTC session — config.php
+            $conn = new PDO($dsn, DB_USERNAME, DB_PASSWORD, dbConnectionOptions());   // UTC session — includes/db.php
             $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
             // Check IP ban

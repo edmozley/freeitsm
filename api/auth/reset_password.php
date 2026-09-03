@@ -10,6 +10,7 @@ session_start(['read_and_close' => true]);
 header('Content-Type: application/json');
 
 require_once '../../config.php';
+require_once __DIR__ . '/../../includes/db.php';   // dbConnectionOptions() — NOT in config.php, see GH #129
 
 try {
     $input = json_decode(file_get_contents('php://input'), true);
@@ -38,7 +39,7 @@ try {
     }
 
     $dsn = "mysql:host=" . DB_SERVER . ";dbname=" . DB_NAME . ";charset=utf8mb4";
-    $conn = new PDO($dsn, DB_USERNAME, DB_PASSWORD, dbConnectionOptions());   // UTC session — config.php
+    $conn = new PDO($dsn, DB_USERNAME, DB_PASSWORD, dbConnectionOptions());   // UTC session — includes/db.php
     $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     // Look up token
