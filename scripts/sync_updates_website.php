@@ -16,7 +16,8 @@
  * Usage:
  *   php scripts/sync_updates_website.php --dry-run
  *   php scripts/sync_updates_website.php --url=https://freeitsm.co.uk/api/updates.php --key=THEKEY
- * Flags: --dry-run  --limit=N  --html=<path to updates.html>  --repo=<github repo url>
+ * Flags: --dry-run  --limit=N  --delay=MS (default 400, paces the run past the
+ *        host firewall)  --waf-wait=S (default 60, cooldown after a block)  --html=<path to updates.html>  --repo=<github repo url>
  */
 
 $args = [];
@@ -27,6 +28,12 @@ $dryRun  = !empty($args['dry-run']);
 $apiUrl  = $args['url'] ?? 'http://localhost/freeitsm/api/updates.php';
 $apiKey  = $args['key'] ?? 'local-dev-key';
 $limit   = isset($args['limit']) ? (int)$args['limit'] : 0;
+// Pacing. The live host sits behind a web application firewall that reads a fast
+// run of POSTs as an attack and blocks the lot — a 307-entry sync sent flat out
+// failed every single row. These are the two knobs that keep a long run civil:
+// a gap between requests, and a real wait (not the 0.6s wobble retry) after a block.
+$delay   = isset($args['delay'])    ? max(0, (int)$args['delay'])    : 400;   // ms between requests
+$wafWait = isset($args['waf-wait']) ? max(1, (int)$args['waf-wait']) : 60;    // s to wait out a block
 // Migrate only the pre-numbering entries, leaving every numbered row untouched.
 $onlyUnnumbered = !empty($args['unnumbered-only']);
 $repoUrl = rtrim($args['repo'] ?? 'https://github.com/edmozley/freeitsm', '/');
@@ -144,6 +151,11 @@ function api_post(string $url, string $key, array $payload): array {
         CURLOPT_POSTFIELDS => json_encode($payload),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 20,
+        // PHP's cURL sends no User-Agent at all unless told to, and the host's web
+        // application firewall rejects an anonymous POST outright — the same payload
+        // sent by command-line curl, which supplies its own, goes straight through.
+        // Say who we are.
+        CURLOPT_USERAGENT => 'FreeITSM-UpdatesSync/1.0 (+https://github.com/edmozley/freeitsm)',
     ]);
     $body = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -151,6 +163,22 @@ function api_post(string $url, string $key, array $payload): array {
     if ($body === false) return ['ok' => false, 'error' => $err ?: 'no response'];
     $j = json_decode($body, true);
     return ['ok' => $code < 300 && !empty($j['success']), 'code' => $code, 'json' => $j, 'raw' => $body];
+}
+
+/** A firewall block, not an API error: an HTML page where JSON was expected. */
+function is_waf_block(array $res): bool {
+    $raw = (string)($res['raw'] ?? '');
+    return $raw !== '' && $res['json'] === null
+        && (stripos($raw, 'Request Blocked') !== false
+            || stripos($raw, 'Web Application Firewall') !== false);
+}
+/** One readable line for a failure, instead of dumping a whole HTML block page. */
+function waf_reason(array $res): string {
+    if (is_waf_block($res)) {
+        preg_match('/reference-id[^>]*>\s*([^<]+)/i', (string)$res['raw'], $m);
+        return 'blocked by the host firewall' . (isset($m[1]) ? ' (' . trim($m[1]) . ')' : '');
+    }
+    return $res['error'] ?? json_encode($res['json'] ?? mb_strimwidth((string)($res['raw'] ?? ''), 0, 200, '…'));
 }
 
 // ---- merge the three sources ----
@@ -210,10 +238,14 @@ foreach ($ids as $id) {
         if ($res['ok']) break;
         // Don't retry a real validation error (4xx) — only transient/network/5xx.
         if (isset($res['code']) && $res['code'] >= 400 && $res['code'] < 500) break;
-        usleep(600000);   // 0.6s backoff
+        // A firewall block is not a wobble: retrying immediately is what caused it.
+        // Back off hard and let the cooldown pass instead of compounding the burst.
+        if (is_waf_block($res)) { fwrite(STDERR, "  (firewall block — waiting {$wafWait}s)\n"); sleep($wafWait); }
+        else { usleep(600000); }
     }
     if ($res['ok']) { $ok++; }
-    else { $fail++; fwrite(STDERR, sprintf("  #%-4d FAILED: %s\n", $id, $res['error'] ?? json_encode($res['json'] ?? $res['raw']))); }
+    else { $fail++; fwrite(STDERR, sprintf("  #%-4d FAILED: %s\n", $id, waf_reason($res))); }
+    usleep($delay * 1000);   // pace the run so a burst never trips the host firewall
 }
 
 // ---- Entries that predate the numbering scheme ----
