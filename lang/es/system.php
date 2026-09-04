@@ -44,6 +44,7 @@ return [
         'ai_keywords' => 'ai reasoning thinking model tokens slow speed openrouter latency cost',
         'heading'               => 'Administración del sistema',
         'subtitle'              => 'Configure los ajustes a nivel de sistema y los controles de acceso',
+        'version'  => 'Versión',
         'search_placeholder'    => 'Buscar áreas del sistema…',
         'no_results'            => 'Ninguna área del sistema coincide con su búsqueda.',
         'help_title'            => 'Ayuda y guías',

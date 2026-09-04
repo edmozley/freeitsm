@@ -14,6 +14,7 @@ require_once __DIR__ . '/../../../includes/i18n.php';
 require_once __DIR__ . '/tools.php';
 require_once __DIR__ . '/../../../includes/timezone.php';
 require_once __DIR__ . '/../../../includes/theme.php';
+require_once __DIR__ . '/../../../includes/version.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -195,6 +196,7 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
         var method  = (card.getAttribute('data-method') || 'GET').toUpperCase();
         var fields  = Array.prototype.slice.call(card.querySelectorAll('[data-input-name]'));
         var API     = <?php echo json_encode($path_prefix . 'api/system/debug-tools/'); ?>;
+        var VERSION_STAMP = <?php echo json_encode('FreeITSM ' . freeitsmVersion() . "\n\n"); ?>;
 
         function enc(o) { return Object.keys(o).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(o[k]); }).join('&'); }
 
@@ -233,7 +235,10 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
             }
             try {
                 var res = await fetch(url, opts);
-                panel.textContent = await res.text();
+                // Discussion #92: stamp the version on the output, not just the page.
+                // This panel is what people paste into a bug report, and the first
+                // question about any report is which version it came from.
+                panel.textContent = VERSION_STAMP + await res.text();
                 copyBtn.style.display = 'inline-block';
             } catch (e) {
                 panel.textContent = window.t('system.debug.fetch_failed', { message: e.message });

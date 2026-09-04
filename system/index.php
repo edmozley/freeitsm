@@ -11,6 +11,7 @@ require_once '../includes/tenancy.php';
 require_once 'includes/areas.php';
 require_once '../includes/timezone.php';
 require_once '../includes/storage_persistence.php';
+require_once '../includes/version.php';
 I18n::initFromSession();
 Tz::init();
 
@@ -93,6 +94,20 @@ $translationNamespaces = ['common', 'system'];
             color: var(--text-dim, #888);
             margin: 0 0 24px 0;
         }
+
+        .landing-version {
+            font-size: 13px;
+            color: var(--text-dim, #888);
+            margin: -16px 0 24px 0;
+        }
+
+        .landing-version a {
+            color: inherit;
+            text-decoration: underline;
+            text-underline-offset: 2px;
+        }
+
+        .landing-version a:hover { color: var(--sys-accent, #546e7a); }
 
         .system-search {
             position: relative;
@@ -305,6 +320,15 @@ $translationNamespaces = ['common', 'system'];
 
             <h2><?php echo htmlspecialchars(t('system.landing.heading')); ?></h2>
             <p class="subtitle"><?php echo htmlspecialchars(t('system.landing.subtitle')); ?></p>
+
+            <?php /* Discussion #92: the version an operator is running, on a screen they
+                     already open, linked to what changed. Plain text, not a badge — it is
+                     reference information, not something to act on. */ ?>
+            <p class="landing-version">
+                <?php echo htmlspecialchars(t('system.landing.version')); ?>
+                <a href="<?php echo htmlspecialchars(freeitsmReleaseUrl()); ?>"
+                   target="_blank" rel="noopener noreferrer"><?php echo htmlspecialchars(freeitsmVersion()); ?></a>
+            </p>
 
             <div class="system-search">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

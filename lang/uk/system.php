@@ -58,6 +58,7 @@ return [
         'ai_keywords' => 'ai reasoning thinking model tokens slow speed openrouter latency cost',
         'heading'  => 'Адміністрування системи',
         'subtitle' => 'Налаштування системного рівня та управління доступом',
+        'version'  => 'Версія',
 
         'encryption_title'  => 'Шифрування',
         'encryption_desc'   => 'Генерація та управління ключем шифрування для захисту конфіденційних даних, таких як ключі API та облікові дані.',

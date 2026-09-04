@@ -71,6 +71,7 @@ return [
         'ai_keywords' => 'ai reasoning thinking model tokens slow speed openrouter latency cost',
         'heading'  => 'System Administration',
         'subtitle' => 'Configure system-level settings and access controls',
+        'version'  => 'Version',
 
         // Card search box. Keywords below carry search synonyms so e.g. typing
         // "oidc" finds Single Sign-On; they are never shown, only matched.

@@ -48,6 +48,7 @@ return [
         'ai_keywords' => 'ai reasoning thinking model tokens slow speed openrouter latency cost',
         'heading'  => 'Pentadbiran Sistem',
         'subtitle' => 'Konfigurasikan tetapan peringkat sistem dan kawalan akses',
+        'version'  => 'Versi',
 
         // Kotak carian kad. Kata kunci di bawah membawa sinonim carian supaya
         // menaip "oidc" contohnya menemui Single Sign-On; tidak dipaparkan, hanya dipadankan.

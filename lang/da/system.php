@@ -54,6 +54,7 @@ return [
         'ai_keywords' => 'ai reasoning thinking model tokens slow speed openrouter latency cost',
         'heading' => 'Systemadministration',
         'subtitle' => 'Konfigurér indstillinger og adgangsstyring på systemniveau',
+        'version'  => 'Version',
         'search_placeholder' => 'Søg i systemområder…',
         'no_results' => 'Ingen systemområder matcher din søgning.',
         'help_title' => 'Hjælp og vejledninger',

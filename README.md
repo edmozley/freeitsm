@@ -138,7 +138,13 @@ Everything lives in the **[Documentation Wiki](https://github.com/edmozley/freei
 | [REST API](https://github.com/edmozley/freeitsm/wiki/REST-API) | How the public API works, plus per-module endpoint guides |
 | [API Reference](https://github.com/edmozley/freeitsm/wiki/API-Reference) | The internal session-based endpoints behind the UI |
 
-There are also long-form **[deep-dive articles](https://freeitsm.co.uk/deep-dive/)** on the website covering individual features, and a **[release history](https://freeitsm.co.uk/updates.php)**.
+There are also long-form **[deep-dive articles](https://freeitsm.co.uk/deep-dive/)** on the website covering individual features, and a **[detailed update history](https://freeitsm.co.uk/updates.php)**.
+
+### Versions and releases
+
+FreeITSM uses [semantic versioning](https://semver.org), read in terms of what an upgrade asks of you: a **patch** needs nothing, a **minor** adds features and keeps working with your existing configuration and data, and a **major** is reserved for the cases that can break a working install. How that is decided, when releases are cut, and what can honestly be rolled back are all written down in **[RELEASING.md](RELEASING.md)**.
+
+The version you are running is shown on the **System** screen and stamped on the first line of every **Debug Tools** report. Released versions, with notes for each, are on the **[releases page](https://github.com/edmozley/freeitsm/releases)**.
 
 **Technology stack:** PHP 7.4–8.4 · MySQL 8.0+ · vanilla JavaScript (no frameworks) · TinyMCE · Apache, or nginx using the [config it ships with](https://github.com/edmozley/freeitsm/wiki/Running-on-nginx).
 

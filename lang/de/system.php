@@ -56,6 +56,7 @@ return [
         'ai_keywords' => 'ai reasoning thinking model tokens slow speed openrouter latency cost',
         'heading'               => 'Systemverwaltung',
         'subtitle'              => 'Systemweite Einstellungen und Zugriffsrechte konfigurieren',
+        'version'  => 'Version',
         'search_placeholder'    => 'Systembereiche durchsuchen…',
         'no_results'            => 'Keine Systembereiche passen zu Ihrer Suche.',
         'help_title'            => 'Hilfe & Anleitungen',

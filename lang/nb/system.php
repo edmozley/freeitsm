@@ -59,6 +59,7 @@ return [
         'ai_keywords' => 'ai reasoning thinking model tokens slow speed openrouter latency cost',
         'heading'  => 'Systemadministrasjon',
         'subtitle' => 'Konfigurer innstillinger på systemnivå og tilgangskontroll',
+        'version'  => 'Versjon',
 
         // Søkefeltet for kortene. Nøkkelordene under er søkesynonymer, slik at
         // f.eks. «oidc» finner single sign-on. De vises aldri, de bare treffes.
