@@ -1384,8 +1384,12 @@ $translationNamespaces = ['common', 'network-mapper'];
         [data-theme-mode="dark"] .nm-brand-tokens { background: #12263a; border-color: #1e3a52; color: #7dd3fc; }
         [data-theme-mode="dark"] .nm-brand-tokens code { background: #0b1220; border-color: #1e3a52; }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style>, or every rule that
+         targets the same selector at the same specificity loses on document
+         order (Techniques §9). -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=128">
 </head>
-<body>
+<body data-mobile-module="network-mapper" data-mobile-page="nm-diagram">
     <?php include 'includes/header.php'; ?>
 
     <div class="nm-editor">
@@ -1705,5 +1709,8 @@ $translationNamespaces = ['common', 'network-mapper'];
             }
         });
     </script>
+    <!-- After network-mapper.js, so mobile.js can read/wrap the globals it
+         exposes rather than edit it (Techniques §1). -->
+    <script src="../assets/js/mobile.js?v=51"></script>
 </body>
 </html>

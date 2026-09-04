@@ -44,10 +44,16 @@ $translationNamespaces = ['common', 'network-mapper'];
             --on-accent:    var(--nm-on-accent);
         }
     </style>
+    <!-- Mobile layer: after this page's own <style> (Techniques §9).
+         This is also what makes the guide READABLE on a phone at all —
+         help.css's own @media block hands the scroll to the document, and
+         inbox.css clips <body>, so nothing scrolled. LAYER 16h gives
+         `.help-container` the scroller role back (§28). -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=128">
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
 </head>
-<body>
+<body data-mobile-module="network-mapper" data-mobile-page="nm-help">
     <?php include 'includes/header.php'; ?>
 
     <div class="help-container">
@@ -364,5 +370,6 @@ $translationNamespaces = ['common', 'network-mapper'];
             });
         });
     </script>
+    <script src="../assets/js/mobile.js?v=51"></script>
 </body>
 </html>

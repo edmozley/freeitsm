@@ -236,8 +236,11 @@ $translationNamespaces = ['common', 'network-mapper'];
         /* Pale-red danger-hover wash → dark red in dark mode so it does not glow. */
         [data-theme-mode="dark"] .nm-card-action-btn.danger:hover { background: #3a1a1a; color: #fca5a5; border-color: #5a2a2a; }
     </style>
+    <!-- Mobile layer LAST, so its @media rules win the ties against the block
+         above rather than losing on document order (Techniques §9). -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=128">
 </head>
-<body>
+<body data-mobile-module="network-mapper" data-mobile-page="nm-list">
     <?php include 'includes/header.php'; ?>
 
     <div class="nm-page">
@@ -414,5 +417,8 @@ $translationNamespaces = ['common', 'network-mapper'];
 
         loadDiagrams();
     </script>
+    <!-- After the page's own script, so mobile.js can wrap globals it exposes
+         rather than edit them (Techniques §1). -->
+    <script src="../assets/js/mobile.js?v=51"></script>
 </body>
 </html>

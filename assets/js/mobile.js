@@ -2926,3 +2926,222 @@
     if (mq.addEventListener) { mq.addEventListener('change', sync); }
     else if (mq.addListener) { mq.addListener(sync); }
 })();
+
+/* ====================================================================
+   NETWORK MAPPER — the CMDB class palette as a sheet, and keeping the
+   selected node in view (#1464)
+
+   ITS OWN top-level IIFE, for the reason the blocks above document.
+
+   `.nm-palette` is a fixed 240px column. Measured on the real page at
+   360×740 that left `.nm-canvas` at 119px — two thirds of the screen
+   spent on the palette and 119px for the diagram. LAYER 31e makes it a
+   slide-in sheet; this supplies the way in and out.
+
+   ⚠️ The button is INJECTED rather than shipped hidden. §25 says hide at
+   source, but that only pays when the desktop needs the element — here it
+   never does, so nothing is added to the page and there is nothing for a
+   desktop render to get wrong.
+   ==================================================================== */
+(function () {
+    var wrap    = document.querySelector('.nm-canvas-wrap');
+    var palette = document.querySelector('.nm-palette');
+    var titles  = document.querySelector('.nm-editor-title-area');
+    if (!wrap || !palette || !titles) return;         // not the mapper page
+
+    var mq = window.matchMedia('(max-width: 768px)');
+
+    function tr(key, fallback) {
+        if (typeof window.t !== 'function') return fallback;
+        var v = window.t(key);
+        return (!v || v === key) ? fallback : v;      // a missing key returns the KEY, which is truthy
+    }
+    /* `network-mapper.editor.palette_title` — "CMDB classes" — is the
+       module's own name for this panel, already translated wherever the
+       namespace exists. Zero new strings, right in every locale the page
+       already works in. */
+    var label = tr('network-mapper.editor.palette_title', 'CMDB classes');
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'nm-palette-btn';
+    btn.textContent = '☰ ' + label;
+    btn.setAttribute('aria-label', label);
+    btn.setAttribute('aria-expanded', 'false');
+    btn.style.display = 'none';                       // injected chrome: @media CSS cannot set a desktop default
+    titles.appendChild(btn);
+
+    var scrim = null;
+
+    function open() {
+        document.body.setAttribute('data-nm-palette', 'open');
+        btn.setAttribute('aria-expanded', 'true');
+        if (!scrim) {
+            scrim = document.createElement('div');
+            scrim.className = 'nm-palette-scrim';
+            scrim.addEventListener('click', close);
+            document.body.appendChild(scrim);
+        }
+        scrim.style.display = '';
+    }
+    function close() {
+        document.body.removeAttribute('data-nm-palette');
+        btn.setAttribute('aria-expanded', 'false');
+        if (scrim) scrim.style.display = 'none';
+    }
+    btn.addEventListener('click', function () {
+        if (document.body.getAttribute('data-nm-palette') === 'open') close(); else open();
+    });
+
+    /* ---- keep the selected node in view when the details sheet opens ----
+
+       LAYER 31f puts `.nm-detail-panel` across the bottom at 58dvh, and the
+       point of leaving the map visible above it is defeated if the node you
+       just tapped is one of the ones now underneath it.
+
+       The canvas is its own scroller, so this is arithmetic rather than
+       `scrollIntoView` — which would centre the node in the FULL scrollport
+       and drop it straight back behind the sheet. Aim for ~70px below the
+       top of the strip that is still showing.
+
+       ⚠️ Observed, not wrapped: `selectNode` is internal to the module's
+       IIFE and the panel is opened from more than one path. A
+       MutationObserver on the panel's own class cannot get out of step with
+       call sites this file does not own (27c's reasoning, and 30f's).
+
+       ⚠️ And it reads on the next tick. MutationObserver callbacks are
+       microtasks, so measuring synchronously in the same task reports the
+       layout as it was BEFORE the sheet took its height — LAYER 30f spent a
+       round on exactly that and the answer was `check what you measured`,
+       not a code change. */
+    var detail = document.getElementById('nodeDetailPanel');
+    var canvas = document.getElementById('canvas');
+    if (detail && canvas && window.MutationObserver) {
+        new MutationObserver(function () {
+            if (!mq.matches || !detail.classList.contains('open')) return;
+            setTimeout(function () {
+                var sel = canvas.querySelector('.nm-node.selected');
+                if (!sel) return;
+                var visible = detail.getBoundingClientRect().top - canvas.getBoundingClientRect().top;
+                if (visible <= 0) return;
+                var top  = sel.offsetTop  - Math.max(12, Math.min(70, visible - sel.offsetHeight - 12));
+                var left = sel.offsetLeft - Math.max(12, (canvas.clientWidth - sel.offsetWidth) / 2);
+                canvas.scrollTop  = Math.max(0, top);
+                canvas.scrollLeft = Math.max(0, left);
+            }, 0);
+        }).observe(detail, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    /* Present mode hides the palette outright (the module's own
+       `display: none !important`), so a sheet left open behind it would
+       come back when you exit. Close it on the way in. */
+    var present = document.getElementById('presentBtn');
+    if (present) { present.addEventListener('click', close); }
+
+    /* ⚠️ And it all goes away above 768px, or a desktop resize leaves the
+       page with a scrim across it and the palette parked off-screen. */
+    function sync() {
+        if (mq.matches) {
+            btn.style.display = '';
+        } else {
+            close();
+            btn.style.display = 'none';
+        }
+    }
+    sync();
+    if (mq.addEventListener) { mq.addEventListener('change', sync); }
+    else if (mq.addListener) { mq.addListener(sync); }
+})();
+
+/* ====================================================================
+   HELP PAGES — the contents strip was tappable and inert (#1464)
+
+   Found while opting Network Mapper's guide in, and it is NOT that
+   module's bug: it is in every help page in the product, and has been
+   since LAYER 16 brought the first one along.
+
+   Each guide's own script does:
+
+       helpMain.scrollTo({ top: … })          // the jump
+       helpMain.addEventListener('scroll', …) // the active highlight
+
+   which is right on a desktop, where `.help-main` is the scroller. Below
+   900px `help.css` sets `.help-main { overflow-y: visible }` and hands the
+   scroll to the document — and `inbox.css` clips <body>, so LAYER 16h gives
+   the scroller role to `.help-container` instead. `scrollTo` on an element
+   that does not scroll throws nothing and does nothing.
+
+   🔴 So on a phone every numbered contents chip did nothing when tapped,
+   and the highlight never moved off "1". §26's shape without the hover: a
+   control that is present, looks live, and is not connected to anything —
+   which reads as "this app just doesn't do that" rather than as a bug, so
+   nobody reports it. Measured on network-mapper, cmdb and lms: identical
+   on all three, `elementFromPoint` returning the same node before and
+   after the tap (§13's check — the only one that asks whether anything a
+   person can SEE moved).
+
+   ⚠️ Fixed here rather than in seventeen page scripts, and gated on
+   `mq.matches` so the desktop path is not touched at all. Delegated,
+   because the strip is static markup but this file does not own the pages.
+   ==================================================================== */
+(function () {
+    var container = document.querySelector('.help-container');
+    var links = document.querySelectorAll('.help-nav-link');
+    if (!container || !links.length) return;              // not a help page
+
+    var mq = window.matchMedia('(max-width: 768px)');
+    var strip = document.querySelector('.help-sidebar');
+
+    function sectionOf(link) {
+        return link.dataset ? document.getElementById(link.dataset.section) : null;
+    }
+
+    /* The jump. The page's own handler has already called preventDefault, so
+       the anchor will not move either — both listeners run and only this one
+       does anything below 768px. */
+    document.addEventListener('click', function (e) {
+        if (!mq.matches) return;
+        var link = e.target && e.target.closest ? e.target.closest('.help-nav-link') : null;
+        if (!link) return;
+        var el = sectionOf(link);
+        if (!el) return;
+        var top = container.scrollTop
+                + (el.getBoundingClientRect().top - container.getBoundingClientRect().top)
+                - 12;
+        container.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+
+    /* The highlight. The page's spy is bound to a container that never
+       scrolls here, so without this the strip stays on "1" for the whole
+       guide — and the strip scrolls sideways, so an active chip that is not
+       brought into view is no better than none. */
+    var sections = [];
+    [].slice.call(links).forEach(function (l) {
+        var el = sectionOf(l);
+        if (el) sections.push({ link: l, el: el });
+    });
+
+    var ticking = false;
+    container.addEventListener('scroll', function () {
+        if (!mq.matches || ticking) return;
+        ticking = true;
+        window.requestAnimationFrame(function () {
+            ticking = false;
+            var top = container.getBoundingClientRect().top;
+            var current = sections[0];
+            sections.forEach(function (s) {
+                if (s.el.getBoundingClientRect().top - top <= 80) current = s;
+            });
+            if (!current || current.link.classList.contains('active')) return;
+            [].slice.call(links).forEach(function (l) { l.classList.remove('active'); });
+            current.link.classList.add('active');
+            /* Bring the chip into the strip by arithmetic rather than
+               `scrollIntoView`, which is free to scroll the ancestors too and
+               would fight the scroll that triggered this. */
+            if (strip) {
+                var c = current.link;
+                strip.scrollLeft = Math.max(0, c.offsetLeft - (strip.clientWidth - c.offsetWidth) / 2);
+            }
+        });
+    });
+})();

@@ -38,7 +38,7 @@ $translationNamespaces = ['common', 'change-management'];
     <link rel="stylesheet" href="../assets/css/inbox.css?v=62">
     <link rel="stylesheet" href="../assets/css/change-management.css?v=6">
     <link rel="stylesheet" href="../assets/css/data-table.css?v=4">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=127">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=128">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -53,6 +53,6 @@ $translationNamespaces = ['common', 'change-management'];
 
     <script src="../assets/js/data-table.js?v=6"></script>
     <script src="../assets/js/change-table.js?v=6"></script>
-    <script src="../assets/js/mobile.js?v=50"></script>
+    <script src="../assets/js/mobile.js?v=51"></script>
 </body>
 </html>

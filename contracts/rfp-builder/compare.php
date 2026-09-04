@@ -173,7 +173,7 @@ $translationNamespaces = ['common', 'contracts'];
         [data-theme-mode="dark"] .section-card-header h2 { color: #38bdf8; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=127">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=128">
 </head>
 <body data-mobile-module="contracts">
     <?php include '../includes/header.php'; ?>
@@ -509,6 +509,6 @@ $translationNamespaces = ['common', 'contracts'];
                 .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
         }
     </script>
-    <script src="../../assets/js/mobile.js?v=50"></script>
+    <script src="../../assets/js/mobile.js?v=51"></script>
 </body>
 </html>

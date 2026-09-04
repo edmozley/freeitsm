@@ -82,7 +82,7 @@ $translationNamespaces = ['common', 'tasks'];
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=127">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=128">
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
     <?php include 'includes/header.php'; ?>
@@ -286,6 +286,6 @@ $translationNamespaces = ['common', 'tasks'];
     <script src="../assets/js/tasks-priority.js?v=1"></script>
     <script src="../assets/js/tasks-ctx-menu.js?v=3"></script>
     <script src="../assets/js/tasks.js?v=39"></script>
-    <script src="../assets/js/mobile.js?v=50"></script>
+    <script src="../assets/js/mobile.js?v=51"></script>
 </body>
 </html>

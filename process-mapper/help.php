@@ -59,7 +59,7 @@ $translationNamespaces = ['common', 'process-mapper'];
         }
     </style>
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=127">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=128">
 </head>
 <body data-mobile-module="process-mapper">
     <?php include 'includes/header.php'; ?>
@@ -492,6 +492,6 @@ $translationNamespaces = ['common', 'process-mapper'];
             });
         });
     </script>
-    <script src="../assets/js/mobile.js?v=50"></script>
+    <script src="../assets/js/mobile.js?v=51"></script>
 </body>
 </html>

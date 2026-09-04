@@ -8963,4 +8963,651 @@
        readable, and a status strip exists to be SCANNED, so density beats card
        size (the Service Status lesson). Recorded here so the next sweep does
        not "fix" it into a column of four. */
+
+    /* ====================================================================
+       LAYER 31 — NETWORK MAPPER (#1464)
+
+       The seventeenth module. Three pages: the diagram list, the mapper
+       itself, and the guide.
+
+       ⭐ SCOPE, SAID OUT LOUD BEFORE ANY OF IT WAS WRITTEN — the same call
+       as LAYER 30's Process Mapper, and for the same reason. §22 splits
+       drag into the kind that survives touch and the kind that does not:
+
+           network-mapper.js : 17 × mousedown / mousemove / mouseup
+                                0 × touchstart / touchmove / pointerdown
+
+       so a node cannot be REPOSITIONED with a finger, and the connector
+       drag (mousedown on an edge handle, mousemove, mouseup) has no touch
+       path either. This round makes a map READABLE on a phone — reach the
+       list, open a diagram, pan and zoom it, tap a node and read its CMDB
+       details, follow the link — and leaves authoring where it works.
+
+       🔴 AND THE HALF-WORKING CASE IS THE ONE WORTH RECORDING, because it
+       is not what Process Mapper found. This palette is HTML5 drag-and-drop
+       (`draggable="true"` + `dragstart`/`dragover`/`drop`), which §22 says
+       DOES work on a phone — iOS Safari has driven it from a long press
+       since iOS 11. So dropping a new node is very probably possible here.
+       It is still not offered, and the reason is the asymmetry: you could
+       place a node and then never move it again, so a mis-drop on a 360px
+       canvas is permanent. A control that half-works is worse than one that
+       honestly is not there — the LAYER 30 principle, and the deciding
+       argument is that the missing half is the RECOVERY, not the action.
+
+       What the layer does:
+         31a  the two shells, both `height: calc(100vh - 60px)`
+         31b  the list toolbar, whose actions ran 104px off the edge
+         31c  the card grid, whose 320px floor made cards wider than it
+         31d  the editor bar — 1206px of actions, and a title at 0px
+         31e  the 240px palette, which left 119px of canvas (§30)
+         31f  the 320px detail column as a bottom sheet
+         31g  five `.nm-modal` shells — LAYER 3 only knows `.modal-content`
+         31h  the two dropdowns, anchored inside a sideways scroller
+         31i  the meta row, the read-only banner and the anti-zoom sweep
+
+       ⚠️ §30 GOVERNS THE WHOLE ROUND. All three pages set
+       `body { height: 100vh; overflow: hidden }`, so `docScrollW ===
+       innerWidth` cannot fail on any of them and is therefore absent, not
+       passing. Everything below was measured by BOX, not by document.
+
+       ✅ §15 checked first: `nm-` is this module's alone — no other module
+       or shared stylesheet defines a single `.nm-*` class. (Process Mapper
+       discovered `pm-` belonged to two modules the hard way.) Everything is
+       still scoped on the module marker, which costs nothing and means the
+       next module to pick the prefix cannot inherit this.
+       ==================================================================== */
+
+    /* --------------------------------------------------------------------
+       31a — The two shells.
+
+       `.nm-page` (the list) and `.nm-editor` (the mapper) are both
+       `height: calc(100vh - 60px)` — the fifth and sixth module containers
+       in the rollout built that way (LAYER 21, 27, 29, 30, and these two).
+       On iOS `100vh` is the LARGE viewport, so the shell is already taller
+       than what you can see, and the 60px is a second guess on top: the
+       module header's height, but only while it has not wrapped.
+
+       LAYER 2 already makes <body> a `100dvh` flex column, so the shell
+       only has to take what is left.
+
+       🔴 `min-height: 0` is not optional — §28. Without it a flex item will
+       not shrink below its content, the shell grows past the viewport, and
+       there is nothing left that can scroll.
+
+       ⭐ help.php needs NOTHING here, and that is the interesting part: its
+       `.help-container` gets the scroller role from LAYER 16h. Before
+       opting in, that page was 8977px tall inside a clipping 740px body
+       with NO vertical scroller anywhere on it — seven of its eight
+       sections unreachable. help.css's own `@media (max-width: 900px)`
+       block sets `height: auto` and `.help-main { overflow-y: visible }`,
+       correctly handing the scroll to the document; inbox.css then clips
+       <body> and the document cannot take it. §28 exactly, and the fix was
+       three lines of opt-in rather than a rule.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="network-mapper"] .nm-page,
+    [data-mobile-module="network-mapper"] .nm-editor {
+        height: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+    /* --------------------------------------------------------------------
+       31b — The list toolbar, measured with its actions ending at x=464.
+
+       A heading, a 260px search box and "+ New" on one `space-between` row:
+       104px off the side of a 360px screen. It stacks, and the search takes
+       the width — searching a list of diagrams is the reason you are on
+       this page, so it gets the room rather than being pushed behind
+       anything (the Knowledge round's reasoning).
+
+       ⚠️ §16: `justify-content` and `align-items` BOTH swap meaning when a
+       row becomes a column, and this row sets both. Left alone,
+       `space-between` would spread the two rows to the top and bottom of a
+       taller bar and `align-items: center` would shrink each to its content
+       and centre it. Restated explicitly rather than inherited.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="network-mapper"] .nm-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+    }
+    [data-mobile-module="network-mapper"] .nm-toolbar h1 {
+        font-size: 17px;
+    }
+    [data-mobile-module="network-mapper"] .nm-toolbar .actions {
+        gap: 8px;
+    }
+    /* The width is stated on the element rather than the container because
+       the page sets `width: 260px` on the input itself — a container rule
+       would not reach it. `min-width: 0` for §14: a flex item's automatic
+       minimum size is its content width, and a fixed-width input sets a
+       floor that pins the whole row open. */
+    [data-mobile-module="network-mapper"] .nm-toolbar input[type="text"] {
+        flex: 1 1 auto;
+        width: auto;
+        min-width: 0;
+    }
+    [data-mobile-module="network-mapper"] .nm-toolbar .nm-btn {
+        flex: 0 0 auto;
+        min-height: 40px;
+    }
+
+    /* --------------------------------------------------------------------
+       31c — The card grid, and a floor that is wider than the grid itself.
+
+       `repeat(auto-fill, minmax(320px, 1fr))` measured a 304px grid holding
+       320px cards — the children 16px wider than their own container, with
+       the page clipping the difference rather than scrolling it. `auto-fill`
+       drops to one column happily; what it will not do is go below the
+       minimum you gave it, and 320px is more than a 360px screen has left
+       after the gutters.
+
+       ⚠️ This is the §14 family again seen from the grid side: a track
+       minimum is a shrink floor by another name, and like every other one
+       in this file it measured as CONTAINED because an ancestor clipped.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="network-mapper"] .nm-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+    [data-mobile-module="network-mapper"] .nm-list-wrap {
+        padding: 12px 12px 24px;
+    }
+    /* The card's one action button measured 50 × 22 — a `padding: 4px 8px`
+       control that is fine beside a mouse and fails a tap target badly. It
+       gets height and padding.
+
+       🔴 BUT NOT WIDTH, AND THE FIRST ATTEMPT GOT THAT WRONG. Giving the
+       actions row `flex: 1 1 100%` made the button full-width and 38px tall
+       — and the only action on this card is **Delete**, sitting inside a card
+       whose entire surface is the tap target for OPENING the diagram. That
+       turned the most destructive control on the screen into its most
+       prominent one, directly under a thumb aiming at the card.
+
+       ⭐ Only the screenshot said so. Every number was an improvement: the
+       button went from 22px tall to 38px, which is the a11y floor being met,
+       and a tap-target check would have called it a fix. Size is not the only
+       property a control has — a `danger` button that grows also gets easier
+       to hit BY ACCIDENT, and on a card that is itself a button that is the
+       property that matters.
+
+       So: thumb-sized in height, natural width, still pushed right by the
+       row's own `space-between`. The stats and the button fit one line at
+       360px (about 130px + 70px of 290), and `flex-wrap` is kept only as the
+       safety net for a longer translation. */
+    [data-mobile-module="network-mapper"] .nm-card-meta {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    [data-mobile-module="network-mapper"] .nm-card-action-btn {
+        flex: 0 0 auto;
+        min-height: 38px;
+        padding: 8px 14px;
+        font-size: 12.5px;
+    }
+    /* A lift-on-hover STICKS after a tap on a touchscreen and reads as jank
+       (§7). The card is the tap target for opening a diagram, so it is the
+       one element here that will certainly be tapped. */
+    [data-mobile-module="network-mapper"] .nm-card:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    /* --------------------------------------------------------------------
+       31d — The editor bar: 1206px of actions, and a title measured at 0px.
+
+       `.nm-editor-actions` holds fifteen controls — autosave, save status,
+       the page picker, four zoom buttons, branding, centre, two exports,
+       present, versions, save-version and save — and carries
+       `flex-shrink: 0`. So the bar's other child, the title area, absorbed
+       every pixel of the difference:
+
+           .nm-editor-title-area   w=0   clientW=0
+           .nm-editor-title        w=0   scrollW=87
+
+       ⭐ The diagram's own name, rendered and completely invisible. Nothing
+       overflowed in a way the page could report, because `.nm-canvas-wrap`
+       clips — the standing lesson that `flex-shrink: 0` is the commonest
+       reason a row will not fit a phone, and that it fails by CRUSHING its
+       neighbour rather than by spilling itself.
+
+       So the bar stacks: the title on its own line, where it is legible for
+       the first time, and the actions beneath as a strip that scrolls
+       sideways in its own box — this file's standing answer to a control
+       row that will not fit, and honest here because some of those controls
+       (zoom, present, both exports, the version picker) work by tap
+       perfectly well. They are not hidden; a control you can see and not
+       use is more use than one that has vanished.
+
+       ⚠️ §16 again, and this row sets BOTH properties that swap axis:
+       `justify-content: space-between` and `align-items: center`. Restated.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="network-mapper"] .nm-editor-bar {
+        flex-direction: column;
+        align-items: stretch;
+        justify-content: flex-start;
+        gap: 8px;
+        padding: 8px 12px;
+    }
+    /* ⭐ AND THE TITLE ROW HAS TO WRAP — §23, and the first measurement after
+       stacking the bar is what said so. Four items, none of them able to give:
+
+           .nm-back-btn      w=101   flex 0/0/auto   "← All diagrams"
+           .nm-editor-title  w=4     flex 1/1/auto   "My network"
+           .nm-version-pill  w=76    (white-space: nowrap)
+           .nm-palette-btn   w=131   flex 0/0/auto   "☰ CMDB classes"
+
+       101 + 76 + 131 + three 8px gaps = 332 of a 336px line, so the title got
+       4px — still invisible, with `flex-grow: 1` and `min-width: 0` both
+       already set on it and neither doing anything.
+
+       🔑 `flex-grow` distributes POSITIVE free space. When the other items
+       already fill the line there is none, and a grow factor is inert — which
+       looks exactly like a rule that did not apply. `min-width: 0` had made it
+       shrinkable and that was the whole of its effect: it shrank.
+
+       So the row wraps and the title takes a `60%` basis — §23's middle value.
+       `auto` would let its own content decide and put the pill on the next line
+       by itself; `0` would ask for nothing and let all four back onto one line
+       to be crushed again. At 60% the title claims the line with Back, and the
+       pill and the palette button pair up beneath it. */
+    [data-mobile-module="network-mapper"] .nm-editor-title-area {
+        flex: 0 0 auto;
+        flex-wrap: wrap;
+        min-width: 0;
+        gap: 8px;
+    }
+    [data-mobile-module="network-mapper"] .nm-editor-title {
+        flex: 1 1 60%;
+        min-width: 0;
+        font-size: 15px;
+    }
+    /* The strip. `min-width: 0` on it AND on its children, or §14's
+       automatic minimum size pins the row open at its content width and the
+       SHELL overflows instead of the strip scrolling. */
+    [data-mobile-module="network-mapper"] .nm-editor-actions {
+        flex: 0 0 auto;
+        min-width: 0;
+        gap: 6px;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        padding-bottom: 2px;
+    }
+    [data-mobile-module="network-mapper"] .nm-editor-actions::-webkit-scrollbar {
+        display: none;
+    }
+    [data-mobile-module="network-mapper"] .nm-editor-actions > * {
+        flex: 0 0 auto;
+        min-width: 0;
+    }
+    [data-mobile-module="network-mapper"] .nm-editor-actions .nm-btn {
+        min-height: 38px;
+    }
+    /* The autosave switch has fixed 1px borders down both sides and a 32px
+       height that no longer matches its neighbours once they grow. */
+    [data-mobile-module="network-mapper"] .nm-autosave-wrap {
+        height: 38px;
+    }
+
+    /* --------------------------------------------------------------------
+       31e — 🔴 THE PALETTE, AND THE 119px CANVAS.
+
+       Measured on the real page at 360×740, and this is the fault the whole
+       round exists for:
+
+           .nm-palette   x=0    w=240
+           .nm-canvas    x=240  w=119   <- the diagram, on a 360px screen
+
+       A fixed 240px column taking 67% of the viewport and leaving 119px for
+       the thing you opened the page to look at. §30's rule of thumb, and it
+       is now the third module to hit it after the Forms approvals sidebar
+       and CMDB browse: no pane holding content may be narrower than roughly
+       60% of the screen, and 119px is not a layout, it is a symptom.
+
+       ⭐ And §30 is also why nothing caught it: this page sets
+       `body { overflow: hidden }` and `.nm-canvas-wrap { overflow: hidden }`,
+       so a document that clips can never report a scroll width beyond its
+       client width. The containment assertion returned "contained" for a
+       layout that had thrown two thirds of itself away.
+
+       It becomes a slide-in sheet with an injected button, the same chrome
+       as LAYER 4's ticket sheets, 29d's lesson list and 30b's process list.
+       `position: fixed` takes it out of the flex row, so the canvas gets the
+       full width back with no rule of its own.
+
+       ⚠️ The open/closed pair is written against ONE selector each, which
+       is the whole reason it is safe — LAYER 30b had to carry a variant on
+       its closed rule (a hover preference) and the open rule then lost to
+       it on specificity for every analyst who had that preference set. This
+       module has no such variant, and if one is ever added it must be
+       mirrored on BOTH halves.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="network-mapper"] .nm-palette {
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1400;
+        width: 82vw;
+        max-width: 300px;
+        flex-shrink: 0;
+        transform: translateX(-100%);
+        visibility: hidden;
+        transition: transform 0.22s ease, visibility 0.22s;
+        box-shadow: 4px 0 30px rgba(0, 0, 0, 0.35);
+    }
+    body[data-mobile-module="network-mapper"][data-nm-palette="open"] .nm-palette {
+        transform: translateX(0);
+        visibility: visible;
+    }
+    /* ⚠️ "drag to canvas" stops being true here — the sheet covers the
+       canvas, and even a successful drop could never be moved afterwards.
+       An instruction that points at something that is not there measures
+       exactly like one that does (the CMDB empty-state lesson), so it goes.
+       `palette_title` — "CMDB classes" — is direction-free and stays, and
+       is what the panel honestly is on a phone: the classes in the diagram,
+       with their object counts. */
+    [data-mobile-module="network-mapper"] .nm-palette-hint {
+        display: none;
+    }
+    [data-mobile-module="network-mapper"] .nm-palette-header {
+        padding: 14px 14px 12px;
+        font-size: 14px;
+    }
+    /* Three up rather than two: the tiles are icon-over-name and the sheet
+       is wider than the desktop column it replaces. */
+    [data-mobile-module="network-mapper"] .nm-palette-body {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    }
+    [data-mobile-module="network-mapper"] .nm-palette-tile {
+        min-height: 76px;
+    }
+    .nm-palette-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 1390;
+        background: rgba(0, 0, 0, 0.45);
+    }
+    /* The button mobile.js injects beside Back. It lives in the title area
+       rather than the actions strip on purpose: the strip scrolls sideways,
+       and a control that opens the module's only other panel must not be
+       somewhere you have to go looking for it. */
+    .nm-palette-btn {
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 38px;
+        padding: 6px 12px;
+        border: 1px solid var(--border, #ddd);
+        border-radius: 8px;
+        background: var(--surface, #fff);
+        color: var(--text, #333);
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    /* The canvas is already `overflow: auto` over a 3000×3000 spacer, which
+       is what makes a map readable on a phone at all — panning is native
+       touch scrolling and needs no JavaScript. Measured before any change:
+       `scrollHeight 5000` inside `clientHeight 559`, reaching 4441. It only
+       needs to be allowed to fill what the palette has given back. */
+    [data-mobile-module="network-mapper"] .nm-canvas-wrap {
+        min-width: 0;
+        min-height: 0;
+    }
+    [data-mobile-module="network-mapper"] .nm-canvas {
+        min-width: 0;
+        min-height: 0;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* --------------------------------------------------------------------
+       31f — The node details, as a bottom sheet.
+
+       `.nm-detail-panel` is a 320px right-hand column that animates its
+       width open. On a 360px screen that is the whole viewport, so it takes
+       the bottom instead — LAYER 30f's shape, and for the same reason Ed
+       gave when he asked for it there: you must not lose sight of the thing
+       you selected. 58dvh leaves the map visible above it.
+
+       ⭐ A tap already opens it. Browsers synthesise the compatibility mouse
+       events after a tap, so `onNodeMouseDown` fires, the node gets
+       `.selected`, and the panel opens with its CMDB class, properties and
+       object link — the module's own panel, translated, doing exactly what
+       it does on a desktop. Nothing new was built and no string invented.
+
+       ⚠️ Specificity checked up front: the module's own `.nm-detail-panel.open`
+       is (0,2,0) and this is (0,3,0), and both halves of the pair are
+       written against the same single selector so they cannot get out of
+       step (the LAYER 30b lesson).
+       -------------------------------------------------------------------- */
+    [data-mobile-module="network-mapper"] .nm-detail-panel {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        top: auto;
+        z-index: 1350;
+        width: auto;
+        min-width: 0;
+        height: 0;
+        border-left: none;
+        border-top: 1px solid var(--border, #e5e7eb);
+        transition: height 0.22s ease;
+    }
+    /* ⚠️ 55dvh, not LAYER 30f's 58 — and the difference is the CHROME ABOVE,
+       which is the thing an inherited dvh figure cannot know about.
+
+       Measured with the sheet open at 58dvh: the header (48), the stacked
+       editor bar (141) and the meta row (51) take 240px before the map gets
+       a pixel, so the strip left above the sheet was 71px. The selected node
+       was in it — the assertion passed — and there was no room for anything
+       AROUND the node, which is most of why you look at a network diagram.
+
+       🔑 A dvh split only works when the two halves are the whole viewport.
+       Copy one out of a module with a 48px bar into a module with a 240px
+       one and it silently spends the difference on the half you cared about. */
+    [data-mobile-module="network-mapper"] .nm-detail-panel.open {
+        width: auto;
+        min-width: 0;
+        height: 55dvh;
+        box-shadow: 0 -4px 24px var(--shadow, rgba(0, 0, 0, 0.28));
+        border-radius: 14px 14px 0 0;
+    }
+    /* And the meta row goes while the sheet is open. Author / Created /
+       Updated is the diagram's provenance — worth having, and worth nothing
+       at all while you are reading one node's CMDB record. It is 51px of the
+       map, it comes straight back when the sheet closes, and it is the only
+       thing on this screen that is neither a control nor the content. */
+    [data-mobile-module="network-mapper"] .nm-editor:has(.nm-detail-panel.open) .nm-meta-row {
+        display: none;
+    }
+    /* 🔴 AND THE CANVAS NEEDS SOMEWHERE TO SCROLL TO.
+
+       LAYER 30f found this and it is identical here: the canvas scrolls,
+       but bringing the selected node up into the strip above the sheet
+       only works if the canvas has vertical range left. Shrinking the box
+       is what buys it — `padding-bottom` on the scroller does not, because
+       the nodes are absolutely positioned. It also gives the honest layout:
+       map above, details below, rather than a sheet floating over a canvas
+       that still believes it is full height.
+
+       ⭐ And a MARGIN rather than LAYER 30f's `max-height`, because it is the
+       one form that does not have to know the chrome height. `.nm-canvas-wrap`
+       is `flex: 1` in a `100dvh` column, so a bottom margin of exactly the
+       sheet's height leaves it precisely the rest — whatever the bar above it
+       has wrapped to, in any locale, at any width. A `max-height: 45dvh` is a
+       second guess at the same number and drifts the moment the bar changes. */
+    [data-mobile-module="network-mapper"] .nm-editor:has(.nm-detail-panel.open) .nm-canvas-wrap {
+        margin-bottom: 55dvh;
+    }
+    [data-mobile-module="network-mapper"] .nm-detail-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    }
+    /* A bigger close target than a 12px ×: it is the only way out of the
+       sheet, and it sits where a thumb reaches. */
+    [data-mobile-module="network-mapper"] .nm-detail-close {
+        min-width: 40px;
+        min-height: 40px;
+        font-size: 26px;
+        line-height: 1;
+    }
+    [data-mobile-module="network-mapper"] .nm-detail-footer {
+        padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+    [data-mobile-module="network-mapper"] .nm-detail-footer .nm-btn {
+        width: 100%;
+        min-height: 42px;
+    }
+    /* The icon row is three controls (preview, Change, Reset) sharing a
+       value cell with the label beside it — it wraps to its own line rather
+       than squeezing all four onto one. */
+    [data-mobile-module="network-mapper"] .nm-detail-icon-row {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    [data-mobile-module="network-mapper"] .nm-detail-icon-btn {
+        min-height: 36px;
+    }
+
+    /* --------------------------------------------------------------------
+       31g — Five `.nm-modal` shells.
+
+       LAYER 3 promotes `.modal-content` to a full-screen sheet and knows
+       nothing about `.nm-modal`, so the object picker, the icon picker, the
+       related-objects list, branding and new-version all stayed 480px
+       (or `nm-modal-wide`) centred boxes capped at `95vw` / `90vh`.
+
+       ⚠️ And nothing in the measurements says so — a 95%-wide centred box on
+       a phone is perfectly contained. The fifth module to roll its own modal
+       class after Problem Management, Change Management, Contracts and
+       Process Mapper; the only way to find it is to grep the page for its
+       modal class rather than assume the shared layer covers it.
+
+       Keyed on `.nm-modal` rather than on the five ids, the Contracts
+       lesson — key on the shell, not on each card that uses it.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="network-mapper"] .nm-modal {
+        width: 100%;
+        max-width: none;
+        max-height: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+    [data-mobile-module="network-mapper"] .nm-modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 16px;
+    }
+    [data-mobile-module="network-mapper"] .nm-modal-header {
+        padding: 14px 16px;
+        font-size: 15px;
+    }
+    [data-mobile-module="network-mapper"] .nm-modal-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+    [data-mobile-module="network-mapper"] .nm-modal-actions .nm-btn {
+        flex: 1 1 auto;
+        min-height: 42px;
+    }
+    /* The icon picker's grid is a fixed `repeat(auto-fill, minmax(...))` of
+       tiles — the same floor problem as 31c, one screen further in. */
+    [data-mobile-module="network-mapper"] .nm-ip-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+    /* Picker and related-object rows are tap targets. */
+    [data-mobile-module="network-mapper"] .nm-picker-row,
+    [data-mobile-module="network-mapper"] .nm-rm-row,
+    [data-mobile-module="network-mapper"] .nm-vd-row {
+        min-height: 44px;
+    }
+    /* The branding dialogue is a 3-column grid of header/footer slots with a
+       row label down the side — four columns of inputs on a 360px screen.
+       Stacked, so each slot gets a full-width field.
+       ⚠️ §27: set BOTH properties. `grid-template-columns` is inert on a
+       flex box and `flex-direction` is inert on a grid, which is exactly
+       what makes declaring both safe rather than belt-and-braces. */
+    [data-mobile-module="network-mapper"] .nm-brand-grid {
+        grid-template-columns: minmax(0, 1fr);
+        flex-direction: column;
+        gap: 6px;
+    }
+    [data-mobile-module="network-mapper"] .nm-brand-grid .col-head {
+        display: none;
+    }
+
+    /* --------------------------------------------------------------------
+       31h — The two dropdowns, anchored inside a strip that now scrolls.
+
+       `#versionsDropdown` and `#pageDropdown` are
+       `position: absolute; top: calc(100% + 6px); right: 0; min-width: 320px`
+       hung off their buttons. 31d put those buttons in a sideways scroller,
+       so an absolutely-positioned panel would ride off with them — and at
+       320px minimum it did not fit anyway.
+
+       They become bottom sheets. Pure CSS, no JS wrap: the page toggles
+       them with `style.display`, which this does not touch, so the module's
+       own open/close logic is untouched and there is nothing to keep in
+       step. (The calendar quick-view took the same treatment.)
+       -------------------------------------------------------------------- */
+    [data-mobile-module="network-mapper"] .nm-versions-dropdown {
+        position: fixed;
+        top: auto;
+        right: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 1450;
+        min-width: 0;
+        max-width: none;
+        max-height: 60dvh;
+        border-radius: 14px 14px 0 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+        box-shadow: 0 -4px 24px var(--shadow, rgba(0, 0, 0, 0.28));
+    }
+    /* `.nm-versions-wrap` is `position: relative`, which is only there to be
+       the absolute panel's containing block. Harmless now the panel is
+       fixed, and left alone. */
+
+    /* --------------------------------------------------------------------
+       31i — The meta row, the read-only banner, and the anti-zoom sweep.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="network-mapper"] .nm-meta-row {
+        flex-wrap: wrap;
+        gap: 4px 14px;
+        padding: 8px 12px;
+        font-size: 11.5px;
+    }
+    [data-mobile-module="network-mapper"] .nm-readonly-banner {
+        flex-wrap: wrap;
+        gap: 4px 10px;
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+    /* 🔴 16px on every focusable field, or iOS zooms on focus, the sheet
+       spills wide, Safari reflows the page to a desktop width, and the
+       `max-width: 768px` layer stops matching entirely — §3, the cascade
+       that looks like "mobile mode broke".
+
+       ⚠️ Written as an EXCLUSION rather than a list of types (the settings
+       lesson): a field added to this module later is covered by default
+       instead of forgotten. The autosave checkbox is the only thing here
+       that must keep its own size. */
+    [data-mobile-module="network-mapper"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    [data-mobile-module="network-mapper"] select,
+    [data-mobile-module="network-mapper"] textarea {
+        font-size: 16px;
+    }
 }

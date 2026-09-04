@@ -295,7 +295,7 @@ $translationNamespaces = ['common', 'knowledge'];
         }
     </style>
     <!-- Mobile: LAYER 17f turns the six-column review table into a card feed. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=127">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=128">
 </head>
 <body>
     <?php include '../includes/header.php'; ?>
@@ -487,6 +487,6 @@ $translationNamespaces = ['common', 'knowledge'];
             return div.innerHTML;
         }
     </script>
-    <script src="../../assets/js/mobile.js?v=50"></script>
+    <script src="../../assets/js/mobile.js?v=51"></script>
 </body>
 </html>
