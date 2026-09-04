@@ -62,7 +62,9 @@ function build_ship_map(string $root): array {
 
 // ---- light markdown -> HTML (for changelog bodies) ----
 function md_inline(string $s): string {
-    $s = htmlspecialchars($s, ENT_QUOTES, 'UTF-8');
+    // Descriptions already carry HTML entities (&mdash;, &ldquo;, &rarr;). Escaping without
+    // decoding first turns the & into &amp; and the reader sees the entity as text.
+    $s = htmlspecialchars(html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8'), ENT_QUOTES, 'UTF-8');
     $s = preg_replace('/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/', '<a href="$2">$1</a>', $s);
     $s = preg_replace('/\*\*(.+?)\*\*/s', '<strong>$1</strong>', $s);
     $s = preg_replace('/(?<!\*)\*(?!\*)([^*]+?)\*(?!\*)/s', '<em>$1</em>', $s);
@@ -217,7 +219,11 @@ foreach ($ids as $id) {
 // ---- Entries that predate the numbering scheme ----
 // These carry no update number, so the API keys them on date + title instead.
 // sort_order restarts per day to preserve the order updates.html lists them in.
-if ($htmlUnnumbered) {
+// A limited run targets a specific slice of numbered updates. These 16 have no
+// number, so they can only key on date+title — and because upsert overwrites every
+// column, replaying them would null the wiki_url and release_id an upsert cannot
+// supply. A limited run therefore leaves them alone.
+if ($htmlUnnumbered && $limit <= 0) {
     fwrite(STDERR, sprintf("\n%s %d pre-numbering updates (no update number)\n",
         $dryRun ? "[DRY RUN]" : "Syncing", count($htmlUnnumbered)));
     $perDay = [];
