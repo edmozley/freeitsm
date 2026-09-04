@@ -238,7 +238,7 @@ $translationNamespaces = ['common', 'network-mapper'];
     </style>
     <!-- Mobile layer LAST, so its @media rules win the ties against the block
          above rather than losing on document order (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=129">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=130">
 </head>
 <body data-mobile-module="network-mapper" data-mobile-page="nm-list">
     <?php include 'includes/header.php'; ?>
@@ -419,6 +419,6 @@ $translationNamespaces = ['common', 'network-mapper'];
     </script>
     <!-- After the page's own script, so mobile.js can wrap globals it exposes
          rather than edit them (Techniques §1). -->
-    <script src="../assets/js/mobile.js?v=52"></script>
+    <script src="../assets/js/mobile.js?v=53"></script>
 </body>
 </html>

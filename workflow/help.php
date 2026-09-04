@@ -48,8 +48,12 @@ $translationNamespaces = ['common', 'workflow'];
             --on-accent:    var(--wf-on-accent);
         }
     </style>
+    <!-- Mobile layer LAST, after this page's own stylesheet AND its inline
+         <style> block, or a rule at equal specificity loses on document order
+         (Techniques §9). -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=130">
 </head>
-<body>
+<body data-mobile-module="workflow" data-mobile-page="wf-help">
     <?php include 'includes/header.php'; ?>
 
     <div class="help-container">
@@ -344,5 +348,6 @@ $translationNamespaces = ['common', 'workflow'];
         });
     })();
     </script>
+    <script src="../assets/js/mobile.js?v=53"></script>
 </body>
 </html>

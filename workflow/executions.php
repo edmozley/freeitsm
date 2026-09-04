@@ -46,8 +46,12 @@ $translationNamespaces = ['common', 'workflow'];
     <style>
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }
     </style>
+    <!-- Mobile layer LAST, after this page's own stylesheet AND its inline
+         <style> block, or a rule at equal specificity loses on document order
+         (Techniques §9). -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=130">
 </head>
-<body>
+<body data-mobile-module="workflow" data-mobile-page="wf-executions">
     <?php include 'includes/header.php'; ?>
 
     <div class="container">
@@ -138,5 +142,6 @@ $translationNamespaces = ['common', 'workflow'];
     </div>
 
     <script src="../assets/js/workflow-executions.js?v=2"></script>
+    <script src="../assets/js/mobile.js?v=53"></script>
 </body>
 </html>

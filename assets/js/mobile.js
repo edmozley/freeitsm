@@ -1826,6 +1826,27 @@
            the name speak for themselves; a bare `10` and a bare `Yes` do
            not, and the colour is a hex code that could be anything. */
         { table: 'body[data-mobile-module="process-mapper"] table:has(#pmsRows)',
+          columns: [2, 3, 4] },
+
+        /* ---- WORKFLOW (LAYER 32e / 32f, #1469) ----
+           The list: Name · Trigger · Actions · Last run · Status · actions.
+           Only two need a label. The Actions cell renders "3 runs", which
+           says what it is, and Status is a pill — labelling either would be
+           the spreadsheet effect §21 warns about, where every line is
+           prefixed and the card stops reading like a card. */
+        { table: 'body[data-mobile-page="wf-list"] table',
+          columns: [1, 3] },             /* trigger — a bare `ticket.created`
+                                            in a code font — and last run,
+                                            which is a bare date AND is empty
+                                            on a workflow that has never run,
+                                            so the harvester's blank-cell
+                                            guard is doing real work here */
+
+        /* The execution log: Status · Workflow · Trigger · When · Took ·
+           Detail. Three labels: the trigger slug again, a bare date, and a
+           bare duration sitting directly beside that date — the pair §21
+           exists for, since neither says which of the two it is. */
+        { table: 'body[data-mobile-page="wf-executions"] table',
           columns: [2, 3, 4] }
     ];
 
@@ -3413,4 +3434,67 @@
     }
     if (mq.addEventListener) { mq.addEventListener('change', sync); }
     else if (mq.addListener) { mq.addListener(sync); }
+})();
+
+/* ====================================================================
+   WORKFLOW — keep the selected node in the map pane (#1469)
+
+   ITS OWN top-level IIFE, for the reason the blocks above document.
+
+   LAYER 32c turns `.wf-main` into a column: the map on top, the inspector
+   underneath taking the larger share, because on this module the panel is
+   where the work happens. That leaves about 200px of map — enough for the
+   node you are editing and its neighbours, and NOT enough for a node four
+   steps down a chain. Measured without this: tapping the second condition
+   left it partly below the fold, so you got its fields and lost sight of
+   which node they belonged to.
+
+   ⭐ The whole of the rest of this module needed no JavaScript. Adding a
+   node is a toolbar button, configuring it is the panel, deleting it is a
+   real button — all of it already works by tap, which is why LAYER 32 is
+   otherwise pure CSS. This is the one thing the page cannot express in CSS,
+   so it gets wrapped: "not needing JS is not a virtue in itself".
+
+   ⚠️ OBSERVED, NOT WRAPPED, and `#wfDetailTitle` is the observation point
+   because it is the single funnel. Every path into the panel — tapping a
+   node, tapping bare canvas, `+ Condition`, `+ Action`, applying an AI
+   proposal — ends in `showBody(title, id)`, which sets that element's text.
+   One observer covers all five and cannot get out of step with call sites
+   this file does not own (27c's reasoning, and 30f's).
+
+   ⚠️ And it only fires when a NODE is selected. Tapping bare canvas also
+   changes the title (to the workflow's own settings) and must not yank the
+   map around — there is nothing selected to bring into view.
+   ==================================================================== */
+(function () {
+    var canvas = document.getElementById('wfCanvas');
+    var title  = document.getElementById('wfDetailTitle');
+    var wrap   = document.querySelector('.wf-canvas-wrap');
+    if (!canvas || !title || !wrap || !window.MutationObserver) return;   // not the editor
+
+    var mq = window.matchMedia('(max-width: 768px)');
+
+    function reveal() {
+        if (!mq.matches) return;
+        var sel = canvas.querySelector('.wf-node.selected');
+        if (!sel) return;                       // bare canvas — nothing to reveal
+
+        /* The pane's height, not the viewport's: LAYER 32c splits by
+           percentage precisely so no number here has to know what the
+           toolbar above has wrapped to. */
+        var pane = wrap.clientHeight;
+        var top  = sel.offsetTop - Math.max(12, (pane - sel.offsetHeight) / 2);
+        var left = sel.offsetLeft - Math.max(12, (canvas.clientWidth - sel.offsetWidth) / 2);
+        canvas.scrollTop  = Math.max(0, top);
+        canvas.scrollLeft = Math.max(0, left);
+    }
+
+    /* ⚠️ On the next tick, not synchronously. MutationObserver callbacks are
+       microtasks, so reading the layout in the same task reports it as it was
+       BEFORE the panel switched bodies and the pane settled — LAYER 30f spent
+       a round on exactly that, and the answer was `check what you measured`
+       rather than a code change. */
+    new MutationObserver(function () {
+        setTimeout(reveal, 0);
+    }).observe(title, { childList: true, characterData: true, subtree: true });
 })();

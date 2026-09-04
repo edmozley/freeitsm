@@ -50,7 +50,7 @@ $translationNamespaces = ['common', 'lms'];
         }
     </style>
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=129">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=130">
 </head>
 <body data-mobile-module="lms">
     <?php include 'includes/header.php'; ?>
@@ -470,6 +470,6 @@ $translationNamespaces = ['common', 'lms'];
             });
         });
     </script>
-    <script src="../assets/js/mobile.js?v=52"></script>
+    <script src="../assets/js/mobile.js?v=53"></script>
 </body>
 </html>

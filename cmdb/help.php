@@ -63,7 +63,7 @@ $translationNamespaces = ['common', 'cmdb'];
         }
     </style>
     <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=129">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=130">
 </head>
 <body data-mobile-module="cmdb" data-mobile-page="cmdb-help">
     <?php include 'includes/header.php'; ?>
@@ -633,6 +633,6 @@ $translationNamespaces = ['common', 'cmdb'];
             });
         });
     </script>
-    <script src="../assets/js/mobile.js?v=52"></script>
+    <script src="../assets/js/mobile.js?v=53"></script>
 </body>
 </html>

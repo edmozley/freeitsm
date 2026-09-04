@@ -84,7 +84,7 @@ try {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <?php /* Mobile-friendly opt-in (#937). Last stylesheet so its @media rules
              win on ties. Every rule inside is gated at 768px. */ ?>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=129">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=130">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -97,6 +97,6 @@ try {
     <script src="../assets/js/data-table.js?v=6"></script>
     <script src="../assets/js/asset-table.js?v=7"></script>
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
-    <script src="../assets/js/mobile.js?v=52"></script>
+    <script src="../assets/js/mobile.js?v=53"></script>
 </body>
 </html>

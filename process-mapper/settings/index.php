@@ -145,7 +145,7 @@ $shapes = include '../includes/shapes.php';
         [data-theme-mode="dark"] .pms-shape-opt:hover { border-color: #3a3f6b; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=129">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=130">
 </head>
 <body data-mobile-module="process-mapper" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
@@ -486,6 +486,6 @@ $shapes = include '../includes/shapes.php';
                  switchTab, saveSidebarMode };
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=52"></script>
+    <script src="../../assets/js/mobile.js?v=53"></script>
 </body>
 </html>

@@ -180,7 +180,7 @@ $translationNamespaces = ['common', 'contracts'];
         [data-theme-mode="dark"] .alert-info { background: #3a2e12; color: #fde8c8; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=129">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=130">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="rfp-documents">
     <?php include '../includes/header.php'; ?>
@@ -589,6 +589,6 @@ $translationNamespaces = ['common', 'contracts'];
             if (e.target.id === 'textModal') closeTextModal();
         });
     </script>
-    <script src="../../assets/js/mobile.js?v=52"></script>
+    <script src="../../assets/js/mobile.js?v=53"></script>
 </body>
 </html>

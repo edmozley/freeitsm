@@ -9729,4 +9729,591 @@
         flex: 1 1 auto;
         width: auto;
     }
+
+    /* ====================================================================
+       LAYER 32 — WORKFLOW (#1469)
+
+       The eighteenth module. Seven pages: the workflow list, the editor, the
+       execution log, settings, and three guides (general, webhooks, SSL).
+
+       ⭐ THE THIRD CANVAS MODULE, AND THE FIRST ONE THAT IS FULLY USABLE ON
+       A PHONE — which is a conclusion about the MODULE, not about how much
+       harder anyone tried. §22 asks whether a drag survives touch:
+
+           workflow-editor.js : 6 × mousedown / mousemove / mouseup
+                                0 × touchstart / touchmove / pointerdown
+
+       …the same answer as Process Mapper and Network Mapper. What is
+       different is what the drag is FOR. In both mappers, dragging is how a
+       diagram gets its shape. Here it is not:
+
+           const COL_X = 220;   // x at which auto-layout stacks nodes
+           addConditionNode(COL_X, lastY + ROW_GAP, …)
+
+       Nodes are added by TOOLBAR BUTTONS and auto-stacked in one column;
+       they are configured in the detail panel; and deleting one is a real
+       button (`WFE.deleteSelected()`), not a keypress. So the whole of
+       authoring already works by tap, and dragging a box is DECORATION —
+       rearranging a layout the module generated for you.
+
+       > 🔑 §22 tells you whether a drag fires. It does not tell you what
+       > breaks if it never does. Ask what the drag is FOR before scoping a
+       > canvas: here the honest answer is "nothing that matters on a phone",
+       > which is why this module needed no touch-drag layer at all, where
+       > Network Mapper (LAYER 31j) needed three gestures.
+
+       🔴 §30 GOVERNS AGAIN. Every page sets `overflow: hidden` on `<body>`
+       or `.wf-layout`, so `docScrollW === innerWidth` cannot fail. Measured
+       by BOX at 360×740, before anything:
+
+           editor      .wf-detail       w=340  ← of a 360px screen
+                       .wf-canvas       w=20   ← the workflow diagram
+                       .wf-toolbar-left w=381, right=393
+           list        6-col table 637px in a 312px parent, three cells
+                       crushed to 78×194, 82×194, 78×194 (§11's signature)
+           executions  6-col table 615px, two crushed; a 538px-tall filter
+                       stack; the tally squeezed to 252px
+
+       ⭐ **20px of canvas** is the most extreme case in the rollout so far —
+       CMDB browse and the Forms approvals sidebar both left 100px, Network
+       Mapper 119px. And unlike either mapper's panel, this one is not
+       toggled: `.wf-detail` is `width: 340px; min-width: 340px`, present and
+       open at all times, because it is an INSPECTOR rather than a drawer.
+
+       ⚠️ §15: `wf-` is NOT this module's alone — `wf-diagnosis`, `wf-count`,
+       `wf-err`, `wf-item` and `wf-name` also appear in `system/webhooks/`
+       and `watchtower/`. None of them is styled by `workflow.css` and none
+       is touched here, but that is luck, not design, so every rule below is
+       scoped on the module marker. The Process Mapper `pm-` collision is
+       what made this a standing check.
+
+       What the layer does:
+         32a  the shells — and a `.container` that GREW when opted in
+         32b  the editor toolbar, 681px of controls on a 360px screen
+         32c  🔴 the 340px inspector and the 20px canvas
+         32d  `.wf-ai-modal` / `.wf-var-modal` — LAYER 3 knows neither
+         32e  the workflow list as a card feed
+         32f  the execution log: tally, filters, and a second card feed
+         32g  the native date fields (§20, the sixth time)
+         32h  the module's own 760px block, folded in
+       ==================================================================== */
+
+    /* --------------------------------------------------------------------
+       32a — The shells.
+
+       `.wf-layout` is `height: calc(100vh - 48px)` — the seventh container
+       in the rollout built that way. Handed back to LAYER 2's `100dvh` flex
+       column, with `min-height: 0` (§28) so it can actually shrink.
+
+       🔴 AND THE LIST PAGES GOT WORSE BEFORE THEY GOT BETTER, which is the
+       part worth recording. Opting in made `.container` grow from 360px to
+       **705px**:
+
+           before opt-in   .container w=360, its own `overflow: auto`
+                           clipping a 637px table inside it
+           after opt-in    .container w=705  ← the table's width, not the
+                           screen's
+
+       LAYER 2 makes `<body>` a flex column, so `.container` became a flex
+       ITEM — and a flex item's automatic minimum size is its CONTENT width
+       (§14). The 637px table set the floor, the container grew to meet it,
+       and the page went with it.
+
+       ⭐ The fix already existed and could not reach: LAYER 16h pins exactly
+       this, keyed on `body[data-mobile-page="settings"]`, with a comment
+       describing the identical 776px measurement. A list page is not a
+       settings page, so it got none of it. **"A rule that already covers
+       this" is worth measuring** — here it covered the same fault on a
+       different page type, which is the one case grep does not reveal. */
+    [data-mobile-module="workflow"] .wf-layout {
+        height: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    body[data-mobile-page="wf-list"] .container,
+    body[data-mobile-page="wf-executions"] .container {
+        height: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        /* The pin. Without it the scrollers below do nothing, because their
+           parent has already grown past the viewport. */
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 8px 12px 16px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* `.tab-content` adds a second 30px inset inside the first, so the
+       content started 50px in on a 360px screen — a seventh of the width
+       spent on gutters before anything is drawn. */
+    body[data-mobile-page="wf-list"] .tab-content,
+    body[data-mobile-page="wf-executions"] .tab-content {
+        padding: 0;
+        min-width: 0;
+    }
+    body[data-mobile-page="wf-list"] .section-header,
+    body[data-mobile-page="wf-executions"] .section-header {
+        flex-wrap: wrap;
+        gap: 8px;
+        min-width: 0;
+    }
+    body[data-mobile-page="wf-list"] .section-header .add-btn,
+    body[data-mobile-page="wf-executions"] .section-header .add-btn {
+        min-height: 40px;
+    }
+
+    /* --------------------------------------------------------------------
+       32b — The editor toolbar: 681px of controls on a 360px screen.
+
+       Two groups either side of a `space-between`: Back · + Condition ·
+       + Action · AI on the left (381px, measured, and NOT inside any
+       scroller), then status · Dry run · Test fire · Save on the right.
+
+       It wraps into two rows rather than becoming one long sideways strip,
+       and the split is already meaningful: the left group BUILDS the
+       workflow, the right group RUNS and SAVES it. A single strip would put
+       **Save** — the one control you must not lose — behind a swipe.
+
+       ⚠️ §16: the row sets `justify-content: space-between` AND
+       `align-items: center`, and both change meaning once it wraps. Restated
+       rather than inherited.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="workflow"] .wf-toolbar {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        align-items: stretch;
+        gap: 6px;
+        padding: 6px 8px;
+    }
+    [data-mobile-module="workflow"] .wf-toolbar-left,
+    [data-mobile-module="workflow"] .wf-toolbar-right {
+        flex: 1 1 100%;
+        min-width: 0;
+        gap: 6px;
+        /* The left group is the wider of the two and stays swipeable; the
+           right group measured 280px and fits, so nothing there hides. */
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    [data-mobile-module="workflow"] .wf-toolbar-left::-webkit-scrollbar,
+    [data-mobile-module="workflow"] .wf-toolbar-right::-webkit-scrollbar {
+        display: none;
+    }
+    [data-mobile-module="workflow"] .wf-toolbar-left > *,
+    [data-mobile-module="workflow"] .wf-toolbar-right > * {
+        flex: 0 0 auto;
+    }
+    [data-mobile-module="workflow"] .wf-tool-btn {
+        min-height: 38px;
+    }
+    /* Save is the primary and sits last; it keeps its weight and is pushed
+       to the end of its own row rather than competing with Dry run. */
+    [data-mobile-module="workflow"] .wf-tool-primary {
+        margin-left: auto;
+    }
+    /* The status text ("Saved" / "Saving…") is a live region, not a control,
+       and it was taking a control's worth of the row. */
+    [data-mobile-module="workflow"] .wf-status {
+        font-size: 12px;
+        align-self: center;
+    }
+
+    /* --------------------------------------------------------------------
+       32c — 🔴 THE 340px INSPECTOR AND THE 20px CANVAS.
+
+       `.wf-detail` is `width: 340px; min-width: 340px`, and unlike either
+       mapper's panel it is never closed — it is the surface every field on
+       this screen lives on. On a 360px viewport that left the canvas
+       **20px**: a workflow diagram 800px wide, in a slot the width of a
+       scrollbar.
+
+       The two mappers put their panel across the BOTTOM, and this module
+       wants the same shape for a stronger reason than either of them: the
+       panel is where the work happens, so it should be the larger half, and
+       you still have to see which node you are editing (Ed's point when he
+       asked for the Process Mapper sheet in #1418).
+
+       ⭐ BUT NOT IN `dvh`, AND THAT IS THE LESSON FROM LAST ROUND APPLIED
+       PROPERLY. LAYER 31f copied a `58dvh` sheet out of Process Mapper and
+       left 71px of map, because the two modules have different amounts of
+       chrome above them — a dvh split only works when the two halves are the
+       whole viewport, and here the toolbar wraps to two rows so the chrome
+       is not even a fixed number.
+
+       `.wf-main` is already the box that holds exactly these two panes and
+       nothing else. Turning IT into a column and splitting it by percentage
+       needs no arithmetic at all, and stays right whatever the toolbar above
+       does, in any locale, at any height.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="workflow"] .wf-main {
+        flex-direction: column;
+        min-height: 0;
+        min-width: 0;
+    }
+    /* The map: enough to see the node you tapped and the ones either side of
+       it, and it pans (`.wf-canvas` is already `overflow: auto`, which is
+       what makes a diagram readable on a phone at all — the same enabler
+       both mappers had, and it needs no JavaScript). */
+    [data-mobile-module="workflow"] .wf-canvas-wrap {
+        flex: 0 0 34%;
+        min-height: 0;
+        min-width: 0;
+    }
+    [data-mobile-module="workflow"] .wf-canvas {
+        min-height: 0;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* The inspector takes the rest — the larger half, because it is the
+       work. `width: auto` and `min-width: 0` are both needed: the 340px is
+       declared twice. */
+    [data-mobile-module="workflow"] .wf-detail {
+        width: auto;
+        min-width: 0;
+        flex: 1 1 auto;
+        border-left: none;
+        border-top: 1px solid var(--border, #e0e0e0);
+    }
+    [data-mobile-module="workflow"] .wf-detail-header {
+        padding: 8px 12px;
+    }
+    [data-mobile-module="workflow"] .wf-detail-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    }
+    /* A `<select size="8">` is eight rows of trigger names — half the panel
+       before a single other field. Four is enough to browse and still leaves
+       the search box above it and the fields below it on screen. */
+    [data-mobile-module="workflow"] .wf-detail-body select[size] {
+        height: auto;
+        max-height: 34dvh;
+    }
+    [data-mobile-module="workflow"] .wf-detail-delete {
+        min-height: 42px;
+        width: auto;
+    }
+    /* The node boxes are 160-200px wide against a canvas that is now the
+       full 360; nothing to do but let them be, and keep the long ones from
+       setting a floor. */
+    [data-mobile-module="workflow"] .wf-node-title,
+    [data-mobile-module="workflow"] .wf-node-sub {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    /* --------------------------------------------------------------------
+       32d — The module's two own modal classes.
+
+       LAYER 3 promotes `.modal-content` and knows nothing about `.wf-ai-modal`
+       (the AI co-author) or `.wf-var-modal` (the variable picker). Sixth
+       module to roll its own, after Problem Management, Change Management,
+       Contracts, Process Mapper and Network Mapper — and, as always, nothing
+       in the measurements complains, because a centred box capped at 900px
+       and `92%` is perfectly contained on a phone.
+
+       ⚠️ The templates dialogue on the list page is NOT one of these: it
+       uses the shared `.modal-content`, so LAYER 3 already has it — and
+       needs its `!important` to beat the inline `style="max-width: 900px"`
+       the page writes on the element.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="workflow"] .wf-ai-modal,
+    [data-mobile-module="workflow"] .wf-var-modal {
+        width: 100%;
+        max-width: none;
+        max-height: 100%;
+        height: 100%;
+        border-radius: 0;
+    }
+    /* 🔴 16px on every field in the module, or iOS zooms on focus, the sheet
+       spills wide, Safari reflows to a desktop width and the whole
+       `max-width: 768px` layer stops matching (§3). Written as an EXCLUSION
+       so a field added later is covered by default rather than forgotten. */
+    [data-mobile-module="workflow"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    [data-mobile-module="workflow"] select,
+    [data-mobile-module="workflow"] textarea {
+        font-size: 16px;
+    }
+
+    /* --------------------------------------------------------------------
+       32e — The workflow list as a card feed.
+
+       Name · Trigger · Actions · Last run · Status · row actions, measured
+       637px inside a 312px parent with three cells crushed to 78×194,
+       82×194 and 78×194 — §11's signature, and the crush was invisible to
+       every containment check because `.container` scrolled (§18).
+
+       §11 settles it without argument: the Name cell carries the workflow's
+       **description** underneath it, and *if any column contains a sentence,
+       it is a card feed. There is no second consideration.*
+
+       §21 labels Trigger and Last run — a bare `ticket.created` in a code
+       font and a bare date. NOT the Actions cell, which already reads
+       "3 runs" and says what it is, and not Status, which is a pill.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="wf-list"] table,
+    body[data-mobile-page="wf-list"] tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="wf-list"] thead { display: none; }
+    body[data-mobile-page="wf-list"] tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 2px 10px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 10px;
+        background: var(--surface, #fff);
+    }
+    body[data-mobile-page="wf-list"] tbody td {
+        display: block;
+        /* 🔴 Load-bearing: a flex item's automatic minimum size is its content
+           width, so one `nowrap` cell pins the card wider than the screen
+           while the document stays perfectly contained (LAYER 27). */
+        min-width: 0;
+        flex: 1 1 100%;
+        padding: 0;
+        border: none;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+    }
+    /* The name and its description are the card's heading. §23's middle
+       basis so the status pill can share the line with it and everything
+       else wraps beneath — `auto` would give the line to a long name and
+       push the pill down, `0` would let all six cells back onto it. */
+    body[data-mobile-page="wf-list"] tbody td:nth-child(1) {
+        flex: 1 1 60%;
+        font-size: 15px;
+        color: var(--text, #333);
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="wf-list"] tbody td:nth-child(5) {
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+    /* Trigger, Actions and Last run pair up two to a line rather than each
+       taking a full-width row for about 40px of content. */
+    body[data-mobile-page="wf-list"] tbody td:nth-child(2),
+    body[data-mobile-page="wf-list"] tbody td:nth-child(3),
+    body[data-mobile-page="wf-list"] tbody td:nth-child(4) {
+        flex: 1 1 45%;
+        margin-top: 6px;
+    }
+    /* Row actions get their own line, thumb-sized.
+       ⚠️ `:not(:first-child)` because the loading / empty / error row is a
+       single `<td colspan="6">`, which is both the first AND the last child
+       of its row — the Calendar feed lost its empty state to exactly this. */
+    body[data-mobile-page="wf-list"] tbody td:last-child:not(:first-child) {
+        flex: 1 1 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    body[data-mobile-page="wf-list"] tbody td:last-child:not(:first-child) > * {
+        flex: 0 0 auto;
+        min-height: 38px;
+    }
+    body[data-mobile-page="wf-list"] tbody td:only-child {
+        flex: 1 1 100%;
+        margin: 0;
+        padding: 20px 0;
+        text-align: center;
+        font-size: 13px;
+    }
+
+    /* --------------------------------------------------------------------
+       32f — The execution log: a tally, a filter stack and a second feed.
+       -------------------------------------------------------------------- */
+
+    /* The tally is five counts in a `flex-wrap` row, which packs rather than
+       aligns — §10, and on a log the whole point is comparing the numbers.
+       A three-column grid lines them up down the page as well as across. */
+    [data-mobile-module="workflow"] .wfx-tally {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+    }
+    [data-mobile-module="workflow"] .wfx-tally-item {
+        min-width: 0;
+        padding: 8px 10px;
+    }
+    [data-mobile-module="workflow"] .wfx-tally-l {
+        overflow-wrap: anywhere;
+    }
+
+    /* The filter bar measured **538px tall** — five dropdowns, two dates and
+       a search, each on its own row, so the log itself started below the
+       fold on a 740px screen. Two up, which halves it, and the search keeps
+       a full row because it is the one people actually type in. */
+    [data-mobile-module="workflow"] .wfx-filters {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        align-items: end;
+    }
+    [data-mobile-module="workflow"] .wfx-filters > * {
+        min-width: 0;
+    }
+    [data-mobile-module="workflow"] .wfx-filters .form-input {
+        min-width: 0;
+        width: 100%;
+    }
+    /* 🔴 §20, THE SIXTH TIME THIS RESET HAS BEEN NEEDED. `input[type="date"]`
+       is drawn by the PLATFORM: iOS gives it an intrinsic width that ignores
+       `width: 100%`, and spells the month out ("12 May 2026") where Chrome on
+       Windows draws "12/05/2026" — so a desktop measurement UNDERSTATES it
+       and this cannot be cleared headlessly. Treat a bare date field in a
+       phone layout as needing this every time, not occasionally. */
+    [data-mobile-module="workflow"] input[type="date"],
+    [data-mobile-module="workflow"] input[type="time"],
+    [data-mobile-module="workflow"] input[type="datetime-local"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    [data-mobile-module="workflow"] input[type="date"]::-webkit-date-and-time-value {
+        margin: 0;
+        text-align: left;
+    }
+
+    /* The log itself: Status · Workflow · Trigger · When · Took · Detail,
+       615px in a 312px parent with Took and Detail crushed to 59px and 71px.
+
+       §11's follow-up question — *can* the reader compare down a column on
+       this screen? At 360px a scroller shows about two and a half of six, so
+       "read down the Status column across runs" is a drag sideways plus a
+       drag down while holding a horizontal position in your head. And the
+       comparison is already served better elsewhere on the same page: the
+       tally above counts every status, and the filters narrow to one. So the
+       feed costs nothing that was really available.
+
+       §21 labels Trigger, When and Took. Status is a pill and the workflow
+       name is the heading. */
+    body[data-mobile-page="wf-executions"] table,
+    body[data-mobile-page="wf-executions"] tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="wf-executions"] thead { display: none; }
+    body[data-mobile-page="wf-executions"] tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 2px 10px;
+        padding: 12px 14px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 10px;
+        background: var(--surface, #fff);
+    }
+    body[data-mobile-page="wf-executions"] tbody td {
+        display: block;
+        min-width: 0;
+        flex: 1 1 45%;
+        margin-top: 6px;
+        padding: 0;
+        border: none;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+        /* Two of these carry `white-space: nowrap` inline, which is a shrink
+           floor by another name once the cell is a flex item. */
+        white-space: normal;
+    }
+    /* The workflow name leads, with the status pill beside it. `order` puts
+       the pill after the name even though the markup has it first — the
+       heading should be the thing you are looking for, not its state. */
+    body[data-mobile-page="wf-executions"] tbody td:nth-child(2) {
+        flex: 1 1 60%;
+        order: -2;
+        margin-top: 0;
+        font-size: 15px;
+        color: var(--text, #333);
+        overflow-wrap: anywhere;
+    }
+    /* ⚠️ And NO `margin-left: auto` here, though the list feed (32e) has it on
+       the same-looking cell. That one's pill is a word — "Active" — and gets
+       pushed to the right of the name it shares a line with. This one's is a
+       SENTENCE: "Skipped (conditions did not match)". It cannot share the
+       line, so the auto-margin only right-aligns it on a line of its own,
+       which reads as a stray tag rather than the card's status.
+
+       🔑 The same rule on the same cell of two feeds in one module, and the
+       difference is the DATA, not the CSS — §23's tell, in the smaller form
+       it usually takes. */
+    body[data-mobile-page="wf-executions"] tbody td:nth-child(1) {
+        flex: 0 0 auto;
+        order: -1;
+        margin-top: 0;
+    }
+    /* ⚠️ Once one sibling is ordered they all have to be, or the un-ordered
+       ones default to 0 and float ABOVE the ones given a positive order —
+       LAYER 30e lost its action cell to exactly that. */
+    body[data-mobile-page="wf-executions"] tbody td:nth-child(3) { order: 1; }
+    body[data-mobile-page="wf-executions"] tbody td:nth-child(4) { order: 2; }
+    body[data-mobile-page="wf-executions"] tbody td:nth-child(5) { order: 3; }
+    body[data-mobile-page="wf-executions"] tbody td:last-child:not(:first-child) {
+        order: 4;
+        flex: 1 1 100%;
+        margin-top: 10px;
+    }
+    body[data-mobile-page="wf-executions"] tbody td:last-child:not(:first-child) > * {
+        min-height: 38px;
+        width: 100%;
+    }
+    body[data-mobile-page="wf-executions"] tbody td:only-child {
+        flex: 1 1 100%;
+        order: 0;
+        margin: 0;
+        padding: 20px 0;
+        text-align: center;
+        font-size: 13px;
+    }
+    /* An empty cell that has been given a §21 label prints the label with
+       nothing after it — a heading for a fact that is not there. */
+    body[data-mobile-page="wf-list"] tbody tr td:empty:not(:first-child),
+    body[data-mobile-page="wf-executions"] tbody tr td:empty:not(:first-child) {
+        display: none;
+    }
+
+    /* --------------------------------------------------------------------
+       32h — The module's own `@media (max-width: 760px)`, folded in.
+
+       `workflow.css` predates this rollout and carries two rules of its own
+       at **760px**, not 768 — stacking the variable picker's two columns and
+       capping its list. Below 760 both files agree; between 761 and 768 the
+       mobile layer is on and the module's is not, so the variable picker sat
+       two-up on a viewport this layer had already decided was a phone.
+
+       ⚠️ Restated here rather than edited there, because widening the
+       module's own breakpoint from 760 to 768 would change what a 764px
+       screen renders — a tablet band, and therefore a DESKTOP change made as
+       a side effect of mobile work (§25). This way the module's file is
+       untouched and the band is covered.
+
+       Same trap as the LMS round, where a pre-existing `@media` was a THIRD
+       file styling the page. That one deleted the navigation; this one is
+       benign — but the rule stands: before styling anything for a phone,
+       find out what is already styling it.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="workflow"] .wf-var-body {
+        grid-template-columns: minmax(0, 1fr);
+        /* §27: a class can be either display type, and each property is inert
+           on the one it does not belong to — so declaring both is what makes
+           the rule work whichever this turns out to be. */
+        flex-direction: column;
+    }
+    [data-mobile-module="workflow"] .wf-var-list { max-height: 30dvh; }
 }

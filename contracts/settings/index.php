@@ -82,7 +82,7 @@ $translationNamespaces = ['common', 'contracts'];
         [data-theme-mode="dark"] .tab-content .action-btn.delete:hover { background: #3a1e1e; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=129">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=130">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
@@ -943,6 +943,6 @@ $translationNamespaces = ['common', 'contracts'];
             return div.innerHTML;
         }
     </script>
-    <script src="../../assets/js/mobile.js?v=52"></script>
+    <script src="../../assets/js/mobile.js?v=53"></script>
 </body>
 </html>
