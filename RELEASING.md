@@ -254,6 +254,13 @@ Rules that follow from the audience:
   belong in the changelog and nowhere else.
 - **No commit hashes, file paths, CSS, or module internals.**
 - **Say what someone can now do**, not what was changed.
+- **Write as one person, never "we".** FreeITSM is maintained by one person, and
+  "we are proud to release" invents a company that does not exist. Say "I". Where the
+  first person sits awkwardly, name the product instead: "how FreeITSM got here".
+- **Plain hyphens, never em dashes.** Same rule as replies to bug reporters.
+- **Never claim something that is not built.** Check the module list, check the feature
+  actually ships. A first draft will confidently assert a release-management module and a
+  mobile rollout that covers everything; neither was true.
 
 ### What every set of notes contains
 
