@@ -3145,3 +3145,272 @@
         });
     });
 })();
+
+/* ====================================================================
+   NETWORK MAPPER — placing, moving and deleting a node with a finger
+   (#1468, Ed's request)
+
+   LAYER 31 shipped read-only and said why: you could place a node and then
+   never move it, so the missing half was the RECOVERY. Ed asked for the
+   drag anyway. The objection still stands, so the answer is all three:
+
+       place    long-press a class tile, drag onto the map, release
+       move     long-press a node, drag it
+       delete   the node's own sheet gets a Delete
+
+   🔴 The second and third are not extras. `deleteSelectedNode()` is bound
+   to Delete/Backspace and nothing else, and a phone has neither — so
+   without them a node of the wrong class, or in the wrong place, was
+   permanent. A feature whose undo needs a keyboard is a one-way door.
+
+   ⭐ NOT ONE LINE OF network-mapper.js CHANGED. Every gesture ends by
+   dispatching the event the module already listens for:
+
+       place   -> a real `drop` DragEvent carrying a DataTransfer
+       move    -> `mousedown` on the node, then `mousemove` / `mouseup`
+       delete  -> `keydown` { key: 'Delete' }
+
+   so snap-to-grid, the model-coordinate maths, the read-only guard, the
+   dirty flag, the connector cleanup and autosave all run exactly as they
+   do under a mouse — including guards this file would otherwise have had
+   to duplicate and keep in step. §1's "wrap, don't edit", applied to a
+   feature rather than a layout.
+
+   ⚠️ §22 said the palette's own HTML5 drag would probably work on touch,
+   and this deliberately does NOT use it. The palette is a sheet covering
+   the canvas, so it has to get out of the way MID-GESTURE, which a native
+   drag will not survive. A hand-rolled touch drag can close the sheet and
+   carry on.
+
+   ⚠️ Long press, not immediate drag, and the distinction matters: a short
+   drag starting on the canvas is a PAN, and one starting on the palette is
+   a SCROLL of the class list. Both stay exactly as they were — the gesture
+   only becomes a drag after 320ms without the finger having travelled more
+   than 10px, which is how the browser's own long-press drag behaves.
+   ==================================================================== */
+(function () {
+    var canvas  = document.getElementById('canvas');
+    var palette = document.querySelector('.nm-palette-body');
+    if (!canvas || !palette) return;                  // not the mapper page
+
+    var mq = window.matchMedia('(max-width: 768px)');
+
+    var LONG_PRESS_MS  = 320;
+    var CANCEL_MOVE_PX = 10;
+
+    var timer   = null;    // the pending long press
+    var start   = null;    // where the finger went down
+    var mode    = null;    // null | 'place' | 'move'
+    var ghost   = null;    // the tile following the finger, for 'place'
+    var subject = null;    // the tile or the node the gesture is about
+
+    /* Read-only versions: the module's own handlers bail on `is_current`, so
+       a synthesised event is harmless — but a ghost that follows your finger
+       and then does nothing is worse than no gesture at all. */
+    function readOnly() {
+        var b = document.getElementById('readonlyBanner');
+        return !!(b && b.offsetParent !== null);
+    }
+
+    function buzz() {
+        try { if (navigator.vibrate) navigator.vibrate(15); } catch (e) { /* not everywhere */ }
+    }
+
+    function clearTimer() {
+        if (timer) { clearTimeout(timer); timer = null; }
+    }
+
+    function cleanup() {
+        clearTimer();
+        if (ghost && ghost.parentNode) { ghost.parentNode.removeChild(ghost); }
+        ghost = null;
+        if (subject && subject.classList) { subject.classList.remove('nm-touch-drag'); }
+        mode = null; start = null; subject = null;
+    }
+
+    /* ---- 1. place: a class tile onto the canvas ---------------------- */
+
+    function beginPlace(tile, pt) {
+        mode = 'place';
+        subject = tile;
+        buzz();
+        /* The sheet covers the canvas, so it goes — and the gesture survives
+           because touchmove/touchend are bound to `document`, not to the tile
+           that has just slid off screen with its parent. */
+        document.body.removeAttribute('data-nm-palette');
+        var scrim = document.querySelector('.nm-palette-scrim');
+        if (scrim) { scrim.style.display = 'none'; }
+        var btn = document.querySelector('.nm-palette-btn');
+        if (btn) { btn.setAttribute('aria-expanded', 'false'); }
+
+        ghost = document.createElement('div');
+        ghost.className = 'nm-drag-ghost';
+        ghost.innerHTML = tile.innerHTML;
+        ghost.style.left = pt.x + 'px';
+        ghost.style.top  = pt.y + 'px';
+        document.body.appendChild(ghost);
+    }
+
+    function finishPlace(pt) {
+        var over = document.elementFromPoint(pt.x, pt.y);
+        if (!over || !canvas.contains(over)) { return; }   // released off the map
+
+        var classId = parseInt(subject.dataset.classId, 10);
+        if (!classId) { return; }
+
+        /* Hand it to the module's own drop handler, which owns the coordinate
+           maths (scroll offset, zoom, the half-icon centring, the grid snap)
+           and the read-only guard. Rebuilding any of that here would be a
+           second copy to keep in step. */
+        var dt;
+        try { dt = new DataTransfer(); } catch (e) { return; }
+        dt.setData('text/plain', JSON.stringify({ kind: 'nm-class', class_id: classId }));
+        canvas.dispatchEvent(new DragEvent('drop', {
+            bubbles: true, cancelable: true, dataTransfer: dt,
+            clientX: pt.x, clientY: pt.y
+        }));
+    }
+
+    /* ---- 2. move: an existing node ----------------------------------- */
+
+    function beginMove(node, pt) {
+        mode = 'move';
+        subject = node;
+        buzz();
+        node.classList.add('nm-touch-drag');
+        /* `onNodeMouseDown` selects the node, records the grab offset and
+           binds the module's own mousemove/mouseup to `document`. Everything
+           after this is just feeding it coordinates. */
+        node.dispatchEvent(new MouseEvent('mousedown', {
+            bubbles: true, cancelable: true, button: 0,
+            clientX: pt.x, clientY: pt.y
+        }));
+    }
+
+    function relayMouse(type, pt) {
+        if (!pt) { return; }
+        document.dispatchEvent(new MouseEvent(type, {
+            bubbles: true, cancelable: true, button: 0,
+            clientX: pt.x, clientY: pt.y
+        }));
+    }
+
+    /* ---- the gesture ------------------------------------------------- */
+
+    function point(e) {
+        var t = (e.touches && e.touches[0]) ? e.touches[0]
+              : (e.changedTouches && e.changedTouches[0]);
+        return t ? { x: t.clientX, y: t.clientY } : null;
+    }
+
+    document.addEventListener('touchstart', function (e) {
+        if (!mq.matches || mode || readOnly()) { return; }
+        if (!e.touches || e.touches.length !== 1) { return; }
+        var pt = point(e);
+        if (!pt || !e.target || !e.target.closest) { return; }
+
+        /* An edge handle is the connector drag, which has no touch path and
+           is not part of this. Left alone, so it still selects the node. */
+        if (e.target.closest('.nm-edge-handle')) { return; }
+
+        var tile = e.target.closest('.nm-palette-tile');
+        var node = e.target.closest('.nm-node');
+        if (!tile && !node) { return; }
+
+        start = pt;
+        timer = setTimeout(function () {
+            timer = null;
+            if (tile) { beginPlace(tile, start); } else { beginMove(node, start); }
+        }, LONG_PRESS_MS);
+    }, { passive: true });
+
+    document.addEventListener('touchmove', function (e) {
+        if (!mq.matches) { return; }
+        var pt = point(e);
+        if (!pt) { return; }
+
+        /* Before the press has fired, travel means the user is panning the
+           canvas or scrolling the class list. Give the gesture back. */
+        if (timer) {
+            if (Math.abs(pt.x - start.x) > CANCEL_MOVE_PX ||
+                Math.abs(pt.y - start.y) > CANCEL_MOVE_PX) { clearTimer(); }
+            return;
+        }
+        if (!mode) { return; }
+
+        /* Non-passive, so this actually takes effect: it stops the canvas
+           panning underneath the drag, and it is also what suppresses the
+           compatibility mouse events the browser would otherwise synthesise
+           at touchend — which would arrive after ours and re-select. */
+        e.preventDefault();
+        if (mode === 'place') {
+            ghost.style.left = pt.x + 'px';
+            ghost.style.top  = pt.y + 'px';
+        } else {
+            relayMouse('mousemove', pt);
+        }
+    }, { passive: false });
+
+    document.addEventListener('touchend', function (e) {
+        if (timer) { clearTimer(); start = null; return; }   // a tap: leave it alone
+        if (!mode) { return; }
+        var pt = point(e) || start;
+        if (mode === 'place') { finishPlace(pt); } else { relayMouse('mouseup', pt); }
+        cleanup();
+    });
+
+    document.addEventListener('touchcancel', function () {
+        if (mode === 'move') { relayMouse('mouseup', start); }
+        cleanup();
+    });
+
+    /* ---- 3. delete: the way back out --------------------------------- */
+
+    var footer = document.querySelector('.nm-detail-footer');
+    if (footer) {
+        var label = 'Delete';
+        if (typeof window.t === 'function') {
+            var v = window.t('common.delete');
+            if (v && v !== 'common.delete') { label = v; }   // a missing key returns the KEY
+        }
+        var del = document.createElement('button');
+        del.type = 'button';
+        del.className = 'nm-detail-delete';
+        del.textContent = label;
+        del.style.display = 'none';                          // injected chrome (§25)
+        del.addEventListener('click', function () {
+            /* The module's own keydown handler owns this: it drops the
+               connectors touching the node first (or `save_diagram` rejects
+               the payload as having dangling references), deselects through
+               `selectNode(null)` so the sheet closes, re-renders and marks
+               dirty. Reimplementing that here would be four chances to
+               diverge from it.
+
+               ⚠️ No extra confirmation, deliberately. The desktop deletes on
+               a single keypress, and getting here is already three taps — the
+               node, its sheet, this button. A phone-only confirmation would
+               make the two behave differently AND need a new string in 24
+               locales for the privilege. */
+            document.dispatchEvent(new KeyboardEvent('keydown', {
+                key: 'Delete', bubbles: true, cancelable: true
+            }));
+        });
+        footer.appendChild(del);
+
+        var syncDel = function () { del.style.display = mq.matches ? '' : 'none'; };
+        syncDel();
+        if (mq.addEventListener) { mq.addEventListener('change', syncDel); }
+        else if (mq.addListener) { mq.addListener(syncDel); }
+    }
+
+    /* ⚠️ And a resize out of mobile mid-drag must not strand a ghost, a
+       lifted node, or a drag the module still thinks is in progress. */
+    function sync() {
+        if (!mq.matches && mode) {
+            if (mode === 'move') { relayMouse('mouseup', start); }
+            cleanup();
+        }
+    }
+    if (mq.addEventListener) { mq.addEventListener('change', sync); }
+    else if (mq.addListener) { mq.addListener(sync); }
+})();

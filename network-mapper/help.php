@@ -49,7 +49,7 @@ $translationNamespaces = ['common', 'network-mapper'];
          help.css's own @media block hands the scroll to the document, and
          inbox.css clips <body>, so nothing scrolled. LAYER 16h gives
          `.help-container` the scroller role back (§28). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=128">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=129">
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
 </head>
@@ -370,6 +370,6 @@ $translationNamespaces = ['common', 'network-mapper'];
             });
         });
     </script>
-    <script src="../assets/js/mobile.js?v=51"></script>
+    <script src="../assets/js/mobile.js?v=52"></script>
 </body>
 </html>

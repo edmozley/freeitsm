@@ -9610,4 +9610,123 @@
     [data-mobile-module="network-mapper"] textarea {
         font-size: 16px;
     }
+
+    /* --------------------------------------------------------------------
+       31j — ⭐ AUTHORING ON A PHONE, AFTER ALL (#1468, Ed's request).
+
+       The layer above declined to offer node placement, on the grounds that
+       you could place one and never move it — the missing half being the
+       RECOVERY rather than the action. Ed asked for the drag anyway, which
+       makes it the right thing to build; but the objection was not wrong, so
+       what got built is all THREE halves, because the check that settled it
+       is what a phone can do about a mistake:
+
+           place   long-press a class tile, drag onto the map, release
+           move    long-press a node, drag it
+           delete  the node's own sheet gets a Delete
+
+       🔴 Without the second and third this really would have been a trap.
+       `deleteSelectedNode()` is bound to **Delete/Backspace and nothing
+       else**, and a phone has neither — so before this, a node dropped in
+       the wrong place, or of the wrong class, was permanent. A feature whose
+       undo needs a keyboard is not a feature, it is a one-way door.
+
+       ⭐ And not one line of `network-mapper.js` changed. Each gesture ends
+       by dispatching the event the module already listens for — a real
+       `drop` carrying a `DataTransfer`, a `mousedown`/`mousemove`/`mouseup`
+       triple, a `keydown` of `Delete` — so the snap-to-grid, the read-only
+       guard, the dirty flag, the connector cleanup and the autosave all run
+       exactly as they do under a mouse. §1's "wrap, don't edit", applied to
+       a feature rather than a layout.
+
+       ⚠️ §22 said the palette's HTML5 drag would probably work on touch, and
+       it is NOT what this uses. A long press inside a sheet that covers the
+       canvas has nowhere to drop, and the sheet has to get out of the way
+       mid-gesture — which a native drag will not survive. A hand-rolled
+       touch drag can close the sheet and keep going, so that is what it is.
+       -------------------------------------------------------------------- */
+
+    /* The tile that follows your finger. Pinned to the viewport and out of
+       the hit-testing, so `elementFromPoint` under the finger returns the
+       canvas rather than the thing being dragged. */
+    .nm-drag-ghost {
+        position: fixed;
+        z-index: 1600;
+        pointer-events: none;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        padding: 8px 10px;
+        border: 1px solid var(--nm-accent, #06b6d4);
+        border-radius: 8px;
+        background: var(--surface, #fff);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        opacity: 0.95;
+    }
+    .nm-drag-ghost .nm-palette-tile-count { display: none; }
+    .nm-drag-ghost .nm-palette-tile-name {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text, #111827);
+        max-width: 90px;
+        text-align: center;
+    }
+    .nm-drag-ghost .nm-palette-tile-icon { color: #0e7490; }
+
+    /* A node that has been picked up. It has to be obvious that the long
+       press worked, because the alternative reading is that the app ignored
+       you — and the same gesture held a moment shorter is a pan. */
+    [data-mobile-module="network-mapper"] .nm-node.nm-touch-drag {
+        opacity: 0.85;
+        filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.4));
+    }
+
+    /* 🔴 iOS insurance the headless run cannot test for: a long press is also
+       the system gesture for the selection callout and the magnifier, and
+       both would fire over the top of a drag that starts the same way. Both
+       elements already carry `user-select: none`, which is NOT the same
+       property and does not suppress the callout on its own. */
+    [data-mobile-module="network-mapper"] .nm-node,
+    [data-mobile-module="network-mapper"] .nm-palette-tile,
+    .nm-drag-ghost {
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+    }
+
+    /* Delete, injected into the node sheet's footer by mobile.js.
+       ⚠️ INJECTED rather than shipped hidden (§25): the desktop already has
+       this — it is the Delete key — so there is nothing for a desktop render
+       to hide, and nothing is added to the page above 768px. */
+    .nm-detail-delete {
+        flex: 0 0 auto;
+        min-height: 42px;
+        padding: 8px 16px;
+        border: 1px solid #fecaca;
+        border-radius: 4px;
+        background: transparent;
+        color: #b91c1c;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    [data-theme-mode="dark"] .nm-detail-delete {
+        border-color: #5a2a2a;
+        color: #fca5a5;
+    }
+    /* The footer holds Add related objects and now Delete. The destructive one
+       does NOT get equal weight or the full width — the 31c lesson, one screen
+       further in: a `danger` control that grows also gets easier to hit by
+       accident. Add related keeps the width; Delete keeps its own. */
+    [data-mobile-module="network-mapper"] .nm-detail-footer {
+        display: flex;
+        gap: 8px;
+        align-items: stretch;
+    }
+    [data-mobile-module="network-mapper"] .nm-detail-footer .nm-btn {
+        flex: 1 1 auto;
+        width: auto;
+    }
 }

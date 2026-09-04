@@ -87,7 +87,7 @@ foreach ($channels as $ch) {
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=62">
     <link rel="stylesheet" href="../assets/css/war-room.css?v=6">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=128">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=129">
     <style>
         /* Pin the shared accent to the module's amber so buttons and focus
            rings are on-brand, the same way every other module does it. */
@@ -222,6 +222,6 @@ foreach ($channels as $ch) {
         window.WR_MENTION_STYLE = <?php echo json_encode($mentionStyle); ?>;
     </script>
     <script src="../assets/js/war-room.js?v=8"></script>
-    <script src="../assets/js/mobile.js?v=51"></script>
+    <script src="../assets/js/mobile.js?v=52"></script>
 </body>
 </html>
