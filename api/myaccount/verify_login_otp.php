@@ -198,8 +198,16 @@ try {
         }
     }
 
+    // These are consumed by window.location.href in a fetch() on /auth/login.php,
+    // so they must be absolute. A bare 'index.php' resolves against /auth/ and sends
+    // the analyst to /auth/index.php, which does not exist (#132) - while
+    // 'force_password_change.php' resolved correctly only by accident, because that
+    // page really does live in /auth/. The non-MFA path in auth/login.php builds both
+    // with BASE_URL already; turning MFA on must not change where you land.
+    $base = defined('BASE_URL') ? BASE_URL : '/';
+
     // Check password expiry
-    $redirect = 'index.php';
+    $redirect = $base . 'index.php';
     $peStmt = $conn->prepare("SELECT setting_value FROM system_settings WHERE setting_key = 'password_expiry_days'");
     $peStmt->execute();
     $peRow = $peStmt->fetch(PDO::FETCH_ASSOC);
@@ -219,7 +227,7 @@ try {
         }
         if ($expired) {
             $_SESSION['password_expired'] = true;
-            $redirect = 'force_password_change.php';
+            $redirect = $base . 'auth/force_password_change.php';
         }
     }
 
@@ -231,7 +239,7 @@ try {
         $mcStmt->execute([$analystId]);
         if ((int)$mcStmt->fetchColumn() === 1) {
             $_SESSION['password_expired'] = true;
-            $redirect = 'force_password_change.php';
+            $redirect = $base . 'auth/force_password_change.php';
         }
     } catch (Exception $mcEx) {
         // column not migrated yet — nothing to enforce
