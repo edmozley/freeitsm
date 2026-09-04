@@ -47,5 +47,6 @@
             });
         })();
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

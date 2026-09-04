@@ -96,8 +96,10 @@ $meta = integrationsProviderMeta('tika');
         .tika-formats { display:flex; gap:28px; flex-wrap:wrap; font-size:13px; }
         .tika-formats ul { margin:6px 0 0; padding-left:18px; color:var(--text-dim,#6b7280); }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="integrations-tika">
     <?php include '../includes/header.php'; ?>
 
     <div class="tika-wrap">
@@ -227,5 +229,6 @@ $meta = integrationsProviderMeta('tika');
 
         load();
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

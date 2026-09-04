@@ -503,7 +503,7 @@ $translationNamespaces = ['common', 'asset-management'];
     </style>
     <?php /* Mobile-friendly opt-in (#937). AFTER this page's own <style> so its
              @media rules win on ties. Every rule inside is gated at 768px. */ ?>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=131">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
 <?php /* The marker mobile.css LAYER 15e keys on. `.container` is far too common
          a class to restyle globally, so a settings page opts in by name. */ ?>
@@ -3600,6 +3600,6 @@ $translationNamespaces = ['common', 'asset-management'];
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
     <script>window.assetTypeIcons = <?php echo json_encode($assetTypeIcons, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/network-mapper-icons.js?v=2"></script>
-    <script src="../../assets/js/mobile.js?v=54"></script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

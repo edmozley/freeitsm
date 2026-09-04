@@ -96,10 +96,12 @@ if (!isset($_SESSION['analyst_id'])) {
         [data-theme-mode="dark"] .tree-link { color: #a5b4fc; }
         [data-theme-mode="dark"] .topo-error { color: #fca5a5; }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo $path_prefix; ?>assets/js/tz.js?v=5"></script>
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="topology">
     <?php include '../includes/header.php'; ?>
 
     <div class="topo-wrap">
@@ -311,5 +313,6 @@ if (!isset($_SESSION['analyst_id'])) {
 
     load();
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

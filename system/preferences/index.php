@@ -340,8 +340,10 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
         [data-theme-mode="dark"] .position-dot { background: #8b95a5; }
         [data-theme-mode="dark"] .anim-option:not(.active):hover { background: var(--surface-hover, #39414f); }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="settings" data-mobile-shell="own">
     <div class="settings-shell">
     <?php include '../includes/header.php'; ?>
 
@@ -1539,5 +1541,6 @@ $fmtSample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current())
 
         document.addEventListener('DOMContentLoaded', loadSignatures);
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

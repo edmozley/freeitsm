@@ -439,7 +439,7 @@ $translationNamespaces = ['common', 'service-status'];
         [data-theme-mode="dark"] .affected-row .remove-svc:hover { background: #3a1a1a; }
     </style>
     <!-- Mobile: LAYER 18 — board grid two-up, incidents as a card feed. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=131">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -1434,6 +1434,6 @@ $translationNamespaces = ['common', 'service-status'];
             if (e.target === this) closeIncidentModal();
         });
     </script>
-    <script src="../assets/js/mobile.js?v=54"></script>
+    <script src="../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

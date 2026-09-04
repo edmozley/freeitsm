@@ -141,10 +141,12 @@ $apiBaseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_UR
         [data-theme-mode="dark"] .table-action-btn { color: #90a4ae; }
         [data-theme-mode="dark"] .table-action-btn.danger:hover { background: #3a1a1d; color: #fca5a5; }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="api">
     <?php include '../includes/header.php'; ?>
 
     <div class="api-container">
@@ -498,5 +500,6 @@ $apiBaseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_UR
 
     loadKeys();
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

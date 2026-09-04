@@ -123,8 +123,10 @@ $translationNamespaces = ['common', 'tickets'];
         .form-group input::placeholder { color: var(--text-faint, #999); }
         .form-group input[type="checkbox"] { accent-color: var(--accent, #546e7a); }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="settings" data-mobile-shell="own">
     <div class="settings-shell">
     <?php include '../includes/header.php'; ?>
 
@@ -736,5 +738,6 @@ $translationNamespaces = ['common', 'tickets'];
             loadAnalysts();
         });
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

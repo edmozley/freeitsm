@@ -182,10 +182,12 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
         [data-theme-mode="dark"] .err-5 { color: #ef9a9a; }
         [data-theme-mode="dark"] .err-2 { color: #81c784; }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="api-docs">
     <?php include '../includes/header.php'; ?>
 
     <div class="docs-shell">
@@ -702,5 +704,6 @@ $__extrasJson = $__spec ? json_encode($__spec['extras']) : '{}';
     // --- Boot -------------------------------------------------------------------------
     route();
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

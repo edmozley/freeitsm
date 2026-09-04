@@ -301,8 +301,10 @@ if (!isset($_SESSION['analyst_id'])) {
         [data-theme-mode="dark"] .spinner-inline { border-color: rgba(0,0,0,0.2); border-top-color: currentColor; }
         [data-theme-mode="dark"] .error-text { color: var(--danger-text, #fca5a5); }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="demo-data">
     <?php include '../includes/header.php'; ?>
 
     <div class="demo-container">
@@ -681,5 +683,6 @@ if (!isset($_SESSION['analyst_id'])) {
             } catch (e) { /* ignore - user can still click Import */ }
         })();
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

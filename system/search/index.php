@@ -116,8 +116,10 @@ if (!isset($_SESSION['analyst_id'])) {
         .srch-status { font-size: 12px; color: var(--text-dim, #888); margin-top: 8px; min-height: 16px; }
         .srch-muted { color: var(--text-faint, #9ca3af); }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="search">
     <?php include '../includes/header.php'; ?>
 
     <div class="srch-container">
@@ -339,5 +341,6 @@ if (!isset($_SESSION['analyst_id'])) {
 
         loadStatus();
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

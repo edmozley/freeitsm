@@ -112,10 +112,12 @@ $helpNav   = $helpNav  ?? ($helpTopic['sections'] ?? []);
             .syshelp-cards { grid-template-columns: 1fr; }
         }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="sys-help">
     <?php include __DIR__ . '/../includes/header.php'; ?>
 
     <div class="syshelp-container">

@@ -73,7 +73,7 @@ $translationNamespaces = ['common', 'contracts'];
         }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=131">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
 </head>
 <body data-mobile-module="contracts">
     <?php include 'includes/header.php'; ?>
@@ -475,5 +475,5 @@ $translationNamespaces = ['common', 'contracts'];
             });
         });
     </script>
-    <script src="../assets/js/mobile.js?v=54"></script>
+    <script src="../assets/js/mobile.js?v=55"></script>
 </body>

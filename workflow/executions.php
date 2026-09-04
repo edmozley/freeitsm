@@ -49,7 +49,7 @@ $translationNamespaces = ['common', 'workflow'];
     <!-- Mobile layer LAST, after this page's own stylesheet AND its inline
          <style> block, or a rule at equal specificity loses on document order
          (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=131">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
 </head>
 <body data-mobile-module="workflow" data-mobile-page="wf-executions">
     <?php include 'includes/header.php'; ?>
@@ -142,6 +142,6 @@ $translationNamespaces = ['common', 'workflow'];
     </div>
 
     <script src="../assets/js/workflow-executions.js?v=2"></script>
-    <script src="../assets/js/mobile.js?v=54"></script>
+    <script src="../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

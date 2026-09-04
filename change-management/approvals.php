@@ -194,7 +194,7 @@ $translationNamespaces = ['common', 'change-management'];
             margin: 0;
         }
     </style>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=131">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=132">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -359,6 +359,6 @@ $translationNamespaces = ['common', 'change-management'];
             return div.innerHTML;
         }
     </script>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=54"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=55"></script>
 </body>
 </html>

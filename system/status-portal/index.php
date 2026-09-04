@@ -113,8 +113,10 @@ requireModuleAccess('system');
         }
         .sp-saved { font-size: 13px; color: var(--success-text, #166534); margin-left: 12px; }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="status-portal">
     <?php include '../includes/header.php'; ?>
 
     <div class="sp-container">
@@ -226,5 +228,6 @@ requireModuleAccess('system');
 
         load();
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

@@ -118,8 +118,10 @@ $translationNamespaces = ['common', 'system'];
         .cs-inbound h3 { font-size: 14px; font-weight: 600; margin: 0 0 6px; color: var(--text, #333); }
         .cs-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; margin: 10px 0 2px; }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="settings" data-mobile-shell="own">
     <div class="settings-shell">
     <?php include '../includes/header.php'; ?>
 
@@ -597,5 +599,6 @@ $translationNamespaces = ['common', 'system'];
 
         csLoad();
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

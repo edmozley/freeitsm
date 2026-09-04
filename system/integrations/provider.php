@@ -104,8 +104,10 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
         }
         .map-group:first-child { margin-top: 0; }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="integrations-provider">
     <?php include '../includes/header.php'; ?>
 
     <div class="int-container">
@@ -660,5 +662,6 @@ $('testBtn').addEventListener('click', async () => {
 
 load();
 </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

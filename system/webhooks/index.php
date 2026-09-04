@@ -344,7 +344,7 @@ function whAgo($s) {
         [data-theme-mode="dark"] .rate .track { background: #2c333d; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> block (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=131">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
 </head>
@@ -758,6 +758,6 @@ function whAgo($s) {
     document.getElementById('payloadModal').onclick = e => { if (e.target.id === 'payloadModal') e.target.style.display = 'none'; };
     load();
     </script>
-    <script src="../../assets/js/mobile.js?v=54"></script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

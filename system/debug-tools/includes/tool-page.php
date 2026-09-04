@@ -113,8 +113,10 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
         /* The dark accent is a LIGHT blue-grey, so a white spinner on it is invisible. */
         [data-theme-mode="dark"] .spinner-inline { border-color: rgba(0,0,0,0.25); border-top-color: var(--sys-on-accent, #263238); }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="debug-tool">
     <?php include __DIR__ . '/../../includes/header.php'; ?>
 
     <div class="main-container" style="display: block; background: var(--app-bg, #f5f7fa);">
@@ -265,5 +267,6 @@ $toolMethod = strtoupper($tool['method'] ?? 'GET');
         });
     })();
     </script>
+    <script src="../../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

@@ -10571,4 +10571,615 @@
     body[data-mobile-page="webhooks"] textarea {
         font-size: 16px;
     }
+
+    /* ====================================================================
+       LAYER 34 — SYSTEM (#1472)
+
+       The nineteenth module, and by a distance the largest of the rollout:
+       **53 pages** against Contracts' 22. Ed asked for it in the shape it
+       actually has — *"the landing page looks pretty decent (although needs
+       the usual work) but then each card needs some work — each of them
+       present their own challenges!"* — and he is right about the second
+       half: there is no single System layout, there are twenty of them.
+
+       ⭐ BUT THE FILE COUNT IS NOT THE PAGE COUNT. Three shared shells carry
+       43 of the 53, so the opt-in was 34 file edits, two of which are
+       partials doing most of the work:
+
+         `.main-container`      18 — the landing, the debug-tools index and
+                                     ALL FOURTEEN debug tools (one shared
+                                     renderer, `includes/tool-page.php`),
+                                     encryption, modules
+         `.syshelp-container`   20 — the System guide plus 19 topic pages,
+                                     all rendered through `help/_top.php`
+         `.settings-shell`       5 — analysts, calendar-sync, preferences,
+                                     roles, teams
+         bespoke                10 — the rest, one shape each
+
+       🔑 **Find the shared shells before counting the work.** Two greps —
+       the container class per page, and which include renders it — turned a
+       53-page round into a 34-file one, and told me in advance which faults
+       would be systemic rather than per-page.
+
+       ⚠️ And the five `.settings-shell` pages get `data-mobile-shell="own"`
+       as well as `data-mobile-page="settings"`, mirroring `tickets/settings`
+       (#1005). That marker opts OUT of LAYER 2's flex `<body>`, and these
+       pages need it for the same reason: they each declare
+       `.settings-shell { display: flex; flex-direction: column; height: 100vh }`
+       and build the scroll region one level down themselves. Opting them in
+       without it would have left a `100dvh` shell inside a `100dvh` flex
+       body that also holds a header — clipped, by exactly the header's
+       height, on five pages. `mobile.css`'s own unscoped
+       `.settings-shell { height: 100dvh }` then does the one thing they do
+       want from the layer: `100vh` is wrong the moment a mobile browser
+       shows its chrome.
+
+       ⭐ The payoff was immediate and is worth recording: those five pages'
+       tables came out **already scrolling sideways with their headers
+       intact**, because `data-mobile-page="settings"` is what the whole
+       shared settings layer keys on. Four pages fixed by naming them
+       correctly.
+       ==================================================================== */
+
+    /* --------------------------------------------------------------------
+       34a — 🔴 THE MOBILE LAYER TURNS OFF THE SCROLLER THESE PAGES BUILT.
+
+       Measured straight after opting in, at 360×740:
+
+           /system/              🔴 NO SCROLLER, content 5008px
+           /system/debug-tools/  🔴 NO SCROLLER, content 3686px
+           /system/encryption/   🔴 NO SCROLLER, content 1092px
+
+       — the landing page of the module, with five thousand pixels of cards
+       and no way to reach any of it past the first screen.
+
+       And every one of those pages had already done the right thing:
+
+           encryption   .main-container { flex: 1; overflow-y: auto; }
+           the landing  .system-landing { flex: 1; overflow-y: auto; }
+           debug tools  .debug-landing  { flex: 1; overflow-y: auto; }
+
+       LAYER 2 gives `.main-container` `overflow: hidden`, because in
+       the ticket inbox that container holds the absolutely-positioned pane
+       stack and must not scroll. Both rules are (0,1,0), and `mobile.css`
+       loads last **by design** (§9) — so the shared layer silently switched
+       off a scroller the page had built for itself.
+
+       🔑 **§9's load-order rule cuts both ways.** Putting `mobile.css` last
+       is what lets it win the ties it needs to win; it also means it wins
+       ties it should lose. A page that already solved something for itself
+       is not protected by having solved it first.
+
+       This is LAYER 15f's finding a second time — *"`.servers-container` is
+       ALSO `.main-container`, so LAYER 2 has already given it
+       `overflow: hidden`… putting the scroll back is the first rule here
+       for that reason"* — and it will happen again, because `.main-container`
+       is the app's most reused shell name. Scoping on the module marker
+       takes this to (0,2,0), which wins.
+
+       ⭐ `overflow-x: hidden` in the same breath, which is the webhooks
+       lesson (§12): declaring only one axis computes the other to `auto`,
+       and a container that scrolls sideways by accident hides every future
+       overflow from the sweep instead of reporting it.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="system"] .main-container,
+    [data-mobile-module="system"] .system-landing,
+    [data-mobile-module="system"] .debug-landing {
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+    }
+
+    /* --------------------------------------------------------------------
+       34b — The landing page.
+
+       Ed's read was that it "looks pretty decent … needs the usual work",
+       and the measurements agree: the card grid is
+       `repeat(auto-fill, minmax(210px, 1fr))`, which drops to one column on
+       its own. What it needs is the gutters back and a thumb.
+
+       `padding: 40px 40px` is **80px of a 360px screen** — nearly a quarter
+       of the width — before a card is drawn. The debug-tools landing is the
+       same shell with `36px 40px`.
+
+       ⭐ Two up rather than one. These cards are an icon, a name and a line
+       of description, and the landing page exists to be SCANNED for the one
+       you want — the Service Status lesson, that on a board density beats
+       card size. One column of nineteen cards is a very long page; two
+       columns halves the scroll and every card still reads.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="system"] .landing-content {
+        padding: 16px 12px 28px;
+    }
+    [data-mobile-module="system"] .landing-content h2,
+    [data-mobile-module="system"] .landing-head h2 {
+        font-size: 20px;
+    }
+    [data-mobile-module="system"] .system-cards {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+    [data-mobile-module="system"] .system-card {
+        padding: 14px 10px;
+        min-width: 0;
+    }
+    [data-mobile-module="system"] .system-card h3 {
+        font-size: 14px;
+        overflow-wrap: anywhere;
+    }
+    [data-mobile-module="system"] .system-card svg {
+        width: 24px;
+        height: 24px;
+        margin-bottom: 6px;
+    }
+    /* A lift-on-hover STICKS after a tap on a touchscreen and reads as jank
+       (§7) — and on a grid of nineteen tap targets it is the one thing you
+       are guaranteed to trigger. */
+    [data-mobile-module="system"] .system-card:hover {
+        transform: none;
+        box-shadow: 0 2px 12px var(--shadow, rgba(0, 0, 0, 0.08));
+        border-color: transparent;
+    }
+    /* The search box is capped at 420px and centred, which is right on a
+       wide screen and just an inset on a phone. */
+    [data-mobile-module="system"] .system-search {
+        max-width: none;
+        margin-bottom: 18px;
+    }
+    /* The storage warning (#109) is the one thing on this page that must not
+       be missed, and it is a heading, a paragraph and a link in a row. */
+    [data-mobile-module="system"] .storage-alert {
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px;
+        text-align: left;
+    }
+
+    /* --------------------------------------------------------------------
+       34c — The gutters, module-wide.
+
+       Almost every page in System wraps itself in a `max-width: 800px`
+       column with `padding: 30px 20px` and centres it. On a 1400px screen
+       that is the layout; on a 360px screen the max-width does nothing and
+       the padding is 40px of the 360.
+
+       Keyed on the module marker rather than page by page, because twenty
+       bespoke containers all made the same reasonable desktop choice.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="system"] .encryption-container,
+    [data-mobile-module="system"] .db-verify-container,
+    [data-mobile-module="system"] .companies-container,
+    [data-mobile-module="system"] .colours-container,
+    [data-mobile-module="system"] .df-container,
+    [data-mobile-module="system"] .ai-container,
+    [data-mobile-module="system"] .api-container,
+    [data-mobile-module="system"] .security-container,
+    [data-mobile-module="system"] .sso-container,
+    [data-mobile-module="system"] .srch-container,
+    [data-mobile-module="system"] .sp-container,
+    [data-mobile-module="system"] .rt-container,
+    [data-mobile-module="system"] .int-container,
+    [data-mobile-module="system"] .demo-container,
+    [data-mobile-module="system"] .topo-wrap,
+    [data-mobile-module="system"] .orph-wrap,
+    [data-mobile-module="system"] .tika-wrap,
+    [data-mobile-module="system"] .prov-wrap,
+    [data-mobile-module="system"] .docs-shell,
+    [data-mobile-module="system"] .debug-container {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-top: 14px;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    /* --------------------------------------------------------------------
+       34d — 🔴 16px on every field, module-wide.
+
+       The sweep found fields under 16px on **fourteen** System pages —
+       88 of them on the colour editor alone, 25 on branding, 8 on security.
+       Every one is §3's cascade waiting to happen: iOS zooms on focus, the
+       zoom pushes the page wider than the screen, Safari re-lays it out at
+       desktop width, and the whole `max-width: 768px` layer stops matching
+       until you reload.
+
+       ⚠️ Written as an EXCLUSION rather than a list of types (the settings
+       lesson), so a field added to any of 53 pages later is covered by
+       default instead of forgotten. Colour swatches are exempt: a
+       `type="color"` input is a swatch drawn by the platform, and font-size
+       does not apply to it.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="system"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+    [data-mobile-module="system"] select,
+    [data-mobile-module="system"] textarea {
+        font-size: 16px;
+    }
+    /* 🔴 §20, and the module has date filters on more than one page. A native
+       date input is drawn by the PLATFORM and ignores `width: 100%` — iOS
+       spells the month out where Chrome on Windows draws digits, so a
+       desktop measurement understates it and this cannot be cleared
+       headlessly. Add the reset wherever the field is, every time. */
+    [data-mobile-module="system"] input[type="date"],
+    [data-mobile-module="system"] input[type="time"],
+    [data-mobile-module="system"] input[type="datetime-local"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    [data-mobile-module="system"] input[type="date"]::-webkit-date-and-time-value {
+        margin: 0;
+        text-align: left;
+    }
+
+    /* --------------------------------------------------------------------
+       34e — The CONFIG tables: scroll sideways, keep the headers.
+
+       System's admin tables are wide and unlabelled:
+
+           api/       Name · Key · Acts as · Permissions · Companies ·
+                      Status · Last used · Actions        813px in 328
+           sso/       7 columns                           769px in 328
+           companies/ 5 columns                           433px in 328
+
+       §11's decision table says scroller past about seven columns, and Ed
+       settled the general case for this shape in #1004: **every table on
+       every settings screen behaves the same way, and the way they behave
+       is scroll sideways.** The reason is that they are a SET — a card feed
+       on one screen next to a scroller on its neighbour costs more than the
+       individual screen gains.
+
+       ⭐ And System proves that reasoning rather than just inheriting it:
+       its five `.settings-shell` pages (analysts, teams, roles,
+       calendar-sync, preferences) came out **already scrolling correctly**
+       the moment they were given `data-mobile-page="settings"`, because
+       that is what the shared settings layer keys on. Four pages fixed by
+       naming them properly. These are the same kind of table one click
+       away, so they get the same answer.
+
+       ⚠️ `white-space: nowrap` is not optional and is the half people drop:
+       `display: block; overflow-x: auto` alone lets the browser wrap every
+       column down to one word per line, which PASSES the containment check
+       and is unreadable. Containment is the floor, not the finish line.
+
+       🔴 EXCLUDED: the four DOCUMENTATION pages. Their tables carry a prose
+       `Description` / `Meaning` column, and §11 is unambiguous — *if any
+       column contains a sentence, it is a card feed; there is no second
+       consideration*. Written as an exclusion rather than a list of the
+       config pages so a new System screen is covered by default (the
+       settings lesson: exclude what must not change).
+       -------------------------------------------------------------------- */
+    body[data-mobile-module="system"]:not([data-mobile-page="sys-help"]):not([data-mobile-page="sys-help-index"]):not([data-mobile-page="api-docs"]):not([data-mobile-page="integrations-help"]):not([data-mobile-page="modules"]) table {
+        display: block;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+    /* Row actions inside a now-scrolling table still need a thumb. */
+    body[data-mobile-module="system"] table .table-action-btn,
+    body[data-mobile-module="system"] table .btn-small {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* --------------------------------------------------------------------
+       34f — The DOCUMENTATION tables, as stacked blocks.
+
+       Twenty help pages share `.syshelp-table`, and the API reference adds
+       three more shapes of the same thing: two or three columns of which
+       the last is a **sentence** —
+
+           HTTP · Code · Meaning
+           Parameter · Description · Value
+           Field · Description
+
+       Measured on `api/docs.php` at 360px: rows **81px, 113px and 129px
+       tall**, which is §11's crushed signature — a prose column given about
+       a hundred pixels and wrapping five or six times inside it.
+
+       A sideways scroller is the wrong answer here for the reason §11 gives
+       plainly: **you cannot scroll prose horizontally.** You would scroll
+       right to finish a sentence and left again to start the next row, and
+       nobody does that twice.
+
+       So each row becomes a block: the identifier on its own line as a
+       heading, the description beneath it at the full width. No labels are
+       harvested — the first cell IS the label, which is what a two-column
+       reference table means.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="sys-help"] .syshelp-table,
+    body[data-mobile-page="sys-help"] .syshelp-table tbody,
+    body[data-mobile-page="sys-help-index"] table,
+    body[data-mobile-page="sys-help-index"] table tbody,
+    body[data-mobile-page="api-docs"] table,
+    body[data-mobile-page="api-docs"] table tbody,
+    body[data-mobile-page="integrations-help"] table,
+    body[data-mobile-page="integrations-help"] table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="sys-help"] .syshelp-table thead,
+    body[data-mobile-page="sys-help-index"] table thead,
+    body[data-mobile-page="api-docs"] table thead,
+    body[data-mobile-page="integrations-help"] table thead {
+        display: none;
+    }
+    body[data-mobile-page="sys-help"] .syshelp-table tbody tr,
+    body[data-mobile-page="sys-help-index"] table tbody tr,
+    body[data-mobile-page="api-docs"] table tbody tr,
+    body[data-mobile-page="integrations-help"] table tbody tr {
+        display: block;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border-soft, #ececf1);
+    }
+    body[data-mobile-page="sys-help"] .syshelp-table tbody td,
+    body[data-mobile-page="sys-help-index"] table tbody td,
+    body[data-mobile-page="api-docs"] table tbody td,
+    body[data-mobile-page="integrations-help"] table tbody td {
+        display: block;
+        min-width: 0;
+        padding: 0 0 3px;
+        border: none;
+        overflow-wrap: anywhere;
+    }
+    /* The first cell is the thing being defined — it reads as the heading. */
+    body[data-mobile-page="sys-help"] .syshelp-table tbody td:first-child,
+    body[data-mobile-page="sys-help-index"] table tbody td:first-child,
+    body[data-mobile-page="api-docs"] table tbody td:first-child,
+    body[data-mobile-page="integrations-help"] table tbody td:first-child {
+        font-weight: 600;
+        color: var(--text, #1f2330);
+        padding-bottom: 4px;
+    }
+
+    /* --------------------------------------------------------------------
+       34g — Module access: three columns, two of them LISTS.
+
+       Module · Teams with access · Analysts with access, and the last two
+       hold comma-separated names. Measured rows **177px, 161px, 161px** —
+       crushed, and the widest cell about a third of the screen.
+
+       This one is excluded from 34e's scroller and made a feed instead,
+       which looks like an inconsistency and is not: a list of names is
+       prose by §11's test, and the question this page answers is *"who can
+       get into Contracts?"* — read one module at a time, which is exactly
+       what a feed is for. The scroller would have made it a very wide table
+       of names with nothing to compare down a column.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="modules"] .access-table,
+    body[data-mobile-page="modules"] .access-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="modules"] .access-table thead { display: none; }
+    body[data-mobile-page="modules"] .access-table tbody tr {
+        display: block;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 10px;
+        background: var(--surface, #fff);
+    }
+    body[data-mobile-page="modules"] .access-table tbody td {
+        display: block;
+        min-width: 0;
+        padding: 0 0 4px;
+        border: none;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+    body[data-mobile-page="modules"] .access-table tbody td:first-child {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--text, #333);
+        padding-bottom: 6px;
+    }
+
+    /* --------------------------------------------------------------------
+       34h — The odds and ends, one per card.
+
+       Each of these is a single page's own shape, which is what Ed meant by
+       "each of them present their own challenges". None needs a pattern.
+       -------------------------------------------------------------------- */
+
+    /* ENCRYPTION — the key's file PATH, printed in a `<code>`, ran 40px past
+       the edge. It is one unbreakable token (`c:\…\sdtickets.key`), and it
+       is also the single most important string on the page: without that
+       file a restore comes back with every credential unreadable. So it
+       wraps rather than scrolls — you must be able to read all of it at a
+       glance, not drag it. */
+    [data-mobile-module="system"] code,
+    [data-mobile-module="system"] .status-detail code {
+        overflow-wrap: anywhere;
+        word-break: break-word;
+    }
+
+    /* BRANDING — a file input is drawn by the PLATFORM, like a native date
+       field (§20), and reports an intrinsic width that ignores its box: the
+       row measured 576px. And the opacity slider came out **1282px** wide.
+       Both need telling that the box is the box. */
+    [data-mobile-module="system"] .logo-controls,
+    [data-mobile-module="system"] .file-row {
+        flex-wrap: wrap;
+        min-width: 0;
+        max-width: 100%;
+    }
+    [data-mobile-module="system"] input[type="file"],
+    [data-mobile-module="system"] input[type="range"],
+    [data-mobile-module="system"] input[type="color"] {
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+    [data-mobile-module="system"] input[type="range"] { width: 100%; }
+
+    /* DB VERIFY — the action row (Verify / Repair / Export) ran to 409px.
+       These are the page's whole purpose, so they wrap rather than scroll. */
+    [data-mobile-module="system"] .verify-actions {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    [data-mobile-module="system"] .verify-actions .verify-btn {
+        flex: 1 1 auto;
+        min-height: 40px;
+        white-space: normal;
+    }
+
+    /* DEMO DATA — a grid of per-module cards, each with a checkbox and a
+       description; the grid's track floor made each card 374px. */
+    [data-mobile-module="system"] .module-grid,
+    [data-mobile-module="system"] .demo-grid {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 10px;
+    }
+    [data-mobile-module="system"] .module-card {
+        min-width: 0;
+        max-width: 100%;
+        padding: 12px;
+    }
+
+    /* The page-level heading blocks across the module: every card page opens
+       with a title and a paragraph sized for a 720px column. */
+    [data-mobile-module="system"] .page-title { font-size: 19px; }
+    [data-mobile-module="system"] .page-subtitle { font-size: 13px; margin-bottom: 16px; }
+    /* Two-up stat/summary rows, wherever a System page draws one. */
+    [data-mobile-module="system"] .stat-row,
+    [data-mobile-module="system"] .stats-row,
+    [data-mobile-module="system"] .ov-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* --------------------------------------------------------------------
+       34i — 🔴 BRANDING: a `1fr` track is a shrink floor, and the page's own
+       breakpoint threw away the fix its desktop rule already had.
+
+           .design-controls  w=1282
+           .design-grid      w=264   BUT  grid-template-columns: 1282px
+
+       The grid box is 264px and its single track is 1282. A bare `1fr`
+       track has an automatic minimum of **min-content**, so it cannot
+       shrink below its contents — §14's `min-width: auto` seen from the
+       grid side, and the same family as LAYER 32's `.container` growing to
+       meet a table.
+
+       ⭐ The page already knew. Its desktop rule is
+
+           .design-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); }
+
+       — `minmax(0, …)` is exactly the guard — and its OWN
+       `@media (max-width: 900px)` collapses that to a bare `1fr`, dropping
+       the guard along with the second column.
+
+       🔑 **When a page stacks its own grid at a breakpoint, check whether it
+       kept the `minmax(0, …)`.** Going from two columns to one is the moment
+       the track stops being bounded by its sibling and starts being bounded
+       by its content — which is precisely when the guard starts mattering,
+       and precisely when it tends to get dropped.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="system"] .design-grid,
+    [data-mobile-module="system"] .drow {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    [data-mobile-module="system"] .design-controls,
+    [data-mobile-module="system"] .design-preview,
+    [data-mobile-module="system"] .dgroup,
+    [data-mobile-module="system"] .dlabel,
+    [data-mobile-module="system"] .settings-card {
+        min-width: 0;
+        max-width: 100%;
+    }
+    [data-mobile-module="system"] .branding-container {
+        padding-left: 12px;
+        padding-right: 12px;
+        padding-top: 14px;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    /* --------------------------------------------------------------------
+       34j — Close §12 on every System page container.
+
+       Most of these declare only `overflow-y: auto`, which computes
+       `overflow-x` to `auto` as well — so each one is a horizontal scroller
+       nobody asked for, quietly absorbing anything too wide instead of
+       letting the sweep report it. That is how the webhook log sat at 556px
+       for as long as it did, and how branding's 1282px track measured as
+       "contained" here.
+
+       Safe now rather than before, because 34e gave the wide tables their
+       own scroller: nothing left inside these containers needs to escape.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="system"] .branding-container,
+    [data-mobile-module="system"] .db-verify-container,
+    [data-mobile-module="system"] .companies-container,
+    [data-mobile-module="system"] .colours-container,
+    [data-mobile-module="system"] .sso-container,
+    [data-mobile-module="system"] .api-container,
+    [data-mobile-module="system"] .srch-container,
+    [data-mobile-module="system"] .security-container,
+    [data-mobile-module="system"] .int-container,
+    [data-mobile-module="system"] .demo-container,
+    [data-mobile-module="system"] .prov-wrap,
+    [data-mobile-module="system"] .topo-wrap,
+    [data-mobile-module="system"] .syshelp-container {
+        overflow-x: hidden;
+    }
+
+    /* --------------------------------------------------------------------
+       34k — 🔴 BRANDING'S HEADER/FOOTER SLOTS: six fields 55px wide.
+
+       `.slot-grid { grid-template-columns: 80px 1fr 1fr 1fr; }` — a row
+       label plus LEFT · CENTRE · RIGHT — measured on a phone as
+
+           80px  54.65  54.67  54.67
+
+       so the six inputs you type a company name into are **55px each**. The
+       page is perfectly contained and every containment check passes: this
+       is "contained but crushed", which only the question *is anything here
+       still laid out in more than one column at phone width?* can find.
+
+       ⭐ And it is the SAME FEATURE as the Network Mapper branding dialogue
+       (`.nm-brand-grid`, LAYER 31g), which was stacked for the identical
+       reason — page header/footer slots, three across, in two modules. Two
+       implementations of one idea, and they now behave the same.
+
+       Stacked, with the column headings dropped: LEFT/CENTRE/RIGHT above
+       three fields is a legend for a row that no longer exists, and each
+       field carries its own label once they are one per line.
+       ⚠️ §27: set BOTH properties — each is inert on the display type it
+       does not belong to, which is what makes declaring both safe.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="system"] .slot-grid {
+        grid-template-columns: minmax(0, 1fr);
+        flex-direction: column;
+        gap: 4px;
+    }
+    [data-mobile-module="system"] .slot-grid .col-head {
+        display: none;
+    }
+    [data-mobile-module="system"] .slot-grid .row-label {
+        text-align: left;
+        padding-right: 0;
+        margin-top: 10px;
+    }
+    [data-mobile-module="system"] .slot-input {
+        width: 100%;
+        max-width: 100% !important;
+        min-width: 0;
+        box-sizing: border-box;
+    }
 }

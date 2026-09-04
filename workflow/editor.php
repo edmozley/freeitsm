@@ -94,7 +94,7 @@ foreach ($actionDefs as $actionKey => $def) {
     <link rel="stylesheet" href="../assets/css/inbox.css?v=62">
     <link rel="stylesheet" href="../assets/css/workflow.css?v=11">
     <!-- Mobile layer LAST, after workflow.css (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=131">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../assets/js/tz.js?v=5"></script>
@@ -393,6 +393,6 @@ foreach ($actionDefs as $actionKey => $def) {
         };
     </script>
     <script src="../assets/js/workflow-editor.js?v=18"></script>
-    <script src="../assets/js/mobile.js?v=54"></script>
+    <script src="../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

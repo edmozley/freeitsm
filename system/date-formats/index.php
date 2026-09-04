@@ -158,8 +158,10 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
         [data-theme-mode="dark"] .fmt-option:hover,
         [data-theme-mode="dark"] .fmt-option.is-selected { background: var(--surface-2, #232830); }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="date-formats">
     <?php include '../includes/header.php'; ?>
 
     <div class="df-container">
@@ -289,5 +291,6 @@ $sample = new DateTime('2026-08-05 14:30:00', new DateTimeZone(Tz::current()));
         btn.disabled = false;
     });
     </script>
+    <script src="../../assets/js/mobile.js?v=55"></script>
 </body>
 </html>
