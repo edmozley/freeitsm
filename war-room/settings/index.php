@@ -76,7 +76,7 @@ $choices = [0, 7, 30, 90, 180, 365];
         .wr-set-actions { margin-top: 18px; }
     </style>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=130">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=131">
     <script src="../../assets/js/i18n.js?v=2"></script>
 </head>
 <body data-mobile-page="settings">
@@ -131,7 +131,7 @@ $choices = [0, 7, 30, 90, 180, 365];
     <script src="../../assets/js/ai-settings.js?v=2"></script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
-    <script src="../../assets/js/mobile.js?v=53"></script>
+    <script src="../../assets/js/mobile.js?v=54"></script>
     <script>
         // ⚠️ The tab bar is rendered by the shared helper but SWITCHING is each
         // page's own job — renderSettingsTabBar() only emits the buttons. This

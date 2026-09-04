@@ -43,7 +43,7 @@ $path_prefix = '../../';
         .pms-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 3px; vertical-align: middle; margin-right: 6px; }
         .tab-content .table-action-btn svg { width: 15px; height: 15px; }
     </style>
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=130">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/mobile.css?v=131">
     <?php echo Tz::scriptTag(); ?>
     <script src="<?php echo BASE_URL; ?>assets/js/tz.js?v=5"></script>
 </head>
@@ -173,5 +173,5 @@ $path_prefix = '../../';
     pmsLoad();
     </script>
 </body>
-    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=53"></script>
+    <script src="<?php echo BASE_URL; ?>assets/js/mobile.js?v=54"></script>
 </html>

@@ -322,7 +322,7 @@ $translationNamespaces = ['common', 'software'];
             }
         }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=130">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=131">
 </head>
 <body>
     <?php require_once '../includes/header.php'; ?>
@@ -937,6 +937,6 @@ $translationNamespaces = ['common', 'software'];
 
         init();
     </script>
-    <script src="../../assets/js/mobile.js?v=53"></script>
+    <script src="../../assets/js/mobile.js?v=54"></script>
 </body>
 </html>

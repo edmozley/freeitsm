@@ -1847,7 +1847,21 @@
            bare duration sitting directly beside that date — the pair §21
            exists for, since neither says which of the two it is. */
         { table: 'body[data-mobile-page="wf-executions"] table',
-          columns: [2, 3, 4] }
+          columns: [2, 3, 4] },
+
+        /* ---- SYSTEM: webhook deliveries (LAYER 33b, #1471) ----
+           Nine columns, and SIX of them need a label — which is a lot, and
+           is right: When, Format, URL, Attempts, Last code and Next retry
+           are every one of them a bare value (a date, a one-word preset, a
+           bare hostname, "1/5", "200", another date). Only three speak for
+           themselves — the workflow name is the card's heading, the status
+           is a pill and the actions are buttons.
+
+           ⚠️ `table.wh` and not `table`, because the same page carries two
+           `table.mini` summaries which stay tables: three columns of
+           figures you genuinely do read down, and they already fit. */
+        { table: 'body[data-mobile-page="webhooks"] table.wh',
+          columns: [0, 2, 3, 5, 6, 7] }
     ];
 
     function labelCardFeed(table, columns) {

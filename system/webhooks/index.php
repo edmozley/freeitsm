@@ -343,10 +343,12 @@ function whAgo($s) {
         [data-theme-mode="dark"] .chart .col .seg-zero { background: #2c333d; }
         [data-theme-mode="dark"] .rate .track { background: #2c333d; }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> block (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=131">
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
 </head>
-<body>
+<body data-mobile-module="system" data-mobile-page="webhooks">
     <?php include '../includes/header.php'; ?>
 
     <div class="wh-container">
@@ -756,5 +758,6 @@ function whAgo($s) {
     document.getElementById('payloadModal').onclick = e => { if (e.target.id === 'payloadModal') e.target.style.display = 'none'; };
     load();
     </script>
+    <script src="../../assets/js/mobile.js?v=54"></script>
 </body>
 </html>

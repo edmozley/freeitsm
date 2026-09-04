@@ -248,7 +248,7 @@ $translationNamespaces = ['common', 'cmdb'];
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules
          win on ties (Mobile-Friendly-Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=130">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=131">
 </head>
 <body data-mobile-module="cmdb" data-mobile-page="cmdb-browse">
     <?php include 'includes/header.php'; ?>
@@ -325,6 +325,6 @@ $translationNamespaces = ['common', 'cmdb'];
     <script src="browse.js?v=4"></script>
     <!-- The mobile layer's JS. Without it the module nav has no hamburger and
          sits off-screen — a CSS-only opt-in is not an opt-in (Techniques §25). -->
-    <script src="../assets/js/mobile.js?v=53"></script>
+    <script src="../assets/js/mobile.js?v=54"></script>
 </body>
 </html>

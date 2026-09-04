@@ -10316,4 +10316,259 @@
         flex-direction: column;
     }
     [data-mobile-module="workflow"] .wf-var-list { max-height: 30dvh; }
+
+    /* ====================================================================
+       LAYER 33 — SYSTEM: WEBHOOK DELIVERIES (#1471)
+
+       One page, `system/webhooks/`, and the **first page of the System
+       module** to be brought along. Reported by Ed straight after the
+       Workflow round:
+
+       > "on the webhooks screen there's a panel at the bottom with content
+       >  'when', 'Workflow', 'format' etc spilling off to the right"
+
+       ⭐ WHICH IS A GAP IN THAT ROUND, NOT A SEPARATE DISCOVERY. Workflow's
+       own module nav links straight here (`workflow.nav.webhooks` →
+       `system/webhooks/`), so bringing seven Workflow pages along and
+       stopping at the module boundary left a phone user one tap from a
+       screen that had never been touched. **Follow a module's own
+       navigation when scoping a round, not its directory.**
+
+       The delivery log is a **nine-column table** — When · Workflow ·
+       Format · URL · Status · Attempts · Last code · Next retry · Actions
+       — measured at **556px wide with its right edge at 600** on a 360px
+       screen.
+
+       🔴 AND IT PASSED THE SWEEP, WHICH IS THE PART WORTH RECORDING. The
+       page's shell is
+
+           .wh-container { height: calc(100vh - 48px); overflow-y: auto; }
+
+       and per §12, **declaring one axis computes the other to `auto`** — so
+       the container was a horizontal scroller nobody asked for, it absorbed
+       the 556px table, and the containment check reported the page clean.
+       §18 says a suppressed finding is either "working as intended" or "the
+       bug is hidden", and the probe cannot tell you which. This was the
+       second: the whole PAGE dragged sideways instead of the table
+       scrolling in its own box, which is strictly worse than an overflow
+       because there is nothing to tell you it happened.
+
+       ⚠️ Two pre-existing `@media` blocks on this page, and both are benign
+       — `.ov-grid` stacks at 880px and the module's own `wh-` rules carry
+       no phone assumptions. Checked first, per the LMS trap; this is the
+       third module in a row where that grep found something and the second
+       where it turned out not to matter.
+       ==================================================================== */
+
+    /* --------------------------------------------------------------------
+       33a — The shell, and closing §12's accidental sideways scroll.
+
+       `height: calc(100vh - 48px)` is the eighth container in the rollout
+       built that way; handed back to LAYER 2's `100dvh` flex column.
+
+       🔴 `overflow-x: hidden` is the load-bearing line. Without it the
+       container keeps absorbing anything too wide — which is exactly how a
+       556px table sat on this page without a single check complaining. With
+       it, the feed below has to actually fit, and if a future table does
+       not, the sweep will say so.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="webhooks"] .wh-container {
+        height: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
+        padding: 12px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* 22px 24px of card padding is 48px of a 360px screen spent on gutters
+       before any content — and there are five cards down this page. */
+    body[data-mobile-page="webhooks"] .card {
+        padding: 14px 12px;
+        margin-bottom: 12px;
+    }
+    body[data-mobile-page="webhooks"] .page-title { font-size: 19px; }
+    body[data-mobile-page="webhooks"] .page-subtitle { margin-bottom: 16px; }
+    /* The log's header row is a title beside its filter chips; on a phone the
+       chips need the width more than the alignment. */
+    body[data-mobile-page="webhooks"] .wh-head {
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: flex-start;
+    }
+    body[data-mobile-page="webhooks"] .wh-chip {
+        min-height: 34px;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* --------------------------------------------------------------------
+       33b — The delivery log: nine columns as a card feed.
+
+       §11's decision table points at a scroller for anything past about
+       seven columns, on the grounds that reading order cannot carry that
+       many. Its **follow-up question** overrules that here, exactly as it
+       did for the LMS Progress report: *can* the reader compare down a
+       column on this screen? At 360px a scroller shows **two of nine**, so
+       "read down the Status column across deliveries" means dragging
+       sideways to find Status and then scrolling vertically while holding a
+       horizontal position in your head. The comparison the scroller would
+       protect is not available either way.
+
+       ⭐ And the deciding argument is consistency rather than either of
+       those: this is the **delivery log**, one nav tap from the **execution
+       log** (LAYER 32f), which is now a card feed. Two logs of the same
+       shape, in the same journey, must not behave differently — the
+       Calendar-settings lesson, that one screen behaving unlike its
+       neighbours costs more than the individual screen gains.
+
+       §21 labels six of the nine, which is a lot and is right here: When,
+       Format, URL, Attempts, Last code and Next retry are ALL bare values —
+       a date, a one-word preset, a bare hostname, "1/5", "200" and another
+       date. The workflow name is the card's heading, the status is a pill
+       and the actions are buttons, so those three speak for themselves.
+
+       ⚠️ KEYED ON `table.wh`, and the first draft of this layer keyed on
+       `#deliveries` — an id this page does not have. It would have been a whole
+       layer with PRECISELY ZERO measured effect, which §9 teaches you to blame
+       on load order and which looks identical to a cache that did not bust.
+       The markup is `<table class="wh">` with `<tbody id="rows">` inside
+       `<div id="tableWrap">`. **Read the markup for the selector; do not infer
+       it from the page name.** It also matters that `.wh` excludes the two
+       `table.mini` summaries above it — three columns of figures you genuinely
+       do read down, and which fit at 360px already.
+
+       ⚠️ Note the empty markers: `Last code` and `Next retry` render an
+       em dash rather than nothing when there is no value, so §21's
+       blank-cell guard does not skip them — and that is the right outcome
+       here. A bare "—" in a card means nothing; "Next retry —" says there
+       isn't one.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="webhooks"] table.wh,
+    body[data-mobile-page="webhooks"] table.wh tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="webhooks"] table.wh thead { display: none; }
+    body[data-mobile-page="webhooks"] table.wh tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 2px 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 10px;
+        background: var(--surface, #fff);
+    }
+    body[data-mobile-page="webhooks"] table.wh tbody td {
+        display: block;
+        /* 🔴 Load-bearing: a flex item's automatic minimum size is its content
+           width, so one `nowrap` cell pins the card wider than the screen
+           while the document stays perfectly contained (LAYER 27) — and the
+           actions cell carries an inline `white-space: nowrap`. */
+        min-width: 0;
+        flex: 1 1 45%;
+        margin-top: 6px;
+        padding: 0;
+        border: none;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+    }
+    /* The workflow name leads and the status pill sits beside it. `order`,
+       because the markup has When first — but the thing you are looking for
+       down a list of deliveries is which workflow sent it. */
+    body[data-mobile-page="webhooks"] table.wh tbody td:nth-child(2) {
+        flex: 1 1 60%;
+        order: -2;
+        margin-top: 0;
+        font-size: 15px;
+        color: var(--text, #333);
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="webhooks"] table.wh tbody td:nth-child(5) {
+        flex: 0 0 auto;
+        order: -1;
+        margin-top: 0;
+    }
+    /* ⚠️ Once one sibling is ordered they all must be, or an un-ordered cell
+       defaults to 0 and floats ABOVE everything given a positive order —
+       LAYER 30e lost its action cell to exactly that. */
+    body[data-mobile-page="webhooks"] table.wh tbody td:nth-child(1) { order: 1; }
+    body[data-mobile-page="webhooks"] table.wh tbody td:nth-child(3) { order: 2; }
+    body[data-mobile-page="webhooks"] table.wh tbody td:nth-child(4) { order: 3; }
+    body[data-mobile-page="webhooks"] table.wh tbody td:nth-child(6) { order: 4; }
+    body[data-mobile-page="webhooks"] table.wh tbody td:nth-child(7) { order: 5; }
+    body[data-mobile-page="webhooks"] table.wh tbody td:nth-child(8) { order: 6; }
+    /* The URL is a bare hostname with its own ellipsis and a 260px cap — it
+       gets a full line so the cap is never the thing that truncates it. */
+    body[data-mobile-page="webhooks"] table.wh tbody td:nth-child(4) {
+        flex: 1 1 100%;
+    }
+    body[data-mobile-page="webhooks"] .wh-url {
+        max-width: 100%;
+    }
+    /* Actions: their own line, thumb-sized, and left-aligned — the inline
+       `text-align: right` is for a table column that no longer exists. */
+    body[data-mobile-page="webhooks"] table.wh tbody td:last-child:not(:first-child) {
+        order: 7;
+        flex: 1 1 100%;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+        text-align: left;
+        white-space: normal;
+    }
+    body[data-mobile-page="webhooks"] table.wh tbody td:last-child:not(:first-child) > * {
+        flex: 0 0 auto;
+        min-height: 38px;
+    }
+    /* ⚠️ The loading / empty / error row is a single `<td colspan="9">`,
+       which is both the first AND the last child of its row. */
+    body[data-mobile-page="webhooks"] table.wh tbody td:only-child {
+        flex: 1 1 100%;
+        order: 0;
+        margin: 0;
+        padding: 20px 0;
+        text-align: center;
+        font-size: 13px;
+    }
+    /* A labelled cell with nothing in it prints the heading and then silence. */
+    body[data-mobile-page="webhooks"] table.wh tbody tr td:empty:not(:first-child) {
+        display: none;
+    }
+
+    /* --------------------------------------------------------------------
+       33c — The payload dialogue.
+
+       `.modal-content` is the shared class, so LAYER 3 already promotes it
+       to a full-screen sheet and its `!important` beats the inline
+       `max-width: 640px` the page writes. What LAYER 3 does not know about
+       is what is INSIDE: the dialogue prints the request headers and the
+       exact JSON body into `<pre>` blocks, which is author-shaped content of
+       unbounded width — the Knowledge round's problem in a new place.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="webhooks"] #payloadModal pre {
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        max-width: 100%;
+        white-space: pre;
+        font-size: 11.5px;
+    }
+    /* 🔴 16px on every focusable field, or iOS zooms on focus, the sheet
+       spills wide, Safari reflows to a desktop width and the whole
+       `max-width: 768px` layer stops matching (§3). Written as an exclusion
+       so a field added to this page later is covered by default. */
+    body[data-mobile-page="webhooks"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    body[data-mobile-page="webhooks"] select,
+    body[data-mobile-page="webhooks"] textarea {
+        font-size: 16px;
+    }
 }

@@ -780,7 +780,7 @@ $translationNamespaces = ['common', 'cmdb'];
         }
     </style>
     <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=130">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=131">
 </head>
 <body data-mobile-module="cmdb" data-mobile-page="cmdb-object">
     <?php include 'includes/header.php'; ?>
@@ -921,6 +921,6 @@ $translationNamespaces = ['common', 'cmdb'];
     <!-- The shared dropdown-options editor, same one the settings page uses. -->
     <script src="options-editor.js?v=3"></script>
     <script src="object.js?v=9"></script>
-    <script src="../assets/js/mobile.js?v=53"></script>
+    <script src="../assets/js/mobile.js?v=54"></script>
 </body>
 </html>
