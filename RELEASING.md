@@ -56,15 +56,21 @@ does not want it. Renaming one environment variable is a MAJOR.
 
 ### The mechanical rule
 
-`CHANGELOG.local.md` already types every entry. Read the **Unpublished** section:
+`CHANGELOG.local.md` already types every entry. Take the rows added **since the previous
+tag** — `git log vX.Y.Z..HEAD -- CHANGELOG.local.md` — and read their types:
 
-| What is in the Unpublished section | Release |
+| What is in those rows | Release |
 |---|---|
 | Anything in the MAJOR list above | MAJOR |
 | At least one **Feature** | MINOR |
 | Only **Fix** and **Improvement** | PATCH |
 
 Decide MAJOR first, because it is the only one that is a judgement call.
+
+⚠️ **Use git for that range, not the file's own Unpublished/Published headings.** Those
+headings are maintained by hand and have drifted badly before — in September 2026 the
+Unpublished section held 1,010 rows while 1,149 of them were already live on the website.
+Git has never been wrong about what shipped when.
 
 ### Starting number
 
@@ -79,16 +85,31 @@ contract, not about being feature-complete.
 
 ### Scheduled releases: tie them to the website update
 
-Do not invent a second cadence. `CHANGELOG.local.md` already has a natural rhythm: entries
-accumulate under **Unpublished**, and when there are enough of them they get published to
-`freeitsm.co.uk/updates.php`.
+Do not invent a second cadence. Changes accumulate as changelog rows, and when there are
+enough of them they get published to the website.
 
 **Make that one moment do all three jobs:** tag the release, publish the GitHub release
-notes, and update the website — off the same set of changelog rows, so they can never
+notes, and update the website — off the same `releases/X.Y.Z.md`, so they can never
 disagree.
 
-Roughly a fortnight, or when Unpublished has ten-ish entries, whichever comes first. It is
-a rhythm, not a promise; nobody is waiting on a calendar.
+Roughly a fortnight, or when ten-ish rows have accumulated since the last tag, whichever
+comes first. It is a rhythm, not a promise; nobody is waiting on a calendar.
+
+**Small releases are the point, not a compromise.** The release page is written for someone
+scanning it in a minute. A release carrying 300 changes cannot be read that way no matter
+how well it is organised, so a long gap does not just delay the notes — it destroys them.
+
+### Claude raises it, Ed decides
+
+Ed should not have to remember this. **At the end of every working session, Claude checks
+whether a release is due and says so** — naming the number and the reasoning in one line.
+Any one of these is enough to raise it:
+
+- a **critical fix** landed (section 3) — say so immediately, same day;
+- **ten or more** changelog rows since the last tag;
+- something **whole** shipped — a module, a requested feature, a mobile rollout — even if
+  it is only three rows;
+- **two weeks** have passed and there is anything at all.
 
 ### Out-of-cycle releases: do not make people wait
 
@@ -154,17 +175,19 @@ Never state a rollback promise without checking `includes/db_verify_schema.php` 
 
 ## 5. Cutting a release: the procedure
 
-Claude does steps 1 to 5. Ed does step 6 (the GitHub UI), because `gh` is not
-authenticated on this machine.
+Claude does the lot; Ed approves the notes before anything is published, because a release
+goes out under his name.
 
 **1. Decide the number** using section 1. State the reasoning in one sentence.
 
 **2. Bump the version constant** so the running application knows what it is
 (`includes/version.php` — see section 7; until that exists, skip this step and say so).
 
-**3. Write the release notes** from the **Unpublished** section of `CHANGELOG.local.md`,
-in the shape set out in section 6. Save them to a scratchpad file for Ed to paste, and keep
-the wording identical to what will go on the website.
+**3. Write the release notes** to `releases/X.Y.Z.md`, in the shape set out in section 6.
+The input is every change **since the previous tag** — `git log vX.Y.Z..HEAD` — matched to
+its `CHANGELOG.local.md` row. Do not read the changelog's Unpublished/Published headings to
+decide what is in the release; they have drifted before and git has not. **Show Ed the
+notes and get a yes before publishing.**
 
 **4. Commit** the version bump, then tag that exact commit:
 
@@ -180,36 +203,89 @@ Tags are `v`-prefixed (`v1.4.0`); the release title and the in-app version are n
 **5. Never move or delete a published tag.** People will have pinned it. If a tag is wrong,
 cut the next patch.
 
-**6. Ed publishes the release.** GitHub → Releases → *Draft a new release* → pick the tag
-`v1.4.0` → title `1.4.0` → paste the notes → Publish. GitHub keeps that snapshot
-downloadable forever.
+**6. Publish the release.** `gh` is authenticated as `edmozley`, so this is one command
+once Ed has approved the notes:
 
-**7. Move the published rows** in `CHANGELOG.local.md` from **Unpublished** to
-**Published** under a heading for the release, and update the website — one moment, per
-section 2.
+```bash
+gh release create v1.4.0 --title "1.4.0" --notes-file releases/1.4.0.md
+```
+
+GitHub keeps that snapshot downloadable forever.
+
+**7. Update the website** in the same sitting, so the tag, the GitHub notes and
+freeitsm.co.uk cannot disagree — per section 2. The release page is built from the same
+`releases/X.Y.Z.md`; `updates.php` keeps its own detailed feed separately.
+
+**8. Move the published rows** in `CHANGELOG.local.md` from **Unpublished** to
+**Published** under a heading naming the release.
 
 ---
 
-## 6. What release notes must contain
+## 6. Two documents, two audiences
 
-Written for an operator deciding whether to upgrade tonight. In order:
+`CHANGELOG.local.md` and the release notes are **separate documents that are never the
+same text**. This is the part most easily got wrong, because the changelog is right there
+and copying it feels like a shortcut.
 
-1. **A one-line headline** — what this release is for.
-2. **A critical-fix banner**, if any, naming the affected versions (section 3).
-3. **What changed**, grouped by module, taken from the changelog rows. Features first,
-   then improvements, then fixes. The changelog prose is already written for humans — use
-   it, do not rewrite it into commit-speak.
-4. **Upgrade steps**, every time, no exceptions:
+| | `CHANGELOG.local.md` | `releases/X.Y.Z.md` |
+|---|---|---|
+| Audience | Ed and Claude | Somebody who runs FreeITSM for their team |
+| Contains | **Every** change, one row each | Only what a user would notice |
+| Voice | Technical, exhaustive, explains the reasoning | Plain, short, explains the benefit |
+| Published | **Never** — it stays in the repo | GitHub Release + the website |
+| Written | As each change ships | Once, at release time |
+
+The changelog remains the complete technical record and the input to everything below.
+It is not published and its prose is not reused.
+
+### Writing the notes
+
+**The essential move is merging, not copying.** Twenty changelog rows about making
+Contracts work on a phone become **one** line: *"The whole Contracts module now works on a
+phone."* A release of 100 rows should produce something like 15 bullets. If the notes are
+as long as the changelog section, they have not been written yet.
+
+Rules that follow from the audience:
+
+- **Name things as they appear on screen.** "Preferences → General", not `user_prefs.php`.
+- **State a fix as the symptom, not the cause.** "Folder counts disagreed with the ticket
+  list" — the reader never saw the query.
+- **Drop anything invisible.** Refactors, test coverage, tooling, internal renames. They
+  belong in the changelog and nowhere else.
+- **No commit hashes, file paths, CSS, or module internals.**
+- **Say what someone can now do**, not what was changed.
+
+### What every set of notes contains
+
+Written for an operator deciding whether to upgrade tonight, in this order — see
+`releases/TEMPLATE.md` for the skeleton:
+
+1. **Front matter** — `version`, `date`, `headline`, `security`. The website reads this.
+2. **What this release is about** — three or four sentences. The one part written from
+   scratch every time; everything else is distilled from the changelog.
+3. **A critical-fix banner**, if any, naming the affected versions (section 3).
+4. **Security**, when there is any — its own section, above the features, because it is
+   the one category that asks the reader to act rather than just read. Delete the heading
+   when empty rather than writing "none".
+5. **New features, Improvements, Fixes** — in that order.
+6. **Upgrade steps**, every time, no exceptions:
    1. Pull or rebuild.
    2. Sign in as an administrator and run **System → Database Verification**.
    3. Hard-refresh the browser (Ctrl-F5) — this release updates cached JavaScript.
 
    Step 2 is not optional and is not obvious. Step 3 matters because so many releases bump
    a cache-buster, and a stale `inbox.js` looks like a broken feature.
-5. **The rollback line** (section 4).
-6. **Anything an operator must do by hand** — a new environment variable, a permission to
+7. **The rollback line** (section 4).
+8. **Anything an operator must do by hand** — a new environment variable, a permission to
    set, a scheduled task to create. If this section is not empty, question whether the
    release is really a MINOR.
+
+### Where the notes live
+
+One file per release: **`releases/X.Y.Z.md`**, committed before the tag. That single file
+is the source for the GitHub Release body and for the website's release page, so the two
+cannot drift apart. Never edit a published release's file to change history — if it is
+wrong, fix it in the next release's notes.
 
 ---
 
