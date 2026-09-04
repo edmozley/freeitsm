@@ -54,6 +54,10 @@ function api_post(string $url, string $key, array $payload): array {
         CURLOPT_POSTFIELDS => json_encode($payload),
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 30,
+        // PHP's cURL sends no User-Agent unless told to, and the host's web application
+        // firewall rejects an anonymous POST outright. Say who we are. (Same cause as
+        // the updates sync — see sync_updates_website.php.)
+        CURLOPT_USERAGENT => 'FreeITSM-CommitsSync/1.0 (+https://github.com/edmozley/freeitsm)',
     ]);
     $body = curl_exec($ch);
     $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
