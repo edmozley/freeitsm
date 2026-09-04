@@ -304,8 +304,16 @@ as one long line, with blank lines between blocks. List items stay one per line.
 
 One file per release: **`releases/X.Y.Z.md`**, committed before the tag. That single file
 is the source for the GitHub Release body and for the website's release page, so the two
-cannot drift apart. Never edit a published release's file to change history - if it is
-wrong, fix it in the next release's notes.
+cannot drift apart.
+
+**Do not rewrite the account of what a release contained.** If a release turns out to have
+shipped something broken, that belongs in the next release's notes, not in a quiet edit to
+the old ones.
+
+**Do correct something that is wrong, or has since become wrong** - a broken link, or an
+instruction that no longer applies. 1.0.0 said pinned Docker images did not exist yet, and
+a few hours later they did; leaving that in place would have sent every reader down a path
+that was no longer true. Edit the file, then `gh release edit vX.Y.Z --notes-file`.
 
 ---
 
