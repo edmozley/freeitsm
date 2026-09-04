@@ -146,6 +146,14 @@ FreeITSM uses [semantic versioning](https://semver.org), read in terms of what a
 
 The version you are running is shown on the **System** screen and stamped on the first line of every **Debug Tools** report. Released versions, with notes for each, are on the **[releases page](https://github.com/edmozley/freeitsm/releases)**.
 
+Every release is also published as a Docker image, so you can run a known version rather than building from whatever source you happen to have. In `docker-compose.yml`, replace `build: .` with:
+
+```yaml
+image: ghcr.io/edmozley/freeitsm:1.0.0
+```
+
+`:1.0` follows the newest 1.0.x, `:1` the newest 1.x, and `:latest` the newest release. Pin the full number in production - rolling back is then a matter of changing it and running `docker compose up -d`. Images are built for both x86-64 and ARM, so a Raspberry Pi or an Apple Silicon Mac works too.
+
 **Technology stack:** PHP 7.4–8.4 · MySQL 8.0+ · vanilla JavaScript (no frameworks) · TinyMCE · Apache, or nginx using the [config it ships with](https://github.com/edmozley/freeitsm/wiki/Running-on-nginx).
 
 ## 👋 From the maintainer

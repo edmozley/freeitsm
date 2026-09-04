@@ -1,5 +1,17 @@
 services:
   app:
+    # Builds FreeITSM from the source in this directory. That is the right default
+    # for developing, and for anyone who wants to see exactly what they are running.
+    #
+    # To run a published release instead, comment out `build: .` and use a pinned
+    # image. You then get the exact bytes that were tested for that version, and you
+    # roll back by changing the number and running `docker compose up -d`:
+    #
+    #   image: ghcr.io/edmozley/freeitsm:1.0.0
+    #
+    # `:1.0` follows the newest 1.0.x, `:1` the newest 1.x, and `:latest` the newest
+    # release of all. Pin the full number in production - `latest` moving under you
+    # is the thing version numbers exist to prevent.
     build: .
     ports:
       - "8080:80"

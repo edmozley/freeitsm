@@ -1,0 +1,143 @@
+# Build and publish the FreeITSM Docker image when a version tag is pushed.
+#
+# Why this exists: docker-compose.yml says `build: .`, so until now every operator
+# built their own copy from whatever source they happened to have. There was no way
+# to ask for a particular version and no way to go back to one. Discussion #92.
+#
+# Pushing the tag v1.2.3 publishes:
+#   ghcr.io/edmozley/freeitsm:1.2.3   the exact release
+#   ghcr.io/edmozley/freeitsm:1.2     the newest 1.2.x
+#   ghcr.io/edmozley/freeitsm:1       the newest 1.x
+#   ghcr.io/edmozley/freeitsm:latest  the newest release
+#
+# GitHub's registry (ghcr.io) needs no setup: GITHUB_TOKEN authenticates it.
+# Docker Hub is published to as well, but only if the DOCKERHUB_USERNAME and
+# DOCKERHUB_TOKEN secrets exist - so this workflow works today and starts pushing
+# there the moment those are added, with no edit here.
+
+name: Publish Docker image
+
+on:
+  push:
+    tags:
+      - 'v*'
+  # Lets a tag that already exists be built after the fact - v1.0.0 was tagged
+  # before this workflow existed.
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing tag to build, e.g. v1.0.0'
+        required: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the tagged commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      # The image must not disagree with itself about what it is. If the tag says
+      # v1.2.3 the application must report 1.2.3 on the System screen, or every
+      # bug report from it names the wrong version. Cheap to check, miserable to
+      # discover later.
+      - name: Version constant must match the tag
+        run: |
+          TAG="${{ github.event.inputs.tag || github.ref_name }}"
+          EXPECTED="${TAG#v}"
+          ACTUAL=$(grep -oE "FREEITSM_VERSION', *'[^']+'" includes/version.php | grep -oE "'[^']+'$" | tr -d "'")
+          echo "tag=$TAG  expected=$EXPECTED  includes/version.php=$ACTUAL"
+          if [ "$EXPECTED" != "$ACTUAL" ]; then
+            echo "::error::Tag $TAG expects version $EXPECTED but includes/version.php says $ACTUAL. Bump the constant in the commit being tagged (RELEASING.md step 2)."
+            exit 1
+          fi
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Optional second destination. Skipped silently when the secrets are absent.
+      # The image list is built here rather than inline in the metadata step: an
+      # empty line in that step's `images` input is not ignored, it is an error.
+      - name: Is Docker Hub configured?
+        id: dockerhub
+        env:
+          DH_USER: ${{ secrets.DOCKERHUB_USERNAME }}
+          DH_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        run: |
+          IMAGES="ghcr.io/${GITHUB_REPOSITORY,,}"
+          if [ -n "$DH_USER" ] && [ -n "$DH_TOKEN" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+            IMAGES="$IMAGES"$'\n'"docker.io/$DH_USER/freeitsm"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "Docker Hub secrets not set - publishing to ghcr.io only."
+          fi
+          {
+            echo "images<<EOF"
+            echo "$IMAGES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Docker Hub
+        if: steps.dockerhub.outputs.enabled == 'true'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Work out the image names and tags
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.dockerhub.outputs.images }}
+          # A pre-release (v2.0.0-rc1) gets its own tag but must never move `latest`.
+          tags: |
+            type=semver,pattern={{version}},value=${{ github.event.inputs.tag || github.ref_name }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ github.event.inputs.tag || github.ref_name }}
+            type=semver,pattern={{major}},value=${{ github.event.inputs.tag || github.ref_name }}
+          flavor: |
+            latest=auto
+          labels: |
+            org.opencontainers.image.title=FreeITSM
+            org.opencontainers.image.description=Free and open-source IT service management
+            org.opencontainers.image.url=https://freeitsm.co.uk
+            org.opencontainers.image.source=https://github.com/edmozley/freeitsm
+            org.opencontainers.image.licenses=MIT
+
+      # arm64 is included deliberately: a fair number of people self-host on a
+      # Raspberry Pi, an Apple Silicon Mac or an ARM cloud instance, and an
+      # amd64-only image simply refuses to start for them. It is built under
+      # emulation, so it is the slow half of this job.
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Say what was published
+        run: |
+          echo "### Published" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ steps.meta.outputs.tags }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
