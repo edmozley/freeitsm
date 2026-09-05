@@ -32,6 +32,16 @@ return [
         'start'       => 'Start',
         'resume'      => 'Resume',
         'review'      => 'Review',
+        // "Lesson 2 of 3" — a position in a list, not a measured percentage.
+        // See lmsAttachLessonProgress(): the only thing stored is which lesson
+        // the learner is on, so that is what this says.
+        'progress'    => 'Lesson {n} of {total}',
+        'not_opened'  => 'Not opened yet',
+    ],
+
+    'layout' => [
+        'list'  => 'List view',
+        'cards' => 'Card view',
     ],
 
     'tabs' => [
