@@ -1387,7 +1387,7 @@ $translationNamespaces = ['common', 'network-mapper'];
     <!-- Mobile layer LAST, after this page's own <style>, or every rule that
          targets the same selector at the same specificity loses on document
          order (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=133">
 </head>
 <body data-mobile-module="network-mapper" data-mobile-page="nm-diagram">
     <?php include 'includes/header.php'; ?>

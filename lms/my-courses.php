@@ -74,7 +74,7 @@ $canManage = analystHasCapability($conn, (int)$_SESSION['analyst_id'], Cap::LMS_
         }
     </style>
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=133">
 </head>
 <body data-mobile-module="lms">
     <?php include 'includes/header.php'; ?>

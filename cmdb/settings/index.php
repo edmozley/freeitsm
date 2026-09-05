@@ -211,7 +211,7 @@ $translationNamespaces = ['common', 'cmdb'];
         .ai-suggestion .sug-meta { color: var(--text-muted,#6b7280); font-size: 12px; margin-top: 4px; }
     </style>
     <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=133">
 </head>
 <!-- 🔑 data-mobile-page="settings" is the FOURTH part of opting a settings screen
      in, and the one that is silent when missing: the entire shared settings layer

@@ -2892,7 +2892,44 @@
         line-height: 1.4;
     }
 
-    .wr-main { padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); }
+    /* 🔴 19x — THE FEED COULD NOT BE SCROLLED AT ALL (#1473, Ed).
+
+       `.wr-main` is `flex: 1; min-width: 0; display: flex; flex-direction:
+       column` — and a flex item's automatic minimum size on the BLOCK axis
+       is its content height, exactly as `min-width: auto` is on the inline
+       one. The module set `min-width: 0` and not `min-height: 0`, which is
+       right on a desktop, where the container is a fixed
+       `calc(100vh - 48px)` and the feed never grows past it.
+
+       On a phone LAYER 19 hands `.wr-container` to LAYER 2's flex column
+       (`height: auto; flex: 1 1 auto; min-height: 0`), and from that point
+       the height is decided by the content — so `.wr-main` refused to shrink
+       below its messages and took the feed with it. Measured at 360×740:
+
+           .wr-container  h=690   scrollH=9413   overflow-y: visible
+           .wr-main       h=9125  min-height: auto      <- the floor
+           .wr-messages   h=9011  overflow-y: auto      <- never fires
+
+       ⭐ The feed's own `overflow-y: auto` was there the whole time and had
+       nothing to do: an overflow rule on a box that is already as tall as
+       its content is inert. §28's exact shape — *not the container, no
+       overflow was ever set on it; not the document, it is already 100dvh*
+       — with the twist that here the overflow rule DID exist one level down
+       and still could not fire.
+
+       🔑 **`min-width: 0` and `min-height: 0` are two different guards, and
+       a chat pane needs the second one.** Seeing the first in a module's CSS
+       reads as "somebody thought about flex minimums here", which is exactly
+       what makes the missing half easy to walk past.
+
+       ⬜ This is [§28's owed sweep](Mobile-Friendly-Techniques) coming due:
+       War Room shipped as LAYER 19, and the "can you reach the bottom?"
+       check was not invented until LAYER 29. It has never been run across
+       the modules that shipped before it. */
+    .wr-main {
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+        min-height: 0;
+    }
     /* The intro explains the module to a first-time reader; on a phone mid-
        incident it is a paragraph between you and the messages. */
     .wr-intro { display: none; }

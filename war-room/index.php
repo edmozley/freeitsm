@@ -87,7 +87,7 @@ foreach ($channels as $ch) {
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=62">
     <link rel="stylesheet" href="../assets/css/war-room.css?v=6">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=133">
     <style>
         /* Pin the shared accent to the module's amber so buttons and focus
            rings are on-brand, the same way every other module does it. */
@@ -98,7 +98,7 @@ foreach ($channels as $ch) {
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/i18n.js?v=2"></script>
 </head>
-<body>
+<body data-mobile-module="war-room" data-mobile-page="war-room">
     <?php include 'includes/header.php'; ?>
 
     <div class="wr-container">

@@ -248,7 +248,7 @@ $translationNamespaces = ['common', 'cmdb'];
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules
          win on ties (Mobile-Friendly-Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=133">
 </head>
 <body data-mobile-module="cmdb" data-mobile-page="cmdb-browse">
     <?php include 'includes/header.php'; ?>

@@ -571,7 +571,7 @@ $translationNamespaces = ['common', 'tickets'];
          data-mobile-shell="own" opts OUT of LAYER 2's flex body — this page
          deliberately keeps <body> unstyled (see the .settings-shell comment
          above) and builds its own scroll shell one level down. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=133">
 </head>
 <body data-mobile-page="settings" data-mobile-shell="own">
     <div class="settings-shell">

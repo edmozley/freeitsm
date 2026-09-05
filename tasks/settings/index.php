@@ -128,7 +128,7 @@ $translationNamespaces = ['common', 'tasks'];
         [data-theme-mode="dark"] .span-mode-card.selected { background: #241b3d; }
         [data-theme-mode="dark"] .card-field-row:hover { background: #241b3d; }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=133">
 </head>
 <body data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>

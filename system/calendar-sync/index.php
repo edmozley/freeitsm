@@ -119,7 +119,7 @@ $translationNamespaces = ['common', 'system'];
         .cs-check { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; cursor: pointer; margin: 10px 0 2px; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=133">
 </head>
 <body data-mobile-module="system" data-mobile-page="settings" data-mobile-shell="own">
     <div class="settings-shell">

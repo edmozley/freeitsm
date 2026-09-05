@@ -97,7 +97,7 @@ $translationNamespaces = ['common', 'cmdb'];
         .audit-loading { color: var(--text-muted,#6b7280); font-size: 13px; }
     </style>
     <!-- Mobile layer: after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=133">
 </head>
 <body data-mobile-module="cmdb" data-mobile-page="cmdb-audit">
     <?php include 'includes/header.php'; ?>

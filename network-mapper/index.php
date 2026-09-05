@@ -238,7 +238,7 @@ $translationNamespaces = ['common', 'network-mapper'];
     </style>
     <!-- Mobile layer LAST, so its @media rules win the ties against the block
          above rather than losing on document order (Techniques §9). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=133">
 </head>
 <body data-mobile-module="network-mapper" data-mobile-page="nm-list">
     <?php include 'includes/header.php'; ?>

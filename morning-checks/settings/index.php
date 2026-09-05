@@ -182,7 +182,7 @@ $translationNamespaces = ['common', 'morning-checks'];
            .btn primaries. Toggle switch base styles live in inbox.css. */
         body { --accent: var(--mc-accent, #00acc1); --accent-hover: var(--mc-accent-hover, #00838f); }
     </style>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=132">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=133">
 </head>
 <body data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>
