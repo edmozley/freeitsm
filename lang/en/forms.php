@@ -528,7 +528,7 @@ return [
         'flow_submit' => 'Submit',
         'flow_review' => 'Review & export',
         'card_builder_title' => 'Builder',
-        'card_builder_body'  => 'Design forms visually with a drag-and-drop field editor. Add text inputs, text areas, checkboxes, and dropdowns, then rearrange them in seconds.',
+        'card_builder_body'  => 'Design forms visually with a drag-and-drop field editor. Eleven field types, from plain text and dropdowns to date pickers, section headings and lookups that pull a real record from elsewhere in FreeITSM. Rearrange them in seconds.',
         'card_fill_title' => 'Fill in',
         'card_fill_body'  => 'A clean, A4-style form interface with your company logo at the top. Required field validation ensures nothing important gets missed.',
         'card_subs_title' => 'Submissions',
