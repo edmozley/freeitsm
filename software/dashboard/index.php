@@ -571,6 +571,14 @@ $translationNamespaces = ['common', 'software'];
             }
         }
 
+        // Application names and publishers run long - "Microsoft Teams Meeting Add-in
+        // for Microsoft Office" is 50 characters. Shorten for the axis and the legend;
+        // the tooltip always carries the full text.
+        function truncateLabel(text, max) {
+            text = String(text ?? '');
+            return text.length > max ? text.slice(0, max - 1).trimEnd() + '…' : text;
+        }
+
         function renderChart(widgetId, chartType, labels, values) {
             const canvasId = `chart-${widgetId}`;
             const canvas = document.getElementById(canvasId);
@@ -612,8 +620,33 @@ $translationNamespaces = ['common', 'software'];
                             position: 'right',
                             labels: {
                                 boxWidth: 12,
-                                padding: 8,
-                                font: { size: 11 }
+                                // 15 slices at the old padding came to more than the
+                                // canvas is tall, so the last one wrapped into a second
+                                // column on its own. Long publisher names are shortened
+                                // for the same reason - the full name is in the tooltip.
+                                padding: 5,
+                                font: { size: 11 },
+                                generateLabels: function (chart) {
+                                    // Doughnut and pie label each SLICE, and they do it
+                                    // through a per-type override - the global default
+                                    // labels each dataset, which for these is one entry.
+                                    const base = (Chart.overrides[chart.config.type]
+                                                  && Chart.overrides[chart.config.type].plugins
+                                                  && Chart.overrides[chart.config.type].plugins.legend
+                                                  && Chart.overrides[chart.config.type].plugins.legend.labels
+                                                  && Chart.overrides[chart.config.type].plugins.legend.labels.generateLabels)
+                                                 || Chart.defaults.plugins.legend.labels.generateLabels;
+                                    const items = base(chart);
+                                    items.forEach(item => { item.text = truncateLabel(item.text, 26); });
+                                    return items;
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                // the axis and legend are shortened, so the tooltip is
+                                // the one place the full name has to appear
+                                title: items => items.length ? String(labels[items[0].dataIndex]) : ''
                             }
                         }
                     }
@@ -629,7 +662,14 @@ $translationNamespaces = ['common', 'software'];
                     x: {
                         ticks: {
                             maxRotation: 45,
-                            font: { size: 11 }
+                            font: { size: 11 },
+                            // Chart.js drops labels that do not fit rather than shortening
+                            // them, which left half the bars unlabelled. Shorten instead,
+                            // and keep every bar labelled.
+                            autoSkip: false,
+                            callback: function (value) {
+                                return truncateLabel(String(this.getLabelForValue(value)), 22);
+                            }
                         }
                     }
                 };
