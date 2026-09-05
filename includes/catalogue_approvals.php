@@ -190,10 +190,32 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub): array {
     return [$ticketId, $ticketNumber];
 }
 
+/**
+ * One stored answer as the words a person would use.
+ *
+ * A `checkbox` is stored as 1 or 0, which read as "1" and "0" wherever an answer
+ * is shown back - on the approval card and in the raised ticket. An approver
+ * seeing "My budget holder has approved this spend: 1" has to know the storage
+ * format to read their own inbox. `checkboxes` (plural) is a different field and
+ * is stored as a JSON array of the chosen labels.
+ */
+function catalogueAnswerText(?string $raw, ?string $fieldType): string {
+    $val = (string)$raw;
+
+    if ($fieldType === 'checkbox') {
+        if ($val === '') return 'No';
+        return in_array(strtolower($val), ['1', 'true', 'yes', 'on'], true) ? 'Yes' : 'No';
+    }
+
+    $decoded = json_decode($val, true);          // checkboxes are stored as a JSON array
+    if (is_array($decoded)) $val = implode(', ', $decoded);
+    return $val;
+}
+
 /** The submitted answers as a safe (fully-escaped) HTML summary for the ticket body. */
 function catalogueSubmissionBodyHtml(PDO $conn, int $submissionId, string $formTitle): string {
     $stmt = $conn->prepare(
-        "SELECT ff.label, sd.field_value
+        "SELECT ff.label, ff.field_type, sd.field_value
            FROM form_submission_data sd
            JOIN form_fields ff ON ff.id = sd.field_id
           WHERE sd.submission_id = ?
@@ -206,9 +228,7 @@ function catalogueSubmissionBodyHtml(PDO $conn, int $submissionId, string $formT
     $html = '<p>Service request raised from the catalogue: <strong>' . $esc($formTitle) . '</strong></p>';
     $html .= '<table style="border-collapse:collapse;">';
     foreach ($rows as $r) {
-        $val     = (string)$r['field_value'];
-        $decoded = json_decode($val, true);      // checkboxes are stored as a JSON array
-        if (is_array($decoded)) $val = implode(', ', $decoded);
+        $val = catalogueAnswerText($r['field_value'], $r['field_type']);
         $html .= '<tr>'
                . '<td style="padding:4px 14px 4px 0;vertical-align:top;color:#666;"><strong>' . $esc($r['label']) . '</strong></td>'
                . '<td style="padding:4px 0;">' . nl2br($esc($val)) . '</td>'
@@ -286,7 +306,7 @@ function catalogueApprovalsList(PDO $conn, int $analystId, string $filter = 'min
 /** label + value pairs for one submission (checkboxes flattened). */
 function catalogueSubmissionAnswers(PDO $conn, int $submissionId): array {
     $stmt = $conn->prepare(
-        "SELECT ff.label, sd.field_value
+        "SELECT ff.label, ff.field_type, sd.field_value
            FROM form_submission_data sd
            JOIN form_fields ff ON ff.id = sd.field_id
           WHERE sd.submission_id = ?
@@ -295,10 +315,7 @@ function catalogueSubmissionAnswers(PDO $conn, int $submissionId): array {
     $stmt->execute([$submissionId]);
     $out = [];
     foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
-        $val = (string)$r['field_value'];
-        $decoded = json_decode($val, true);
-        if (is_array($decoded)) $val = implode(', ', $decoded);
-        $out[] = ['label' => $r['label'], 'value' => $val];
+        $out[] = ['label' => $r['label'], 'value' => catalogueAnswerText($r['field_value'], $r['field_type'])];
     }
     return $out;
 }
