@@ -505,6 +505,27 @@ body {
 [data-theme-mode="dark"] .lms-status.failed      { background: #3a1a1d; color: #fca5a5; }
 [data-theme-mode="dark"] .lms-status.overdue     { background: #3a1a1d; color: #fca5a5; }
 
+/* 🔴 THE OVERDUE PROGRESS ROW, IN THE DARK.
+   `.lms-row-overdue` is `#fff5f5` — a 4% pink over a WHITE page. In a dark
+   theme that is a near-white band across the table with the theme's own pale
+   text on top of it, so the one row you most need to read is the one you
+   cannot. The comment beside the class in lms.js and the mobile rule both
+   anticipated this; only the mobile card ever got an answer, and the desktop
+   table kept the light-mode colour in both themes.
+
+   ⚠️ Deliberately NOT `--danger-bg` (#3a1a1d). That is a BADGE background,
+   sized for a pill of a dozen characters; spread across a whole row it shouts
+   far louder than the barely-there pink does in the light theme, and the two
+   themes should agree about how loud this is. This is the dark surface
+   (#1e2228) nudged the same small distance towards red that #fff5f5 is nudged
+   from white.
+
+   The hover rule above shares this selector's specificity and loses on source
+   order, so the hover tint is restated here — otherwise an overdue row is the
+   only row in the table that does not respond to the pointer. */
+[data-theme-mode="dark"] .lms-table tbody tr.lms-row-overdue       { background: #2a1c1f; }
+[data-theme-mode="dark"] .lms-table tbody tr.lms-row-overdue:hover { background: #35242a; }
+
 /* Interaction results */
 [data-theme-mode="dark"] .ld-result.correct   { background: #16331f; color: #86efac; }
 [data-theme-mode="dark"] .ld-result.wrong,

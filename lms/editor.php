@@ -49,7 +49,7 @@ $translationNamespaces = ['common', 'lms'];
     <title><?php echo htmlspecialchars($course['title']); ?> — <?php echo htmlspecialchars(t('lms.editor.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=62">
-    <link rel="stylesheet" href="../assets/css/lms.css?v=6">
+    <link rel="stylesheet" href="../assets/css/lms.css?v=7">
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=133">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
