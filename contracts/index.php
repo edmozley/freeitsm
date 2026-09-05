@@ -362,19 +362,56 @@ $translationNamespaces = ['common', 'contracts'];
             }).join('');
         }
 
+        /**
+         * The badge a contract shows in the list and on its own page.
+         *
+         * 🔑 THE COLOUR COMES FROM THE DATES. THE WORDS COME FROM THE STATUS.
+         * Those are two different questions, and this used to answer both with
+         * the status: any contract that had one was painted green. So a
+         * contract three weeks from its end date, correctly marked with the
+         * "Expiring Soon" status the product ships with, rendered as a GREEN
+         * badge reading "Expiring Soon" - and the only way to get the amber
+         * one was to leave the status empty. Choosing the right status made
+         * the badge wrong, which is the wrong way round for a register whose
+         * whole job is telling you what is about to lapse.
+         *
+         * The end date is a fact, so it decides the colour. The status is the
+         * operator's own word for where the paperwork has got to - Draft, In
+         * Negotiation, Renewal Pending - so it decides the label. A contract
+         * can be both "Renewal Pending" and three weeks from expiry, and now
+         * it looks like both at once.
+         *
+         * ⚠️ Never key on the status NAME. contract_statuses is editable in
+         * Settings and it is translated, so "Expiring Soon" is not a value
+         * this code can test for - it is whatever this operator happened to
+         * type. Same trap as the hardcoded status names in Watchtower.
+         */
         function getContractStatus(c) {
             if (!c.is_active) return { class: 'expired', label: window.t('contracts.status.inactive') };
+
+            let cls   = 'active';
+            let label = window.t('contracts.status.active');
+
             if (c.contract_end) {
                 const end = new Date(c.contract_end);
                 const today = new Date(); today.setHours(0,0,0,0);
                 const daysLeft = Math.ceil((end - today) / (1000*60*60*24));
-                if (daysLeft < 0) return { class: 'expired', label: window.t('contracts.status.expired') };
-                if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
-                if (daysLeft <= 90) return { class: 'expiring', label: window.t('contracts.status.expiring') };
-                return { class: 'active', label: window.t('contracts.status.active') };
+                if (daysLeft < 0) {
+                    cls = 'expired';
+                    label = window.t('contracts.status.expired');
+                } else if (daysLeft <= 90) {
+                    cls = 'expiring';
+                    label = window.t('contracts.status.expiring');
+                }
             }
-            if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
-            return { class: 'active', label: window.t('contracts.status.active') };
+
+            // Past the end date the date is the whole truth, so the computed
+            // word wins. A status nobody remembered to change - "Active" on an
+            // agreement that lapsed in March - would otherwise be printed onto
+            // a red badge and read as a live contract.
+            if (c.contract_status_name && cls !== 'expired') label = c.contract_status_name;
+
+            return { class: cls, label: label };
         }
 
         // Search

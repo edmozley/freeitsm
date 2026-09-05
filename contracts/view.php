@@ -659,19 +659,44 @@ entityVisit('contract', (int) $contract_id);
             `;
         }
 
+        /**
+         * The badge a contract shows. Kept identical to the copy in
+         * contracts/index.php - the list and the record must never disagree
+         * about what colour a contract is.
+         *
+         * 🔑 THE COLOUR COMES FROM THE DATES. THE WORDS COME FROM THE STATUS.
+         * See the full explanation on the copy in contracts/index.php. The
+         * short version: this used to paint any contract with a status green,
+         * so the shipped "Expiring Soon" status produced a GREEN badge reading
+         * "Expiring Soon", and only a contract with NO status could go amber.
+         *
+         * ⚠️ Never key on the status NAME - contract_statuses is editable in
+         * Settings and translated.
+         */
         function getContractStatus(c) {
             if (!c.is_active) return { class: 'expired', label: window.t('contracts.status.inactive') };
+
+            let cls   = 'active';
+            let label = window.t('contracts.status.active');
+
             if (c.contract_end) {
                 const end = new Date(c.contract_end);
                 const today = new Date(); today.setHours(0,0,0,0);
                 const daysLeft = Math.ceil((end - today) / (1000*60*60*24));
-                if (daysLeft < 0) return { class: 'expired', label: window.t('contracts.status.expired') };
-                if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
-                if (daysLeft <= 90) return { class: 'expiring', label: window.t('contracts.status.expiring') };
-                return { class: 'active', label: window.t('contracts.status.active') };
+                if (daysLeft < 0) {
+                    cls = 'expired';
+                    label = window.t('contracts.status.expired');
+                } else if (daysLeft <= 90) {
+                    cls = 'expiring';
+                    label = window.t('contracts.status.expiring');
+                }
             }
-            if (c.contract_status_name) return { class: 'active', label: c.contract_status_name };
-            return { class: 'active', label: window.t('contracts.status.active') };
+
+            // Past the end date the date is the whole truth, so the computed
+            // word wins over a status nobody remembered to change.
+            if (c.contract_status_name && cls !== 'expired') label = c.contract_status_name;
+
+            return { class: cls, label: label };
         }
 
         function formatDate(dateStr) {
