@@ -1861,7 +1861,48 @@
            `table.mini` summaries which stay tables: three columns of
            figures you genuinely do read down, and they already fit. */
         { table: 'body[data-mobile-page="webhooks"] table.wh',
-          columns: [0, 2, 3, 5, 6, 7] }
+          columns: [0, 2, 3, 5, 6, 7] },
+
+        /* ---- REPORTING: system logs (LAYER 35e, #1482) ----
+           🔴 THE FIRST TWO FEEDS WHOSE TABLE DOES NOT EXIST AT LOAD. Both
+           log tabs render their whole `<table>` into `#logsTableContainer`
+           from a fetch, so `querySelector` at load finds nothing — see the
+           `watch` note where the observer is set up. Same for the Intune
+           drill-down below.
+
+           ⚠️ And they are two DIFFERENT tables sharing one class in one
+           container, told apart by the `data-log-type` their own renderers
+           now stamp: a selector had no other way to know which was on
+           screen, and they do not want the same columns labelled.
+
+           Login attempts — Date/time · Username · Status · IP · User agent.
+           The username is the card's heading and the status is a pill, so
+           the other three take labels: two of them are a bare timestamp and
+           a bare dotted-quad sitting one above the other, and the third is
+           a user agent, which without its heading is just a long string. */
+        { table: 'body[data-mobile-page="rep-logs"] .logs-table[data-log-type="login"]',
+          columns: [0, 3, 4],
+          watch: '#logsTableContainer' },
+
+        /* Email import — Date/time · From · Subject · Type · Attachments.
+           Only two. The subject leads, the type is a pill, and From renders
+           a name above an address, which says what it is. A bare date does
+           not, and neither does a bare "None" under it — which is the
+           attachments cell when there were none, and §21's own case. */
+        { table: 'body[data-mobile-page="rep-logs"] .logs-table[data-log-type="email"]',
+          columns: [0, 4],
+          watch: '#logsTableContainer' },
+
+        /* ---- REPORTING: the Intune drill-down (LAYER 35j, #1482) ----
+           Device · User · OS · Compliance · Encrypted · Last sync. The
+           device name is the heading and compliance is a pill; the other
+           four are a bare person's name, a bare version string, a bare
+           "Yes"/"No" and a bare date. Encrypted is the clearest example in
+           the rollout of a cell that is meaningless without its heading —
+           "Yes" on its own line answers a question the card never asked. */
+        { table: 'body[data-mobile-page="rep-intune"] .drill-body table',
+          columns: [1, 2, 4, 5],
+          watch: '#drillBody' }
     ];
 
     function labelCardFeed(table, columns) {
@@ -1922,10 +1963,22 @@
     // that resolves after it. Observing the table is cheaper and safer
     // than wrapping four call sites, and it cannot get out of step with
     // a renderer this file does not own.
+    // 🔴 Observe the STABLE ANCESTOR, not the table, wherever the page names
+    // one. Every feed up to LAYER 33 shipped its `<table>` in the markup and
+    // filled the tbody from a fetch, so watching the table itself was both
+    // correct and the tightest scope available. Reporting breaks that: both
+    // log tabs and the Intune drill-down replace their container's entire
+    // innerHTML, table and all, so at load `querySelector(FEEDS[i].table)`
+    // finds nothing, `watched` comes out empty and this whole IIFE returns
+    // before it has done anything — a feed that renders correctly forever
+    // and never once gets a label, with nothing anywhere to say why.
+    // `watch` names the box that IS there at load; without one the behaviour
+    // is exactly as before.
     var watched = [];
     for (var i = 0; i < FEEDS.length; i++) {
-        var el = document.querySelector(FEEDS[i].table);
-        if (el) watched.push(el);
+        var el = FEEDS[i].watch ? document.querySelector(FEEDS[i].watch)
+                                : document.querySelector(FEEDS[i].table);
+        if (el && watched.indexOf(el) === -1) watched.push(el);
     }
     if (!watched.length) return;              // not a page with a labelled feed
 

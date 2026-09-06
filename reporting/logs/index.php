@@ -156,6 +156,18 @@ $translationNamespaces = ['common', 'reporting'];
             color: var(--danger-text, #721c24);
         }
 
+        /* A NEUTRAL tone for a .log-status carrying neither state — this
+           applies at every width, and it is a fix rather than a mobile
+           change. The email-import tab renders `New Ticket` with `.success`
+           and `Reply` with no class at all, so `Reply` was drawn as a pill
+           with padding, a radius and no fill: sized like its neighbour,
+           dressed like its neighbour, and invisible as a badge. Nothing
+           chose that — the class list is simply empty on one branch. */
+        .log-status:not(.success):not(.failed) {
+            background: var(--surface-2, #f0f0f0);
+            color: var(--text-muted, #666);
+        }
+
         .log-details {
             font-size: 13px;
             color: var(--text-muted, #666);
@@ -357,8 +369,11 @@ $translationNamespaces = ['common', 'reporting'];
             background: var(--rep-accent-soft, #3a2416);
         }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> block, or a rule at
+         equal specificity loses on document order (Techniques §9). -->
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=134">
 </head>
-<body>
+<body data-mobile-module="reporting" data-mobile-page="rep-logs">
     <?php include '../includes/header.php'; ?>
 
     <!-- JSON Details Modal -->
@@ -490,9 +505,14 @@ $translationNamespaces = ['common', 'reporting'];
             }
         }
 
+        // `data-log-type` tells the two tables apart. Both render into the same
+        // container with the same class, and the mobile card feed needs to know
+        // which is which: the columns that want a harvested heading differ
+        // (an IP and a user agent here, attachments there). It carries no
+        // styling at any width, so the desktop table is unchanged.
         function renderLoginLogs(logs) {
             return `
-                <table class="logs-table">
+                <table class="logs-table" data-log-type="login">
                     <thead>
                         <tr>
                             <th>${escapeHtml(t('reporting.logs.col_datetime'))}</th>
@@ -523,7 +543,7 @@ $translationNamespaces = ['common', 'reporting'];
 
         function renderEmailImportLogs(logs) {
             return `
-                <table class="logs-table">
+                <table class="logs-table" data-log-type="email">
                     <thead>
                         <tr>
                             <th>${escapeHtml(t('reporting.logs.col_datetime'))}</th>
@@ -620,5 +640,6 @@ $translationNamespaces = ['common', 'reporting'];
             if (e.target === this) closeJsonModal();
         });
     </script>
+    <script src="../../assets/js/mobile.js?v=56"></script>
 </body>
 </html>

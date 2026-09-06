@@ -11219,4 +11219,638 @@
         min-width: 0;
         box-sizing: border-box;
     }
+
+    /* ====================================================================
+       LAYER 35 — REPORTING (#1482)
+
+       The TWENTIETH module, and the smallest: five pages behind a four-item
+       nav — the landing, System logs, Ticket dashboards (a "coming soon"
+       card), the Intune dashboard and the guide.
+
+       ⭐ MOST OF IT ARRIVED FREE, and it is worth saying which parts and
+       why, because it is the argument for shared layers rather than a block
+       per module:
+
+         · LAYER 1    the four-item `.header-nav` becomes the right-side
+                      drawer — the module ships the standard header markup
+         · LAYER 3    the logs JSON dialogue is a canonical `.modal-content`,
+                      so it is already a full-screen sheet
+         · LAYER 15d  `.dashboard-page`, `.dashboard-toolbar` and
+                      `.widget-grid` are the SAME class names the Assets and
+                      Software dashboards use, so Intune inherited the shell
+                      and the one-chart-per-row grid on the day it opted in.
+                      That also retires the page's `height: calc(100vh -
+                      48px)`, which is the bar-under-Safari's-address-bar bug
+                      (LAYER 29) sitting unfired on a page nobody had opened
+                      on a phone
+         · LAYER 16h  `.help-container` becomes the guide's scroller, and
+                      mobile.js's #1464 fix makes the numbered contents strip
+                      actually jump — INERT here until the moment it opted in
+
+       What follows is only what none of that could know about.
+       ==================================================================== */
+
+    /* --------------------------------------------------------------------
+       35a — 🔴🔴 THE PAGE WHOSE FIRST CARD IS AT x = -170.
+
+       Measured at 360×740 the moment the module opted in:
+
+           .reporting-landing   w=360  scrollW=530  overflow: hidden/hidden
+           .landing-content     left=-170  w=700
+           .report-card[0]      left=-170  w=217   <- entirely off-screen
+           .report-card[1]      left=  71  w=217
+           .report-card[2]      left= 313  w=217   <- clipped at 360
+
+           docScrollW = 360   contained, and green on every width check
+
+       Three cards on one `justify-content: center` row inside a container
+       that clips. The row is 700px wide and centred in 360, so it hangs
+       170px off BOTH sides: **Logs, the first of the three, is not on the
+       screen at all, and there is no way to reach it.**
+
+       🔑 §30, and this is the cleanest example the rollout has produced: a
+       clipping body cannot report an overflow, so the containment check on
+       a clipping page is a tautology. The question that finds it is not
+       *does the page fit* but *is anything still laid out in more than one
+       column at phone width* — and then LOOK at where those columns are.
+
+       ⚠️ The clip is ours. `.reporting-landing` and `.coming-soon-container`
+       are both `.main-container`, which LAYER 2 gives `overflow: hidden` for
+       the ticket pane stack — §9's load order cutting the way it cut on the
+       System landing page (34a). `.main-container` is the app's most reused
+       shell name and this is the third module bitten by it.
+
+       ⭐ Named by their own classes rather than `.main-container`, because
+       the logs page is the third `.main-container` in this module and it is
+       SUPPOSED to clip: `.logs-outer` holds a `.logs-content` that scrolls
+       with the pagination pinned below it, and handing the scroll to the
+       outer box would unpin the pager and give the page two scrollers.
+       Scoping on the module marker takes both to (0,2,0), which wins.
+
+       ⭐ `overflow-x: hidden` in the same breath — the webhooks lesson
+       (§12): name only one axis and the other computes to `auto`, and a
+       container that scrolls sideways by accident hides the next overflow
+       from the sweep instead of reporting it.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="reporting"] .reporting-landing,
+    [data-mobile-module="reporting"] .coming-soon-container {
+        overflow-y: auto;
+        overflow-x: hidden;
+        -webkit-overflow-scrolling: touch;
+        min-height: 0;
+    }
+
+    /* --------------------------------------------------------------------
+       35b — The landing page, stacked.
+
+       ⚠️ §16: `align-items` and `justify-content` BOTH swap axis when a row
+       becomes a column, and this container sets both to centre a 700px box
+       in the middle of a wide screen. Once the container scrolls, centring
+       on the block axis means centring content in a box it is taller than.
+       It becomes a plain block: start at the top, take the width.
+
+       `max-width: 700px` on the content and a fixed `width: 280px` on each
+       card are two more desktop widths that have to go — a card wider than
+       the screen is the same fault the row was.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="reporting"] .reporting-landing {
+        display: block;
+        padding: 18px 14px 24px;
+    }
+    [data-mobile-module="reporting"] .landing-content {
+        max-width: 100%;
+        text-align: left;
+    }
+    [data-mobile-module="reporting"] .landing-content h2 { font-size: 20px; }
+    [data-mobile-module="reporting"] .landing-content .subtitle {
+        font-size: 13px;
+        margin-bottom: 20px;
+    }
+    [data-mobile-module="reporting"] .report-cards {
+        flex-direction: column;
+        gap: 12px;
+    }
+    /* A card is a tap target, so it keeps padding — but 40px 36px is 72px of
+       a 360px screen spent on air before a word is drawn. */
+    [data-mobile-module="reporting"] .report-card {
+        width: auto;
+        padding: 18px 16px;
+    }
+    [data-mobile-module="reporting"] .report-card svg {
+        width: 28px;
+        height: 28px;
+        margin-bottom: 8px;
+    }
+    /* ⚠️ §26: `transform: translateY(-3px)` on `:hover` is a state a finger
+       cannot enter and cannot leave — on touch it latches after a tap and
+       the card sits 3px high until something else is tapped. The border
+       colour is the same story. Neither is information, so both go. */
+    [data-mobile-module="reporting"] .report-card:hover {
+        transform: none;
+        box-shadow: 0 2px 12px var(--shadow, rgba(0, 0, 0, 0.08));
+        border-color: transparent;
+    }
+
+    /* --------------------------------------------------------------------
+       35c — Ticket dashboards: the "coming soon" card.
+
+       `padding: 60px 80px` is **160px of a 360px screen**, which leaves 200
+       for a heading and a sentence and makes a card that says almost nothing
+       344px tall. Nothing is broken here; it is written for a page with room
+       to spare.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="reporting"] .coming-soon-container { padding: 24px 14px; }
+    [data-mobile-module="reporting"] .coming-soon-card { padding: 32px 22px; }
+    [data-mobile-module="reporting"] .coming-soon-card h2 { font-size: 19px; }
+    [data-mobile-module="reporting"] .coming-soon-card p { font-size: 13px; }
+
+    /* --------------------------------------------------------------------
+       35d — System logs: the chrome around the table.
+
+       `.logs-container` pads `16px 30px`, which is 60px of the width before
+       a column starts. The header is a heading and a Refresh button on one
+       `space-between` row, and the pagination's two buttons carry
+       `min-width: 100px` to match each other on a desktop row.
+
+       ⚠️ `.log-tabs` is SHARED — tickets/settings draws the same strip (§15),
+       and it is not opted in, so an unscoped rule here would be a change
+       nobody could see until it shipped. Scoped to the page marker.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="rep-logs"] .logs-container { padding: 12px 12px 0; }
+    body[data-mobile-page="rep-logs"] .logs-header {
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+    body[data-mobile-page="rep-logs"] .logs-header h2 { font-size: 19px; }
+    /* ⚠️ THE ONE A SCREENSHOT FOUND, and it was a rule of mine. Refresh first
+       got `flex: 1 1 100%` — the dashboard toolbar's treatment (15d) — and on
+       the dashboards that is right, because Refresh is the only action there.
+       Here it made a **full-width accent slab** sitting directly above the two
+       tabs that ARE this page's navigation, so the loudest thing on the screen
+       was the least important one. Every measurement passed it: contained,
+       thumb-sized, correctly ordered.
+       ⭐ It stays on the heading's row instead, at its own width. `flex-wrap`
+       is already on, so a longer heading in another locale drops it to a
+       second row rather than crushing it — which is the point of wrapping
+       rather than pinning a percentage. */
+    body[data-mobile-page="rep-logs"] .refresh-btn {
+        flex: 0 0 auto;
+        min-height: 40px;
+        padding: 8px 18px;
+    }
+    /* Two tabs, so they split the width rather than sitting in a strip that
+       could scroll. A tab is a tap target: 42px. */
+    body[data-mobile-page="rep-logs"] .log-tabs {
+        gap: 0;
+        margin-bottom: 14px;
+    }
+    body[data-mobile-page="rep-logs"] .log-tab {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 42px;
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+    /* The pager keeps its pinned row; the buttons become thumb-sized and the
+       count between them takes what is left. */
+    body[data-mobile-page="rep-logs"] .pagination {
+        gap: 8px;
+        padding: 8px 12px 14px;
+    }
+    body[data-mobile-page="rep-logs"] .pagination button {
+        min-width: 0;
+        flex: 0 0 auto;
+        min-height: 40px;
+        padding: 8px 14px;
+    }
+    body[data-mobile-page="rep-logs"] .pagination span {
+        flex: 1 1 auto;
+        min-width: 0;
+        text-align: center;
+        font-size: 12px;
+    }
+    /* §12: the feed below replaces a 553px table, and this container is the
+       box that was absorbing it. Say so, so the next wide thing reports. */
+    body[data-mobile-page="rep-logs"] .logs-content { overflow-x: hidden; }
+
+    /* --------------------------------------------------------------------
+       35e — System logs: both tables as card feeds.
+
+       Login attempts, measured at 360×740:
+
+           .logs-table   w=553   inside a 300px scroller
+           columns       Date/time 126 · Username 103 · Status 88 ·
+                         IP address 128 · User agent 109
+           row height    264px
+
+       A 264px row for five short values is §19's card-feed signature drawn
+       in full, and the reason is the last column: a user agent is a
+       hundred-and-fifty-character string wrapping inside 109px. §11's
+       deciding question is whether a human READS the cell or SCANS it, and
+       nobody scans a user agent — they read it to find out which browser
+       this was. You cannot scroll prose sideways.
+
+       The email-import tab is the same shape for the same reason: its
+       Subject column is a sentence and its Attachments column is a list.
+
+       ⚠️ TWO DIFFERENT TABLES, ONE CLASS, ONE CONTAINER. Both tabs render
+       `<table class="logs-table">` into `#logsTableContainer`, so a selector
+       could not tell them apart — and they do NOT want the same headings
+       harvested (an IP and a user agent on one, attachments on the other).
+       The page's own renderers now stamp `data-log-type`, which is markup
+       that renders identically at every width because nothing styles it.
+       **Read the markup for the selector; and if the markup cannot say which
+       table this is, make it say so** — LAYER 33b's lesson, one step on.
+
+       Card shape: the username leads and the status pill sits beside it,
+       because down a list of login attempts what you are looking for is who,
+       and then whether it worked. On the email tab the subject leads and the
+       New/Reply pill sits beside it, for the same reason.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="rep-logs"] .logs-table,
+    body[data-mobile-page="rep-logs"] .logs-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="rep-logs"] .logs-table thead { display: none; }
+    body[data-mobile-page="rep-logs"] .logs-table tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 2px 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 10px;
+        background: var(--surface, #fff);
+    }
+    body[data-mobile-page="rep-logs"] .logs-table tbody td {
+        display: block;
+        /* 🔴 Load-bearing: a flex item's automatic minimum size is its content
+           width, so ONE `nowrap` cell pins the card wider than the screen
+           while the document stays contained (§14 / LAYER 27) — and
+           `.log-datetime` carries `white-space: nowrap`. */
+        min-width: 0;
+        flex: 1 1 100%;
+        margin-top: 6px;
+        padding: 0;
+        border: none;
+        vertical-align: baseline;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+        overflow-wrap: anywhere;
+    }
+    /* The row keeps its tap — it opens the raw JSON — but the hover tint is
+       a pointer state, and on touch it latches (§26). */
+    body[data-mobile-page="rep-logs"] .logs-table tbody tr:hover {
+        background: var(--surface, #fff);
+    }
+
+    /* ---- login attempts: username leads, status beside it ---- */
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="login"] tbody td:nth-child(2) {
+        flex: 1 1 60%;
+        order: -2;
+        margin-top: 0;
+        font-size: 15px;
+        color: var(--text, #333);
+    }
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="login"] tbody td:nth-child(3) {
+        flex: 0 0 auto;
+        order: -1;
+        margin-top: 0;
+    }
+    /* ⚠️ Once one sibling is ordered they all must be, or an un-ordered cell
+       defaults to 0 and floats ABOVE everything with a positive order —
+       LAYER 30e lost its action cell to exactly that. */
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="login"] tbody td:nth-child(1) { order: 1; }
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="login"] tbody td:nth-child(4) { order: 2; }
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="login"] tbody td:nth-child(5) { order: 3; }
+
+    /* ---- email import: subject leads, New/Reply beside it ---- */
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="email"] tbody td:nth-child(3) {
+        flex: 1 1 60%;
+        order: -2;
+        margin-top: 0;
+        font-size: 15px;
+        color: var(--text, #333);
+    }
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="email"] tbody td:nth-child(4) {
+        flex: 0 0 auto;
+        order: -1;
+        margin-top: 0;
+    }
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="email"] tbody td:nth-child(1) { order: 1; }
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="email"] tbody td:nth-child(2) { order: 2; }
+    body[data-mobile-page="rep-logs"] .logs-table[data-log-type="email"] tbody td:nth-child(5) { order: 3; }
+    /* The attachment list keeps its bullets, but not a 20px indent it no
+       longer shares a cell boundary with. */
+    body[data-mobile-page="rep-logs"] .attachment-list {
+        padding-left: 16px;
+        margin-top: 4px;
+    }
+
+    /* ⚠️ The loading / empty / error state is a single `<td>` that is both the
+       first AND the last child of its row (§11's swallowed empty state). It
+       is not a card, and it must not be ordered. */
+    body[data-mobile-page="rep-logs"] .logs-table tbody td:only-child {
+        flex: 1 1 100%;
+        order: 0;
+        margin: 0;
+        padding: 20px 0;
+        text-align: center;
+        font-size: 13px;
+    }
+    /* A labelled cell with nothing in it prints its heading and then silence.
+       mobile.js skips blank cells; this catches one holding only markup. */
+    body[data-mobile-page="rep-logs"] .logs-table tbody tr td:empty { display: none; }
+
+    /* --------------------------------------------------------------------
+       35f — The raw-JSON dialogue.
+
+       LAYER 3 already promotes it: `.modal-content` is the canonical class,
+       so it is a full-screen sheet and its `!important` beats the page's own
+       `max-width: 700px`. What LAYER 3 cannot know is what is INSIDE — a
+       `<pre>` holding the log entry's JSON, content of unbounded width. The
+       page sets `white-space: pre-wrap; word-break: break-all`, which is the
+       opposite call to the webhooks payload viewer (33c) and the right one
+       here, because this is a nested object read for its shape rather than a
+       line-oriented body. It only needs the sheet's height and a size a
+       phone can read.
+
+       ⚠️ `.modal-body` carries `max-height: calc(80vh - 60px)`, a second
+       guess at an arithmetic LAYER 3 has just changed — the sheet is now
+       100dvh, so 80vh of it leaves a strip of dead space below the JSON.
+       Replaced with the flex column that needs no number at all.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="rep-logs"] .modal-content {
+        display: flex;
+        flex-direction: column;
+    }
+    body[data-mobile-page="rep-logs"] .modal-body {
+        max-height: none;
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    body[data-mobile-page="rep-logs"] .json-display {
+        font-size: 11.5px;
+        max-width: 100%;
+    }
+    /* 🔴 16px on every focusable field, or iOS zooms on focus, the sheet
+       spills wide, Safari reflows to a desktop width and the whole
+       `max-width: 768px` layer stops matching (§3). Written as an exclusion
+       so a field added to this module later is covered by default. */
+    [data-mobile-module="reporting"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    [data-mobile-module="reporting"] select,
+    [data-mobile-module="reporting"] textarea {
+        font-size: 16px;
+    }
+
+    /* --------------------------------------------------------------------
+       35g — Intune: the KPI strip, two-up.
+
+       Five figures. The page's own 900px breakpoint already drops
+       `repeat(5, 1fr)` to `repeat(2, 1fr)`, and at 360 that is 144px a card
+       — the right call, and the same one 15f made for the eight server
+       cards, 18b for the service board and 28i for the contracts strip. A
+       phone can hold two of these and read them; one column of five spends
+       the whole screen saying very little.
+
+       What it needs is the room back. The strip is **412px tall before a
+       chart is drawn** — more than half the viewport — because 24px of outer
+       padding plus a 16px gutter plus 40px of card padding leaves 104px for
+       an 11px uppercase letter-spaced label, and "Stale (30+ days)" then
+       wraps to three lines.
+
+       ⭐ `minmax(0, 1fr)` rather than the bare `1fr` the page writes: a bare
+       track has an automatic minimum of min-content, which is the fault 34i
+       found on the branding grid. Nothing overflows here today — the values
+       are short — but a longer figure in another locale would push the track
+       out with no rule to stop it.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="rep-intune"] .kpi-strip {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+        padding: 14px 14px 0;
+    }
+    body[data-mobile-page="rep-intune"] .kpi-card { padding: 12px 14px; }
+    body[data-mobile-page="rep-intune"] .kpi-label {
+        font-size: 10.5px;
+        letter-spacing: 0.3px;
+        margin-bottom: 4px;
+    }
+    body[data-mobile-page="rep-intune"] .kpi-value { font-size: 22px; }
+    body[data-mobile-page="rep-intune"] .kpi-sub { font-size: 10.5px; }
+    /* §26 again: a `translateY(-3px)` lift a finger cannot leave. */
+    body[data-mobile-page="rep-intune"] .kpi-card.clickable:hover {
+        transform: none;
+        box-shadow: none;
+    }
+    body[data-mobile-page="rep-intune"] .empty-banner {
+        margin: 14px;
+        padding: 12px 14px;
+        font-size: 12.5px;
+    }
+
+    /* --------------------------------------------------------------------
+       35h — Intune: the widget grid's floor.
+
+           .widget-grid     w=352   scrollW=358
+           .dashboard-page          scrollW=358 on a 360px screen
+
+       Six pixels, and worth a rule rather than a shrug: the grid is one bare
+       `1fr` track (from the page's own 900px breakpoint), whose automatic
+       minimum is min-content — and min-content here is a chart card, which
+       does not shrink to nothing. 15d already sets `1fr`, which is the same
+       bare track and so changes nothing. `minmax(0, …)` is the fix, and the
+       page marker takes it to (0,2,0) so it beats the page's own rule, which
+       loads after this file (§9).
+
+       🔑 This is 34i for the third time, and the pattern is now clear enough
+       to state plainly: **any `1fr` that has to hold something with an
+       intrinsic width is a `minmax(0, 1fr)`.**
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="rep-intune"] .widget-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+    body[data-mobile-page="rep-intune"] .widget-card { min-width: 0; }
+    body[data-mobile-page="rep-intune"] .widget-chart { min-width: 0; }
+    body[data-mobile-page="rep-intune"] .widget-chart canvas { max-width: 100%; }
+
+    /* --------------------------------------------------------------------
+       35i — Intune: the drill-down becomes a sheet.
+
+       Measured against a real 582-device tenant:
+
+           .drill-modal    20,20  320x700   scrollW=344
+           .drill-footer   320 wide, contents 344 — the pager (143) and the
+                           two action buttons (169) on one `space-between`
+                           row, plus 40px of padding
+           .drill-body     320 wide, table 578 — a sideways drag per row
+
+       ⚠️ NOT a `.modal-content`, so LAYER 3 has never reached it — the same
+       miss as the CMDB detail box (LAYER 30) and the Software one before it.
+       A 320px box floating with a 20px margin on a phone is a desktop
+       dialogue that happens to fit; it should own the screen.
+
+       ⭐ The footer stacks rather than wraps. Export and Close are the two
+       things you came here to do and the pager is how you reach them, so
+       each gets a full-width row and a thumb, in that order.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="rep-intune"] .drill-modal {
+        width: 100%;
+        max-width: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
+        border-radius: 0;
+    }
+    body[data-mobile-page="rep-intune"] .drill-header { padding: 14px 16px; }
+    body[data-mobile-page="rep-intune"] .drill-header h3 { font-size: 15px; }
+    /* ⚠️ NO RULE FOR `.drill-close`, and the first draft of this layer had one
+       — a 40px tap target for the header's × glyph. **There is no × .** The
+       page carries `.drill-close` styling in its own `<style>` and no element
+       that uses it, so the sheet closes from the footer button only. A rule
+       here would have been a rule with precisely zero measured effect, which
+       is LAYER 33b's `#deliveries` mistake exactly; a screenshot caught it
+       this time, because you can see that nothing is in the corner.
+       ⬜ The dead `.drill-close` block in the page is left alone — it is
+       pre-existing, it is not a mobile matter, and removing it is a tidy-up
+       to raise separately. */
+    body[data-mobile-page="rep-intune"] .drill-body {
+        overflow-x: hidden;
+        padding: 10px 12px;
+    }
+    body[data-mobile-page="rep-intune"] .drill-footer {
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    }
+    body[data-mobile-page="rep-intune"] .drill-footer .pager {
+        flex: 1 1 100%;
+        order: 2;
+        justify-content: space-between;
+    }
+    body[data-mobile-page="rep-intune"] .drill-footer .pager-btn {
+        min-height: 40px;
+        min-width: 0;
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    body[data-mobile-page="rep-intune"] .drill-footer .drill-actions {
+        flex: 1 1 100%;
+        order: 1;
+    }
+    body[data-mobile-page="rep-intune"] .drill-footer .drill-actions .btn {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 42px;
+        justify-content: center;
+    }
+
+    /* --------------------------------------------------------------------
+       35j — Intune: the device list as a card feed.
+
+           Device 137 · User 85 · OS 74 · Compliance 101 · Encrypted 92 ·
+           Last Sync 90   =  578px, in a 320px sheet, at 55px a row
+
+       Six columns and not one of them prose, which by §11's usual tell
+       argues for a sideways scroller. It loses here on the follow-up
+       question: this is a list you read DOWN — the whole point of opening it
+       is *which of my devices are not compliant* — and two of the six
+       columns are `Yes` / `No` / `—`. A bare "Yes" in a card means nothing,
+       which is exactly what §21's harvested headings are for.
+
+       The device name leads and the compliance pill sits beside it. User,
+       OS, Encrypted and Last sync take a labelled line each (mobile.js
+       FEEDS, columns 1, 2, 4, 5).
+
+       ⚠️ The empty state is NOT a row here — `renderDrillRows` replaces the
+       whole table with a `<div class="drill-loading">` — so there is no
+       `colspan` cell to guard, and the guard every feed before this one
+       needed would be dead code. Said out loud rather than copied in.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="rep-intune"] .drill-body table,
+    body[data-mobile-page="rep-intune"] .drill-body tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="rep-intune"] .drill-body thead { display: none; }
+    body[data-mobile-page="rep-intune"] .drill-body tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 2px 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 10px;
+        background: var(--surface, #fff);
+    }
+    body[data-mobile-page="rep-intune"] .drill-body tbody td {
+        display: block;
+        min-width: 0;                  /* 🔴 §14, as in 35e */
+        flex: 1 1 45%;
+        margin-top: 6px;
+        padding: 0;
+        border: none;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="rep-intune"] .drill-body tbody tr:hover td { background: none; }
+    body[data-mobile-page="rep-intune"] .drill-body tbody td:nth-child(1) {
+        flex: 1 1 100%;
+        order: -2;
+        margin-top: 0;
+        font-size: 15px;
+        color: var(--text, #333);
+    }
+    body[data-mobile-page="rep-intune"] .drill-body tbody td:nth-child(4) {
+        flex: 1 1 100%;
+        order: -1;
+        margin-top: 0;
+    }
+    /* ⚠️ Order every sibling once one is ordered (35e's note). */
+    body[data-mobile-page="rep-intune"] .drill-body tbody td:nth-child(2) { order: 1; flex: 1 1 100%; }
+    body[data-mobile-page="rep-intune"] .drill-body tbody td:nth-child(3) { order: 2; flex: 1 1 100%; }
+    body[data-mobile-page="rep-intune"] .drill-body tbody td:nth-child(5) { order: 3; }
+    body[data-mobile-page="rep-intune"] .drill-body tbody td:nth-child(6) { order: 4; }
+    body[data-mobile-page="rep-intune"] .drill-body .compliance-pill { display: inline-block; }
+
+    /* --------------------------------------------------------------------
+       35k — Intune: the toolbar's last-sync caption.
+
+       15d already wraps `.dashboard-toolbar` and gives its actions a full
+       row. The one thing it cannot know about is the caption, which this
+       page puts INSIDE a `display: flex; align-items: baseline` div beside
+       the heading — so "Last synced 4 hours ago" sits on the heading's
+       baseline and is squeezed into whatever is left of the row.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="rep-intune"] .dashboard-toolbar > div:first-child {
+        flex-wrap: wrap;
+        min-width: 0;
+    }
+    body[data-mobile-page="rep-intune"] .dashboard-toolbar .last-sync {
+        flex: 1 1 100%;
+        margin-left: 0;
+        margin-top: 4px;
+    }
+
+    /* --------------------------------------------------------------------
+       35l — The guide.
+
+       ⭐ NOTHING is needed for the page itself, and that is the interesting
+       part: `.help-container` takes the scroller role from LAYER 16h, and
+       the numbered contents strip starts working from mobile.js's #1464 fix.
+       Before opting in it was **7091px of guide inside a 690px body with no
+       vertical scroller anywhere on it** — five of its six sections
+       unreachable — and every contents link was tappable and inert. §28 and
+       LAYER 31's all-seventeen-guides finding, both closed by three lines of
+       opt-in rather than by a rule.
+
+       All that is left is the gutter between this module's own cards.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="rep-help"] .help-cards { gap: 10px; }
 }

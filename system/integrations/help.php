@@ -113,7 +113,7 @@ $sections = $isSlack ? [
         }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=133">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=134">
 </head>
 <body data-mobile-module="system" data-mobile-page="integrations-help">
     <?php include __DIR__ . '/../includes/header.php'; ?>
@@ -469,6 +469,6 @@ $sections = $isSlack ? [
             });
         });
     </script>
-    <script src="../../assets/js/mobile.js?v=55"></script>
+    <script src="../../assets/js/mobile.js?v=56"></script>
 </body>
 </html>
