@@ -139,8 +139,13 @@ $translationNamespaces = ['common', 'system-wiki'];
         /* Dark-mode overrides for the few colours that stay hardcoded */
         [data-theme-mode="dark"] .scan-btn:disabled { background: #3a3f4a; color: #8b919c; }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> block, or a rule at
+         equal specificity loses on document order (Techniques §9).
+         WARNING: includes/header.php emits a <style> INSIDE the BODY, which is
+         later still (§24) - the hover-rail rules there need !important. -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=135">
 </head>
-<body>
+<body data-mobile-module="wiki" data-mobile-page="wiki-scan">
     <?php include 'includes/header.php'; ?>
 
     <div class="wiki-scan">
@@ -258,5 +263,6 @@ $translationNamespaces = ['common', 'system-wiki'];
             return div.innerHTML;
         }
     </script>
+    <script src="../assets/js/mobile.js?v=57"></script>
 </body>
 </html>

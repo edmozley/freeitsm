@@ -11853,4 +11853,760 @@
        All that is left is the gutter between this module's own cards.
        -------------------------------------------------------------------- */
     body[data-mobile-page="rep-help"] .help-cards { gap: 10px; }
+
+    /* ====================================================================
+       LAYER 36 — SYSTEM WIKI (#1487)
+
+       The TWENTY-FIRST module and the last one in the waffle menu: eight
+       pages — browse, search, tables, scan, and the file / function / table
+       detail pages.
+
+       ⚠️ THE WHOLE MODULE RENDERS AN EMPTY STATE ON THIS INSTALL. Every
+       `wiki_*` table is empty because the codebase has never been scanned,
+       so the first pass measured nothing anywhere and passed everything.
+       An assertion that cannot fail is not passing (§28/§30's rule, in a
+       third form). The numbers below were taken by stubbing `fetch` in the
+       harness and re-running each page's OWN loaders against fixtures
+       shaped like this codebase's worst realistic case — the real
+       renderers, a fake transport, and not one row written to the database.
+
+       ⭐ SIX SHELLS, ONE SHAPE. `.wiki-container`, `.wiki-detail` (×3),
+       `.wiki-tables`, `.wiki-scan` and `.wiki-search` are all
+       `height: calc(100vh - 48px)`, so 36a is one rule for all eight pages
+       — the System round's "find the shared shells first", and here the
+       shell is a shape rather than an include.
+       ==================================================================== */
+
+    /* --------------------------------------------------------------------
+       36a — The six shells.
+
+       `100vh` is the LARGE viewport on iOS, so the shell is already taller
+       than what you can see, and the 48px is a second guess on top: the
+       header's height, but only while it has not wrapped. This is the
+       seventh module built that way (LAYERS 21, 27, 29, 30, 31, 32 and
+       these six).
+
+       🔴 `min-height: 0` is not optional — §28. Without it a flex item will
+       not shrink below its content, the shell grows past the viewport, and
+       nothing is left that can scroll. And `.wiki-container` additionally
+       carries `overflow: hidden` for its two-pane split, so on the browse
+       page it is §9's load-order trap as well: measured after opting in,
+       that page had NO SCROLLER and 950px of content.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="wiki"] .wiki-container,
+    [data-mobile-module="wiki"] .wiki-detail,
+    [data-mobile-module="wiki"] .wiki-tables,
+    [data-mobile-module="wiki"] .wiki-scan,
+    [data-mobile-module="wiki"] .wiki-search {
+        height: auto;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overflow-x: hidden;             /* §12: name both, or the other axis
+                                           computes to auto and the next wide
+                                           thing hides instead of reporting */
+        -webkit-overflow-scrolling: touch;
+    }
+    /* The inner wrappers are centred columns sized for a desktop page:
+       `max-width: 900-1100px` with 20px of side padding. The cap is
+       harmless at 360; the padding is 40px of it. */
+    [data-mobile-module="wiki"] .detail-content,
+    [data-mobile-module="wiki"] .tables-content,
+    [data-mobile-module="wiki"] .scan-content,
+    [data-mobile-module="wiki"] .search-content {
+        max-width: 100%;
+        padding: 14px 12px 24px;
+    }
+    [data-mobile-module="wiki"] .page-title { font-size: 19px; }
+    [data-mobile-module="wiki"] .page-subtitle { font-size: 13px; }
+    /* 🔴 16px on every focusable field, or iOS zooms on focus, the layout
+       spills wide, Safari reflows to a desktop width and the whole
+       `max-width: 768px` layer stops matching (§3). */
+    [data-mobile-module="wiki"] input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    [data-mobile-module="wiki"] select,
+    [data-mobile-module="wiki"] textarea {
+        font-size: 16px;
+    }
+
+    /* --------------------------------------------------------------------
+       36b — 🔴🔴 THE HOVER RAIL, AND WHY THIS ONE NEEDS `!important`.
+
+       `includes/header.php` carries a per-analyst left-panel mode (System →
+       Preferences, `system_wiki_sidebar_mode`). Set to `hover`, it collapses
+       `.wiki-sidebar` to a **16px hot-zone that expands on hover** — and a
+       phone has nothing to hover with, so the folder tree would be sealed
+       inside a 16px rail that cannot be opened at all. Measured with the
+       mode forced on: `position: absolute`, `min-width: 16px`.
+
+       This is the Contracts fault exactly (LAYER 28), and it is the third
+       module to ship the pattern. Confirming it is a real risk rather than
+       a theoretical one: the same memory of that round records that Ed's own
+       `contracts_sidebar_mode` is set, so a saved preference here is not
+       hypothetical either.
+
+       ⚠️ AND THIS ONE NEEDS `!important`, which the Contracts fix did not.
+       §24: `header.php` emits its `<style>` INSIDE `<body>`, so it loads
+       **after** `mobile.css` however the head is ordered. Its rule is
+       `.wiki-container.sidebar-hover .wiki-sidebar:hover` = (0,4,0) and the
+       marker takes mine to (0,4,0) too — a tie the later sheet wins. So the
+       specificity trick that has worked all rollout is not available here.
+
+       The rail is switched off entirely, because 36c moves the tree into a
+       sheet: there is no rail to open, and nothing for the drag handle
+       pseudo-element to indicate.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="wiki"] .wiki-container.sidebar-hover .wiki-sidebar,
+    [data-mobile-module="wiki"] .wiki-container.sidebar-hover .wiki-sidebar:hover {
+        position: static !important;
+        width: auto !important;
+        min-width: 0 !important;
+        padding: 0 !important;
+        overflow: visible !important;
+        box-shadow: none !important;
+        transition: none !important;
+    }
+    [data-mobile-module="wiki"] .wiki-container.sidebar-hover .wiki-sidebar > *,
+    [data-mobile-module="wiki"] .wiki-container.sidebar-hover .wiki-sidebar:hover > * {
+        opacity: 1 !important;
+        pointer-events: auto !important;
+    }
+    [data-mobile-module="wiki"] .wiki-container.sidebar-hover .wiki-sidebar::before {
+        display: none !important;
+    }
+
+    /* --------------------------------------------------------------------
+       36c — The browse page: the folder tree becomes a sheet.
+
+           .wiki-sidebar   280px fixed
+           .wiki-main       80px          <- what is left of 360
+           .file-table    1110px          <- clipped inside those 80
+
+       Eighty pixels, and a table thirteen times wider than the pane holding
+       it. The second-narrowest pane in the rollout after Workflow's 20px,
+       and like that one it is arithmetic rather than a bug: a 280px fixed
+       sidebar beside anything, on a 360px screen, leaves 80.
+
+       ⚠️ And the page passed the containment check while doing it, because
+       `.wiki-container` and `.wiki-main` both clip (§30).
+
+       🔑 THE TREE GOES TO A SHEET RATHER THAN ABOVE THE LIST, and the
+       reason is Ed's own (#1375): *"a contract gets the whole phone
+       screen"* — orientation you have already used should not keep taking
+       room. You come to this page for the file list; the tree is how you
+       got here. A stacked tree would spend 200px of every screen on
+       navigation you are finished with, and a tree cannot become a chip
+       strip the way CMDB's flat class list did (LAYER 30) because the
+       hierarchy IS the information — `api` and `api/tickets` are different
+       places and the indentation is what says so.
+
+       mobile.js relocates the real `.wiki-sidebar` into a `.mobile-sheet`
+       (LAYER 7's chrome, the Calendar 16a move) and puts it back if the
+       viewport goes wide again. Hidden here at source, so nothing is hidden
+       on a desktop.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="wiki"] .wiki-container {
+        display: block;                 /* was a two-pane flex row */
+    }
+    [data-mobile-module="wiki"] .wiki-container > .wiki-sidebar {
+        display: none;                  /* it lives in the sheet now */
+    }
+    [data-mobile-module="wiki"] .wiki-main {
+        width: 100%;
+        min-width: 0;                   /* 🔴 §14 — a flex/blocked pane whose
+                                           automatic minimum is its content */
+        overflow: visible;              /* the shell scrolls, not this */
+    }
+    /* The sheet's copy of the tree: full width, and rows a thumb can hit. */
+    .mobile-sheet-wikitree .ms-body { padding: 0 0 24px; }
+    .mobile-sheet-wikitree .wiki-sidebar {
+        display: block;
+        width: 100%;
+        min-width: 0;
+        border-right: none;
+        padding: 0;
+        overflow: visible;
+    }
+    /* 🔴 The tree's own indentation is `calc(12px + var(--depth) * 18px)`,
+       which at depth 4 is 84px of a 360px screen before the folder name. It
+       keeps the indent — that is the hierarchy — but at 12px a level, and
+       the row grows to a 44px tap target. */
+    .mobile-sheet-wikitree .tree-item {
+        padding: 11px 14px 11px calc(14px + var(--depth, 0) * 12px);
+        min-height: 44px;
+        font-size: 15px;
+    }
+    .mobile-sheet-wikitree .tree-toggle {
+        min-width: 28px;
+        min-height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .mobile-sheet-wikitree .sidebar-title { display: none; }  /* the sheet's
+                                           own head already says "Folders" */
+
+    /* The sub-bar that opens it (injected — hidden at source in LAYER 5's
+       own class, revealed only here). */
+    [data-mobile-module="wiki"] .mobile-subbar .msb-wikitree {
+        flex: 1 1 auto;
+        min-height: 42px;
+    }
+
+    /* --------------------------------------------------------------------
+       36d — The stats bar: six figures, a search box and a caption.
+
+       One `display: flex` row with no wrap, holding six `.stat-chip`s, a
+       search box pushed right with `margin-left: auto`, and the last-scan
+       caption. It is the contracts strip's problem (28i) with a form
+       control in it.
+
+       Two-up chips, per 15f / 18b / 28i / 35g — a phone can hold two of
+       these and read them. ⚠️ A grid rather than a wrapping flex row, per
+       §10: wrapping leaves the figures ragged, and these are meant to be
+       compared. The search box takes a full row of its own, because
+       searching is the one thing on this page a phone is better at than
+       browsing a tree.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="wiki"] .stats-bar {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        padding: 12px;
+    }
+    [data-mobile-module="wiki"] .stat-chip {
+        min-width: 0;
+        font-size: 12px;
+    }
+    [data-mobile-module="wiki"] .stats-bar .search-box {
+        grid-column: 1 / -1;
+        margin-left: 0;
+        order: -1;                      /* above the figures: it is the action */
+    }
+    [data-mobile-module="wiki"] .stats-bar .search-box input {
+        flex: 1 1 auto;
+        min-width: 0;
+        min-height: 42px;
+    }
+    [data-mobile-module="wiki"] .stats-bar .search-box button { min-height: 42px; }
+    /* The last-scan caption is a sentence, not a figure — a full row. */
+    [data-mobile-module="wiki"] .stat-chip.scan-info {
+        grid-column: 1 / -1;
+        font-size: 11.5px;
+    }
+
+    /* --------------------------------------------------------------------
+       36e — The file list as a card feed.
+
+           .file-table  w=1110  in an 80px pane
+           cols  File 197 · Type 64 · Lines 70 · Functions 89 · Description 690
+
+       §11's deciding question is whether a human READS the cell or SCANS
+       it. The description is a whole sentence about what the file does, at
+       690px — nearly two thirds of the table — and it is the reason you are
+       reading the row at all. You cannot scroll prose sideways.
+
+       The file name leads and the type badge sits beside it. Lines and
+       Functions are bare numbers and take harvested headings (mobile.js
+       FEEDS, columns 2 and 3); the description gets a full line under them
+       with no heading, because a paragraph does not need to be told it is a
+       description.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="wiki-browse"] .file-table,
+    body[data-mobile-page="wiki-browse"] .file-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="wiki-browse"] .file-table thead { display: none; }
+    body[data-mobile-page="wiki-browse"] .file-table tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 2px 10px;
+        padding: 12px;
+        margin-bottom: 10px;
+        border: 1px solid var(--border, #e0e0e0);
+        border-radius: 10px;
+        background: var(--surface, #fff);
+    }
+    body[data-mobile-page="wiki-browse"] .file-table tbody td {
+        display: block;
+        min-width: 0;                   /* 🔴 §14, and load-bearing here */
+        flex: 0 0 auto;
+        margin-top: 6px;
+        padding: 0;
+        border: none;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+    }
+    /* The file name: its own line, and it must be allowed to break — these
+       are paths like `get_ticket_list_for_folder_with_counts.php`. */
+    body[data-mobile-page="wiki-browse"] .file-table tbody td:nth-child(1) {
+        flex: 1 1 100%;
+        order: -2;
+        margin-top: 0;
+        font-size: 15px;
+        color: var(--text, #333);
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="wiki-browse"] .file-table tbody td:nth-child(2) {
+        order: -1;
+        margin-top: 0;
+    }
+    /* ⚠️ Once one sibling is ordered they all must be, or an un-ordered cell
+       defaults to 0 and floats ABOVE everything with a positive order —
+       LAYER 30e lost its action cell to exactly that. */
+    body[data-mobile-page="wiki-browse"] .file-table tbody td:nth-child(3) { order: 1; }
+    body[data-mobile-page="wiki-browse"] .file-table tbody td:nth-child(4) { order: 2; }
+    body[data-mobile-page="wiki-browse"] .file-table tbody td:nth-child(5) {
+        order: 3;
+        flex: 1 1 100%;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+    }
+    /* ⚠️ The loading / empty state is a single `<td colspan="5">`, which is
+       both the first AND the last child of its row — §11's swallowed empty
+       state. It is not a card and must not be ordered. */
+    body[data-mobile-page="wiki-browse"] .file-table tbody td:only-child {
+        flex: 1 1 100%;
+        order: 0;
+        margin: 0;
+        padding: 24px 8px;
+        text-align: center;
+        font-size: 13px;
+    }
+    /* A description that is absent renders as an empty cell; a labelled one
+       that is empty prints its heading and then silence. */
+    body[data-mobile-page="wiki-browse"] .file-table tbody tr td:empty { display: none; }
+    /* `.file-desc` carries a desktop `max-width: 300px`, which inside a
+       336px card is a 36px gutter nothing else respects. */
+    body[data-mobile-page="wiki-browse"] .file-desc {
+        white-space: normal;
+        max-width: 100%;
+        display: block;
+    }
+    /* The list header keeps the folder name and the count on one row. */
+    body[data-mobile-page="wiki-browse"] .file-list-header {
+        flex-wrap: wrap;
+        gap: 4px 10px;
+        padding: 10px 12px;
+    }
+    body[data-mobile-page="wiki-browse"] .file-list { padding: 0 12px 24px; }
+
+    /* --------------------------------------------------------------------
+       36f — Database tables: eight columns, seven of them a bare count.
+
+           .tables-table  w=634  rowH=35
+           cols  Table Name 151 · Files 58 · Total Refs 61 ·
+                 SELECT 74 · INSERT 75 · UPDATE 80 · DELETE 75 · JOIN 61
+
+       Seven counts side by side and nothing but the header row to say which
+       is which — `tickets / 96 / 412 / 268 / 21 / 94 / 6 / 23` is §21's own
+       case, and it needs all seven labelled, which is a lot and is right
+       (LAYER 33b needed six of nine for the same reason).
+
+       ⭐ But not seven identical lines, which is the spreadsheet effect §21
+       warns about. The five operation counts are a SET you read together —
+       that is the whole point of the page — so they stay on one wrapping
+       line as labelled badges, and only Files and Total Refs take a line of
+       their own. The colour on each badge already distinguishes them for
+       anyone who can see it; the label is what makes that true for everyone
+       else.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="wiki-tables"] .tables-table,
+    body[data-mobile-page="wiki-tables"] .tables-table tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="wiki-tables"] .tables-table thead { display: none; }
+    body[data-mobile-page="wiki-tables"] .tables-table tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 4px 12px;
+        padding: 12px;
+        border-bottom: 1px solid var(--border-soft, #eee);
+    }
+    body[data-mobile-page="wiki-tables"] .tables-table tbody td {
+        display: block;
+        min-width: 0;
+        flex: 0 0 auto;
+        padding: 0;
+        border: none;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+    }
+    /* the table's name leads */
+    body[data-mobile-page="wiki-tables"] .tables-table tbody td:nth-child(1) {
+        flex: 1 1 100%;
+        font-size: 15px;
+        color: var(--text, #333);
+        overflow-wrap: anywhere;
+    }
+    /* Files and Total Refs share the second line */
+    body[data-mobile-page="wiki-tables"] .tables-table tbody td:nth-child(2),
+    body[data-mobile-page="wiki-tables"] .tables-table tbody td:nth-child(3) {
+        flex: 0 0 auto;
+        margin-top: 2px;
+    }
+    /* the five operations wrap together on the lines below */
+    body[data-mobile-page="wiki-tables"] .tables-table tbody td:nth-child(n+4) {
+        margin-top: 2px;
+    }
+    body[data-mobile-page="wiki-tables"] .tables-table tbody td:only-child {
+        flex: 1 1 100%;
+        padding: 24px 8px;
+        text-align: center;
+        font-size: 13px;
+    }
+    body[data-mobile-page="wiki-tables"] .tables-card { border-radius: 8px; }
+
+    /* --------------------------------------------------------------------
+       36g — 🔴 Scan history: ANOTHER MODULE'S CARD FEED WAS ALREADY ON IT.
+
+           .history-table  w=320  rowH=170  every <th> measuring 0
+
+       Contained, and crushed into a 170px row — but the interesting part is
+       WHY, and it is §15 in its most exact form yet. **LAYER 15b's
+       `.history-table` card feed is completely unscoped**, written for the
+       Assets history and custody trails, and this page happens to use the
+       same class name. So the moment it opted in it inherited half a card
+       feed from a module it has nothing to do with: `display: block` on the
+       rows and cells, `thead { display: none }` — which is why every column
+       measured zero — and **no labels, no card, and seven values stacked one
+       per line with four of them bare numbers.**
+
+       🔑 A shared class does not only mean a fix is shared (35's headline);
+       it means a DESIGN is shared, and a design is a decision about
+       content this module never made. The tell is a `<th>` measuring 0.
+
+       ⬜ 15b is left alone. It is correct for Assets, its own comment
+       explains that it deliberately avoids column indices because Assets
+       has two variants of the table, and re-scoping a shipped rule to fix a
+       page it was never aimed at is the larger risk. Instead this block
+       takes what 15b already did right — the blocks and the hidden head —
+       and adds the two things it cannot know about: the card, and labels
+       for the four bare figures (mobile.js FEEDS, columns 2, 3, 4, 5). The
+       page marker makes indices safe here.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="wiki-scan"] .history-table tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 2px 12px;
+        padding: 12px;
+        border-bottom: 1px solid var(--border-soft, #eee);
+    }
+    body[data-mobile-page="wiki-scan"] .history-table tbody td {
+        display: block;
+        min-width: 0;
+        flex: 0 0 auto;
+        padding: 0;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+    }
+    /* the date leads and the status badge sits beside it */
+    body[data-mobile-page="wiki-scan"] .history-table tbody td:nth-child(1) {
+        flex: 1 1 auto;
+        order: -2;
+        font-size: 14px;
+        color: var(--text, #333);
+    }
+    body[data-mobile-page="wiki-scan"] .history-table tbody td:nth-child(2) {
+        flex: 0 0 auto;
+        order: -1;
+    }
+    body[data-mobile-page="wiki-scan"] .history-table tbody td:nth-child(3) { order: 1; }
+    body[data-mobile-page="wiki-scan"] .history-table tbody td:nth-child(4) { order: 2; }
+    body[data-mobile-page="wiki-scan"] .history-table tbody td:nth-child(5) { order: 3; }
+    body[data-mobile-page="wiki-scan"] .history-table tbody td:nth-child(6) { order: 4; }
+    /* "Scanned by" — a person's name, its own line */
+    body[data-mobile-page="wiki-scan"] .history-table tbody td:nth-child(7) {
+        order: 5;
+        flex: 1 1 100%;
+        margin-top: 2px;
+    }
+    /* ⚠️ A failed scan renders a SECOND row holding only its error message,
+       a `<td colspan="7">` with an inline colour. It is a continuation of
+       the card above it, not a card — and it is also the shape the loading
+       and empty states take, which is why one rule covers all three. */
+    body[data-mobile-page="wiki-scan"] .history-table tbody td:only-child {
+        flex: 1 1 100%;
+        order: 0;
+        padding: 4px 12px 12px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+    /* Run now, and the instruction beside it. */
+    body[data-mobile-page="wiki-scan"] .scan-actions {
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    body[data-mobile-page="wiki-scan"] .scan-btn {
+        flex: 1 1 100%;
+        min-height: 44px;
+    }
+    body[data-mobile-page="wiki-scan"] .scan-info { flex: 1 1 100%; font-size: 12px; }
+    /* 🔴 The instruction contains a command line in a `<code>` — author-
+       shaped content of a width nobody chose. It scrolls in place rather
+       than pushing the page. */
+    body[data-mobile-page="wiki-scan"] .scan-info code {
+        display: inline-block;
+        max-width: 100%;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        white-space: pre;
+        font-size: 11.5px;
+        vertical-align: bottom;
+    }
+
+    /* --------------------------------------------------------------------
+       36h — A file's detail page: SIX tables, THREE answers.
+
+       Measured with fixtures, at 360×740:
+
+           Functions          w=824  rowH=83   Description column 300px
+           Classes            w=460  rowH=116  Description wrapping in 104px
+           Dependencies       w=444  rowH=33   Target 311px (a long path)
+           Dependents         w=320  rowH=32   fits
+           Database Tables    w=320  rowH=33   fits
+           Session Variables  w=324  rowH=32   fits
+
+       The best §11 example since LMS's four-tables-three-answers:
+
+         · the two with a DESCRIPTION column become card feeds — a sentence
+           in 104px is 116px of row height, and prose does not scroll
+           sideways;
+         · Dependencies is 84px over and the whole of that is one long file
+           path, so it only needs permission to wrap. A three-column row
+           reading `require · includes/db.php · L6` is a good table row and
+           turning it into a card would be worse;
+         · the other three already fit and are left completely alone.
+
+       🔴 AND THE ONE THAT WOULD HAVE BROKEN THE FEED: the functions
+       description cell carries an INLINE
+       `max-width:300px; overflow:hidden; text-overflow:ellipsis;
+       white-space:nowrap`. An inline style beats any stylesheet rule that
+       is not `!important`, and §14 says a flex item's automatic minimum
+       size is its content width — so one `nowrap` cell would have pinned
+       every card wider than the screen while the document stayed perfectly
+       contained (LAYER 27's fault, and 35e's note about `.log-datetime`).
+       This is the same thing with no way to out-specify it.
+       -------------------------------------------------------------------- */
+    /* 🔴🔴 AND THE SELECTOR IS THE OTHER HALF OF THE LESSON. The first draft
+       keyed the two feeds on `.section:nth-of-type(1)` and `(2)`, which
+       matched NOTHING — `:nth-of-type` counts among siblings of the same
+       TAG, and every one of these is a `<div>`, sitting after `.breadcrumb`
+       and `.file-header` which are also divs. So `.section:nth-of-type(1)`
+       asks for a div that is both the first div AND has class `section`,
+       and the first div is the breadcrumb. Measured: every cell still
+       `order: 0`, six tables still tables, and the layer had no effect at
+       all — §9's symptom with a completely different cause.
+
+       ⭐ And `:nth-child(3)`/`(4)` would have been WORSE THAN WRONG rather
+       than merely wrong: the Classes section is rendered **only when the
+       file has classes** (`if (data.classes.length > 0)`), so any positional
+       selector points at a different table depending on the file you opened.
+
+       🔑 So it keys on THE THING THAT DECIDES THE TREATMENT: how many
+       columns the table has. Five means Functions, four means Classes,
+       three means leave it alone — which is also exactly how §11's decision
+       was made, so the selector now says the same thing the comment does.
+       Robust to the conditional section, to reordering, and to a seventh
+       section being added later. */
+    /* ---- the two feeds: Functions (5 columns) and Classes (4) ---- */
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)),
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)) tbody {
+        display: block;
+        width: 100%;
+        min-width: 0;
+    }
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)) thead {
+        display: none;
+    }
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)) tbody tr {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        gap: 2px 10px;
+        padding: 12px;
+        border-bottom: 1px solid var(--border-soft, #eee);
+    }
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)) tbody td {
+        display: block;
+        min-width: 0;
+        flex: 0 0 auto;
+        padding: 0;
+        border: none;
+        font-size: 12.5px;
+        color: var(--text-dim, #888);
+        /* 🔴 the inline nowrap, and only `!important` reaches it */
+        white-space: normal !important;
+        max-width: 100% !important;
+        overflow: visible !important;
+        text-overflow: clip !important;
+        overflow-wrap: anywhere;
+    }
+    /* the name leads, the line reference sits beside it */
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)) tbody td:nth-child(1) {
+        flex: 1 1 auto;
+        order: -2;
+        font-size: 14.5px;
+        color: var(--text, #333);
+    }
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)) tbody td:nth-child(2) {
+        flex: 0 0 auto;
+        order: -1;
+    }
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)) tbody td:nth-child(3) {
+        order: 1;
+        flex: 1 1 100%;
+        margin-top: 4px;
+    }
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)) tbody td:nth-child(4) {
+        order: 2;
+        flex: 1 1 100%;
+    }
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(5)) tbody td:nth-child(5) {
+        order: 3;
+        flex: 1 1 100%;
+        margin-top: 4px;
+        line-height: 1.45;
+    }
+    /* a parameter list is code and gets to keep its font, but not its width */
+    body[data-mobile-page="wiki-file"] .detail-table code {
+        overflow-wrap: anywhere;
+        white-space: normal;
+    }
+    /* an absent description or scope renders an empty cell */
+    body[data-mobile-page="wiki-file"] .detail-table:has(thead th:nth-child(4)) tbody tr td:empty {
+        display: none;
+    }
+    /* ---- The four 3-column tables: NOT feeds, and not `table-layout:
+       fixed` either. The first draft set `fixed` on every `.detail-table`
+       to make the long dependency path wrap, and that made all four of them
+       three equal 112px columns — `Type` and `Line` given as much room as a
+       file path. `overflow-wrap: anywhere` is enough on its own: it drops
+       the cell's min-content width to one character, which is all the
+       AUTO layout needed in order to be allowed to shrink it. ---- */
+    body[data-mobile-page="wiki-file"] .detail-table { width: 100%; }
+    body[data-mobile-page="wiki-file"] .detail-table td { overflow-wrap: anywhere; }
+    body[data-mobile-page="wiki-file"] .detail-table td.line-ref { white-space: nowrap; }
+    /* ---- the header block ---- */
+    body[data-mobile-page="wiki-file"] .file-header .file-meta,
+    body[data-mobile-page="wiki-file"] .file-title {
+        flex-wrap: wrap;
+        gap: 6px 12px;
+    }
+    body[data-mobile-page="wiki-file"] .file-title { font-size: 17px; overflow-wrap: anywhere; }
+    body[data-mobile-page="wiki-file"] .file-path { font-size: 12px; overflow-wrap: anywhere; }
+
+    /* --------------------------------------------------------------------
+       36i — The breadcrumb, on all three detail pages.
+
+       `Wiki / api / tickets / get_ticket_conversation.php` is a row of links
+       that gets longer the deeper the file is. It wraps rather than running
+       off the side, and each link is a tap target.
+       -------------------------------------------------------------------- */
+    [data-mobile-module="wiki"] .breadcrumb {
+        flex-wrap: wrap;
+        gap: 2px 6px;
+        font-size: 12.5px;
+        overflow-wrap: anywhere;
+    }
+    [data-mobile-module="wiki"] .breadcrumb a { padding: 4px 0; }
+
+    /* --------------------------------------------------------------------
+       36j — A table's references: a file path in a two-column row.
+
+           .ref-table  w=406   a long path, plus a 60px inline-styled L-number
+
+       Eighty-six pixels over, all of it the path — and `table-layout: fixed`
+       plus permission to wrap is the whole fix. The line number keeps its
+       inline 60px, which is right: it is the one cell here that must not
+       wrap.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="wiki-table"] .ref-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+    body[data-mobile-page="wiki-table"] .ref-table td { overflow-wrap: anywhere; }
+    body[data-mobile-page="wiki-table"] .ref-table td.line-ref { white-space: nowrap; }
+    body[data-mobile-page="wiki-table"] .table-name { font-size: 18px; overflow-wrap: anywhere; }
+    body[data-mobile-page="wiki-table"] .ref-group-header { flex-wrap: wrap; gap: 6px; }
+
+    /* --------------------------------------------------------------------
+       36k — A function's page: the signature is the thing.
+
+       `.func-name` prints `public function analystCanAccessTicketWithinTenant
+       ($analystId, $ticketId, $includeArchived = false)` — which is a long
+       identifier and a parameter list, and neither has a natural break
+       point. It is the heading of the page, so it wraps rather than being
+       truncated or shrunk to nothing.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="wiki-function"] .func-name {
+        font-size: 15px;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="wiki-function"] .func-meta,
+    body[data-mobile-page="wiki-function"] .func-params {
+        font-size: 12.5px;
+        overflow-wrap: anywhere;
+    }
+    body[data-mobile-page="wiki-function"] .caller-table {
+        table-layout: fixed;
+        width: 100%;
+    }
+    body[data-mobile-page="wiki-function"] .caller-table td { overflow-wrap: anywhere; }
+    body[data-mobile-page="wiki-function"] .caller-table td.line-ref { white-space: nowrap; }
+
+    /* --------------------------------------------------------------------
+       36l — Search: the chrome only.
+
+       ⭐ The results needed NOTHING. Every one of the three panels renders
+       `.result-item` — a bordered block with a title, a meta line and a
+       description — which is already a card, and already the shape every
+       other module in this rollout had to be converted into. It is the only
+       list in twenty-one modules that arrived in the right form.
+
+       What it needs is the search bar it sits under and the three counting
+       tabs above it.
+       -------------------------------------------------------------------- */
+    body[data-mobile-page="wiki-search"] .search-bar {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    body[data-mobile-page="wiki-search"] .search-bar input {
+        flex: 1 1 100%;
+        min-width: 0;
+        min-height: 44px;
+    }
+    body[data-mobile-page="wiki-search"] .search-bar button {
+        flex: 1 1 auto;
+        min-height: 44px;
+    }
+    /* Three tabs with counts: they split the width rather than scrolling. */
+    body[data-mobile-page="wiki-search"] .tabs { gap: 0; }
+    body[data-mobile-page="wiki-search"] .tab {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 8px 4px;
+        font-size: 13px;
+        text-align: center;
+    }
+    body[data-mobile-page="wiki-search"] .result-item { padding: 12px 14px; }
+    body[data-mobile-page="wiki-search"] .result-item a { overflow-wrap: anywhere; }
+    body[data-mobile-page="wiki-search"] .result-meta,
+    body[data-mobile-page="wiki-search"] .result-desc {
+        font-size: 12px;
+        overflow-wrap: anywhere;
+    }
 }

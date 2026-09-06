@@ -375,7 +375,7 @@ entityVisit('contract', (int) $contract_id);
         .checkbox-row label { margin: 0; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=134">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=135">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="contract-view">
     <?php include 'includes/header.php'; ?>
@@ -1421,6 +1421,6 @@ entityVisit('contract', (int) $contract_id);
             </div>
         </div>
     </div>
-    <script src="../assets/js/mobile.js?v=56"></script>
+    <script src="../assets/js/mobile.js?v=57"></script>
 </body>
 </html>

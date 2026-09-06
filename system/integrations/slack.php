@@ -147,7 +147,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
         .diag-running { font-size: 14px; color: var(--text-muted); padding: 20px 0; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=134">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=135">
 </head>
 <body data-mobile-module="system" data-mobile-page="integrations-slack">
     <?php include '../includes/header.php'; ?>
@@ -535,6 +535,6 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
         load();
     })();
     </script>
-    <script src="../../assets/js/mobile.js?v=56"></script>
+    <script src="../../assets/js/mobile.js?v=57"></script>
 </body>
 </html>

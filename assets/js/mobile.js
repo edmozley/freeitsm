@@ -1902,7 +1902,57 @@
            "Yes" on its own line answers a question the card never asked. */
         { table: 'body[data-mobile-page="rep-intune"] .drill-body table',
           columns: [1, 2, 4, 5],
-          watch: '#drillBody' }
+          watch: '#drillBody' },
+
+        /* ---- SYSTEM WIKI (LAYER 36, #1487) ----
+           ⭐ NO `watch` ON ANY OF THESE THREE, and the difference from the
+           Reporting entries above is worth being precise about, because
+           getting it wrong is silent either way. Reporting's renderers
+           replace their CONTAINER's innerHTML, so the `<table>` itself does
+           not exist at load and the observer has to be given a box that
+           does. The wiki's three tables are STATIC markup — `<table
+           class="file-table">` with a `<tbody id="fileTableBody">` inside —
+           and only the tbody's contents are replaced. The default (observe
+           the table, subtree) therefore already sees every re-render.
+
+           🔴 The first draft added `watch: '#tablesBody'` anyway. That id
+           does not exist — it is `#tableBody`, singular — and a `watch`
+           that resolves to null drops the feed from `watched` entirely, so
+           the labels would have been applied once at load, against the
+           loading row, and never again. A whole entry with precisely zero
+           visible effect, which is LAYER 33b's `#deliveries` mistake for
+           the second time. **Read the markup for the selector.**
+
+           The file list — File · Type · Lines · Functions · Description.
+           The file name is the card's heading, the type is a badge and the
+           description is a whole sentence that does not need telling what
+           it is. The two in the middle are bare numbers sitting next to
+           each other, which is §21's own case: `1,284` and `17` say
+           nothing about which is lines and which is functions. */
+        { table: 'body[data-mobile-page="wiki-browse"] .file-table',
+          columns: [2, 3] },
+
+        /* Database tables — Name · Files · Total refs · SELECT · INSERT ·
+           UPDATE · DELETE · JOIN. **Seven of eight**, which is the most
+           this list has ever needed and is right: every column but the
+           table's own name is a bare count, and `tickets / 96 / 412 / 268 /
+           21 / 94 / 6 / 23` is unreadable without them. The colour on each
+           operation badge distinguishes them for anyone who can see it;
+           the label is what makes that true for everyone else. */
+        { table: 'body[data-mobile-page="wiki-tables"] .tables-table',
+          columns: [1, 2, 3, 4, 5, 6, 7] },
+
+        /* Scan history — Date · Status · Duration · Files · Functions ·
+           Classes · Scanned by. Four labels: the date leads, the status is
+           a badge and the person's name reads as one, but a duration and
+           three counts in a row are four bare figures.
+           ⚠️ This table arrives with `thead { display: none }` ALREADY
+           applied, from LAYER 15b's Assets card feed — `.history-table` is
+           unscoped there (§15). The heading text is still in the DOM, which
+           is all the harvester needs, and is exactly why hiding a head is
+           not the same as removing it. */
+        { table: 'body[data-mobile-page="wiki-scan"] .history-table',
+          columns: [2, 3, 4, 5] }
     ];
 
     function labelCardFeed(table, columns) {
@@ -3564,4 +3614,171 @@
     new MutationObserver(function () {
         setTimeout(reveal, 0);
     }).observe(title, { childList: true, characterData: true, subtree: true });
+})();
+
+/* ====================================================================
+   SYSTEM WIKI — the folder tree becomes a sheet (LAYER 36c, #1487)
+
+   ITS OWN top-level IIFE, for the reason the blocks above document.
+
+   The browse page is a 280px folder tree beside the file list, which on a
+   360px screen leaves the list **80px** — and a 1110px table inside it,
+   clipped by two ancestors that both say `overflow: hidden`, so nothing
+   reported it.
+
+   The tree cannot become a chip strip the way CMDB's flat class list did:
+   the hierarchy IS the information, and `api` and `api/tickets` are
+   different places only because the indentation says so. And it should not
+   sit above the list either — Ed's own rule from the Contracts round
+   (#1375) is that orientation you have already used should not keep taking
+   room. So it goes where the Calendar sidebar went: a full-screen sheet
+   behind one button, opened when you want to move folders and gone the
+   rest of the time.
+
+   What this does, and only when `mq.matches`:
+     1. injects a sub-bar above the container with a single button, whose
+        label is HARVESTED from the sidebar's own `.sidebar-title` — so
+        there are no new translation keys and it is right in all 24
+        locales;
+     2. moves the REAL `.wiki-sidebar` into a `.mobile-sheet` (LAYER 7's
+        chrome) rather than rebuilding it, so `#folderTree` keeps its id
+        and the page's own `loadFolderTree()` and `selectFolder()` keep
+        working untouched;
+     3. closes the sheet when a folder is chosen, because choosing one is
+        the whole reason the sheet was open;
+     4. pushes a history entry so the DEVICE BACK BUTTON closes it;
+     5. puts the sidebar back and removes the chrome if the viewport goes
+        wide again — stricter than the tickets/assets one-way precedent,
+        and necessary because 36c hides the sidebar inside the container,
+        so without the restore a desktop resize strands the tree in a
+        hidden sheet.
+
+   Not one line of the page's own script changes.
+   ==================================================================== */
+(function () {
+    var mq = window.matchMedia('(max-width: 768px)');
+
+    var container = document.querySelector('[data-mobile-module="wiki"] .wiki-container');
+    if (!container) return;                       // not the wiki browse page
+
+    var sidebar = container.querySelector('.wiki-sidebar');
+    if (!sidebar) return;
+
+    function tr(key, fallback) {
+        if (typeof window.t !== 'function') return fallback;
+        var v = window.t(key);
+        return (!v || v === key) ? fallback : v;
+    }
+
+    /* ⭐ The button's label is the sidebar's own heading, read out of the
+       DOM. The page already prints a translated "Folders" there, so there
+       is nothing to add to 24 locale files and nothing to get wrong. */
+    var titleEl = sidebar.querySelector('.sidebar-title');
+    var treeLabel = (titleEl && (titleEl.textContent || '').trim()) || tr('system-wiki.index.folders', 'Folders');
+
+    /* ---- the sub-bar (hidden inline, because @media CSS cannot hide a
+            node this file injects — the LAYER 5 rule) ---- */
+    var bar = document.createElement('div');
+    bar.className = 'mobile-subbar';
+    bar.style.display = 'none';
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'msb-wikitree';
+    btn.innerHTML = '📁 <span></span>';
+    btn.querySelector('span').textContent = treeLabel;
+    btn.setAttribute('aria-label', treeLabel);
+    bar.appendChild(btn);
+    container.parentNode.insertBefore(bar, container);
+
+    /* ---- the sheet (LAYER 7's .mobile-sheet chrome) ---- */
+    var sheet = document.createElement('div');
+    sheet.className = 'mobile-sheet mobile-sheet-wikitree';
+    sheet.style.display = 'none';
+    sheet.innerHTML =
+        '<div class="ms-head"><span class="ms-title"></span>' +
+        '<button type="button" class="ms-close"></button></div>' +
+        '<div class="ms-body"></div>';
+    sheet.querySelector('.ms-title').textContent = treeLabel;
+    sheet.querySelector('.ms-close').textContent = tr('common.close', 'Close');
+    sheet.querySelector('.ms-close').addEventListener('click', close);
+    document.body.appendChild(sheet);
+
+    function open() {
+        if (!mq.matches) return;
+        treeIntoSheet();
+        sheet.style.display = 'flex';
+        history.pushState({ wikiTree: true }, '');
+    }
+    function hide() { sheet.style.display = 'none'; }
+    function close() {
+        if (history.state && history.state.wikiTree) history.back();
+        else hide();
+    }
+    window.addEventListener('popstate', hide);
+    btn.addEventListener('click', open);
+
+    /* Moved LAZILY on first open and moved BACK on the way to desktop.
+       Relocating the real node rather than cloning it is what keeps
+       `#folderTree` unique — a clone would give the page two elements with
+       that id and `loadFolderTree()` would render into whichever came
+       first. */
+    function treeIntoSheet() {
+        if (sheet.contains(sidebar)) return;
+        sheet.querySelector('.ms-body').appendChild(sidebar);
+    }
+    function treeBackToPage() {
+        if (container.contains(sidebar)) return;
+        container.insertBefore(sidebar, container.firstChild);
+    }
+
+    /* 3. Choosing a folder closes the sheet — but ONLY a folder that has
+          nothing under it. Delegated on the sheet, and NOT
+          `preventDefault`ed: the page's own `selectFolder()` is an inline
+          `onclick` on the same element and must still run, because it is
+          what reloads the list. This only reacts afterwards.
+
+       🔴🔴 THE CONDITION IS THE WHOLE DESIGN, and closing on every tap was
+          wrong in a way only driving it showed. `selectFolder()` **expands
+          the tapped folder's children as well as selecting it** — that is
+          the page's own behaviour, and it is why the tree opens collapsed.
+          So a rule that closed the sheet on any row would shut it at the
+          exact moment it had just revealed the next level down, and
+          `api/tickets` would be **unreachable on a phone** however many
+          times you tried: every tap on `api` would filter the list and
+          throw away the thing you were navigating towards.
+
+          A parent is a step; a leaf is an arrival. Tapping a parent expands
+          it and the sheet stays, tapping a leaf closes it. `renderTree`
+          only puts a chevron glyph in `.tree-toggle` when the node has
+          children, so the markup already says which is which and nothing
+          has to be inferred.
+
+       ⚠️ The chevron itself is excluded separately. It expands a branch in
+          place and calls `stopPropagation()` so the folder is not selected,
+          so closing on it would be wrong for the same reason twice over. */
+    sheet.addEventListener('click', function (e) {
+        if (!e.target || !e.target.closest) return;
+        if (e.target.closest('.tree-toggle')) return;
+        var row = e.target.closest('.tree-item');
+        if (!row) return;
+        var toggle = row.querySelector('.tree-toggle');
+        var hasChildren = !!(toggle && (toggle.textContent || '').trim());
+        if (!hasChildren) close();
+    });
+
+    /* 5. …and it all goes away above 768px, or a desktop resize leaves the
+          folder tree inside a hidden sheet with the page's own copy of it
+          display:none in the container. */
+    function sync() {
+        if (mq.matches) {
+            bar.style.display = '';
+        } else {
+            hide();
+            treeBackToPage();
+            bar.style.display = 'none';
+        }
+    }
+    sync();
+    if (mq.addEventListener) { mq.addEventListener('change', sync); }
+    else if (mq.addListener) { mq.addListener(sync); }
 })();

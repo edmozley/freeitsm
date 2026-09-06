@@ -201,8 +201,13 @@ $translationNamespaces = ['common', 'system-wiki'];
         [data-theme-mode="dark"] .detail-table th { background: var(--surface-3, #f9f9f9); }
         [data-theme-mode="dark"] .detail-table td { border-bottom-color: var(--border-soft, #f5f5f5); }
     </style>
+    <!-- Mobile layer LAST, after this page's own <style> block, or a rule at
+         equal specificity loses on document order (Techniques §9).
+         WARNING: includes/header.php emits a <style> INSIDE the BODY, which is
+         later still (§24) - the hover-rail rules there need !important. -->
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=135">
 </head>
-<body>
+<body data-mobile-module="wiki" data-mobile-page="wiki-file">
     <?php include 'includes/header.php'; ?>
 
     <div class="wiki-detail">
@@ -363,5 +368,6 @@ $translationNamespaces = ['common', 'system-wiki'];
             return div.innerHTML;
         }
     </script>
+    <script src="../assets/js/mobile.js?v=57"></script>
 </body>
 </html>
