@@ -38,6 +38,14 @@ return [
         'no_processes_yet'   => 'No processes yet',
     ],
 
+    'new_modal' => [
+        'title'       => 'New process',
+        'field_title' => 'Process name',
+        'placeholder' => 'e.g. Incident triage',
+        'create'      => 'Create',
+        'failed'      => 'Could not create the process.',
+    ],
+
     'toolbar' => [
         'process'   => 'Process',
         'decision'  => 'Decision',

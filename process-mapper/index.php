@@ -401,6 +401,33 @@ try {
         </div>
     </div>
 
+    <!-- New process. Was a browser prompt(), which names the host, blocks the
+         page and cannot be styled or translated. Built on the same
+         .pm-modal shell as the export dialog below, so the two dialogs on this
+         page are the same object, and on the same .form-group / .btn classes
+         every settings screen already uses for its Add dialog. -->
+    <div class="pm-modal-overlay" id="newProcessModal" style="display: none;" onclick="if (event.target === this) PM.closeNewProcess()">
+        <div class="pm-modal" style="max-width: 460px;">
+            <div class="pm-modal-header">
+                <h3><?php echo htmlspecialchars(t('process-mapper.new_modal.title')); ?></h3>
+                <button class="pm-modal-close" onclick="PM.closeNewProcess()" title="<?php echo htmlspecialchars(t('common.close')); ?>">&times;</button>
+            </div>
+            <form id="newProcessForm" autocomplete="off" onsubmit="event.preventDefault(); PM.submitNewProcess();">
+                <div class="pm-modal-body">
+                    <div class="form-group">
+                        <label for="newProcessTitle"><?php echo htmlspecialchars(t('process-mapper.new_modal.field_title')); ?></label>
+                        <input type="text" id="newProcessTitle" maxlength="255" autocomplete="off" required
+                               placeholder="<?php echo htmlspecialchars(t('process-mapper.new_modal.placeholder')); ?>">
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn btn-secondary" onclick="PM.closeNewProcess()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                        <button type="submit" class="btn btn-primary" id="newProcessSubmit"><?php echo htmlspecialchars(t('process-mapper.new_modal.create')); ?></button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- Toast -->
     <!-- Export modal — three formats: PNG image, PDF document, Mermaid markup -->
     <div class="pm-modal-overlay" id="exportModal" style="display: none;" onclick="if (event.target === this) PM.closeExportModal()">
@@ -479,7 +506,7 @@ try {
          CDN at print time. Same versions used by Network Mapper (#257). -->
     <script src="../assets/js/vendor/html2canvas.min.js"></script>
     <script src="../assets/js/vendor/jspdf.umd.min.js"></script>
-    <script src="../assets/js/process-mapper.js?v=13"></script>
+    <script src="../assets/js/process-mapper.js?v=14"></script>
     <script src="../assets/js/mobile.js?v=55"></script>
 </body>
 </html>

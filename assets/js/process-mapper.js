@@ -324,23 +324,67 @@ const PM = (() => {
         renderProcessList(val);
     }
 
-    async function createProcess() {
-        const title = prompt('Process name:');
-        if (!title || !title.trim()) return;
+    /**
+     * New process. Opens the page's own dialog rather than window.prompt().
+     *
+     * 🔑 A browser prompt() names the host ("localhost says…"), blocks the whole
+     * page, cannot be styled or translated, and looks nothing like the dialog
+     * sitting two elements below it in the same file. This uses the .pm-modal
+     * shell the export dialog already uses, with the .form-group and .btn
+     * classes every settings screen uses for its Add dialog - so it is the
+     * pattern the app already had, not a new one.
+     */
+    function createProcess() {
+        const modal = document.getElementById('newProcessModal');
+        const input = document.getElementById('newProcessTitle');
+        if (!modal || !input) return;
+        input.value = '';
+        modal.style.display = 'flex';
+        // Focus SYNCHRONOUSLY, straight after the display change. Setting
+        // style.display takes effect on the element immediately and focus()
+        // flushes style itself, so there is nothing to wait for - and a
+        // requestAnimationFrame here would make the caret depend on a frame
+        // actually being painted, which is not guaranteed in a background tab.
+        // (Measured: focus while hidden fails, focus after the sync show works.)
+        input.focus();
+    }
+
+    function closeNewProcess() {
+        const modal = document.getElementById('newProcessModal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    async function submitNewProcess() {
+        const input = document.getElementById('newProcessTitle');
+        const btn = document.getElementById('newProcessSubmit');
+        const title = (input ? input.value : '').trim();
+        // `required` on the input already stops an empty submit; this is the
+        // belt for a whitespace-only name, which the browser counts as filled.
+        if (!title) { if (input) input.focus(); return; }
+
+        // Double-submit guard: Enter in the field and a click on Create are two
+        // routes into the same handler, and a slow save would otherwise create
+        // the process twice.
+        if (btn) btn.disabled = true;
         try {
             const r = await fetch(API_BASE + 'save.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ title: title.trim(), steps: [], connectors: [] })
+                body: JSON.stringify({ title: title, steps: [], connectors: [] })
             });
             const d = await r.json();
             if (d.success) {
+                closeNewProcess();
                 await loadProcesses();
                 openProcess(d.id);
             } else {
-                showToast(d.error, 'error');
+                showToast(d.error || t('process-mapper.new_modal.failed'), 'error');
             }
-        } catch (e) { showToast('Failed to create process', 'error'); }
+        } catch (e) {
+            showToast(t('process-mapper.new_modal.failed'), 'error');
+        } finally {
+            if (btn) btn.disabled = false;
+        }
     }
 
     async function deleteProcess(id) {
@@ -3363,7 +3407,8 @@ const PM = (() => {
 
     // Public API
     return {
-        createProcess, deleteProcess, openProcess,
+        createProcess, closeNewProcess, submitNewProcess,
+        deleteProcess, openProcess,
         filterProcesses, save, deleteSelected,
         closeDetail, updateStepFromDetail,
         toggleProcessDocs, closeProcessDocs,
