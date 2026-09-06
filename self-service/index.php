@@ -134,7 +134,14 @@ document.addEventListener('DOMContentLoaded', loadDashboard);
                 </tr>`;
             }).join('');
 
-            container.innerHTML = `<table class="ticket-table">
+            /* `req-table` tells this table apart from the recent-tickets one
+               below. Both are `.ticket-table`, but this has three columns
+               (request, status, submitted) against that one's five — and the
+               phone card layout keys on column INDEX, so without a hook the
+               status cell here is styled as though it were a subject. The
+               class carries no styling at any width, so the desktop table is
+               unchanged. */
+            container.innerHTML = `<table class="ticket-table req-table">
                 <thead><tr>
                     <th>${escapeHtml(window.t('self-service.dashboard.req_col_request'))}</th>
                     <th>${escapeHtml(window.t('self-service.dashboard.req_col_status'))}</th>

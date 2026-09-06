@@ -9,7 +9,15 @@ $pageTitleKey = 'self-service.help.title';   // a KEY: i18n starts in header.php
 $activeNav    = 'help';
 // App-shell: the sidebar stays put and only the content column scrolls, which
 // is how every analyst help page behaves.
-$bodyClass    = 'portal-app';
+//
+// `portal-help` exists only so the phone block in self-service.css can reach
+// THIS page. On a phone the guide needs a scroller that no other portal page
+// wants: `body.portal-app` is `height: 100vh; overflow: hidden` (correct — the
+// panes scroll), and help.css's own 900px block sets `.help-container` to
+// `height: auto` and hands the scroll to the document, which then cannot take
+// it. Seven thousand pixels of guide with nothing able to scroll. The class
+// carries no styling above 768px.
+$bodyClass    = 'portal-app portal-help';
 
 $pageScripts = <<<'JS'
 /*
@@ -36,26 +44,64 @@ document.addEventListener('DOMContentLoaded', function () {
                 links.forEach(function (l) { l.classList.toggle('active', l.dataset.section === id); });
             }
 
-            main.addEventListener('scroll', function () {
-                var top = main.scrollTop;
+            /*
+             * 🔴 WHICH ELEMENT ACTUALLY SCROLLS CHANGES WITH THE WIDTH, and
+             * hardcoding `main` made every numbered link on this page tappable
+             * and inert on a phone.
+             *
+             * On a desktop `.help-main` is the scroller — a fixed-height
+             * column inside a fixed-height container. Below 900px help.css
+             * sets `.help-main { overflow-y: visible }` and `.help-container
+             * { height: auto }`, handing the scroll outwards; the portal's
+             * phone block then makes `.help-container` the scroller, because
+             * `body.portal-app` clips and the document cannot take it.
+             *
+             * `scrollTo` on an element that does not scroll throws nothing and
+             * does nothing, so the highlight never moved off "1" and no chip
+             * ever jumped. This is the same fault mobile.js fixed for all
+             * seventeen analyst guides in #1464 — and this page cannot use
+             * that file, because the portal does not load it.
+             *
+             * Resolved on every use rather than cached: a desktop browser
+             * dragged across the breakpoint changes the answer.
+             */
+            function scroller() {
+                var c = document.querySelector('.help-container');
+                if (c && c.scrollHeight > c.clientHeight + 1) {
+                    var oy = getComputedStyle(c).overflowY;
+                    if (oy === 'auto' || oy === 'scroll') return c;
+                }
+                return main;
+            }
+
+            function onScroll() {
+                var sc = scroller();
+                var scTop = sc.getBoundingClientRect().top;
                 var current = sections.length ? sections[0].id : null;
                 sections.forEach(function (s) {
-                    // offsetTop is relative to the scrolling parent; the 160px lead
-                    // means a section counts as "current" just before it reaches
+                    // Measured as a delta between rects rather than with
+                    // offsetTop, which is relative to the nearest POSITIONED
+                    // ancestor and so means something different depending on
+                    // which element turned out to be the scroller. The 160px
+                    // lead makes a section "current" just before it reaches
                     // the top, which is what reading feels like.
-                    if (s.el.offsetTop - 160 <= top) current = s.id;
+                    if (s.el.getBoundingClientRect().top - scTop - 160 <= 0) current = s.id;
                 });
                 markActive(current);
-            });
+            }
+
+            main.addEventListener('scroll', onScroll);
+            var container = document.querySelector('.help-container');
+            if (container) container.addEventListener('scroll', onScroll);
 
             links.forEach(function (l) {
                 l.addEventListener('click', function (e) {
                     e.preventDefault();
                     var el = document.getElementById(l.dataset.section);
                     if (el) {
-                        var containerTop = main.getBoundingClientRect().top;
-                        var elTop = el.getBoundingClientRect().top;
-                        main.scrollTo({ top: main.scrollTop + (elTop - containerTop) - 16, behavior: 'smooth' });
+                        var sc = scroller();
+                        var top = sc.scrollTop + (el.getBoundingClientRect().top - sc.getBoundingClientRect().top) - 16;
+                        sc.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
                     }
                     markActive(l.dataset.section);
                 });

@@ -784,9 +784,23 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     }
     /* The reference leads on its own line, the subject gets the next, and
      * the badges and date read as one run underneath — three lines per
-     * ticket rather than five stacked cells. */
-    .ticket-table tbody td:first-child { display: block; margin-bottom: 2px; }
-    .ticket-table tbody td:nth-child(2) {
+     * ticket rather than five stacked cells.
+     *
+     * 🔴 SCOPED WITH `:not(.req-table)`, because `.ticket-table` is TWO
+     * tables on the dashboard: recent tickets (five columns — reference,
+     * subject, status, priority, updated) and **Your requests** (three —
+     * request, status, submitted). These rules key on column INDEX, so the
+     * requests table was having its STATUS cell styled as a subject: a
+     * pill and a ticket-number link given a subject's own line and 8px of
+     * margin under it, which is the blank line in that card.
+     *
+     * 🔑 The same fault as the two log tables in [Reporting], and the same
+     * answer: the renderer now stamps a class, because a selector had no
+     * other way to know which table it was looking at. LAYER 15b's comment
+     * in mobile.css said `nothing here may depend on a column INDEX` for
+     * exactly this reason — and this file did depend on one. */
+    .ticket-table:not(.req-table) tbody td:first-child { display: block; margin-bottom: 2px; }
+    .ticket-table:not(.req-table) tbody td:nth-child(2) {
         display: block;
         font-weight: 600;
         margin-bottom: 8px;
@@ -794,6 +808,41 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     }
     .ticket-table tbody td:nth-child(n+3) { margin-right: 8px; }
     .ticket-table tbody td:nth-child(n+3) .ticket-date { font-size: 13px; }
+
+    /* ---- Your requests: three columns, so its own shape ----
+     * The form's title leads, then the approval pill and (when the request
+     * has become one) the ticket reference read as one run beside it, with
+     * the submitted date underneath. */
+    .req-table tbody td:first-child {
+        display: block;
+        font-weight: 600;
+        margin-bottom: 6px;
+        line-height: 1.35;
+    }
+    /* ⚠️ `display: block` on both, and NOT `inline-flex` on the status cell,
+     * which is what the first attempt used. The base rule leaves a `td`
+     * `display: inline`, so an inline-flex status cell and an inline date
+     * cell share ONE line box — and once the date joined it the flex box was
+     * handed a narrower available width and wrapped internally, putting the
+     * pill on one line, the reference on the next, and the date beside the
+     * reference. Three items, three places, none of them chosen.
+     * A block per cell has no such interaction. */
+    .req-table tbody td:nth-child(2) {
+        display: block;
+        margin-bottom: 4px;
+    }
+    .req-table tbody td:nth-child(2) .req-pill { vertical-align: middle; }
+    .req-table tbody td:nth-child(2) .ticket-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        width: auto;
+        vertical-align: middle;
+    }
+    .req-table tbody td:nth-child(3) {
+        display: block;
+        margin-right: 0;
+    }
     /* ⚠️ Do not swallow the empty state — "no tickets" is one cell spanning
      * the row and must stay a centred sentence, not a subject-styled card. */
     .ticket-table tbody td[colspan] {
@@ -805,9 +854,47 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
 
     /* A tap target has to be reachable, not just present. */
     .portal-nav .nav-btn,
-    .portal-action,
-    .ticket-table .ticket-link { min-height: 24px; }
+    .portal-action { min-height: 24px; }
     .portal-action { min-height: 44px; }
+
+    /* 🔴🔴 AND `min-height` ON `.ticket-link` HAD NEVER APPLIED TO ANYTHING —
+     * the THIRD inert rule found in this module, joining the 640px padding
+     * that could not beat a `min-width` floor and the `.col-optional` that
+     * appears nowhere in the markup.
+     *
+     * `min-height` is inert on an `display: inline` box, and an `<a>` wrapping
+     * text is inline. Measured on the portal dashboard: **90x17**, with the
+     * rule computing to `min-height: 24px` and changing nothing.
+     *
+     * 🔑 That matters here more than the number suggests, because the `<tr>`
+     * has NO click handler: these two anchors are the ONLY way to open a
+     * ticket from the dashboard, so a 17px-tall line of text was the whole
+     * tap target on the page a requester lands on.
+     *
+     * The fix is the display type, not a bigger number.
+     *
+     * 🔴 AND IT IS NOT 44px ON BOTH OF THEM, which is what the first version
+     * did — and a screenshot is the only thing that showed why. There are TWO
+     * anchors per card (the reference and the subject, in separate cells), so
+     * forcing a 44px block on each added ~50px of empty space to every card
+     * and left the reference floating above a gap. Every measurement was
+     * happier and the card looked broken.
+     *
+     * So the height goes where the TARGET is. The subject is what a person
+     * aims at, so it takes a full-width 44px row; the reference above it is a
+     * short identifier and takes a comfortable 32px inline box. One generous
+     * target per card, and the card keeps its shape. */
+    .ticket-table tbody td:first-child .ticket-link {
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+    }
+    .ticket-table tbody td:nth-child(2) .ticket-link {
+        display: flex;
+        align-items: center;
+        min-height: 44px;
+        width: 100%;
+    }
 
     /* 🔴 The drawer lives inside `.portal-header`, which is `position: sticky`
      * with `z-index: 100` — and that creates a STACKING CONTEXT. So the nav's
@@ -823,6 +910,86 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
      * the moment it is needed, rather than re-stacking a sticky header for
      * every page all the time. */
     body.ss-nav-open .portal-header { z-index: 3000; }
+
+    /* ── The portal's user guide ───────────────────────────────────────────
+     * 🔴🔴 IT COULD NOT BE SCROLLED AT ALL: 7118px of guide, and the probe
+     * reported both `<html>` and `body.portal-app` as unreachable. Ten of
+     * its eleven sections were simply not gettable-to on a phone.
+     *
+     * THREE files interact, and each is individually right:
+     *   · `self-service.css`  `body.portal-app { height: 100vh; overflow:
+     *                          hidden }` — the app shell, correct, because
+     *                          on every other portal page a pane scrolls;
+     *   · `help.css` @900px    `.help-container { height: auto }` and
+     *                          `.help-main { overflow-y: visible }` — also
+     *                          correct, handing the scroll to the document;
+     *   · and nothing gives the document permission to take it.
+     *
+     * 🔑 The analyst guides hit exactly this and were fixed by LAYER 16h in
+     * `mobile.css`. **The portal cannot use that file** — Ed's call, because
+     * it shares none of the analyst shell — so the same shape is written
+     * here instead. That is the cost of a separate layer, and it is the
+     * right cost: the alternative was dragging 12,500 lines of rules
+     * written against analyst markup onto a public-facing surface.
+     *
+     * Scoped to `body.portal-help`, because making `<body>` a flex column is
+     * not something any other portal page wants.
+     *
+     * ⚠️ AND IT IS THREE ELEMENTS, NOT TWO. The first version made `<body>` a
+     * flex column and gave `.help-container` `flex: 1 1 auto` — and nothing
+     * changed, because `.help-container` IS NOT A CHILD OF BODY. The header
+     * include wraps every portal page in a `.portal-layout`, which stayed
+     * `display: block` and grew to its content:
+     *
+     *     DIV.help-container   flex: 1 1 auto   height 7069px   <- resolved
+     *     DIV.portal-layout    display: block   height 7069px   <- against THIS
+     *     BODY.portal-help     display: flex    height  740px
+     *
+     * A `flex: 1` is measured against its own parent, so every element
+     * between the viewport-height box and the scroller has to pass the height
+     * down. Dumping the whole ancestor chain — display, height, min-height,
+     * flex and overflow for each — is what showed it; measuring the
+     * container alone said `flex: 1 1 auto` and looked correct. */
+    body.portal-help {
+        display: flex;
+        flex-direction: column;
+    }
+    body.portal-help .portal-layout {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    body.portal-help .help-container {
+        flex: 1 1 auto;
+        min-height: 0;                 /* 🔴 or the shell grows past the
+                                          viewport and nothing can scroll */
+        overflow-y: auto;
+        overflow-x: hidden;            /* name both axes, or the other
+                                          computes to auto and the next wide
+                                          thing hides instead of reporting */
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;                  /* the contents strip below is
+                                          `nowrap`, and a flex item's
+                                          automatic minimum is its content */
+        box-sizing: border-box;
+    }
+    /* The numbered contents strip already scrolls sideways in help.css. Hide
+     * its scrollbar — it sits directly under the header and reads as a stray
+     * rule — and stop the swipe chaining to the page behind it. */
+    body.portal-help .help-sidebar {
+        overscroll-behavior-x: contain;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+    }
+    body.portal-help .help-sidebar::-webkit-scrollbar { display: none; }
+    body.portal-help .help-nav-link {
+        min-height: 40px;
+        display: inline-flex;
+        align-items: center;
+    }
 }
 
 /* ══ Incidents on the status panel (discussion #99) ════════════════════════
