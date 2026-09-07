@@ -99,7 +99,7 @@ $translationNamespaces = ['common', 'watchtower'];
         .help-dot.amber { background: var(--warning-text, #f59e0b); }
         .help-dot.red   { background: var(--danger-accent, #ef4444); }
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=135">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=136">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

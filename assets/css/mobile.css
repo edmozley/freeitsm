@@ -909,9 +909,6 @@
     .asset-detail-body   { padding-left: 14px; padding-right: 14px; }
     .asset-detail-hostname { font-size: 19px; word-break: break-word; }
 
-    /* The action buttons (History / Custody / Print label) wrap instead of
-       running off the side. */
-    .asset-detail-header > div { display: flex; flex-wrap: wrap; gap: 6px; }
     .asset-detail-header .btn-sm { min-height: 38px; }
 
     /* Tabs scroll sideways rather than squashing. */
@@ -945,8 +942,102 @@
         appearance: none;
     }
 
-    /* The assigned-user bar stacks rather than squeezing the button. */
-    .asset-assigned-bar { flex-wrap: wrap; gap: 8px; }
+    /* --------------------------------------------------------------------
+       14a — The assigned-user bar: who has this asset (#1495).
+
+       ⚠️ `flex-wrap: wrap` on the BAR was not enough, and looked like it was.
+       The bar's two children are the info block and the buttons; the info
+       block carries `flex: 1; min-width: 0`, so it SHRINKS instead of pushing
+       the buttons onto a second row, and the bar therefore never wraps.
+
+       The info block is itself a flex ROW, and its spans — name, email,
+       assigned date — are flex items at the default `min-width: auto`, which
+       is a refusal to shrink below their own content. So the box was 169px
+       wide holding 297px of content: the email ran to x=259 and the date to
+       x=331 while the buttons began at x=209. Measured, not guessed — a hit
+       test at the email's right edge returned the Re-assign BUTTON.
+
+       Stacking the spans is what fixes it, not wrapping the bar. Each value
+       gets its own line at the full width, and the buttons take a row
+       underneath, where they are also finally big enough to hit.
+       -------------------------------------------------------------------- */
+    .asset-assigned-bar {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 10px;
+    }
+    .asset-assigned-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 3px;
+        width: 100%;
+    }
+    /* An email address is one unbroken word and will not wrap on its own. */
+    .asset-assigned-info > span { max-width: 100%; overflow-wrap: anywhere; }
+
+    #assignButtons { width: 100%; }
+    #assignButtons .btn { flex: 1 1 0; min-height: 42px; }
+
+
+    /* --------------------------------------------------------------------
+       14b — View History / Custody / Print label as a bar along the BOTTOM
+       (#1496), the treatment a knowledge article's actions get (17k).
+
+       ⚠️ `position: absolute`, NOT the `fixed` that 17k uses. This pane is
+       `transform: translateX(...)` (the two-pane slide at the top of LAYER
+       14), and a transformed ancestor becomes the containing block for a
+       FIXED descendant too — so `fixed` here would not be fixed to the
+       viewport at all, it would be silently anchored to this pane while
+       looking correct. Absolute says out loud what is actually happening,
+       and it is the behaviour we want: the bar slides away with the pane
+       when you go Back to the list, rather than hanging over it.
+
+       Anchoring works because nothing between here and `.asset-detail-
+       container` is positioned — `.asset-detail-sticky` is named for the
+       effect, not the property, and is only `flex-shrink: 0`. The container
+       is `inset: 0` of a pane area that is the last flex child of a 100dvh
+       body, so its bottom edge IS the bottom of the screen.
+       -------------------------------------------------------------------- */
+    .asset-detail-actions {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1200;
+        margin: 0;
+        display: flex;
+        gap: 6px;
+        justify-content: space-around;
+        align-items: stretch;
+        background: var(--surface, #fff);
+        border-top: 1px solid var(--border, #e0e0e0);
+        /* env() so the bar clears the home indicator on a modern iPhone. */
+        padding: 8px 10px;
+        padding-bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        box-shadow: 0 -2px 8px var(--shadow, rgba(0, 0, 0, 0.12));
+    }
+    .asset-detail-actions .btn {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 46px;                /* a comfortable thumb target */
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+    /* Icon only. Three translated labels do not fit 360px — "View History"
+       alone is most of a third of it — and the word is still on the button's
+       `title` for a screen reader. */
+    .asset-detail-actions .asset-act-label { display: none; }
+    .asset-detail-actions .asset-act-icon { display: inline; font-size: 20px; line-height: 1; }
+
+    /* ⚠️ The bar covers the end of whichever tab is open, and the end of a
+       list is exactly what somebody scrolls to. Give that height back to
+       every scroller in the pane — the three that scroll as a block, and the
+       inner lists on Devices and Software, whose panels do not. */
+    .detail-tab-panel--scroll,
+    .devices-list,
+    .software-list { padding-bottom: 78px; }
 
 
     /* ====================================================================

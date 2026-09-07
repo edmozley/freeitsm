@@ -202,7 +202,7 @@ $translationNamespaces = ['common', 'contracts'];
         .btn-primary:hover { background-color: var(--con-accent-hover, #d97706); }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../../assets/css/mobile.css?v=135">
+    <link rel="stylesheet" href="../../../assets/css/mobile.css?v=136">
 </head>
 <body data-mobile-module="contracts" data-mobile-page="contracts-supplier">
     <?php include '../../includes/header.php'; ?>

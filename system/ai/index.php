@@ -168,7 +168,7 @@ try {
         }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=135">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=136">
 </head>
 <body data-mobile-module="system" data-mobile-page="ai">
     <?php include '../includes/header.php'; ?>

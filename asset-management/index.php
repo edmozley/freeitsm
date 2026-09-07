@@ -229,6 +229,19 @@ $translationNamespaces = ['common', 'asset-management'];
             margin: 0;
         }
 
+        /* View History / Custody / Print label. This carried `style="margin-top:10px"`
+           inline until #1495; it needs a class of its own so the mobile layer can pin
+           it to the bottom of the pane without an `!important` fight with the inline
+           style. The desktop rendering is unchanged — same margin, same three buttons
+           with their words on them; only the icon each one now carries is hidden. */
+        .asset-detail-actions {
+            margin-top: 10px;
+        }
+
+        .asset-detail-actions .asset-act-icon {
+            display: none;
+        }
+
         .asset-assigned-bar {
             display: flex;
             align-items: center;
@@ -1299,7 +1312,7 @@ $translationNamespaces = ['common', 'asset-management'];
              <style> block so its @media rules win on ties — the ordering rule
              from the wiki's Mobile-Friendly-Techniques. Every rule inside it is
              gated at 768px, so the desktop layout is untouched. */ ?>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=135">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=136">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -1966,12 +1979,19 @@ $translationNamespaces = ['common', 'asset-management'];
                     <div class="asset-detail-header">
                         <h2 class="asset-detail-hostname">${assetTypeIcon(selectedAsset.asset_type_id, 20)}${escapeHtml(selectedAsset.hostname)}</h2>
                         <div class="asset-detail-subtitle">${window.t('asset-management.detail.service_tag')}: ${escapeHtml(selectedAsset.service_tag) || '-'}</div>
-                        <div style="margin-top: 10px;">
-                            <button class="btn btn-outline btn-sm" onclick="openHistoryModal(${selectedAsset.id})">${window.t('asset-management.detail.view_history')}</button>
-                            <button class="btn btn-outline btn-sm" onclick="openCheckoutLog(${selectedAsset.id})">${window.t('asset-management.detail.custody')}</button>
+                        <?php /* The three asset actions. On a phone mobile.css (LAYER 14b)
+                                 lifts this row out of the header and pins it along the bottom
+                                 of the pane, icon-only — the treatment a knowledge article's
+                                 actions already get. Each button therefore carries BOTH an icon
+                                 and its label: the icon is hidden on the desktop, the label on
+                                 a phone, and `title` keeps the word available to a reader or a
+                                 hover either way. */ ?>
+                        <div class="asset-detail-actions">
+                            <button class="btn btn-outline btn-sm" onclick="openHistoryModal(${selectedAsset.id})" title="${window.t('asset-management.detail.view_history')}"><span class="asset-act-icon" aria-hidden="true">🕘</span><span class="asset-act-label">${window.t('asset-management.detail.view_history')}</span></button>
+                            <button class="btn btn-outline btn-sm" onclick="openCheckoutLog(${selectedAsset.id})" title="${window.t('asset-management.detail.custody')}"><span class="asset-act-icon" aria-hidden="true">🔄</span><span class="asset-act-label">${window.t('asset-management.detail.custody')}</span></button>
                             <?php /* QR label (#935). Opens the print sheet for this one asset;
                                      the sheet takes a list, so a future multi-select prints many. */ ?>
-                            <button class="btn btn-outline btn-sm" onclick="printAssetLabel(${selectedAsset.id})">${window.t('asset-management.detail.print_label')}</button>
+                            <button class="btn btn-outline btn-sm" onclick="printAssetLabel(${selectedAsset.id})" title="${window.t('asset-management.detail.print_label')}"><span class="asset-act-icon" aria-hidden="true">🏷️</span><span class="asset-act-label">${window.t('asset-management.detail.print_label')}</span></button>
                         </div>
                         <div class="asset-assigned-bar" id="assignedBar">
                             <div class="asset-assigned-info" id="assignedInfo">

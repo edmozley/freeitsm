@@ -173,7 +173,7 @@ $translationNamespaces = ['common', 'contracts'];
         [data-theme-mode="dark"] .section-card-header h2 { color: #38bdf8; }
     </style>
     <!-- Mobile layer: linked AFTER this page's own <style> so its @media rules win on ties. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=135">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=136">
 </head>
 <body data-mobile-module="contracts">
     <?php include '../includes/header.php'; ?>
