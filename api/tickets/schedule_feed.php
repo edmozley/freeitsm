@@ -79,9 +79,9 @@ try {
            FROM tickets t
            LEFT JOIN ticket_statuses   ts ON ts.id = t.status_id
            LEFT JOIN ticket_priorities tp ON tp.id = t.priority_id
-          WHERE t.owner_id = ?
+          WHERE t.owner_id = :analyst
             AND t.work_start_datetime IS NOT NULL
-            AND t.work_start_datetime >= (? - INTERVAL 3 MONTH)
+            AND t.work_start_datetime >= (:cutoff - INTERVAL 3 MONTH)
             AND t.deleted_datetime IS NULL
             AND COALESCE(ts.is_closed, 0) = 0
           ORDER BY t.work_start_datetime"
@@ -90,7 +90,15 @@ try {
     // (see includes/timezone.php). It is a three-month cutoff, so an hour either
     // way changes nothing here, but the two kinds of date must not be mixed even
     // where it is currently harmless (GH #126).
-    $stmt->execute([naive_now(), $analystId]);
+    //
+    // 🔴 NAMED, NOT POSITIONAL, AND THAT IS THE WHOLE POINT (GH #133). #1446
+    // replaced NOW() with a placeholder and passed the two values the other way
+    // round, so this read `owner_id = '2026-09-07 23:19:49'` — which MySQL casts
+    // to 0 and matches nobody — and `work_start >= (7 - INTERVAL 3 MONTH)`, which
+    // is NULL. Zero rows, every time, and the feed still returned a perfectly
+    // valid calendar containing nothing. The same slip was made three times in
+    // that one commit. Named parameters cannot be swapped.
+    $stmt->execute([':analyst' => $analystId, ':cutoff' => naive_now()]);
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $detail = scheduleFeedDetail($conn, $analystId);
@@ -109,17 +117,21 @@ try {
                FROM tasks tk
           LEFT JOIN task_statuses   s ON s.id = tk.status_id
           LEFT JOIN task_priorities p ON p.id = tk.priority_id
-              WHERE tk.assigned_analyst_id = ?
+              WHERE tk.assigned_analyst_id = :analyst
                 AND COALESCE(s.is_closed, 0) = 0
-                AND (tk.work_start_datetime >= (? - INTERVAL 3 MONTH)
-                     OR tk.due_date >= (DATE(?) - INTERVAL 3 MONTH))
+                AND (tk.work_start_datetime >= (:cutoff_work - INTERVAL 3 MONTH)
+                     OR tk.due_date >= (DATE(:cutoff_due) - INTERVAL 3 MONTH))
               ORDER BY COALESCE(tk.work_start_datetime, tk.due_date)"
         );
         // Both a wall clock: a work window is naive, and a due_date is a BARE DATE
         // — the third kind, which has no time and no zone at all. CURDATE() would
         // now be the UTC date, which crosses midnight an hour early here.
+        //
+        // Named for the reason above, and two distinct names for the one value:
+        // a repeated named placeholder only works while prepares are emulated,
+        // and that is a connection setting rather than a promise.
         $tkNow = naive_now();
-        $stmt->execute([$tkNow, $tkNow, $analystId]);
+        $stmt->execute([':analyst' => $analystId, ':cutoff_work' => $tkNow, ':cutoff_due' => $tkNow]);
         $taskRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 } catch (Exception $e) {

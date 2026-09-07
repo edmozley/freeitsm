@@ -144,13 +144,19 @@ try {
         $st = $conn->prepare(
             "SELECT t.id FROM tickets t
                LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
-              WHERE t.owner_id = ? AND t.work_start_datetime IS NOT NULL
+              WHERE t.owner_id = :analyst AND t.work_start_datetime IS NOT NULL
                 AND t.deleted_datetime IS NULL AND COALESCE(ts.is_closed, 0) = 0
-                AND t.work_start_datetime >= (? - INTERVAL 1 WEEK)
+                AND t.work_start_datetime >= (:cutoff - INTERVAL 1 WEEK)
               ORDER BY t.work_start_datetime"
         );
         // A wall clock — work_start_datetime is naive (GH #126).
-        $st->execute([naive_now(), $analystId]);
+        //
+        // 🔴 The same reversed-parameter bug as the subscribe feed (GH #133):
+        // #1446 passed the cutoff where the analyst goes, so this backfill
+        // selected NOTHING and switching push on left the calendar empty —
+        // which is precisely the failure the comment above says it exists to
+        // prevent. Named so it cannot happen a third time.
+        $st->execute([':analyst' => $analystId, ':cutoff' => naive_now()]);
         // Bounded to the last week onwards on purpose: back-filling months of
         // finished work would fill a calendar with history nobody asked for, and
         // make opting in a very long request.
