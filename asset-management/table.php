@@ -84,7 +84,7 @@ try {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     <?php /* Mobile-friendly opt-in (#937). Last stylesheet so its @media rules
              win on ties. Every rule inside is gated at 768px. */ ?>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=136">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=137">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

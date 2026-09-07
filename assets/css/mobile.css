@@ -3179,23 +3179,74 @@
         padding: 12px;
     }
 
-    /* Stack the header. Side by side, the title had roughly 150px and wrapped;
-       stacked it gets the full width and the timestamp sits with the button it
-       belongs to, on one line, right-aligned. */
+    /* 21b — The whole header on ONE line (#1497/#1498, Ed's device pass).
+
+       It used to stack into three rows — title, scope toggle, then the
+       timestamp and Refresh — which spent about 120px of a 640px screen
+       before a single number.
+
+       "Attention Overview" is GONE on a phone. It is the only heading the
+       page has, and on a small screen it is also the only thing on the page
+       that says nothing: you arrived through the Watchtower entry in the
+       drawer, and every card underneath is titled. Requested by Ed.
+
+       That leaves scope + timestamp + Refresh, and they only fit on one line
+       because two things give way: the segmented control loses the roomy
+       desktop padding it does not need to stay tappable, and Refresh drops
+       to its icon. Measured at 360px, the narrowest phone this file targets
+       — see the note on the label below. */
     .wt-top-bar {
-        flex-direction: column;
-        align-items: stretch;
+        flex-direction: row;
+        align-items: center;
         gap: 8px;
         margin-bottom: 12px;
+        /* ⚠️ The last resort, and it should never fire in English — measured,
+           the row comes to 300px of a 336px content box at 360px. It is here
+           because "Updated {time}" and three scope words are TRANSLATED, and
+           a locale that genuinely cannot fit must fall back to a second line
+           rather than push the page wider than the screen, which is the one
+           failure that reflows iOS Safari to desktop width and switches this
+           whole stylesheet off (§3). */
+        flex-wrap: wrap;
     }
-    .wt-title { font-size: 17px; }
+
+    .wt-title { display: none; }
+
+    /* The desktop pushes this off the title with `margin-left: auto`. With no
+       title it is the first thing on the row, so the auto margin would shove
+       it right and strand the space on the left. */
+    .wt-scope-toggle {
+        margin-left: 0;
+        margin-right: 0;
+        flex: 0 1 auto;
+        min-width: 0;
+    }
+    /* 9px of side padding rather than the desktop's 12px — that is where the
+       width for one line comes from — with the height given back as a
+       min-height, so each option is a proper target rather than the 22px the
+       desktop padding leaves. `min-height` bites here only because these are
+       flex items: on a plain inline button it is inert (§32). */
+    .wt-scope-btn {
+        padding: 9px;
+        min-height: 40px;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+
     .wt-refresh-info {
-        justify-content: flex-end;
-        gap: 10px;
+        margin-left: auto;
+        gap: 6px;
+        flex: 0 0 auto;
+        white-space: nowrap;
     }
-    /* A 44px-tall target: this is the one control on the page, and the desktop
-       4px/10px padding is under the comfortable tap size on a phone. */
-    .wt-refresh-btn { padding: 9px 14px; font-size: 13px; }
+
+    /* ⚠️ Icon only. With the word "Refresh" on it the row came to 372px on a
+       360px screen — the timestamp was the part that got squeezed, and a
+       squeezed timestamp is the one thing on that row you cannot guess. The
+       icon is self-explanatory in a way "Updated 09:14" is not, so the icon
+       is what loses its label. The word stays on the button's `title`. */
+    .wt-refresh-label { display: none; }
+    .wt-refresh-btn { padding: 9px 10px; min-height: 40px; font-size: 13px; }
 
     /* One column below 768, not 700. The module's own breakpoint leaves 701-768
        on two columns, which is a ~370px card — narrower than the phone layout

@@ -67,7 +67,7 @@ $translationNamespaces = ['common', 'reporting'];
     </style>
     <!-- Mobile layer LAST, after this page's own <style> block, or a rule at
          equal specificity loses on document order (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=136">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=137">
 </head>
 <body data-mobile-module="reporting" data-mobile-page="rep-coming-soon">
     <?php include '../includes/header.php'; ?>

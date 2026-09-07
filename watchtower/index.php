@@ -414,7 +414,7 @@ try {
            inline, which reads on both grounds (the tint is the same hue as the
            text), so there is nothing left here to flip for dark mode. */
     </style>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=136">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=137">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -435,12 +435,15 @@ try {
 
             <div class="wt-refresh-info">
                 <span id="wtLastRefresh"></span>
-                <button class="wt-refresh-btn" id="wtRefreshBtn" onclick="loadDashboard()">
+                <button class="wt-refresh-btn" id="wtRefreshBtn" onclick="loadDashboard()" title="<?php echo htmlspecialchars(t('watchtower.dashboard.refresh')); ?>">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <polyline points="23 4 23 10 17 10"></polyline>
                         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                     </svg>
-                    <?php echo htmlspecialchars(t('watchtower.dashboard.refresh')); ?>
+                    <?php /* The word is wrapped so the mobile layer can drop it and leave
+                             the icon, which is what buys the scope toggle its room on one
+                             line (#1497). `title` keeps the word for a reader either way. */ ?>
+                    <span class="wt-refresh-label"><?php echo htmlspecialchars(t('watchtower.dashboard.refresh')); ?></span>
                 </button>
             </div>
         </div>

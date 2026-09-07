@@ -112,7 +112,7 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
         [data-theme-mode="dark"] .syshelp-hit:hover { background: #363b5e; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=136">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=137">
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
 </head>
