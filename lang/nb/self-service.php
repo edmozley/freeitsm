@@ -55,6 +55,7 @@ return [
         'password'           => 'Passord',
         'sign_in'            => 'Logg inn',
         'signing_in'         => 'Logger inn...',
+        'forgot_password'     => 'Glemt passord?',
         'create_account'     => 'Opprett konto',
         'analyst_login'      => 'Innlogging for analytikere',
         'login_failed'       => 'Innloggingen mislyktes. Prøv igjen.',
@@ -71,6 +72,34 @@ return [
         'no_sso_for_email'   => 'Ingen leverandør for single sign-on er satt opp for den e-postadressen. Kontakt brukerstøtten.',
     ],
 
+
+    // Setting a password from an emailed link (GH #134).
+    'forgot' => [
+        'title'           => 'Selvbetjeningsportal - Angi passordet ditt',
+        'heading'         => 'Angi passordet ditt',
+        'subtitle'        => 'Skriv inn e-postadressen din, så sender vi deg en lenke',
+        'email'           => 'E-post',
+        'submit'          => 'Send meg en lenke',
+        'sending'         => 'Sender...',
+        'back_to_login'   => 'Tilbake til innlogging',
+        'failed'          => 'Lenken kunne ikke sendes. Prøv igjen om litt.',
+    ],
+
+    'reset' => [
+        'title'              => 'Selvbetjeningsportal - Velg et passord',
+        'heading'            => 'Velg et passord',
+        'subtitle'           => 'Velg et passord for selvbetjeningskontoen din',
+        'password'           => 'Nytt passord',
+        'password_hint'      => 'Minst 8 tegn',
+        'confirm_password'   => 'Bekreft passord',
+        'submit'             => 'Lagre passord',
+        'saving'             => 'Lagrer...',
+        'passwords_mismatch' => 'De to passordene er ikke like',
+        'failed'             => 'Passordet kunne ikke lagres. Prøv igjen om litt.',
+        'back_to_login'      => 'Tilbake til innlogging',
+        'no_token'           => 'Denne lenken er ikke gyldig. Den kan ha blitt kopiert ufullstendig fra e-posten.',
+        'request_new'        => 'Be om en ny lenke',
+    ],
     'register' => [
         'title'              => 'Selvbetjeningsportal - Registrering',
         'heading'            => 'Opprett konto',

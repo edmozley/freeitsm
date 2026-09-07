@@ -606,7 +606,7 @@ return [
         'selfreg_heading' => 'Sjølvregistrering',
         'selfreg_desc'    => 'Om folk kan opprette sin eigen konto i sjølvbeteningsportalen frå innloggingssida. Av som standard. Når det er på, blir registreringa framleis stadfesta med ei lenkje på e-post før noko passord blir sett.',
         'selfreg_label'   => 'Tillat sjølvregistrering',
-        'selfreg_hint'    => 'Av = berre kontoar du opprettar kan logge inn i portalen',
+        'selfreg_hint'    => 'Av = ingen kan opprette sin eigen konto. Personar du legg til, kan framleis logge inn – dei vel sitt første passord med «Gløymt passord?» på innloggingssida til portalen.',
         'trusted_heading' => 'Klarert eining',
         'trusted_desc'    => 'La brukarar hoppe over OTP-stadfesting i klarerte nettlesarar. Brukarane vel dette sjølve i avatarmenyen sin. Set til 0 for å slå av funksjonen heilt.',
         'trust_duration'  => 'Varigheit på klareringa',

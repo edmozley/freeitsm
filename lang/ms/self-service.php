@@ -55,6 +55,7 @@ return [
         'password'           => 'Kata Laluan',
         'sign_in'            => 'Log Masuk',
         'signing_in'         => 'Sedang log masuk...',
+        'forgot_password'     => 'Lupa kata laluan anda?',
         'create_account'     => 'Cipta akaun',
         'analyst_login'      => 'Log masuk penganalisis',
         'login_failed'       => 'Log masuk gagal. Sila cuba lagi.',
@@ -71,6 +72,34 @@ return [
         'no_sso_for_email'   => 'Tiada penyedia log masuk tunggal disediakan untuk e-mel tersebut. Sila hubungi meja perkhidmatan anda.',
     ],
 
+
+    // Setting a password from an emailed link (GH #134).
+    'forgot' => [
+        'title'           => 'Portal Layan Diri - Tetapkan kata laluan anda',
+        'heading'         => 'Tetapkan kata laluan anda',
+        'subtitle'        => 'Masukkan alamat e-mel anda dan kami akan menghantar pautan',
+        'email'           => 'E-mel',
+        'submit'          => 'Hantar pautan kepada saya',
+        'sending'         => 'Menghantar...',
+        'back_to_login'   => 'Kembali ke log masuk',
+        'failed'          => 'Pautan tidak dapat dihantar. Sila cuba lagi sebentar nanti.',
+    ],
+
+    'reset' => [
+        'title'              => 'Portal Layan Diri - Pilih kata laluan',
+        'heading'            => 'Pilih kata laluan',
+        'subtitle'           => 'Pilih kata laluan untuk akaun layan diri anda',
+        'password'           => 'Kata laluan baharu',
+        'password_hint'      => 'Sekurang-kurangnya 8 aksara',
+        'confirm_password'   => 'Sahkan kata laluan',
+        'submit'             => 'Simpan kata laluan',
+        'saving'             => 'Menyimpan...',
+        'passwords_mismatch' => 'Kedua-dua kata laluan tidak sepadan',
+        'failed'             => 'Kata laluan anda tidak dapat disimpan. Sila cuba lagi sebentar nanti.',
+        'back_to_login'      => 'Kembali ke log masuk',
+        'no_token'           => 'Pautan ini tidak sah. Ia mungkin disalin secara tidak lengkap daripada e-mel anda.',
+        'request_new'        => 'Minta pautan baharu',
+    ],
     'register' => [
         'title'              => 'Portal Layan Diri - Daftar',
         'heading'            => 'Cipta Akaun',

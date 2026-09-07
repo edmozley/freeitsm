@@ -42,6 +42,7 @@ return [
         'password' => 'Adgangskode',
         'sign_in' => 'Log ind',
         'signing_in' => 'Logger ind...',
+        'forgot_password' => 'Glemt din adgangskode?',
         'create_account' => 'Opret en konto',
         'analyst_login' => 'Medarbejderlogin',
         'login_failed' => 'Login mislykkedes. Prøv igen.',
@@ -56,6 +57,34 @@ return [
         'use_local_account' => 'Log ind med e-mail og adgangskode',
         'enter_email' => 'Indtast din e-mail.',
         'no_sso_for_email' => 'Der er ikke konfigureret nogen single sign-on-udbyder til den e-mailadresse. Kontakt IT-teamet.',
+    ],
+
+    // Setting a password from an emailed link (GH #134).
+    'forgot' => [
+        'title'           => 'Selvbetjeningsportal - Vælg din adgangskode',
+        'heading'         => 'Vælg din adgangskode',
+        'subtitle'        => 'Indtast din e-mailadresse, så sender vi dig et link',
+        'email'           => 'E-mail',
+        'submit'          => 'Send mig et link',
+        'sending'         => 'Sender...',
+        'back_to_login'   => 'Tilbage til login',
+        'failed'          => 'Linket kunne ikke sendes. Prøv igen om lidt.',
+    ],
+
+    'reset' => [
+        'title'              => 'Selvbetjeningsportal - Vælg en adgangskode',
+        'heading'            => 'Vælg en adgangskode',
+        'subtitle'           => 'Vælg en adgangskode til din selvbetjeningskonto',
+        'password'           => 'Ny adgangskode',
+        'password_hint'      => 'Mindst 8 tegn',
+        'confirm_password'   => 'Bekræft adgangskode',
+        'submit'             => 'Gem adgangskode',
+        'saving'             => 'Gemmer...',
+        'passwords_mismatch' => 'De to adgangskoder er ikke ens',
+        'failed'             => 'Din adgangskode kunne ikke gemmes. Prøv igen om lidt.',
+        'back_to_login'      => 'Tilbage til login',
+        'no_token'           => 'Dette link er ikke gyldigt. Det kan være kopieret ufuldstændigt fra din e-mail.',
+        'request_new'        => 'Bed om et nyt link',
     ],
     'register' => [
         'title' => 'Selvbetjeningsportal - Opret konto',

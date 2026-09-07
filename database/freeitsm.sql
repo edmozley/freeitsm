@@ -622,6 +622,27 @@ CREATE TABLE IF NOT EXISTS `user_verification_tokens` (
     KEY `ix_uvt_expires` (`expires_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Password reset for SELF-SERVICE PORTAL users (GH #134).
+--
+-- Deliberately a SEPARATE table from `password_reset_tokens`, which is the
+-- analyst one and is hard-wired to `analyst_id`. Widening that table would have
+-- meant a nullable `analyst_id` and an "exactly one of two columns" rule that
+-- nothing enforces - in the one part of the product where a mistake hands out
+-- somebody else's account. Two tables cannot confuse a portal user with an
+-- analyst, so they do not.
+CREATE TABLE IF NOT EXISTS `user_password_reset_tokens` (
+    `id`         INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `user_id`    INT NOT NULL,
+    `token_hash` CHAR(64) NOT NULL,
+    `expires_at` DATETIME NOT NULL,
+    `used`       TINYINT(1) NOT NULL DEFAULT 0,
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_uprt_token` (`token_hash`),
+    KEY `ix_uprt_user` (`user_id`),
+    KEY `ix_uprt_expires` (`expires_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- users.auth_provider_id => the IdP a requester is assigned to (NULL = local
 -- password). Added after auth_providers is defined.
 ALTER TABLE `users`

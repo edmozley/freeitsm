@@ -56,6 +56,7 @@ return [
         'password'           => 'Password',
         'sign_in'            => 'Sign In',
         'signing_in'         => 'Signing in...',
+        'forgot_password'    => 'Forgot your password?',
         'create_account'     => 'Create an account',
         'analyst_login'      => 'Analyst login',
         'login_failed'       => 'Login failed. Please try again.',
@@ -72,6 +73,40 @@ return [
         'no_sso_for_email'   => 'No single sign-on provider is set up for that email. Please contact your service desk.',
     ],
 
+
+    // Setting a password from an emailed link (GH #134). Two blocks, because the
+    // two pages are separate: asking for the link, and using it.
+    //
+    // ⚠️ The wording says SET rather than RESET throughout. For most people who
+    // see these pages this is the FIRST password they have had — their account
+    // was created for them by the service desk — and being told to "reset" one
+    // they never set reads as a mistake or a scam.
+    'forgot' => [
+        'title'           => 'Self-Service Portal - Set your password',
+        'heading'         => 'Set your password',
+        'subtitle'        => 'Enter your email address and we will send you a link',
+        'email'           => 'Email',
+        'submit'          => 'Send me a link',
+        'sending'         => 'Sending...',
+        'back_to_login'   => 'Back to sign in',
+        'failed'          => 'Could not send the link. Please try again shortly.',
+    ],
+
+    'reset' => [
+        'title'              => 'Self-Service Portal - Choose a password',
+        'heading'            => 'Choose a password',
+        'subtitle'           => 'Pick a password for your self-service account',
+        'password'           => 'New password',
+        'password_hint'      => 'At least 8 characters',
+        'confirm_password'   => 'Confirm password',
+        'submit'             => 'Save password',
+        'saving'             => 'Saving...',
+        'passwords_mismatch' => 'The two passwords do not match',
+        'failed'             => 'Could not save your password. Please try again shortly.',
+        'back_to_login'      => 'Back to sign in',
+        'no_token'           => 'This link is not valid. It may have been copied incompletely from your email.',
+        'request_new'        => 'Ask for a new link',
+    ],
     'register' => [
         'title'              => 'Self-Service Portal - Register',
         'heading'            => 'Create Account',

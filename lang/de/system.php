@@ -673,7 +673,7 @@ return [
         'selfreg_heading'         => 'Selbstregistrierung',
         'selfreg_desc'            => 'Ob Personen sich auf der Anmeldeseite selbst ein Konto für das Self-Service-Portal anlegen können. Standardmäßig aus. Ist die Option an, wird die Anmeldung weiterhin per E-Mail-Link bestätigt, bevor ein Passwort gesetzt wird.',
         'selfreg_label'           => 'Selbstregistrierung erlauben',
-        'selfreg_hint'            => 'Aus = nur von Ihnen angelegte Konten können sich am Portal anmelden',
+        'selfreg_hint'            => 'Aus = niemand kann ein eigenes Konto anlegen. Von Ihnen angelegte Personen können sich weiterhin anmelden – sie vergeben ihr erstes Passwort über „Passwort vergessen?“ auf der Anmeldeseite des Portals.',
         'trusted_heading'         => 'Vertrauenswürdiges Gerät',
         'trusted_desc'            => 'Erlaubt es Benutzern, die OTP-Prüfung auf vertrauenswürdigen Browsern zu überspringen. Die Zustimmung erfolgt individuell über das Benutzermenü. Auf 0 setzen, um die Funktion vollständig abzuschalten.',
         'trust_duration'          => 'Dauer des Vertrauens',

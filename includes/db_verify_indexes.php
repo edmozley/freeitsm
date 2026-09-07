@@ -39,6 +39,11 @@ return [
     ['user_sso_identities', 'uq_user_sso_provider_user', 'unique', '(`provider_id`,`user_id`)'],
     ['user_verification_tokens', 'uq_uvt_token', 'unique', '(`token_hash`)'],
     ['user_verification_tokens', 'ix_uvt_email', 'key', '(`email`)'],
+    // Portal password reset (GH #134). The unique key on token_hash is not a
+    // performance index: it is what stops the same token existing twice.
+    ['user_password_reset_tokens', 'uq_uprt_token', 'unique', '(`token_hash`)'],
+    ['user_password_reset_tokens', 'ix_uprt_user', 'key', '(`user_id`)'],
+    ['user_password_reset_tokens', 'ix_uprt_expires', 'key', '(`expires_at`)'],
     ['user_verification_tokens', 'ix_uvt_expires', 'key', '(`expires_at`)'],
     ['ticket_statuses', 'uq_ticket_statuses_name', 'unique', '(`name`)'],
     ['ticket_priorities', 'uq_ticket_priorities_name', 'unique', '(`name`)'],

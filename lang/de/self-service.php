@@ -52,6 +52,7 @@ return [
         'password'          => 'Passwort',
         'sign_in'           => 'Anmelden',
         'signing_in'        => 'Anmeldung läuft...',
+        'forgot_password'    => 'Passwort vergessen?',
         'create_account'    => 'Konto erstellen',
         'analyst_login'     => 'Anmeldung für Analysten',
         'login_failed'      => 'Anmeldung fehlgeschlagen. Bitte versuchen Sie es erneut.',
@@ -66,6 +67,34 @@ return [
         'use_local_account' => 'Mit E-Mail und Passwort anmelden',
         'enter_email'       => 'Bitte geben Sie Ihre E-Mail-Adresse ein.',
         'no_sso_for_email'  => 'Für diese E-Mail-Adresse ist kein Single-Sign-on-Anbieter eingerichtet. Bitte wenden Sie sich an Ihren Service Desk.',
+    ],
+
+    // Setting a password from an emailed link (GH #134).
+    'forgot' => [
+        'title'           => 'Self-Service-Portal - Passwort festlegen',
+        'heading'         => 'Passwort festlegen',
+        'subtitle'        => 'Geben Sie Ihre E-Mail-Adresse ein, wir senden Ihnen einen Link',
+        'email'           => 'E-Mail',
+        'submit'          => 'Link senden',
+        'sending'         => 'Wird gesendet...',
+        'back_to_login'   => 'Zurück zur Anmeldung',
+        'failed'          => 'Der Link konnte nicht gesendet werden. Bitte versuchen Sie es gleich erneut.',
+    ],
+
+    'reset' => [
+        'title'              => 'Self-Service-Portal - Passwort wählen',
+        'heading'            => 'Passwort wählen',
+        'subtitle'           => 'Wählen Sie ein Passwort für Ihr Self-Service-Konto',
+        'password'           => 'Neues Passwort',
+        'password_hint'      => 'Mindestens 8 Zeichen',
+        'confirm_password'   => 'Passwort bestätigen',
+        'submit'             => 'Passwort speichern',
+        'saving'             => 'Wird gespeichert...',
+        'passwords_mismatch' => 'Die beiden Passwörter stimmen nicht überein',
+        'failed'             => 'Ihr Passwort konnte nicht gespeichert werden. Bitte versuchen Sie es gleich erneut.',
+        'back_to_login'      => 'Zurück zur Anmeldung',
+        'no_token'           => 'Dieser Link ist ungültig. Möglicherweise wurde er unvollständig aus Ihrer E-Mail kopiert.',
+        'request_new'        => 'Neuen Link anfordern',
     ],
     'register' => [
         'title'              => 'Self-Service-Portal - Registrieren',

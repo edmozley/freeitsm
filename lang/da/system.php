@@ -783,7 +783,7 @@ return [
         'selfreg_heading' => 'Selvbetjent registrering',
         'selfreg_desc' => 'Om folk selv kan oprette en selvbetjeningsportalkonto fra login-siden. Fra som standard. Når slået til, bekræftes tilmelding stadig via et e-maillink, før nogen adgangskode sættes.',
         'selfreg_label' => 'Tillad selvregistrering',
-        'selfreg_hint' => 'Fra = kun konti, du opretter, kan logge ind på portalen',
+        'selfreg_hint' => 'Fra = ingen kan oprette deres egen konto. Personer, du tilføjer, kan stadig logge ind – de vælger deres første adgangskode med “Glemt din adgangskode?” på portalens login-side.',
         'trusted_heading' => 'Betroet enhed',
         'trusted_desc' => 'Tillad brugere at springe OTP-godkendelse over på betroede browsere. Brugere tilvælger dette individuelt via deres avatar-menu. Sæt til 0 for at slå denne funktion helt fra.',
         'trust_duration' => 'Varighed af tillid',

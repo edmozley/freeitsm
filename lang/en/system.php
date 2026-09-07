@@ -958,7 +958,13 @@ return [
         'selfreg_heading' => 'Self-service registration',
         'selfreg_desc'    => 'Whether people can create their own self-service portal account from the sign-in page. Off by default. When on, sign-up is still confirmed by an email link before any password is set.',
         'selfreg_label'   => 'Allow self-registration',
-        'selfreg_hint'    => 'Off = only accounts you create can sign in to the portal',
+        // ⚠️ This used to read "Off = only accounts you create can sign in to the
+        // portal", which was the exact opposite of the truth and is what caused
+        // GH #134: with it off, the accounts you create were the only ones that
+        // COULD NOT sign in, because nothing could give them a password. An
+        // administrator who read that hint had every reason to think a locked-out
+        // customer list was the configuration working as intended.
+        'selfreg_hint'    => 'Off = nobody can create their own account. People you add can still sign in — they set their first password using “Forgot your password?” on the portal sign-in page.',
         'trusted_heading' => 'Trusted Device',
         'trusted_desc'    => 'Allow users to skip OTP verification on trusted browsers. Users opt in individually via their avatar menu. Set to 0 to disable this feature entirely.',
         'trust_duration'  => 'Trust duration',

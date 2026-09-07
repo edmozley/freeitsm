@@ -811,7 +811,7 @@ return [
         'selfreg_heading'         => 'Auto-registro',
         'selfreg_desc'            => 'Si las personas pueden crear su propia cuenta del portal de autoservicio desde la página de inicio de sesión. Desactivado de forma predeterminada. Cuando está activado, el alta sigue confirmándose mediante un enlace por correo antes de establecer ninguna contraseña.',
         'selfreg_label'           => 'Permitir el auto-registro',
-        'selfreg_hint'            => 'Desactivado = solo pueden iniciar sesión en el portal las cuentas que usted cree',
+        'selfreg_hint'            => 'Desactivado = nadie puede crear su propia cuenta. Las personas que usted añada sí pueden iniciar sesión: establecen su primera contraseña con «¿Ha olvidado su contraseña?» en la página de acceso del portal.',
         'trusted_heading'         => 'Dispositivo de confianza',
         'trusted_desc'            => 'Permite que los usuarios omitan la verificación por OTP en navegadores de confianza. Los usuarios lo activan individualmente desde el menú de su avatar. Establezca 0 para desactivar esta función por completo.',
         'trust_duration'          => 'Duración de la confianza',

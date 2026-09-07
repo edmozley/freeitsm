@@ -595,7 +595,7 @@ return [
         'selfreg_heading' => 'Pendaftaran layan diri',
         'selfreg_desc'    => 'Sama ada orang boleh mencipta akaun portal layan diri mereka sendiri daripada halaman log masuk. Mati secara lalai. Apabila dihidupkan, pendaftaran masih disahkan melalui pautan e-mel sebelum mana-mana kata laluan ditetapkan.',
         'selfreg_label'   => 'Benarkan pendaftaran sendiri',
-        'selfreg_hint'    => 'Mati = hanya akaun yang anda cipta boleh log masuk ke portal',
+        'selfreg_hint'    => 'Mati = tiada sesiapa boleh mencipta akaun sendiri. Orang yang anda tambah masih boleh log masuk – mereka menetapkan kata laluan pertama melalui “Lupa kata laluan anda?” di halaman log masuk portal.',
         'trusted_heading' => 'Peranti Dipercayai',
         'trusted_desc'    => 'Benarkan pengguna melangkau pengesahan OTP pada pelayar yang dipercayai. Pengguna menyertai secara individu melalui menu avatar mereka. Tetapkan kepada 0 untuk melumpuhkan ciri ini sepenuhnya.',
         'trust_duration'  => 'Tempoh kepercayaan',

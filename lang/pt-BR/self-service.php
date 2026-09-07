@@ -41,6 +41,7 @@ return [
         'password'           => 'Senha',
         'sign_in'            => 'Entrar',
         'signing_in'         => 'Entrando...',
+        'forgot_password'     => 'Esqueceu sua senha?',
         'create_account'     => 'Criar uma conta',
         'analyst_login'      => 'Login de analista',
         'login_failed'       => 'Falha no login. Tente novamente.',
@@ -57,6 +58,34 @@ return [
         'no_sso_for_email'   => 'Nenhum provedor de single sign-on está configurado para esse e-mail. Entre em contato com a central de serviços.',
     ],
 
+
+    // Setting a password from an emailed link (GH #134).
+    'forgot' => [
+        'title'           => 'Portal de autoatendimento - Defina sua senha',
+        'heading'         => 'Defina sua senha',
+        'subtitle'        => 'Informe seu e-mail e enviaremos um link',
+        'email'           => 'E-mail',
+        'submit'          => 'Enviar um link',
+        'sending'         => 'Enviando...',
+        'back_to_login'   => 'Voltar ao acesso',
+        'failed'          => 'Não foi possível enviar o link. Tente novamente em instantes.',
+    ],
+
+    'reset' => [
+        'title'              => 'Portal de autoatendimento - Escolha uma senha',
+        'heading'            => 'Escolha uma senha',
+        'subtitle'           => 'Escolha uma senha para sua conta de autoatendimento',
+        'password'           => 'Nova senha',
+        'password_hint'      => 'Pelo menos 8 caracteres',
+        'confirm_password'   => 'Confirmar senha',
+        'submit'             => 'Salvar senha',
+        'saving'             => 'Salvando...',
+        'passwords_mismatch' => 'As duas senhas não coincidem',
+        'failed'             => 'Não foi possível salvar sua senha. Tente novamente em instantes.',
+        'back_to_login'      => 'Voltar ao acesso',
+        'no_token'           => 'Este link não é válido. Ele pode ter sido copiado de forma incompleta do seu e-mail.',
+        'request_new'        => 'Solicitar um novo link',
+    ],
     'register' => [
         'title'              => 'Portal de Autoatendimento - Cadastro',
         'heading'            => 'Criar conta',

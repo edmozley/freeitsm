@@ -38,6 +38,7 @@ return [
         'password'          => 'Contraseña',
         'sign_in'           => 'Iniciar sesión',
         'signing_in'        => 'Iniciando sesión...',
+        'forgot_password'    => '¿Ha olvidado su contraseña?',
         'create_account'    => 'Crear una cuenta',
         'analyst_login'     => 'Acceso para analistas',
         'login_failed'      => 'No se ha podido iniciar sesión. Inténtelo de nuevo.',
@@ -52,6 +53,34 @@ return [
         'use_local_account' => 'Iniciar sesión con correo electrónico y contraseña',
         'enter_email'       => 'Introduzca su correo electrónico.',
         'no_sso_for_email'  => 'No hay ningún proveedor de inicio de sesión único configurado para ese correo electrónico. Póngase en contacto con su servicio de asistencia.',
+    ],
+
+    // Setting a password from an emailed link (GH #134).
+    'forgot' => [
+        'title'           => 'Portal de autoservicio - Establecer su contraseña',
+        'heading'         => 'Establecer su contraseña',
+        'subtitle'        => 'Introduzca su dirección de correo y le enviaremos un enlace',
+        'email'           => 'Correo electrónico',
+        'submit'          => 'Enviarme un enlace',
+        'sending'         => 'Enviando...',
+        'back_to_login'   => 'Volver al inicio de sesión',
+        'failed'          => 'No se pudo enviar el enlace. Inténtelo de nuevo en unos momentos.',
+    ],
+
+    'reset' => [
+        'title'              => 'Portal de autoservicio - Elegir una contraseña',
+        'heading'            => 'Elegir una contraseña',
+        'subtitle'           => 'Elija una contraseña para su cuenta de autoservicio',
+        'password'           => 'Nueva contraseña',
+        'password_hint'      => 'Al menos 8 caracteres',
+        'confirm_password'   => 'Confirmar contraseña',
+        'submit'             => 'Guardar contraseña',
+        'saving'             => 'Guardando...',
+        'passwords_mismatch' => 'Las dos contraseñas no coinciden',
+        'failed'             => 'No se pudo guardar su contraseña. Inténtelo de nuevo en unos momentos.',
+        'back_to_login'      => 'Volver al inicio de sesión',
+        'no_token'           => 'Este enlace no es válido. Puede que se haya copiado de forma incompleta desde su correo.',
+        'request_new'        => 'Solicitar un enlace nuevo',
     ],
     'register' => [
         'title'              => 'Portal de autoservicio - Registro',

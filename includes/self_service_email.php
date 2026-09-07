@@ -95,6 +95,47 @@ function ssBuildVerifyUrl(string $rawToken): string {
     return $scheme . '://' . $host . $appPath . '/self-service/verify-email.php?token=' . urlencode($rawToken);
 }
 
+/**
+ * Absolute URL to the self-service password-reset page for a raw token.
+ *
+ * Built exactly as ssBuildVerifyUrl() does rather than from BASE_URL: these two
+ * links are sent by the same code to the same people, and a reset that lands on
+ * a different host from the confirmation is the sort of thing that gets read as
+ * a phishing attempt.
+ */
+function ssBuildResetUrl(string $rawToken): string {
+    $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+    $host   = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $docRoot = rtrim(str_replace('\\', '/', $_SERVER['DOCUMENT_ROOT'] ?? ''), '/');
+    $appRoot = rtrim(str_replace('\\', '/', realpath(__DIR__ . '/..')), '/');
+    $appPath = ($docRoot && strpos($appRoot, $docRoot) === 0) ? substr($appRoot, strlen($docRoot)) : '';
+    return $scheme . '://' . $host . $appPath . '/self-service/reset-password.php?token=' . urlencode($rawToken);
+}
+
+/**
+ * HTML body for the password-reset email.
+ *
+ * ⚠️ Deliberately says "set" rather than "reset", because for most of the people
+ * who will receive it this is the FIRST password they have ever had: a contact
+ * created by the service desk has no password at all, and telling them to
+ * "reset" one they never set reads as a mistake or a scam (GH #134).
+ */
+function ssResetEmailBody(string $displayName, string $link, int $validHours = 1): string {
+    $name = htmlspecialchars($displayName !== '' ? $displayName : 'there', ENT_QUOTES, 'UTF-8');
+    $safeLink = htmlspecialchars($link, ENT_QUOTES, 'UTF-8');
+    $hours = $validHours === 1 ? '1 hour' : $validHours . ' hours';
+    return '<div style="font-family:Segoe UI,Arial,sans-serif;font-size:15px;color:#2c3e50;line-height:1.6">'
+        . '<p>Hi ' . $name . ',</p>'
+        . '<p>Someone (hopefully you) asked to set a password for your self-service account. '
+        . 'Choose one by clicking the button below &mdash; the link is valid for ' . $hours . ' and can only be used once.</p>'
+        . '<p style="margin:24px 0"><a href="' . $safeLink . '" '
+        . 'style="background:#2d6a4f;color:#fff;text-decoration:none;padding:11px 22px;border-radius:8px;font-weight:600">Set my password</a></p>'
+        . '<p style="font-size:13px;color:#5a6c7d">If you didn\'t request this, you can safely ignore this email &mdash; '
+        . 'your account is not changed until the link above is used, and the link stops working once it is.</p>'
+        . '<p style="font-size:13px;color:#5a6c7d">Or paste this link into your browser:<br>' . $safeLink . '</p>'
+        . '</div>';
+}
+
 /** HTML body for the verification email. */
 function ssVerifyEmailBody(string $displayName, string $link): string {
     $name = htmlspecialchars($displayName !== '' ? $displayName : 'there', ENT_QUOTES, 'UTF-8');

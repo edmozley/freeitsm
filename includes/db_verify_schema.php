@@ -431,6 +431,19 @@ return [
         'created_at'    => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
     ],
 
+    // Password reset for SELF-SERVICE PORTAL users (GH #134). Separate from
+    // `password_reset_tokens`, which is the analyst one and is hard-wired to
+    // analyst_id — see the note beside this table in database/freeitsm.sql for
+    // why the two are not merged.
+    'user_password_reset_tokens' => [
+        'id'         => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+        'user_id'    => 'INT NOT NULL',
+        'token_hash' => 'CHAR(64) NOT NULL',
+        'expires_at' => 'DATETIME NOT NULL',
+        'used'       => 'TINYINT(1) NOT NULL DEFAULT 0',
+        'created_at' => 'DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'ticket_statuses' => [
         'id'                => 'INT NOT NULL AUTO_INCREMENT',
         'name'              => 'VARCHAR(50) NOT NULL',

@@ -349,6 +349,13 @@ $localAllowed = $localOn || $forceLocal;
             <?php endif; ?>
 
             <div class="login-links">
+                <?php /* ⚠️ NOT gated on $ssRegistrationEnabled (GH #134). This is the
+                         only route to a password for somebody whose account was created
+                         FOR them, and a desk that creates its customers by hand is
+                         exactly the desk that leaves self-registration off — so gating
+                         it would hide the link from the people who need it most. */ ?>
+                <a href="forgot-password.php"><?php echo htmlspecialchars(t('self-service.login.forgot_password')); ?></a>
+                <span class="divider">|</span>
                 <?php if ($ssRegistrationEnabled): ?>
                 <a href="register.php"><?php echo htmlspecialchars(t('self-service.login.create_account')); ?></a>
                 <span class="divider">|</span>
