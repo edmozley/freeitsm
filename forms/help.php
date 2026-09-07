@@ -47,7 +47,7 @@ $translationNamespaces = ['common', 'forms'];
     <!-- Mobile layer. Linked AFTER this page's inline <style> on purpose: the
          mobile rules must win on equal specificity, and a link placed above it
          would silently lose to the desktop block below (the load-order trap). -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=137">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=138">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

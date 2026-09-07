@@ -195,7 +195,7 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         [data-theme-mode="dark"] .test-result.err { background: #3a1a1d; color: #fca5a5; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=137">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=138">
 </head>
 <body data-mobile-module="system" data-mobile-page="sso">
     <?php include '../includes/header.php'; ?>

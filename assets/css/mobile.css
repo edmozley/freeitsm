@@ -4396,6 +4396,83 @@
        text you have to drag. Editing still scrolls normally once focused. */
     .detail-title-input:not(:focus) { text-overflow: ellipsis; }
 
+    /* ---- 25g: the board became UNREACHABLE on a phone (#1499) ----
+
+       🔴 THE CAROUSEL WAS NEVER BROKEN. Reported as "we used to be able to
+       swipe between task columns and now we can't", with the tell attached:
+       "open Tasks → Calendar, come back, and swiping brings in the calendar."
+       That second half is the diagnosis. There was no horizontal scroller on
+       the page at all, so the swipe was never absorbed by anything and fell
+       through to the BROWSER'S OWN back gesture, which went to the page
+       visited before — the calendar. Nothing to do with the board's CSS:
+       measured with the board forced visible it still scrolls 1902px in a
+       390px box, snaps, and paints its five dots.
+
+       What actually happened is a collision between two changes that were
+       each correct alone:
+         - tasks.css has hidden `.tasks-sidebar` below 600px since long before
+           this file existed. The board/list switch lives in that sidebar.
+         - #1459 (GH #131) taught Tasks to REMEMBER board-or-list. Before it,
+           the page always opened on the board, so the missing switch cost a
+           phone nothing. After it, an analyst whose remembered choice is
+           `list` lands on the list on their phone — with no control anywhere
+           on the page to get back to the board. Verified: the switch measures
+           zero by zero and `elementFromPoint` finds no box at all.
+
+       🔑 A REMEMBERED CHOICE NEEDS A CONTROL ON EVERY SCREEN THAT HONOURS IT.
+       Hiding a control is safe only while something else guarantees the
+       default.
+
+       So the switch comes back, and only the switch: the sidebar's other five
+       sections (search, My/All, team, analyst, tag) stay hidden, because they
+       are a strip's worth of work rather than a two-button row, and are
+       raised separately. The container stacks so the strip sits above the
+       board rather than beside it. */
+    .tasks-container--views {
+        flex-direction: column;
+    }
+    /* Out-ranks tasks.css's own `@media (max-width: 600px) { display: none }`
+       on document order — this file is linked last — but only because the
+       property is restated, which is the trap LAYER 25's header records. */
+    .tasks-container--views > .tasks-sidebar {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: auto;
+        min-width: 0;
+        flex: 0 0 auto;
+        gap: 0;
+        padding: 8px 12px;
+        border-right: none;
+        border-bottom: 1px solid var(--border, #e0e0e0);
+        overflow-y: visible;
+    }
+    .tasks-container--views > .tasks-sidebar > .sidebar-section:not(.sidebar-section--view) {
+        display: none;
+    }
+    .tasks-container--views .sidebar-section--view {
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    /* The word "VIEW" above two buttons that say Board and List is a caption
+       for something already captioned. */
+    .tasks-container--views .sidebar-section--view .sidebar-label { display: none; }
+    .tasks-container--views .sidebar-section--view .view-btn {
+        flex: 1 1 0;
+        min-width: 0;
+        min-height: 40px;
+    }
+    /* ⚠️ `min-height: 0` on the pane, not just the container. In a COLUMN
+       flex the automatic minimum is the content's height, so without this
+       `.tasks-main` refuses to shrink, the board grows past the screen and
+       its own `overflow` never engages — §28's rule, and the reason the War
+       Room feed could not be scrolled. */
+    .tasks-container--views > .tasks-main {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+
+
     /* ---- 25e: the Tasks calendar's view switcher ----
 
        Month / Week / Day sat 69px wide inside a 64px slot — squeezed, not

@@ -67,7 +67,7 @@ $translationNamespaces = ['common', 'war-room'];
         }
     </style>
     <!-- Mobile: LAYER 16h — the guide body is already responsive; this adds the app shell. -->
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=137">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=138">
 </head>
 <body data-mobile-module="war-room" data-mobile-page="war-room-help">
     <?php include 'includes/header.php'; ?>

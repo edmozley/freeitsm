@@ -126,7 +126,7 @@ $canAnalyse = analystHasCapability(connectToDatabase(), (int)$_SESSION['analyst_
         .ka-draft-note { font-size:12px; color:var(--text-muted); margin-top:12px; }
     </style>
     <!-- Mobile: LAYER 17g. -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=137">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=138">
 </head>
 <body>
 <?php require_once '../includes/header.php'; ?>

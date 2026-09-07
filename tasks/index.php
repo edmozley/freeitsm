@@ -82,12 +82,17 @@ $translationNamespaces = ['common', 'tasks'];
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
     <script src="../assets/js/tinymce/tinymce.min.js"></script>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=137">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=138">
 </head>
 <body data-analyst-id="<?php echo $_SESSION['analyst_id'] ?? ''; ?>">
     <?php include 'includes/header.php'; ?>
 
-    <div class="tasks-container">
+    <?php /* `--views` marks the ONE page whose sidebar carries the board/list
+             switch. mobile.css brings that switch back on a phone (#1499), and
+             the marker keeps it off the Calendar, Table and Timeline pages,
+             whose sidebars carry different things and must stay as they are.
+             No desktop rule uses either new class. */ ?>
+    <div class="tasks-container tasks-container--views">
         <!-- Sidebar -->
         <div class="tasks-sidebar">
             <div class="sidebar-section">
@@ -99,7 +104,7 @@ $translationNamespaces = ['common', 'tasks'];
                 </div>
             </div>
 
-            <div class="sidebar-section">
+            <div class="sidebar-section sidebar-section--view">
                 <div class="sidebar-label"><?php echo htmlspecialchars(t('tasks.sidebar.view')); ?></div>
                 <div class="view-toggle">
                     <button class="view-btn<?php echo $taskView === 'board' ? ' active' : ''; ?>" data-view="board" onclick="switchView('board')">

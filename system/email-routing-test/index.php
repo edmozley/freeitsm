@@ -102,7 +102,7 @@ $translationNamespaces = ['common', 'system'];
         [data-theme-mode="dark"] .rt-step.fired .rt-s-name { color: #86efac; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=137">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=138">
 </head>
 <body data-mobile-module="system" data-mobile-page="email-routing-test">
     <?php include '../includes/header.php'; ?>
