@@ -893,3 +893,201 @@
 .preview-logo.align-right {
     margin: 0 0 20px auto;
 }
+
+/* =========================================================================
+   "What happens next" tab (discussion #95)
+   Every colour carries a literal fallback, matching the rest of this file:
+   a token that turns out not to exist renders as nothing at all, and an
+   invisible control is worse than an unstyled one.
+   ========================================================================= */
+
+.fa-intro {
+    color: var(--text-muted, #666);
+    margin: 0 0 20px;
+    max-width: 70ch;
+}
+
+.fa-section {
+    border: 1px solid var(--border, #ddd);
+    border-radius: 6px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    background: var(--surface, white);
+}
+
+/* Not hidden when the form has no approval gate — hiding leaves no clue the
+   capability exists, and a section that vanishes takes its configuration's
+   visibility with it. Dimmed and explained instead. */
+.fa-section-inert {
+    opacity: 0.65;
+}
+
+.fa-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.fa-section-head h3 {
+    margin: 0;
+    font-size: 15px;
+    color: var(--text, #333);
+}
+
+.fa-note {
+    margin: 0 0 10px;
+    font-size: 13px;
+    color: var(--text-muted, #666);
+}
+
+.fa-gate-warning {
+    background: var(--warning-bg, #fff8e1);
+    border-left: 3px solid #f59e0b;
+    padding: 8px 10px;
+    border-radius: 3px;
+    color: var(--text, #333);
+}
+
+.fa-empty {
+    margin: 0;
+    padding: 10px 0;
+    color: var(--text-muted, #666);
+    font-style: italic;
+    font-size: 13px;
+}
+
+.fa-action {
+    border: 1px solid var(--border-soft, #eee);
+    border-radius: 5px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    background: var(--app-bg, #fafafa);
+}
+
+.fa-action-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* The number is one-based to match {{steps.1.…}} — a merge code that
+   disagreed with the number printed beside the action would be wrong in the
+   one place people copy it from. */
+.fa-action-num {
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--forms-accent, #00897b);
+    color: #fff;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fa-action-head select {
+    flex: 1 1 auto;
+    min-width: 0;          /* or a long action label stops the row shrinking */
+    padding: 6px 8px;
+    border: 1px solid var(--border, #ddd);
+    border-radius: 4px;
+    background: var(--surface, white);
+    color: var(--text, #333);
+}
+
+.fa-action-tools {
+    display: flex;
+    gap: 4px;
+}
+
+.fa-action-tools button {
+    border: 1px solid var(--border, #ddd);
+    background: var(--surface, white);
+    color: var(--text, #333);
+    border-radius: 4px;
+    /* 28px, not the 20px this would naturally be: these three sit side by side
+       and are the easiest thing on the tab to mis-tap. */
+    min-width: 28px;
+    height: 28px;
+    cursor: pointer;
+}
+
+.fa-action-tools button[disabled] {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.fa-action-tools .fa-remove:hover {
+    background: var(--danger-bg, #fdecea);
+    border-color: #e57373;
+}
+
+.fa-action-desc {
+    margin: 8px 0 0;
+    font-size: 12px;
+    color: var(--text-muted, #666);
+}
+
+.fa-args {
+    margin-top: 10px;
+    display: grid;
+    gap: 10px;
+}
+
+.fa-arg label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text, #333);
+    margin-bottom: 3px;
+}
+
+.fa-arg input[type="text"],
+.fa-arg input[type="number"],
+.fa-arg textarea,
+.fa-arg select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 6px 8px;
+    border: 1px solid var(--border, #ddd);
+    border-radius: 4px;
+    background: var(--surface, white);
+    color: var(--text, #333);
+    /* 16px on a phone: anything smaller makes iOS Safari zoom in and abandon
+       the page layout. */
+    font-size: 14px;
+}
+
+.fa-arg textarea {
+    resize: vertical;
+    font-family: inherit;
+}
+
+.fa-arg-hint {
+    display: block;
+    margin-top: 3px;
+    font-size: 11px;
+    color: var(--text-muted, #666);
+}
+
+@media (max-width: 768px) {
+    .fa-section-head {
+        flex-wrap: wrap;
+    }
+    .fa-action-head {
+        flex-wrap: wrap;
+    }
+    .fa-action-head select {
+        flex: 1 1 100%;
+        order: 3;
+    }
+    .fa-arg input[type="text"],
+    .fa-arg input[type="number"],
+    .fa-arg textarea,
+    .fa-arg select {
+        font-size: 16px;
+    }
+}

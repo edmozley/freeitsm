@@ -30,6 +30,30 @@ requireModuleAccess('forms');
 $current_page = 'forms';
 $path_prefix = '../../';
 $translationNamespaces = ['common', 'forms'];
+
+// ---------------------------------------------------------------------------
+// "What happens next" (#95) — the action catalogue, taken straight from the
+// workflow engine rather than described a second time here. A form's actions
+// ARE workflow actions, so the list of what exists, each one's arguments and
+// each argument's widget must come from one place; a second copy would drift
+// the first time an action gains an option, and the two editors would then
+// disagree about what the same feature can do.
+require_once '../../workflow/includes/engine.php';
+$formActionDefs = WorkflowEngine::availableActions();
+
+// Values for every `lookup` argument, resolved once so the dropdowns work
+// without a round trip. Mirrors workflow/editor.php's own export.
+$formActionLookups = [];
+foreach ($formActionDefs as $def) {
+    foreach (($def['args'] ?? []) as $argSpec) {
+        if (is_array($argSpec) && ($argSpec['type'] ?? '') === 'lookup' && !empty($argSpec['lookup'])) {
+            $lk = $argSpec['lookup'];
+            if (!isset($formActionLookups[$lk])) {
+                $formActionLookups[$lk] = WorkflowEngine::availableActionLookup($lk) ?? [];
+            }
+        }
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="<?php echo htmlspecialchars(I18n::getLocale()); ?>" data-theme="<?php echo htmlspecialchars(Theme::active()); ?>" data-theme-mode="<?php echo htmlspecialchars(Theme::mode()); ?>">
@@ -486,6 +510,7 @@ $translationNamespaces = ['common', 'forms'];
             <div class="form-tabs">
                 <button class="form-tab active" onclick="switchFormTab('fields')" id="tabFields"><?php echo htmlspecialchars(t('forms.editor.tab_fields')); ?></button>
                 <button class="form-tab" onclick="switchFormTab('preview')" id="tabPreview"><?php echo htmlspecialchars(t('forms.editor.tab_preview')); ?></button>
+                <button class="form-tab" onclick="switchFormTab('actions')" id="tabActions"><?php echo htmlspecialchars(t('forms.actions.tab')); ?></button>
             </div>
 
             <!-- Fields tab -->
@@ -531,6 +556,50 @@ $translationNamespaces = ['common', 'forms'];
                 <div id="previewContent">
                     <p class="preview-empty"><?php echo htmlspecialchars(t('forms.editor.preview_empty')); ?></p>
                 </div>
+            </div>
+
+            <!-- "What happens next" tab (#95). Three moments, each holding an
+                 ordered list of actions. Rendered entirely by JS from
+                 FA_ACTION_DEFS so this markup stays a shell. -->
+            <div class="form-tab-content" id="tabContentActions">
+                <p class="fa-intro"><?php echo htmlspecialchars(t('forms.actions.intro')); ?></p>
+
+                <!-- Submitted. The heading changes when the form is gated,
+                     because "when submitted" and "when submitted, BEFORE the
+                     approver has seen it" are very different promises. -->
+                <section class="fa-section" data-when="submitted">
+                    <div class="fa-section-head">
+                        <h3 id="faHeadSubmitted"><?php echo htmlspecialchars(t('forms.actions.when_submitted')); ?></h3>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="faAddAction('submitted')"><?php echo htmlspecialchars(t('forms.actions.add')); ?></button>
+                    </div>
+                    <p class="fa-note fa-gate-warning" id="faGateWarning" style="display:none;">
+                        <?php echo htmlspecialchars(t('forms.actions.gate_warning')); ?>
+                    </p>
+                    <div class="fa-list" id="faListSubmitted"></div>
+                </section>
+
+                <!-- Approved / Rejected. Shown always, but marked inert when the
+                     form has no approval gate — hiding them would leave no clue
+                     the capability exists, and silently dropping configuration
+                     when a gate is switched off is worse still. -->
+                <section class="fa-section" data-when="approved">
+                    <div class="fa-section-head">
+                        <h3><?php echo htmlspecialchars(t('forms.actions.when_approved')); ?></h3>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="faAddAction('approved')"><?php echo htmlspecialchars(t('forms.actions.add')); ?></button>
+                    </div>
+                    <p class="fa-note fa-inert" style="display:none;"><?php echo htmlspecialchars(t('forms.actions.needs_gate')); ?></p>
+                    <p class="fa-note fa-default-note" id="faApprovedDefault" style="display:none;"><?php echo htmlspecialchars(t('forms.actions.approved_default')); ?></p>
+                    <div class="fa-list" id="faListApproved"></div>
+                </section>
+
+                <section class="fa-section" data-when="rejected">
+                    <div class="fa-section-head">
+                        <h3><?php echo htmlspecialchars(t('forms.actions.when_rejected')); ?></h3>
+                        <button type="button" class="btn btn-secondary btn-sm" onclick="faAddAction('rejected')"><?php echo htmlspecialchars(t('forms.actions.add')); ?></button>
+                    </div>
+                    <p class="fa-note fa-inert" style="display:none;"><?php echo htmlspecialchars(t('forms.actions.needs_gate')); ?></p>
+                    <div class="fa-list" id="faListRejected"></div>
+                </section>
             </div>
         </div>
 
@@ -590,6 +659,22 @@ $translationNamespaces = ['common', 'forms'];
         let fields = [];
         let isDirty = false;
         let logoAlignment = 'center';
+
+        // ===== "What happens next" (#95) =====
+        // The catalogue comes from the workflow engine so there is one source of
+        // truth for what an action is and what it takes.
+        window.FA_ACTION_DEFS    = <?php echo json_encode($formActionDefs, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+        window.FA_ACTION_LOOKUPS = <?php echo json_encode($formActionLookups, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;
+
+        // null means "never configured" and is NOT the same as []. The server
+        // reads NULL as "keep behaving the way you always did" — including
+        // raising a ticket on approval — so turning an untouched section into an
+        // empty array on load would silently switch that off the next time
+        // somebody pressed Save on an unrelated part of the form.
+        let faActions = { submitted: null, approved: null, rejected: null };
+        // Whether this form has an approval gate; drives the headings and which
+        // sections can actually fire. Set from get_form.php on load.
+        let faGated = false;
 
         // Client-side identity for a field, handed out on load and on add. Conditions
         // point at a _key rather than at an id or an index: an id doesn't exist yet for
@@ -681,6 +766,17 @@ $translationNamespaces = ['common', 'forms'];
                 }));
                 // Stored conditions reference field IDs; the builder works in _key.
                 rehydrateRuleRefs(fields);
+
+                // #95. A section absent from the stored object stays null —
+                // "never configured" — rather than becoming an empty list, which
+                // would be a different instruction entirely.
+                faGated = !!(data.form.requires_approval && data.form.approver_id);
+                const stored = data.form.submission_actions || {};
+                FA_WHENS.forEach(w => {
+                    faActions[w] = Array.isArray(stored[w]) ? stored[w] : null;
+                });
+                faRenderAll();
+
                 renderFields();
                 updatePreview();
                 renderFormMeta(data.form);
@@ -939,9 +1035,182 @@ $translationNamespaces = ['common', 'forms'];
         function switchFormTab(tab) {
             document.getElementById('tabFields').classList.toggle('active', tab === 'fields');
             document.getElementById('tabPreview').classList.toggle('active', tab === 'preview');
+            document.getElementById('tabActions').classList.toggle('active', tab === 'actions');
             document.getElementById('tabContentFields').classList.toggle('active', tab === 'fields');
             document.getElementById('tabContentPreview').classList.toggle('active', tab === 'preview');
+            document.getElementById('tabContentActions').classList.toggle('active', tab === 'actions');
             if (tab === 'preview') updatePreview();
+            if (tab === 'actions') faRenderAll();
+        }
+
+        // ===== "What happens next" (#95) =====
+
+        const FA_WHENS = ['submitted', 'approved', 'rejected'];
+
+        function faListEl(when) {
+            return document.getElementById('faList' + when.charAt(0).toUpperCase() + when.slice(1));
+        }
+
+        // Adding the first action to a section is what turns it from "never
+        // configured" (null) into a real list.
+        function faAddAction(when) {
+            if (!faActions[when]) faActions[when] = [];
+            const firstType = Object.keys(window.FA_ACTION_DEFS)[0];
+            faActions[when].push({ type: firstType, args: {} });
+            faRenderSection(when);
+            markDirty();
+        }
+
+        function faRemoveAction(when, index) {
+            if (!faActions[when]) return;
+            faActions[when].splice(index, 1);
+            // Deliberately left as [] rather than reset to null. Removing the last
+            // action is somebody saying "do nothing here", which is a different
+            // instruction from never having configured it — and on the approved
+            // section it is the difference between "raise no ticket" and "raise
+            // the default one".
+            faRenderSection(when);
+            markDirty();
+        }
+
+        function faMove(when, index, delta) {
+            const list = faActions[when];
+            if (!list) return;
+            const to = index + delta;
+            if (to < 0 || to >= list.length) return;
+            [list[index], list[to]] = [list[to], list[index]];
+            faRenderSection(when);
+            markDirty();
+        }
+
+        function faSetType(when, index, type) {
+            // Args belong to the action they were written for, so changing the
+            // type clears them rather than leaving values under names the new
+            // handler has never heard of.
+            faActions[when][index] = { type: type, args: {} };
+            faRenderSection(when);
+            markDirty();
+        }
+
+        function faSetArg(when, index, argName, value) {
+            faActions[when][index].args[argName] = value;
+            markDirty();
+        }
+
+        function faEsc(s) {
+            return String(s === null || s === undefined ? '' : s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        // One argument's control, chosen from the engine's own arg spec — the
+        // same spec the Workflows canvas renders from, so an action looks and
+        // behaves the same in both places.
+        function faArgControl(when, index, argName, spec, value) {
+            const id = `fa-${when}-${index}-${argName}`;
+            const onInput = `faSetArg('${when}',${index},'${faEsc(argName)}',this.value)`;
+            const label = faEsc(spec.label || argName);
+            let control;
+
+            if (spec.type === 'lookup') {
+                const opts = (window.FA_ACTION_LOOKUPS[spec.lookup] || [])
+                    .map(o => `<option value="${faEsc(o.id)}"${String(o.id) === String(value) ? ' selected' : ''}>${faEsc(o.label)}</option>`)
+                    .join('');
+                control = `<select id="${id}" onchange="${onInput}"><option value="">${faEsc(window.t('forms.actions.arg_unset'))}</option>${opts}</select>`;
+            } else if (spec.type === 'textarea') {
+                control = `<textarea id="${id}" rows="3" oninput="${onInput}">${faEsc(value)}</textarea>`;
+            } else if (spec.type === 'number') {
+                control = `<input type="number" id="${id}" value="${faEsc(value)}" oninput="${onInput}">`;
+            } else if (spec.type === 'checkbox') {
+                const checked = (value === true || value === '1' || value === 1) ? ' checked' : '';
+                control = `<input type="checkbox" id="${id}"${checked} onchange="faSetArg('${when}',${index},'${faEsc(argName)}',this.checked ? '1' : '')">`;
+            } else {
+                control = `<input type="text" id="${id}" value="${faEsc(value)}" oninput="${onInput}">`;
+            }
+
+            // The merge-code hint only appears where variables actually work,
+            // rather than on every field as decoration.
+            const hint = spec.supports_vars
+                ? `<span class="fa-arg-hint">${faEsc(window.t('forms.actions.vars_hint'))}</span>`
+                : '';
+            return `<div class="fa-arg"><label for="${id}">${label}${spec.required ? ' *' : ''}</label>${control}${hint}</div>`;
+        }
+
+        function faRenderSection(when) {
+            const host = faListEl(when);
+            if (!host) return;
+            const list = faActions[when];
+
+            if (!list || list.length === 0) {
+                host.innerHTML = `<p class="fa-empty">${faEsc(window.t('forms.actions.none'))}</p>`;
+                faRenderNotes();
+                return;
+            }
+
+            host.innerHTML = list.map((action, i) => {
+                const def = window.FA_ACTION_DEFS[action.type] || {};
+                const typeOpts = Object.keys(window.FA_ACTION_DEFS).map(k =>
+                    `<option value="${faEsc(k)}"${k === action.type ? ' selected' : ''}>${faEsc(window.FA_ACTION_DEFS[k].label || k)}</option>`
+                ).join('');
+                const args = Object.entries(def.args || {})
+                    .map(([name, spec]) => faArgControl(when, i, name, spec, (action.args || {})[name] ?? (spec.default ?? '')))
+                    .join('');
+                return `
+                    <div class="fa-action">
+                        <div class="fa-action-head">
+                            <span class="fa-action-num">${i + 1}</span>
+                            <select onchange="faSetType('${when}',${i},this.value)">${typeOpts}</select>
+                            <div class="fa-action-tools">
+                                <button type="button" onclick="faMove('${when}',${i},-1)" title="${faEsc(window.t('forms.actions.move_up'))}" ${i === 0 ? 'disabled' : ''}>&uarr;</button>
+                                <button type="button" onclick="faMove('${when}',${i},1)" title="${faEsc(window.t('forms.actions.move_down'))}" ${i === list.length - 1 ? 'disabled' : ''}>&darr;</button>
+                                <button type="button" class="fa-remove" onclick="faRemoveAction('${when}',${i})" title="${faEsc(window.t('forms.actions.remove'))}">&times;</button>
+                            </div>
+                        </div>
+                        ${def.description ? `<p class="fa-action-desc">${faEsc(def.description)}</p>` : ''}
+                        <div class="fa-args">${args}</div>
+                    </div>`;
+            }).join('');
+
+            faRenderNotes();
+        }
+
+        // The explanatory notes that depend on the approval gate.
+        function faRenderNotes() {
+            document.getElementById('faHeadSubmitted').textContent =
+                faGated ? window.t('forms.actions.when_submitted_gated')
+                        : window.t('forms.actions.when_submitted');
+
+            // Warn only when it actually matters: a ticket-raising action sitting
+            // in the SUBMITTED list of a gated form runs before the approver has
+            // seen it, which is the one configuration that defeats the gate.
+            const raisesTicket = (faActions.submitted || []).some(a => a.type === 'create_ticket');
+            const warn = document.getElementById('faGateWarning');
+            if (warn) warn.style.display = (faGated && raisesTicket) ? '' : 'none';
+
+            document.querySelectorAll('.fa-section[data-when="approved"], .fa-section[data-when="rejected"]').forEach(sec => {
+                sec.classList.toggle('fa-section-inert', !faGated);
+                const note = sec.querySelector('.fa-inert');
+                if (note) note.style.display = faGated ? 'none' : '';
+            });
+
+            // On a gated form with nothing configured for approval, say what will
+            // happen anyway — otherwise an empty section reads as "nothing", when
+            // in fact a ticket gets raised.
+            const dflt = document.getElementById('faApprovedDefault');
+            if (dflt) dflt.style.display = (faGated && faActions.approved === null) ? '' : 'none';
+        }
+
+        function faRenderAll() {
+            FA_WHENS.forEach(faRenderSection);
+            faRenderNotes();
+        }
+
+        // What goes back to the server. A section left untouched stays null so
+        // the service keeps its "never configured" meaning.
+        function faPayload() {
+            const out = {};
+            FA_WHENS.forEach(w => { if (faActions[w] !== null) out[w] = faActions[w]; });
+            return Object.keys(out).length ? out : null;
         }
 
         // ===== Fields =====
@@ -1669,6 +1938,11 @@ $translationNamespaces = ['common', 'forms'];
                 }))
             };
             if (currentFormId) payload.id = currentFormId;
+            // #95. Only sent when something has actually been configured — the
+            // service treats an absent key as "leave whatever is stored alone",
+            // so a form whose action lists were never opened is never rewritten.
+            const faOut = faPayload();
+            if (faOut !== null) payload.submission_actions = faOut;
             try {
                 const res = await fetch(API_BASE + 'save_form.php', {
                     method: 'POST',

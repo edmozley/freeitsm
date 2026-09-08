@@ -29,6 +29,7 @@ try {
                 f.modified_by, ma.full_name AS modified_by_name,
                 DATE_FORMAT(f.modified_date, '%Y-%m-%d %H:%i:%s') AS modified_date,
                 f.parent_form_id, f.version_number,
+                f.requires_approval, f.approver_id, f.submission_actions,
                 (SELECT COUNT(*) FROM forms ch WHERE ch.parent_form_id = f.id) AS child_count
          FROM forms f
          LEFT JOIN analysts ca ON f.created_by  = ca.id
@@ -44,6 +45,20 @@ try {
         $form['version_number'] = (int)$form['version_number'];
         $form['is_leaf'] = ((int)$form['child_count']) === 0;
         unset($form['child_count']);
+
+        // The approval gate, so the "what happens next" tab can say which of its
+        // sections can actually fire on this form.
+        $form['requires_approval'] = (int)($form['requires_approval'] ?? 0);
+        $form['approver_id'] = $form['approver_id'] !== null ? (int)$form['approver_id'] : null;
+
+        // #95 action lists. Decoded here so the editor never has to parse JSON
+        // out of a string field. NULL stays null — the editor distinguishes
+        // "never configured" from "deliberately empty" exactly as the service
+        // does, and rendering an unconfigured section as an explicit empty list
+        // would silently convert one into the other on the next save.
+        $raw = $form['submission_actions'] ?? null;
+        $decoded = ($raw === null || trim((string)$raw) === '') ? null : json_decode((string)$raw, true);
+        $form['submission_actions'] = is_array($decoded) ? $decoded : null;
     }
 
     if (!$form) {

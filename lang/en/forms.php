@@ -168,6 +168,29 @@ return [
         'readonly_save_title' => 'This is a historical version — open the current one to edit, or fork from there with "Save as new version"',
     ],
 
+    // "What happens next" tab in the form editor (discussion #95): the actions a
+    // form runs when it is submitted, approved or rejected.
+    'actions' => [
+        'tab'                  => 'What happens next',
+        'intro'                => 'Choose what should happen when this form is used. Actions run in order, top to bottom, and a later one can use what an earlier one produced.',
+        'when_submitted'       => 'When submitted',
+        // Deliberately different wording when a gate exists: "when submitted" and
+        // "when submitted, before anyone has approved it" are different promises.
+        'when_submitted_gated' => 'When submitted (before approval)',
+        'when_approved'        => 'When approved',
+        'when_rejected'        => 'When rejected',
+        'add'                  => 'Add',
+        'none'                 => 'Nothing happens.',
+        'remove'               => 'Remove',
+        'move_up'              => 'Move up',
+        'move_down'            => 'Move down',
+        'arg_unset'            => 'Not set',
+        'vars_hint'            => 'Answers can be used here, e.g. {{submission.fields.Device type}}',
+        'gate_warning'         => 'This form needs approval, and these actions run before the approver has seen it — so raising a ticket here goes ahead without their sign-off.',
+        'needs_gate'           => 'These only run if the form requires approval. Turn that on in Properties to use them; anything set here is kept either way.',
+        'approved_default'     => 'Nothing is set, so approving raises a ticket in the usual way. Add an action here to decide for yourself instead.',
+    ],
+
     // Field-type palette in the Add menu (forms/edit/index.php)
     'fieldtypes' => [
         'lookup' => 'Lookup',
