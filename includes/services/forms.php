@@ -356,7 +356,7 @@ class FormsService
             try {
                 $conn->prepare(
                     "UPDATE forms SET title = ?, description = ?, is_active = ?, is_portal_visible = ?,
-                            requires_approval = ?, approver_id = ?,
+                            requires_approval = ?, approver_id = ?, submission_actions = ?,
                             modified_by = ?, modified_date = UTC_TIMESTAMP()
                      WHERE id = ?"
                 )->execute([
@@ -375,6 +375,12 @@ class FormsService
                     array_key_exists('approver_id', $in)
                         ? (($in['approver_id'] === null || $in['approver_id'] === '') ? null : (int)$in['approver_id'])
                         : ($current['approver_id'] ?? null),
+                    // Same incremental rule again: only touched when sent, so an
+                    // adapter that predates #95 (the REST API, an integration)
+                    // cannot wipe a form's automation just by saving its title.
+                    array_key_exists('submission_actions', $in)
+                        ? self::encodeActionLists($in['submission_actions'])
+                        : ($current['submission_actions'] ?? null),
                     $ctx->actorId,
                     $formId,
                 ]);
@@ -398,8 +404,8 @@ class FormsService
         $conn->beginTransaction();
         try {
             $conn->prepare(
-                "INSERT INTO forms (title, description, is_active, is_portal_visible, requires_approval, approver_id, created_by, modified_by, version_number, created_date, modified_date)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+                "INSERT INTO forms (title, description, is_active, is_portal_visible, requires_approval, approver_id, submission_actions, created_by, modified_by, version_number, created_date, modified_date)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([
                 $title,
                 trim((string)($in['description'] ?? '')),
@@ -409,6 +415,10 @@ class FormsService
                 isset($in['is_portal_visible']) ? (int)(bool)$in['is_portal_visible'] : 0,
                 isset($in['requires_approval']) ? (int)(bool)$in['requires_approval'] : 0,
                 (isset($in['approver_id']) && $in['approver_id'] !== null && $in['approver_id'] !== '') ? (int)$in['approver_id'] : null,
+                // Accepted on create as well as update: a designer that lets you
+                // build the form and say what happens to it in one sitting would
+                // otherwise lose the second half on the first Save.
+                isset($in['submission_actions']) ? self::encodeActionLists($in['submission_actions']) : null,
                 $ctx->actorId,
                 $ctx->actorId,
             ]);
@@ -484,6 +494,82 @@ class FormsService
     //  Versions
     // ======================================================================
 
+    /**
+     * Validate and encode the three action lists for storage.
+     *
+     * Explicit NULL stores NULL — "never configured", the state that keeps a
+     * pre-#95 form behaving exactly as it did. Anything else is normalised to
+     * the three known keys holding lists of {type, args}, so a malformed or
+     * hostile payload cannot put arbitrary structure into the column that the
+     * engine will later hand to an action handler.
+     */
+    private static function encodeActionLists($value): ?string
+    {
+        if ($value === null || $value === '') return null;
+        if (is_string($value)) {
+            $value = json_decode($value, true);
+        }
+        if (!is_array($value)) {
+            throw new ServiceError('validation', 'invalid_value', "'submission_actions' must be an object.");
+        }
+
+        $out = [];
+        foreach (['submitted', 'approved', 'rejected'] as $key) {
+            if (!isset($value[$key]) || !is_array($value[$key])) continue;
+            $list = [];
+            foreach ($value[$key] as $action) {
+                if (!is_array($action)) continue;
+                $type = trim((string)($action['type'] ?? ''));
+                if ($type === '') continue;
+                // Only actions the engine actually has a handler for. Storing an
+                // unknown type would fail at run time, inside a form submission,
+                // where the person who typed it will never see the error.
+                if (!isset(WorkflowEngine::availableActions()[$type])) {
+                    throw new ServiceError('validation', 'unknown_action', "Unknown action type: {$type}");
+                }
+                $list[] = ['type' => $type, 'args' => is_array($action['args'] ?? null) ? $action['args'] : []];
+            }
+            $out[$key] = $list;
+        }
+        return json_encode($out);
+    }
+
+    /**
+     * A form's three action lists (#95): what to do when it is submitted,
+     * approved or rejected.
+     *
+     * 🔑 NULL and [] mean DIFFERENT things and the difference is load-bearing.
+     * NULL is "never configured" — the pre-#95 behaviour applies, which is what
+     * lets this ship without a data migration: every form that existed before
+     * keeps doing exactly what it did, including raising a ticket on approval
+     * the hard-coded way. [] is "somebody opened the panel and chose nothing",
+     * and must be obeyed as the deliberate instruction it is.
+     *
+     * A malformed value is treated as NULL rather than thrown: a form must stay
+     * submittable even if its configuration is nonsense.
+     *
+     * @return array{submitted: ?array, approved: ?array, rejected: ?array}
+     */
+    public static function actionLists(PDO $conn, int $formId): array
+    {
+        $none = ['submitted' => null, 'approved' => null, 'rejected' => null];
+
+        $stmt = $conn->prepare("SELECT submission_actions FROM forms WHERE id = ?");
+        $stmt->execute([$formId]);
+        $raw = $stmt->fetchColumn();
+        if ($raw === false || $raw === null || trim((string)$raw) === '') return $none;
+
+        $decoded = json_decode((string)$raw, true);
+        if (!is_array($decoded)) return $none;
+
+        foreach (array_keys($none) as $key) {
+            if (isset($decoded[$key]) && is_array($decoded[$key])) {
+                $none[$key] = array_values($decoded[$key]);
+            }
+        }
+        return $none;
+    }
+
     /** Fork the leaf into a new version. Returns ['id','version_number']. */
     public static function createVersion(PDO $conn, ActorContext $ctx, int $parentId): array
     {
@@ -496,8 +582,8 @@ class FormsService
         $conn->beginTransaction();
         try {
             $conn->prepare(
-                "INSERT INTO forms (title, description, is_active, is_portal_visible, requires_approval, approver_id, created_by, modified_by, parent_form_id, version_number, created_date, modified_date)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+                "INSERT INTO forms (title, description, is_active, is_portal_visible, requires_approval, approver_id, submission_actions, created_by, modified_by, parent_form_id, version_number, created_date, modified_date)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([
                 $src['title'],
                 $src['description'],
@@ -519,6 +605,13 @@ class FormsService
                 // NULL, not 0: approver_id is a real FK and "nobody assigned" is a
                 // meaningful state the gate treats as unconfigured.
                 isset($src['approver_id']) && $src['approver_id'] !== null ? (int)$src['approver_id'] : null,
+                // The action lists travel with the version, like the questions do.
+                // This is the trap that ate the approval gate: a per-form setting
+                // left out of this INSERT is a setting that pressing Save deletes,
+                // and here it would mean a form quietly stopped raising tickets.
+                // NULL stays NULL — "never configured" must survive the copy, or
+                // every new version would look deliberately configured as empty.
+                $src['submission_actions'] ?? null,
                 $ctx->actorId,
                 $ctx->actorId,
                 $parentId,
@@ -835,6 +928,30 @@ class FormsService
             }
         } catch (Exception $wfEx) {
             error_log('Workflow dispatch error in form submission: ' . $wfEx->getMessage());
+        }
+
+        // The form's OWN "when submitted" list (#95) — configured in the form
+        // designer rather than in Workflows, and run here so the UI, the portal
+        // and the REST API all behave identically without any of them knowing
+        // this exists.
+        //
+        // A gated request runs NOTHING here, for the same reason it fires a
+        // different event: its actions belong to the approval decision, and
+        // raising a ticket at submission time would step straight over the gate.
+        if ($gateApproverId === null) {
+            try {
+                $lists = self::actionLists($conn, $formId);
+                if (!empty($lists['submitted'])) {
+                    WorkflowEngine::runActionList(
+                        'Form: ' . $form['title'] . ' — when submitted',
+                        'form.submitted',
+                        $lists['submitted'],
+                        $payload
+                    );
+                }
+            } catch (Exception $e) {
+                error_log('Form action list error on submission: ' . $e->getMessage());
+            }
         }
 
         return $submissionId;

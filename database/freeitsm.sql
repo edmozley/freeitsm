@@ -4332,6 +4332,18 @@ CREATE TABLE IF NOT EXISTS `forms` (
     -- unconfigured so it can never hold requests hostage (submitForm skips the gate).
     `requires_approval` TINYINT(1) NOT NULL DEFAULT 0,
     `approver_id`       INT NULL,
+    -- What happens when this form is submitted, approved or rejected (#95).
+    -- JSON: {"submitted":[…],"approved":[…],"rejected":[…]}, each a list of
+    -- {type, args} in the workflow engine's own action shape — they ARE workflow
+    -- actions and are run by the same handlers. JSON-in-TEXT for the same reason
+    -- workflows.actions is: no migration every time a new action kind lands.
+    --
+    -- NULL is meaningful and differs from an empty list. NULL = never configured,
+    -- so the pre-#95 behaviour applies (nothing on submit; an approval raises a
+    -- ticket the hard-coded way). That is what lets this ship with no data
+    -- migration: every existing form keeps behaving exactly as it did. An empty
+    -- list means somebody opened the panel and chose nothing on purpose.
+    `submission_actions` TEXT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
     -- RESTRICT (no delete rule): a frozen version can't be deleted while

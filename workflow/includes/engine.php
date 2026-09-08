@@ -1491,59 +1491,7 @@ class WorkflowEngine
             if (!$conditionsPassed) {
                 $status = 'skipped';
             } else {
-                foreach ($actions as $i => $action) {
-                    $type = $action['type'] ?? '';
-                    $args = $action['args'] ?? [];
-
-                    // Dry run: resolve the action exactly as far as we can
-                    // WITHOUT touching anything — substitute the {{variables}}
-                    // and record the args the handler would have received, then
-                    // move on. Nothing is written, sent or queued.
-                    if ($dryRun) {
-                        $stepLog[] = [
-                            'kind'        => 'action',
-                            'index'       => $i,
-                            'type'        => $type,
-                            'status'      => 'dry_run',
-                            'would_run'   => self::describeAction($type),
-                            'would_args'  => self::previewArgs($args, $payload),
-                        ];
-                        continue;
-                    }
-
-                    try {
-                        $result = self::executeAction($type, $args, $payload);
-                        // Feed the result forward so a later action can use what an
-                        // earlier one produced — "raise a ticket, then email the
-                        // requester about it" is two actions and the second one has
-                        // to be able to name the first one's ticket.
-                        //
-                        // Deliberately merged under its OWN keys rather than into
-                        // the payload's natural namespace: writing a new ticket's id
-                        // over `ticket.id` would silently repoint every later
-                        // {{ticket.*}} on a ticket-triggered workflow at a different
-                        // ticket from the one that fired it.
-                        self::mergeStepResult($payload, $i, $result);
-                        $stepLog[] = [
-                            'kind'   => 'action',
-                            'index'  => $i,
-                            'type'   => $type,
-                            'status' => 'success',
-                            'result' => $result,
-                        ];
-                    } catch (Exception $e) {
-                        $stepLog[] = [
-                            'kind'   => 'action',
-                            'index'  => $i,
-                            'type'   => $type,
-                            'status' => 'failed',
-                            'error'  => $e->getMessage(),
-                        ];
-                        $status = 'failed';
-                        $errorMessage = "Action {$i} ({$type}): " . $e->getMessage();
-                        break;
-                    }
-                }
+                [$status, $errorMessage] = self::executeActionList($actions, $payload, $stepLog, $dryRun);
             }
         } catch (Exception $e) {
             $status = 'failed';
@@ -1725,6 +1673,132 @@ class WorkflowEngine
      * the engine resolves it against the dispatch payload before passing
      * the string to the action handler.
      */
+    /**
+     * Run an ordered list of actions against a payload.
+     *
+     * Extracted from runInner() when forms grew their own action lists (#95), so
+     * a form's "when submitted" list and a stored workflow's actions run through
+     * exactly one implementation. Two copies of this loop would drift on the
+     * first change to error handling or chaining, and the difference would only
+     * ever show up as "it behaves differently from the form editor".
+     *
+     * $payload and $stepLog are by reference: the payload accumulates each
+     * step's result for the steps after it, and the caller owns the log.
+     *
+     * @return array{0: string, 1: ?string} [status, errorMessage]
+     */
+    private static function executeActionList(array $actions, array &$payload, array &$stepLog, bool $dryRun = false): array
+    {
+        foreach ($actions as $i => $action) {
+            $type = $action['type'] ?? '';
+            $args = $action['args'] ?? [];
+
+            // Dry run: resolve the action exactly as far as we can WITHOUT
+            // touching anything — substitute the {{variables}} and record the
+            // args the handler would have received, then move on. Nothing is
+            // written, sent or queued.
+            if ($dryRun) {
+                $stepLog[] = [
+                    'kind'       => 'action',
+                    'index'      => $i,
+                    'type'       => $type,
+                    'status'     => 'dry_run',
+                    'would_run'  => self::describeAction($type),
+                    'would_args' => self::previewArgs($args, $payload),
+                ];
+                continue;
+            }
+
+            try {
+                $result = self::executeAction($type, $args, $payload);
+                // Feed the result forward so a later action can use what an
+                // earlier one produced — "raise a ticket, then email the
+                // requester about it" is two actions, and the second one has to
+                // be able to name the first one's ticket.
+                self::mergeStepResult($payload, $i, $result);
+                $stepLog[] = [
+                    'kind'   => 'action',
+                    'index'  => $i,
+                    'type'   => $type,
+                    'status' => 'success',
+                    'result' => $result,
+                ];
+            } catch (Exception $e) {
+                $stepLog[] = [
+                    'kind'   => 'action',
+                    'index'  => $i,
+                    'type'   => $type,
+                    'status' => 'failed',
+                    'error'  => $e->getMessage(),
+                ];
+                // Stop the chain. A later action almost always assumes the
+                // earlier one worked — emailing somebody about a ticket that
+                // was never raised is worse than not emailing them.
+                return ['failed', "Action {$i} ({$type}): " . $e->getMessage()];
+            }
+        }
+        return ['success', null];
+    }
+
+    /**
+     * Run a list of actions that belongs to something OTHER than a stored
+     * workflow — today, a form's own "when submitted / approved / rejected"
+     * list (#95).
+     *
+     * Logged to `workflow_executions` like any other run, with `workflow_id`
+     * NULL and the form's name in `workflow_name` (the column is nullable and
+     * carries a name snapshot precisely so a run can outlive, or never have,
+     * a parent row). Without this a form's automation would be the one kind
+     * nobody could audit — and "it didn't do anything and I can't see why" is
+     * the worst failure mode automation has.
+     *
+     * Never throws: the caller is a form submission or an approval decision,
+     * and neither may fail because a rule someone configured is wrong.
+     *
+     * @return array{status: string, execution_id: ?int, steps: array}
+     */
+    public static function runActionList(string $label, string $event, array $actions, array $payload): array
+    {
+        if (!$actions) return ['status' => 'skipped', 'execution_id' => null, 'steps' => []];
+
+        $stepLog = [];
+        $status  = 'success';
+        $errorMessage = null;
+        $execId = null;
+
+        try {
+            $conn = connectToDatabase();
+            if (!array_key_exists('event', $payload)) $payload['event'] = $event;
+            $payload = self::enrichPayloadForTemplates($conn, $payload);
+
+            $insert = $conn->prepare(
+                "INSERT INTO workflow_executions
+                 (workflow_id, workflow_name, trigger_event, trigger_payload, status, is_dry_run, started_datetime)
+                 VALUES (NULL, ?, ?, ?, 'running', 0, UTC_TIMESTAMP())"
+            );
+            $insert->execute([$label, $event, json_encode($payload)]);
+            $execId = (int)$conn->lastInsertId();
+            self::$ctxExecutionId = $execId;
+
+            [$status, $errorMessage] = self::executeActionList($actions, $payload, $stepLog, false);
+
+            $conn->prepare(
+                "UPDATE workflow_executions
+                    SET status = ?, finished_datetime = UTC_TIMESTAMP(), step_log = ?, error_message = ?
+                  WHERE id = ?"
+            )->execute([$status, json_encode($stepLog), $errorMessage, $execId]);
+        } catch (Throwable $e) {
+            // An engine fault must not take down a form submission. Same
+            // contract dispatch() already honours.
+            error_log('Form action list failed (' . $label . '): ' . $e->getMessage());
+            $status = 'failed';
+        } finally {
+            self::$ctxExecutionId = null;
+        }
+
+        return ['status' => $status, 'execution_id' => $execId, 'steps' => $stepLog];
+    }
+
     /**
      * Make a completed action's result addressable by the actions after it.
      *

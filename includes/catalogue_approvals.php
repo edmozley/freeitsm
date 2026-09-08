@@ -87,13 +87,30 @@ function catalogueApprovalDecide(PDO $conn, int $actorId, int $submissionId, str
 
     $comment = trim($comment);
 
+    // Does this form configure its own actions for this decision (#95)?
+    //
+    // 🔑 NULL means never configured, and the pre-#95 behaviour stands: approving
+    // raises a ticket the hard-coded way. That is what makes this upgrade safe
+    // with NO data migration — every catalogue form that existed before keeps
+    // raising its ticket, untouched. Only a form somebody has actually configured
+    // behaves differently, and then it does exactly what they configured.
+    $formLists = catalogueFormActionLists($conn, (int)$sub['form_id']);
+    $decisionList = $formLists[$decision] ?? null;
+    $listOwnsTheTicket = ($decision === 'approved' && $decisionList !== null);
+
     $conn->beginTransaction();
     try {
         $ticketId = null;
         $ticketNumber = null;
 
         if ($decision === 'approved') {
-            [$ticketId, $ticketNumber] = catalogueCreateTicketFromSubmission($conn, $sub);
+            // When the form owns this, the ticket (if any) is raised by its own
+            // action list AFTER the commit — see below. Doing it here would put
+            // an email send inside a transaction, and a rolled-back email is
+            // still an email somebody received.
+            if (!$listOwnsTheTicket) {
+                [$ticketId, $ticketNumber] = catalogueCreateTicketFromSubmission($conn, $sub);
+            }
             $conn->prepare(
                 "UPDATE form_submissions
                     SET approval_status = 'approved', approval_decided_by_id = ?,
@@ -138,6 +155,43 @@ function catalogueApprovalDecide(PDO $conn, int $actorId, int $submissionId, str
                 ],
             ]);
         } catch (Exception $e) { /* notification is a bonus, not the mechanism */ }
+    }
+
+    // The form's own list for this decision. After the commit, so nothing it does
+    // — least of all sending an email — can be undone by a rollback.
+    if ($decisionList) {
+        try {
+            $answers = catalogueSubmissionAnswerMap($conn, $submissionId);
+            $run = WorkflowEngine::runActionList(
+                'Form: ' . $sub['form_title'] . ' — when ' . $decision,
+                'catalogue_request.' . $decision,
+                $decisionList,
+                [
+                    'form'    => ['id' => (int)$sub['form_id'], 'name' => $sub['form_title']],
+                    'request' => ['id' => $submissionId, 'comment' => $comment],
+                    'submission' => [
+                        'id'     => $submissionId,
+                        'email'  => $answers['email'],
+                        'fields' => $answers['fields'],
+                    ],
+                ]
+            );
+
+            // If the list raised a ticket, the submission must point at it — that
+            // column is what the requester's "Your requests" panel reads, and a
+            // request showing no ticket after one was raised looks like a failure.
+            foreach ($run['steps'] as $step) {
+                if (($step['type'] ?? '') === 'create_ticket' && !empty($step['result']['ticket_id'])) {
+                    $ticketId     = (int)$step['result']['ticket_id'];
+                    $ticketNumber = (string)($step['result']['ticket_number'] ?? '');
+                    $conn->prepare("UPDATE form_submissions SET ticket_id = ? WHERE id = ?")
+                         ->execute([$ticketId, $submissionId]);
+                    break;
+                }
+            }
+        } catch (Exception $e) {
+            error_log('Form action list error on ' . $decision . ': ' . $e->getMessage());
+        }
     }
 
     return ['decision' => $decision, 'ticket_id' => $ticketId, 'ticket_number' => $ticketNumber];
@@ -210,7 +264,15 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
     // special case somebody has to know to ask for.
     $bodyHtml = (string)($overrides['body_html'] ?? '');
     if (trim($bodyHtml) === '') {
-        $bodyHtml = catalogueSubmissionBodyHtml($conn, (int)$sub['id'], $subject);
+        // The FORM's name, never $subject. Once a subject override existed, passing
+        // $subject made the body's opening line repeat the subject already at the
+        // top of the ticket — losing the one thing that line is for, which is
+        // saying which form this came from.
+        $bodyHtml = catalogueSubmissionBodyHtml(
+            $conn,
+            (int)$sub['id'],
+            trim((string)($sub['form_title'] ?? '')) ?: 'a form'
+        );
     }
     $bodyPreview = mb_substr(trim(preg_replace('/\s+/', ' ', strip_tags($bodyHtml))), 0, 200);
 
@@ -315,6 +377,28 @@ function catalogueAnswerText(?string $raw, ?string $fieldType): string {
 }
 
 /**
+ * A form's three action lists, loaded lazily.
+ *
+ * The require is deliberately inside the function. `includes/services/forms.php`
+ * requires the workflow engine at file level, and the engine lazily requires
+ * THIS file — pulling forms.php in at the top would make that ring tighter than
+ * it needs to be for one lookup.
+ *
+ * @return array{submitted: ?array, approved: ?array, rejected: ?array}
+ */
+function catalogueFormActionLists(PDO $conn, int $formId): array {
+    try {
+        require_once __DIR__ . '/services/forms.php';
+        return FormsService::actionLists($conn, $formId);
+    } catch (Throwable $e) {
+        // Unreadable configuration must never block an approval decision. NULLs
+        // mean "not configured", which is the safe pre-#95 behaviour.
+        error_log('Could not read form action lists for form ' . $formId . ': ' . $e->getMessage());
+        return ['submitted' => null, 'approved' => null, 'rejected' => null];
+    }
+}
+
+/**
  * A submission's answers as a label-keyed map, plus the first email answer.
  *
  * The shape deliberately matches what `FormsService::submitForm()` puts on
@@ -373,7 +457,11 @@ function catalogueSubmissionBodyHtml(PDO $conn, int $submissionId, string $formT
     $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     $esc  = fn($s) => htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8');
-    $html = '<p>Service request raised from the catalogue: <strong>' . $esc($formTitle) . '</strong></p>';
+    // Neutral wording: this is reached from the catalogue's approval path AND
+    // from an ordinary form that has no approval gate at all, and telling
+    // somebody their Guest Wi-Fi request came "from the catalogue" when there is
+    // no catalogue involved is just wrong.
+    $html = '<p>Submitted via the <strong>' . $esc($formTitle) . '</strong> form.</p>';
     $html .= '<table style="border-collapse:collapse;">';
     foreach ($rows as $r) {
         $val = catalogueAnswerText($r['field_value'], $r['field_type']);

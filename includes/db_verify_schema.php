@@ -3256,6 +3256,21 @@ return [
         // in freeitsm.sql. requires_approval on + approver_id NULL = unconfigured.
         'requires_approval' => 'TINYINT(1) NOT NULL DEFAULT 0',
         'approver_id'       => 'INT NULL',
+        // What happens when this form is submitted, approved or rejected
+        // (discussion #95). JSON: {"submitted":[…],"approved":[…],"rejected":[…]},
+        // each a list of {type, args} in the same shape the workflow engine's
+        // actions use — because they ARE workflow actions, run by the same
+        // handlers. JSON-in-TEXT for the same reason workflows.actions is:
+        // the schema must not need a migration every time the engine grows a
+        // new action kind.
+        //
+        // 🔑 NULL is meaningful and is NOT the same as an empty list. NULL means
+        // "never configured", and the pre-#95 behaviour applies — nothing on
+        // submit, and an approval raises a ticket the hard-coded way. That is
+        // what makes this upgrade safe WITHOUT a data migration: every existing
+        // form keeps doing exactly what it did. An empty list means somebody
+        // opened the panel and deliberately chose nothing.
+        'submission_actions' => 'TEXT NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
