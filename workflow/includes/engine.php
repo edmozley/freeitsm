@@ -777,6 +777,15 @@ class WorkflowEngine
             ];
         }
 
+        // What an earlier action produced. Open-ended in the same way a form's
+        // answers are — the keys depend on which actions the author picked — so
+        // advertise the shape rather than pretending to enumerate it.
+        $vars[] = [
+            'path'  => 'last.ticket_id',
+            'label' => 'Earlier action · what the previous one produced',
+            'note'  => 'The action immediately before this one, e.g. {{last.ticket_id}} after "Create a ticket". Use {{steps.1.ticket_id}} to reach a specific action by its number instead.',
+        ];
+
         // A form's answers are keyed by the labels the form author chose, so
         // they can't be enumerated ahead of time. Advertise the shape instead.
         if (in_array($trigger, self::SUBMISSION_FIELD_TRIGGERS, true)) {
@@ -799,9 +808,14 @@ class WorkflowEngine
      */
     public static function variablePrefixes(string $trigger): array
     {
-        return in_array($trigger, self::SUBMISSION_FIELD_TRIGGERS, true)
-            ? ['submission.fields.']
-            : [];
+        // Available on every trigger: what an earlier action produced depends on
+        // which actions the author chose, not on what fired the workflow.
+        $prefixes = ['last.', 'steps.'];
+
+        if (in_array($trigger, self::SUBMISSION_FIELD_TRIGGERS, true)) {
+            $prefixes[] = 'submission.fields.';
+        }
+        return $prefixes;
     }
 
     /**
@@ -871,6 +885,8 @@ class WorkflowEngine
      * of string concatenation.
      */
     private const FIELD_LOOKUP_TABLES = [
+        // No is_active on target_mailboxes — a mailbox is configured or it is not.
+        'email.mailbox_id'           => ['table' => 'target_mailboxes',  'label_col' => 'name',      'order' => 'name'],
         'ticket.priority_id'         => ['table' => 'ticket_priorities', 'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
         'ticket.status_id'           => ['table' => 'ticket_statuses',   'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
         'ticket.department_id'       => ['table' => 'departments',       'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'name'],
@@ -1103,12 +1119,13 @@ class WorkflowEngine
             ],
             'send_email' => [
                 'label'       => 'Send an email',
-                'description' => 'Send an email to the ticket\'s requester using the ticket\'s mailbox. The body is plain-text-with-newlines or HTML; both work.',
+                'description' => 'Send an email. With a ticket it goes from that ticket\'s mailbox and a reply threads back onto it; without one, choose the mailbox to send from — which is how a form acknowledges a submission before any ticket exists. The body is plain-text-with-newlines or HTML; both work.',
                 'args'        => [
-                    'ticket_id' => $ticketIdArg,
-                    'to'        => ['type' => 'text', 'label' => 'To (blank = ticket requester)', 'supports_vars' => true],
-                    'subject'   => ['type' => 'text', 'label' => 'Subject', 'required' => true, 'supports_vars' => true],
-                    'body'      => ['type' => 'textarea', 'label' => 'Body', 'required' => true, 'supports_vars' => true],
+                    'ticket_id'  => $ticketIdArg,
+                    'mailbox_id' => ['type' => 'lookup', 'label' => 'Send from (needed when there is no ticket)', 'lookup' => 'mailbox'],
+                    'to'         => ['type' => 'text', 'label' => 'To (blank = ticket requester)', 'supports_vars' => true],
+                    'subject'    => ['type' => 'text', 'label' => 'Subject', 'required' => true, 'supports_vars' => true],
+                    'body'       => ['type' => 'textarea', 'label' => 'Body', 'required' => true, 'supports_vars' => true],
                 ],
             ],
             'create_task' => [
@@ -1228,6 +1245,9 @@ class WorkflowEngine
         // when the table is absent, so an install that has not run Database
         // Verification gets an empty dropdown rather than a broken editor.
         'integration_connection' => 'integration.connection_id',
+        // Only ever an ACTION lookup, never a condition field: nothing dispatches
+        // a mailbox id in a payload, so there would be nothing to compare against.
+        'mailbox'                => 'email.mailbox_id',
     ];
 
     /**
@@ -1473,6 +1493,17 @@ class WorkflowEngine
 
                     try {
                         $result = self::executeAction($type, $args, $payload);
+                        // Feed the result forward so a later action can use what an
+                        // earlier one produced — "raise a ticket, then email the
+                        // requester about it" is two actions and the second one has
+                        // to be able to name the first one's ticket.
+                        //
+                        // Deliberately merged under its OWN keys rather than into
+                        // the payload's natural namespace: writing a new ticket's id
+                        // over `ticket.id` would silently repoint every later
+                        // {{ticket.*}} on a ticket-triggered workflow at a different
+                        // ticket from the one that fired it.
+                        self::mergeStepResult($payload, $i, $result);
                         $stepLog[] = [
                             'kind'   => 'action',
                             'index'  => $i,
@@ -1674,6 +1705,31 @@ class WorkflowEngine
      * the engine resolves it against the dispatch payload before passing
      * the string to the action handler.
      */
+    /**
+     * Make a completed action's result addressable by the actions after it.
+     *
+     * Two names for the same thing, because two different questions get asked:
+     *   {{last.ticket_id}}     — "the action just before this one"
+     *   {{steps.1.ticket_id}}  — "the first action, whatever has happened since"
+     *
+     * `last` is enough for the common two-action chain; `steps` is what a third
+     * action needs, because by then `last` is the second action's result.
+     *
+     * ⚠️ `steps` is ONE-BASED. The editor numbers actions from 1 on screen, and a
+     * merge code that disagreed with the number printed next to the action would
+     * be wrong in the one place people copy it from.
+     *
+     * Nothing is merged for a failed action (the chain stops there anyway) or a
+     * dry run (nothing ran, so there is no result to speak of — a later action's
+     * preview shows the merge code unresolved, which is honest).
+     */
+    private static function mergeStepResult(array &$payload, int $index, $result): void
+    {
+        if (!is_array($result) || $result === []) return;
+        $payload['steps'][$index + 1] = $result;
+        $payload['last'] = $result;
+    }
+
     private static function renderTemplate(string $tmpl, array $payload): string
     {
         return preg_replace_callback('/\{\{\s*([^}]+?)\s*\}\}/', function ($m) use ($payload) {
@@ -1814,11 +1870,18 @@ class WorkflowEngine
 
     private static function action_send_email(array $args, array $payload): array
     {
-        $ticketId = self::argInt($args, 'ticket_id', $payload);
-        $subject  = self::argString($args, 'subject', $payload);
-        $body     = self::argString($args, 'body',    $payload);
-        $to       = self::argString($args, 'to',      $payload);
-        if (!$ticketId)        throw new Exception('ticket_id is required');
+        $ticketId  = self::argInt($args, 'ticket_id',  $payload);
+        $mailboxId = self::argInt($args, 'mailbox_id', $payload);
+        $subject   = self::argString($args, 'subject', $payload);
+        $body      = self::argString($args, 'body',    $payload);
+        $to        = self::argString($args, 'to',      $payload);
+        // A ticket OR a mailbox. The ticket was the only way in until forms
+        // needed to acknowledge a submission — there is no ticket at that point,
+        // and "we couldn't work out which mailbox to send from" is not a useful
+        // thing to tell somebody who is simply confirming a form was received.
+        if (!$ticketId && !$mailboxId) {
+            throw new Exception('Either a ticket or a mailbox to send from is required');
+        }
         if ($subject === '')   throw new Exception('subject is required');
         if ($body === '')      throw new Exception('body is required');
 
@@ -1830,14 +1893,35 @@ class WorkflowEngine
         require_once dirname(dirname(__DIR__)) . '/includes/email_log.php';
 
         $conn = connectToDatabase();
-        $merge = buildTicketMergeData($conn, $ticketId);
-        if (!$merge) throw new Exception("Ticket not found: {$ticketId}");
 
-        $recipient = $to !== '' ? $to : ($merge['requester_email'] ?? '');
-        if ($recipient === '') throw new Exception('No recipient (and ticket has no requester email)');
+        // The ticket is now optional, so everything derived from it is too.
+        $merge = null;
+        $ticketRef = '';
+        if ($ticketId) {
+            $merge = buildTicketMergeData($conn, $ticketId);
+            if (!$merge) throw new Exception("Ticket not found: {$ticketId}");
+            $ticketRef = (string)($merge['ticket_reference'] ?? '');
+        }
 
-        $mailbox = templateGetMailboxForTicket($conn, $ticketId);
-        if (!$mailbox) throw new Exception('Ticket has no associated mailbox — cannot send');
+        $recipient = $to !== '' ? $to : (string)($merge['requester_email'] ?? '');
+        if ($recipient === '') {
+            throw new Exception($ticketId
+                ? 'No recipient (and ticket has no requester email)'
+                : 'No recipient — set one, e.g. {{submission.email}}');
+        }
+
+        // An explicitly chosen mailbox wins over the ticket's own. On a ticket
+        // that is usually not what you want, so the arg is left blank there; when
+        // there is no ticket it is the only way to know who is sending.
+        if ($mailboxId) {
+            $mb = $conn->prepare('SELECT * FROM target_mailboxes WHERE id = ?');
+            $mb->execute([$mailboxId]);
+            $mailbox = $mb->fetch(PDO::FETCH_ASSOC) ?: null;
+            if (!$mailbox) throw new Exception("Mailbox not found: {$mailboxId}");
+        } else {
+            $mailbox = templateGetMailboxForTicket($conn, $ticketId);
+            if (!$mailbox) throw new Exception('Ticket has no associated mailbox — cannot send');
+        }
 
         $provider  = $mailbox['provider'] ?? 'microsoft';
         $graphBase = '/me';
@@ -1874,9 +1958,14 @@ class WorkflowEngine
         // ⚠️ The token check moved INTO the two OAuth branches. Left where it was,
         // it would fire for the IMAP path, which legitimately has no token at all.
 
-        $ticketRef = $merge['ticket_reference'] ?? '';
         $fullSubject = $ticketRef !== '' ? "[SDREF:{$ticketRef}] {$subject}" : $subject;
-        $fullBody    = buildTemplateEmailBody($body, $ticketRef);
+        // With a ticket, the reply marker is what threads a reply back onto it.
+        // Without one there is nothing to thread to, and printing "please reply
+        // above this line" over an empty SDREF would invite a reply that lands
+        // nowhere — so a standalone email gets the styling and not the marker.
+        $fullBody = $ticketRef !== ''
+            ? buildTemplateEmailBody($body, $ticketRef)
+            : self::plainEmailBody($body);
 
         try {
             if ($provider === 'imap') {
@@ -1905,8 +1994,30 @@ class WorkflowEngine
             throw $e;
         }
         emailLogSent($conn, $mailbox, 'workflow', $recipient, $fullSubject, $ticketId);
-        templateSaveSentEmail($conn, $ticketId, $mailbox, $recipient, $fullSubject, $body);
+        // Only a ticket has a conversation to file the sent copy against. The
+        // email log above records the send either way, so a standalone message
+        // is still auditable — it just isn't attached to anything.
+        if ($ticketId) {
+            templateSaveSentEmail($conn, $ticketId, $mailbox, $recipient, $fullSubject, $body);
+        }
         return ['ticket_id' => $ticketId, 'to' => $recipient, 'subject' => $subject];
+    }
+
+    /**
+     * The house email styling, without the reply marker.
+     *
+     * Mirrors buildTemplateEmailBody()'s wrapper so a standalone message looks
+     * like every other email FreeITSM sends; it just omits the trailer that only
+     * means something when there is a ticket to reply onto.
+     */
+    private static function plainEmailBody(string $bodyContent): string
+    {
+        if (strip_tags($bodyContent) === $bodyContent) {
+            $bodyContent = nl2br(htmlspecialchars($bodyContent, ENT_QUOTES, 'UTF-8'));
+        }
+        return '<div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6;">'
+             . $bodyContent
+             . '</div>';
     }
 
     private static function action_create_task(array $args, array $payload): array
@@ -1974,6 +2085,37 @@ class WorkflowEngine
         $assignedAnalystId  = self::argInt($args, 'assigned_analyst_id', $payload);
         $fromEmail          = self::argString($args, 'from_email', $payload);
         $fromName           = self::argString($args, 'from_name',  $payload);
+
+        // When the event that fired this carries a form submission, hand the whole
+        // job to the shared form-to-ticket path instead of building a second,
+        // weaker ticket here. That path resolves the requester by users.id rather
+        // than by matching an email string, sets the company from their own
+        // record, and renders the answers as a fully-escaped table — none of which
+        // this handler ever did. The configured args become overrides on top, so
+        // an author who set a priority or a queue still gets exactly that.
+        //
+        // Everything else — a fan-out from ticket.created, say — keeps the
+        // original behaviour below, unchanged.
+        $submissionId = (int)(self::dotGet($payload, 'submission.id') ?? 0);
+        if ($submissionId > 0) {
+            require_once __DIR__ . '/../../includes/catalogue_approvals.php';
+            $conn = connectToDatabase();
+            return catalogueRaiseTicketFromSubmissionId($conn, $submissionId, [
+                // Blank means "not configured", so it must not reach the shared
+                // path as an override — that is what lets the submission supply
+                // the sensible default instead.
+                'subject'             => $subject !== '' ? $subject : null,
+                'body_html'           => $body !== '' ? nl2br(htmlspecialchars($body)) : null,
+                'priority_id'         => $priorityId,
+                'department_id'       => $departmentId,
+                'ticket_type_id'      => $typeId,
+                'assigned_analyst_id' => $assignedAnalystId,
+                'from_email'          => $fromEmail,
+                'from_name'           => $fromName,
+                'audit_note'          => 'Raised from a form submission by a workflow',
+            ]);
+        }
+
         if ($subject === '') throw new Exception('subject is required');
 
         $conn = connectToDatabase();

@@ -154,9 +154,30 @@ function catalogueApprovalDecide(PDO $conn, int $actorId, int $submissionId, str
  *
  * @return array [int ticketId, string ticketNumber]
  */
-function catalogueCreateTicketFromSubmission(PDO $conn, array $sub): array {
+function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overrides = []): array {
+    // --- who is asking ------------------------------------------------------
+    // Two ways in. A portal catalogue request always carries the account that
+    // raised it, which is the good case: a real users.id, and a company that
+    // comes from their own record. A form filled in by somebody who is not
+    // signed in has no account, only whatever email address they typed — so
+    // that address is resolved to a user, creating one if need be. Anonymous
+    // submissions were the ONLY case the workflow action ever handled, which is
+    // why it produced the weaker ticket even for portal requests.
     $userId = (int)($sub['submitted_by_user_id'] ?? 0);
-    if (!$userId) throw new Exception('This request has no portal requester to raise a ticket for');
+    $fallbackEmail = trim((string)($overrides['from_email'] ?? ''));
+    $fallbackName  = trim((string)($overrides['from_name']  ?? ''));
+
+    if (!$userId && $fallbackEmail !== '') {
+        $look = $conn->prepare('SELECT id FROM users WHERE email = ? LIMIT 1');
+        $look->execute([$fallbackEmail]);
+        $userId = (int)$look->fetchColumn();
+        if (!$userId) {
+            $conn->prepare('INSERT INTO users (email, display_name, created_at) VALUES (?, ?, UTC_TIMESTAMP())')
+                 ->execute([$fallbackEmail, $fallbackName !== '' ? $fallbackName : $fallbackEmail]);
+            $userId = (int)$conn->lastInsertId();
+        }
+    }
+    if (!$userId) throw new Exception('This request has no requester to raise a ticket for');
 
     $u = $conn->prepare("SELECT email, username, display_name, tenant_id FROM users WHERE id = ?");
     $u->execute([$userId]);
@@ -175,20 +196,43 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub): array {
         ? (int) $user['tenant_id']
         : (isMultiTenant($conn) ? null : getDefaultTenantId($conn));
 
-    $subject = trim((string)($sub['form_title'] ?? '')) ?: 'Service request';
+    // --- what the ticket says -----------------------------------------------
+    // An override always wins; the submission fills in whatever was left blank.
+    // That is the whole rule, and it is what lets one function serve both the
+    // approval path (which configures nothing) and a form's own action list
+    // (which may configure everything).
+    $subject = trim((string)($overrides['subject'] ?? ''));
+    if ($subject === '') $subject = trim((string)($sub['form_title'] ?? '')) ?: 'Service request';
     if (mb_strlen($subject) > 255) $subject = mb_substr($subject, 0, 255);
-    $bodyHtml    = catalogueSubmissionBodyHtml($conn, (int)$sub['id'], $subject);
+
+    // A blank body means "show me what they asked for", not "send an empty
+    // ticket" — so the escaped answer table is the default rather than a
+    // special case somebody has to know to ask for.
+    $bodyHtml = (string)($overrides['body_html'] ?? '');
+    if (trim($bodyHtml) === '') {
+        $bodyHtml = catalogueSubmissionBodyHtml($conn, (int)$sub['id'], $subject);
+    }
     $bodyPreview = mb_substr(trim(preg_replace('/\s+/', ' ', strip_tags($bodyHtml))), 0, 200);
+
+    // --- routing ------------------------------------------------------------
+    $statusId   = catalogueOverrideOrDefault($conn, $overrides, 'status_id',   'ticket_statuses');
+    $priorityId = catalogueOverrideOrDefault($conn, $overrides, 'priority_id', 'ticket_priorities');
+    $departmentId = isset($overrides['department_id'])       && $overrides['department_id']       ? (int)$overrides['department_id']       : null;
+    $typeId       = isset($overrides['ticket_type_id'])      && $overrides['ticket_type_id']      ? (int)$overrides['ticket_type_id']      : null;
+    $analystId    = isset($overrides['assigned_analyst_id']) && $overrides['assigned_analyst_id'] ? (int)$overrides['assigned_analyst_id'] : null;
 
     $ticketNumber = catalogueGenerateTicketNumber($conn);
 
     $conn->prepare(
-        "INSERT INTO tickets (ticket_number, subject, status_id, priority_id, user_id, tenant_id, created_datetime, updated_datetime)
-         VALUES (?, ?,
-                 (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
-                 (SELECT id FROM ticket_priorities WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
-                 ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
-    )->execute([$ticketNumber, $subject, $userId, $tenantId]);
+        "INSERT INTO tickets (ticket_number, subject, status_id, priority_id,
+                              department_id, ticket_type_id, assigned_analyst_id,
+                              user_id, tenant_id, created_datetime, updated_datetime)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+    )->execute([
+        $ticketNumber, $subject, $statusId, $priorityId,
+        $departmentId, $typeId, $analystId,
+        $userId, $tenantId,
+    ]);
     $ticketId = (int)$conn->lastInsertId();
 
     $conn->prepare(
@@ -197,7 +241,55 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub): array {
          VALUES (?, ?, ?, ?, UTC_TIMESTAMP(), ?, ?, 'html', 0, 'normal', 0, ?, 1, 'Portal')"
     )->execute([$subject, $fromEmail, $fromName, $fromEmail, $bodyPreview, $bodyHtml, $ticketId]);
 
+    // Provenance. Without this a ticket raised from a form is indistinguishable
+    // from one somebody typed, and the first question asked about a surprising
+    // ticket is always "where did this come from?". analyst_id NULL is the
+    // established marker for "the system did this, not a person".
+    $conn->prepare(
+        "INSERT INTO ticket_audit (ticket_id, analyst_id, field_name, old_value, new_value, created_datetime)
+         VALUES (?, NULL, 'Ticket Created', NULL, ?, UTC_TIMESTAMP())"
+    )->execute([$ticketId, (string)($overrides['audit_note'] ?? 'Raised from a form submission')]);
+
     return [$ticketId, $ticketNumber];
+}
+
+/**
+ * An overridden lookup id, or the install's default for that table.
+ *
+ * The default is resolved in PHP rather than left as a subselect inside the
+ * INSERT so that both branches produce a plain integer — a column that is
+ * sometimes a value and sometimes a subquery is the kind of thing that works
+ * until the day somebody adds a second caller.
+ */
+function catalogueOverrideOrDefault(PDO $conn, array $overrides, string $key, string $table): ?int {
+    if (!empty($overrides[$key])) return (int)$overrides[$key];
+    $id = $conn->query(
+        "SELECT id FROM {$table} WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1"
+    )->fetchColumn();
+    return $id !== false ? (int)$id : null;
+}
+
+/**
+ * Raise a ticket from a submission id, loading the row the way the approval
+ * path does. The entry point for callers that hold an id rather than a row —
+ * the workflow engine's create_ticket action, and (next) a form's own action
+ * list.
+ *
+ * @return array{ticket_id:int, ticket_number:string}
+ */
+function catalogueRaiseTicketFromSubmissionId(PDO $conn, int $submissionId, array $overrides = []): array {
+    $stmt = $conn->prepare(
+        "SELECT s.*, f.title AS form_title
+           FROM form_submissions s
+           JOIN forms f ON f.id = s.form_id
+          WHERE s.id = ?"
+    );
+    $stmt->execute([$submissionId]);
+    $sub = $stmt->fetch(PDO::FETCH_ASSOC);
+    if (!$sub) throw new Exception('That submission no longer exists');
+
+    [$ticketId, $ticketNumber] = catalogueCreateTicketFromSubmission($conn, $sub, $overrides);
+    return ['ticket_id' => $ticketId, 'ticket_number' => $ticketNumber];
 }
 
 /**
