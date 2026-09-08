@@ -64,24 +64,28 @@ $translationNamespaces = ['common', 'forms'];
                 <span class="help-nav-num">2</span>
                 <?php echo htmlspecialchars(t('forms.help.nav_building')); ?>
             </a>
-            <a href="#filling-in" class="help-nav-link" data-section="filling-in">
+            <a href="#what-happens-next" class="help-nav-link" data-section="what-happens-next">
                 <span class="help-nav-num">3</span>
+                <?php echo htmlspecialchars(t('forms.help.nav_actions')); ?>
+            </a>
+            <a href="#filling-in" class="help-nav-link" data-section="filling-in">
+                <span class="help-nav-num">4</span>
                 <?php echo htmlspecialchars(t('forms.help.nav_filling')); ?>
             </a>
             <a href="#submissions" class="help-nav-link" data-section="submissions">
-                <span class="help-nav-num">4</span>
+                <span class="help-nav-num">5</span>
                 <?php echo htmlspecialchars(t('forms.help.nav_submissions')); ?>
             </a>
             <a href="#export" class="help-nav-link" data-section="export">
-                <span class="help-nav-num">5</span>
+                <span class="help-nav-num">6</span>
                 <?php echo htmlspecialchars(t('forms.help.nav_export')); ?>
             </a>
             <a href="#settings" class="help-nav-link" data-section="settings">
-                <span class="help-nav-num">6</span>
+                <span class="help-nav-num">7</span>
                 <?php echo htmlspecialchars(t('forms.help.nav_settings')); ?>
             </a>
             <a href="#tips" class="help-nav-link" data-section="tips">
-                <span class="help-nav-num">7</span>
+                <span class="help-nav-num">8</span>
                 <?php echo htmlspecialchars(t('forms.help.nav_tips')); ?>
             </a>
         </div>
@@ -227,10 +231,52 @@ $translationNamespaces = ['common', 'forms'];
                     </div>
                 </div>
 
-                <!-- Section 3: Filling in Forms -->
-                <div class="help-section" id="filling-in">
+                <!-- Section 3: What happens next (#95) -->
+                <div class="help-section" id="what-happens-next">
                     <div class="help-section-header">
                         <span class="help-section-num">3</span>
+                        <h3><?php echo htmlspecialchars(t('forms.help.actions_title')); ?></h3>
+                    </div>
+                    <p><?php echo htmlspecialchars(t('forms.help.actions_intro')); ?></p>
+
+                    <div class="help-cards">
+                        <div class="help-card">
+                            <h4><?php echo htmlspecialchars(t('forms.help.actions_submitted_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('forms.help.actions_submitted_body')); ?></p>
+                        </div>
+                        <div class="help-card">
+                            <h4><?php echo htmlspecialchars(t('forms.help.actions_approved_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('forms.help.actions_approved_body')); ?></p>
+                        </div>
+                        <div class="help-card">
+                            <h4><?php echo htmlspecialchars(t('forms.help.actions_rejected_title')); ?></h4>
+                            <p><?php echo htmlspecialchars(t('forms.help.actions_rejected_body')); ?></p>
+                        </div>
+                    </div>
+
+                    <div class="help-list">
+                        <div><?php echo t('forms.help.actions_step1'); ?></div>
+                        <div><?php echo t('forms.help.actions_step2'); ?></div>
+                        <div><?php echo t('forms.help.actions_step3'); ?></div>
+                        <div><?php echo t('forms.help.actions_step4'); ?></div>
+                    </div>
+
+                    <h4><?php echo htmlspecialchars(t('forms.help.actions_answers_title')); ?></h4>
+                    <p><?php echo t('forms.help.actions_answers_body'); ?></p>
+
+                    <h4><?php echo htmlspecialchars(t('forms.help.actions_chain_title')); ?></h4>
+                    <p><?php echo t('forms.help.actions_chain_body'); ?></p>
+
+                    <h4><?php echo htmlspecialchars(t('forms.help.actions_gate_title')); ?></h4>
+                    <p><?php echo t('forms.help.actions_gate_body'); ?></p>
+
+                    <p class="help-note"><?php echo t('forms.help.actions_tip'); ?></p>
+                </div>
+
+                <!-- Section 4: Filling in Forms -->
+                <div class="help-section" id="filling-in">
+                    <div class="help-section-header">
+                        <span class="help-section-num">4</span>
                         <h3><?php echo htmlspecialchars(t('forms.help.filling_title')); ?></h3>
                     </div>
                     <p><?php echo htmlspecialchars(t('forms.help.filling_body')); ?></p>
@@ -270,7 +316,7 @@ $translationNamespaces = ['common', 'forms'];
                 <!-- Section 4: Submissions -->
                 <div class="help-section" id="submissions">
                     <div class="help-section-header">
-                        <span class="help-section-num">4</span>
+                        <span class="help-section-num">5</span>
                         <h3><?php echo htmlspecialchars(t('forms.help.subs_title')); ?></h3>
                     </div>
                     <p><?php echo htmlspecialchars(t('forms.help.subs_body')); ?></p>
@@ -302,7 +348,7 @@ $translationNamespaces = ['common', 'forms'];
                 <!-- Section 5: Export (highlighted) -->
                 <div class="help-section" id="export">
                     <div class="help-section-header">
-                        <span class="help-section-num">5</span>
+                        <span class="help-section-num">6</span>
                         <h3><?php echo htmlspecialchars(t('forms.help.export_title')); ?></h3>
                     </div>
                     <p><?php echo htmlspecialchars(t('forms.help.export_intro')); ?></p>
@@ -320,7 +366,7 @@ $translationNamespaces = ['common', 'forms'];
                 <!-- Section 6: Settings -->
                 <div class="help-section" id="settings">
                     <div class="help-section-header">
-                        <span class="help-section-num">6</span>
+                        <span class="help-section-num">7</span>
                         <h3><?php echo htmlspecialchars(t('forms.help.settings_title')); ?></h3>
                     </div>
                     <p><?php echo htmlspecialchars(t('forms.help.settings_body')); ?></p>
@@ -363,7 +409,7 @@ $translationNamespaces = ['common', 'forms'];
                 <!-- Section 7: Quick Tips -->
                 <div class="help-section" id="tips">
                     <div class="help-section-header">
-                        <span class="help-section-num">7</span>
+                        <span class="help-section-num">8</span>
                         <h3><?php echo htmlspecialchars(t('forms.help.tips_title')); ?></h3>
                     </div>
                     <div class="help-cards">

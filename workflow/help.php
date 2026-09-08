@@ -192,6 +192,7 @@ $translationNamespaces = ['common', 'workflow'];
             </div>
             <p><?php echo t('workflow.help.actions_note'); ?></p>
             <div class="help-note"><?php echo t('workflow.help.actions_webhook_callout'); ?></div>
+            <div class="help-note"><?php echo t('workflow.help.actions_forms_callout'); ?></div>
 
             </div>
 
@@ -214,6 +215,14 @@ $translationNamespaces = ['common', 'workflow'];
                 <li><?php echo t('workflow.help.variables_li5'); ?></li>
             </ul>
             <div class="help-note"><?php echo t('workflow.help.variables_tip'); ?></div>
+
+            <h4><?php echo htmlspecialchars(t('workflow.help.variables_chain_heading')); ?></h4>
+            <p><?php echo t('workflow.help.variables_chain_intro'); ?></p>
+            <ul>
+                <li><?php echo t('workflow.help.variables_chain_last'); ?></li>
+                <li><?php echo t('workflow.help.variables_chain_steps'); ?></li>
+            </ul>
+            <div class="help-note"><?php echo t('workflow.help.variables_chain_note'); ?></div>
 
             </div>
 
@@ -260,6 +269,7 @@ $translationNamespaces = ['common', 'workflow'];
             <p><?php echo t('workflow.help.triggers_intro'); ?></p>
             <ul>
                 <li><?php echo t('workflow.help.triggers_family_domain'); ?></li>
+                <li><?php echo t('workflow.help.triggers_family_forms'); ?></li>
                 <li><?php echo t('workflow.help.triggers_family_crud'); ?></li>
             </ul>
             <p><?php echo t('workflow.help.triggers_picker'); ?></p>
