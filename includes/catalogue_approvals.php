@@ -118,6 +118,11 @@ function catalogueApprovalDecide(PDO $conn, int $actorId, int $submissionId, str
     // Tell the requester the outcome — best-effort, after commit, never fails a decision.
     if (class_exists('WorkflowEngine')) {
         try {
+            // The answers travel with the decision. Without them a rule on this
+            // event can say "your request was approved" but not *which* device or
+            // start date was approved — and the requester has to go and look it
+            // up, which defeats telling them at all.
+            $answers = catalogueSubmissionAnswerMap($conn, $submissionId);
             WorkflowEngine::dispatch('catalogue_request.' . $decision, [
                 'form'    => ['id' => (int)$sub['form_id'], 'name' => $sub['form_title']],
                 'request' => [
@@ -125,6 +130,11 @@ function catalogueApprovalDecide(PDO $conn, int $actorId, int $submissionId, str
                     'comment'       => $comment,
                     'ticket_id'     => $ticketId,
                     'ticket_number' => $ticketNumber,
+                ],
+                'submission' => [
+                    'id'     => $submissionId,
+                    'email'  => $answers['email'],
+                    'fields' => $answers['fields'],
                 ],
             ]);
         } catch (Exception $e) { /* notification is a bonus, not the mechanism */ }
@@ -210,6 +220,52 @@ function catalogueAnswerText(?string $raw, ?string $fieldType): string {
     $decoded = json_decode($val, true);          // checkboxes are stored as a JSON array
     if (is_array($decoded)) $val = implode(', ', $decoded);
     return $val;
+}
+
+/**
+ * A submission's answers as a label-keyed map, plus the first email answer.
+ *
+ * The shape deliberately matches what `FormsService::submitForm()` puts on
+ * `form.submitted`, so `{{submission.fields.Device type}}` means the same thing
+ * whether a rule hangs off the submission or off the approval decision. A merge
+ * code that resolved on one event and silently blanked on another would be worse
+ * than not offering it at all.
+ *
+ * ⚠️ Values go through catalogueAnswerText(), so a checkbox reads "Yes"/"No"
+ * rather than the stored 1/0. `form.submitted` still flattens raw — see the note
+ * in the developer guide; unifying that changes what existing rules receive and
+ * is a deliberate decision, not a tidy-up to slip in here.
+ *
+ * ⚠️ NOT derivable from catalogueSubmissionAnswers() below, and vice versa. That
+ * one returns an ORDERED LIST because the approval card renders every row; this
+ * returns a MAP keyed by label because a merge code addresses answers by name.
+ * A map cannot represent two fields sharing a label — the second would silently
+ * swallow the first — so the card must keep its list. Same data, two shapes,
+ * both needed.
+ *
+ * @return array{fields: array<string,string>, email: string}
+ */
+function catalogueSubmissionAnswerMap(PDO $conn, int $submissionId): array {
+    $stmt = $conn->prepare(
+        "SELECT ff.label, ff.field_type, sd.field_value
+           FROM form_submission_data sd
+           JOIN form_fields ff ON ff.id = sd.field_id
+          WHERE sd.submission_id = ?
+       ORDER BY ff.sort_order, ff.id"
+    );
+    $stmt->execute([$submissionId]);
+
+    $fields = [];
+    $email  = '';
+    foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $r) {
+        $text = catalogueAnswerText($r['field_value'], $r['field_type']);
+        $fields[$r['label']] = $text;
+        if ($email === '' && $r['field_type'] === 'email' && $text !== '') {
+            $email = $text;
+        }
+    }
+
+    return ['fields' => $fields, 'email' => $email];
 }
 
 /** The submitted answers as a safe (fully-escaped) HTML summary for the ticket body. */

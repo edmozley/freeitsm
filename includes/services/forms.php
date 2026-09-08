@@ -496,8 +496,8 @@ class FormsService
         $conn->beginTransaction();
         try {
             $conn->prepare(
-                "INSERT INTO forms (title, description, is_active, is_portal_visible, created_by, modified_by, parent_form_id, version_number, created_date, modified_date)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+                "INSERT INTO forms (title, description, is_active, is_portal_visible, requires_approval, approver_id, created_by, modified_by, parent_form_id, version_number, created_date, modified_date)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([
                 $src['title'],
                 $src['description'],
@@ -508,6 +508,17 @@ class FormsService
                 // moment someone edited it — a disappearance nobody would connect
                 // to having pressed Save.
                 (int)($src['is_portal_visible'] ?? 0),
+                // Carried for the same reason, and more urgently: these were
+                // MISSING here until #95. The catalogue lists leaves, so editing
+                // an approval-gated form made the new leaf ungated — requests that
+                // needed a manager's sign-off stopped needing one, silently, and
+                // (because only the gated path raises a ticket) started behaving
+                // differently in two ways at once. A gate that can be removed by
+                // pressing Save is not a gate.
+                (int)($src['requires_approval'] ?? 0),
+                // NULL, not 0: approver_id is a real FK and "nobody assigned" is a
+                // meaningful state the gate treats as unconfigured.
+                isset($src['approver_id']) && $src['approver_id'] !== null ? (int)$src['approver_id'] : null,
                 $ctx->actorId,
                 $ctx->actorId,
                 $parentId,

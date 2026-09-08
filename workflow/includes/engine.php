@@ -103,6 +103,21 @@ class WorkflowEngine
             'ticket.deleted'           => 'A ticket is moved to the trash',
             'ticket.restored'          => 'A ticket is restored from the trash',
             'form.submitted'           => 'A form submission is received',
+            // Catalogue requests (#928 + discussion #95). These three were being
+            // dispatched by the approval code from the day it shipped, but were
+            // never added here — and dispatch() matches on trigger_event, which
+            // the editor can only offer from this list. So all three fired into
+            // nothing: the approver was never told a request was waiting, and the
+            // requester was never told the outcome. Registering them is the whole
+            // fix; the dispatch calls were already correct.
+            // ⚠️ '.rejected', NOT '.declined': the dispatch builds the event name
+            // as 'catalogue_request.' . $decision, and $decision is validated
+            // against ['approved','rejected'] — the same word the column and the
+            // API contract use. The UI says "Reject" too, so there is no
+            // code-name / screen-word split here to keep straight.
+            'catalogue_request.submitted' => 'A catalogue request is submitted for approval',
+            'catalogue_request.approved'  => 'A catalogue request is approved',
+            'catalogue_request.rejected'  => 'A catalogue request is rejected',
             'task.created'             => 'A task is created',
             'task.assigned'            => 'A task is assigned to somebody',
             // GH #89. SEPARATE events, never a widened task.assigned: that one
@@ -261,6 +276,20 @@ class WorkflowEngine
             'ticket.reply_received'   => array_merge($fullTicket, ['source']),
             'form.submitted' => [
                 'form.id', 'form.name', 'submission.id', 'submission.email',
+            ],
+            // Catalogue requests. 'form.id' is the load-bearing one — it is how a
+            // rule is scoped to a single catalogue item rather than every form on
+            // the install. The approval events additionally carry the approver's
+            // comment and, once granted, the ticket the request became.
+            'catalogue_request.submitted' => [
+                'form.id', 'form.name', 'submission.id', 'submission.email', 'approver.id',
+            ],
+            'catalogue_request.approved' => [
+                'form.id', 'form.name', 'request.id', 'request.comment',
+                'request.ticket_id', 'request.ticket_number', 'submission.email',
+            ],
+            'catalogue_request.rejected' => [
+                'form.id', 'form.name', 'request.id', 'request.comment', 'submission.email',
             ],
             'task.created' => [
                 'task.id', 'task.title', 'task.status_id', 'task.priority_id', 'task.assignee_id',
@@ -750,7 +779,7 @@ class WorkflowEngine
 
         // A form's answers are keyed by the labels the form author chose, so
         // they can't be enumerated ahead of time. Advertise the shape instead.
-        if ($trigger === 'form.submitted') {
+        if (in_array($trigger, self::SUBMISSION_FIELD_TRIGGERS, true)) {
             $vars[] = [
                 'path'  => 'submission.fields.Your field label',
                 'label' => 'Submission · any answer, by field label',
@@ -770,8 +799,26 @@ class WorkflowEngine
      */
     public static function variablePrefixes(string $trigger): array
     {
-        return $trigger === 'form.submitted' ? ['submission.fields.'] : [];
+        return in_array($trigger, self::SUBMISSION_FIELD_TRIGGERS, true)
+            ? ['submission.fields.']
+            : [];
     }
+
+    /**
+     * Triggers whose payload carries `submission.fields` — the label-keyed map of
+     * a form's answers.
+     *
+     * Open-ended by nature: the keys are whatever the form author called their
+     * fields, so they can never be enumerated up front. Both the merge-code hint
+     * and the editor's unknown-variable warning read this list, which is why it
+     * is one const rather than the same string test written twice.
+     */
+    private const SUBMISSION_FIELD_TRIGGERS = [
+        'form.submitted',
+        'catalogue_request.submitted',
+        'catalogue_request.approved',
+        'catalogue_request.rejected',
+    ];
 
     /**
      * 'ticket.requester_email' → 'Ticket · Requester email'.
