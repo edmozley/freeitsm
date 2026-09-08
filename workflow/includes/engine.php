@@ -887,6 +887,21 @@ class WorkflowEngine
     private const FIELD_LOOKUP_TABLES = [
         // No is_active on target_mailboxes — a mailbox is configured or it is not.
         'email.mailbox_id'           => ['table' => 'target_mailboxes',  'label_col' => 'name',      'order' => 'name'],
+        // Forms. Missing until #95, which made "only for THIS form" impossible to
+        // express: fieldType() reads form.id as a lookup (it ends in _id), so the
+        // editor drew a tick-list of values — and with no entry here there were no
+        // values, leaving a control that cannot be filled in and a condition that
+        // cannot be built. Scoping a form rule to one form is most of the point of
+        // having one, so this was not a cosmetic gap.
+        // LEAVES ONLY: editing a form forks it into a new row, and the frozen old
+        // versions keep their titles, so listing every row would offer the same
+        // form name six times with no way to tell which is current.
+        'form.id'                    => [
+            'table'     => 'forms',
+            'label_col' => 'title',
+            'where'     => 'is_active = 1 AND id NOT IN (SELECT parent_form_id FROM forms WHERE parent_form_id IS NOT NULL)',
+            'order'     => 'title',
+        ],
         'ticket.priority_id'         => ['table' => 'ticket_priorities', 'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
         'ticket.status_id'           => ['table' => 'ticket_statuses',   'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
         'ticket.department_id'       => ['table' => 'departments',       'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'name'],
@@ -911,7 +926,12 @@ class WorkflowEngine
         // counterpart in the trigger payload.
         'integration.connection_id'  => ['table' => 'integration_connections', 'label_col' => 'name', 'where' => 'is_active = 1', 'order' => 'name'],
         'task.assignee_id'           => ['table' => 'analysts',          'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
-        'form.id'                    => ['table' => 'forms',             'label_col' => 'name',      'order' => 'name'],
+        // ⚠️ 'form.id' was HERE, reading a column called `name`. The forms table
+        // has `title`, so the query threw, availableValuesForField() caught it and
+        // returned null, and the editor drew an empty tick-list — indistinguishable
+        // from having no entry at all. The corrected version is at the top of this
+        // map. A duplicate key here would have won (last one wins in an array
+        // literal) and silently reinstated the fault.
         'approver.id'                => ['table' => 'analysts',          'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
         'change.status_id'           => ['table' => 'change_statuses',   'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
         'change.priority_id'         => ['table' => 'change_priorities', 'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'display_order, name'],
