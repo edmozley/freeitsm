@@ -11,6 +11,100 @@ $activeNav    = "dashboard";
 
 $pageScripts = <<<'JS'
 document.addEventListener('DOMContentLoaded', loadDashboard);
+document.addEventListener('DOMContentLoaded', loadTraining);
+
+        /* ---- Outstanding training -------------------------------------------
+         *
+         * Its own fetch rather than a field on get_dashboard.php: the LMS is a
+         * separate module that can be switched off entirely, and the dashboard
+         * must not start failing because a module somebody does not use is
+         * mid-upgrade. A failure here leaves the panel hidden and the rest of
+         * the page exactly as it was.
+         *
+         * ⚠️ as=portal — the analyst app and the portal share one session, so an
+         * administrator signed into both would otherwise be shown their ANALYST
+         * courses on the portal's own dashboard (#1529).
+         */
+        async function loadTraining() {
+            const section = document.getElementById('trainingSection');
+            if (!section) return;
+
+            let rows = [];
+            try {
+                const r = await fetch('../api/lms/my_courses.php?as=portal');
+                const d = await r.json();
+                if (!d.success) return;
+                rows = d.data || [];
+            } catch (e) { return; }
+
+            // ONLY WHAT IS STILL TO DO. A dashboard panel is a prompt, not a
+            // record — listing courses somebody has already passed would make it
+            // permanent furniture that stops meaning anything.
+            const todo = rows.filter(r => ['passed', 'completed'].indexOf(r.status) === -1);
+            if (!todo.length) return;   // stays hidden; costs nothing for everyone else
+
+            // Soonest first, and anything overdue ahead of that.
+            todo.sort((a, b) => {
+                if (a.is_overdue !== b.is_overdue) return a.is_overdue ? -1 : 1;
+                if (!a.deadline) return 1;
+                if (!b.deadline) return -1;
+                return a.deadline < b.deadline ? -1 : 1;
+            });
+
+            // ⚠️ The singular is a separate key, not {count} with a plural "s".
+            // The i18n layer does not pluralise at all, and ONE course is the
+            // ordinary case — "You have 1 courses to complete" is what somebody
+            // given a single piece of training would otherwise read.
+            const overdue = todo.filter(r => r.is_overdue).length;
+            const one = todo.length === 1;
+            document.getElementById('trainingCount').textContent = overdue
+                ? window.t(one ? 'self-service.dashboard.training_overdue_one' : 'self-service.dashboard.training_overdue',
+                           { count: todo.length, overdue: overdue })
+                : window.t(one ? 'self-service.dashboard.training_count_one' : 'self-service.dashboard.training_count',
+                           { count: todo.length });
+
+            // Capped at three. The point is to prompt, and the Training page is
+            // one click away for the whole list.
+            document.getElementById('trainingList').innerHTML = todo.slice(0, 3).map(r => {
+                const [pill, pillText] = r.is_overdue
+                    ? ['bad',     window.t('self-service.training.status.overdue')]
+                    : r.status === 'incomplete'
+                        ? ['warn',    window.t('self-service.training.status.in_progress')]
+                        : ['neutral', window.t('self-service.training.status.not_started')];
+
+                // A bar only where there is something honest to measure: a SCORM
+                // package reports no lesson count, and a course NOBODY HAS
+                // OPENED has no position — an empty bar reading "Lesson 0 of 3"
+                // is a progress indicator for an absence of progress, and the
+                // pill beside it already says "Not started".
+                const bar = (r.lesson_count > 0 && r.lesson_position > 0)
+                    ? `<div class="tr-dash-bar"><div class="tr-dash-bar-fill" style="width:${
+                          Math.round((r.lesson_position / r.lesson_count) * 100)}%"></div></div>
+                       <span class="tr-dash-step">${escapeHtml(window.t('self-service.training.step', {
+                          current: r.lesson_position, total: r.lesson_count }))}</span>`
+                    : '';
+
+                // fmtNaiveDate: a deadline is a picked calendar day, never
+                // converted between timezones on the way to the screen.
+                const due = r.deadline
+                    ? `<span class="tr-dash-due${r.is_overdue ? ' over' : ''}">${escapeHtml(
+                          r.is_overdue
+                              ? window.t('self-service.dashboard.training_was_due', { date: fmtNaiveDate(r.deadline) })
+                              : window.t('self-service.dashboard.training_due',     { date: fmtNaiveDate(r.deadline) }))}</span>`
+                    : '';
+
+                return `<a class="tr-dash-card${r.is_overdue ? ' over' : ''}" href="course.php?id=${encodeURIComponent(r.id)}">
+                    <span class="tr-dash-name">${escapeHtml(r.title)}</span>
+                    ${bar}
+                    <span class="tr-dash-meta">
+                        <span class="tr-dash-pill ${pill}">${escapeHtml(pillText)}</span>
+                        ${due}
+                    </span>
+                </a>`;
+            }).join('');
+
+            section.style.display = '';
+        }
 
         async function loadDashboard() {
             try {
@@ -406,6 +500,80 @@ require __DIR__ . "/includes/header.php";
                 </span>
                 <span class="portal-action-title"><?php echo htmlspecialchars(t('self-service.dashboard.action_catalogue')); ?></span>
             </a>
+        </div>
+
+        <!-- Outstanding training. ABOVE the ticket counts deliberately: this is
+             the one thing on the dashboard that is asking something OF the
+             person rather than telling them where their own requests are up to,
+             and it is the reason they were emailed. Hidden entirely unless they
+             have something to do, so it costs nothing for the majority of
+             installs that never push training to the portal. -->
+        <style>
+            #trainingSection { margin-bottom: 22px; }
+            .tr-dash-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+            .tr-dash-all { font-size: 13px; font-weight: 600; text-decoration: none; color: var(--ss-accent, var(--accent, #0078d4)); }
+
+            /* CARDS, not full-width rows. Three grids already run down this page
+               — the actions, the ticket counts and the article list — and all of
+               them use auto-fill tracks so they line up with each other. A row
+               list here stretched a course title across the whole window and
+               parked its due date a foot away from it. 240px matches
+               .article-grid, the nearest thing in kind. */
+            .tr-dash-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+                gap: 12px;
+                padding: 16px 20px;
+            }
+
+            .tr-dash-card {
+                display: flex;
+                flex-direction: column;
+                gap: 8px;
+                padding: 14px 16px;
+                border: 1px solid var(--border, #e5e7eb);
+                border-radius: 8px;
+                background: var(--surface, #fff);
+                text-decoration: none;
+                color: inherit;
+            }
+            .tr-dash-card:hover { border-color: var(--ss-accent, var(--accent, #0078d4)); }
+            /* The one that is late gets a spine, so it is findable without
+               reading — the same device the Contracts totals use for a warning. */
+            .tr-dash-card.over { border-left: 3px solid var(--danger-text, #991b1b); }
+
+            .tr-dash-name { font-weight: 600; color: var(--text, #333); line-height: 1.35; }
+
+            .tr-dash-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: auto; }
+            .tr-dash-pill {
+                display: inline-block;
+                padding: 2px 9px;
+                border-radius: 999px;
+                font-size: 11px;
+                font-weight: 700;
+                border: 1px solid transparent;
+            }
+            .tr-dash-pill.bad     { background: var(--danger-bg, #fee2e2); color: var(--danger-text, #991b1b); border-color: var(--danger-border, #fca5a5); }
+            .tr-dash-pill.warn    { background: var(--warning-bg, #fef3c7); color: var(--warning-text, #92400e); border-color: var(--warning-border, #fcd34d); }
+            .tr-dash-pill.neutral { background: var(--surface-3, #f5f6f8); color: var(--text-muted, #666); border-color: var(--border, #e5e7eb); }
+
+            .tr-dash-due  { font-size: 12px; color: var(--text-muted, #666); }
+            .tr-dash-due.over { color: var(--danger-text, #991b1b); font-weight: 600; }
+
+            .tr-dash-bar { height: 5px; border-radius: 3px; background: var(--surface-3, #eef0f3); overflow: hidden; }
+            .tr-dash-bar-fill { height: 100%; background: var(--ss-accent, var(--accent, #0078d4)); }
+            .tr-dash-step { font-size: 11px; color: var(--text-muted, #666); }
+
+            @media (max-width: 640px) {
+                .tr-dash-grid { grid-template-columns: 1fr; padding: 14px; }
+            }
+        </style>
+        <div class="portal-section" id="trainingSection" style="display:none;">
+            <div class="section-header tr-dash-head">
+                <h2 id="trainingCount"></h2>
+                <a class="tr-dash-all" href="training.php"><?php echo htmlspecialchars(t('self-service.dashboard.training_all')); ?></a>
+            </div>
+            <div class="tr-dash-grid" id="trainingList"></div>
         </div>
 
         <!-- Summary Cards (rendered dynamically from active ticket_statuses) -->

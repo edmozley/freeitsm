@@ -104,9 +104,14 @@ require_once __DIR__ . '/includes/header.php';
     <div class="tr-wrap">
         <h1><?php echo htmlspecialchars(t('self-service.training.heading')); ?></h1>
         <p class="tr-sub"><?php echo htmlspecialchars(t('self-service.training.subtitle')); ?></p>
-        <div id="trBody">
-            <div class="tr-empty"><?php echo htmlspecialchars(t('self-service.training.loading')); ?></div>
-        </div>
+        <?php /* ⚠️ DELIBERATELY EMPTY. This held a "Loading your courses…" box,
+                 which on any normal connection is on screen for a couple of
+                 hundred milliseconds — long enough to see as a flicker, not long
+                 enough to read. A box that appears and vanishes reads as a fault.
+                 Nothing is drawn until there is something to say, and "you have
+                 no training" is only said once it is actually known to be true.
+                 Spotted by Ed on a hard refresh. */ ?>
+        <div id="trBody"></div>
     </div>
 <?php
 $pageScripts = <<<'JS'
@@ -162,8 +167,11 @@ async function trLoad() {
         // A SCORM package gets no bar: it has no lessons to count, and its
         // bookmark is arbitrary text from inside the package rather than a
         // position we can honestly turn into a fraction.
+        // ⚠️ ...and only once they have actually opened it. A bar at 0% beside
+        // the words "Lesson 0 of 3" is a progress indicator for an absence of
+        // progress; the badge already says Not started.
         let bar = '';
-        if (row.lesson_count > 0) {
+        if (row.lesson_count > 0 && row.lesson_position > 0) {
             const pct = Math.round((row.lesson_position / row.lesson_count) * 100);
             bar = `<div class="tr-bar"><div class="tr-bar-fill" style="width:${pct}%"></div></div>
                    <span class="tr-step">${trEsc(window.t('self-service.training.step', {

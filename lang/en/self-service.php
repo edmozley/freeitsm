@@ -25,7 +25,9 @@ return [
         'title'    => 'Training',
         'heading'  => 'My training',
         'subtitle' => 'Courses you have been asked to complete.',
-        'loading'  => 'Loading your courses…',
+        // No 'loading' string: the page shows nothing at all until it knows what
+        // to say. A "Loading…" box is on screen for a couple of hundred
+        // milliseconds — long enough to flicker, not long enough to read.
         'none'     => 'You have no training to do at the moment.',
         'failed'   => 'Your courses could not be loaded. Please try again shortly.',
         'start'    => 'Start',
@@ -173,6 +175,19 @@ return [
         'recent_tickets'     => 'Recent Tickets',
         // Catalogue-request approval status (#928)
         'your_requests'      => 'Your requests',
+
+        // Outstanding training, shown above the ticket counts and only when
+        // there is some. Counts what is still TO DO, never what is finished.
+        // ⚠️ Singular spelled out, because the i18n layer has NO pluralisation —
+        // `{count} courses` renders "1 courses", and one course is the ordinary
+        // case for somebody who has been given a single piece of training.
+        'training_count_one'   => 'You have 1 course to complete',
+        'training_count'       => 'You have {count} courses to complete',
+        'training_overdue_one' => 'You have 1 course to complete, and it is overdue',
+        'training_overdue'     => 'You have {count} courses to complete, {overdue} overdue',
+        'training_due'       => 'Due {date}',
+        'training_was_due'   => 'Was due {date}',
+        'training_all'       => 'All my training',
         'req_col_request'    => 'Request',
         'req_col_status'     => 'Status',
         'req_col_submitted'  => 'Submitted',
