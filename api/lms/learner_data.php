@@ -16,30 +16,56 @@ if (!isset($_SESSION['analyst_id'])) {
 // This reads ANOTHER analyst's answers and results — strictly a manager view.
 requireCapabilityJson(Cap::LMS_MANAGE);
 
-$analystId = (int)($_GET['analyst_id'] ?? 0);
-$courseId = (int)($_GET['course_id'] ?? 0);
+// A learner is an analyst or a portal user. `analyst_id` is still accepted so an
+// older link (or a cached page) keeps working and means what it always meant.
+$learnerType = (string)($_GET['learner_type'] ?? 'analyst');
+$learnerId   = (int)($_GET['learner_id'] ?? ($_GET['analyst_id'] ?? 0));
+$courseId    = (int)($_GET['course_id'] ?? 0);
 
-if (!$analystId || !$courseId) {
-    echo json_encode(['success' => false, 'error' => 'Missing analyst_id or course_id']);
+if (!in_array($learnerType, ['analyst', 'user'], true)) {
+    echo json_encode(['success' => false, 'error' => 'Unknown learner type']);
+    exit;
+}
+if (!$learnerId || !$courseId) {
+    echo json_encode(['success' => false, 'error' => 'Missing learner or course']);
     exit;
 }
 
 try {
     $conn = connectToDatabase();
 
-    // Get progress record
-    $stmt = $conn->prepare("SELECT p.*, a.full_name as analyst_name, c.title as course_title
+    // ⚠️ The name is looked up SEPARATELY, not inner-joined. This query used to
+    // open `JOIN analysts a ON p.analyst_id = a.id`, which for a portal learner
+    // matches nothing — so their drill-down would have reported "No progress
+    // record found" for a record that plainly exists on the screen they clicked
+    // it from. An inner join is a filter wearing a decoration's clothes.
+    $stmt = $conn->prepare("SELECT p.*, c.title as course_title
                             FROM lms_progress p
-                            JOIN analysts a ON p.analyst_id = a.id
                             JOIN lms_courses c ON p.course_id = c.id
-                            WHERE p.analyst_id = ? AND p.course_id = ?");
-    $stmt->execute([$analystId, $courseId]);
+                            WHERE p.learner_type = ? AND p.learner_id = ? AND p.course_id = ?");
+    $stmt->execute([$learnerType, $learnerId, $courseId]);
     $progress = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$progress) {
         echo json_encode(['success' => false, 'error' => 'No progress record found']);
         exit;
     }
+
+    // Whose record it is, from whichever table holds them. A learner whose
+    // account has since been deleted still has a training history worth reading,
+    // so a missing name is named as that rather than emptying the whole answer.
+    if ($learnerType === 'analyst') {
+        $ns = $conn->prepare("SELECT full_name FROM analysts WHERE id = ?");
+    } else {
+        $ns = $conn->prepare("SELECT COALESCE(NULLIF(display_name, ''), email, username) FROM users WHERE id = ?");
+    }
+    $ns->execute([$learnerId]);
+    $name = $ns->fetchColumn();
+    $progress['analyst_name'] = $name !== false && $name !== null && $name !== ''
+        ? $name
+        : 'Deleted account';
+    $progress['learner_name'] = $progress['analyst_name'];
+    $progress['learner_type'] = $learnerType;
 
     // Get all CMI data
     $cmiStmt = $conn->prepare("SELECT element, value, updated_datetime FROM lms_cmi_data WHERE progress_id = ? ORDER BY element");

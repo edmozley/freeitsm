@@ -37,7 +37,7 @@ if (!$course) {
 // (or admin) may open any, which is how Preview works. Enforced here so it can't
 // be bypassed by typing the player URL for an unassigned course.
 require_once '../includes/lms_access.php';
-if (!lmsCanAccessCourse($conn, (int)$_SESSION['analyst_id'], $courseId)) {
+if (!lmsCanAccessCourse($conn, LmsLearner::analyst((int)$_SESSION['analyst_id']), $courseId)) {
     header('Location: my-courses.php?denied=1');
     exit;
 }

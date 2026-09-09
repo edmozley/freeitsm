@@ -22,29 +22,21 @@ require_once '../../includes/functions.php';
 require_once '../../includes/lms_access.php';
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['analyst_id'])) {
+// The learner is an analyst or a portal user; the module gate is an analyst-app
+// concept, so it only applies to one of them. What entitles a portal learner is
+// requireLmsCourseAccessJson() below, which every branch of this file calls.
+$learner = LmsLearner::fromSession();
+if (!$learner) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
-requireModuleAccessJson('lms');
-
-$conn      = connectToDatabase();
-$analystId = (int)$_SESSION['analyst_id'];
-
-/** Find the learner's progress row for a course, creating it on first sight. */
-function lmsProgressRow(PDO $conn, int $analystId, int $courseId): array {
-    $stmt = $conn->prepare("SELECT * FROM lms_progress WHERE analyst_id = ? AND course_id = ?");
-    $stmt->execute([$analystId, $courseId]);
-    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-    if ($row) return $row;
-
-    $ins = $conn->prepare("INSERT INTO lms_progress (analyst_id, course_id, status, first_access, last_access, attempt_count, created_datetime, updated_datetime)
-                           VALUES (?, ?, 'incomplete', UTC_TIMESTAMP(), UTC_TIMESTAMP(), 0, UTC_TIMESTAMP(), UTC_TIMESTAMP())");
-    $ins->execute([$analystId, $courseId]);
-
-    $stmt->execute([$analystId, $courseId]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
+if ($learner->isAnalyst()) {
+    requireModuleAccessJson('lms');
 }
+
+$conn = connectToDatabase();
+// Find-or-create now lives in includes/lms_access.php — this file and
+// scorm_data.php each had their own copy, keyed on analyst_id.
 
 /** HH:MM:SS — the format lms.js formatTime() understands. */
 function lmsFormatTime(int $seconds): string {
@@ -73,7 +65,7 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         if (!$courseId) throw new Exception('Missing course_id');
         requireLmsCourseAccessJson($conn, $courseId);   // assigned-to-me, or a manager
-        $row = lmsProgressRow($conn, $analystId, $courseId);
+        $row = lmsProgressRowFor($conn, $learner, $courseId);
 
         $conn->prepare("UPDATE lms_progress SET attempt_count = attempt_count + 1, last_access = UTC_TIMESTAMP(), updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
              ->execute([$row['id']]);
@@ -93,7 +85,7 @@ try {
     if (!$course)                             throw new Exception('Course not found');
     if ($course['content_type'] !== 'native') throw new Exception('Not an authored course');
 
-    $row        = lmsProgressRow($conn, $analystId, $courseId);
+    $row        = lmsProgressRowFor($conn, $learner, $courseId);
     $progressId = (int)$row['id'];
 
     // Accumulate time across sessions rather than overwriting it.

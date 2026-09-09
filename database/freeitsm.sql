@@ -638,6 +638,10 @@ CREATE TABLE IF NOT EXISTS `user_password_reset_tokens` (
     `used`       TINYINT(1) NOT NULL DEFAULT 0,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (`id`),
+    -- NOT a performance index: it is what stops the same token existing twice.
+    -- (This note used to sit in includes/db_verify_indexes.php, which is
+    -- GENERATED from this file — so it was deleted the first time anybody
+    -- regenerated it. Index rationale belongs here, where it survives.)
     UNIQUE KEY `uq_uprt_token` (`token_hash`),
     KEY `ix_uprt_user` (`user_id`),
     KEY `ix_uprt_expires` (`expires_at`)
@@ -5029,21 +5033,62 @@ CREATE TABLE IF NOT EXISTS `lms_learning_group_members` (
     UNIQUE KEY `uq_lgm_group_analyst` (`group_id`, `analyst_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- WHO a course is given to. Three kinds of target, and `group_id` is read
+-- against whichever `target_type` names:
+--
+--   'learning_group'  lms_learning_groups   — ANALYSTS ONLY. The original, and
+--                     still the default, so every row that existed before this
+--                     column did keeps behaving exactly as it did.
+--   'user_group'      knowledge_user_groups — the product's general grouping of
+--                     people, holding analysts AND portal users together, managed
+--                     on tickets/users.php. This is what lets training reach the
+--                     self-service portal at all.
+--   'all_users'       EVERY active portal user. `group_id` is 0 and means nothing.
+--
+-- 🔑 A DELIBERATELY NON-POLYMORPHIC-LOOKING COLUMN NAME. `group_id` would more
+-- honestly be `target_id` now, but renaming it would rewrite every existing row's
+-- meaning in a migration for a cosmetic gain — the same trade already refused for
+-- knowledge_user_groups. The target_type beside it is what disambiguates.
 CREATE TABLE IF NOT EXISTS `lms_course_assignments` (
     `id`                    INT NOT NULL AUTO_INCREMENT,
     `course_id`             INT NOT NULL,
+    `target_type`           VARCHAR(20) NOT NULL DEFAULT 'learning_group',
     `group_id`              INT NOT NULL,
     `deadline`              DATETIME NULL,
     `assigned_by_id`        INT NULL,
     `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_lca_course_group` (`course_id`, `group_id`)
+    -- ⚠️ target_type is IN the key. Without it, learning group 2 and user group 2
+    -- collide on the same course and the second assignment is refused as a
+    -- duplicate of something it has nothing to do with.
+    UNIQUE KEY `uq_lca_course_target` (`course_id`, `target_type`, `group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- One learner's standing on one course.
+--
+-- 🔑 THE LEARNER IS (learner_type, learner_id), NOT analyst_id. A course can now
+-- be given to a self-service portal user, who is a `users` row and has no analyst
+-- record at all — so the identity here has to say WHICH TABLE it means.
+--   learner_type 'analyst' -> analysts.id
+--   learner_type 'user'    -> users.id   (a self-service portal account)
+--
+-- ⚠️ `analyst_id` IS LEGACY AND IS NOT THE KEY ANY MORE. It is kept, in step with
+-- learner_id for analyst rows and NULL for portal learners, only so that this
+-- change is not a column DROP (which would make the release a MAJOR one — see
+-- RELEASING.md). NOTHING SHOULD READ IT. It goes at the next major version.
+--
+-- 🔴 THE UNIQUE KEY HAD TO MOVE WITH IT. `analyst_id` going nullable is not
+-- enough on its own: MySQL permits any number of NULLs in a unique index, so
+-- under the old (analyst_id, course_id) key EVERY portal learner would be
+-- unconstrained — the same person could accumulate a fresh progress row per
+-- visit, each with its own bookmark, and their place in a course would appear to
+-- reset at random.
 CREATE TABLE IF NOT EXISTS `lms_progress` (
     `id`                    INT NOT NULL AUTO_INCREMENT,
-    `analyst_id`            INT NOT NULL,
+    `analyst_id`            INT NULL,
+    `learner_type`          VARCHAR(10) NOT NULL DEFAULT 'analyst',
+    `learner_id`            INT NOT NULL DEFAULT 0,
     `course_id`             INT NOT NULL,
     `status`                VARCHAR(20) NOT NULL DEFAULT 'not_started',
     `score_raw`             DECIMAL(10,2) NULL,
@@ -5060,7 +5105,7 @@ CREATE TABLE IF NOT EXISTS `lms_progress` (
     `updated_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uq_lp_analyst_course` (`analyst_id`, `course_id`)
+    UNIQUE KEY `uq_lp_learner_course` (`learner_type`, `learner_id`, `course_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `lms_cmi_data` (

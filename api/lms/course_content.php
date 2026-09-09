@@ -15,11 +15,17 @@ require_once '../../includes/functions.php';
 require_once '../../includes/lms_access.php';
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['analyst_id'])) {
+// Either front door. The module gate is analyst-only; what entitles a portal
+// learner is requireLmsCourseAccessJson() below, which is the same rule the
+// player enforces.
+$learner = LmsLearner::fromSession();
+if (!$learner) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
-requireModuleAccessJson('lms');
+if ($learner->isAnalyst()) {
+    requireModuleAccessJson('lms');
+}
 
 $conn = connectToDatabase();
 
@@ -75,8 +81,8 @@ try {
     }
 
     // Where the learner got to last time, so the player can offer to resume.
-    $pr = $conn->prepare("SELECT status, bookmark, score_raw, attempt_count FROM lms_progress WHERE analyst_id = ? AND course_id = ?");
-    $pr->execute([$_SESSION['analyst_id'], $courseId]);
+    $pr = $conn->prepare("SELECT status, bookmark, score_raw, attempt_count FROM lms_progress WHERE learner_type = ? AND learner_id = ? AND course_id = ?");
+    $pr->execute([$learner->type(), $learner->id(), $courseId]);
     $progress = $pr->fetch(PDO::FETCH_ASSOC) ?: null;
 
     echo json_encode(['success' => true, 'course' => $course, 'lessons' => $lessons, 'progress' => $progress]);

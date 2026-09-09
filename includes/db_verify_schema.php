@@ -2487,6 +2487,11 @@ return [
     'lms_course_assignments' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         'course_id'             => 'INT NOT NULL',
+        // Which kind of thing group_id names: 'learning_group' (analyst groups,
+        // the original and the default so existing rows are unchanged),
+        // 'user_group' (the shared people groups), or 'all_users' (every active
+        // portal user, group_id ignored).
+        'target_type'           => "VARCHAR(20) NOT NULL DEFAULT 'learning_group'",
         'group_id'              => 'INT NOT NULL',
         'deadline'              => 'DATETIME NULL',
         'assigned_by_id'        => 'INT NULL',
@@ -2496,7 +2501,13 @@ return [
 
     'lms_progress' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
-        'analyst_id'            => 'INT NOT NULL',
+        // ⚠️ LEGACY. The learner is (learner_type, learner_id) — see freeitsm.sql.
+        // Kept in step for analyst rows, NULL for portal learners, dropped at the
+        // next MAJOR. The NOT NULL -> NULL relaxation is done by the repair pass
+        // in db_verify.php, since this array only ADDS missing columns.
+        'analyst_id'            => 'INT NULL',
+        'learner_type'          => "VARCHAR(10) NOT NULL DEFAULT 'analyst'",
+        'learner_id'            => 'INT NOT NULL DEFAULT 0',
         'course_id'             => 'INT NOT NULL',
         'status'                => "VARCHAR(20) NOT NULL DEFAULT 'not_started'",
         'score_raw'             => 'DECIMAL(10,2) NULL',

@@ -11,13 +11,18 @@ require_once '../../includes/functions.php';
 require_once '../../includes/lms_access.php';
 header('Content-Type: application/json');
 
-if (!isset($_SESSION['analyst_id'])) {
+// Either front door — a SCORM package plays the same for a portal learner as for
+// an analyst. The module gate is an analyst-app concept and applies only to them;
+// requireLmsCourseAccessJson() below is what entitles everybody.
+$learner = LmsLearner::fromSession();
+if (!$learner) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
 }
-requireModuleAccessJson('lms');
+if ($learner->isAnalyst()) {
+    requireModuleAccessJson('lms');
+}
 
-$analystId = $_SESSION['analyst_id'];
 $conn = connectToDatabase();
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
@@ -29,17 +34,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // A learner may only run a course assigned to them; managers may run any.
     requireLmsCourseAccessJson($conn, $courseId);
 
-    // Get or create progress record
-    $stmt = $conn->prepare("SELECT id, status, bookmark, suspend_data, total_time, attempt_count FROM lms_progress WHERE analyst_id = ? AND course_id = ?");
-    $stmt->execute([$analystId, $courseId]);
-    $progress = $stmt->fetch(PDO::FETCH_ASSOC);
+    // Get or create progress record. The find-or-create is shared with the
+    // native player (includes/lms_access.php) rather than written twice.
+    $existed  = true;
+    $progress = $conn->prepare("SELECT id, status, bookmark, suspend_data, total_time, attempt_count
+                                  FROM lms_progress WHERE learner_type = ? AND learner_id = ? AND course_id = ?");
+    $progress->execute([$learner->type(), $learner->id(), $courseId]);
+    $progress = $progress->fetch(PDO::FETCH_ASSOC);
 
     if (!$progress) {
-        // First access — create progress record
-        $conn->prepare("INSERT INTO lms_progress (analyst_id, course_id, status, first_access, last_access, attempt_count) VALUES (?, ?, 'incomplete', UTC_TIMESTAMP(), UTC_TIMESTAMP(), 1)")
-            ->execute([$analystId, $courseId]);
-        $progressId = (int)$conn->lastInsertId();
-        echo json_encode(['success' => true, 'data' => [], 'progress_id' => $progressId]);
+        $existed  = false;
+        $created  = lmsProgressRowFor($conn, $learner, $courseId);
+        $progress = ['id' => (int)($created['id'] ?? 0), 'status' => $created['status'] ?? 'incomplete'];
+    }
+
+    if (!$existed) {
+        // First access: no CMI data to replay, but the attempt still counts —
+        // the shared helper inserts with attempt_count 0, and the increment
+        // below is skipped by this early return, so do it here.
+        $conn->prepare("UPDATE lms_progress SET attempt_count = attempt_count + 1, last_access = UTC_TIMESTAMP(), updated_datetime = UTC_TIMESTAMP() WHERE id = ?")
+             ->execute([$progress['id']]);
+        echo json_encode(['success' => true, 'data' => [], 'progress_id' => (int)$progress['id']]);
         exit;
     }
 
@@ -77,8 +92,8 @@ requireLmsCourseAccessJson($conn, $courseId);
 
 try {
     // Get progress record
-    $stmt = $conn->prepare("SELECT id FROM lms_progress WHERE analyst_id = ? AND course_id = ?");
-    $stmt->execute([$analystId, $courseId]);
+    $stmt = $conn->prepare("SELECT id FROM lms_progress WHERE learner_type = ? AND learner_id = ? AND course_id = ?");
+    $stmt->execute([$learner->type(), $learner->id(), $courseId]);
     $progress = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$progress) {

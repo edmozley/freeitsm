@@ -3141,12 +3141,17 @@ try {
         // every cron run, forever. It is not an optimisation — it is the feature.
         ['workflow_scheduled_emissions', 'uq_wse_once', '(`trigger_event`, `entity_key`, `fingerprint`)'],
         ['lms_cmi_data', 'uq_lcd_progress_element', '(`progress_id`, `element`)'],
-        ['lms_progress', 'uq_lp_analyst_course', '(`analyst_id`, `course_id`)'],
+        // ⚠️ lms_progress / lms_course_assignments are DELIBERATELY ABSENT from
+        // this list now. Their unique keys moved when a learner stopped having to
+        // be an analyst — (learner_type, learner_id, course_id) and
+        // (course_id, target_type, group_id) — and both new keys are in the
+        // generated backfill further down. Re-adding the old ones here would put
+        // back the two keys the repair block below exists to remove, and on a run
+        // where this loop happened to come after it, permanently.
         ['rbac_role_capabilities', 'uq_rrc_role_capability', '(`role_id`, `capability_key`)'],
         ['rbac_analyst_roles', 'uq_rar_analyst_role', '(`analyst_id`, `role_id`)'],
         ['rbac_team_roles', 'uq_rtr_team_role', '(`team_id`, `role_id`)'],
         ['lms_learning_group_members', 'uq_lgm_group_analyst', '(`group_id`, `analyst_id`)'],
-        ['lms_course_assignments', 'uq_lca_course_group', '(`course_id`, `group_id`)'],
         ['intune_devices', 'uq_intune_devices_intune_id', '(`intune_id`)'],
         ['rfp_departments', 'uq_rfp_departments_name', '(`name`)'],
         ['rfp_consolidated_sources', 'uq_rfp_consolidated_sources', '(`consolidated_id`, `extracted_id`)'],
@@ -3272,6 +3277,55 @@ try {
         }
     } catch (Exception $e) {
         // Non-fatal — fall through with verification result
+    }
+
+    // ---- LMS: a learner may now be a portal user, not only an analyst -------
+    //
+    // Courses can be assigned to the shared people groups (and to every portal
+    // user at once), so lms_progress is keyed on (learner_type, learner_id)
+    // rather than analyst_id. See the comments on both tables in freeitsm.sql.
+    //
+    // 🔴 THIS BLOCK MUST STAY ABOVE THE INDEX BACKFILL BELOW. That pass adds
+    // uq_lp_learner_course (learner_type, learner_id, course_id). On a grown
+    // install every existing row is an analyst's and its learner_id is still the
+    // column default of 0 — so they ALL collide on ('analyst', 0, course_id) and
+    // the unique key cannot be created until the backfill here has run. Move this
+    // below and the key is silently reported as un-addable on every install that
+    // has ever recorded a course. Ordering, not tidiness.
+    if ($tableExists('lms_progress') && $colExists('lms_progress', 'learner_id')) {
+        try {
+            $conn->exec("UPDATE lms_progress
+                            SET learner_id = analyst_id, learner_type = 'analyst'
+                          WHERE learner_id = 0 AND analyst_id IS NOT NULL");
+        } catch (Exception $e) { /* reported by the index pass if it mattered */ }
+
+        // analyst_id is legacy from here on and has to accept NULL, because a
+        // portal learner has no analyst record to point at. Probe-then-MODIFY,
+        // the same shape as the five precedents earlier in this file; relaxing
+        // NOT NULL cannot invalidate an existing row.
+        try {
+            $col = $conn->query("SHOW COLUMNS FROM `lms_progress` LIKE 'analyst_id'")->fetch(PDO::FETCH_ASSOC);
+            if ($col && strtoupper((string)($col['Null'] ?? '')) === 'NO') {
+                $conn->exec("ALTER TABLE `lms_progress` MODIFY `analyst_id` INT NULL");
+            }
+        } catch (Exception $e) { /* non-fatal */ }
+
+        // The old key has to go, not just be superseded: with analyst_id nullable
+        // it constrains nothing for portal learners (MySQL allows any number of
+        // NULLs in a unique index) while still looking like it does.
+        if ($idxExists('lms_progress', 'uq_lp_analyst_course')) {
+            try { $conn->exec("ALTER TABLE lms_progress DROP INDEX uq_lp_analyst_course"); } catch (Exception $e) {}
+        }
+    }
+
+    if ($tableExists('lms_course_assignments') && $colExists('lms_course_assignments', 'target_type')) {
+        // 🔴 (course_id, group_id) cannot tell an analyst learning group from a
+        // people group. Left in place, assigning a course to people-group 2 when
+        // learning-group 2 already has it is refused as a duplicate of something
+        // unrelated — and the message would name the wrong group entirely.
+        if ($idxExists('lms_course_assignments', 'uq_lca_course_group')) {
+            try { $conn->exec("ALTER TABLE lms_course_assignments DROP INDEX uq_lca_course_group"); } catch (Exception $e) {}
+        }
     }
 
     // ---- Comprehensive named-index backfill --------------------------------
