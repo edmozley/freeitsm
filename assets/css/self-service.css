@@ -128,6 +128,13 @@ body.portal-app .portal-layout { padding: 0; max-width: none; margin: 0; }
     grid-template-columns: 1fr 350px;
     gap: 24px;
     align-items: start;
+    /* ⚠️ `gap` spaces the columns from EACH OTHER and does nothing below the
+       grid, so Popular articles sat flush against the bottom of the System
+       Status panel with the two borders touching. 22px is this page's rhythm for
+       stacked blocks — the summary cards, Your requests and the training panel
+       all use it — rather than the 24px gap beside, which is a different
+       measurement doing a different job. Spotted by Ed. */
+    margin-bottom: 22px;
 }
 
 .portal-section {
