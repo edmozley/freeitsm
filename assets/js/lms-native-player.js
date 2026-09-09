@@ -238,13 +238,19 @@ const LMSPlayer = (() => {
             html += `</section>`;
         }
 
-        // Where "back" goes once they have finished. './' is the LMS console for
-        // an analyst; the portal has no console and must return to its own
-        // Training page, so the host page names it. Defaulted, not required, so
-        // the analyst player is unchanged by this.
+        // Where finishing takes you. './' is the LMS console for an analyst; the
+        // portal has no console and names its own. Defaulted, not required.
+        //
+        // ⚠️ `.lms-result-actions`, NOT `.lms-native-nav`. That is the player's
+        // footer strip — full width, top border, space-between, built for Prev at
+        // one end and Next at the other — so a single button in it sat hard left
+        // under a grey band spanning the window, reading as a separate screen
+        // element rather than the end of the course. Reported by Ed.
         const backTo = window.LMS_BACK_URL || './';
-        html += `<div class="lms-native-nav"><a href="${esc(backTo)}" class="btn btn-primary">${esc(window.t('lms.player.back'))}</a>
-                 ${failed ? `<button class="btn btn-secondary" onclick="location.reload()">${esc(window.t('lms.player.retry'))}</button>` : ''}</div>`;
+        html += `<div class="lms-result-actions">
+                    <a href="${esc(backTo)}" class="btn btn-primary">${esc(window.t('lms.player.finish_course'))}</a>
+                    ${failed ? `<button class="btn btn-secondary" onclick="location.reload()">${esc(window.t('lms.player.retry'))}</button>` : ''}
+                 </div>`;
 
         const stage = document.getElementById('stage');
         stage.innerHTML = html;

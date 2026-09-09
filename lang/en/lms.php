@@ -327,7 +327,13 @@ return [
         'step'             => '{current} of {total}',
         'prev'             => 'Back',
         'next'             => 'Next',
+        // The last lesson's Next button: this SUBMITS the course for marking.
         'finish'           => 'Finish',
+        // ⚠️ A DIFFERENT BUTTON from the one above, on the results screen, which
+        // LEAVES the course. Separate key rather than reusing 'finish': the two
+        // read the same but do opposite things, and a translator seeing one
+        // string cannot know it has to work for both.
+        'finish_course'    => 'Finish',
         'check'            => 'Check what you have learned',
         'pick_several'     => 'Choose all that apply.',
         'unanswered_title' => 'Unanswered questions',

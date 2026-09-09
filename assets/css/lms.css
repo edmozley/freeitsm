@@ -800,3 +800,19 @@ body:has(> .lms-container) {
 
 .lms-person-result:hover { background: var(--surface-2, #f5f5f5); }
 .lms-person-result small { display: block; color: var(--text-dim, #888); }
+
+/* ---- The finish action on the results screen --------------------------------
+   BELOW the result, centred, and not a bar.
+
+   ⚠️ This used to reuse `.lms-native-nav` — the player's footer strip, which is
+   full width with a top border and `justify-content: space-between` because it
+   was built to hold Prev at one end and Next at the other. One button in it sat
+   hard left beneath a grey band spanning the window, reading as a separate and
+   unrelated screen element rather than the end of the course. Reported by Ed. */
+.lms-result-actions {
+    max-width: 760px;
+    margin: 20px auto 0;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+}

@@ -71,7 +71,7 @@ $translationNamespaces = ['common', 'self-service', 'lms'];
 
 // The player's own stylesheet, in the HEAD with the portal's own rather than
 // half way down the body.
-$pageHead = '<link rel="stylesheet" href="../assets/css/lms.css?v=9">';
+$pageHead = '<link rel="stylesheet" href="../assets/css/lms.css?v=10">';
 
 $pageStyles = <<<'CSS'
 .cr-bar {
@@ -180,8 +180,12 @@ require_once __DIR__ . '/includes/header.php';
 <script>
     window.API_BASE     = '../api/lms/';
     window.COURSE_ID    = <?php echo (int)$courseId; ?>;
-    // The portal has no LMS console to go back to.
-    window.LMS_BACK_URL = 'training.php';
+    /* Where FINISHING a course takes a portal learner. The dashboard rather than
+       the training list: the dashboard now shows whatever training is still
+       outstanding, so it answers "what next" in a way the list of everything
+       does not — and "Back to training" is already in the bar above for anybody
+       leaving part way through. Ed asked for this destination. */
+    window.LMS_BACK_URL = 'index.php';
     /* 🔴 WHICH IDENTITY IS TAKING THIS COURSE. The analyst app and the portal
        share one PHP session, so an administrator signed into both has two, and
        the server cannot tell from the session alone. Every call the players make
@@ -191,7 +195,7 @@ require_once __DIR__ . '/includes/header.php';
     window.LMS_AS = 'portal';
 </script>
 <?php if ($isNative): ?>
-<script src="../assets/js/lms-native-player.js?v=2"></script>
+<script src="../assets/js/lms-native-player.js?v=3"></script>
 <?php elseif ($launchUrl !== null): ?>
 <script>
 window.SCORM_CONFIG = {
