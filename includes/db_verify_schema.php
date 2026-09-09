@@ -2499,6 +2499,18 @@ return [
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
+    // The fire-once record for training reminders. See freeitsm.sql — the unique
+    // key on this table is what stops a nightly reminder becoming an hourly one.
+    'lms_reminders_sent' => [
+        'id'            => 'INT NOT NULL AUTO_INCREMENT',
+        'learner_type'  => 'VARCHAR(10) NOT NULL',
+        'learner_id'    => 'INT NOT NULL',
+        'course_id'     => 'INT NOT NULL',
+        'reminder_kind' => 'VARCHAR(10) NOT NULL',
+        'fingerprint'   => 'VARCHAR(100) NOT NULL',
+        'sent_datetime' => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+    ],
+
     'lms_progress' => [
         'id'                    => 'INT NOT NULL AUTO_INCREMENT',
         // ⚠️ LEGACY. The learner is (learner_type, learner_id) — see freeitsm.sql.

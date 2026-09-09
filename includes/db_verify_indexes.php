@@ -278,6 +278,8 @@ return [
     ['lms_learning_group_members', 'uq_lgm_group_analyst', 'unique', '(`group_id`,`analyst_id`)'],
     ['lms_course_assignments', 'uq_lca_course_target', 'unique', '(`course_id`,`target_type`,`group_id`)'],
     ['lms_progress', 'uq_lp_learner_course', 'unique', '(`learner_type`,`learner_id`,`course_id`)'],
+    ['lms_reminders_sent', 'uq_lrs_once', 'unique', '(`learner_type`,`learner_id`,`course_id`,`reminder_kind`,`fingerprint`)'],
+    ['lms_reminders_sent', 'idx_lrs_sent', 'key', '(`sent_datetime`)'],
     ['lms_cmi_data', 'uq_lcd_progress_element', 'unique', '(`progress_id`,`element`)'],
     ['process_steps', 'idx_ps_process', 'key', '(`process_id`)'],
     ['process_steps', 'idx_ps_lane', 'key', '(`lane_id`)'],

@@ -35,5 +35,20 @@ return [
             'label_key' => 'lms.settings.tab_ai',
             'grant'     => 'Manage courses, learning groups and assignments, and view everyone\'s progress',
         ],
+        [
+            // Training reminder emails.
+            //
+            // ⚠️ NO 'setting_keys' HERE, deliberately. That list exists for tabs
+            // saved through api/settings/save_system_settings.php, the generic
+            // key/value writer — and declaring a key there without teaching
+            // includes/settings_keys.php who owns it makes the tab's save fail.
+            // These settings have their own guarded endpoint
+            // (api/lms/reminder_settings.php, behind this same capability), which
+            // is how the AI panel on this page works too.
+            'id'        => 'reminders',
+            'cap'       => Cap::LMS_MANAGE,
+            'label_key' => 'lms.settings.tab_reminders',
+            'grant'     => 'Manage courses, learning groups and assignments, and view everyone\'s progress',
+        ],
     ],
 ];

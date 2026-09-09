@@ -28,14 +28,19 @@ function ssGetSendingMailbox(PDO $conn): ?array {
  * mailbox is configured or the send fails (caller decides what to do — the
  * verification flow fails closed rather than pretend it sent).
  */
-function ssSendSystemEmail(PDO $conn, string $to, string $subject, string $htmlBody): bool {
+function ssSendSystemEmail(PDO $conn, string $to, string $subject, string $htmlBody, string $route = 'portal'): bool {
     require_once __DIR__ . '/email_log.php';
+    // $route defaults to what every existing caller meant, so none of them
+    // change. Training reminders pass 'training' — they are the one route that
+    // sends to many people at once, and mixing them into "Portal / system"
+    // alongside password resets makes the send log unable to answer the only
+    // question anybody brings to it about them.
 
     $mailbox = ssGetSendingMailbox($conn);
     if (!$mailbox) {
         // Worth a row of its own: "no mailbox could send this" is a configuration
         // problem, and it is invisible to the person who never got their email.
-        emailLogFailed($conn, null, 'portal', $to, $subject,
+        emailLogFailed($conn, null, $route, $to, $subject,
             'No active mailbox is able to send (none configured, or none authenticated)');
         return false;
     }
@@ -47,13 +52,13 @@ function ssSendSystemEmail(PDO $conn, string $to, string $subject, string $htmlB
         } elseif ($provider === 'google') {
             $tokenData = json_decode(preg_replace('/[\x00-\x1F\x7F]/', '', (string)$mailbox['token_data']), true);
             if (!$tokenData || !isset($tokenData['access_token'])) {
-                emailLogFailed($conn, $mailbox, 'portal', $to, $subject, 'Mailbox has no usable stored token');
+                emailLogFailed($conn, $mailbox, $route, $to, $subject, 'Mailbox has no usable stored token');
                 return false;
             }
             require_once __DIR__ . '/gmail.php';
             $accessToken = gmailGetValidAccessToken($conn, $mailbox, $tokenData);
             if (!$accessToken) {
-                emailLogFailed($conn, $mailbox, 'portal', $to, $subject, 'Could not obtain an access token for this mailbox');
+                emailLogFailed($conn, $mailbox, $route, $to, $subject, 'Could not obtain an access token for this mailbox');
                 return false;
             }
             gmailSendEmail($accessToken, $to, $subject, $htmlBody, $mailbox['target_mailbox'] ?? '');
@@ -62,7 +67,7 @@ function ssSendSystemEmail(PDO $conn, string $to, string $subject, string $htmlB
             // both the token source and the /me vs /users/<addr> endpoint from auth_mode.
             $graph = templateGraphContext($conn, $mailbox);
             if (!$graph) {
-                emailLogFailed($conn, $mailbox, 'portal', $to, $subject,
+                emailLogFailed($conn, $mailbox, $route, $to, $subject,
                     'Could not obtain an access token for this mailbox '
                     . '(check the mailbox is authenticated, and that its authentication mode matches its stored token)');
                 return false;
@@ -76,11 +81,11 @@ function ssSendSystemEmail(PDO $conn, string $to, string $subject, string $htmlB
                 'saveToSentItems' => true,
             ], $graph['base']);
         }
-        emailLogSent($conn, $mailbox, 'portal', $to, $subject);
+        emailLogSent($conn, $mailbox, $route, $to, $subject);
         return true;
     } catch (Exception $e) {
         error_log('ssSendSystemEmail failed: ' . $e->getMessage());
-        emailLogFailed($conn, $mailbox, 'portal', $to, $subject, $e->getMessage());
+        emailLogFailed($conn, $mailbox, $route, $to, $subject, $e->getMessage());
         return false;
     }
 }

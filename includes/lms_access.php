@@ -476,3 +476,57 @@ function lmsAssignedLearnersSql(PDO $conn): string
 
     return '(' . implode("\n UNION \n", $selects) . ')';
 }
+
+/**
+ * The kinds of thing a course can be given to, and what `group_id` means in each:
+ *   learning_group  lms_learning_groups.id     (analysts)
+ *   user_group      knowledge_user_groups.id   (analysts and portal users)
+ *   all_users       nothing — group_id is 0
+ *   analyst         analysts.id                — ONE named analyst
+ *   user            users.id                   — ONE named portal user
+ *
+ * Shared by the create and the edit endpoints. It lived in assignments.php until
+ * assignment.php needed the same list, which is the moment a copy becomes a
+ * future disagreement about what a valid target is.
+ */
+const LMS_TARGET_TYPES = ['learning_group', 'user_group', 'all_users', 'analyst', 'user'];
+
+/**
+ * Is this target real? Returns a human-readable problem, or null if it is fine.
+ *
+ * 🔑 Checked on the way IN, on both create and edit. Without it a typo'd id is
+ * accepted happily and the assignment reaches nobody at all — which looks
+ * exactly like the feature not working, and is the worst kind of silence:
+ * the row is there on the screen, and nothing ever happens because of it.
+ */
+function lmsAssignmentTargetProblem(PDO $conn, string $targetType, int $groupId): ?string
+{
+    if ($targetType === 'all_users') return null;
+
+    if ($targetType === 'learning_group') {
+        $st = $conn->prepare("SELECT 1 FROM lms_learning_groups WHERE id = ? AND is_active = 1");
+        $st->execute([$groupId]);
+        return $st->fetchColumn() ? null : 'That learning group was not found';
+    }
+
+    if ($targetType === 'user_group') {
+        if (!lmsUserGroupsAvailable($conn)) return 'People groups are not available on this install yet';
+        $st = $conn->prepare("SELECT 1 FROM knowledge_user_groups WHERE id = ? AND is_active = 1");
+        $st->execute([$groupId]);
+        return $st->fetchColumn() ? null : 'That group was not found';
+    }
+
+    if ($targetType === 'analyst') {
+        $st = $conn->prepare("SELECT 1 FROM analysts WHERE id = ? AND is_active = 1");
+        $st->execute([$groupId]);
+        return $st->fetchColumn() ? null : 'That person was not found';
+    }
+
+    if ($targetType === 'user') {
+        $st = $conn->prepare("SELECT 1 FROM users WHERE id = ? AND is_active = 1");
+        $st->execute([$groupId]);
+        return $st->fetchColumn() ? null : 'That person was not found';
+    }
+
+    return 'Unknown target';
+}

@@ -348,13 +348,21 @@ const LMS = (() => {
                 <td>${deadline}</td>
                 <td>${esc(a.assigned_by_name || '')}</td>
                 <td class="lms-actions">
+                    <button class="table-action-btn" onclick="LMS.openAssignModal(${a.id})" title="${esc(window.t('lms.assignments.edit'))}">${ICON_EDIT}</button>
                     <button class="table-action-btn delete" onclick="LMS.deleteAssignment(${a.id})" title="${esc(window.t('lms.assignments.delete'))}">${ICON_DELETE}</button>
                 </td>
             </tr>`;
         }).join('');
     }
 
-    async function openAssignModal() {
+    /**
+     * Create, or edit an existing assignment when given its id.
+     *
+     * 🔑 THE SAME DIALOGUE FOR BOTH. Editing used to mean deleting the row and
+     * starting again — which threw away the deadline you had already typed, and
+     * left a gap during which the course reached nobody.
+     */
+    async function openAssignModal(assignmentId) {
         // Load fresh data for dropdowns
         if (!courses.length) await loadCourses();
 
@@ -398,7 +406,39 @@ const LMS = (() => {
         document.getElementById('assignPersonSearch').value = '';
         document.getElementById('assignPersonChosen').style.display = 'none';
         document.getElementById('assignPersonResults').classList.remove('open');
-        document.getElementById('assignDeadline').value = '';
+
+        editingAssignmentId = assignmentId || null;
+        const a = editingAssignmentId ? assignments.find(x => x.id == editingAssignmentId) : null;
+
+        document.getElementById('assignModalTitle').textContent =
+            window.t(a ? 'lms.assign_modal.edit_title' : 'lms.assign_modal.title');
+
+        if (a) {
+            document.getElementById('assignCourse').value = a.course_id;
+
+            if (a.target_type === 'analyst' || a.target_type === 'user') {
+                // An individual is not in the dropdown — it holds groups. Select
+                // the "one person" row and pre-fill the search with who it is.
+                groupSelect.value = 'person';
+                chosenPerson = { type: a.target_type, id: +a.group_id, name: a.group_name || '' };
+                document.getElementById('assignPersonGroup').style.display = '';
+                document.getElementById('assignPersonSearch').value = chosenPerson.name;
+                const chosen = document.getElementById('assignPersonChosen');
+                chosen.textContent = window.t('lms.assign_modal.person_chosen', { name: chosenPerson.name });
+                chosen.style.display = '';
+            } else {
+                groupSelect.value = a.target_type + ':' + a.group_id;
+            }
+
+            // The deadline is a DATE, and <input type="date"> wants exactly
+            // YYYY-MM-DD — the column carries a time as well, so trim it rather
+            // than handing the browser something it silently rejects and blanks.
+            document.getElementById('assignDeadline').value =
+                a.deadline ? String(a.deadline).slice(0, 10) : '';
+        } else {
+            document.getElementById('assignDeadline').value = '';
+        }
+
         openModal('assignModal');
     }
 
@@ -407,6 +447,8 @@ const LMS = (() => {
     // The person picked from the search, as {type, id, name}. Null until then.
     let chosenPerson = null;
     let personSearchTimer = null;
+    // Which assignment the dialogue is editing, or null when creating one.
+    let editingAssignmentId = null;
 
     function assignTargetChanged() {
         const isPerson = document.getElementById('assignGroup').value === 'person';
@@ -479,16 +521,22 @@ const LMS = (() => {
             deadline: document.getElementById('assignDeadline').value || null
         };
 
+        // Editing goes to the single-assignment endpoint as a PUT (tunnelled in
+        // the body, as the group and course endpoints on this page already do).
+        const editing = editingAssignmentId !== null;
+        if (editing) { payload.id = editingAssignmentId; payload._method = 'PUT'; }
+
         try {
-            const r = await fetch(API_BASE + 'assignments.php', {
+            const r = await fetch(API_BASE + (editing ? 'assignment.php' : 'assignments.php'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             });
             const d = await r.json();
             if (d.success) {
-                showToast(window.t('lms.toast.assigned'), 'success');
+                showToast(window.t(editing ? 'lms.toast.assignment_saved' : 'lms.toast.assigned'), 'success');
                 closeModal('assignModal');
+                editingAssignmentId = null;
                 loadAssignments();
             } else {
                 showToast(d.error, 'error');

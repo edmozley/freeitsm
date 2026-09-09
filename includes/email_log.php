@@ -38,6 +38,12 @@ const EMAIL_LOG_ROUTES = [
     'password_reset' => 'Password reset',
     'share_kb'       => 'Knowledge article shared',
     'share_change'   => 'Change record shared',
+    // Training reminders. Its own route rather than sharing 'Portal / system':
+    // reminders are the one route that sends to MANY people at once, so the
+    // question "did the training chase go out, and to whom" is exactly the one
+    // somebody brings to this log — and it is unanswerable if the rows are mixed
+    // in with password resets and account verifications.
+    'training'       => 'Training reminder',
 ];
 
 /**

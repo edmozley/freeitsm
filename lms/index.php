@@ -257,7 +257,7 @@ $translationNamespaces = ['common', 'lms'];
     <!-- Assign Course Modal -->
     <div class="modal" id="assignModal">
         <div class="modal-content" style="max-width: 500px;">
-            <div class="modal-header"><?php echo htmlspecialchars(t('lms.assign_modal.title')); ?></div>
+            <div class="modal-header" id="assignModalTitle"><?php echo htmlspecialchars(t('lms.assign_modal.title')); ?></div>
             <form id="assignForm" style="padding: 20px 24px;">
                 <div class="form-group">
                     <label><?php echo htmlspecialchars(t('lms.assign_modal.field_course')); ?></label>
@@ -305,7 +305,7 @@ $translationNamespaces = ['common', 'lms'];
 
     <!-- Toast -->
     <script>window.API_BASE = '../api/lms/';</script>
-    <script src="../assets/js/lms.js?v=8"></script>
+    <script src="../assets/js/lms.js?v=9"></script>
     <script src="../assets/js/mobile.js?v=57"></script>
 </body>
 </html>

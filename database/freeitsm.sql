@@ -5108,6 +5108,34 @@ CREATE TABLE IF NOT EXISTS `lms_progress` (
     UNIQUE KEY `uq_lp_learner_course` (`learner_type`, `learner_id`, `course_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ONE ROW PER REMINDER ACTUALLY SENT. This is the fire-once guarantee, not a log.
+--
+-- 🔴 THE UNIQUE KEY IS THE FEATURE. Reminders are found by asking "whose deadline
+-- is N days away", which is true for the whole of that day and for every run
+-- inside it. The send is an INSERT IGNORE against this key, so the second run
+-- writes nothing and sends nothing. Without the key the INSERT IGNORE is
+-- meaningless and a nightly reminder becomes an hourly one — the same shape as
+-- workflow_scheduled_emissions, and the same reason.
+--
+-- `fingerprint` is what makes a CHANGED deadline a new reminder: it carries the
+-- deadline date the reminder was about, so moving a course from the 9th to the
+-- 20th legitimately reminds again, while re-running today does not. Mirrors the
+-- SLA notification fingerprint.
+--   kind 'before'  fingerprint '<due date>:<days before>'
+--   kind 'overdue' fingerprint '<due date>:<n>'  (the nth chase)
+CREATE TABLE IF NOT EXISTS `lms_reminders_sent` (
+    `id`             INT NOT NULL AUTO_INCREMENT,
+    `learner_type`   VARCHAR(10) NOT NULL,
+    `learner_id`     INT NOT NULL,
+    `course_id`      INT NOT NULL,
+    `reminder_kind`  VARCHAR(10) NOT NULL,
+    `fingerprint`    VARCHAR(100) NOT NULL,
+    `sent_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uq_lrs_once` (`learner_type`, `learner_id`, `course_id`, `reminder_kind`, `fingerprint`),
+    KEY `idx_lrs_sent` (`sent_datetime`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `lms_cmi_data` (
     `id`                    INT NOT NULL AUTO_INCREMENT,
     `progress_id`           INT NOT NULL,

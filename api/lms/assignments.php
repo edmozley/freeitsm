@@ -22,17 +22,20 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $conn = connectToDatabase();
 
-/**
- * The kinds of thing a course can be given to, and what `group_id` means in each:
- *   learning_group  lms_learning_groups.id     (analysts)
- *   user_group      knowledge_user_groups.id   (analysts and portal users)
- *   all_users       nothing — group_id is 0
- *   analyst         analysts.id                — ONE named analyst
- *   user            users.id                   — ONE named portal user
- */
-const LMS_TARGET_TYPES = ['learning_group', 'user_group', 'all_users', 'analyst', 'user'];
+// LMS_TARGET_TYPES and lmsAssignmentTargetProblem() live in
+// includes/lms_access.php — shared with assignment.php, which needs exactly the
+// same list and exactly the same validation.
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    /* The opportunistic reminder run, hooked here because this endpoint is what
+       the LMS console loads when a manager opens the Assignments tab — the most
+       plausible moment somebody who cares about training is using FreeITSM.
+       Throttled to once an hour inside, off unless reminders are switched on,
+       and wrapped so it can never be the reason this list fails to load.
+       See includes/lms_reminders.php for why an opportunistic path exists. */
+    require_once '../../includes/lms_reminders.php';
+    lmsRemindersRunOpportunistic($conn);
+
     // ⚠️ LEFT JOINs and a COALESCE, not the single inner JOIN this used to have.
     // The old query was `JOIN lms_learning_groups g ON ca.group_id = g.id`, which
     // for a people-group assignment matches nothing — so every course pushed to
@@ -105,30 +108,8 @@ if (!$courseId || ($targetType !== 'all_users' && !$groupId)) {
     exit;
 }
 
-// The target has to exist. Without this a typo'd id is accepted happily and the
-// assignment reaches nobody at all, which looks exactly like the feature not
-// working — the worst kind of silence.
-if ($targetType === 'learning_group') {
-    $st = $conn->prepare("SELECT 1 FROM lms_learning_groups WHERE id = ? AND is_active = 1");
-    $st->execute([$groupId]);
-    if (!$st->fetchColumn()) { echo json_encode(['success' => false, 'error' => 'That learning group was not found']); exit; }
-} elseif ($targetType === 'user_group') {
-    if (!lmsUserGroupsAvailable($conn)) {
-        echo json_encode(['success' => false, 'error' => 'People groups are not available on this install yet']);
-        exit;
-    }
-    $st = $conn->prepare("SELECT 1 FROM knowledge_user_groups WHERE id = ? AND is_active = 1");
-    $st->execute([$groupId]);
-    if (!$st->fetchColumn()) { echo json_encode(['success' => false, 'error' => 'That group was not found']); exit; }
-} elseif ($targetType === 'analyst') {
-    $st = $conn->prepare("SELECT 1 FROM analysts WHERE id = ? AND is_active = 1");
-    $st->execute([$groupId]);
-    if (!$st->fetchColumn()) { echo json_encode(['success' => false, 'error' => 'That person was not found']); exit; }
-} elseif ($targetType === 'user') {
-    $st = $conn->prepare("SELECT 1 FROM users WHERE id = ? AND is_active = 1");
-    $st->execute([$groupId]);
-    if (!$st->fetchColumn()) { echo json_encode(['success' => false, 'error' => 'That person was not found']); exit; }
-}
+$problem = lmsAssignmentTargetProblem($conn, $targetType, $groupId);
+if ($problem !== null) { echo json_encode(['success' => false, 'error' => $problem]); exit; }
 
 try {
     $stmt = $conn->prepare("INSERT INTO lms_course_assignments (course_id, target_type, group_id, deadline, assigned_by_id)
