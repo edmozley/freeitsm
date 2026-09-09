@@ -22,8 +22,15 @@ if (!isset($_SESSION['analyst_id'])) {
 
 $conn = connectToDatabase();
 
-/** The three target kinds, and which table (if any) each one's id points at. */
-const LMS_TARGET_TYPES = ['learning_group', 'user_group', 'all_users'];
+/**
+ * The kinds of thing a course can be given to, and what `group_id` means in each:
+ *   learning_group  lms_learning_groups.id     (analysts)
+ *   user_group      knowledge_user_groups.id   (analysts and portal users)
+ *   all_users       nothing — group_id is 0
+ *   analyst         analysts.id                — ONE named analyst
+ *   user            users.id                   — ONE named portal user
+ */
+const LMS_TARGET_TYPES = ['learning_group', 'user_group', 'all_users', 'analyst', 'user'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // ⚠️ LEFT JOINs and a COALESCE, not the single inner JOIN this used to have.
@@ -32,28 +39,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // the portal would have silently vanished from the manager's own list of
     // what he had assigned. An inner join to one of three possible tables is a
     // filter, however much it looks like a lookup.
+    $hasUg  = lmsUserGroupsAvailable($conn);
     $lg = "LEFT JOIN lms_learning_groups lg ON ca.target_type = 'learning_group' AND lg.id = ca.group_id AND lg.is_active = 1";
-    $ug = lmsUserGroupsAvailable($conn)
+    $ug = $hasUg
         ? "LEFT JOIN knowledge_user_groups ug ON ca.target_type = 'user_group' AND ug.id = ca.group_id AND ug.is_active = 1"
         : "";
-    $ugName = lmsUserGroupsAvailable($conn) ? 'ug.name' : 'NULL';
+    $ugName = $hasUg ? 'ug.name' : 'NULL';
+    // The two individual targets, resolved to a name the same way.
+    $ia = "LEFT JOIN analysts ia ON ca.target_type = 'analyst' AND ia.id = ca.group_id";
+    $iu = "LEFT JOIN users iu ON ca.target_type = 'user' AND iu.id = ca.group_id";
 
     $sql = "SELECT ca.*,
                    c.title AS course_title,
                    a.full_name AS assigned_by_name,
-                   COALESCE(lg.name, $ugName) AS group_name
+                   COALESCE(lg.name, $ugName, ia.full_name,
+                            NULLIF(iu.display_name, ''), iu.email, iu.username) AS group_name
               FROM lms_course_assignments ca
               JOIN lms_courses c ON ca.course_id = c.id
               $lg
               $ug
+              $ia
+              $iu
               LEFT JOIN analysts a ON ca.assigned_by_id = a.id
              WHERE c.is_active = 1
-               -- A group that has been deleted leaves its assignment behind.
-               -- Hidden rather than shown as a blank row, which is what the old
-               -- inner join did by accident and is the right answer here.
+               -- A group or a person that has been deleted leaves its assignment
+               -- behind. Hidden rather than shown as a blank row, which is what
+               -- the old inner join did by accident and is the right answer here.
                AND (ca.target_type = 'all_users'
                     OR lg.id IS NOT NULL
-                    " . (lmsUserGroupsAvailable($conn) ? "OR ug.id IS NOT NULL" : "") . ")
+                    OR ia.id IS NOT NULL
+                    OR iu.id IS NOT NULL
+                    " . ($hasUg ? "OR ug.id IS NOT NULL" : "") . ")
           ORDER BY ca.created_datetime DESC";
 
     $rows = $conn->query($sql)->fetchAll(PDO::FETCH_ASSOC);
@@ -104,6 +120,14 @@ if ($targetType === 'learning_group') {
     $st = $conn->prepare("SELECT 1 FROM knowledge_user_groups WHERE id = ? AND is_active = 1");
     $st->execute([$groupId]);
     if (!$st->fetchColumn()) { echo json_encode(['success' => false, 'error' => 'That group was not found']); exit; }
+} elseif ($targetType === 'analyst') {
+    $st = $conn->prepare("SELECT 1 FROM analysts WHERE id = ? AND is_active = 1");
+    $st->execute([$groupId]);
+    if (!$st->fetchColumn()) { echo json_encode(['success' => false, 'error' => 'That person was not found']); exit; }
+} elseif ($targetType === 'user') {
+    $st = $conn->prepare("SELECT 1 FROM users WHERE id = ? AND is_active = 1");
+    $st->execute([$groupId]);
+    if (!$st->fetchColumn()) { echo json_encode(['success' => false, 'error' => 'That person was not found']); exit; }
 }
 
 try {

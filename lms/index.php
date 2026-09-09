@@ -36,7 +36,7 @@ $translationNamespaces = ['common', 'lms'];
     <title>Service Desk - <?php echo htmlspecialchars(t('lms.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=62">
-    <link rel="stylesheet" href="../assets/css/lms.css?v=7">
+    <link rel="stylesheet" href="../assets/css/lms.css?v=8">
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=138">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
@@ -265,7 +265,19 @@ $translationNamespaces = ['common', 'lms'];
                 </div>
                 <div class="form-group">
                     <label><?php echo htmlspecialchars(t('lms.assign_modal.field_group')); ?></label>
-                    <select id="assignGroup" required></select>
+                    <select id="assignGroup" required onchange="LMS.assignTargetChanged()"></select>
+                </div>
+
+                <?php /* Revealed only when "one person" is chosen. A search rather
+                         than a dropdown: an install has thousands of portal users
+                         and a <select> of them is unusable. */ ?>
+                <div class="form-group" id="assignPersonGroup" style="display: none; position: relative;">
+                    <label for="assignPersonSearch"><?php echo htmlspecialchars(t('lms.assign_modal.field_person')); ?></label>
+                    <input type="text" id="assignPersonSearch" autocomplete="off"
+                           placeholder="<?php echo htmlspecialchars(t('lms.assign_modal.person_placeholder')); ?>"
+                           oninput="LMS.searchAssignPeople()">
+                    <div id="assignPersonResults" class="lms-person-results"></div>
+                    <small id="assignPersonChosen" style="display:none; color: var(--text-muted, #666);"></small>
                 </div>
                 <div class="form-group">
                     <label><?php echo htmlspecialchars(t('lms.assign_modal.field_deadline')); ?></label>
@@ -293,7 +305,7 @@ $translationNamespaces = ['common', 'lms'];
 
     <!-- Toast -->
     <script>window.API_BASE = '../api/lms/';</script>
-    <script src="../assets/js/lms.js?v=7"></script>
+    <script src="../assets/js/lms.js?v=8"></script>
     <script src="../assets/js/mobile.js?v=57"></script>
 </body>
 </html>

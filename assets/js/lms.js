@@ -388,10 +388,69 @@ const LMS = (() => {
                     `<option value="${esc(t.type)}:${t.id}">${esc(t.name)} (${t.member_count})</option>`
                 ).join('') +
                 `</optgroup>`
-            ).join('');
+            ).join('') +
+            // One named person. A search rather than a list, so it is one option
+            // here that reveals a box rather than thousands of options inline.
+            `<option value="person">${esc(window.t('lms.assign_modal.one_person'))}</option>`;
 
+        chosenPerson = null;
+        document.getElementById('assignPersonGroup').style.display = 'none';
+        document.getElementById('assignPersonSearch').value = '';
+        document.getElementById('assignPersonChosen').style.display = 'none';
+        document.getElementById('assignPersonResults').classList.remove('open');
         document.getElementById('assignDeadline').value = '';
         openModal('assignModal');
+    }
+
+    /* ---- assigning to ONE named person ---------------------------------- */
+
+    // The person picked from the search, as {type, id, name}. Null until then.
+    let chosenPerson = null;
+    let personSearchTimer = null;
+
+    function assignTargetChanged() {
+        const isPerson = document.getElementById('assignGroup').value === 'person';
+        document.getElementById('assignPersonGroup').style.display = isPerson ? '' : 'none';
+        if (!isPerson) {
+            chosenPerson = null;
+            document.getElementById('assignPersonChosen').style.display = 'none';
+        } else {
+            document.getElementById('assignPersonSearch').focus();
+        }
+    }
+
+    function searchAssignPeople() {
+        clearTimeout(personSearchTimer);
+        personSearchTimer = setTimeout(async () => {
+            const box = document.getElementById('assignPersonSearch');
+            const box2 = document.getElementById('assignPersonResults');
+            const q = box.value.trim();
+            if (q.length < 2) { box2.classList.remove('open'); box2.innerHTML = ''; return; }
+            try {
+                const r = await fetch(API_BASE + 'assignment_targets.php?q=' + encodeURIComponent(q));
+                const d = await r.json();
+                if (!d.success || !d.results.length) {
+                    box2.innerHTML = `<div class="lms-person-result" style="cursor:default;">${esc(window.t('lms.assign_modal.no_people'))}</div>`;
+                    box2.classList.add('open');
+                    return;
+                }
+                box2.innerHTML = d.results.map(p =>
+                    `<div class="lms-person-result" data-type="${esc(p.type)}" data-id="${p.id}" data-name="${esc(p.name)}">
+                        ${esc(p.name)}<small>${esc(p.kind)}${p.secondary ? ' · ' + esc(p.secondary) : ''}</small>
+                     </div>`).join('');
+                box2.classList.add('open');
+                box2.querySelectorAll('.lms-person-result[data-id]').forEach(el => {
+                    el.addEventListener('click', () => {
+                        chosenPerson = { type: el.dataset.type, id: +el.dataset.id, name: el.dataset.name };
+                        box.value = chosenPerson.name;
+                        box2.classList.remove('open');
+                        const chosen = document.getElementById('assignPersonChosen');
+                        chosen.textContent = window.t('lms.assign_modal.person_chosen', { name: chosenPerson.name });
+                        chosen.style.display = '';
+                    });
+                });
+            } catch (e) { box2.classList.remove('open'); }
+        }, 300);
     }
 
     async function saveAssignment(e) {
@@ -400,10 +459,23 @@ const LMS = (() => {
         // the right, because only the id is guaranteed free of colons.
         const raw = document.getElementById('assignGroup').value;
         const cut = raw.lastIndexOf(':');
+
+        let targetType, groupId;
+        if (raw === 'person') {
+            if (!chosenPerson) { showToast(window.t('lms.assign_modal.pick_a_person'), 'error'); return; }
+            // The person's OWN table decides the target type — an analyst and a
+            // portal user are stored the same way but are not the same thing.
+            targetType = chosenPerson.type;
+            groupId    = chosenPerson.id;
+        } else {
+            targetType = cut > -1 ? raw.slice(0, cut) : 'learning_group';
+            groupId    = cut > -1 ? +raw.slice(cut + 1) : 0;
+        }
+
         const payload = {
             course_id: +document.getElementById('assignCourse').value,
-            target_type: cut > -1 ? raw.slice(0, cut) : 'learning_group',
-            group_id: cut > -1 ? +raw.slice(cut + 1) : 0,
+            target_type: targetType,
+            group_id: groupId,
             deadline: document.getElementById('assignDeadline').value || null
         };
 
@@ -755,7 +827,7 @@ const LMS = (() => {
     return {
         switchTab, openUploadModal, openCreateModal, deleteCourse,
         openGroupModal, editGroup, deleteGroup,
-        openAssignModal, deleteAssignment,
+        openAssignModal, deleteAssignment, assignTargetChanged, searchAssignPeople,
         loadProgress, viewLearnerData, closeModal
     };
 })();

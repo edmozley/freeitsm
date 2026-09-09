@@ -51,49 +51,13 @@ if ($learnerKey === '' && ($_GET['analyst_id'] ?? '') !== '') {
 $hasUserGroups = lmsUserGroupsAvailable($conn);
 
 /**
- * One SELECT per way a course reaches somebody. Each produces the same columns
- * so they can be UNIONed: who, which course, which assignment, and the deadline.
- *
- * 🔑 UNION, not UNION ALL — somebody reached by two routes (in a people group
- * AND caught by "everyone") is ONE person expected to do ONE course, and should
- * be one row. The deadline is then reduced in PHP below, where the earliest
- * wins, exactly as lmsMyCourses() does it for the learner's own view.
+ * Who every assignment reaches. Shared with the reminder run
+ * (includes/lms_access.php) rather than spelled out here — this file held the
+ * only copy, and the first thing that happened when a new target type was added
+ * was that this screen silently stopped listing it.
  */
-$selects = [];
-$params  = [];
-
-// 1. An analyst learning group.
-$selects[] = "SELECT 'analyst' AS learner_type, m.analyst_id AS learner_id,
-                     ca.course_id, ca.group_id, ca.target_type, ca.deadline
-                FROM lms_course_assignments ca
-                JOIN lms_learning_groups g ON g.id = ca.group_id AND g.is_active = 1
-                JOIN lms_learning_group_members m ON m.group_id = g.id
-                JOIN analysts a ON a.id = m.analyst_id AND a.is_active = 1
-               WHERE ca.target_type = 'learning_group'";
-
-if ($hasUserGroups) {
-    // 2. A shared people group — both kinds of member, expiry applied.
-    //    ⚠️ The expiry is applied here for the same reason it is applied on the
-    //    learner's own page: somebody whose access has lapsed is no longer
-    //    expected to do the course, and leaving them on a manager's overdue list
-    //    would generate chasing for training nobody can now open.
-    $selects[] = "SELECT um.member_type AS learner_type, um.member_id AS learner_id,
-                         ca.course_id, ca.group_id, ca.target_type, ca.deadline
-                    FROM lms_course_assignments ca
-                    JOIN knowledge_user_groups ug ON ug.id = ca.group_id AND ug.is_active = 1
-                    JOIN knowledge_user_group_members um ON um.group_id = ug.id
-                   WHERE ca.target_type = 'user_group'
-                     AND (um.expires_at IS NULL OR um.expires_at > UTC_TIMESTAMP())";
-}
-
-// 3. Every active portal user.
-$selects[] = "SELECT 'user' AS learner_type, u.id AS learner_id,
-                     ca.course_id, ca.group_id, ca.target_type, ca.deadline
-                FROM lms_course_assignments ca
-                JOIN users u ON u.is_active = 1
-               WHERE ca.target_type = 'all_users'";
-
-$reach = "(" . implode("\n UNION \n", $selects) . ")";
+$params = [];
+$reach  = lmsAssignedLearnersSql($conn);
 
 $sql = "SELECT r.learner_type, r.learner_id, r.course_id, r.group_id, r.target_type, r.deadline,
                c.title AS course_title,
@@ -182,9 +146,16 @@ foreach ($byLearnerCourse as $row) {
     $row['learner_name'] = $names[$lk] ?? 'Deleted account';
     // The old key the Progress tab reads. Kept so the column keeps rendering.
     $row['analyst_name'] = $row['learner_name'];
-    $row['group_name']   = $row['target_type'] === 'all_users'
-        ? 'Everyone on the portal'
-        : ($groupNames[$row['target_type'] . ':' . $row['group_id']] ?? '—');
+    // What to call the route the course reached them by. An individual
+    // assignment has no group to name, so it names the person — which is the
+    // truthful answer to "why is this row here", and reads as "just them".
+    if ($row['target_type'] === 'all_users') {
+        $row['group_name'] = 'Everyone on the portal';
+    } elseif ($row['target_type'] === 'analyst' || $row['target_type'] === 'user') {
+        $row['group_name'] = 'Assigned individually';
+    } else {
+        $row['group_name'] = $groupNames[$row['target_type'] . ':' . $row['group_id']] ?? '—';
+    }
 
     // Shared with the learner's own view — the manager's list saying somebody is
     // late while their own screen says they are not is the one disagreement

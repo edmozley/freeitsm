@@ -26,7 +26,46 @@ requireCapabilityJson(Cap::LMS_MANAGE);
 
 try {
     $conn = connectToDatabase();
-    $out  = [];
+
+    /* ---- ?q=… : find ONE named person -------------------------------------
+       Individuals are searched rather than listed. A dropdown of every portal
+       user is unusable the moment an install has more than a screenful, and a
+       real one has thousands — the same reason the group member picker on
+       Tickets → Users searches instead of listing. */
+    if (isset($_GET['q'])) {
+        $q = trim((string)$_GET['q']);
+        if (mb_strlen($q) < 2) { echo json_encode(['success' => true, 'results' => []]); exit; }
+        $like = '%' . $q . '%';
+        $people = [];
+
+        $st = $conn->prepare("SELECT id, full_name AS name, username AS secondary
+                                FROM analysts
+                               WHERE is_active = 1 AND (full_name LIKE ? OR username LIKE ?)
+                            ORDER BY full_name LIMIT 10");
+        $st->execute([$like, $like]);
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $people[] = ['type' => 'analyst', 'id' => (int)$r['id'], 'name' => (string)$r['name'],
+                         'secondary' => (string)($r['secondary'] ?? ''), 'kind' => 'Analyst'];
+        }
+
+        $st = $conn->prepare("SELECT id,
+                                     COALESCE(NULLIF(display_name, ''), email, username) AS name,
+                                     COALESCE(email, username) AS secondary
+                                FROM users
+                               WHERE is_active = 1
+                                 AND (display_name LIKE ? OR email LIKE ? OR username LIKE ?)
+                            ORDER BY name LIMIT 10");
+        $st->execute([$like, $like, $like]);
+        foreach ($st->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $people[] = ['type' => 'user', 'id' => (int)$r['id'], 'name' => (string)$r['name'],
+                         'secondary' => (string)($r['secondary'] ?? ''), 'kind' => 'Portal user'];
+        }
+
+        echo json_encode(['success' => true, 'results' => $people]);
+        exit;
+    }
+
+    $out = [];
 
     // Everyone on the portal. First, because "push this to all our staff" is the
     // thing people come to this screen wanting to do, and burying it under a list

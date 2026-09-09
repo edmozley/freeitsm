@@ -176,6 +176,14 @@ function lmsAssignmentReachSql(PDO $conn, LmsLearner $learner): array
         $branches[] = "ca.target_type = 'all_users'";
     }
 
+    // ONE NAMED PERSON. 'analyst'/'user' put the person's own id in group_id.
+    // Worth having as a target of its own rather than telling somebody to make a
+    // group of one: a group per person is administration nobody keeps up with,
+    // and the groups list stops being readable by the end of the first month.
+    $branches[] = "(ca.target_type = ? AND ca.group_id = ?)";
+    $params[] = $learner->type();
+    $params[] = $learner->id();
+
     if (lmsUserGroupsAvailable($conn)) {
         $branches[] = "(ca.target_type = 'user_group' AND EXISTS (
                             SELECT 1 FROM knowledge_user_groups ug
@@ -396,4 +404,75 @@ function lmsProgressRowFor(PDO $conn, LmsLearner $learner, int $courseId): array
 
     $find->execute([$learner->type(), $learner->id(), $courseId]);
     return $find->fetch(PDO::FETCH_ASSOC) ?: [];
+}
+
+/**
+ * THE OTHER DIRECTION: every (learner, course) an assignment reaches.
+ *
+ * lmsAssignmentReachSql() answers "what reaches THIS person", which is what a
+ * learner's own page needs. This answers "who does this reach", which is what
+ * the manager's Progress tab and the reminder run need — and it cannot be the
+ * same query, because one starts from a person and the other from an assignment.
+ *
+ * Returns a parenthesised UNION usable as a derived table, with columns:
+ *   learner_type, learner_id, course_id, group_id, target_type, deadline
+ *
+ * 🔑 UNION, not UNION ALL. Somebody reached by two routes — in a people group
+ * AND caught by "everyone on the portal" — is ONE person expected to do ONE
+ * course. Callers still reduce by (learner, course) afterwards, because two
+ * routes can carry two different DEADLINES, and the earliest has to win.
+ *
+ * ⚠️ The people-group branch applies the membership expiry, for the same reason
+ * the learner's own view does: somebody whose access has lapsed is no longer
+ * expected to do the course, and leaving them in would generate chasing emails
+ * for training they can no longer open.
+ */
+function lmsAssignedLearnersSql(PDO $conn): string
+{
+    $selects = [];
+
+    // An analyst learning group.
+    $selects[] = "SELECT 'analyst' AS learner_type, m.analyst_id AS learner_id,
+                         ca.course_id, ca.group_id, ca.target_type, ca.deadline
+                    FROM lms_course_assignments ca
+                    JOIN lms_learning_groups g ON g.id = ca.group_id AND g.is_active = 1
+                    JOIN lms_learning_group_members m ON m.group_id = g.id
+                    JOIN analysts a ON a.id = m.analyst_id AND a.is_active = 1
+                   WHERE ca.target_type = 'learning_group'";
+
+    // A shared people group — both kinds of member.
+    if (lmsUserGroupsAvailable($conn)) {
+        $selects[] = "SELECT um.member_type AS learner_type, um.member_id AS learner_id,
+                             ca.course_id, ca.group_id, ca.target_type, ca.deadline
+                        FROM lms_course_assignments ca
+                        JOIN knowledge_user_groups ug ON ug.id = ca.group_id AND ug.is_active = 1
+                        JOIN knowledge_user_group_members um ON um.group_id = ug.id
+                       WHERE ca.target_type = 'user_group'
+                         AND (um.expires_at IS NULL OR um.expires_at > UTC_TIMESTAMP())";
+    }
+
+    // Every active portal user.
+    $selects[] = "SELECT 'user' AS learner_type, u.id AS learner_id,
+                         ca.course_id, ca.group_id, ca.target_type, ca.deadline
+                    FROM lms_course_assignments ca
+                    JOIN users u ON u.is_active = 1
+                   WHERE ca.target_type = 'all_users'";
+
+    // One named analyst, and one named portal user. The join is what drops an
+    // assignment whose person has since been deactivated or deleted — the row
+    // survives (so the manager can see it and remove it) but nobody is expected
+    // to do the course because of it.
+    $selects[] = "SELECT 'analyst' AS learner_type, a.id AS learner_id,
+                         ca.course_id, ca.group_id, ca.target_type, ca.deadline
+                    FROM lms_course_assignments ca
+                    JOIN analysts a ON a.id = ca.group_id AND a.is_active = 1
+                   WHERE ca.target_type = 'analyst'";
+
+    $selects[] = "SELECT 'user' AS learner_type, u.id AS learner_id,
+                         ca.course_id, ca.group_id, ca.target_type, ca.deadline
+                    FROM lms_course_assignments ca
+                    JOIN users u ON u.id = ca.group_id AND u.is_active = 1
+                   WHERE ca.target_type = 'user'";
+
+    return '(' . implode("\n UNION \n", $selects) . ')';
 }

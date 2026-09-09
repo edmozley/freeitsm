@@ -743,3 +743,32 @@ body {
 [data-theme-mode="dark"] .lms-result.pass { background: #16331f; color: #86efac; }
 [data-theme-mode="dark"] .lms-result.fail { background: #3a1a1d; color: #fca5a5; }
 [data-theme-mode="dark"] .lms-result.done { background: #1b2a45; color: #93c5fd; }
+
+/* ---- The "one person" picker in the assign dialogue --------------------------
+   Individuals are searched, not listed: a <select> of every portal user is
+   unusable the moment an install has more than a screenful, and a real one has
+   thousands. Same shape as the group member picker on Tickets → Users. */
+.lms-person-results {
+    display: none;
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    max-height: 220px;
+    overflow-y: auto;
+    background: var(--surface, #fff);
+    border: 1px solid var(--border, #e0e0e0);
+    border-top: none;
+    box-shadow: var(--shadow, 0 2px 8px rgba(0, 0, 0, 0.12));
+}
+
+.lms-person-results.open { display: block; }
+
+.lms-person-result {
+    padding: 9px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-soft, #eee);
+}
+
+.lms-person-result:hover { background: var(--surface-2, #f5f5f5); }
+.lms-person-result small { display: block; color: var(--text-dim, #888); }

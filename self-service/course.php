@@ -71,7 +71,7 @@ $translationNamespaces = ['common', 'self-service', 'lms'];
 
 // The player's own stylesheet, in the HEAD with the portal's own rather than
 // half way down the body.
-$pageHead = '<link rel="stylesheet" href="../assets/css/lms.css?v=7">';
+$pageHead = '<link rel="stylesheet" href="../assets/css/lms.css?v=8">';
 
 $pageStyles = <<<'CSS'
 .cr-bar {
