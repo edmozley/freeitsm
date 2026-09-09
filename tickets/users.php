@@ -289,18 +289,15 @@ $translationNamespaces = ['common', 'tickets'];
             margin-top: 8px;
         }
 
-        /* Compact form modal — overrides the default 900px / no-padding modal-content from inbox.css */
-        #userModal .modal-content {
-            padding: 20px;
-            max-width: 500px;
-        }
+        /* ⚠️ NO per-modal .modal-content override here any more.
+           Both modals on this page use the canonical three-pane layout —
+           modal-header + modal-body + modal-footer — which inbox.css already
+           styles, including neutralising any page-level padding. This page held
+           the ONLY `#xModal .modal-content` override in the codebase; the group
+           modal drew attention to it by sitting beside it at the inherited 900px
+           and looking like a different product. Set the width inline on the
+           element, the way the other 40 pages that use this layout do. */
 
-        /* Title sits flush with the modal-content padding rather than gaining its own 20px 24px on top */
-        #userModal .modal-header {
-            padding: 0;
-            margin-bottom: 20px;
-            border-bottom: none;
-        }
         /* Form fields follow the palette. */
     input, select, textarea { background: var(--surface, #fff); color: var(--text, #333); }
 
@@ -473,9 +470,10 @@ $translationNamespaces = ['common', 'tickets'];
 
     <!-- User Modal -->
     <div class="modal" id="userModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 560px;">
             <div class="modal-header" id="userModalTitle"><?php echo htmlspecialchars(t('tickets.users.modal.add_title')); ?></div>
             <form id="userForm" autocomplete="off">
+                <div class="modal-body">
                 <input type="hidden" id="userId">
 
                 <div class="form-group">
@@ -507,8 +505,9 @@ $translationNamespaces = ['common', 'tickets'];
                     <input type="password" id="userPassword" autocomplete="new-password" placeholder="<?php echo htmlspecialchars(t('tickets.users.modal.password_placeholder')); ?>" minlength="8">
                     <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.users.modal.password_help')); ?></small>
                 </div>
+                </div>
 
-                <div class="modal-actions">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeUserModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
@@ -518,9 +517,10 @@ $translationNamespaces = ['common', 'tickets'];
 
     <!-- Group Modal -->
     <div class="modal" id="groupModal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 560px;">
             <div class="modal-header" id="groupModalTitle"><?php echo htmlspecialchars(t('tickets.users.groups.modal.add_title')); ?></div>
             <form id="groupForm" autocomplete="off">
+                <div class="modal-body">
                 <input type="hidden" id="groupId">
 
                 <div class="form-group">
@@ -533,8 +533,9 @@ $translationNamespaces = ['common', 'tickets'];
                     <input type="text" id="groupDescField" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.users.groups.modal.description_placeholder')); ?>" maxlength="500">
                     <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.users.groups.modal.description_help')); ?></small>
                 </div>
+                </div>
 
-                <div class="modal-actions">
+                <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" onclick="closeGroupModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
                     <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
                 </div>
