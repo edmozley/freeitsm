@@ -2057,6 +2057,16 @@ return [
             'delete_heading' => '<strong>Delete user</strong>',
             'delete_body'    => 'The <strong>Delete</strong> button is <strong>FK-safe</strong>: it refuses if the user is the requester on any tickets or has any rows in <code>users_assets</code>, returning a clear <em>"Cannot delete: this user is the requester on N ticket(s). Reassign or close those tickets first."</em> message. Audit history can never silently break.',
             'tip'            => 'All modal fields have browser autofill disabled (including <code>autocomplete="new-password"</code> on the password field) so the analyst\'s own saved credentials aren\'t suggested into a form whose entire purpose is creating <em>someone else\'s</em> record.',
+
+            // Groups of people. Lives on this screen because this is where the
+            // people are, and is used by other modules — hence "shared".
+            'groups_heading' => '<strong>Groups</strong>',
+            'groups_body'    => 'The <strong>Groups</strong> tab beside <strong>People</strong> holds named groups of people &mdash; analysts and self-service portal users together in the same group. A group is made once here and then used across FreeITSM, so you can give it access to a knowledge folder or assign it a training course without building the same list twice.',
+            'groups_make'    => '<strong>Make one</strong> with <strong>Add</strong> on the Groups tab: a name, and a description worth filling in, because the next person needs to be able to tell what the group is for.',
+            'groups_add'     => '<strong>Add people</strong> by searching for them &mdash; it finds analysts and portal users together, so you do not have to know which kind somebody is.',
+            'groups_expiry'  => '<strong>Give a membership an end date</strong> where the access is temporary. Three engineers on site for a fortnight go in with a last day and drop out of the group by themselves when it passes. An expired membership stays on the list, marked as expired, so you can still see who had access and until when.',
+            'groups_uses'    => '<strong>What a group is good for:</strong> granting access to a knowledge folder, and assigning LMS training to a set of people at once. Membership changes take effect immediately &mdash; there is nothing to re-apply afterwards.',
+            'groups_admin'   => '<strong>Anyone with the Tickets module can see the groups; only an administrator can change one.</strong> Adding somebody to a group can also give them access to a restricted knowledge folder, so it is a grant of access, not a piece of filing.',
         ],
         'dash' => [
             'heading' => 'Dashboard',

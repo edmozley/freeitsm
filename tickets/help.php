@@ -559,6 +559,16 @@ try {
                     <p style="margin-top: 16px;"><?php echo t('tickets.help.users.delete_heading'); ?></p>
                     <p><?php echo t('tickets.help.users.delete_body'); ?></p>
                     <p class="help-note"><?php echo t('tickets.help.users.tip'); ?></p>
+
+                    <p style="margin-top: 22px;"><?php echo t('tickets.help.users.groups_heading'); ?></p>
+                    <p><?php echo t('tickets.help.users.groups_body'); ?></p>
+                    <div class="help-list">
+                        <div><?php echo t('tickets.help.users.groups_make'); ?></div>
+                        <div><?php echo t('tickets.help.users.groups_add'); ?></div>
+                        <div><?php echo t('tickets.help.users.groups_expiry'); ?></div>
+                        <div><?php echo t('tickets.help.users.groups_uses'); ?></div>
+                    </div>
+                    <p class="help-note"><?php echo t('tickets.help.users.groups_admin'); ?></p>
                 </div>
 
                 <!-- Section 8: Dashboard -->

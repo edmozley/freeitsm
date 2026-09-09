@@ -410,6 +410,17 @@ return [
         's5_li7'             => 'The current status, priority, and assigned analyst.',
         's5_p3'              => 'To reply or add information, use the reply box at the bottom of the conversation — you can attach files and record your screen from there too. Replying to the email notification you received works just as well; either way it lands on the same ticket.',
 
+        // Training. Written to be readable by somebody whose portal has no
+        // Training tab at all — most do not — rather than assuming it is there.
+        'tr_title' => 'Training',
+        'tr_p1'    => 'Your IT team may ask you to complete a short course — security awareness, data protection, or anything else everyone needs to have read. If they have, a <strong>Training</strong> tab appears at the top of the portal, and anything still to do is shown on your dashboard when you sign in. If you have never been given a course, you will not see either, and there is nothing to do.',
+        'tr_li1'   => 'Open <strong>Training</strong>, or click a course on your dashboard.',
+        'tr_li2'   => 'Work through the lessons using <strong>Next</strong>. You can jump about using the list on the left, and you can stop whenever you like — it remembers where you got to.',
+        'tr_li3'   => 'Some courses end with a few questions. Answer them and press <strong>Finish</strong> to have them marked.',
+        'tr_li4'   => 'You are shown the result straight away, along with which answers were wrong and why. If you did not pass, you can try again.',
+        'tr_p2'    => 'Your progress is saved as you go, so you can do a course in several sittings, on any device, and pick up where you left off.',
+        'tr_tip'   => '<strong>Deadlines and reminders:</strong> a course may have a date by which it should be done. You have the whole of that day. If your IT team has switched reminders on you will get an email as the date approaches, and again if it passes — those stop as soon as you finish the course.',
+
         's6_title'           => 'Account & security',
         's6_p1'              => 'Click your initials in the top-right corner to open the account menu. From there:',
         's6_li1'             => '<strong>My Account</strong> — set a <strong>preferred name</strong> (e.g. <em>"Ed"</em> instead of <em>"Ed Mozley"</em>) that\'s used when the system greets you in emails. Change your password.',
