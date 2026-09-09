@@ -116,6 +116,15 @@ $pageScripts = <<<'JS'
 // this page names its own.
 const LMS_API = '../api/lms/';
 
+/* 🔴 EVERY LMS CALL FROM THE PORTAL SAYS SO. The analyst app and the portal are
+   the same host and share one PHP session, so an administrator signed into both
+   has two identities available and the server cannot tell from the session which
+   one is acting. Without this, THIS PAGE showed the administrator's own ten
+   courses under the heading "Courses you have been asked to complete" — measured,
+   and reported by Ed with two tabs open. It can only ever select between
+   identities this session has already proven; it cannot name somebody else. */
+const LMS_AS = '?as=portal';
+
 const trEsc = (s) => { const d = document.createElement('div'); d.textContent = s ?? ''; return d.innerHTML; };
 
 function trBadge(row) {
@@ -133,7 +142,7 @@ async function trLoad() {
     const body = document.getElementById('trBody');
     let rows = [];
     try {
-        const r = await fetch(LMS_API + 'my_courses.php');
+        const r = await fetch(LMS_API + 'my_courses.php' + LMS_AS);
         const d = await r.json();
         if (!d.success) throw new Error(d.error || 'failed');
         rows = d.data || [];

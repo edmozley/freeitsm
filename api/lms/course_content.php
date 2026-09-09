@@ -18,7 +18,7 @@ header('Content-Type: application/json');
 // Either front door. The module gate is analyst-only; what entitles a portal
 // learner is requireLmsCourseAccessJson() below, which is the same rule the
 // player enforces.
-$learner = LmsLearner::fromSession();
+$learner = LmsLearner::fromRequest();
 if (!$learner) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;

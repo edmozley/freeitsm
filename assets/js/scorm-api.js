@@ -9,6 +9,14 @@
  */
 (function() {
     const config = window.SCORM_CONFIG || {};
+
+    /* Which front door this runtime is playing in. The analyst app and the
+       portal share one PHP session, so an administrator signed into both has two
+       identities and the server cannot tell from the session which is acting —
+       every call says. Without it, an administrator taking a SCORM course in the
+       portal has the attempt written onto their ANALYST record. */
+    const AS_Q     = window.LMS_AS ? '&as=' + encodeURIComponent(window.LMS_AS) : '';
+    const AS_FIRST = window.LMS_AS ? '?as=' + encodeURIComponent(window.LMS_AS) : '';
     let cmiData = {};
     let dirtyElements = [];
     let initialized = false;
@@ -20,7 +28,7 @@
     function loadCmiData() {
         try {
             const xhr = new XMLHttpRequest();
-            xhr.open('GET', config.apiEndpoint + '?course_id=' + config.courseId, false);
+            xhr.open('GET', config.apiEndpoint + '?course_id=' + config.courseId + AS_Q, false);
             xhr.send();
             if (xhr.status === 200) {
                 const resp = JSON.parse(xhr.responseText);
@@ -41,7 +49,7 @@
 
         try {
             const xhr = new XMLHttpRequest();
-            xhr.open('POST', config.apiEndpoint, false);
+            xhr.open('POST', config.apiEndpoint + AS_FIRST, false);
             xhr.setRequestHeader('Content-Type', 'application/json');
             xhr.send(JSON.stringify({
                 course_id: config.courseId,

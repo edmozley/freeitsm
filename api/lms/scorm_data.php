@@ -14,7 +14,7 @@ header('Content-Type: application/json');
 // Either front door — a SCORM package plays the same for a portal learner as for
 // an analyst. The module gate is an analyst-app concept and applies only to them;
 // requireLmsCourseAccessJson() below is what entitles everybody.
-$learner = LmsLearner::fromSession();
+$learner = LmsLearner::fromRequest();
 if (!$learner) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;

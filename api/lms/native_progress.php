@@ -25,7 +25,7 @@ header('Content-Type: application/json');
 // The learner is an analyst or a portal user; the module gate is an analyst-app
 // concept, so it only applies to one of them. What entitles a portal learner is
 // requireLmsCourseAccessJson() below, which every branch of this file calls.
-$learner = LmsLearner::fromSession();
+$learner = LmsLearner::fromRequest();
 if (!$learner) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;

@@ -11,6 +11,20 @@ const LMSPlayer = (() => {
     const API = window.API_BASE;
     const COURSE_ID = window.COURSE_ID;
 
+    /* WHICH FRONT DOOR THIS PLAYER IS RUNNING IN.
+     *
+     * 🔴 The analyst app and the portal share one PHP session, so an
+     * administrator who has signed into both has TWO identities available and
+     * the server cannot tell which is acting from the session alone. Every call
+     * this player makes therefore says. Without it, an administrator taking a
+     * course in the portal has their attempt recorded against their ANALYST
+     * training record.
+     *
+     * Two forms because some calls already have a query string and some do not.
+     */
+    const AS_Q     = window.LMS_AS ? '&as=' + encodeURIComponent(window.LMS_AS) : '';
+    const AS_FIRST = window.LMS_AS ? '?as=' + encodeURIComponent(window.LMS_AS) : '';
+
     let course = null;
     let lessons = [];
     let index = 0;
@@ -22,7 +36,7 @@ const LMSPlayer = (() => {
     const elapsed = () => Math.round((Date.now() - startedAt) / 1000);
 
     async function init() {
-        const r = await fetch(`${API}course_content.php?course_id=${COURSE_ID}`);
+        const r = await fetch(`${API}course_content.php?course_id=${COURSE_ID}${AS_Q}`);
         const d = await r.json();
         if (!d.success) { document.getElementById('stage').innerHTML = `<p class="lms-empty">${esc(d.error)}</p>`; return; }
 
@@ -35,7 +49,7 @@ const LMSPlayer = (() => {
         }
 
         // Register the attempt and find out where they got to last time.
-        const pr = await fetch(`${API}native_progress.php?course_id=${COURSE_ID}`);
+        const pr = await fetch(`${API}native_progress.php?course_id=${COURSE_ID}${AS_Q}`);
         const pd = await pr.json();
         if (pd.success && pd.bookmark) {
             const at = lessons.findIndex(l => String(l.id) === String(pd.bookmark));
@@ -148,11 +162,14 @@ const LMSPlayer = (() => {
 
         // On unload a normal fetch is killed mid-flight — sendBeacon survives it.
         if (unloading && navigator.sendBeacon) {
-            navigator.sendBeacon(API + 'native_progress.php', new Blob([body], { type: 'application/json' }));
+            // ⚠️ The beacon needs the context too. It is the LAST thing the page
+            // does, so getting it wrong writes the closing bookmark — the one
+            // that decides where somebody resumes — onto the wrong learner.
+            navigator.sendBeacon(API + 'native_progress.php' + AS_FIRST, new Blob([body], { type: 'application/json' }));
             return;
         }
         try {
-            await fetch(API + 'native_progress.php', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+            await fetch(API + 'native_progress.php' + AS_FIRST, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
         } catch (e) { /* a lost bookmark is not worth interrupting the learner for */ }
     }
 
@@ -175,7 +192,7 @@ const LMSPlayer = (() => {
             responses: Object.keys(responses).map(qid => ({ question_id: parseInt(qid, 10), answer_ids: responses[qid] }))
         };
 
-        const r = await fetch(API + 'native_progress.php', {
+        const r = await fetch(API + 'native_progress.php' + AS_FIRST, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)

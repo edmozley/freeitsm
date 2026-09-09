@@ -225,7 +225,8 @@ return [
         // Not "All analysts" any more — the list holds portal users too.
         'all_analysts'   => 'Everyone',
         'all_statuses'   => 'All statuses',
-        'col_analyst'    => 'Analyst',
+        // Not "Analyst" any more — this column now holds portal users too.
+        'col_analyst'    => 'Person',
         'col_course'     => 'Course',
         'col_group'      => 'Group',
         'col_status'     => 'Status',

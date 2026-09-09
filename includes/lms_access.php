@@ -58,19 +58,61 @@ final class LmsLearner
     /**
      * Whoever is signed in, from either front door.
      *
-     * ⚠️ THE ANALYST SESSION WINS when both keys are somehow present. One
-     * browser really can hold both — an analyst who has also signed into the
-     * portal to see what a requester sees — and the analyst is the more
-     * privileged of the two, so resolving to the portal identity would show
-     * them the wrong My Courses and, worse, write their progress onto a
-     * requester's record. Deterministic, and documented, rather than "whichever
-     * key PHP happens to find".
+     * 🔴 ONE BROWSER REALLY DOES HOLD BOTH IDENTITIES. The analyst app and the
+     * self-service portal are the same host and share one PHP session, so
+     * anybody who signs into both — which is every administrator who has ever
+     * looked at the portal — has `analyst_id` AND `ss_user_id` sitting side by
+     * side. There is then no such thing as "who is signed in": there are two
+     * answers, and only the REQUEST knows which one is acting.
+     *
+     * ⚠️ THIS USED TO PREFER THE ANALYST UNCONDITIONALLY, and the reasoning was
+     * wrong. Measured: an administrator opened the portal's own Training page
+     * and was shown the ADMINISTRATOR's ten courses, complete with their scores
+     * and their overdue flags, under a heading saying "Courses you have been
+     * asked to complete". Worse than the wrong list — the progress endpoints
+     * resolve the same way, so taking one of those courses from the portal would
+     * have written the attempt onto the analyst's training record while the page
+     * that let them in had gated it as the portal user. Two identities, and the
+     * gate and the writer disagreeing about which one was acting.
+     *
+     * 🔑 So the CONTEXT decides, via fromRequest() below, and this remains the
+     * plain analyst-first reading for the analyst app's own pages.
      */
     public static function fromSession(): ?self
     {
         if (!empty($_SESSION['analyst_id'])) return self::analyst((int)$_SESSION['analyst_id']);
         if (!empty($_SESSION['ss_user_id'])) return self::user((int)$_SESSION['ss_user_id']);
         return null;
+    }
+
+    /**
+     * The learner this REQUEST is acting as.
+     *
+     * The LMS endpoints are shared by the analyst app and the portal, so they
+     * have to be told which front door a call came through: `as=portal` means
+     * the portal, anything else means the analyst app.
+     *
+     * 🔑 THIS CANNOT BE USED TO BECOME SOMEBODY ELSE, which is why a plain query
+     * parameter is safe here. It does not name an identity — it chooses between
+     * the identities ALREADY PROVEN by this session's own cookies. Somebody with
+     * no portal login who passes `as=portal` gets their analyst identity back,
+     * or nothing; they cannot reach a `users` row they have not signed in as.
+     */
+    public static function fromRequest(): ?self
+    {
+        if (self::requestWantsPortal() && !empty($_SESSION['ss_user_id'])) {
+            return self::user((int)$_SESSION['ss_user_id']);
+        }
+        return self::fromSession();
+    }
+
+    /**
+     * Did this request come through the portal? Read from the query string even
+     * on a POST, so one rule covers the JSON-bodied endpoints as well.
+     */
+    private static function requestWantsPortal(): bool
+    {
+        return isset($_GET['as']) && $_GET['as'] === 'portal';
     }
 
     public function type(): string { return $this->type; }
@@ -236,7 +278,7 @@ function lmsCanAccessCourse(PDO $conn, LmsLearner $learner, int $courseId): bool
  * Assumes the session check and module gate have already run.
  */
 function requireLmsCourseAccessJson(PDO $conn, int $courseId): void {
-    $learner = LmsLearner::fromSession();
+    $learner = LmsLearner::fromRequest();
     if (!$learner || !lmsCanAccessCourse($conn, $learner, $courseId)) {
         http_response_code(403);
         header('Content-Type: application/json');

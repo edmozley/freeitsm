@@ -71,7 +71,7 @@ $translationNamespaces = ['common', 'self-service', 'lms'];
 
 // The player's own stylesheet, in the HEAD with the portal's own rather than
 // half way down the body.
-$pageHead = '<link rel="stylesheet" href="../assets/css/lms.css?v=8">';
+$pageHead = '<link rel="stylesheet" href="../assets/css/lms.css?v=9">';
 
 $pageStyles = <<<'CSS'
 .cr-bar {
@@ -182,9 +182,16 @@ require_once __DIR__ . '/includes/header.php';
     window.COURSE_ID    = <?php echo (int)$courseId; ?>;
     // The portal has no LMS console to go back to.
     window.LMS_BACK_URL = 'training.php';
+    /* 🔴 WHICH IDENTITY IS TAKING THIS COURSE. The analyst app and the portal
+       share one PHP session, so an administrator signed into both has two, and
+       the server cannot tell from the session alone. Every call the players make
+       carries this; without it an administrator's attempt in the portal is
+       written onto their ANALYST training record while this page has gated it as
+       the portal user — the gate and the writer disagreeing about who is acting. */
+    window.LMS_AS = 'portal';
 </script>
 <?php if ($isNative): ?>
-<script src="../assets/js/lms-native-player.js?v=1"></script>
+<script src="../assets/js/lms-native-player.js?v=2"></script>
 <?php elseif ($launchUrl !== null): ?>
 <script>
 window.SCORM_CONFIG = {
@@ -197,7 +204,7 @@ window.SCORM_CONFIG = {
     apiEndpoint: '../api/lms/scorm_data.php'
 };
 </script>
-<script src="../assets/js/scorm-api.js"></script>
+<script src="../assets/js/scorm-api.js?v=2"></script>
 <script>
 // Commit before the tab goes, so a half-finished attempt is not lost.
 window.addEventListener('beforeunload', function () {

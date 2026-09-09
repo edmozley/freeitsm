@@ -8,8 +8,36 @@ body {
     --accent: var(--lms-accent, #2563eb);
 }
 
+/* 🔴 THE CONSOLE COULD NOT SCROLL AT ALL.
+ *
+ * inbox.css sets `body { height: 100vh; overflow: hidden }` — the app-shell
+ * pattern, and correct for the inbox, where the panes INSIDE it do the
+ * scrolling. This page never provided one: `.lms-container` was `padding: 20px`
+ * and nothing else, so it simply grew past the bottom of a body that clips.
+ *
+ * Measured on the Progress tab: body 700px with `overflow-y: hidden`, content
+ * 2537px. Forty-nine rows existed and only the first screenful could ever be
+ * reached — no scrollbar, no keyboard scrolling, nothing. Reported by Ed.
+ *
+ * 🔑 `:has(> .lms-container)` rather than a bare `body` rule: lms.css is loaded
+ * by the portal's course player too, and turning THAT body into a flex column
+ * would re-lay-out a page that is already fine. The idiom is inbox.css's own
+ * (`.modal-content:has(> .modal-body)`).
+ *
+ * ⚠️ min-height: 0 is the second guard, and it is not optional — a flex child
+ * refuses to shrink below its content without it, so `overflow-y: auto` would
+ * have had nothing to do and the clip would have stayed exactly as it was.
+ */
+body:has(> .lms-container) {
+    display: flex;
+    flex-direction: column;
+}
+
 .lms-container {
     padding: 20px;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
 }
 
 /* --- Tabs --------------------------------------------------- */

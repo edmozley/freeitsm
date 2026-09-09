@@ -20,7 +20,7 @@ require_once '../../includes/functions.php';
 require_once '../../includes/lms_access.php';
 header('Content-Type: application/json');
 
-$learner = LmsLearner::fromSession();
+$learner = LmsLearner::fromRequest();
 if (!$learner) {
     echo json_encode(['success' => false, 'error' => 'Not authenticated']);
     exit;
