@@ -336,9 +336,15 @@ const LMS = (() => {
         }
         tbody.innerHTML = assignments.map(a => {
             const deadline = a.deadline ? fmtNaiveDate(a.deadline) : `<em style="color:#999;">${esc(window.t('lms.assignments.no_deadline'))}</em>`;
+            // "Everyone on the portal" has no group row to name it, so the
+            // label is written here rather than stored — the same string the
+            // picker offered, so the two screens agree.
+            const who = a.target_type === 'all_users'
+                ? esc(window.t('lms.assignments.everyone'))
+                : esc(a.group_name || '');
             return `<tr>
                 <td>${esc(a.course_title)}</td>
-                <td>${esc(a.group_name)}</td>
+                <td>${who}</td>
                 <td>${deadline}</td>
                 <td>${esc(a.assigned_by_name || '')}</td>
                 <td class="lms-actions">
@@ -351,15 +357,38 @@ const LMS = (() => {
     async function openAssignModal() {
         // Load fresh data for dropdowns
         if (!courses.length) await loadCourses();
-        if (!groups.length) await loadGroups();
 
         const courseSelect = document.getElementById('assignCourse');
         courseSelect.innerHTML = '<option value="">' + esc(window.t('lms.assign_modal.select_course')) + '</option>' +
             courses.map(c => `<option value="${c.id}">${esc(c.title)}</option>`).join('');
 
+        // Everything a course can go to, in one list: the whole portal, the
+        // analyst learning groups, and the shared people groups. ONE picker
+        // rather than a kind-then-thing pair — you know you want "Finance", not
+        // which table its members are stored in.
+        //
+        // 🔑 The VALUE carries the type: "user_group:3". A bare id would be
+        // ambiguous the moment a learning group and a people group share a
+        // number, which they will, because both count from 1.
+        let targets = [];
+        try {
+            const tr = await fetch(API_BASE + 'assignment_targets.php');
+            const td = await tr.json();
+            if (td.success) targets = td.targets;
+        } catch (e) { console.error(e); }
+
         const groupSelect = document.getElementById('assignGroup');
+        const byKind = {};
+        targets.forEach(t => { (byKind[t.kind] = byKind[t.kind] || []).push(t); });
+
         groupSelect.innerHTML = '<option value="">' + esc(window.t('lms.assign_modal.select_group')) + '</option>' +
-            groups.map(g => `<option value="${g.id}">${esc(g.name)}</option>`).join('');
+            Object.keys(byKind).map(kind =>
+                `<optgroup label="${esc(kind)}">` +
+                byKind[kind].map(t =>
+                    `<option value="${esc(t.type)}:${t.id}">${esc(t.name)} (${t.member_count})</option>`
+                ).join('') +
+                `</optgroup>`
+            ).join('');
 
         document.getElementById('assignDeadline').value = '';
         openModal('assignModal');
@@ -367,9 +396,14 @@ const LMS = (() => {
 
     async function saveAssignment(e) {
         e.preventDefault();
+        // "user_group:3" -> {target_type:'user_group', group_id:3}. Split from
+        // the right, because only the id is guaranteed free of colons.
+        const raw = document.getElementById('assignGroup').value;
+        const cut = raw.lastIndexOf(':');
         const payload = {
             course_id: +document.getElementById('assignCourse').value,
-            group_id: +document.getElementById('assignGroup').value,
+            target_type: cut > -1 ? raw.slice(0, cut) : 'learning_group',
+            group_id: cut > -1 ? +raw.slice(cut + 1) : 0,
             deadline: document.getElementById('assignDeadline').value || null
         };
 
@@ -429,14 +463,16 @@ const LMS = (() => {
         const status = document.getElementById('filterStatus').value;
         if (courseId) params.set('course_id', courseId);
         if (groupId) params.set('group_id', groupId);
-        if (analystId) params.set('analyst_id', analystId);
+        // A learner is now "analyst:12" or "user:257", not a bare analyst id —
+        // the two id spaces overlap, so a bare number cannot say who it means.
+        if (analystId) params.set('learner', analystId);
         if (status) params.set('status', status);
 
         try {
             const r = await fetch(API_BASE + 'progress.php?' + params.toString());
             const d = await r.json();
             if (d.success) {
-                fillAnalystFilter(d.analysts || [], analystId);
+                fillAnalystFilter(d.learners || [], analystId);
                 renderProgress(d.data);
             }
         } catch (e) { console.error(e); }
@@ -453,14 +489,17 @@ const LMS = (() => {
        and kept in the list even when it has dropped out of it (a course
        filter that excludes them), because quietly resetting to "All
        analysts" would show rows nobody asked for. */
-    function fillAnalystFilter(analysts, current) {
+    /* Takes `learners` now — analysts AND portal users — each keyed "type:id"
+       rather than by a bare id, because analyst 12 and portal user 12 are two
+       different people and a plain number cannot tell them apart. */
+    function fillAnalystFilter(learners, current) {
         const fa = document.getElementById('filterAnalyst');
         if (!fa) return;
         const chosen = fa.options[fa.selectedIndex];
-        const missing = current && !analysts.some(a => String(a.id) === String(current));
-        const keep = missing ? [{ id: current, full_name: chosen ? chosen.text : current }] : [];
+        const missing = current && !learners.some(l => String(l.key) === String(current));
+        const keep = missing ? [{ key: current, name: chosen ? chosen.text : current }] : [];
         fa.innerHTML = '<option value="">' + esc(window.t('lms.progress.all_analysts')) + '</option>' +
-            keep.concat(analysts).map(a => '<option value="' + a.id + '">' + esc(a.full_name) + '</option>').join('');
+            keep.concat(learners).map(l => '<option value="' + esc(l.key) + '">' + esc(l.name) + '</option>').join('');
         fa.value = current || '';
     }
 
@@ -489,12 +528,15 @@ const LMS = (() => {
                theme. A class lets each layer state its own answer. */
             const trStyle = row.is_overdue ? ' class="lms-row-overdue"' : '';
 
+            // ⚠️ learner_key, not analyst_id. analyst_id is NULL for a portal
+            // learner, so this button used to call the drill-down with `null` on
+            // exactly the rows the portal push creates.
             const viewBtn = row.status !== 'not_started'
-                ? `<button class="table-action-btn" onclick="LMS.viewLearnerData(${row.analyst_id}, ${row.course_id})" title="${esc(window.t('lms.progress.view'))}">${ICON_VIEW}</button>`
+                ? `<button class="table-action-btn" onclick="LMS.viewLearnerData('${esc(row.learner_key)}', ${row.course_id})" title="${esc(window.t('lms.progress.view'))}">${ICON_VIEW}</button>`
                 : '';
 
             return `<tr${trStyle}>
-                <td>${esc(row.analyst_name)}</td>
+                <td>${esc(row.learner_name || row.analyst_name)}</td>
                 <td>${esc(row.course_title)}</td>
                 <td>${esc(row.group_name)}</td>
                 <td><span class="lms-status ${statusClass}">${statusLabel}</span></td>
@@ -509,13 +551,20 @@ const LMS = (() => {
     // =========================================================
     //  Learner Data View
     // =========================================================
-    async function viewLearnerData(analystId, courseId) {
+    /* `learnerKey` is "analyst:12" or "user:257". Split from the right, because
+       only the id is guaranteed free of colons. */
+    async function viewLearnerData(learnerKey, courseId) {
         const body = document.getElementById('learnerDataBody');
         body.innerHTML = '<div style="text-align:center; padding:40px; color:#999;">' + esc(window.t('lms.learner_modal.loading')) + '</div>';
         openModal('learnerDataModal');
 
+        const cut  = String(learnerKey).lastIndexOf(':');
+        const type = cut > -1 ? String(learnerKey).slice(0, cut) : 'analyst';
+        const id   = cut > -1 ? String(learnerKey).slice(cut + 1) : String(learnerKey);
+
         try {
-            const r = await fetch(API_BASE + 'learner_data.php?analyst_id=' + analystId + '&course_id=' + courseId);
+            const r = await fetch(API_BASE + 'learner_data.php?learner_type=' + encodeURIComponent(type)
+                                  + '&learner_id=' + encodeURIComponent(id) + '&course_id=' + courseId);
             const d = await r.json();
             if (!d.success) {
                 body.innerHTML = '<div style="color:#c33; padding:20px;">' + esc(d.error) + '</div>';

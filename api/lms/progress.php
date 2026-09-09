@@ -171,7 +171,6 @@ foreach ($rows as $r) {
     if ($keepEarlier) $byLearnerCourse[$key]['deadline'] = $r['deadline'];
 }
 
-$now      = new DateTime('now', new DateTimeZone('UTC'));
 $filtered = [];
 $learners = [];
 
@@ -187,13 +186,10 @@ foreach ($byLearnerCourse as $row) {
         ? 'Everyone on the portal'
         : ($groupNames[$row['target_type'] . ':' . $row['group_id']] ?? '—');
 
-    $row['is_overdue'] = false;
-    if (!empty($row['deadline'])) {
-        $deadline = new DateTime($row['deadline'], new DateTimeZone('UTC'));
-        if ($now > $deadline && !in_array($row['status'], ['completed', 'passed'], true)) {
-            $row['is_overdue'] = true;
-        }
-    }
+    // Shared with the learner's own view — the manager's list saying somebody is
+    // late while their own screen says they are not is the one disagreement
+    // guaranteed to end up in a conversation.
+    $row['is_overdue'] = lmsIsOverdue($row['deadline'] ?? null, (string)$row['status']);
 
     // Who the current course/group selection covers, for the learner dropdown —
     // built BEFORE the learner filter is applied, or choosing somebody would

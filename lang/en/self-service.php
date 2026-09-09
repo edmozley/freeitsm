@@ -19,10 +19,39 @@ return [
     // Raising a ticket and requesting something are ACTIONS, not destinations, so
     // they are buttons on the dashboard rather than nav items. 'new_ticket' is kept
     // because the pages still use it for their own headings.
+    // The portal end of the LMS. The tab only appears for somebody who actually
+    // has a course assigned — see self-service/includes/header.php.
+    'training' => [
+        'title'    => 'Training',
+        'heading'  => 'My training',
+        'subtitle' => 'Courses you have been asked to complete.',
+        'loading'  => 'Loading your courses…',
+        'none'     => 'You have no training to do at the moment.',
+        'failed'   => 'Your courses could not be loaded. Please try again shortly.',
+        'start'    => 'Start',
+        'resume'   => 'Continue',
+        'review'   => 'Review',
+        'back'     => 'Back to training',
+        'due'      => 'Due {date}',
+        // "Lesson 2 of 3". Nothing stores a percentage, so the position in the
+        // list is what is shown beside the bar rather than a made-up figure.
+        'step'     => 'Lesson {current} of {total}',
+        'unplayable' => 'This course cannot be opened. Please tell the service desk.',
+        'status' => [
+            'not_started' => 'Not started',
+            'in_progress' => 'In progress',
+            'completed'   => 'Completed',
+            'passed'      => 'Passed',
+            'failed'      => 'Not passed',
+            'overdue'     => 'Overdue',
+        ],
+    ],
+
     'nav' => [
         'dashboard'   => 'Dashboard',
         'tickets'     => 'My Tickets',
         'help_centre' => 'Knowledge',
+        'training'    => 'Training',
         'help'        => 'Help',
         // Screen-reader label for the phone nav drawer's toggle.
         'menu'        => 'Menu',

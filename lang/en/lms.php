@@ -177,7 +177,9 @@ return [
         'heading'        => 'Assignments',
         'assign'         => 'Assign',
         'col_course'     => 'Course',
-        'col_group'      => 'Group',
+        // "Group" no longer covers it — a course can go to every portal user,
+        // who are not a group and never were.
+        'col_group'      => 'Who for',
         'col_deadline'   => 'Deadline',
         'col_assigned_by'=> 'Assigned By',
         'col_actions'    => 'Actions',
@@ -185,13 +187,15 @@ return [
         'empty'          => 'No courses assigned yet',
         'no_deadline'    => 'None',
         'delete'         => 'Delete',
+        'everyone'       => 'Everyone on the portal',
     ],
 
     'progress' => [
         'heading'        => 'Progress',
         'all_courses'    => 'All courses',
         'all_groups'     => 'All groups',
-        'all_analysts'   => 'All analysts',
+        // Not "All analysts" any more — the list holds portal users too.
+        'all_analysts'   => 'Everyone',
         'all_statuses'   => 'All statuses',
         'col_analyst'    => 'Analyst',
         'col_course'     => 'Course',
@@ -240,11 +244,11 @@ return [
     'assign_modal' => [
         'title'          => 'Assign Course',
         'field_course'   => 'Course *',
-        'field_group'    => 'Group *',
+        'field_group'    => 'Who for *',
         'field_deadline' => 'Deadline',
         'deadline_hint'  => 'Leave blank for no deadline',
         'select_course'  => 'Select course...',
-        'select_group'   => 'Select group...',
+        'select_group'   => 'Select who it is for...',
         'cancel'         => 'Cancel',
         'submit'         => 'Assign',
     ],

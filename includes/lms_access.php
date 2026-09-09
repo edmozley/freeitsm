@@ -87,6 +87,39 @@ function lmsCanManage(PDO $conn, int $analystId): bool {
 }
 
 /**
+ * Has this course's deadline passed?
+ *
+ * 🔴 A DEADLINE IS A DAY, NOT AN INSTANT — and this used to treat it as one.
+ * `lms_course_assignments.deadline` is filled in by an <input type="date">, so
+ * what lands in the column is midnight: "due 9 September" is stored
+ * `2026-09-09 00:00:00`. Comparing that to `now` as a UTC instant made a course
+ * OVERDUE THE MOMENT ITS DUE DATE BEGAN — somebody told they had until the 9th
+ * opened it on the morning of the 9th and found it already in red. Measured on
+ * a real assignment before this was changed.
+ *
+ * So the comparison is between CALENDAR DAYS, in the installation's own zone
+ * (the same frame naive_now() reads local "now" in): you are overdue once the
+ * day you were given has finished, which is what everybody means by a deadline.
+ * The third kind of stored date — no time, no zone. See
+ * Timezones-and-Time-Handling.
+ *
+ * ⚠️ Rows seeded with a real time of day (the demo data has a few at 17:00) are
+ * treated the same way, which is the kinder reading and keeps one rule.
+ *
+ * 🔑 One function, called by both the learner's view and the manager's Progress
+ * tab, because the two screens disagreeing about whether somebody is late is
+ * worse than either of them being wrong on its own.
+ */
+function lmsIsOverdue(?string $deadline, string $status): bool
+{
+    if (empty($deadline)) return false;
+    if (in_array($status, ['completed', 'passed'], true)) return false;
+
+    // 'YYYY-MM-DD' either way, so a string comparison is a date comparison.
+    return substr($deadline, 0, 10) < date('Y-m-d');
+}
+
+/**
  * Are the shared people groups available on this install?
  *
  * ⚠️ Guarded because the assignment query joins `knowledge_user_groups`, and an
@@ -240,15 +273,8 @@ function lmsMyCourses(PDO $conn, LmsLearner $learner): array {
 
     lmsAttachLessonProgress($conn, $rows);
 
-    $now = new DateTime('now', new DateTimeZone('UTC'));
     foreach ($rows as &$row) {
-        $row['is_overdue'] = false;
-        if (!empty($row['deadline'])) {
-            $deadline = new DateTime($row['deadline'], new DateTimeZone('UTC'));
-            if ($now > $deadline && !in_array($row['status'], ['completed', 'passed'], true)) {
-                $row['is_overdue'] = true;
-            }
-        }
+        $row['is_overdue'] = lmsIsOverdue($row['deadline'] ?? null, (string)$row['status']);
     }
     unset($row);
 

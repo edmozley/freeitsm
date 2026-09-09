@@ -71,7 +71,13 @@
 
     function cardHtml(row) {
         const deadline = row.deadline
-            ? `<span class="myc-deadline ${row.is_overdue ? 'overdue' : ''}">${esc(window.t('lms.my.due'))} ${esc(fmtDate(row.deadline))}</span>`
+            // ⚠️ fmtNaiveDate, not fmtDate. A deadline is a picked calendar DAY
+            // stored at midnight, not an instant — running it through a timezone
+            // conversion moved the due date by a day for anyone whose display
+            // zone differs from the installation's, and made this page disagree
+            // with the Assignments tab (which has always used fmtNaiveDate)
+            // about the very same value.
+            ? `<span class="myc-deadline ${row.is_overdue ? 'overdue' : ''}">${esc(window.t('lms.my.due'))} ${esc(fmtNaiveDate(row.deadline))}</span>`
             : '';
         const score = (row.score_raw !== null && row.score_raw !== undefined && (row.status === 'passed' || row.status === 'failed'))
             ? `<span class="myc-score">${Math.round(row.score_raw)}%</span>`

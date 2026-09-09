@@ -221,7 +221,12 @@ const LMSPlayer = (() => {
             html += `</section>`;
         }
 
-        html += `<div class="lms-native-nav"><a href="./" class="btn btn-primary">${esc(window.t('lms.player.back'))}</a>
+        // Where "back" goes once they have finished. './' is the LMS console for
+        // an analyst; the portal has no console and must return to its own
+        // Training page, so the host page names it. Defaulted, not required, so
+        // the analyst player is unchanged by this.
+        const backTo = window.LMS_BACK_URL || './';
+        html += `<div class="lms-native-nav"><a href="${esc(backTo)}" class="btn btn-primary">${esc(window.t('lms.player.back'))}</a>
                  ${failed ? `<button class="btn btn-secondary" onclick="location.reload()">${esc(window.t('lms.player.retry'))}</button>` : ''}</div>`;
 
         const stage = document.getElementById('stage');

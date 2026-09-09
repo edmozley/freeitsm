@@ -49,7 +49,12 @@ require_once __DIR__ . '/../../includes/timezone.php';
 Tz::init();
 require_once __DIR__ . '/auth.php';            // redirects to login.php if not signed in
 
-$translationNamespaces = ['common', 'self-service'];
+/* ⚠️ ?? — a page may need MORE than the portal's own two namespaces, and this
+   used to overwrite whatever it had asked for. course.php embeds the LMS player,
+   whose markup and JS speak the `lms` namespace; with the assignment
+   unconditional, every one of its labels rendered as its own translation key
+   ("lms.player.next") on a page that otherwise looked perfectly fine. */
+$translationNamespaces = $translationNamespaces ?? ['common', 'self-service'];
 
 /**
  * The portal's navigation, in one place. Adding a page is now a single entry
@@ -67,8 +72,51 @@ $portalNav = [
     'tickets'     => ['href' => 'tickets.php',     'label' => t('self-service.nav.tickets')],
     // Named after the module it surfaces, so customers and analysts use one word.
     'help_centre' => ['href' => 'help-centre.php', 'label' => t('self-service.nav.help_centre')],
+    // ⚠️ SHOWN ONLY TO SOMEBODY WHO ACTUALLY HAS TRAINING. On an install that
+    // has never pushed a course to the portal — which is most of them — a
+    // permanent Training tab leading to an empty page is a worse answer than no
+    // tab at all. `cap` is resolved below.
+    'training'    => ['href' => 'training.php',    'label' => t('self-service.nav.training'), 'cap' => 'has_training'],
     'help'        => ['href' => 'help.php',        'label' => t('self-service.nav.help')],
 ];
+
+/**
+ * Resolve the optional 'cap' on a nav item. Documented since the nav was first
+ * centralised; this is the first item to use one.
+ *
+ * 🔑 One EXISTS query, and only for the item that asks for it. Training is the
+ * only conditional entry, so an install that never pushes a course to the portal
+ * pays for one indexed lookup per page and shows one fewer tab.
+ *
+ * ⚠️ FAILS CLOSED, and quietly. If the LMS tables are absent (a part-upgraded
+ * install, or the module never used) the lookup throws and the tab is simply not
+ * drawn — a portal page must not become a stack trace because a module somebody
+ * has never opened is mid-migration.
+ */
+$portalNavCap = function (string $cap) use ($ss_user_id) {
+    if ($cap !== 'has_training') return false;
+    try {
+        require_once __DIR__ . '/../../includes/lms_access.php';
+        $learner = LmsLearner::user((int)$ss_user_id);
+        if (!$learner) return false;
+        $conn = connectToDatabase();
+        list($reachSql, $params) = lmsAssignmentReachSql($conn, $learner);
+        $st = $conn->prepare("SELECT 1 FROM lms_course_assignments ca
+                               JOIN lms_courses c ON c.id = ca.course_id AND c.is_active = 1
+                              WHERE $reachSql LIMIT 1");
+        $st->execute($params);
+        return (bool)$st->fetchColumn();
+    } catch (Throwable $e) {
+        return false;
+    }
+};
+
+foreach ($portalNav as $navKey => $navItem) {
+    if (!empty($navItem['cap']) && !$portalNavCap($navItem['cap'])) {
+        unset($portalNav[$navKey]);
+    }
+}
+unset($navKey, $navItem);
 
 $activeNav  = $activeNav  ?? '';
 $bodyClass  = $bodyClass  ?? '';
