@@ -3763,6 +3763,19 @@ CREATE TABLE IF NOT EXISTS `knowledge_shortcuts` (
 -- engineers on site for a week needing one folder -- and routing that through the
 -- LMS to grant a document permission would be daft. `users` has no grouping of
 -- any kind today, so a table was needed regardless.
+--
+-- 📌 THE NAME IS NOW A HISTORICAL ONE. This is the product's general grouping of
+-- people -- analysts and portal users together -- and it is managed on
+-- tickets/users.php (the Groups tab), not anywhere in Knowledge. Knowledge is
+-- simply the first thing that grants access to one.
+--
+-- 🔴 DO NOT RENAME IT TO MATCH. db_verify only ever CREATEs tables: under a new
+-- name it would make an empty one and leave the populated one orphaned beside it,
+-- and every membership on the install would silently stop granting anything --
+-- with a green tick on the verification screen. The lookup in
+-- knowledgeViewerPrincipals() catches its own PDOException and reads a missing
+-- table as "no groups yet", so nothing would report the loss either. A slightly
+-- odd table name is the cheaper of the two problems, and it is invisible to users.
 CREATE TABLE IF NOT EXISTS `knowledge_user_groups` (
     `id`               INT NOT NULL AUTO_INCREMENT,
     `name`             VARCHAR(100) NOT NULL,

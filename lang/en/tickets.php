@@ -1661,6 +1661,57 @@ return [
             'password_help'              => 'Optional. If blank, the user can set their own password later via the self-service portal.',
             'confirm_delete'             => 'Delete user "{name}"? This cannot be undone.',
         ],
+
+        'tabs' => [
+            'people' => 'People',
+            'groups' => 'Groups',
+        ],
+
+        // Groups of people — analysts and portal users together. Knowledge grants
+        // folder access to these; see api/tickets/user_groups.php.
+        'groups' => [
+            'search_placeholder' => 'Search groups...',
+            'count'              => '{count} groups',
+            'none'               => 'No groups yet',
+            'select_group'       => 'Select a group to see who is in it',
+            'member_count'       => '{count} members',
+            // Deliberately its own line rather than folded into the total: an
+            // expired membership is a row that has stopped counting, and a single
+            // number would hide the difference.
+            'expired_count'      => '{count} expired',
+            'members_section'    => 'Members ({count})',
+            'no_members'         => 'Nobody is in this group yet',
+            'no_description'     => 'No description',
+            'load_failed'        => 'Could not load this group',
+            'kind_analyst'       => 'Analyst',
+            'kind_user'          => 'Portal user',
+            'no_expiry'          => 'No end date',
+            'expires_on'         => 'Until {date}',
+            'expired_on'         => 'Expired {date}',
+            'add_placeholder'    => 'Search for someone to add...',
+            'no_matches'         => 'Nobody found',
+            'access_until'       => 'Access until',
+            'access_until_help'  => 'Leave the date blank for access that does not end. Set one and they drop out of the group by themselves at the end of that day.',
+            'add_failed'         => 'Could not add them to the group',
+            'remove_failed'      => 'Could not remove them from the group',
+            'confirm_remove'     => 'Remove this person from the group?',
+            'confirm_delete'     => 'Delete the group "{name}"? Anything it was given access to will stop being shared with its members.',
+            'hidden_members'     => 'This group also has {count} members outside the company you are viewing.',
+            'table' => [
+                'name'   => 'Name',
+                'kind'   => 'Type',
+                'access' => 'Access',
+            ],
+            'modal' => [
+                'add_title'               => 'Add group',
+                'edit_title'              => 'Edit group',
+                'name'                    => 'Name',
+                'name_placeholder'        => 'e.g. Finance',
+                'description'             => 'Description',
+                'description_placeholder' => 'e.g. Everyone in the finance team',
+                'description_help'        => 'Optional. Worth filling in — a group can be given access to knowledge folders, so the next person should be able to tell what it is for.',
+            ],
+        ],
     ],
 
     // tickets/calendar.php — scheduled-tickets calendar view

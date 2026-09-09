@@ -303,6 +303,135 @@ $translationNamespaces = ['common', 'tickets'];
         }
         /* Form fields follow the palette. */
     input, select, textarea { background: var(--surface, #fff); color: var(--text, #333); }
+
+        /* ---- People / Groups ------------------------------------------------
+           The left pane holds two lists now, so its heading becomes a tab strip.
+           Same two-pane page either way: pick something on the left, read it on
+           the right. */
+        .pane-tabs { display: flex; gap: 4px; }
+
+        .pane-tab {
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            border-radius: 0;
+            padding: 6px 10px;
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-muted, #666);
+            cursor: pointer;
+        }
+
+        .pane-tab.active {
+            color: var(--accent, #0078d4);
+            border-bottom-color: var(--accent, #0078d4);
+        }
+
+        .group-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border-soft, #eee);
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .group-item:hover { background-color: var(--surface-2, #f5f5f5); }
+
+        .group-item.selected {
+            background-color: var(--accent-soft, #e8f4fc);
+            border-left: 3px solid var(--accent, #0078d4);
+        }
+
+        .group-name { font-weight: 600; color: var(--text, #333); margin-bottom: 4px; }
+        .group-desc { font-size: 13px; color: var(--text-muted, #666); margin-bottom: 4px; }
+        .group-meta { font-size: 12px; color: var(--text-dim, #888); display: flex; gap: 15px; }
+
+        .member-row {
+            display: grid;
+            grid-template-columns: 1fr 130px 160px 90px;
+            gap: 10px;
+            align-items: center;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--border-soft, #eee);
+        }
+
+        .member-row-header {
+            font-weight: 600;
+            background-color: var(--surface-hover, #f0f0f0);
+            font-size: 12px;
+            color: var(--text-muted, #666);
+            text-transform: uppercase;
+        }
+
+        .member-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .member-secondary { font-size: 12px; color: var(--text-dim, #888); }
+
+        .member-kind {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            background-color: var(--surface-3, #f8f9fa);
+            border: 1px solid var(--border, #e0e0e0);
+            color: var(--text-muted, #666);
+        }
+
+        /* An expired membership is still a ROW — the clock is applied when access
+           is checked, not when it lapses — so it stays on screen and says so.
+           --danger-text, not --danger: the latter does not exist in theme.css. */
+        .member-expired { color: var(--danger-text, #c0392b); }
+
+        .member-add {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border, #e0e0e0);
+            background-color: var(--surface-3, #f8f9fa);
+        }
+
+        .member-add-search { position: relative; flex: 1; min-width: 220px; }
+
+        .member-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            z-index: 20;
+            display: none;
+            max-height: 260px;
+            overflow-y: auto;
+            background-color: var(--surface, #fff);
+            border: 1px solid var(--border, #e0e0e0);
+            border-top: none;
+            box-shadow: var(--shadow, 0 2px 8px rgba(0,0,0,0.12));
+        }
+
+        .member-results.open { display: block; }
+
+        .member-result {
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid var(--border-soft, #eee);
+        }
+
+        .member-result:hover { background-color: var(--surface-2, #f5f5f5); }
+        .member-result-name { font-weight: 500; color: var(--text, #333); }
+        .member-result-meta { font-size: 12px; color: var(--text-dim, #888); }
+
+        .member-add-until { display: flex; flex-direction: column; gap: 4px; }
+        .member-add-until label { font-size: 12px; color: var(--text-muted, #666); }
+
+        /* Members this analyst's company filter removed. Said out loud rather
+           than silently dropped — an access list you cannot see all of is worth
+           knowing about. */
+        .hidden-note {
+            padding: 10px 20px;
+            font-size: 13px;
+            color: var(--text-muted, #666);
+            background-color: var(--surface-3, #f8f9fa);
+            border-bottom: 1px solid var(--border, #e0e0e0);
+        }
     </style>
 </head>
 <body>
@@ -313,8 +442,16 @@ $translationNamespaces = ['common', 'tickets'];
         <div class="users-list-container">
             <div class="users-list-header">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                    <h3 style="margin: 0;"><?php echo htmlspecialchars(t('tickets.users.list_title')); ?></h3>
-                    <button class="add-btn" onclick="openUserModal()"><?php echo htmlspecialchars(t('common.add')); ?></button>
+                    <div class="pane-tabs" role="tablist">
+                        <button type="button" class="pane-tab active" id="tabPeople" role="tab" aria-selected="true"
+                                onclick="setPaneTab('people')"><?php echo htmlspecialchars(t('tickets.users.tabs.people')); ?></button>
+                        <button type="button" class="pane-tab" id="tabGroups" role="tab" aria-selected="false"
+                                onclick="setPaneTab('groups')"><?php echo htmlspecialchars(t('tickets.users.tabs.groups')); ?></button>
+                    </div>
+                    <?php /* One Add button for both lists — it adds whatever the active tab is showing.
+                             Group management is administrator-only (see api/tickets/user_groups.php), so
+                             on the Groups tab it is hidden for everyone else rather than offered and refused. */ ?>
+                    <button class="add-btn" id="paneAddBtn" onclick="paneAdd()"><?php echo htmlspecialchars(t('common.add')); ?></button>
                 </div>
                 <input type="text" class="search-box" id="userSearch" placeholder="<?php echo htmlspecialchars(t('tickets.users.search_placeholder')); ?>" oninput="searchUsers()">
                 <div class="user-count" id="userCount"></div>
@@ -379,11 +516,49 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
+    <!-- Group Modal -->
+    <div class="modal" id="groupModal">
+        <div class="modal-content">
+            <div class="modal-header" id="groupModalTitle"><?php echo htmlspecialchars(t('tickets.users.groups.modal.add_title')); ?></div>
+            <form id="groupForm" autocomplete="off">
+                <input type="hidden" id="groupId">
+
+                <div class="form-group">
+                    <label for="groupNameField"><?php echo htmlspecialchars(t('tickets.users.groups.modal.name')); ?></label>
+                    <input type="text" id="groupNameField" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.users.groups.modal.name_placeholder')); ?>" maxlength="100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="groupDescField"><?php echo htmlspecialchars(t('tickets.users.groups.modal.description')); ?></label>
+                    <input type="text" id="groupDescField" autocomplete="off" placeholder="<?php echo htmlspecialchars(t('tickets.users.groups.modal.description_placeholder')); ?>" maxlength="500">
+                    <small style="color: var(--text-muted, #666); display: block; margin-top: 4px;"><?php echo htmlspecialchars(t('tickets.users.groups.modal.description_help')); ?></small>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeGroupModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         const API_BASE = '../api/tickets/';
         let users = [];
         let selectedUserId = null;
         let searchTimeout = null;
+
+        // ---- People / Groups -------------------------------------------------
+        // Which list the left pane is showing. The right pane follows it: a
+        // person shows their tickets, a group shows its members.
+        let paneTab = 'people';
+        let groups = [];
+        let selectedGroupId = null;
+        // Whether this analyst may CHANGE groups. Answered by the server on every
+        // load rather than guessed from the session — the page only uses it to
+        // decide what to draw, and every write is re-checked server-side.
+        let canManageGroups = false;
+        let memberSearchTimeout = null;
 
         // Companies, for the modal's picker. Loaded once; stays empty (and the
         // picker stays hidden) on a single-company install.
@@ -393,6 +568,10 @@ $translationNamespaces = ['common', 'tickets'];
         document.addEventListener('DOMContentLoaded', function() {
             loadUsers();
             loadUserCompanies();
+            // Loaded up front rather than when the tab is first opened: the answer
+            // carries `can_manage`, which decides whether the Add button is drawn
+            // at all, and a button that appears a moment later reads as a glitch.
+            loadGroups();
         });
 
         // Only the companies THIS analyst can reach — the picker must never offer
@@ -477,8 +656,14 @@ $translationNamespaces = ['common', 'tickets'];
             `).join('');
         }
 
-        // Search users with debounce
+        // Search whichever list is showing. People are searched on the server
+        // (there can be thousands); groups are filtered here, because an install
+        // has a handful and a round trip per keystroke would be silly.
         function searchUsers() {
+            if (paneTab === 'groups') {
+                renderGroupsList();
+                return;
+            }
             clearTimeout(searchTimeout);
             searchTimeout = setTimeout(() => {
                 const search = document.getElementById('userSearch').value;
@@ -714,6 +899,398 @@ $translationNamespaces = ['common', 'tickets'];
                 showToast('Delete failed: ' + err.message, 'error');
             }
         }
+
+        // =====================================================================
+        // GROUPS
+        //
+        // A group is a named bag of analysts and portal users. Knowledge already
+        // grants folder access to one; this is where they get made. See the
+        // header of api/tickets/user_groups.php for why writes are admin-only.
+        // =====================================================================
+
+        const GROUPS_API = API_BASE + 'user_groups.php';
+
+        function setPaneTab(tab) {
+            paneTab = tab;
+            document.getElementById('tabPeople').classList.toggle('active', tab === 'people');
+            document.getElementById('tabGroups').classList.toggle('active', tab === 'groups');
+            document.getElementById('tabPeople').setAttribute('aria-selected', tab === 'people');
+            document.getElementById('tabGroups').setAttribute('aria-selected', tab === 'groups');
+
+            const search = document.getElementById('userSearch');
+            search.value = '';
+            search.placeholder = tab === 'groups'
+                ? t('tickets.users.groups.search_placeholder')
+                : t('tickets.users.search_placeholder');
+
+            // Hidden rather than disabled on the Groups tab for a non-admin: a
+            // greyed button invites a click and then explains a refusal, which is
+            // a worse answer than not offering it.
+            const addBtn = document.getElementById('paneAddBtn');
+            addBtn.style.display = (tab === 'groups' && !canManageGroups) ? 'none' : '';
+
+            const detail = document.getElementById('userDetail');
+            if (tab === 'groups') {
+                selectedUserId = null;
+                renderGroupsList();
+                detail.innerHTML = `<div class="empty-state">${escapeHtml(t('tickets.users.groups.select_group'))}</div>`;
+            } else {
+                selectedGroupId = null;
+                loadUsers();
+                detail.innerHTML = `<div class="empty-state">${escapeHtml(t('tickets.users.select_user'))}</div>`;
+            }
+        }
+
+        // The Add button belongs to whichever list is showing.
+        function paneAdd() {
+            if (paneTab === 'groups') openGroupModal();
+            else openUserModal();
+        }
+
+        async function loadGroups() {
+            try {
+                const r = await fetch(`${GROUPS_API}?action=list`);
+                const d = await r.json();
+                if (!d.success) { console.error('Error loading groups:', d.error); return; }
+                groups = d.groups || [];
+                canManageGroups = !!d.can_manage;
+                if (paneTab === 'groups') renderGroupsList();
+            } catch (e) {
+                console.error('Error loading groups:', e);
+            }
+        }
+
+        function renderGroupsList() {
+            const container = document.getElementById('usersList');
+            const countEl = document.getElementById('userCount');
+            const term = document.getElementById('userSearch').value.trim().toLowerCase();
+
+            const shown = term
+                ? groups.filter(g => (g.name || '').toLowerCase().includes(term)
+                                  || (g.description || '').toLowerCase().includes(term))
+                : groups;
+
+            countEl.textContent = t('tickets.users.groups.count', { count: shown.length });
+
+            if (shown.length === 0) {
+                container.innerHTML = `<div class="empty-state">${escapeHtml(t('tickets.users.groups.none'))}</div>`;
+                return;
+            }
+
+            container.innerHTML = shown.map(g => `
+                <div class="group-item ${selectedGroupId == g.id ? 'selected' : ''}" onclick="selectGroup(${g.id})">
+                    <div class="group-name">${escapeHtml(g.name)}</div>
+                    ${g.description ? `<div class="group-desc">${escapeHtml(g.description)}</div>` : ''}
+                    <div class="group-meta">
+                        <span>${escapeHtml(t('tickets.users.groups.member_count', { count: g.member_count }))}</span>
+                        ${g.expired_count ? `<span class="member-expired">${escapeHtml(t('tickets.users.groups.expired_count', { count: g.expired_count }))}</span>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function selectGroup(groupId) {
+            selectedGroupId = groupId;
+            renderGroupsList();
+
+            const detail = document.getElementById('userDetail');
+            detail.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+            try {
+                const r = await fetch(`${GROUPS_API}?action=get&id=${encodeURIComponent(groupId)}`);
+                const d = await r.json();
+                if (!d.success) {
+                    detail.innerHTML = `<div class="empty-state">${escapeHtml(d.error || t('tickets.users.groups.load_failed'))}</div>`;
+                    return;
+                }
+                renderGroupDetail(d);
+            } catch (e) {
+                detail.innerHTML = `<div class="empty-state">${escapeHtml(t('tickets.users.groups.load_failed'))}</div>`;
+            }
+        }
+
+        function renderGroupDetail(data) {
+            const g = data.group;
+            const members = data.members || [];
+            const canManage = !!data.can_manage;
+
+            const kindLabels = {
+                analyst: t('tickets.users.groups.kind_analyst'),
+                user:    t('tickets.users.groups.kind_user')
+            };
+
+            const rows = members.map(m => {
+                // An expired row is shown, struck through in words rather than
+                // removed: the membership still exists, it has simply stopped
+                // counting. Deleting it on expiry would erase the record of who
+                // was given access and when.
+                // ⚠️ fmtNaiveDate on `expires_on`, NOT formatDate on `expires_at`.
+                // The server has already converted the instant back to the day it
+                // was picked on; running that through a zone conversion again is
+                // what made "until the 30th" read as "until the 1st". Measured —
+                // the two disagreed by a day for eight months of the year.
+                const until = m.expires_on
+                    ? `<span class="${m.is_expired ? 'member-expired' : ''}">${escapeHtml(
+                        m.is_expired
+                            ? t('tickets.users.groups.expired_on', { date: fmtNaiveDate(m.expires_on) })
+                            : t('tickets.users.groups.expires_on', { date: fmtNaiveDate(m.expires_on) })
+                      )}</span>`
+                    : `<span style="color: var(--text-dim, #888);">${escapeHtml(t('tickets.users.groups.no_expiry'))}</span>`;
+
+                return `
+                    <div class="member-row">
+                        <div class="member-name">
+                            <div>${escapeHtml(m.name || t('tickets.users.unknown_name'))}</div>
+                            ${m.secondary ? `<div class="member-secondary">${escapeHtml(m.secondary)}</div>` : ''}
+                        </div>
+                        <div><span class="member-kind">${escapeHtml(kindLabels[m.member_type] || m.member_type)}</span></div>
+                        <div>${until}</div>
+                        <div>${canManage ? `<button class="btn btn-secondary" onclick="removeMember('${escapeHtml(m.member_type)}', ${m.member_id})">${escapeHtml(t('common.remove'))}</button>` : ''}</div>
+                    </div>
+                `;
+            }).join('');
+
+            document.getElementById('userDetail').innerHTML = `
+                <div class="user-detail-header">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 16px;">
+                        <div>
+                            <h2 class="user-detail-name">${escapeHtml(g.name)}</h2>
+                            <div class="user-detail-email">${escapeHtml(g.description || t('tickets.users.groups.no_description'))}</div>
+                        </div>
+                        ${canManage ? `<div style="display: flex; gap: 8px; flex-shrink: 0;">
+                            <button class="btn btn-secondary" onclick="openGroupModal(${g.id})">${escapeHtml(t('common.edit'))}</button>
+                            <button class="btn btn-secondary" onclick="deleteGroup(${g.id})">${escapeHtml(t('common.delete'))}</button>
+                        </div>` : ''}
+                    </div>
+                </div>
+
+                ${canManage ? `
+                <div class="member-add">
+                    <div class="member-add-search">
+                        <input type="text" class="search-box" id="memberSearch" autocomplete="off"
+                               placeholder="${escapeHtml(t('tickets.users.groups.add_placeholder'))}"
+                               oninput="searchMembers()">
+                        <div class="member-results" id="memberResults"></div>
+                    </div>
+                    <div class="member-add-until">
+                        <label for="memberUntil">${escapeHtml(t('tickets.users.groups.access_until'))}</label>
+                        <input type="date" id="memberUntil">
+                    </div>
+                </div>
+                <div class="hidden-note" style="background: none; border: none; padding-top: 8px; padding-bottom: 0;">
+                    ${escapeHtml(t('tickets.users.groups.access_until_help'))}
+                </div>` : ''}
+
+                ${data.hidden_count ? `<div class="hidden-note">${escapeHtml(t('tickets.users.groups.hidden_members', { count: data.hidden_count }))}</div>` : ''}
+
+                <div class="tickets-section">
+                    <div class="tickets-header">${escapeHtml(t('tickets.users.groups.members_section', { count: members.length }))}</div>
+                    <div class="tickets-list">
+                        ${members.length === 0
+                            ? `<div class="empty-state">${escapeHtml(t('tickets.users.groups.no_members'))}</div>`
+                            : `<div class="member-row member-row-header">
+                                   <span>${escapeHtml(t('tickets.users.groups.table.name'))}</span>
+                                   <span>${escapeHtml(t('tickets.users.groups.table.kind'))}</span>
+                                   <span>${escapeHtml(t('tickets.users.groups.table.access'))}</span>
+                                   <span></span>
+                               </div>${rows}`}
+                    </div>
+                </div>
+            `;
+        }
+
+        // ---- The member picker ----------------------------------------------
+
+        function searchMembers() {
+            clearTimeout(memberSearchTimeout);
+            memberSearchTimeout = setTimeout(async () => {
+                const box = document.getElementById('memberSearch');
+                const results = document.getElementById('memberResults');
+                if (!box || !results) return;
+
+                const q = box.value.trim();
+                if (q.length < 2) { results.classList.remove('open'); results.innerHTML = ''; return; }
+
+                try {
+                    const r = await fetch(`${GROUPS_API}?action=search&q=${encodeURIComponent(q)}`);
+                    const d = await r.json();
+                    if (!d.success || !d.results.length) {
+                        results.innerHTML = `<div class="member-result" style="cursor: default;">${escapeHtml(t('tickets.users.groups.no_matches'))}</div>`;
+                        results.classList.add('open');
+                        return;
+                    }
+                    const kindLabels = {
+                        analyst: t('tickets.users.groups.kind_analyst'),
+                        user:    t('tickets.users.groups.kind_user')
+                    };
+                    results.innerHTML = d.results.map(p => `
+                        <div class="member-result" onclick="addMember('${escapeHtml(p.member_type)}', ${p.member_id})">
+                            <div class="member-result-name">${escapeHtml(p.name)}</div>
+                            <div class="member-result-meta">${escapeHtml(kindLabels[p.member_type] || p.member_type)}${p.secondary ? ' · ' + escapeHtml(p.secondary) : ''}</div>
+                        </div>
+                    `).join('');
+                    results.classList.add('open');
+                } catch (e) {
+                    results.classList.remove('open');
+                }
+            }, 300);
+        }
+
+        async function addMember(memberType, memberId) {
+            const untilEl = document.getElementById('memberUntil');
+            // Read it now, because the redraw below destroys the box it lives in.
+            const keepUntil = untilEl ? untilEl.value : '';
+            try {
+                const r = await fetch(GROUPS_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'add_member',
+                        id: selectedGroupId,
+                        member_type: memberType,
+                        member_id: memberId,
+                        expires_on: keepUntil
+                    })
+                });
+                const d = await r.json();
+                if (!d.success) { showToast(d.error || t('tickets.users.groups.add_failed'), 'error'); return; }
+
+                await selectGroup(selectedGroupId);
+                await loadGroups();
+
+                // ⚠️ PUT THE DATE BACK. selectGroup() redraws the whole detail pane,
+                // so the search box and the date box are new elements — clearing the
+                // old ones would have done nothing, and the date would silently
+                // empty itself between one person and the next.
+                //
+                // 🔑 That is not cosmetic. Adding three contractors for the same
+                // fortnight is the ordinary case, and a date box that resets after
+                // the first one is exactly how the other two get PERMANENT access to
+                // whatever this group opens. Caught by driving the real page: the
+                // comment here used to claim the date was kept, and it was not.
+                const boxAfter = document.getElementById('memberSearch');
+                const untilAfter = document.getElementById('memberUntil');
+                if (untilAfter) untilAfter.value = keepUntil;
+                if (boxAfter) boxAfter.focus();
+            } catch (e) {
+                showToast(t('tickets.users.groups.add_failed'), 'error');
+            }
+        }
+
+        async function removeMember(memberType, memberId) {
+            if (!(await showConfirm({
+                title: 'Confirm',
+                message: t('tickets.users.groups.confirm_remove'),
+                okLabel: 'OK',
+                okClass: 'primary'
+            }))) return;
+
+            try {
+                const r = await fetch(GROUPS_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'remove_member', id: selectedGroupId, member_type: memberType, member_id: memberId })
+                });
+                const d = await r.json();
+                if (!d.success) { showToast(d.error || t('tickets.users.groups.remove_failed'), 'error'); return; }
+                await selectGroup(selectedGroupId);
+                await loadGroups();
+            } catch (e) {
+                showToast(t('tickets.users.groups.remove_failed'), 'error');
+            }
+        }
+
+        // ---- The group form --------------------------------------------------
+
+        function openGroupModal(groupId) {
+            const modal = document.getElementById('groupModal');
+            const title = document.getElementById('groupModalTitle');
+            const idField = document.getElementById('groupId');
+            const nameField = document.getElementById('groupNameField');
+            const descField = document.getElementById('groupDescField');
+
+            if (groupId) {
+                const g = groups.find(x => x.id == groupId);
+                title.textContent = t('tickets.users.groups.modal.edit_title');
+                idField.value = groupId;
+                nameField.value = g?.name || '';
+                descField.value = g?.description || '';
+            } else {
+                title.textContent = t('tickets.users.groups.modal.add_title');
+                idField.value = '';
+                nameField.value = '';
+                descField.value = '';
+            }
+            modal.classList.add('active');
+            nameField.focus();
+        }
+
+        function closeGroupModal() {
+            document.getElementById('groupModal').classList.remove('active');
+        }
+
+        document.getElementById('groupForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('groupId').value;
+
+            try {
+                const response = await fetch(GROUPS_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: id ? 'update' : 'create',
+                        id: id || null,
+                        name: document.getElementById('groupNameField').value.trim(),
+                        description: document.getElementById('groupDescField').value.trim()
+                    })
+                });
+                const data = await response.json();
+                if (!data.success) { showToast(data.error || 'Save failed', 'error'); return; }
+
+                closeGroupModal();
+                await loadGroups();
+                selectGroup(id ? Number(id) : data.id);
+            } catch (err) {
+                showToast('Save failed: ' + err.message, 'error');
+            }
+        });
+
+        async function deleteGroup(groupId) {
+            const g = groups.find(x => x.id == groupId);
+            const label = g?.name || `#${groupId}`;
+            if (!(await showConfirm({
+                title: 'Confirm',
+                message: t('tickets.users.groups.confirm_delete', { name: label }),
+                okLabel: 'OK',
+                okClass: 'primary'
+            }))) return;
+
+            try {
+                const response = await fetch(GROUPS_API, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'delete', id: groupId })
+                });
+                const data = await response.json();
+                if (!data.success) { showToast(data.error || 'Delete failed', 'error'); return; }
+
+                selectedGroupId = null;
+                document.getElementById('userDetail').innerHTML =
+                    `<div class="empty-state">${escapeHtml(t('tickets.users.groups.select_group'))}</div>`;
+                await loadGroups();
+            } catch (err) {
+                showToast('Delete failed: ' + err.message, 'error');
+            }
+        }
+
+        // Close the member picker when the pointer goes elsewhere. Without this it
+        // stays open over the member list underneath it.
+        document.addEventListener('click', function(e) {
+            const results = document.getElementById('memberResults');
+            if (!results || !results.classList.contains('open')) return;
+            if (e.target.closest('.member-add-search')) return;
+            results.classList.remove('open');
+        });
     </script>
 </body>
 </html>

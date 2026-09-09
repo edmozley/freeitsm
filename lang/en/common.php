@@ -75,6 +75,7 @@ return [
     'delete'       => 'Delete',
     'add'          => 'Add',
     'edit'         => 'Edit',
+    'remove'       => 'Remove',
     'close'        => 'Close',
     'dismiss'      => 'Dismiss',
     'copy'         => 'Copy',
