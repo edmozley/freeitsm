@@ -5598,7 +5598,10 @@ function openNoteModal() {
     // them at all — so say so here rather than leaving them to work it out.
     const hint = document.getElementById('noteSharedHint');
     if (hint) {
-        const noMailbox = currentEmail && !currentEmail.from_address && !currentEmail.requester_email;
+        // Same trap as Reply: on a message WE sent, from_address is our own
+        // mailbox and is always populated — so testing it directly would say
+        // "they can be emailed" about a requester who has no address at all.
+        const noMailbox = currentEmail && !correspondentAddress(currentEmail);
         hint.textContent = noMailbox
             ? t('tickets.note_modal.share_hint_no_mailbox')
             : t('tickets.note_modal.share_hint');
@@ -5726,6 +5729,44 @@ async function saveNote() {
 }
 
 // Open reply modal
+/**
+ * The address of the PERSON on a message — never our own service desk.
+ *
+ * ⚠️ from_address is not "the requester". It is whoever sent the message you
+ * are looking at, and currentEmail is simply whatever the reading pane happens
+ * to be showing. On a message WE sent, from_address is our own mailbox.
+ *
+ * Reply used to take from_address unconditionally. That is right for a message
+ * somebody sent us and exactly wrong for one we sent — so the moment a ticket
+ * had an auto-reply or a workflow reply on it, which is the first thing that
+ * happens to an emailed ticket, clicking Reply addressed the reply to
+ * support@… . Because that mailbox is monitored, the reply came straight back
+ * in as new inbound mail and the ticket talked to itself. Reported by Ed.
+ *
+ * The direction says which end of the message the human is on:
+ *
+ *   Inbound   from = them,  to = us     -> from
+ *   Portal    from = them,  to = them   -> from
+ *   Manual    from = them,  to = them   -> from
+ *   Outbound  from = US,    to = them   -> to
+ *
+ * Only 'Outbound' is ours, so only it is special-cased; a direction added later
+ * falls through to the long-standing behaviour rather than to a guess.
+ *
+ * NOTE the deliberate absence of a from_address fallback on the outbound
+ * branch. Falling back to it IS the bug, so an outbound message with no
+ * recorded recipient must come back empty and be refused, not quietly
+ * addressed to the service desk.
+ */
+function correspondentAddress(email) {
+    if (!email) return '';
+    const isOutbound = String(email.direction || '').toLowerCase() === 'outbound';
+    return (isOutbound
+                ? (email.to_recipients || email.requester_email)
+                : (email.from_address  || email.requester_email)
+           ) || '';
+}
+
 function openReplyModal() {
     // Channel tickets (WhatsApp etc.) reply via the inline composer, not email.
     if (currentTicketChannel && currentTicketChannel !== 'email') {
@@ -5745,7 +5786,7 @@ function openReplyModal() {
     // handed to Graph/Gmail/SMTP as a recipient. Fall back to the requester's
     // address if the payload has one, else leave it empty so the send is
     // refused rather than sent somewhere meaningless.
-    const replyTo = currentEmail.from_address || currentEmail.requester_email || '';
+    const replyTo = correspondentAddress(currentEmail);
     document.getElementById('emailTo').value = replyTo;
     document.getElementById('emailCc').value = '';
     if (!replyTo) {
