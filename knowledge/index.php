@@ -46,7 +46,7 @@ $sidebarHoverClass = $sidebarMode === 'hover' ? ' sidebar-hover' : '';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('knowledge.browser_title.main')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=66">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=67">
     <link rel="stylesheet" href="../assets/css/knowledge.css?v=26">
     <!-- Prism.js for code syntax highlighting -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">

@@ -33,7 +33,7 @@ $translationNamespaces = ['common', 'forms'];
          visibility. Mirrors includes/form_logic.php, which decides on submit. -->
     <script src="../assets/js/form-logic.js?v=2"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=66">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=67">
     <style>
         /* Module accent (teal). */
         body { --accent: var(--forms-accent, #00897b); --accent-hover: var(--forms-accent-hover, #00695c); }

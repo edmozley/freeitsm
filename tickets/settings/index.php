@@ -61,7 +61,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.settings.page_title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=66">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=67">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=2"></script>
     <script src="../../assets/js/ai-settings.js?v=2"></script>
@@ -7940,8 +7940,8 @@ $translationNamespaces = ['common', 'tickets'];
                         $('ttCompaniesBody').innerHTML = companies.map(c =>
                             '<tr data-id="' + c.id + '">' +
                                 '<td>' + escapeHtml(c.name) + '</td>' +
-                                '<td><select class="tt-ui">'  + optionsFor(c.ui)  + '</select></td>' +
-                                '<td><select class="tt-api">' + optionsFor(c.api) + '</select></td>' +
+                                '<td><select class="settings-table-select tt-ui">'  + optionsFor(c.ui)  + '</select></td>' +
+                                '<td><select class="settings-table-select tt-api">' + optionsFor(c.api) + '</select></td>' +
                             '</tr>').join('');
                     }
                 } catch (e) {
@@ -8079,13 +8079,14 @@ $translationNamespaces = ['common', 'tickets'];
                             (c.description ? '<span class="tc-desc">' + esc(c.description) + '</span>' : '') +
                             '</span></span></td>' +
                         '<td>' + (typeName ? esc(typeName) + (inherited ? ' <span class="tc-guide">&#8593;</span>' : '')
-                                           : '<span class="tc-pill">' + esc(T.anyType) + '</span>') + '</td>' +
+                                           : '<span class="tc-muted">' + esc(T.anyType) + '</span>') + '</td>' +
                         '<td>' + (c.is_portal_visible ? esc(T.portalYes) : esc(T.portalNo)) + '</td>' +
                         '<td>' + (c.display_order || 0) + '</td>' +
-                        '<td>' + (c.is_active ? esc(T.active) : '<span class="tc-pill">' + esc(T.off) + '</span>') +
-                            (c.in_use ? ' <span class="tc-pill">' + esc(T.inUse.replace(':count', c.in_use)) + '</span>' : '') + '</td>' +
-                        '<td><button type="button" class="btn-link tc-edit-cat">' + esc(T.edit) + '</button> ' +
-                            '<button type="button" class="btn-link tc-del-cat">' + esc(T.delete) + '</button></td>' +
+                        '<td>' + (c.is_active ? esc(T.active) : '<span class="tc-muted">' + esc(T.off) + '</span>') +
+                            (c.in_use ? '<span class="tc-count">' + esc(T.inUse.replace(':count', c.in_use)) + '</span>' : '') + '</td>' +
+                        // Icon buttons, same as every other list on this page.
+                        '<td><button type="button" class="action-btn tc-edit-cat" title="' + esc(T.edit) + '">' + TT_EDIT_SVG + '</button> ' +
+                            '<button type="button" class="action-btn delete tc-del-cat" title="' + esc(T.delete) + '">' + TT_DELETE_SVG + '</button></td>' +
                     '</tr>';
                 }).join('');
             }
@@ -8101,10 +8102,10 @@ $translationNamespaces = ['common', 'tickets'];
                         '<td>' + esc(k.name) + '</td>' +
                         '<td>' + esc(k.description || '') + '</td>' +
                         '<td>' + (k.display_order || 0) + '</td>' +
-                        '<td>' + (k.is_active ? esc(T.active) : '<span class="tc-pill">' + esc(T.off) + '</span>') +
-                            (k.in_use ? ' <span class="tc-pill">' + esc(T.inUse.replace(':count', k.in_use)) + '</span>' : '') + '</td>' +
-                        '<td><button type="button" class="btn-link tc-edit-code">' + esc(T.edit) + '</button> ' +
-                            '<button type="button" class="btn-link tc-del-code">' + esc(T.delete) + '</button></td>' +
+                        '<td>' + (k.is_active ? esc(T.active) : '<span class="tc-muted">' + esc(T.off) + '</span>') +
+                            (k.in_use ? '<span class="tc-count">' + esc(T.inUse.replace(':count', k.in_use)) + '</span>' : '') + '</td>' +
+                        '<td><button type="button" class="action-btn tc-edit-code" title="' + esc(T.edit) + '">' + TT_EDIT_SVG + '</button> ' +
+                            '<button type="button" class="action-btn delete tc-del-code" title="' + esc(T.delete) + '">' + TT_DELETE_SVG + '</button></td>' +
                     '</tr>').join('');
             }
 
@@ -8132,9 +8133,9 @@ $translationNamespaces = ['common', 'tickets'];
                         $('tcCompaniesBody').innerHTML = companies.map(c =>
                             '<tr data-id="' + c.id + '">' +
                                 '<td>' + esc(c.name) + '</td>' +
-                                '<td><select class="tc-c-category">'   + optionsFor(c.category)         + '</select></td>' +
-                                '<td><select class="tc-c-closure">'    + optionsFor(c.closure_category) + '</select></td>' +
-                                '<td><select class="tc-c-resolution">' + optionsFor(c.resolution_code)  + '</select></td>' +
+                                '<td><select class="settings-table-select tc-c-category">'   + optionsFor(c.category)         + '</select></td>' +
+                                '<td><select class="settings-table-select tc-c-closure">'    + optionsFor(c.closure_category) + '</select></td>' +
+                                '<td><select class="settings-table-select tc-c-resolution">' + optionsFor(c.resolution_code)  + '</select></td>' +
                             '</tr>').join('');
                     }
 
@@ -8325,8 +8326,11 @@ $translationNamespaces = ['common', 'tickets'];
                 const id  = parseInt(tr.dataset.id, 10);
                 const cat = categories.find(c => c.id === id);
                 if (!cat) return;
-                if (e.target.classList.contains('tc-edit-cat')) openCategory(cat);
-                if (e.target.classList.contains('tc-del-cat'))  del('delete_ticket_category.php', id, cat.name);
+                // ⚠️ closest(), NOT e.target.classList. The buttons hold an inline
+                // <svg>, so a click lands on the svg or its <path> and never on the
+                // button itself — a classList test on e.target silently does nothing.
+                if (e.target.closest('.tc-edit-cat')) openCategory(cat);
+                if (e.target.closest('.tc-del-cat'))  del('delete_ticket_category.php', id, cat.name);
             });
 
             $('tcCodeList').addEventListener('click', function (e) {
@@ -8335,8 +8339,8 @@ $translationNamespaces = ['common', 'tickets'];
                 const id   = parseInt(tr.dataset.id, 10);
                 const code = codes.find(c => c.id === id);
                 if (!code) return;
-                if (e.target.classList.contains('tc-edit-code')) openCode(code);
-                if (e.target.classList.contains('tc-del-code'))  del('delete_ticket_resolution_code.php', id, code.name);
+                if (e.target.closest('.tc-edit-code')) openCode(code);
+                if (e.target.closest('.tc-del-code'))  del('delete_ticket_resolution_code.php', id, code.name);
             });
 
             load();

@@ -4449,11 +4449,31 @@ body .tox-tinymce-aux {
 .tc-guide { color: var(--text-muted, #9aa5ad); user-select: none; }
 .tc-catname { font-weight: 500; }
 .tc-desc { display: block; font-size: 11px; color: var(--text-muted, #78868f); margin-top: 2px; }
-.tc-pill {
-    display: inline-block; padding: 2px 8px; border-radius: 999px;
-    font-size: 11px; line-height: 1.6;
-    background: var(--chip-bg, rgba(0,0,0,.05)); color: var(--text-muted, #666);
+/* Secondary values in a settings table — "Any type", a retired status.
+   ⚠️ SAME FONT SIZE as the rest of the row, only a quieter colour. These were
+   pills at 11px, which read as a different KIND of value sitting next to the
+   category name rather than the same kind said more quietly. */
+.tc-muted { color: var(--text-muted, #78868f); }
+/* The "3 in use" count, which genuinely IS an aside rather than a column value. */
+.tc-count { font-size: 11px; color: var(--text-muted, #9aa5ad); margin-left: 6px; }
+
+/* Selects inside a settings TABLE — shared by the Categories and Time tracking
+   tabs, hence the neutral name. `.form-group select` in inbox.css carries the
+   house padding, border and 14px type, but only inside a .form-group — a bare
+   <select> in a table cell falls back to the browser's own tiny control, which
+   is what the per-company switches were rendering as (and what the Time tracking
+   tab has always rendered as). Same values, minus the width:100%. */
+.settings-table-select {
+    padding: 10px;
+    border: 1px solid var(--border, #ddd);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: inherit;
+    min-width: 170px;
+    background: var(--surface, #fff);
+    color: var(--text, #333);
 }
+.settings-table-select:focus { outline: none; border-color: var(--accent, #0078d4); }
 .tc-empty { text-align: center; color: var(--text-muted, #666); padding: 22px 10px; }
 .tc-empty strong { display: block; margin-bottom: 4px; color: var(--text, #333); }
 

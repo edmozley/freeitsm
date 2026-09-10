@@ -91,7 +91,7 @@ foreach ($actionDefs as $actionKey => $def) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($id ? t('workflow.editor.edit_title') : t('workflow.editor.new_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=66">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=67">
     <link rel="stylesheet" href="../assets/css/workflow.css?v=11">
     <!-- Mobile layer LAST, after workflow.css (Techniques §9). -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=138">
