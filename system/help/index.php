@@ -47,7 +47,7 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Help</title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=68">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=69">
     <style>
         /* Pin the shared --accent (header/inbox.css primitives) to the System accent. */
         body {

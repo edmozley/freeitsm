@@ -262,11 +262,18 @@ body {
     font-weight: 600;
 }
 
-.folder-item.expanded .folder-icon::before {
+/* The generic folder glyph is for rows that have no icon of their own.
+   :empty is what distinguishes them: a department writes its icon span as
+   <span class="folder-icon"></span> with nothing inside — not even whitespace,
+   which would count as a text node and stop this matching — while All Tickets,
+   Unassigned, Snoozed, Trash and the analyst and team rows each put their own
+   emoji in it. Without the guard every one of those rendered twice: a folder
+   AND a moon, a folder AND a bin. Reported by Ed. */
+.folder-item.expanded .folder-icon:empty::before {
     content: '📂';
 }
 
-.folder-item:not(.expanded) .folder-icon::before {
+.folder-item:not(.expanded) .folder-icon:empty::before {
     content: '📁';
 }
 

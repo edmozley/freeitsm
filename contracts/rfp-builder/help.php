@@ -33,7 +33,7 @@ $translationNamespaces = ['common', 'contracts'];
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=68">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=69">
     <link rel="stylesheet" href="../../assets/css/help.css?v=3">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */

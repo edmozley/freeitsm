@@ -24,7 +24,7 @@ $translationNamespaces = ['common', 'reporting'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('reporting.logs.heading')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=68">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=69">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
     <script src="../../assets/js/tz.js?v=5"></script>
@@ -618,12 +618,44 @@ $translationNamespaces = ['common', 'reporting'];
             return div.innerHTML;
         }
 
+        // Every datetime in FreeITSM is stored UTC and rendered in the analyst's
+        // own zone - which this dump was not doing, because it printed the record
+        // exactly as stored. Sitting directly under a Date/time column that HAD
+        // been converted, the raw value read as simply wrong: an email sent at
+        // 22:37 UK showed as 23:37 in the column (correct, Vienna) and 21:36:52
+        // in the JSON (also correct, UTC). Two right answers look like one bug.
+        //
+        // So annotate rather than convert. The stored value stays first and
+        // unaltered, because a diagnostic dump that quietly rewrites what is in
+        // the database is worse than one that is hard to read - it just moves the
+        // confusion to whoever compares this against the table. Reported by Ed.
+        const UTC_STAMP = /^\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}/;
+
+        function annotateStamps(value) {
+            if (Array.isArray(value)) return value.map(annotateStamps);
+            if (value && typeof value === 'object') {
+                const out = {};
+                for (const k of Object.keys(value)) out[k] = annotateStamps(value[k]);
+                return out;
+            }
+            if (typeof value !== 'string' || !UTC_STAMP.test(value)) return value;
+
+            const d = parseUTCDate(value);
+            if (!d || isNaN(d.getTime())) return value;
+
+            const local = fmtDateTime(d);
+            // Say nothing extra when the analyst is on UTC anyway - the note would
+            // be pure noise, and repeating the same time twice invites the reader
+            // to hunt for a difference that is not there.
+            return local === value ? value + ' UTC' : value + ' UTC  (' + local + ' your time)';
+        }
+
         function showLogJson(index) {
             const log = currentLogs[index];
             if (!log) return;
 
             const jsonContent = document.getElementById('jsonContent');
-            jsonContent.textContent = JSON.stringify(log.details, null, 2);
+            jsonContent.textContent = JSON.stringify(annotateStamps(log.details), null, 2);
 
             document.getElementById('jsonModal').classList.add('active');
         }

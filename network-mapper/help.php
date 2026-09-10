@@ -33,7 +33,7 @@ $translationNamespaces = ['common', 'network-mapper'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('network-mapper.help.browser_title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=68">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=69">
     <link rel="stylesheet" href="../assets/css/help.css?v=3">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */
