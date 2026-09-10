@@ -10,6 +10,16 @@
  *   php scripts/sync_commits_website.php --url=https://freeitsm.co.uk/api/updates.php --key=THEKEY
  */
 
+// CLI ONLY. scripts/ is inside the web root on a normal install, and this one
+// POSTS to the freeitsm.co.uk write API with a key — so served over HTTP it
+// would let an anonymous request spend somebody's credential. It also reads
+// $argv, which does not exist under a web SAPI. In PHP rather than the web
+// server, so it holds on nginx and IIS where an .htaccess deny is ignored.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit("This script is command-line only.\n");
+}
+
 $args = [];
 foreach (array_slice($argv, 1) as $a) {
     if (preg_match('/^--([a-z-]+)(?:=(.*))?$/', $a, $m)) $args[$m[1]] = $m[2] ?? true;

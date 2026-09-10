@@ -30,6 +30,15 @@
  * Read-only. Touches nothing but the lang directory, and only reads.
  */
 
+// CLI ONLY — scripts/ sits inside the web root on a normal install. This one only
+// reads, but it enumerates the whole translation surface and a maintainer's tool
+// has no business answering a web request at all. In PHP rather than the web
+// server, so it holds on nginx and IIS where an .htaccess deny is ignored.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit("This script is command-line only.\n");
+}
+
 $root    = dirname(__DIR__);
 $langDir = $root . '/lang';
 

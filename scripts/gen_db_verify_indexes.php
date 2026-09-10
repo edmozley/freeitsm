@@ -15,6 +15,17 @@
  * Database-Verification-Developer-Guide wiki page).
  */
 
+// CLI ONLY. scripts/ is inside the web root on a normal install, and this one
+// WRITES includes/db_verify_indexes.php — a PHP file the application then
+// executes. Served over HTTP without this, an unauthenticated request could
+// rewrite code inside the app. The check is in PHP rather than in the web
+// server because it has to hold on nginx and IIS too, where an .htaccess deny
+// is simply ignored.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit("This script is command-line only.\n");
+}
+
 $root = dirname(__DIR__);
 $sqlPath = $root . '/database/freeitsm.sql';
 $outPath = $root . '/includes/db_verify_indexes.php';

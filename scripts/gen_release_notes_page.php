@@ -28,6 +28,14 @@
  * Run it as step 7 of the release procedure, after `releases/X.Y.Z.md` exists.
  */
 
+// CLI ONLY — scripts/ sits inside the web root on a normal install and this one
+// writes a file. In PHP rather than the web server, so it holds on nginx and IIS
+// where an .htaccess deny is ignored.
+if (PHP_SAPI !== 'cli') {
+    http_response_code(403);
+    exit("This script is command-line only.\n");
+}
+
 $appRoot     = dirname(__DIR__);
 $releasesDir = $appRoot . '/releases';
 $outPath     = 'C:/wamp64/www/freeitsm/releases.html';

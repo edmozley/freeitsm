@@ -154,6 +154,15 @@ FreeITSM uses [semantic versioning](https://semver.org), read in terms of what a
 
 The version you are running is shown on the **System** screen and stamped on the first line of every **Debug Tools** report. Released versions, with notes for each, are on the **[releases page](https://github.com/edmozley/freeitsm/releases)**.
 
+New code sometimes brings new tables or columns with it, applied from **System → Verify database**. If you upgrade by hand that is one click, but anything unattended — a container coming up on a new image tag, a scripted deploy, a machine updating itself overnight — cannot click it. For those, run it from the command line instead:
+
+```bash
+php scripts/db_verify_cli.php            # report what would change, change nothing
+php scripts/db_verify_cli.php --apply    # apply it
+```
+
+Preview is deliberately the default: this applies the same changes the button does, which includes dropping columns whose data has already been migrated elsewhere, so **take a backup first**. The script refuses to run over HTTP.
+
 Every release is also published as a Docker image, so you can run a known version rather than building from whatever source you happen to have. In `docker-compose.yml`, replace `build: .` with:
 
 ```yaml
