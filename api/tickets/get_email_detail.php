@@ -67,6 +67,12 @@ try {
                 t.priority_id,
                 t.department_id,
                 t.ticket_type_id,
+                -- Classification (#1540). Ids only: the reading pane resolves the
+                -- names from the same list it renders the dropdowns from, so a
+                -- joined name here would just be a second copy that could disagree.
+                t.category_id,
+                t.closure_category_id,
+                t.resolution_code_id,
                 t.assigned_analyst_id,
                 t.origin_id,
                 t.first_time_fix,

@@ -764,6 +764,36 @@ try {
         } catch (Exception $e) {}
     }
 
+    // Ticket classification (#1540): categories + resolution codes.
+    //
+    // ⚠️ The three `tickets` constraints carry NO ON DELETE action, so MySQL
+    // RESTRICTs. That is deliberate and load-bearing: a category or resolution
+    // code that any ticket still references cannot be deleted at all, so a
+    // closed ticket keeps the label it was closed with. Lists are RETIRED
+    // (is_active = 0), never removed. The settings screen checks first and
+    // explains why; this is the backstop for anything that doesn't.
+    //
+    // The category's own type link is SET NULL instead — deleting a ticket type
+    // must not silently destroy the categories underneath it. They fall back to
+    // "offered for every type", which is visible and fixable.
+    $ticketClassificationFks = [
+        ['ticket_categories',       'fk_ticket_categories_parent',         'ticket_categories',       'parent_id',           'id', null],
+        ['ticket_categories',       'fk_ticket_categories_type',           'ticket_types',            'ticket_type_id',      'id', 'SET NULL'],
+        ['ticket_categories',       'fk_ticket_categories_tenant',         'tenants',                 'tenant_id',           'id', 'CASCADE'],
+        ['ticket_resolution_codes', 'fk_ticket_resolution_codes_tenant',   'tenants',                 'tenant_id',           'id', 'CASCADE'],
+        ['tickets',                 'fk_tickets_category',                 'ticket_categories',       'category_id',         'id', null],
+        ['tickets',                 'fk_tickets_closure_category',         'ticket_categories',       'closure_category_id', 'id', null],
+        ['tickets',                 'fk_tickets_resolution_code',          'ticket_resolution_codes', 'resolution_code_id',  'id', null],
+    ];
+    foreach ($ticketClassificationFks as [$table, $name, $refTable, $col, $refCol, $onDelete]) {
+        if ($tableExists($table) && $tableExists($refTable) && !$fkExists($table, $name)) {
+            $action = $onDelete ? " ON DELETE {$onDelete}" : '';
+            try {
+                $conn->exec("ALTER TABLE {$table} ADD CONSTRAINT {$name} FOREIGN KEY ({$col}) REFERENCES {$refTable} ({$refCol}){$action}");
+            } catch (Exception $e) {}
+        }
+    }
+
     // An asset type's icon (#1146). SET NULL, never CASCADE: retiring a glyph
     // from the library must not delete the asset type that was using it.
     if ($tableExists('asset_types') && $tableExists('cmdb_icons') && !$fkExists('asset_types', 'fk_asset_types_icon')) {
@@ -2761,6 +2791,31 @@ try {
                 ('ISO',         '#2563eb', 20),
                 ('Environment', '#16a34a', 30)");
             $results[] = ['table' => 'task_tags', 'status' => 'seeded', 'details' => ['Inserted 3 default task tags']];
+        }
+    }
+
+    // Resolution codes (#1540). Seeded on an EMPTY table only, so an install that
+    // has curated its own list never has these pushed back in.
+    //
+    // ⚠️ ticket_categories is deliberately NOT seeded alongside this. A resolution
+    // code list is near enough universal across service desks; a CATEGORY tree is
+    // the one thing every organisation has to own, and a pre-seeded taxonomy is
+    // just someone else's wrong answer that has to be deleted first.
+    if ($tableExists('ticket_resolution_codes')) {
+        $cnt = (int) $conn->query("SELECT COUNT(*) FROM ticket_resolution_codes")->fetchColumn();
+        if ($cnt === 0) {
+            $conn->exec("INSERT INTO ticket_resolution_codes (name, description, display_order) VALUES
+                ('Fixed remotely',       'Resolved without visiting the user',              10),
+                ('Fixed on site',        'Resolved in person',                              20),
+                ('Hardware replaced',    'The faulty item was swapped out',                 30),
+                ('Configuration change', 'Settings changed on a system, device or account', 40),
+                ('Training given',       'Nothing was broken - the user was shown how',     50),
+                ('Access granted',       'A permission, licence or account was provided',   60),
+                ('No fault found',       'Investigated and working as expected',            70),
+                ('Duplicate',            'Already covered by another ticket',               80),
+                ('Withdrawn',            'The requester no longer needs it',                90),
+                ('Referred to supplier', 'Passed to a third party to resolve',             100)");
+            $results[] = ['table' => 'ticket_resolution_codes', 'status' => 'seeded', 'details' => ['Inserted 10 default resolution codes']];
         }
     }
 

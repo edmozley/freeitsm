@@ -246,6 +246,38 @@ function getCategoricalData($conn, $prop, $where, $params) {
         $sql = "SELECT COALESCE(d.name, 'Unassigned') AS label, COUNT(*) AS value FROM tickets t {$lookupJoin} LEFT JOIN departments d ON d.id = t.department_id {$where} GROUP BY d.name ORDER BY value DESC";
     } elseif ($prop === 'ticket_type') {
         $sql = "SELECT COALESCE(tt.name, 'Unassigned') AS label, COUNT(*) AS value FROM tickets t {$lookupJoin} LEFT JOIN ticket_types tt ON tt.id = t.ticket_type_id {$where} GROUP BY tt.name ORDER BY value DESC";
+    /* Classification (#1540). Four dimensions, and every one is a COUNT(*) over a
+       SINGLE left join — which is exactly why a ticket has ONE category and not
+       many. Join a many-to-many map here and a ticket with three categories is
+       counted three times: the slices stop summing to the ticket count and every
+       "X% of tickets were printing" on the page becomes wrong. Cross-cutting
+       labels are what tags are for, and tags must never reach this function.
+
+       'category' and 'closure_category' roll up to the ROOT, because a leaf-level
+       chart of a three-deep tree is two hundred slices nobody can read. The
+       ROOT-level answer is the one people actually ask for, and drilling in is a
+       filter rather than a different chart.
+
+       ⚠️ The empty label is 'Not categorised', NOT 'Unknown'. Unknown suggests the
+       value is unreadable; these tickets simply predate the field or were never
+       classified, which is a real and reportable state. */
+    } elseif ($prop === 'category' || $prop === 'closure_category') {
+        $col = $prop === 'category' ? 't.category_id' : 't.closure_category_id';
+        // Two joins: the leaf the ticket points at, then its root via parent_id.
+        // COALESCE picks the root's name when there is one, the leaf's when the
+        // category IS a root. Three levels collapse to the top in one hop because
+        // a level-3 row's parent is level 2 — so the roll-up walks to the
+        // GRANDparent as well, which is what the second self-join is for.
+        $sql = "SELECT COALESCE(croot.name, cmid.name, cleaf.name, 'Not categorised') AS label,
+                       COUNT(*) AS value
+                  FROM tickets t {$lookupJoin}
+                  LEFT JOIN ticket_categories cleaf ON cleaf.id = {$col}
+                  LEFT JOIN ticket_categories cmid  ON cmid.id  = cleaf.parent_id
+                  LEFT JOIN ticket_categories croot ON croot.id = cmid.parent_id
+                  {$where}
+                 GROUP BY label ORDER BY value DESC";
+    } elseif ($prop === 'resolution_code') {
+        $sql = "SELECT COALESCE(rc.name, 'Not recorded') AS label, COUNT(*) AS value FROM tickets t {$lookupJoin} LEFT JOIN ticket_resolution_codes rc ON rc.id = t.resolution_code_id {$where} GROUP BY rc.name ORDER BY value DESC";
     } elseif ($prop === 'analyst') {
         $sql = "SELECT COALESCE(a.full_name, 'Unassigned') AS label, COUNT(*) AS value FROM tickets t {$lookupJoin} LEFT JOIN analysts a ON a.id = t.assigned_analyst_id {$where} GROUP BY a.full_name ORDER BY value DESC";
     } elseif ($prop === 'owner') {
@@ -290,6 +322,16 @@ function getCategoricalWithSeries($conn, $prop, $seriesProp, $where, $params) {
     } elseif ($prop === 'origin') {
         $labelExpr = "COALESCE(o.name, 'Unknown')";
         $extraJoin = 'LEFT JOIN ticket_origins o ON o.id = t.origin_id';
+    } elseif ($prop === 'category' || $prop === 'closure_category') {
+        // Rolled up to the ROOT, same as getCategoricalData — see the note there.
+        $col = $prop === 'category' ? 't.category_id' : 't.closure_category_id';
+        $labelExpr = "COALESCE(croot.name, cmid.name, cleaf.name, 'Not categorised')";
+        $extraJoin = "LEFT JOIN ticket_categories cleaf ON cleaf.id = {$col}
+                      LEFT JOIN ticket_categories cmid  ON cmid.id  = cleaf.parent_id
+                      LEFT JOIN ticket_categories croot ON croot.id = cmid.parent_id";
+    } elseif ($prop === 'resolution_code') {
+        $labelExpr = "COALESCE(rc.name, 'Not recorded')";
+        $extraJoin = 'LEFT JOIN ticket_resolution_codes rc ON rc.id = t.resolution_code_id';
     } elseif ($prop === 'priority') {
         $labelExpr = "COALESCE(tp.name, 'Unknown')";
     } else {

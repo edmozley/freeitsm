@@ -139,6 +139,14 @@ return [
         'field_company'       => 'Company',
         'field_department'    => 'Department',
         'field_type'          => 'Type',
+        // Classification (#1540). Each of these only appears when its switch is
+        // on — see the Categories tab in Tickets settings.
+        'field_category'          => 'Category',
+        'field_closure_category'  => 'Category at close',
+        'field_resolution_code'   => 'Resolution',
+        // Shown when changing the ticket type drops a category that was tied to
+        // the old one. Says it out loud: a value vanishing quietly reads as a bug.
+        'category_cleared'        => 'The category was cleared - it belonged to the previous ticket type.',
         'field_status'        => 'Status',
         'field_priority'      => 'Priority',
         'field_origin'        => 'Origin',
@@ -680,6 +688,7 @@ return [
             'teams'           => 'Teams',
             'ticket_types'    => 'Ticket types',
             'ticket_origins'  => 'Ticket origins',
+            'categories'      => 'Categories',
             'statuses'        => 'Statuses',
             'priorities'      => 'Priorities',
             'sla'             => 'SLA',
@@ -723,6 +732,80 @@ return [
             'csat'             => 'Customer satisfaction surveys',
             'row_display'      => 'What your ticket rows show',
             'time_tracking'    => 'Time tracking',
+            'categories'       => 'Categories',
+        ],
+
+        // Ticket classification (#1540). Three fields, three questions:
+        // what it was REPORTED as, what it TURNED OUT to be, and HOW it ended.
+        'categories' => [
+            'intro' => 'A category says what a ticket is about — "Printing issues", "User onboarding" — and sits alongside the ticket type rather than replacing it. Each ticket has one, so the numbers in a report always add up.',
+
+            // The three switches, at the top of the tab.
+            'fields_heading'    => 'Which of these appear on a ticket',
+            'fields_intro'      => 'All three start switched off. Build your list below first, then turn on the ones you want.',
+            'field_category'          => 'Category',
+            'field_category_desc'     => 'What the ticket is reported as, chosen when it is raised.',
+            'field_closure'           => 'Category at close',
+            'field_closure_desc'      => 'What it turned out to be. The same list, asked again when the ticket closes — most of the time the analyst just confirms it. Worth having: it is what tells you that 12 of your 37 "printer problems" were actually the network.',
+            'field_resolution'        => 'Resolution code',
+            'field_resolution_desc'   => 'How the ticket ended, which is a different question from what it was about — "Training given", "No fault found".',
+            'default_heading'   => 'Default for this installation',
+            'companies_heading' => 'Per company',
+            'companies_intro'   => 'A company set to "Follow the default" changes with the setting above. Which answer applies to a ticket is decided by the company that ticket belongs to.',
+            'col_company'       => 'Company',
+            'inherit'           => 'Follow the default',
+            'on'                => 'On',
+            'off'               => 'Off',
+            'preserved_note'    => 'Turning a switch off never deletes anything. A ticket that already has a category keeps it, and it comes back untouched if you switch the field on again.',
+
+            // The category list.
+            'list_heading'      => 'Categories',
+            'list_intro'        => 'Add a category, then add sub-categories underneath it if you want them — up to three levels, and no level is compulsory. A category can be tied to one ticket type so it is only offered on that type, or left free to appear on all of them.',
+            'empty'             => 'No categories yet.',
+            'empty_hint'        => 'Add your first one to get started — something like "Hardware" or "Access requests", with sub-categories underneath if you need them.',
+            'col_name'          => 'Category',
+            'col_type'          => 'Ticket type',
+            'col_portal'        => 'Portal',
+            'col_order'         => 'Order',
+            'col_status'        => 'Status',
+            'col_actions'       => 'Actions',
+            'any_type'          => 'Any type',
+            'portal_yes'        => 'Customers see it',
+            'portal_no'         => 'Analysts only',
+            'in_use'            => ':count in use',
+
+            // The resolution code list.
+            'codes_heading'     => 'Resolution codes',
+            'codes_intro'       => 'How a ticket ended. Flat by design — this is not a second category tree. Ten to fifteen is plenty; the point is being able to see that a fifth of your tickets were "Training given".',
+            'codes_empty'       => 'No resolution codes yet.',
+
+            // The add/edit dialog.
+            'add_category'      => 'Add category',
+            'edit_category'     => 'Edit category',
+            'add_code'          => 'Add resolution code',
+            'edit_code'         => 'Edit resolution code',
+            'f_name'            => 'Name',
+            'f_description'     => 'Description',
+            'f_parent'          => 'Sits under',
+            'f_parent_none'     => 'Nothing — this is a top level category',
+            'f_parent_help'     => 'Leave this alone for a top-level category.',
+            'f_type'            => 'Only for ticket type',
+            'f_type_any'        => 'Any type',
+            'f_type_help'       => 'Tie this to one ticket type and it is only offered on that type. Only a top-level category can be tied to a type — sub-categories follow the one above them.',
+            'f_portal'          => 'Customers can pick this in the portal',
+            'f_portal_help'     => 'Off means analysts only. Requesters should see a short list in plain English, not your whole tree.',
+            'f_active'          => 'Active',
+            'f_active_help'     => 'Switch a category off to retire it. It stays on the tickets that already have it and stops being offered on new ones — which is almost always what you want instead of deleting.',
+            'f_order'           => 'Order',
+
+            // Messages.
+            'saved'             => 'Saved',
+            'deleted'           => 'Deleted',
+            'settings_saved'    => 'Category settings saved',
+            'confirm_delete'    => 'Delete ":name"? Retiring it is usually better — it keeps the label on tickets that already have it.',
+            'load_failed'       => 'These settings could not be read.',
+            'load_failed_desc'  => 'The switches below are NOT showing your real settings, so they are locked to stop a wrong value being saved over the top. Nothing has changed — reload the page to try again.',
+            'save'              => 'Save',
         ],
 
         // Time tracking (discussion #72). Two switches, per company, over an

@@ -9,6 +9,9 @@
         status: 'Status', priority: 'Priority', department: 'Department',
         ticket_type: 'Ticket type', analyst: 'Assigned analyst', owner: 'Owner',
         origin: 'Origin', first_time_fix: 'First time fix', training_provided: 'Training provided',
+        // Classification (#1540). The two category dimensions roll up to the TOP
+        // level - a leaf-level chart of a three-deep tree is slices nobody can read.
+        category: 'Category', closure_category: 'Category at close', resolution_code: 'Resolution code',
         created: 'Created', closed: 'Closed', created_vs_closed: 'Created vs closed'
     };
 
@@ -31,6 +34,9 @@
         analyst: ['status', 'priority'],
         owner: ['status', 'priority'],
         origin: ['status', 'priority'],
+        category: ['status', 'priority'],
+        closure_category: ['status', 'priority'],
+        resolution_code: ['status', 'priority'],
         first_time_fix: [],
         training_provided: [],
         created: ['status', 'priority'],

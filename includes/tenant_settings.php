@@ -142,6 +142,58 @@ function timeTrackingApiOn(PDO $conn, ?int $tenantId): bool
     return tenantSettingOn($conn, $tenantId, SETTING_TIME_TRACKING_API, true);
 }
 
+// ─── Ticket classification fields (#1540) ───────────────────────────────────
+// Whether each of the three fields appears on a ticket at all. Same shape as
+// time tracking above — per company, over an install-wide default.
+//
+// ⚠️ THESE DEFAULT TO OFF, where time tracking defaults to ON. An upgrade must
+// not grow three empty dropdowns on everybody's ticket page before they have
+// created a single category. You build the list, then you switch it on.
+//
+// 🔑 Deliberately INDEPENDENT of each other. "Category off, category-at-close on"
+// is a real service desk: don't make the person raising it guess, let the analyst
+// classify once they actually know. So nothing here implies anything about
+// anything else.
+
+const SETTING_TICKET_CATEGORY         = 'ticket_category_enabled';
+const SETTING_TICKET_CLOSURE_CATEGORY = 'ticket_closure_category_enabled';
+const SETTING_TICKET_RESOLUTION_CODE  = 'ticket_resolution_code_enabled';
+
+/** Should the "reported as" category field show on a ticket for this company? */
+function ticketCategoryOn(PDO $conn, ?int $tenantId): bool
+{
+    return tenantSettingOn($conn, $tenantId, SETTING_TICKET_CATEGORY, false);
+}
+
+/** Should the "turned out to be" category field show when closing a ticket? */
+function ticketClosureCategoryOn(PDO $conn, ?int $tenantId): bool
+{
+    return tenantSettingOn($conn, $tenantId, SETTING_TICKET_CLOSURE_CATEGORY, false);
+}
+
+/** Should the resolution code field show when closing a ticket? */
+function ticketResolutionCodeOn(PDO $conn, ?int $tenantId): bool
+{
+    return tenantSettingOn($conn, $tenantId, SETTING_TICKET_RESOLUTION_CODE, false);
+}
+
+/**
+ * All three answers at once, for a page that is about to render a ticket.
+ *
+ * One call rather than three so a caller cannot accidentally resolve two of them
+ * against one company and the third against another.
+ *
+ * @return array{category:bool, closure_category:bool, resolution_code:bool}
+ */
+function ticketClassificationSettings(PDO $conn, ?int $tenantId): array
+{
+    return [
+        'category'         => ticketCategoryOn($conn, $tenantId),
+        'closure_category' => ticketClosureCategoryOn($conn, $tenantId),
+        'resolution_code'  => ticketResolutionCodeOn($conn, $tenantId),
+    ];
+}
+
 /** The company a ticket belongs to, or null. Used to resolve both of the above. */
 function ticketTenantId(PDO $conn, int $ticketId): ?int
 {

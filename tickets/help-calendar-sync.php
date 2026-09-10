@@ -39,7 +39,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendar Sync — Guide</title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=62">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=66">
     <link rel="stylesheet" href="../assets/css/help.css?v=3">
 </head>
 <body>

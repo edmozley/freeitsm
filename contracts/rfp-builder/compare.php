@@ -35,7 +35,7 @@ $translationNamespaces = ['common', 'contracts'];
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=62">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=66">
     <script src="../../assets/js/chart.min.js"></script>
     <style>
         body { --accent: var(--con-accent, #f59e0b); }

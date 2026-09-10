@@ -514,6 +514,7 @@ let attachments = [];
 
     document.addEventListener('DOMContentLoaded', function() {
         loadMailboxes();
+        loadTicketCategories();
         loadMyEquipment();
         initDropzone();
         initDeflection();
@@ -854,6 +855,33 @@ let attachments = [];
         }
     }
 
+    // Category (#1540). The group stays hidden unless the field is switched on AND
+    // the list is non-empty — an empty picker is worse than none. A failed fetch
+    // therefore leaves it hidden, which is the safe direction: the ticket is
+    // created uncategorised and an analyst sets it, rather than the requester
+    // being shown a control that cannot work.
+    async function loadTicketCategories() {
+        const group  = document.getElementById('categoryGroup');
+        const select = document.getElementById('ticketCategory');
+        if (!group || !select) return;
+        try {
+            const resp = await fetch('../api/self-service/get_ticket_categories.php');
+            const data = await resp.json();
+            if (!data.success || !data.enabled || !data.categories.length) return;
+            data.categories.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                // Indented so a sub-category reads as one, and prefixed so the
+                // shape survives a browser that collapses leading whitespace.
+                opt.textContent = (c.depth > 1 ? '  '.repeat(c.depth - 1) + '└ ' : '') + c.name;
+                select.appendChild(opt);
+            });
+            group.hidden = false;
+        } catch (err) {
+            /* left hidden on purpose - see above */
+        }
+    }
+
     async function handleSubmit(e) {
         e.preventDefault();
 
@@ -897,6 +925,9 @@ let attachments = [];
                     mailbox_id: document.getElementById('mailbox').value || null,
                     subject: document.getElementById('subject').value.trim(),
                     priority: document.getElementById('priority').value,
+                    // Optional. Re-validated server-side against the portal-visible
+                    // list - a narrowed dropdown is not a check.
+                    category_id: (document.getElementById('ticketCategory') || {}).value || null,
                     // The editor holds the content, not the textarea it replaced.
                     // Falls back to the textarea if TinyMCE failed to load, so the
                     // form still works rather than silently posting nothing.
@@ -989,6 +1020,18 @@ require __DIR__ . '/includes/header.php';
                     <label for="mailbox"><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox')); ?></label>
                     <select id="mailbox" required>
                         <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.mailbox_loading')); ?></option>
+                    </select>
+                </div>
+                <?php /* Category (#1540). Hidden by default and revealed by JS only
+                         when the field is switched on AND there is something to
+                         pick — an empty dropdown is worse than no dropdown, and a
+                         requester should never be shown a control that cannot be
+                         used. Optional: a requester guessing wrongly is exactly
+                         what the analyst's "category at close" is there to fix. */ ?>
+                <div class="form-group" id="categoryGroup" hidden>
+                    <label for="ticketCategory"><?php echo htmlspecialchars(t('self-service.new_ticket.category')); ?></label>
+                    <select id="ticketCategory">
+                        <option value=""><?php echo htmlspecialchars(t('self-service.new_ticket.category_none')); ?></option>
                     </select>
                 </div>
                 <div class="form-group">

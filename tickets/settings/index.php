@@ -61,7 +61,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.settings.page_title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=62">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=66">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../../assets/js/i18n.js?v=2"></script>
     <script src="../../assets/js/ai-settings.js?v=2"></script>
@@ -653,6 +653,123 @@ $translationNamespaces = ['common', 'tickets'];
                 </thead>
                 <tbody id="ticket-origins-list">
                     <tr><td colspan="5" style="text-align: center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Categories Tab -->
+        <?php endif; ?>
+
+        <?php if (settingsTabVisible($visibleTabs, 'categories')): ?>
+        <div class="tab-content<?php echo $activeTabId === 'categories' ? ' active' : ''; ?>" id="categories-tab" data-capability="<?php echo Cap::TICKETS_CATEGORIES; ?>">
+            <div class="section-header">
+                <h2><?php echo htmlspecialchars(t('tickets.settings.headings.categories')); ?></h2>
+            </div>
+            <p style="margin-bottom: 20px; color: var(--text-muted, #666);"><?php echo t('tickets.settings.categories.intro'); ?></p>
+
+            <!-- ── The three switches ──────────────────────────────────────
+                 At the TOP of this tab, above the list, so the thing and
+                 whether it is shown live in one place rather than being
+                 scattered across two tabs. -->
+            <div class="tc-alert" id="tcLoadError" hidden>
+                <strong><?php echo htmlspecialchars(t('tickets.settings.categories.load_failed')); ?></strong>
+                <span><?php echo htmlspecialchars(t('tickets.settings.categories.load_failed_desc')); ?></span>
+            </div>
+
+            <h3 class="tc-sub"><?php echo htmlspecialchars(t('tickets.settings.categories.fields_heading')); ?></h3>
+            <p class="tc-note"><?php echo htmlspecialchars(t('tickets.settings.categories.fields_intro')); ?></p>
+
+            <h4 class="tc-sub4"><?php echo htmlspecialchars(t('tickets.settings.categories.default_heading')); ?></h4>
+            <?php /* ⚠️ The real toggle classes are `toggle-switch` / `toggle-slider`
+                     (assets/css/inbox.css). There is no `.switch` / `.slider` rule
+                     anywhere in the product — using those names renders a bare
+                     checkbox, which is what the Time tracking tab was doing until
+                     this was noticed. */ ?>
+            <div class="tc-switches">
+                <div class="tc-switch-row">
+                    <div class="tc-switch-label">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.categories.field_category')); ?></strong>
+                        <span><?php echo htmlspecialchars(t('tickets.settings.categories.field_category_desc')); ?></span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="tcDefCategory"><span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="tc-switch-row">
+                    <div class="tc-switch-label">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.categories.field_closure')); ?></strong>
+                        <span><?php echo htmlspecialchars(t('tickets.settings.categories.field_closure_desc')); ?></span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="tcDefClosure"><span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="tc-switch-row">
+                    <div class="tc-switch-label">
+                        <strong><?php echo htmlspecialchars(t('tickets.settings.categories.field_resolution')); ?></strong>
+                        <span><?php echo htmlspecialchars(t('tickets.settings.categories.field_resolution_desc')); ?></span>
+                    </div>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="tcDefResolution"><span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="tcCompaniesBlock" hidden>
+                <h4 class="tc-sub4"><?php echo htmlspecialchars(t('tickets.settings.categories.companies_heading')); ?></h4>
+                <p class="tc-note"><?php echo htmlspecialchars(t('tickets.settings.categories.companies_intro')); ?></p>
+                <table>
+                    <thead><tr>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_company')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.categories.field_category')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.categories.field_closure')); ?></th>
+                        <th><?php echo htmlspecialchars(t('tickets.settings.categories.field_resolution')); ?></th>
+                    </tr></thead>
+                    <tbody id="tcCompaniesBody"></tbody>
+                </table>
+            </div>
+
+            <p class="tc-note"><?php echo htmlspecialchars(t('tickets.settings.categories.preserved_note')); ?></p>
+            <div style="margin: 12px 0 28px;">
+                <button class="btn btn-primary" id="tcSaveSettingsBtn"><?php echo htmlspecialchars(t('tickets.settings.categories.save')); ?></button>
+            </div>
+
+            <!-- ── The category tree ─────────────────────────────────────── -->
+            <div class="section-header" style="margin-top: 8px;">
+                <h3 class="tc-sub" style="margin:0;"><?php echo htmlspecialchars(t('tickets.settings.categories.list_heading')); ?></h3>
+                <button class="add-btn" id="tcAddCategoryBtn"><?php echo htmlspecialchars(t('common.add')); ?></button>
+            </div>
+            <p class="tc-note"><?php echo htmlspecialchars(t('tickets.settings.categories.list_intro')); ?></p>
+            <table>
+                <thead><tr>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_name')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_type')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_portal')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_order')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_status')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_actions')); ?></th>
+                </tr></thead>
+                <tbody id="tcCategoryList">
+                    <tr><td colspan="6" style="text-align:center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
+                </tbody>
+            </table>
+
+            <!-- ── Resolution codes ──────────────────────────────────────── -->
+            <div class="section-header" style="margin-top: 32px;">
+                <h3 class="tc-sub" style="margin:0;"><?php echo htmlspecialchars(t('tickets.settings.categories.codes_heading')); ?></h3>
+                <button class="add-btn" id="tcAddCodeBtn"><?php echo htmlspecialchars(t('common.add')); ?></button>
+            </div>
+            <p class="tc-note"><?php echo htmlspecialchars(t('tickets.settings.categories.codes_intro')); ?></p>
+            <table>
+                <thead><tr>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_name')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.columns.description')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_order')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_status')); ?></th>
+                    <th><?php echo htmlspecialchars(t('tickets.settings.categories.col_actions')); ?></th>
+                </tr></thead>
+                <tbody id="tcCodeList">
+                    <tr><td colspan="5" style="text-align:center;"><?php echo htmlspecialchars(t('tickets.settings.loading')); ?></td></tr>
                 </tbody>
             </table>
         </div>
@@ -1837,14 +1954,14 @@ $translationNamespaces = ['common', 'tickets'];
                         <strong><?php echo htmlspecialchars(t('tickets.settings.time_tracking.ui_label')); ?></strong>
                         <?php echo htmlspecialchars(t('tickets.settings.time_tracking.ui_desc')); ?>
                     </div>
-                    <label class="switch"><input type="checkbox" id="ttDefaultUi"><span class="slider"></span></label>
+                    <label class="toggle-switch"><input type="checkbox" id="ttDefaultUi"><span class="toggle-slider"></span></label>
                 </div>
                 <div class="setting-row">
                     <div class="setting-label">
                         <strong><?php echo htmlspecialchars(t('tickets.settings.time_tracking.api_label')); ?></strong>
                         <?php echo htmlspecialchars(t('tickets.settings.time_tracking.api_desc')); ?>
                     </div>
-                    <label class="switch"><input type="checkbox" id="ttDefaultApi"><span class="slider"></span></label>
+                    <label class="toggle-switch"><input type="checkbox" id="ttDefaultApi"><span class="toggle-slider"></span></label>
                 </div>
             </div>
 
@@ -2009,6 +2126,106 @@ $translationNamespaces = ['common', 'tickets'];
     </div>
 
     <!-- Mailbox Modal -->
+    <!-- Ticket category add/edit (#1540). Its own dialog rather than the shared
+         lookup modal: a category carries a parent, a ticket type and a portal
+         flag, none of which the flat lookup lists have. -->
+    <div class="modal" id="tcCategoryModal">
+        <div class="modal-content" style="max-width: 560px;">
+            <div class="modal-header" id="tcCategoryModalTitle"><?php echo htmlspecialchars(t('tickets.settings.categories.add_category')); ?></div>
+            <form id="tcCategoryForm">
+                <input type="hidden" id="tcCatId">
+
+                <div class="form-group">
+                    <label for="tcCatName"><?php echo htmlspecialchars(t('tickets.settings.categories.f_name')); ?></label>
+                    <input type="text" id="tcCatName" maxlength="100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tcCatDescription"><?php echo htmlspecialchars(t('tickets.settings.categories.f_description')); ?></label>
+                    <textarea id="tcCatDescription" maxlength="255"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="tcCatParent"><?php echo htmlspecialchars(t('tickets.settings.categories.f_parent')); ?></label>
+                    <select id="tcCatParent"></select>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.categories.f_parent_help')); ?></small>
+                </div>
+
+                <!-- Hidden for a sub-category: the type link lives on the root and
+                     a child inherits it. Offering the field on a child would let
+                     "Hardware → Printer" claim a different type from "Hardware". -->
+                <div class="form-group" id="tcCatTypeGroup">
+                    <label for="tcCatType"><?php echo htmlspecialchars(t('tickets.settings.categories.f_type')); ?></label>
+                    <select id="tcCatType"></select>
+                    <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.settings.categories.f_type_help')); ?></small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="tcCatPortal" checked>
+                        <?php echo htmlspecialchars(t('tickets.settings.categories.f_portal')); ?>
+                    </label>
+                    <small style="color: var(--text-muted, #666); display:block;"><?php echo htmlspecialchars(t('tickets.settings.categories.f_portal_help')); ?></small>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="tcCatActive" checked>
+                        <?php echo htmlspecialchars(t('tickets.settings.categories.f_active')); ?>
+                    </label>
+                    <small style="color: var(--text-muted, #666); display:block;"><?php echo htmlspecialchars(t('tickets.settings.categories.f_active_help')); ?></small>
+                </div>
+
+                <div class="form-group">
+                    <label for="tcCatOrder"><?php echo htmlspecialchars(t('tickets.settings.categories.f_order')); ?></label>
+                    <input type="number" id="tcCatOrder" value="0">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn" id="tcCatCancel"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Resolution code add/edit (#1540). Flat: no parent, no type. -->
+    <div class="modal" id="tcCodeModal">
+        <div class="modal-content" style="max-width: 520px;">
+            <div class="modal-header" id="tcCodeModalTitle"><?php echo htmlspecialchars(t('tickets.settings.categories.add_code')); ?></div>
+            <form id="tcCodeForm">
+                <input type="hidden" id="tcCodeId">
+
+                <div class="form-group">
+                    <label for="tcCodeName"><?php echo htmlspecialchars(t('tickets.settings.categories.f_name')); ?></label>
+                    <input type="text" id="tcCodeName" maxlength="100" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="tcCodeDescription"><?php echo htmlspecialchars(t('tickets.settings.categories.f_description')); ?></label>
+                    <textarea id="tcCodeDescription" maxlength="255"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="tcCodeActive" checked>
+                        <?php echo htmlspecialchars(t('tickets.settings.categories.f_active')); ?>
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="tcCodeOrder"><?php echo htmlspecialchars(t('tickets.settings.categories.f_order')); ?></label>
+                    <input type="number" id="tcCodeOrder" value="0">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn" id="tcCodeCancel"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="modal" id="mailboxModal">
         <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header" id="mailboxModalTitle"><?php echo htmlspecialchars(t('tickets.settings.modals.mailbox.add_title')); ?></div>
@@ -7760,6 +7977,366 @@ $translationNamespaces = ['common', 'tickets'];
                     showToast('Failed', 'error');
                 }
                 this.disabled = !ttLoaded;
+            });
+
+            load();
+        })();
+
+        /* ═══════════════════════════════════════════════════════════════════
+           TICKET CATEGORIES + RESOLUTION CODES  (#1540)
+
+           Three switches, a category tree and a flat code list — one tab,
+           one fetch (get_ticket_classification.php returns all of it).
+
+           ⚠️ State lives in top-level `let`s inside this IIFE, NOT on window.
+           Reaching for window.tcState from elsewhere will find undefined.
+           ═══════════════════════════════════════════════════════════════════ */
+        (function () {
+            const block = document.getElementById('categories-tab');
+            if (!block) return;
+
+            const $ = id => document.getElementById(id);
+            const T = <?php echo json_encode([
+                'inherit'        => t('tickets.settings.categories.inherit'),
+                'on'             => t('tickets.settings.categories.on'),
+                'off'            => t('tickets.settings.categories.off'),
+                'anyType'        => t('tickets.settings.categories.any_type'),
+                'portalYes'      => t('tickets.settings.categories.portal_yes'),
+                'portalNo'       => t('tickets.settings.categories.portal_no'),
+                'inUse'          => t('tickets.settings.categories.in_use'),
+                'empty'          => t('tickets.settings.categories.empty'),
+                'emptyHint'      => t('tickets.settings.categories.empty_hint'),
+                'codesEmpty'     => t('tickets.settings.categories.codes_empty'),
+                'addCategory'    => t('tickets.settings.categories.add_category'),
+                'editCategory'   => t('tickets.settings.categories.edit_category'),
+                'addCode'        => t('tickets.settings.categories.add_code'),
+                'editCode'       => t('tickets.settings.categories.edit_code'),
+                'parentNone'     => t('tickets.settings.categories.f_parent_none'),
+                'typeAny'        => t('tickets.settings.categories.f_type_any'),
+                'saved'          => t('tickets.settings.categories.saved'),
+                'deleted'        => t('tickets.settings.categories.deleted'),
+                'settingsSaved'  => t('tickets.settings.categories.settings_saved'),
+                'confirmDelete'  => t('tickets.settings.categories.confirm_delete'),
+                'active'         => t('tickets.settings.categories.f_active'),
+                'edit'           => t('common.edit'),
+                'delete'         => t('common.delete'),
+            ], JSON_UNESCAPED_UNICODE); ?>;
+
+            let categories = [];
+            let codes      = [];
+            let types      = [];
+            let companies  = [];
+            let maxDepth   = 3;
+
+            /* ⚠️ A FAILED LOAD MUST NOT LOOK LIKE "ALL THREE OFF".
+               These three switches are drawn unticked in the markup, so an
+               unreachable endpoint renders exactly like the fields being
+               deliberately disabled — and Save would then write that guess back
+               as fact. Locked until a load actually succeeds. Same failure the
+               Time tracking tab shipped with, same answer. */
+            let loaded = false;
+            function setFailed(failed) {
+                loaded = !failed;
+                $('tcLoadError').hidden = !failed;
+                ['tcDefCategory', 'tcDefClosure', 'tcDefResolution', 'tcSaveSettingsBtn']
+                    .forEach(id => { const el = $(id); if (el) el.disabled = failed; });
+            }
+
+            function esc(s) {
+                return String(s == null ? '' : s).replace(/[&<>"']/g,
+                    c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+            }
+
+            function optionsFor(value) {
+                // value: true | false | null  (null = follow the install default)
+                const sel = v => (v === value ? ' selected' : '');
+                return '<option value=""'  + sel(null)  + '>' + esc(T.inherit) + '</option>' +
+                       '<option value="1"' + sel(true)  + '>' + esc(T.on)      + '</option>' +
+                       '<option value="0"' + sel(false) + '>' + esc(T.off)     + '</option>';
+            }
+
+            // ── Rendering ────────────────────────────────────────────────────
+            function renderCategories() {
+                const body = $('tcCategoryList');
+                if (!categories.length) {
+                    body.innerHTML = '<tr><td colspan="6" class="tc-empty">' +
+                        '<strong>' + esc(T.empty) + '</strong>' + esc(T.emptyHint) + '</td></tr>';
+                    return;
+                }
+                body.innerHTML = categories.map(c => {
+                    const depth = Math.min(c.depth || 1, 3);
+                    // The type shown is the EFFECTIVE one — a sub-category inherits
+                    // its root's, and showing "Any type" on a child whose root is
+                    // tied to Incident would be a straight lie.
+                    const typeName = c.effective_type_id
+                        ? (types.find(t => t.id === c.effective_type_id) || {}).name
+                        : null;
+                    const inherited = c.depth > 1 && c.effective_type_id;
+                    return '<tr data-id="' + c.id + '">' +
+                        '<td><span class="tc-depth tc-depth-' + depth + '">' +
+                            (depth > 1 ? '<span class="tc-guide">&#9492;</span>' : '') +
+                            '<span><span class="tc-catname">' + esc(c.name) + '</span>' +
+                            (c.description ? '<span class="tc-desc">' + esc(c.description) + '</span>' : '') +
+                            '</span></span></td>' +
+                        '<td>' + (typeName ? esc(typeName) + (inherited ? ' <span class="tc-guide">&#8593;</span>' : '')
+                                           : '<span class="tc-pill">' + esc(T.anyType) + '</span>') + '</td>' +
+                        '<td>' + (c.is_portal_visible ? esc(T.portalYes) : esc(T.portalNo)) + '</td>' +
+                        '<td>' + (c.display_order || 0) + '</td>' +
+                        '<td>' + (c.is_active ? esc(T.active) : '<span class="tc-pill">' + esc(T.off) + '</span>') +
+                            (c.in_use ? ' <span class="tc-pill">' + esc(T.inUse.replace(':count', c.in_use)) + '</span>' : '') + '</td>' +
+                        '<td><button type="button" class="btn-link tc-edit-cat">' + esc(T.edit) + '</button> ' +
+                            '<button type="button" class="btn-link tc-del-cat">' + esc(T.delete) + '</button></td>' +
+                    '</tr>';
+                }).join('');
+            }
+
+            function renderCodes() {
+                const body = $('tcCodeList');
+                if (!codes.length) {
+                    body.innerHTML = '<tr><td colspan="5" class="tc-empty">' + esc(T.codesEmpty) + '</td></tr>';
+                    return;
+                }
+                body.innerHTML = codes.map(k =>
+                    '<tr data-id="' + k.id + '">' +
+                        '<td>' + esc(k.name) + '</td>' +
+                        '<td>' + esc(k.description || '') + '</td>' +
+                        '<td>' + (k.display_order || 0) + '</td>' +
+                        '<td>' + (k.is_active ? esc(T.active) : '<span class="tc-pill">' + esc(T.off) + '</span>') +
+                            (k.in_use ? ' <span class="tc-pill">' + esc(T.inUse.replace(':count', k.in_use)) + '</span>' : '') + '</td>' +
+                        '<td><button type="button" class="btn-link tc-edit-code">' + esc(T.edit) + '</button> ' +
+                            '<button type="button" class="btn-link tc-del-code">' + esc(T.delete) + '</button></td>' +
+                    '</tr>').join('');
+            }
+
+            // ── Load ─────────────────────────────────────────────────────────
+            async function load() {
+                try {
+                    const r = await fetch(API_BASE + 'get_ticket_classification.php?manage=1');
+                    const d = await r.json();
+                    if (!d.success) throw new Error(d.error || 'unsuccessful response');
+
+                    categories = d.categories || [];
+                    codes      = d.resolution_codes || [];
+                    maxDepth   = d.max_depth || 3;
+                    types      = (d.manage && d.manage.ticket_types) || [];
+                    companies  = (d.manage && d.manage.companies) || [];
+
+                    const def = (d.manage && d.manage.default) || {};
+                    $('tcDefCategory').checked   = !!def.category;
+                    $('tcDefClosure').checked    = !!def.closure_category;
+                    $('tcDefResolution').checked = !!def.resolution_code;
+                    setFailed(false);
+
+                    if (d.multi_tenant && companies.length) {
+                        $('tcCompaniesBlock').hidden = false;
+                        $('tcCompaniesBody').innerHTML = companies.map(c =>
+                            '<tr data-id="' + c.id + '">' +
+                                '<td>' + esc(c.name) + '</td>' +
+                                '<td><select class="tc-c-category">'   + optionsFor(c.category)         + '</select></td>' +
+                                '<td><select class="tc-c-closure">'    + optionsFor(c.closure_category) + '</select></td>' +
+                                '<td><select class="tc-c-resolution">' + optionsFor(c.resolution_code)  + '</select></td>' +
+                            '</tr>').join('');
+                    }
+
+                    renderCategories();
+                    renderCodes();
+                } catch (e) {
+                    console.error(e);
+                    setFailed(true);
+                    $('tcCategoryList').innerHTML = '<tr><td colspan="6" class="tc-empty">&mdash;</td></tr>';
+                    $('tcCodeList').innerHTML     = '<tr><td colspan="5" class="tc-empty">&mdash;</td></tr>';
+                }
+            }
+
+            // ── The switches ─────────────────────────────────────────────────
+            $('tcSaveSettingsBtn').addEventListener('click', async function () {
+                if (!loaded) return;        // never save a state that was never read
+                this.disabled = true;
+                const payload = {
+                    default: {
+                        category:         $('tcDefCategory').checked,
+                        closure_category: $('tcDefClosure').checked,
+                        resolution_code:  $('tcDefResolution').checked
+                    },
+                    companies: [...document.querySelectorAll('#tcCompaniesBody tr')].map(tr => {
+                        const val = s => (s.value === '' ? null : s.value === '1');
+                        return {
+                            id:               parseInt(tr.dataset.id, 10),
+                            category:         val(tr.querySelector('.tc-c-category')),
+                            closure_category: val(tr.querySelector('.tc-c-closure')),
+                            resolution_code:  val(tr.querySelector('.tc-c-resolution'))
+                        };
+                    })
+                };
+                try {
+                    const r = await fetch(API_BASE + 'save_ticket_classification_settings.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const d = await r.json();
+                    showToast(d.success ? T.settingsSaved : (d.error || 'Failed'), d.success ? 'success' : 'error');
+                } catch (e) {
+                    showToast('Failed', 'error');
+                }
+                this.disabled = !loaded;
+            });
+
+            // ── The category dialog ──────────────────────────────────────────
+            function parentOptions(excludeId) {
+                // A category may only be a parent if a child of it would still fit
+                // inside the depth cap, and it can never be its own descendant's
+                // parent — so the whole subtree of the row being edited is out.
+                const banned = new Set();
+                if (excludeId) {
+                    banned.add(excludeId);
+                    let grew = true;
+                    while (grew) {
+                        grew = false;
+                        categories.forEach(c => {
+                            if (c.parent_id && banned.has(c.parent_id) && !banned.has(c.id)) {
+                                banned.add(c.id); grew = true;
+                            }
+                        });
+                    }
+                }
+                return '<option value="">' + esc(T.parentNone) + '</option>' +
+                    categories.filter(c => !banned.has(c.id) && (c.depth || 1) < maxDepth)
+                        .map(c => '<option value="' + c.id + '">' + esc(c.path_label) + '</option>').join('');
+            }
+
+            function typeOptions() {
+                return '<option value="">' + esc(T.typeAny) + '</option>' +
+                    types.map(t => '<option value="' + t.id + '">' + esc(t.name) + '</option>').join('');
+            }
+
+            // The type field is only meaningful on a ROOT: a sub-category inherits
+            // its root's type, and the save endpoint refuses one on a child.
+            function syncTypeVisibility() {
+                $('tcCatTypeGroup').hidden = $('tcCatParent').value !== '';
+            }
+            $('tcCatParent').addEventListener('change', syncTypeVisibility);
+
+            function openCategory(cat) {
+                $('tcCategoryModalTitle').textContent = cat ? T.editCategory : T.addCategory;
+                $('tcCatId').value          = cat ? cat.id : '';
+                $('tcCatName').value        = cat ? cat.name : '';
+                $('tcCatDescription').value = cat ? (cat.description || '') : '';
+                $('tcCatParent').innerHTML  = parentOptions(cat ? cat.id : null);
+                $('tcCatParent').value      = cat && cat.parent_id ? String(cat.parent_id) : '';
+                $('tcCatType').innerHTML    = typeOptions();
+                $('tcCatType').value        = cat && cat.ticket_type_id ? String(cat.ticket_type_id) : '';
+                $('tcCatPortal').checked    = cat ? !!cat.is_portal_visible : true;
+                $('tcCatActive').checked    = cat ? !!cat.is_active : true;
+                $('tcCatOrder').value       = cat ? (cat.display_order || 0) : 0;
+                syncTypeVisibility();
+                $('tcCategoryModal').classList.add('active');
+                $('tcCatName').focus();
+            }
+            function closeCategory() { $('tcCategoryModal').classList.remove('active'); }
+
+            $('tcAddCategoryBtn').addEventListener('click', () => openCategory(null));
+            $('tcCatCancel').addEventListener('click', closeCategory);
+
+            $('tcCategoryForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const parentId = $('tcCatParent').value;
+                const payload = {
+                    id:                $('tcCatId').value || null,
+                    name:              $('tcCatName').value.trim(),
+                    description:       $('tcCatDescription').value.trim() || null,
+                    parent_id:         parentId || null,
+                    // Never sent for a child — the field is hidden and the root owns it.
+                    ticket_type_id:    parentId ? null : ($('tcCatType').value || null),
+                    is_portal_visible: $('tcCatPortal').checked,
+                    is_active:         $('tcCatActive').checked,
+                    display_order:     parseInt($('tcCatOrder').value, 10) || 0
+                };
+                try {
+                    const r = await fetch(API_BASE + 'save_ticket_category.php', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const d = await r.json();
+                    if (!d.success) { showToast(d.error || 'Failed', 'error'); return; }
+                    closeCategory();
+                    showToast(T.saved, 'success');
+                    await load();
+                } catch (err) { showToast('Failed', 'error'); }
+            });
+
+            // ── The resolution code dialog ───────────────────────────────────
+            function openCode(code) {
+                $('tcCodeModalTitle').textContent = code ? T.editCode : T.addCode;
+                $('tcCodeId').value          = code ? code.id : '';
+                $('tcCodeName').value        = code ? code.name : '';
+                $('tcCodeDescription').value = code ? (code.description || '') : '';
+                $('tcCodeActive').checked    = code ? !!code.is_active : true;
+                $('tcCodeOrder').value       = code ? (code.display_order || 0) : 0;
+                $('tcCodeModal').classList.add('active');
+                $('tcCodeName').focus();
+            }
+            function closeCode() { $('tcCodeModal').classList.remove('active'); }
+
+            $('tcAddCodeBtn').addEventListener('click', () => openCode(null));
+            $('tcCodeCancel').addEventListener('click', closeCode);
+
+            $('tcCodeForm').addEventListener('submit', async function (e) {
+                e.preventDefault();
+                const payload = {
+                    id:            $('tcCodeId').value || null,
+                    name:          $('tcCodeName').value.trim(),
+                    description:   $('tcCodeDescription').value.trim() || null,
+                    is_active:     $('tcCodeActive').checked,
+                    display_order: parseInt($('tcCodeOrder').value, 10) || 0
+                };
+                try {
+                    const r = await fetch(API_BASE + 'save_ticket_resolution_code.php', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    const d = await r.json();
+                    if (!d.success) { showToast(d.error || 'Failed', 'error'); return; }
+                    closeCode();
+                    showToast(T.saved, 'success');
+                    await load();
+                } catch (err) { showToast('Failed', 'error'); }
+            });
+
+            // ── Row actions. Delegated, so a re-render never loses them. ──────
+            async function del(url, id, name) {
+                if (!confirm(T.confirmDelete.replace(':name', name))) return;
+                try {
+                    const r = await fetch(API_BASE + url, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id: id })
+                    });
+                    const d = await r.json();
+                    // The endpoint explains WHY when it refuses (children, or
+                    // tickets still using it), so show its words, not a generic one.
+                    showToast(d.success ? T.deleted : (d.error || 'Failed'), d.success ? 'success' : 'error');
+                    if (d.success) await load();
+                } catch (e) { showToast('Failed', 'error'); }
+            }
+
+            $('tcCategoryList').addEventListener('click', function (e) {
+                const tr = e.target.closest('tr[data-id]');
+                if (!tr) return;
+                const id  = parseInt(tr.dataset.id, 10);
+                const cat = categories.find(c => c.id === id);
+                if (!cat) return;
+                if (e.target.classList.contains('tc-edit-cat')) openCategory(cat);
+                if (e.target.classList.contains('tc-del-cat'))  del('delete_ticket_category.php', id, cat.name);
+            });
+
+            $('tcCodeList').addEventListener('click', function (e) {
+                const tr = e.target.closest('tr[data-id]');
+                if (!tr) return;
+                const id   = parseInt(tr.dataset.id, 10);
+                const code = codes.find(c => c.id === id);
+                if (!code) return;
+                if (e.target.classList.contains('tc-edit-code')) openCode(code);
+                if (e.target.classList.contains('tc-del-code'))  del('delete_ticket_resolution_code.php', id, code.name);
             });
 
             load();

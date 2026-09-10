@@ -194,6 +194,10 @@ final class Cap
     const TICKETS_DEPARTMENTS     = 'tickets.departments';
     const TICKETS_TICKET_TYPES    = 'tickets.ticket_types';
     const TICKETS_TICKET_ORIGINS  = 'tickets.ticket_origins';
+    // Categories, sub-categories and resolution codes — plus the three switches
+    // deciding whether those fields appear on a ticket at all (#1540). One tab,
+    // because all of it is the same kind of thing: lists of words used to classify.
+    const TICKETS_CATEGORIES      = 'tickets.categories';
     const TICKETS_STATUSES        = 'tickets.statuses';
     const TICKETS_PRIORITIES      = 'tickets.priorities';
     const TICKETS_SLA             = 'tickets.sla';

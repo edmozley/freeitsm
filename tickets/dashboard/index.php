@@ -25,7 +25,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.dashboard.page_title')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=62">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=66">
     <style>
         .dashboard-page {
             height: calc(100vh - 48px);

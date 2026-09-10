@@ -249,6 +249,12 @@ return [
         'subject'            => 'Subject *',
         'subject_placeholder'=> 'Brief summary of your issue',
         'deflect_title'      => 'These might answer your question:',
+        // Category (#1540). Optional, and only shown when the field is switched
+        // on and the list is non-empty. A requester guessing wrongly is exactly
+        // what the analyst's "category at close" exists to correct.
+        'category'           => 'What is this about?',
+        'category_none'      => 'Not sure',
+
         'priority'           => 'Priority',
         'priority_low'       => 'Low',
         'priority_normal'    => 'Normal',

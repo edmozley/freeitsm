@@ -87,14 +87,35 @@ try {
     // Create ticket. The status resolves to the CONFIGURED default rather than the
     // literal name 'Open', which an admin may rename or translate (#79). The
     // priority was already validated against the active list above.
+    // Category (#1540). NULL unless the field is switched on for this company AND
+    // the id posted is genuinely one this requester was entitled to pick.
+    //
+    // ⚠️ RE-CHECKED HERE, not trusted from the request — the same rule the asset
+    // list below is held to. The dropdown is already narrowed to portal-visible,
+    // active, untied categories, but a narrowed dropdown has never been a check:
+    // without this, a hand-posted id would let a requester file against an
+    // internal-only category they were never meant to see the existence of.
+    $categoryId = null;
+    if (!empty($input['category_id'])) {
+        $wanted = (int) $input['category_id'];
+        require_once '../../includes/tenant_settings.php';
+        require_once '../../includes/ticket_categories.php';
+        if (ticketCategoryOn($conn, $ticketTenantId)) {
+            $offered = ticketCategoriesResolved($conn, $ticketTenantId, ['activeOnly' => true, 'portalOnly' => true]);
+            if (isset($offered[$wanted]) && $offered[$wanted]['effective_type_id'] === null) {
+                $categoryId = $wanted;
+            }
+        }
+    }
+
     $ticketSql = "INSERT INTO tickets (
-        ticket_number, subject, status_id, priority_id,
+        ticket_number, subject, status_id, priority_id, category_id,
         user_id, tenant_id, created_datetime, updated_datetime
     ) VALUES (
         ?, ?,
         (SELECT id FROM ticket_statuses   WHERE is_active = 1 ORDER BY is_default DESC, display_order, id LIMIT 1),
         (SELECT id FROM ticket_priorities WHERE name = ? LIMIT 1),
-        ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP()
+        ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP()
     )";
 
     $ticketStmt = $conn->prepare($ticketSql);
@@ -102,6 +123,7 @@ try {
         $ticketNumber,
         $subject,
         $priority,
+        $categoryId,
         $userId,
         $ticketTenantId,
     ]);

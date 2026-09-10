@@ -419,6 +419,110 @@ CREATE TABLE IF NOT EXISTS `ticket_origins` (
     PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ----------------------------------------------------------
+-- Ticket classification (#1540): categories + resolution codes
+-- ----------------------------------------------------------
+-- THREE fields, and they answer three different questions:
+--
+--   category            what the ticket was REPORTED as, set when it is raised
+--   closure category    what it TURNED OUT to be, set when it closes
+--   resolution code     HOW it ended, which is not the same as what it was
+--
+-- The first two share this one table and the same tree. Most of the time they
+-- match and the analyst just confirms; they earn their keep on the ones where
+-- the first guess was wrong ("37 raised as printer problems, 12 were actually
+-- the network"). The resolution code is a separate flat list because "Training
+-- given" is not a kind of thing, it is a kind of ending.
+--
+-- 🔑 ONE category per ticket, never many. Every ticket dashboard widget is a
+-- COUNT(*) over a single LEFT JOIN, so a many-to-many would count one ticket
+-- once per category: the pie would total more than 100% and every "X% of
+-- tickets were printing" on the page would be wrong. Cross-cutting labels are
+-- what tags are for, and tags must never feed a count-by chart.
+
+CREATE TABLE IF NOT EXISTS `ticket_categories` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(100) NOT NULL,
+    `description`       VARCHAR(255) NULL,
+    -- Sub-categories. NULL = a root. Depth is capped at 3 in the API, not here:
+    -- an unbounded tree is unreportable, and nobody has ever wanted a fourth level.
+    -- ⚠️ The ticket stores the LEAF id ONLY — there is deliberately no
+    -- `parent_category_id` on `tickets`. Storing both would let them disagree,
+    -- which is exactly how `tickets` ended up holding the assignee twice.
+    -- Ancestors are DERIVED for roll-up reporting.
+    `parent_id`         INT NULL,
+    -- Optional link to a ticket type: NULL = offered whatever the type is; set =
+    -- only offered when that type is chosen.
+    -- 🔑 ONLY MEANINGFUL ON A ROOT (parent_id IS NULL). A child inherits its
+    -- root's type, and the API refuses to set this on a child — otherwise a
+    -- sub-category could claim a different type from its parent and neither
+    -- answer would be wrong.
+    `ticket_type_id`    INT NULL,
+    -- Whether a requester sees this one in the self-service portal. Analysts see
+    -- every active category; customers should see a short list in plain English.
+    `is_portal_visible` TINYINT(1) NOT NULL DEFAULT 1,
+    -- Retire rather than delete: a category is switched off so five years of
+    -- closed tickets keep their label. Deleting is only allowed while unused.
+    `is_active`         TINYINT(1) NULL DEFAULT 1,
+    `display_order`     INT NULL DEFAULT 0,
+    -- Multi-tenancy: NULL = a global default category (shared by every company);
+    -- set = one a company added for itself. (Config meaning of tenant_id — see
+    -- ticket_types.) Existing installs have none of either, so nothing changes.
+    `tenant_id`         INT NULL,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
+    PRIMARY KEY (`id`),
+    -- Sibling names are unique within a scope. ⚠️ NOT a complete guarantee:
+    -- MySQL allows unlimited NULLs in a unique key, so two GLOBAL roots
+    -- (tenant_id NULL, parent_id NULL) would both slip through. The API enforces
+    -- the real rule — the same split ticket_types already lives with.
+    UNIQUE KEY `uq_ticket_categories_scope` (`tenant_id`, `parent_id`, `name`),
+    KEY `ix_ticket_categories_parent` (`parent_id`),
+    KEY `ix_ticket_categories_type` (`ticket_type_id`),
+    -- A parent cannot be deleted while it has children (the API blocks it first
+    -- and says so); RESTRICT is what makes that a guarantee rather than a habit.
+    CONSTRAINT `fk_ticket_categories_parent` FOREIGN KEY (`parent_id`) REFERENCES `ticket_categories` (`id`),
+    -- SET NULL, not CASCADE: deleting a ticket type must not silently destroy
+    -- the categories underneath it. They become "offered for every type", which
+    -- is visible and fixable; vanishing is neither.
+    CONSTRAINT `fk_ticket_categories_type` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_types` (`id`) ON DELETE SET NULL,
+    CONSTRAINT `fk_ticket_categories_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- How a ticket ENDED, not what it was about. Flat on purpose: the moment this
+-- grows a hierarchy it has become a second category tree and the two will drift.
+CREATE TABLE IF NOT EXISTS `ticket_resolution_codes` (
+    `id`                INT NOT NULL AUTO_INCREMENT,
+    `name`              VARCHAR(100) NOT NULL,
+    `description`       VARCHAR(255) NULL,
+    `is_active`         TINYINT(1) NULL DEFAULT 1,
+    `display_order`     INT NULL DEFAULT 0,
+    -- Multi-tenancy: NULL = global default; set = a company's own. See ticket_types.
+    `tenant_id`         INT NULL,
+    `created_datetime`  DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
+    PRIMARY KEY (`id`),
+    -- Same NULL-tenant caveat as ticket_categories: the API enforces global-name dedup.
+    UNIQUE KEY `uq_ticket_resolution_codes_scope` (`tenant_id`, `name`),
+    CONSTRAINT `fk_ticket_resolution_codes_tenant` FOREIGN KEY (`tenant_id`) REFERENCES `tenants` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Seeded, unlike categories. A resolution code list is near enough universal
+-- across service desks, whereas a category tree is the one thing every
+-- organisation has to own — a pre-seeded taxonomy is just someone else's
+-- wrong answer that has to be deleted first.
+INSERT IGNORE INTO `ticket_resolution_codes` (`name`, `description`, `display_order`) VALUES
+    ('Fixed remotely',      'Resolved without visiting the user',                    10),
+    ('Fixed on site',       'Resolved in person',                                    20),
+    ('Hardware replaced',   'The faulty item was swapped out',                       30),
+    ('Configuration change','Settings changed on a system, device or account',        40),
+    ('Training given',      'Nothing was broken — the user was shown how',           50),
+    ('Access granted',      'A permission, licence or account was provided',          60),
+    ('No fault found',      'Investigated and working as expected',                  70),
+    ('Duplicate',           'Already covered by another ticket',                     80),
+    ('Withdrawn',           'The requester no longer needs it',                      90),
+    ('Referred to supplier','Passed to a third party to resolve',                   100);
+
 -- Watchtower settings. Two tables rather than flags on the status rows, because
 -- "show this on my dashboard" is a fact about the DASHBOARD, not about the
 -- status — the status's own facts (is_closed, is_default) are used by the SLA
@@ -872,6 +976,20 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     `priority_id`           INT NULL,
     `department_id`         INT NULL,
     `ticket_type_id`        INT NULL,
+    -- Ticket classification (#1540). Three different questions, three columns:
+    --   category_id            what it was REPORTED as, set when the ticket is raised
+    --   closure_category_id    what it TURNED OUT to be, set when it closes
+    --   resolution_code_id     HOW it ended ("Training given" is not a kind of thing)
+    -- Report on the first to see what users think is wrong, the second to see what
+    -- actually is. All three are NULL on every existing ticket and NOTHING is
+    -- backfilled — NULL means "never categorised", which readers show as
+    -- "Not categorised" rather than guessing.
+    -- ⚠️ closure_category_id points at the SAME tree as category_id, and is
+    -- pre-filled from it at close so the analyst confirms rather than re-picks.
+    -- 🔑 Each is the LEAF category id ONLY. The parent is DERIVED, never stored.
+    `category_id`           INT NULL,
+    `closure_category_id`   INT NULL,
+    `resolution_code_id`    INT NULL,
     `assigned_analyst_id`   INT NULL,
     `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
@@ -920,6 +1038,9 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     KEY `ix_tickets_priority_id` (`priority_id`),
     KEY `ix_tickets_assigned_analyst_id` (`assigned_analyst_id`),
     KEY `ix_tickets_department_id` (`department_id`),
+    KEY `ix_tickets_category_id` (`category_id`),
+    KEY `ix_tickets_closure_category_id` (`closure_category_id`),
+    KEY `ix_tickets_resolution_code_id` (`resolution_code_id`),
     KEY `ix_tickets_created_datetime` (`created_datetime`),
     KEY `ix_tickets_tenant_id` (`tenant_id`),
     KEY `ix_tickets_deleted_datetime` (`deleted_datetime`),
@@ -927,6 +1048,14 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     CONSTRAINT `fk_tickets_departments` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`),
     CONSTRAINT `fk_tickets_origin` FOREIGN KEY (`origin_id`) REFERENCES `ticket_origins` (`id`),
     CONSTRAINT `fk_tickets_ticket_types` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_types` (`id`),
+    -- Ticket classification (#1540). No ON DELETE action, so MySQL RESTRICTs:
+    -- a category or resolution code that any ticket still references cannot be
+    -- deleted at all. That is the point — a closed ticket must keep the label it
+    -- was closed with, so lists are RETIRED (is_active = 0), not removed. The
+    -- settings screen checks first and explains; this constraint is the backstop.
+    CONSTRAINT `fk_tickets_category` FOREIGN KEY (`category_id`) REFERENCES `ticket_categories` (`id`),
+    CONSTRAINT `fk_tickets_closure_category` FOREIGN KEY (`closure_category_id`) REFERENCES `ticket_categories` (`id`),
+    CONSTRAINT `fk_tickets_resolution_code` FOREIGN KEY (`resolution_code_id`) REFERENCES `ticket_resolution_codes` (`id`),
     CONSTRAINT `fk_tickets_users` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
     CONSTRAINT `fk_tickets_status` FOREIGN KEY (`status_id`) REFERENCES `ticket_statuses` (`id`),
     CONSTRAINT `fk_tickets_priority` FOREIGN KEY (`priority_id`) REFERENCES `ticket_priorities` (`id`),

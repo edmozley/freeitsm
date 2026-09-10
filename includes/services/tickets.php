@@ -36,6 +36,7 @@
 require_once __DIR__ . '/../service_context.php';
 require_once __DIR__ . '/../tenancy.php';
 require_once __DIR__ . '/../ticket_numbering.php';
+require_once __DIR__ . '/../ticket_categories.php';   // category paths + depth cap (#1540)
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
 require_once __DIR__ . '/../calendar_sync/push.php';   // scheduled work -> the owner's calendar (GH #75)
 
@@ -113,6 +114,10 @@ class TicketsService
         $typeId       = isset($in['ticket_type_id']) && $in['ticket_type_id'] !== '' ? (int)$in['ticket_type_id'] : null;
         $originId     = isset($in['origin_id']) && $in['origin_id'] !== '' ? (int)$in['origin_id'] : null;
         $mailboxId    = isset($in['mailbox_id']) && $in['mailbox_id'] !== '' ? (int)$in['mailbox_id'] : null;
+        // #1540. Only the "reported as" category is settable at creation — a
+        // closure category and a resolution code describe an ENDING and would be
+        // nonsense on a ticket that has not started.
+        $categoryId   = isset($in['category_id']) && $in['category_id'] !== '' ? (int)$in['category_id'] : null;
 
         $analystId = $defaultAnalystId;
         if (isset($in['assigned_analyst_id']) && $in['assigned_analyst_id'] !== '') {
@@ -122,6 +127,20 @@ class TicketsService
         self::validateLookupId($conn, 'departments', $departmentId, 'department');
         self::validateLookupId($conn, 'ticket_types', $typeId, 'ticket type');
         self::validateLookupId($conn, 'ticket_origins', $originId, 'origin');
+        self::validateLookupId($conn, 'ticket_categories', $categoryId, 'category');
+        // ⚠️ A category tied to a DIFFERENT ticket type is refused outright here,
+        // rather than silently dropped. On an update the pair can become mismatched
+        // by a later type change and clearing it is the only sane repair, but at
+        // CREATION both values are in front of the caller in the same request —
+        // accepting one and discarding the other would be answering a question
+        // nobody asked.
+        if ($categoryId !== null) {
+            $boundType = self::categoryEffectiveTypeId($conn, $categoryId);
+            if ($boundType !== null && $boundType !== $typeId) {
+                throw new ServiceError('validation', 'invalid_field',
+                    "Category {$categoryId} belongs to a different ticket type.");
+            }
+        }
         if ($analystId !== null) {
             $aStmt = $conn->prepare("SELECT id FROM analysts WHERE id = ? AND is_active = 1");
             $aStmt->execute([$analystId]);
@@ -196,12 +215,12 @@ class TicketsService
             $conn->prepare(
                 "INSERT INTO tickets (
                     tenant_id, ticket_number, subject, status_id, priority_id, department_id,
-                    ticket_type_id, origin_id, assigned_analyst_id, owner_id, user_id,
+                    ticket_type_id, category_id, origin_id, assigned_analyst_id, owner_id, user_id,
                     created_datetime, updated_datetime
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([
                 $tenantId, $ticketNumber, $subject, $statusRes[0], $priorityRes[0], $departmentId,
-                $typeId, $originId, $analystId, $analystId, $userId,
+                $typeId, $categoryId, $originId, $analystId, $analystId, $userId,
             ]);
             $ticketId = (int)$conn->lastInsertId();
 
@@ -312,6 +331,77 @@ class TicketsService
                 $updates[] = "$field = ?";
                 $args[]    = $newId;
                 $audits[]  = [$auditField, $current[$currentNameKey], $newName];
+            }
+        }
+
+        // Ticket classification (#1540): category, category at close, resolution code.
+        //
+        // Handled apart from the generic lookup loop above because the loop reads
+        // its "old" name out of a joined column on $current, and a category's name
+        // is not enough on its own — "Printer" is ambiguous the moment two roots
+        // both have one. The audit trail records the FULL PATH instead, which
+        // ticketCategoryPathLabel() derives from parent_id.
+        //
+        // ⚠️ Deliberately NO is_active check. A retired category must stay
+        // writable, because reopening a closed ticket and saving it again would
+        // otherwise fail on a value the ticket already held.
+        foreach ([
+            'category_id'         => ['Category',         'category'],
+            'closure_category_id' => ['Category at Close', 'category'],
+            'resolution_code_id'  => ['Resolution Code',   'resolution code'],
+        ] as $field => [$auditField, $label]) {
+            if (!array_key_exists($field, $in)) {
+                continue;
+            }
+            $table = ($field === 'resolution_code_id') ? 'ticket_resolution_codes' : 'ticket_categories';
+            $newId = ($in[$field] === '' || $in[$field] === null) ? null : (int)$in[$field];
+            if ($newId !== null) {
+                self::validateLookupId($conn, $table, $newId, $label);
+            }
+            $oldId = $current[$field] ?? null;
+            $oldId = ($oldId === null || $oldId === '') ? null : (int)$oldId;
+            if ($newId === $oldId) {
+                continue;
+            }
+            $updates[] = "$field = ?";
+            $args[]    = $newId;
+            $audits[]  = ($field === 'resolution_code_id')
+                ? [$auditField, ticketResolutionCodeName($conn, $oldId), ticketResolutionCodeName($conn, $newId)]
+                : [$auditField, ticketCategoryPathLabel($conn, $oldId), ticketCategoryPathLabel($conn, $newId)];
+        }
+
+        // ⚠️ CHANGING THE TYPE CAN ORPHAN THE CATEGORY.
+        // A category may be tied to one ticket type, and its children inherit that
+        // tie. Move the ticket to a different type and the category it is carrying
+        // may no longer belong there at all — leaving "Incident / User onboarding"
+        // sitting on the ticket, wrong, and invisible until a report is read.
+        // So it is CLEARED rather than kept, and the audit trail says so. The
+        // caller is told via the returned audit entry, which the UI surfaces.
+        if (array_key_exists('ticket_type_id', $in)) {
+            $newTypeId = ($in['ticket_type_id'] === '' || $in['ticket_type_id'] === null) ? null : (int)$in['ticket_type_id'];
+            foreach (['category_id', 'closure_category_id'] as $catField) {
+                // Only if the caller has not set this field itself in the same
+                // request — an explicit value always wins over this cleanup.
+                if (array_key_exists($catField, $in)) {
+                    continue;
+                }
+                $catId = $current[$catField] ?? null;
+                if ($catId === null || $catId === '') {
+                    continue;
+                }
+                $boundType = self::categoryEffectiveTypeId($conn, (int)$catId);
+                // NULL = the category is offered whatever the type is, so it survives.
+                if ($boundType === null || $boundType === $newTypeId) {
+                    continue;
+                }
+                $updates[] = "$catField = ?";
+                $args[]    = null;
+                $audits[]  = [
+                    $catField === 'category_id' ? 'Category' : 'Category at Close',
+                    ticketCategoryPathLabel($conn, (int)$catId),
+                    null,
+                    true,   // forced: audited even when the caller audits client-side
+                ];
             }
         }
 
@@ -432,8 +522,17 @@ class TicketsService
         $args[]    = $ticketId;
         $conn->prepare('UPDATE tickets SET ' . implode(', ', $updates) . ' WHERE id = ?')->execute($args);
 
-        if ($writeAudit) {
-            foreach ($audits as [$field, $old, $new]) {
+        // ⚠️ AN ENTRY FLAGGED `forced` IS WRITTEN EVEN WHEN $writeAudit IS FALSE.
+        //
+        // The UI normally audits client-side, so this service stays quiet for it.
+        // That works because the UI knows what it asked for — but the category
+        // auto-clear (#1540) is a change the SERVER makes on its own, when a new
+        // ticket type orphans the category the ticket was carrying. The client
+        // never asked for it and cannot log what it does not know happened, so
+        // the field would empty itself with nothing in the trail to say why.
+        foreach ($audits as $entry) {
+            [$field, $old, $new] = $entry;
+            if ($writeAudit || !empty($entry[3])) {
                 self::auditWrite($conn, $ticketId, $actorId, $field, $old, $new);
             }
         }
@@ -864,6 +963,37 @@ class TicketsService
     }
 
     /** Validate a simple lookup id (returns the row name); 422 on unknown id. Null/'' -> null. */
+    /**
+     * The ticket type a category is tied to, walking up to its ROOT (#1540).
+     *
+     * The type link is only meaningful on a root; a sub-category inherits it. So
+     * "is this category allowed on this ticket type?" can never be answered from
+     * the row itself — it has to climb. NULL means "offered whatever the type is".
+     */
+    private static function categoryEffectiveTypeId(PDO $conn, int $categoryId): ?int
+    {
+        $cur   = $categoryId;
+        $steps = 0;
+        try {
+            $st = $conn->prepare("SELECT parent_id, ticket_type_id FROM ticket_categories WHERE id = ?");
+            while ($cur !== null && $steps < TICKET_CATEGORY_MAX_DEPTH + 2) {
+                $st->execute([$cur]);
+                $row = $st->fetch(PDO::FETCH_ASSOC);
+                if (!$row) {
+                    return null;
+                }
+                if ($row['parent_id'] === null) {
+                    return $row['ticket_type_id'] === null ? null : (int)$row['ticket_type_id'];
+                }
+                $cur = (int)$row['parent_id'];
+                $steps++;
+            }
+        } catch (Throwable $e) {
+            return null;   // cannot resolve → treat as unbound, never clear blindly
+        }
+        return null;
+    }
+
     private static function validateLookupId(PDO $conn, string $table, $id, string $label): ?string
     {
         if ($id === null || $id === '') {

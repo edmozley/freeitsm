@@ -59,7 +59,7 @@ $translationNamespaces = ['common'];
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="assets/js/i18n.js?v=2"></script>
     <link rel="stylesheet" href="assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="assets/css/inbox.css?v=62">
+    <link rel="stylesheet" href="assets/css/inbox.css?v=66">
     <style>
         body {
             background: var(--login-bg, linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%));

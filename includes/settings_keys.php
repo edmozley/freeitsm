@@ -123,6 +123,23 @@ function settingKeyOwners(): array
         'time_tracking_enabled'     => ['module' => 'tickets', 'cap' => Cap::TICKETS_MANAGE, 'tab' => 'time-tracking'],
         'time_tracking_api_enabled' => ['module' => 'tickets', 'cap' => Cap::TICKETS_MANAGE, 'tab' => 'time-tracking'],
 
+        // --- Tickets: classification fields (#1540) ---
+        // The INSTALL-WIDE defaults for whether each of the three fields appears on
+        // a ticket. A company may override any of them — same mechanism as time
+        // tracking above (includes/tenant_settings.php).
+        //
+        // ⚠️ These default to OFF, where time tracking defaults to ON. Deliberate:
+        // upgrading must not grow three empty dropdowns on everybody's ticket page
+        // before they have created a single category. Build the list, then switch on.
+        //
+        // 🔑 One switch each, NOT the UI/API pair time tracking carries. These are
+        // plain columns rather than a panel with its own endpoints, so a hidden
+        // field simply never gets set and the REST API returns null on its own —
+        // there is no endpoint to quietly empty out from under an integration.
+        'ticket_category_enabled'         => ['module' => 'tickets', 'cap' => Cap::TICKETS_CATEGORIES, 'tab' => 'categories'],
+        'ticket_closure_category_enabled' => ['module' => 'tickets', 'cap' => Cap::TICKETS_CATEGORIES, 'tab' => 'categories'],
+        'ticket_resolution_code_enabled'  => ['module' => 'tickets', 'cap' => Cap::TICKETS_CATEGORIES, 'tab' => 'categories'],
+
         // --- System: SSO area ---
         'sso_enabled'              => ['module' => 'system', 'cap' => null, 'tab' => 'sso'],
         'local_login_enabled'      => ['module' => 'system', 'cap' => null, 'tab' => 'sso'],

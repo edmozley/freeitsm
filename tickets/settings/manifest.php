@@ -67,6 +67,20 @@ return [
             'grant'     => 'Manage ticket origins',
         ],
         [
+            // Categories, sub-categories, resolution codes, AND the three switches
+            // deciding whether each of those fields shows on a ticket at all (#1540).
+            //
+            // 🔑 ONE tab, not three. The permission argument this module exists to
+            // make is about DIFFERENT KINDS of thing sharing a tab bar — mailbox
+            // credentials next to a list of words. These three are the same kind of
+            // thing as each other, so splitting them would add tabs without adding
+            // any decision an administrator would actually make differently.
+            'id'        => 'categories',
+            'cap'       => Cap::TICKETS_CATEGORIES,
+            'label_key' => 'tickets.settings.tabs.categories',
+            'grant'     => 'Manage ticket categories and resolution codes, and whether those fields appear on a ticket',
+        ],
+        [
             'id'        => 'statuses',
             'cap'       => Cap::TICKETS_STATUSES,
             'label_key' => 'tickets.settings.tabs.statuses',

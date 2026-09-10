@@ -292,6 +292,44 @@ return [
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 
+    // Ticket classification (#1540). The tree behind BOTH the category a ticket is
+    // raised with and the one it is closed with — the same list, asked twice.
+    'ticket_categories' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'name'              => 'VARCHAR(100) NOT NULL',
+        'description'       => 'VARCHAR(255) NULL',
+        // Sub-categories. NULL = a root. Depth capped at 3 in the API, not here.
+        // ⚠️ The ticket stores the LEAF id ONLY — there is deliberately no
+        // parent_category_id on `tickets`. Ancestors are DERIVED for roll-up
+        // reporting; storing both would let them disagree.
+        'parent_id'         => 'INT NULL',
+        // Optional link to a ticket type. 🔑 ONLY MEANINGFUL ON A ROOT — a child
+        // inherits its root's type and the API refuses to set this on a child.
+        'ticket_type_id'    => 'INT NULL',
+        'is_portal_visible' => 'TINYINT(1) NOT NULL DEFAULT 1',
+        // Retire rather than delete, so closed tickets keep their label.
+        'is_active'         => 'TINYINT(1) NULL DEFAULT 1',
+        'display_order'     => 'INT NULL DEFAULT 0',
+        // Multi-tenancy: NULL = a global default; set = a company's own.
+        // (Config meaning of tenant_id — see ticket_types.)
+        'tenant_id'         => 'INT NULL',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+    ],
+
+    // How a ticket ENDED, not what it was about. Flat on purpose: the moment this
+    // grows a hierarchy it is a second category tree and the two will drift.
+    'ticket_resolution_codes' => [
+        'id'                => 'INT NOT NULL AUTO_INCREMENT',
+        'name'              => 'VARCHAR(100) NOT NULL',
+        'description'       => 'VARCHAR(255) NULL',
+        'is_active'         => 'TINYINT(1) NULL DEFAULT 1',
+        'display_order'     => 'INT NULL DEFAULT 0',
+        'tenant_id'         => 'INT NULL',
+        'created_datetime'  => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
+    ],
+
     // Multi-tenancy: the per-company "hide" layer for global config (the add+hide
     // override model — design §7). A row means "this company does NOT want global
     // <entity_type> #<entity_id> in its lists". Generic so one table serves every
@@ -560,6 +598,16 @@ return [
         'priority_id'           => 'INT NULL',
         'department_id'         => 'INT NULL',
         'ticket_type_id'        => 'INT NULL',
+        // Ticket classification (#1540). Three different questions:
+        //   category_id          what it was REPORTED as (set when raised)
+        //   closure_category_id  what it TURNED OUT to be (set at close, from the SAME tree)
+        //   resolution_code_id   HOW it ended
+        // All three are NULL on every existing ticket and NOTHING is backfilled —
+        // NULL means "never categorised", shown as "Not categorised", never guessed.
+        // 🔑 Each holds the LEAF category id ONLY; the parent is DERIVED.
+        'category_id'           => 'INT NULL',
+        'closure_category_id'   => 'INT NULL',
+        'resolution_code_id'    => 'INT NULL',
         'assigned_analyst_id'   => 'INT NULL',
         'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',

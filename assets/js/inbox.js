@@ -280,6 +280,17 @@ let ticketStatuses = [];
 let moveCompanies = [];
 let isMultiCompany = false;
 let ticketPriorities = [];   // loaded once at init from get_ticket_priorities.php
+// Classification (#1540): the category tree, the resolution codes, and whether
+// each of the three fields is switched on for this company at all.
+//
+// ⚠️ `ticketClassification` starts with all three OFF, and that is the SAFE
+// default here in a way it usually is not: if the fetch never lands, the fields
+// simply do not render. The dangerous direction would be defaulting them ON and
+// drawing three empty dropdowns that write null over a real value on the next
+// save. Nothing here writes anything, so absent = hidden = harmless.
+let ticketCategories = [];
+let ticketResolutionCodes = [];
+let ticketClassification = { category: false, closure_category: false, resolution_code: false };
 let analysts = [];
 let currentEmail = null;
 let currentRecordings = [];
@@ -390,6 +401,7 @@ async function setFolderGrouping(mode) {
 document.addEventListener('DOMContentLoaded', function() {
     loadDepartments();
     loadTicketTypes();
+    loadTicketClassification();
     loadTicketOrigins();
     loadTicketStatuses();
     loadTicketPriorities();
@@ -588,6 +600,50 @@ async function loadTicketTypes() {
     } catch (error) {
         console.error('Error loading ticket types:', error);
     }
+}
+
+// Load the classification lists and the three switches (#1540) — one request,
+// because a form that had the categories but not the switches could briefly
+// render a field the settings say to hide.
+async function loadTicketClassification() {
+    try {
+        const response = await fetch(API_BASE + 'get_ticket_classification.php');
+        const data = await response.json();
+        if (data.success) {
+            ticketCategories      = data.categories || [];
+            ticketResolutionCodes = data.resolution_codes || [];
+            ticketClassification  = data.settings || ticketClassification;
+        }
+    } catch (error) {
+        console.error('Error loading ticket classification:', error);
+    }
+}
+
+// Categories on offer for one ticket type. A category with no type is offered
+// whatever the type is; one tied to a type is offered only on that type.
+// The tie lives on the ROOT, so `effective_type_id` is what to compare - a
+// sub-category has none of its own.
+function categoriesForType(typeId) {
+    const t = (typeId === '' || typeId === null || typeId === undefined) ? null : Number(typeId);
+    return ticketCategories.filter(c => c.effective_type_id === null || c.effective_type_id === t);
+}
+
+// Options for a category picker, indented so the tree reads as a tree.
+// `selectedId` is always included even when the type filter would drop it -
+// a ticket already carrying a category must never render as blank, or the next
+// save silently clears a value nobody chose to clear.
+function categoryOptionsFor(typeId, selectedId) {
+    const sel = selectedId === '' || selectedId === null || selectedId === undefined ? null : Number(selectedId);
+    const list = categoriesForType(typeId);
+    if (sel !== null && !list.some(c => c.id === sel)) {
+        const missing = ticketCategories.find(c => c.id === sel);
+        if (missing) list.unshift(missing);
+    }
+    return list.map(c => {
+        const indent = '  '.repeat(Math.max(0, (c.depth || 1) - 1));
+        const prefix = (c.depth || 1) > 1 ? '└ ' : '';
+        return `<option value="${c.id}" ${sel === c.id ? 'selected' : ''}>${indent}${prefix}${escapeHtml(c.name)}</option>`;
+    }).join('');
 }
 
 // Load ticket origins
@@ -2356,6 +2412,41 @@ function displayEmail(email, recordings) {
         `<option value="${origin.id}" ${email.origin_id == origin.id ? 'selected' : ''}>${escapeHtml(origin.name)}</option>`
     ).join('');
 
+    // Classification fields (#1540). Each renders only if its switch is on for
+    // this company — three independent answers, so "category off, category at
+    // close on" is a real and supported setup and nothing here couples them.
+    //
+    // The two category pickers share one tree and are filtered by the ticket's
+    // CURRENT type; changing the type re-filters both (see assignTicketType).
+    const classificationFields = [
+        ticketClassification.category ? `
+                    <div class="toolbar-field">
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_category'))}</label>
+                        <select class="toolbar-select" id="categorySelect" onchange="assignCategory()">
+                            <option value=""></option>
+                            ${categoryOptionsFor(email.ticket_type_id, email.category_id)}
+                        </select>
+                    </div>` : '',
+        ticketClassification.closure_category ? `
+                    <div class="toolbar-field">
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_closure_category'))}</label>
+                        <select class="toolbar-select" id="closureCategorySelect" onchange="assignClosureCategory()">
+                            <option value=""></option>
+                            ${categoryOptionsFor(email.ticket_type_id, email.closure_category_id)}
+                        </select>
+                    </div>` : '',
+        ticketClassification.resolution_code ? `
+                    <div class="toolbar-field">
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_resolution_code'))}</label>
+                        <select class="toolbar-select" id="resolutionCodeSelect" onchange="assignResolutionCode()">
+                            <option value=""></option>
+                            ${ticketResolutionCodes.map(c =>
+                                `<option value="${c.id}" ${email.resolution_code_id == c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
+                            ).join('')}
+                        </select>
+                    </div>` : ''
+    ].join('');
+
     // Build first time fix dropdown
     const firstTimeFixOptions = `
         <option value="" ${email.first_time_fix === null ? 'selected' : ''}>--</option>
@@ -2432,6 +2523,7 @@ function displayEmail(email, recordings) {
                             ${ticketTypeOptions}
                         </select>
                     </div>
+${classificationFields}
                     <div class="toolbar-field">
                         <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_status'))}</label>
                         <select class="toolbar-select" id="statusSelect" onchange="assignStatus()">
@@ -3928,12 +4020,103 @@ async function assignTicketType() {
         if (data.success) {
             await logAudit(currentEmail.ticket_id, 'Ticket Type', oldValue, newValue);
             currentEmail.ticket_type_id = ticketTypeId || null;
+            // #1540. A category can be tied to one ticket type, so changing the
+            // type can leave the ticket wearing a category that no longer belongs
+            // to it. The server CLEARS such a category rather than keeping a pair
+            // that disagrees; the pickers have to be re-filtered to match, or the
+            // screen would keep showing a value the database no longer holds.
+            refilterCategoriesForType();
         } else {
             showToast('Error assigning ticket type: ' + data.error, 'error');
         }
     } catch (error) {
         console.error('Error:', error);
         showToast('Failed to assign ticket type', 'error');
+    }
+}
+
+// Re-render both category pickers against the ticket's current type, dropping any
+// selection the new type does not allow — matching what the server just did.
+// Says so out loud: a value disappearing with no explanation reads as a bug.
+function refilterCategoriesForType() {
+    if (!currentEmail) return;
+    const typeId = currentEmail.ticket_type_id;
+    let cleared = false;
+
+    [['categorySelect', 'category_id'], ['closureCategorySelect', 'closure_category_id']].forEach(([elId, field]) => {
+        const sel = document.getElementById(elId);
+        if (!sel) return;
+        const currentId = currentEmail[field] ? Number(currentEmail[field]) : null;
+        const stillOffered = currentId === null
+            || categoriesForType(typeId).some(c => c.id === currentId);
+        if (!stillOffered) {
+            currentEmail[field] = null;
+            cleared = true;
+        }
+        sel.innerHTML = '<option value=""></option>' + categoryOptionsFor(typeId, currentEmail[field]);
+    });
+
+    if (cleared) {
+        showToast(t('tickets.reading_pane.category_cleared'), 'info');
+    }
+}
+
+// Assign the "reported as" category.
+async function assignCategory() {
+    await assignClassificationField('categorySelect', 'category_id', 'Category');
+}
+
+// Assign the "turned out to be" category — the same tree, asked again at close.
+async function assignClosureCategory() {
+    await assignClassificationField('closureCategorySelect', 'closure_category_id', 'Category at Close');
+}
+
+// Assign the resolution code — how it ended, not what it was about.
+async function assignResolutionCode() {
+    await assignClassificationField('resolutionCodeSelect', 'resolution_code_id', 'Resolution Code');
+}
+
+// The three share one path: read the select, send just that field, audit the
+// change with the readable label rather than the id.
+async function assignClassificationField(selectId, field, auditLabel) {
+    const sel = document.getElementById(selectId);
+    if (!sel || !currentEmail) return;
+    const newId = sel.value || null;
+
+    const labelFor = id => {
+        if (!id) return '';
+        if (field === 'resolution_code_id') {
+            const c = ticketResolutionCodes.find(x => x.id === Number(id));
+            return c ? c.name : '';
+        }
+        const c = ticketCategories.find(x => x.id === Number(id));
+        // The full path, not the leaf: "Printer" alone is ambiguous once two
+        // roots both have one, and an audit line has to stand on its own.
+        return c ? c.path_label : '';
+    };
+    const oldValue = labelFor(currentEmail[field]);
+    const newValue = labelFor(newId);
+
+    try {
+        const response = await fetch(API_BASE + 'assign_ticket.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: currentEmail.ticket_id, [field]: newId })
+        });
+        const data = await response.json();
+        if (data.success) {
+            await logAudit(currentEmail.ticket_id, auditLabel, oldValue, newValue);
+            currentEmail[field] = newId;
+        } else {
+            showToast(data.error || 'Failed', 'error');
+            // Put the picker back to what the ticket actually holds, rather than
+            // leaving the screen showing a value the save refused.
+            sel.value = currentEmail[field] || '';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed', 'error');
+        sel.value = currentEmail[field] || '';
     }
 }
 

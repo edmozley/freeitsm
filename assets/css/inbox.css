@@ -4411,6 +4411,52 @@ body .tox-tinymce-aux {
 .tt-load-error[hidden] { display: none; }
 .tt-load-error span { flex: 1; min-width: 220px; }
 
+/* Ticket categories settings tab (#1540). Same error banner treatment as time
+   tracking above — a tab that could not read its switches must say so loudly,
+   because an unticked box and an unread one look identical. */
+.tc-sub  { font-size: 13px; font-weight: 600; margin: 22px 0 8px; color: var(--text, #333); }
+.tc-sub4 { font-size: 12px; font-weight: 600; margin: 16px 0 8px; color: var(--text-muted, #666); text-transform: uppercase; letter-spacing: .04em; }
+.tc-note { font-size: 12px; color: var(--text-muted, #666); margin: 8px 0 14px; line-height: 1.55; }
+.tc-alert {
+    display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px;
+    margin: 0 0 18px; padding: 11px 14px; border-radius: 6px;
+    font-size: 13px; line-height: 1.5;
+    background: var(--danger-bg, #fee2e2);
+    color: var(--danger-text, #991b1b);
+    border: 1px solid var(--danger-border, #f0c2c2);
+}
+.tc-alert[hidden] { display: none; }
+.tc-alert span { flex: 1; min-width: 220px; }
+
+.tc-switches { margin-bottom: 8px; }
+.tc-switch-row {
+    display: flex; align-items: flex-start; gap: 18px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+}
+.tc-switch-row:last-child { border-bottom: 0; }
+.tc-switch-label { flex: 1; min-width: 0; }
+.tc-switch-label strong { display: block; font-size: 13px; color: var(--text, #333); margin-bottom: 3px; }
+.tc-switch-label span   { display: block; font-size: 12px; color: var(--text-muted, #666); line-height: 1.5; }
+
+/* The tree. Depth is shown by indent plus a guide, not by nesting the table —
+   a nested table cannot be sorted, filtered or read by a screen reader as one
+   list, and this list is short enough that the indent carries it. */
+.tc-depth { display: inline-flex; align-items: center; gap: 6px; }
+.tc-depth-1 { padding-left: 0; }
+.tc-depth-2 { padding-left: 22px; }
+.tc-depth-3 { padding-left: 44px; }
+.tc-guide { color: var(--text-muted, #9aa5ad); user-select: none; }
+.tc-catname { font-weight: 500; }
+.tc-desc { display: block; font-size: 11px; color: var(--text-muted, #78868f); margin-top: 2px; }
+.tc-pill {
+    display: inline-block; padding: 2px 8px; border-radius: 999px;
+    font-size: 11px; line-height: 1.6;
+    background: var(--chip-bg, rgba(0,0,0,.05)); color: var(--text-muted, #666);
+}
+.tc-empty { text-align: center; color: var(--text-muted, #666); padding: 22px 10px; }
+.tc-empty strong { display: block; margin-bottom: 4px; color: var(--text, #333); }
+
 /* =====================================================================
    COLLAPSING LONG MESSAGES  (discussion #104, #1429)
 
