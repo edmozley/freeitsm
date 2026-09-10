@@ -222,6 +222,30 @@ the tag cannot.
 freeitsm.co.uk cannot disagree - per section 2. The release page is built from the same
 `releases/X.Y.Z.md`; `updates.php` keeps its own detailed feed separately.
 
+```bash
+php scripts/gen_release_notes_page.php
+```
+
+That regenerates `C:/wamp64/www/freeitsm/releases.html` from the **front matter** of every
+`releases/*.md` - `version`, `date` and `headline`, one card per release, newest first,
+each linking to the full notes on GitHub. Nothing is written twice and nothing is typed by
+hand, which is the whole point: a hand-maintained page is how the site ended up four
+releases behind.
+
+⚠️ **The website folder is not a git repository.** The script writes the file and prints
+its path; uploading it is a manual FTP step. After a release, upload:
+
+- `releases.html` - regenerated, every time
+- `sitemap.xml` - only if you touched it
+
+⚠️ **A release whose front matter is malformed is skipped and named in the script's
+output.** Read that output rather than assuming - a release silently missing from the page
+is exactly what this is meant to prevent.
+
+The `updates.php` feed stopped on 4 September 2026, the day 1.0.0 was tagged, and carries a
+banner saying so. It is an archive of what was built before the first release; nothing new
+is added to it.
+
 **8. Move the published rows** in `CHANGELOG.local.md` from **Unpublished** to
 **Published** under a heading naming the release.
 
