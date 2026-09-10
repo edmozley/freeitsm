@@ -108,6 +108,8 @@ return [
         'title'            => 'Folders',
         'group_label'      => 'Group folders by',
         'group_department' => 'Department',
+        // #1566. Only rendered when the install actually has teams.
+        'group_team'       => 'Team',
         'group_analyst'    => 'Analyst',
     ],
 
@@ -157,6 +159,9 @@ return [
         'field_origin'        => 'Origin',
         'field_first_time_fix'=> 'First Time Fix',
         'field_it_training'   => 'IT Training',
+        // #1566. Which queue owns the ticket, as distinct from who is doing it.
+        // Only rendered when the install actually has teams.
+        'field_team'          => 'Team',
         'field_owner'         => 'Owner',
         'opt_yes'             => 'Yes',
         'opt_no'              => 'No',

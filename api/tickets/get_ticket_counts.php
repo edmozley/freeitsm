@@ -423,6 +423,77 @@ try {
         ];
     }
 
+    // ── Team folders (#1566) ────────────────────────────────────────────────
+    //
+    // One folder per team that owns at least one ticket, plus a per-status
+    // breakdown, mirroring the department and analyst structures above.
+    //
+    // 🔴 SCOPED BY THE SAME $ttSql AS EVERY OTHER COUNT. Team assignment is
+    // ROUTING, not permission — it must never widen or narrow what an analyst
+    // can see. A ticket handed to a team you are not in is still visible to you
+    // exactly as it was a moment before; it simply now sits in that team's
+    // folder. Filtering by membership here would quietly turn a routing label
+    // into a second, invisible permission system.
+    //
+    // Defensive: the column is absent until Database Verification has run, and a
+    // folder list that fatals takes the whole inbox with it.
+    $teamStructure = [];
+    $unassignedTeamCount = 0;
+    try {
+        $teamCountsStmt = $conn->prepare(
+            "SELECT tm.id, tm.name, COUNT(t.id) AS count
+               FROM teams tm
+               LEFT JOIN tickets t ON t.assigned_team_id = tm.id
+                    AND t.deleted_datetime IS NULL{$ttSql}
+              GROUP BY tm.id, tm.name
+              ORDER BY tm.display_order, tm.name"
+        );
+        $teamCountsStmt->execute($ttParams);
+        $teamRows = $teamCountsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+        $teamStatusStmt = $conn->prepare(
+            "SELECT t.assigned_team_id AS team_id, ts.name AS status, COUNT(*) AS count
+               FROM tickets t
+               LEFT JOIN ticket_statuses ts ON ts.id = t.status_id
+              WHERE t.assigned_team_id IS NOT NULL AND t.deleted_datetime IS NULL{$ttSql}
+              GROUP BY t.assigned_team_id, ts.name"
+        );
+        $teamStatusStmt->execute($ttParams);
+        $statusByTeam = [];
+        foreach ($teamStatusStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            if ($row['status'] === null) continue;
+            if (!in_array($row['status'], $activeStatusNames, true)) continue;
+            $statusByTeam[$row['team_id']][$row['status']] = (int)$row['count'];
+        }
+
+        foreach ($teamRows as $tm) {
+            $map = $statusByTeam[$tm['id']] ?? [];
+            $statuses = [];
+            foreach ($activeStatusNames as $name) {
+                $statuses[$name] = $map[$name] ?? 0;
+            }
+            $teamStructure[] = [
+                'id'       => (int)$tm['id'],
+                'name'     => $tm['name'],
+                'count'    => (int)$tm['count'],
+                'statuses' => $statuses,
+            ];
+        }
+
+        // "Unassigned" in team grouping means NO TEAM — the same shape the other
+        // two groupings already use, where it means no department / nobody
+        // working it. Nothing new to explain.
+        $utStmt = $conn->prepare(
+            "SELECT COUNT(*) FROM tickets t
+              WHERE t.assigned_team_id IS NULL AND t.deleted_datetime IS NULL{$ttSql}"
+        );
+        $utStmt->execute($ttParams);
+        $unassignedTeamCount = (int)$utStmt->fetchColumn();
+    } catch (Exception $e) {
+        $teamStructure = [];
+        $unassignedTeamCount = 0;
+    }
+
     // Trash count — company-scoped (matches the trash list, which isn't team-filtered).
     list($trashTtSql, $trashTtParams) = ticketTenantFilter($conn, $analystId, 't');
     $trashStmt = $conn->prepare("SELECT COUNT(*) FROM tickets t WHERE t.deleted_datetime IS NOT NULL" . $trashTtSql);
@@ -449,6 +520,9 @@ try {
         'statuses' => $statusMeta,
         'departments' => $departmentStructure,
         'analysts' => $analystStructure,
+        // #1566 — empty on an install with no teams, which hides the grouping.
+        'teams' => $teamStructure,
+        'unassigned_team_count' => $unassignedTeamCount,
         'overall_statuses' => $overallStatuses,
         'unassigned_statuses' => $unassignedStatuses,
         'unassigned_analyst_statuses' => $unassignedAnalystStatuses

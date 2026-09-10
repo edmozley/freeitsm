@@ -156,6 +156,33 @@ function notificationsAudienceFor(PDO $conn, string $event, array $payload): arr
         return array_values(array_unique(array_filter($ids)));
     }
 
+    // A ticket landing in a team's queue goes to EVERY MEMBER of that team
+    // (#1566). That is the whole point of the feature: the service desk does not
+    // know who in Infrastructure handles what, so the team is told and whoever
+    // picks it up assigns themselves.
+    //
+    // 🔑 Rule 1 is applied per person by the caller, so the analyst who did the
+    // escalating is not told about their own action even when they are a member
+    // of the receiving team.
+    //
+    // ⚠️ An empty team — or a missing table on an install that has not run
+    // Database Verification — returns nobody, and nobody is notified. A missing
+    // table must narrow the audience, never widen it.
+    if ($event === 'ticket.team_assigned') {
+        $teamId = isset($payload['team_id']) ? (int)$payload['team_id'] : 0;
+        if ($teamId <= 0) {
+            return [];
+        }
+        try {
+            $stmt = $conn->prepare("SELECT analyst_id FROM analyst_teams WHERE team_id = ?");
+            $stmt->execute([$teamId]);
+            $ids = array_map('intval', $stmt->fetchAll(PDO::FETCH_COLUMN));
+        } catch (Exception $e) {
+            return [];
+        }
+        return array_values(array_unique(array_filter($ids)));
+    }
+
     $one = notificationsRecipientFor($event, $payload);
     return $one > 0 ? [$one] : [];
 }

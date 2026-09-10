@@ -95,6 +95,9 @@ class WorkflowEngine
             'ticket.status_changed'    => 'A ticket\'s status changes',
             'ticket.priority_changed'  => 'A ticket\'s priority changes',
             'ticket.assigned'          => 'A ticket is assigned to an analyst',
+            // #1566. Separate from ticket.assigned because it answers a different
+            // question: which QUEUE owns the ticket, not who is working on it.
+            'ticket.team_assigned'     => 'A ticket is assigned to a team',
             // Added for the notification bell (discussion #55), but useful in their
             // own right — until now nothing announced that somebody had said
             // something on a ticket, so no workflow could act on it either.

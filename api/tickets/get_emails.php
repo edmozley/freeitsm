@@ -22,6 +22,7 @@ try {
     $department_id = $_GET['department_id'] ?? null;
     $status = $_GET['status'] ?? null;
     $assignee_id = $_GET['assignee_id'] ?? null;
+    $team_id     = $_GET['team_id'] ?? null;   // #1566
 
     // Connect to database
     $conn = connectToDatabase();
@@ -142,6 +143,19 @@ try {
     } elseif ($assignee_id !== null && $assignee_id !== '') {
         $sql .= " AND t.assigned_analyst_id = ?";
         $params[] = $assignee_id;
+    }
+
+    // Which team owns the ticket (#1566).
+    //
+    // 🔴 A FILTER, NOT A PERMISSION. This narrows what is on screen; it does not
+    // widen what the analyst may see. The tenancy predicate and the department
+    // visibility rules above still apply exactly as they did — asking for one
+    // team's queue can only ever return a subset of what you could already read.
+    if ($team_id === 'unassigned') {
+        $sql .= " AND t.assigned_team_id IS NULL";
+    } elseif ($team_id !== null && $team_id !== '') {
+        $sql .= " AND t.assigned_team_id = ?";
+        $params[] = (int)$team_id;
     }
 
     if ($status !== null && $status !== '') {

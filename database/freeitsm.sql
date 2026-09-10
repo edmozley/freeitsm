@@ -990,6 +990,32 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     `category_id`           INT NULL,
     `closure_category_id`   INT NULL,
     `resolution_code_id`    INT NULL,
+    -- Which TEAM owns this ticket (#1566). NULL = none, which is every existing
+    -- ticket and every install that does not use teams.
+    --
+    -- 🔑 A DIFFERENT FACT FROM `assigned_analyst_id`, and that is the only thing
+    -- that makes a third assignment-ish column safe here:
+    --
+    --     assigned_team_id     WHICH QUEUE owns it   (Infrastructure)
+    --     assigned_analyst_id  WHO is doing it       (Dave)
+    --     owner_id             whose CALENDAR the scheduled work appears in
+    --
+    -- ⚠️ `tickets` already stores the assignee twice — assigned_analyst_id and
+    -- owner_id — and on a real installation 93 of 110 rows disagree with
+    -- themselves. That happened because those two mean the SAME thing, so
+    -- nothing kept them honest. This one survives only while it keeps meaning
+    -- something the others do not.
+    --
+    -- The rules, enforced in includes/services/tickets.php:
+    --   * setting an analyst NEVER sets or clears the team, and vice versa —
+    --     no side-effect writes, which is exactly how owner_id drifted;
+    --   * clearing the analyst LEAVES the team, so a ticket falls back into the
+    --     queue rather than into the void when somebody goes on holiday.
+    --
+    -- 🔴 ROUTING, NOT PERMISSION. This must never affect who can SEE a ticket —
+    -- that stays with department_teams. Escalating a ticket must not hide it
+    -- from somebody who could read it a moment earlier.
+    `assigned_team_id`      INT NULL,
     `assigned_analyst_id`   INT NULL,
     `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
@@ -1037,6 +1063,7 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     KEY `ix_tickets_status_id` (`status_id`),
     KEY `ix_tickets_priority_id` (`priority_id`),
     KEY `ix_tickets_assigned_analyst_id` (`assigned_analyst_id`),
+    KEY `ix_tickets_assigned_team_id` (`assigned_team_id`),
     KEY `ix_tickets_department_id` (`department_id`),
     KEY `ix_tickets_category_id` (`category_id`),
     KEY `ix_tickets_closure_category_id` (`closure_category_id`),
@@ -1045,6 +1072,9 @@ CREATE TABLE IF NOT EXISTS `tickets` (
     KEY `ix_tickets_tenant_id` (`tenant_id`),
     KEY `ix_tickets_deleted_datetime` (`deleted_datetime`),
     CONSTRAINT `fk_tickets_analysts` FOREIGN KEY (`assigned_analyst_id`) REFERENCES `analysts` (`id`),
+    -- SET NULL, never CASCADE: deleting a team must not take its tickets with it.
+    -- The ticket returns to "no team", which is visible and fixable.
+    CONSTRAINT `fk_tickets_team` FOREIGN KEY (`assigned_team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL,
     CONSTRAINT `fk_tickets_departments` FOREIGN KEY (`department_id`) REFERENCES `departments` (`id`),
     CONSTRAINT `fk_tickets_origin` FOREIGN KEY (`origin_id`) REFERENCES `ticket_origins` (`id`),
     CONSTRAINT `fk_tickets_ticket_types` FOREIGN KEY (`ticket_type_id`) REFERENCES `ticket_types` (`id`),

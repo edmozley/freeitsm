@@ -90,6 +90,21 @@ class NotificationsService
         return [
             // The ones people actually asked for.
             'ticket.assigned'         => ['default' => true,  'entity' => 'ticket'],
+            /**
+             * #1566 — a ticket lands in your team's queue.
+             *
+             * On by default for the same reason ticket.assigned is: work arriving
+             * is the one thing you cannot afford to miss, and it is always caused
+             * by somebody else, so it can never be self-inflicted noise.
+             *
+             * ⚠️ The audience is EVERY MEMBER of the receiving team, not one
+             * person — see notificationsAudienceFor(). That is the point: the
+             * helpdesk does not know who in Infrastructure does what, so the team
+             * is told and whoever picks it up assigns themselves.
+             *
+             * Dormant on an install with no teams, which is every fresh install.
+             */
+            'ticket.team_assigned'    => ['default' => true,  'entity' => 'ticket'],
             'ticket.reply_received'   => ['default' => true,  'entity' => 'ticket'],
             'ticket.note_added'       => ['default' => true,  'entity' => 'ticket'],
             'ticket.status_changed'   => ['default' => true,  'entity' => 'ticket'],

@@ -73,6 +73,7 @@ try {
                 t.category_id,
                 t.closure_category_id,
                 t.resolution_code_id,
+                t.assigned_team_id,
                 t.assigned_analyst_id,
                 t.origin_id,
                 t.first_time_fix,

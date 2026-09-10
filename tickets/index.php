@@ -61,6 +61,12 @@ $translationNamespaces = ['common', 'tickets'];
                 <h2><?php echo htmlspecialchars(t('tickets.folders.title')); ?></h2>
                 <div class="folder-group-toggle" role="group" aria-label="<?php echo htmlspecialchars(t('tickets.folders.group_label')); ?>">
                     <button type="button" class="folder-group-btn active" data-group="department" onclick="setFolderGrouping('department')"><?php echo htmlspecialchars(t('tickets.folders.group_department')); ?></button>
+                    <?php /* #1566. Hidden until the install actually has teams — a
+                             fresh install has none, so that is the default rather
+                             than an edge case. JS reveals it once the team list
+                             loads, which keeps this out of the way of every
+                             install that never uses teams. */ ?>
+                    <button type="button" class="folder-group-btn" id="folderGroupTeamBtn" data-group="team" hidden onclick="setFolderGrouping('team')"><?php echo htmlspecialchars(t('tickets.folders.group_team')); ?></button>
                     <button type="button" class="folder-group-btn" data-group="analyst" onclick="setFolderGrouping('analyst')"><?php echo htmlspecialchars(t('tickets.folders.group_analyst')); ?></button>
                 </div>
             </div>
@@ -931,7 +937,7 @@ $translationNamespaces = ['common', 'tickets'];
          three because this page was the one that never loaded tz.js. -->
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/schedule.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=122"></script>
+    <script src="../assets/js/inbox.js?v=123"></script>
     <script src="../assets/js/mobile.js?v=57"></script>
     <script>
     // Auto-check mailboxes every 60 seconds

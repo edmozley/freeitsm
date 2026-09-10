@@ -296,6 +296,7 @@ let allCompaniesView = false;
 let ticketTypesByCompany      = null;   // {tenantId: [types]}
 let ticketOriginsByCompany    = null;
 let ticketCategoriesByCompany = null;
+let ticketTeams = [];   // #1566 — empty on an install that does not use teams
 let ticketCodesByCompany      = null;
 let classificationByCompany   = null;   // {tenantId: {category, closure_category, resolution_code}}
 
@@ -401,7 +402,12 @@ async function loadFolderGroupingPreference() {
     try {
         const res = await fetch(sharedApiBase() + 'system/get_user_preference.php?key=tickets_folder_grouping');
         const data = await res.json();
-        if (data && data.success && (data.value === 'analyst' || data.value === 'department')) {
+        // ⚠️ 'team' belongs here too (#1566). Without it a saved preference of
+        // 'team' is silently discarded on every reload, so the setting appears
+        // not to stick — and the cause would look like a save bug rather than a
+        // read one. loadTicketTeams() separately drops back to 'department' if
+        // the teams have since been deleted.
+        if (data && data.success && ['analyst', 'department', 'team'].includes(data.value)) {
             folderGrouping = data.value;
         }
     } catch (e) { /* fall back to default */ }
@@ -412,7 +418,10 @@ async function loadFolderGroupingPreference() {
 }
 
 async function setFolderGrouping(mode) {
-    if (mode !== 'department' && mode !== 'analyst') return;
+    // ⚠️ A WHITELIST, so an unknown value cannot become a grouping nothing
+    // renders. 'team' was added in #1566 — and it is only reachable when the
+    // button is visible, which happens only once teams exist.
+    if (mode !== 'department' && mode !== 'analyst' && mode !== 'team') return;
     if (mode === folderGrouping) return;
     folderGrouping = mode;
 
@@ -441,6 +450,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadDepartments();
     loadTicketTypes();
     loadTicketClassification();
+    loadTicketTeams();
     loadTicketOrigins();
     loadTicketStatuses();
     loadTicketPriorities();
@@ -643,6 +653,38 @@ async function loadTicketTypes() {
         }
     } catch (error) {
         console.error('Error loading ticket types:', error);
+    }
+}
+
+/**
+ * The teams a ticket can be handed to (#1566).
+ *
+ * ⚠️ EMPTY IS THE NORMAL CASE. A fresh install has no teams at all, and teams
+ * are entirely opt-in — so an install that does not use them must see no team
+ * picker and no team folder grouping, with nothing to switch off. Same rule the
+ * company switcher follows: it renders nothing until a second company exists.
+ */
+async function loadTicketTeams() {
+    try {
+        const response = await fetch(API_BASE + 'get_teams.php');
+        const data = await response.json();
+        if (data.success) {
+            ticketTeams = (data.teams || []).filter(t => t.is_active === undefined || t.is_active);
+            // Reveal the Team folder grouping only once we know teams exist.
+            const btn = document.getElementById('folderGroupTeamBtn');
+            if (btn) btn.hidden = ticketTeams.length === 0;
+            // ⚠️ If the saved preference is 'team' but the teams have since been
+            // deleted, fall back rather than rendering an empty, unreachable
+            // folder list with no visible way back to it.
+            if (!ticketTeams.length && folderGrouping === 'team') {
+                folderGrouping = 'department';
+                loadFolderCounts();
+            }
+        }
+    } catch (error) {
+        // Left empty on failure, which hides the picker. That is the safe
+        // direction: a dropdown that cannot list the teams is worse than none.
+        console.error('Error loading teams:', error);
     }
 }
 
@@ -863,12 +905,21 @@ function renderFolders() {
     // analyst), and so, therefore, do its status children: the folder is drawn
     // once but answers a different question in each mode, so the counts come from
     // a different map. Both are scoped exactly as their own total is.
+    // #1566 adds a third answer: in team grouping it means "no team yet". No new
+    // idea to explain — the word already changes meaning with the toggle.
     const unassignedCount = folderGrouping === 'analyst'
         ? (folderCounts.unassigned_analyst_count || 0)
-        : (folderCounts.unassigned_count || 0);
+        : folderGrouping === 'team'
+            ? (folderCounts.unassigned_team_count || 0)
+            : (folderCounts.unassigned_count || 0);
+    // ⚠️ No per-status breakdown for the team case yet, so the children read 0
+    // rather than borrowing the department map — which would show numbers that
+    // do not add up to the parent. An honest 0 beats a confident wrong number.
     const unassignedStatusMap = folderGrouping === 'analyst'
         ? (folderCounts.unassigned_analyst_statuses || {})
-        : (folderCounts.unassigned_statuses || {});
+        : folderGrouping === 'team'
+            ? {}
+            : (folderCounts.unassigned_statuses || {});
     const unassignedExpanded = !!expandedFolders['unassigned'];
     html += `
         <div class="folder-item drop-zone ${unassignedExpanded ? 'expanded' : ''} ${currentFilter.type === 'unassigned' ? 'active' : ''}"
@@ -924,6 +975,42 @@ function renderFolders() {
                 html += `
                     <div class="subfolder-item drop-zone ${subActive ? 'active' : ''} ${count === 0 ? 'empty' : ''}"
                          data-drop-type="analyst_status" data-analyst-id="${an.id}" data-status="${escapeHtml(status)}">
+                        <span>${escapeHtml(status)}</span>
+                        <span class="folder-count">${count}</span>
+                    </div>
+                `;
+            });
+            html += `</div></div>`;
+        });
+    } else if (folderGrouping === 'team') {
+        // One folder per team (#1566). Teams that own no tickets are still listed,
+        // so an empty queue is visibly empty rather than absent — "is anything
+        // waiting for Infrastructure?" is a question you should be able to answer
+        // by looking, not by noticing something missing.
+        (folderCounts.teams || []).forEach(tm => {
+            const folderKey = `team_${tm.id}`;
+            const isExpanded = expandedFolders[folderKey];
+            const isActive = currentFilter.type === 'team' && currentFilter.id == tm.id;
+
+            html += `
+                <div class="folder-item drop-zone ${isExpanded ? 'expanded' : ''} ${isActive ? 'active' : ''}"
+                     data-drop-type="team" data-team-id="${tm.id}"
+                     onclick="toggleFolder('${folderKey}', ${tm.id}, { kind: 'team' })">
+                    <div class="folder-name">
+                        <span class="folder-icon">👥</span>
+                        <span>${escapeHtml(tm.name)}</span>
+                    </div>
+                    <span class="folder-count">${tm.count}</span>
+                </div>
+            `;
+
+            html += `<div class="subfolder-group ${isExpanded ? 'expanded' : ''}"><div class="subfolder-group-inner">`;
+            (folderCounts.statuses || []).map(s => s.name).forEach(status => {
+                const count = (tm.statuses || {})[status] || 0;
+                const subActive = currentFilter.type === 'team_status' && currentFilter.team_id == tm.id && currentFilter.status === status;
+                html += `
+                    <div class="subfolder-item drop-zone ${subActive ? 'active' : ''} ${count === 0 ? 'empty' : ''}"
+                         data-drop-type="team_status" data-team-id="${tm.id}" data-status="${escapeHtml(status)}">
                         <span>${escapeHtml(status)}</span>
                         <span class="folder-count">${count}</span>
                     </div>
@@ -1027,6 +1114,12 @@ function updateActiveFolderClasses() {
     } else if (currentFilter.type === 'dept_status') {
         const sel = `.subfolder-item[data-dept-id="${currentFilter.dept_id}"][data-status="${CSS.escape(currentFilter.status)}"]`;
         list.querySelector(sel)?.classList.add('active');
+    } else if (currentFilter.type === 'team') {
+        list.querySelector(`[data-drop-type="team"][data-team-id="${currentFilter.id}"]`)
+            ?.classList.add('active');
+    } else if (currentFilter.type === 'team_status') {
+        const sel = `.subfolder-item[data-team-id="${currentFilter.team_id}"][data-status="${CSS.escape(currentFilter.status)}"]`;
+        list.querySelector(sel)?.classList.add('active');
     } else if (currentFilter.type === 'analyst') {
         list.querySelector(`[data-drop-type="analyst"][data-analyst-id="${currentFilter.id}"]`)
             ?.classList.add('active');
@@ -1067,7 +1160,9 @@ function toggleFolder(folderId, groupId, opts = {}) {
     } else if (kind === 'unassigned') {
         folderRow = list?.querySelector('.folder-item[data-drop-type="unassigned"]');
     } else {
-        const dataAttr = kind === 'analyst' ? 'data-analyst-id' : 'data-dept-id';
+        const dataAttr = kind === 'analyst' ? 'data-analyst-id'
+                       : kind === 'team'    ? 'data-team-id'
+                       : 'data-dept-id';
         folderRow = list?.querySelector(`.folder-item[data-drop-type="${kind}"][${dataAttr}="${groupId}"]`);
     }
     const subGroup = folderRow?.nextElementSibling;
@@ -1089,6 +1184,16 @@ function toggleFolder(folderId, groupId, opts = {}) {
             currentFilter = { type: 'analyst', id: groupId };
             const an = folderCounts.analysts?.find(a => a.id == groupId);
             document.getElementById('emailListTitle').textContent = an ? an.name : 'Analyst';
+        } else if (kind === 'team') {
+            // ⚠️ WITHOUT THIS BRANCH a team folder falls through to the
+            // department case below and filters by department_id = <team id>.
+            // Two different id spaces, so it silently returns the wrong list —
+            // the folder said 2 and the list showed 0, which is precisely the
+            // count-disagrees-with-list class of bug this file already carries
+            // scars from. Caught by driving the real page.
+            currentFilter = { type: 'team', id: groupId };
+            const tm = folderCounts.teams?.find(x => x.id == groupId);
+            document.getElementById('emailListTitle').textContent = tm ? tm.name : 'Team';
         } else {
             currentFilter = { type: 'department', id: groupId };
             const dept = folderCounts.departments?.find(d => d.id == groupId);
@@ -1478,7 +1583,9 @@ async function loadEmails() {
         if (currentFilter.type === 'unassigned_status') {
             // Same rule as the plain Unassigned folder: which column is NULL
             // depends on how the folder list is grouped.
-            const base = folderGrouping === 'analyst' ? 'assignee_id=unassigned' : 'department_id=unassigned';
+            const base = folderGrouping === 'analyst' ? 'assignee_id=unassigned'
+                       : folderGrouping === 'team'    ? 'team_id=unassigned'
+                       : 'department_id=unassigned';
             url += `${base}&status=${encodeURIComponent(currentFilter.status)}`;
         } else if (currentFilter.type === 'all_status') {
             // Status alone, with no department or assignee — get_emails.php already
@@ -1486,11 +1593,17 @@ async function loadEmails() {
             url += `status=${encodeURIComponent(currentFilter.status)}`;
         } else if (currentFilter.type === 'unassigned') {
             // "Unassigned" semantics depend on the active grouping
-            url += folderGrouping === 'analyst' ? 'assignee_id=unassigned' : 'department_id=unassigned';
+            url += folderGrouping === 'analyst' ? 'assignee_id=unassigned'
+                 : folderGrouping === 'team'    ? 'team_id=unassigned'
+                 : 'department_id=unassigned';
         } else if (currentFilter.type === 'department') {
             url += `department_id=${currentFilter.id}`;
         } else if (currentFilter.type === 'dept_status') {
             url += `department_id=${currentFilter.dept_id}&status=${encodeURIComponent(currentFilter.status)}`;
+        } else if (currentFilter.type === 'team') {
+            url += `team_id=${currentFilter.id}`;
+        } else if (currentFilter.type === 'team_status') {
+            url += `team_id=${currentFilter.team_id}&status=${encodeURIComponent(currentFilter.status)}`;
         } else if (currentFilter.type === 'analyst') {
             url += `assignee_id=${currentFilter.id}`;
         } else if (currentFilter.type === 'analyst_status') {
@@ -2490,6 +2603,23 @@ function displayEmail(email, recordings) {
         `<option value="${p.id}" ${email.priority_id == p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`
     ).join('');
 
+    // Which team owns the ticket (#1566).
+    //
+    // ⚠️ Rendered ONLY when the install actually has teams. A fresh install has
+    // none, so this is the default rather than an edge case — nothing appears,
+    // nothing to turn off, nothing new to learn. The blank option is how a
+    // ticket is taken back out of a queue, and it never touches the analyst.
+    const teamField = ticketTeams.length ? `
+                    <div class="toolbar-field">
+                        <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_team'))}</label>
+                        <select class="toolbar-select" id="teamSelect" onchange="assignTeam()">
+                            <option value=""></option>
+                            ${ticketTeams.map(tm =>
+                                `<option value="${tm.id}" ${email.assigned_team_id == tm.id ? 'selected' : ''}>${escapeHtml(tm.name)}</option>`
+                            ).join('')}
+                        </select>
+                    </div>` : '';
+
     // Build ticket origin dropdown — the TICKET's company (#1554).
     const originOptions = listForTicket(ticketOriginsByCompany, ticketOrigins, email).map(origin =>
         `<option value="${origin.id}" ${email.origin_id == origin.id ? 'selected' : ''}>${escapeHtml(origin.name)}</option>`
@@ -2649,6 +2779,7 @@ ${classificationFields}
                             ${itTrainingOptions}
                         </select>
                     </div>
+                    ${teamField}
                     <div class="toolbar-field">
                         <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_owner'))}</label>
                         <select class="toolbar-select" id="ownerSelect" onchange="assignOwner()">
@@ -4125,6 +4256,55 @@ async function assignTicketType() {
     } catch (error) {
         console.error('Error:', error);
         showToast('Failed to assign ticket type', 'error');
+    }
+}
+
+/**
+ * Hand the ticket to a team, or take it out of one (#1566).
+ *
+ * 🔑 Deliberately does NOT touch the analyst. Team and analyst answer different
+ * questions — which queue owns it, and who is doing it — and the moment one
+ * writes the other as a side effect they start drifting apart. That is exactly
+ * how `owner_id` came to disagree with `assigned_analyst_id` on most rows.
+ *
+ * The server enforces the same rule; this is just the UI honouring it.
+ */
+async function assignTeam() {
+    const sel = document.getElementById('teamSelect');
+    if (!sel || !currentEmail) return;
+    const newId = sel.value || null;
+
+    const nameFor = id => {
+        if (!id) return '';
+        const tm = ticketTeams.find(x => String(x.id) === String(id));
+        return tm ? tm.name : '';
+    };
+    const oldValue = nameFor(currentEmail.assigned_team_id);
+    const newValue = nameFor(newId);
+
+    try {
+        const response = await fetch(API_BASE + 'assign_ticket.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ticket_id: currentEmail.ticket_id, assigned_team_id: newId })
+        });
+        const data = await response.json();
+        if (data.success) {
+            await logAudit(currentEmail.ticket_id, 'Team', oldValue, newValue);
+            currentEmail.assigned_team_id = newId;
+            // The folder counts move when a ticket changes queue, and in team
+            // grouping the folders themselves are teams.
+            loadFolderCounts();
+        } else {
+            showToast(data.error || 'Failed', 'error');
+            // Put the picker back to what the ticket actually holds rather than
+            // leaving the screen showing a value the save refused.
+            sel.value = currentEmail.assigned_team_id || '';
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showToast('Failed', 'error');
+        sel.value = currentEmail.assigned_team_id || '';
     }
 }
 

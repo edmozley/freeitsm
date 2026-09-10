@@ -405,6 +405,46 @@ class TicketsService
             }
         }
 
+        // Which TEAM owns the ticket (#1566).
+        //
+        // 🔴 HANDLED ENTIRELY ON ITS OWN, and deliberately NOT folded into the
+        // analyst block below. Setting an analyst must never set or clear the
+        // team, and setting a team must never touch the analyst — those two
+        // answer different questions ("who is doing it" / "which queue owns
+        // it"), and the moment one writes the other as a side effect they start
+        // drifting. That is precisely how `owner_id` ended up disagreeing with
+        // `assigned_analyst_id` on 93 of 110 rows: it is written as a side
+        // effect a few lines further down, and nothing keeps it honest.
+        //
+        // The consequence that matters on screen: clearing the analyst LEAVES
+        // the team, so a ticket falls back into its queue rather than into the
+        // void when somebody goes on holiday.
+        $teamChangedTo = null;   // set when a NEW team takes ownership — drives the notification
+        if (array_key_exists('assigned_team_id', $in)) {
+            $newTeamId = ($in['assigned_team_id'] === '' || $in['assigned_team_id'] === null)
+                ? null : (int)$in['assigned_team_id'];
+            $newTeamName = null;
+            if ($newTeamId !== null) {
+                $tStmt = $conn->prepare("SELECT name FROM teams WHERE id = ?");
+                $tStmt->execute([$newTeamId]);
+                $newTeamName = $tStmt->fetchColumn();
+                if ($newTeamName === false) {
+                    throw new ServiceError('validation', 'invalid_field', "Unknown team id: {$newTeamId}");
+                }
+            }
+            $oldTeamId = $current['assigned_team_id'] !== null ? (int)$current['assigned_team_id'] : null;
+            if ($newTeamId !== $oldTeamId) {
+                $updates[] = 'assigned_team_id = ?';
+                $args[]    = $newTeamId;
+                $audits[]  = ['Team', self::teamName($conn, $oldTeamId), $newTeamName];
+                // Only a team GAINING a ticket is news. Losing one is not — the
+                // people who need to know are the ones now expected to act.
+                if ($newTeamId !== null) {
+                    $teamChangedTo = $newTeamId;
+                }
+            }
+        }
+
         $oldAnalystId = $current['assigned_analyst_id'] !== null ? (int)$current['assigned_analyst_id'] : null;
         $newAnalystId = null;
         $analystSent  = array_key_exists('assigned_analyst_id', $in);
@@ -597,6 +637,14 @@ class TicketsService
             if ($analystSent && $newAnalystId !== null && $newAnalystId !== $oldAnalystId) {
                 WorkflowEngine::dispatch('ticket.assigned', [
                     'ticket' => $payload, 'analyst_id' => $newAnalystId, 'team_id' => null,
+                ]);
+            }
+            // #1566. Its own event, not a variant of ticket.assigned: the audience
+            // is everyone in the receiving team rather than one named person, and
+            // an analyst may legitimately want one and not the other.
+            if ($teamChangedTo !== null) {
+                WorkflowEngine::dispatch('ticket.team_assigned', [
+                    'ticket' => $payload, 'team_id' => $teamChangedTo, 'analyst_id' => null,
                 ]);
             }
         } catch (Exception $wfEx) {
@@ -970,6 +1018,20 @@ class TicketsService
      * "is this category allowed on this ticket type?" can never be answered from
      * the row itself — it has to climb. NULL means "offered whatever the type is".
      */
+    /** A team's name for the audit trail, or null. Never throws — this is a label. */
+    private static function teamName(PDO $conn, ?int $teamId): ?string
+    {
+        if (!$teamId) return null;
+        try {
+            $s = $conn->prepare("SELECT name FROM teams WHERE id = ?");
+            $s->execute([$teamId]);
+            $v = $s->fetchColumn();
+            return $v === false ? null : (string)$v;
+        } catch (Throwable $e) {
+            return null;
+        }
+    }
+
     private static function categoryEffectiveTypeId(PDO $conn, int $categoryId): ?int
     {
         $cur   = $categoryId;

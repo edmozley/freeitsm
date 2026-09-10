@@ -608,6 +608,14 @@ return [
         'category_id'           => 'INT NULL',
         'closure_category_id'   => 'INT NULL',
         'resolution_code_id'    => 'INT NULL',
+        // Which TEAM owns this ticket (#1566). NULL on every existing ticket and
+        // on every install that does not use teams — nothing is backfilled.
+        // 🔑 A different fact from assigned_analyst_id: team = which queue owns
+        // it, analyst = who is doing it, owner_id = whose calendar it appears in.
+        // Setting one never sets or clears the other; clearing the analyst leaves
+        // the team, so a ticket falls back to the queue rather than the void.
+        // 🔴 Routing, NOT permission — it must never change who can see a ticket.
+        'assigned_team_id'      => 'INT NULL',
         'assigned_analyst_id'   => 'INT NULL',
         'created_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
         'updated_datetime'      => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',

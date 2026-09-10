@@ -63,6 +63,7 @@ return [
     ['tickets', 'ix_tickets_status_id', 'key', '(`status_id`)'],
     ['tickets', 'ix_tickets_priority_id', 'key', '(`priority_id`)'],
     ['tickets', 'ix_tickets_assigned_analyst_id', 'key', '(`assigned_analyst_id`)'],
+    ['tickets', 'ix_tickets_assigned_team_id', 'key', '(`assigned_team_id`)'],
     ['tickets', 'ix_tickets_department_id', 'key', '(`department_id`)'],
     ['tickets', 'ix_tickets_category_id', 'key', '(`category_id`)'],
     ['tickets', 'ix_tickets_closure_category_id', 'key', '(`closure_category_id`)'],

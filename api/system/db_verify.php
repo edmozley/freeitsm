@@ -794,6 +794,16 @@ try {
         }
     }
 
+    // Ticket team assignment (#1566). SET NULL, never CASCADE: deleting a team
+    // must not take its tickets with it. They return to "no team", which is
+    // visible on screen and fixable; vanishing is neither.
+    if ($tableExists('tickets') && $tableExists('teams')
+        && !$fkExists('tickets', 'fk_tickets_team')) {
+        try {
+            $conn->exec("ALTER TABLE tickets ADD CONSTRAINT fk_tickets_team FOREIGN KEY (assigned_team_id) REFERENCES teams (id) ON DELETE SET NULL");
+        } catch (Exception $e) {}
+    }
+
     // Manually added applications (#1549). SET NULL: deleting the analyst who
     // typed an application in must not take the application with them.
     if ($tableExists('software_inventory_apps') && $tableExists('analysts')

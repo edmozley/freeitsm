@@ -30,7 +30,10 @@ try {
     foreach (['department_id', 'ticket_type_id', 'status', 'origin_id', 'first_time_fix', 'it_training_provided', 'priority_id', 'assigned_analyst_id',
               // Classification (#1540). The service clears a category the ticket
               // type no longer allows, so these two travelling together is fine.
-              'category_id', 'closure_category_id', 'resolution_code_id'] as $k) {
+              'category_id', 'closure_category_id', 'resolution_code_id',
+              // #1566. Independent of assigned_analyst_id by design — the service
+              // never writes one as a side effect of the other.
+              'assigned_team_id'] as $k) {
         if (array_key_exists($k, $data)) $in[$k] = $data[$k];
     }
 
