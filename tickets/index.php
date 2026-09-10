@@ -725,6 +725,17 @@ $translationNamespaces = ['common', 'tickets'];
                 <!-- Populated by openTicketContextMenu(). -->
             </div>
         </div>
+        <!-- Assign-to-team submenu parent (#1566). Sits next to Assign to because
+             they are the pair: which queue owns it, and who is doing it. Hidden
+             entirely on an install with no teams, which is every fresh one. -->
+        <div class="ticket-context-menu-item ticket-context-menu-parent" id="ctxTeamParent" role="menuitem" tabindex="0" style="display:none;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <span><?php echo htmlspecialchars(t('tickets.context.assign_team')); ?></span>
+            <svg class="ctx-sub-arrow" xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"/></svg>
+            <div class="ticket-context-submenu" id="ctxTeamSubmenu" role="menu">
+                <!-- Populated by openTicketContextMenu(). -->
+            </div>
+        </div>
         <!-- Move-to-company submenu parent. Multi-company installs only; hidden at N=1.
              Lists the companies the analyst can access; picking one re-homes the ticket. -->
         <div class="ticket-context-menu-item ticket-context-menu-parent" id="ctxCompanyParent" role="menuitem" tabindex="0" style="display:none;">
@@ -937,7 +948,7 @@ $translationNamespaces = ['common', 'tickets'];
          three because this page was the one that never loaded tz.js. -->
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/schedule.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=123"></script>
+    <script src="../assets/js/inbox.js?v=124"></script>
     <script src="../assets/js/mobile.js?v=57"></script>
     <script>
     // Auto-check mailboxes every 60 seconds

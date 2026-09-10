@@ -66,7 +66,12 @@ try {
     // Whitelist, mirroring assign_ticket.php. A bulk endpoint that accepted any key
     // would be a wider hole than the single-ticket one it is meant to match.
     $allowed = ['department_id', 'ticket_type_id', 'status', 'origin_id',
-                'first_time_fix', 'it_training_provided', 'priority_id', 'assigned_analyst_id'];
+                'first_time_fix', 'it_training_provided', 'priority_id', 'assigned_analyst_id',
+                // #1566. Handing a batch of tickets to a team is exactly the case
+                // this endpoint exists for — escalating a morning's worth at once.
+                // The service still writes team and analyst independently, so a
+                // bulk team change never disturbs who is working on them.
+                'assigned_team_id'];
     $in = [];
     foreach ($allowed as $k) {
         if (array_key_exists($k, $fields)) $in[$k] = $fields[$k];

@@ -118,6 +118,11 @@ class TicketsService
         // closure category and a resolution code describe an ENDING and would be
         // nonsense on a ticket that has not started.
         $categoryId   = isset($in['category_id']) && $in['category_id'] !== '' ? (int)$in['category_id'] : null;
+        // Which team owns it from the moment it exists (#1566). Used by the
+        // workflow "Create a ticket" action, so a rule can drop work straight
+        // into a queue — "guest Wi-Fi requests go to Infrastructure" — without
+        // naming a person who may be on holiday.
+        $teamId       = isset($in['assigned_team_id']) && $in['assigned_team_id'] !== '' ? (int)$in['assigned_team_id'] : null;
 
         $analystId = $defaultAnalystId;
         if (isset($in['assigned_analyst_id']) && $in['assigned_analyst_id'] !== '') {
@@ -128,6 +133,8 @@ class TicketsService
         self::validateLookupId($conn, 'ticket_types', $typeId, 'ticket type');
         self::validateLookupId($conn, 'ticket_origins', $originId, 'origin');
         self::validateLookupId($conn, 'ticket_categories', $categoryId, 'category');
+        // 422 rather than a raw foreign-key 500, same as every other lookup here.
+        self::validateLookupId($conn, 'teams', $teamId, 'team');
         // ⚠️ A category tied to a DIFFERENT ticket type is refused outright here,
         // rather than silently dropped. On an update the pair can become mismatched
         // by a later type change and clearing it is the only sane repair, but at
@@ -215,12 +222,14 @@ class TicketsService
             $conn->prepare(
                 "INSERT INTO tickets (
                     tenant_id, ticket_number, subject, status_id, priority_id, department_id,
-                    ticket_type_id, category_id, origin_id, assigned_analyst_id, owner_id, user_id,
+                    ticket_type_id, category_id, origin_id, assigned_team_id,
+                    assigned_analyst_id, owner_id, user_id,
                     created_datetime, updated_datetime
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([
                 $tenantId, $ticketNumber, $subject, $statusRes[0], $priorityRes[0], $departmentId,
-                $typeId, $categoryId, $originId, $analystId, $analystId, $userId,
+                $typeId, $categoryId, $originId, $teamId,
+                $analystId, $analystId, $userId,
             ]);
             $ticketId = (int)$conn->lastInsertId();
 

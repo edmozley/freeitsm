@@ -910,6 +910,13 @@ class WorkflowEngine
         'ticket.department_id'       => ['table' => 'departments',       'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'name'],
         'ticket.type_id'             => ['table' => 'ticket_types',      'label_col' => 'name',      'where' => 'is_active = 1', 'order' => 'name'],
         'ticket.assigned_analyst_id' => ['table' => 'analysts',          'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
+        // #1566. Teams have no is_active column, so no WHERE - listing them all
+        // is correct here.
+        // ⚠️ NO 'where' KEY AT ALL. availableValuesForField() tests isset(), not
+        // emptiness, so 'where' => '' builds "... WHERE ORDER BY ..." — invalid
+        // SQL, swallowed by the catch, and the dropdown silently comes back
+        // empty. Teams have no is_active column, so there is nothing to filter.
+        'ticket.assigned_team_id'    => ['table' => 'teams',             'label_col' => 'name',      'order' => 'display_order, name'],
         'ticket.created_by'          => ['table' => 'analysts',          'label_col' => 'full_name', 'where' => 'is_active = 1', 'order' => 'full_name'],
         // Registry gaps closed alongside the _name merge codes: owner and origin
         // were the only ticket lookup fields with no entry here, so they had no
@@ -1172,6 +1179,11 @@ class WorkflowEngine
                     'priority_id'         => ['type' => 'lookup', 'label' => 'Priority', 'lookup' => 'ticket_priority'],
                     'department_id'       => ['type' => 'lookup', 'label' => 'Department', 'lookup' => 'department'],
                     'type_id'             => ['type' => 'lookup', 'label' => 'Ticket type', 'lookup' => 'ticket_type'],
+                    // #1566. Sits above 'Assign to' because it is the coarser
+                    // choice: which queue owns it, before who is doing it. A rule
+                    // can drop work into a queue without naming somebody who may
+                    // be on holiday. Empty on an install with no teams.
+                    'assigned_team_id'    => ['type' => 'lookup', 'label' => 'Assign to team', 'lookup' => 'team'],
                     'assigned_analyst_id' => ['type' => 'lookup', 'label' => 'Assign to', 'lookup' => 'analyst'],
                     'from_email'          => ['type' => 'text', 'label' => 'Requester email', 'default' => '{{ticket.requester_email}}', 'supports_vars' => true],
                     'from_name'           => ['type' => 'text', 'label' => 'Requester name', 'supports_vars' => true],
@@ -1260,6 +1272,7 @@ class WorkflowEngine
         'ticket_status'   => 'ticket.status_id',
         'ticket_priority' => 'ticket.priority_id',
         'analyst'         => 'ticket.assigned_analyst_id',
+        'team'            => 'ticket.assigned_team_id',
         'department'      => 'ticket.department_id',
         'ticket_type'     => 'ticket.type_id',
         'task_status'     => 'task.status_id',
@@ -2179,6 +2192,7 @@ class WorkflowEngine
         $priorityId         = self::argInt($args, 'priority_id',         $payload);
         $departmentId       = self::argInt($args, 'department_id',       $payload);
         $typeId             = self::argInt($args, 'type_id',             $payload);
+        $assignedTeamId     = self::argInt($args, 'assigned_team_id',    $payload);
         $assignedAnalystId  = self::argInt($args, 'assigned_analyst_id', $payload);
         $fromEmail          = self::argString($args, 'from_email', $payload);
         $fromName           = self::argString($args, 'from_name',  $payload);
@@ -2206,6 +2220,7 @@ class WorkflowEngine
                 'priority_id'         => $priorityId,
                 'department_id'       => $departmentId,
                 'ticket_type_id'      => $typeId,
+                'assigned_team_id'    => $assignedTeamId,
                 'assigned_analyst_id' => $assignedAnalystId,
                 'from_email'          => $fromEmail,
                 'from_name'           => $fromName,
@@ -2254,12 +2269,13 @@ class WorkflowEngine
 
             $conn->prepare(
                 "INSERT INTO tickets (ticket_number, subject, status_id, priority_id,
-                                     department_id, ticket_type_id, assigned_analyst_id,
+                                     department_id, ticket_type_id, assigned_team_id,
+                                     assigned_analyst_id,
                                      user_id, created_datetime, updated_datetime)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
             )->execute([
                 $ticketNumber, $subject, $statusId, $priorityId,
-                $departmentId, $typeId, $assignedAnalystId, $userId,
+                $departmentId, $typeId, $assignedTeamId, $assignedAnalystId, $userId,
             ]);
             $newTicketId = (int)$conn->lastInsertId();
 

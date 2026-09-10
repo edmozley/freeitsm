@@ -282,17 +282,22 @@ function catalogueCreateTicketFromSubmission(PDO $conn, array $sub, array $overr
     $departmentId = isset($overrides['department_id'])       && $overrides['department_id']       ? (int)$overrides['department_id']       : null;
     $typeId       = isset($overrides['ticket_type_id'])      && $overrides['ticket_type_id']      ? (int)$overrides['ticket_type_id']      : null;
     $analystId    = isset($overrides['assigned_analyst_id']) && $overrides['assigned_analyst_id'] ? (int)$overrides['assigned_analyst_id'] : null;
+    // #1566. The workflow "Create a ticket" action can drop a form submission
+    // straight into a team's queue — "guest Wi-Fi requests go to Infrastructure"
+    // — without naming a person. Null unless the rule set one.
+    $teamId       = isset($overrides['assigned_team_id'])    && $overrides['assigned_team_id']    ? (int)$overrides['assigned_team_id']    : null;
 
     $ticketNumber = catalogueGenerateTicketNumber($conn);
 
     $conn->prepare(
         "INSERT INTO tickets (ticket_number, subject, status_id, priority_id,
-                              department_id, ticket_type_id, assigned_analyst_id,
+                              department_id, ticket_type_id, assigned_team_id,
+                              assigned_analyst_id,
                               user_id, tenant_id, created_datetime, updated_datetime)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, UTC_TIMESTAMP(), UTC_TIMESTAMP())"
     )->execute([
         $ticketNumber, $subject, $statusId, $priorityId,
-        $departmentId, $typeId, $analystId,
+        $departmentId, $typeId, $teamId, $analystId,
         $userId, $tenantId,
     ]);
     $ticketId = (int)$conn->lastInsertId();

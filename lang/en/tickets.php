@@ -236,6 +236,8 @@ return [
         'set_department'   => 'Set department',
         'set_type'         => 'Set type',
         'assign_to'        => 'Assign to',
+        // #1566. Sits beside 'Assign to' — which queue owns it, vs who is doing it.
+        'assign_team'      => 'Assign to team',
         'move_company'     => 'Move to company',
         'move_trash'       => 'Move to trash',
         'empty_trash'      => 'Empty trash',
@@ -248,6 +250,7 @@ return [
         'clear_department' => '(no department)',
         'clear_type'       => '(no type)',
         'clear_assignee'   => '(unassigned)',
+        'clear_team'       => '(no team)',
         'snooze'           => 'Snooze',
         'wake'             => 'Wake now',
     ],

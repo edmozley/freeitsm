@@ -8331,6 +8331,7 @@ function openTicketContextMenu(event, ticketId, ticketRef) {
     populateContextDepartmentSubmenu();
     populateContextTypeSubmenu();
     populateContextAssigneeSubmenu();
+    populateContextTeamSubmenu();
     populateContextCompanySubmenu();
 
     // Position at cursor — flip if it would overflow the viewport
@@ -8683,6 +8684,97 @@ function populateContextAssigneeSubmenu() {
             ${initialChip}<span class="ctx-status-name">${escapeHtml(a.full_name)}</span>${isCurrent ? '<span class="ctx-status-check">&#10003;</span>' : ''}
         </div>`;
     }).join('');
+}
+
+/**
+ * The Assign-to-team submenu (#1566).
+ *
+ * ⚠️ Hidden outright when the install has no teams, which is every fresh one.
+ * A parent item opening onto an empty submenu is worse than no item at all.
+ */
+function populateContextTeamSubmenu() {
+    const parent = document.getElementById('ctxTeamParent');
+    const sub = document.getElementById('ctxTeamSubmenu');
+    if (!parent || !sub) return;
+    if (!ticketTeams.length) {
+        parent.style.display = 'none';
+        return;
+    }
+    parent.style.display = '';
+
+    // The tick only means anything for the ticket actually open in the reading
+    // pane; on any other row we do not know its team without another fetch, and
+    // a tick against the wrong row would be worse than none.
+    const currentTeamId = (currentEmail && currentEmail.ticket_id == ctxTargetTicketId)
+        ? (currentEmail.assigned_team_id ?? null)
+        : undefined;
+
+    const clearRow = `<div class="ticket-context-submenu-item" data-team-id="" onclick="setTeamFromContext('')">
+        <span class="ctx-status-swatch" style="background: transparent; border-style: dashed;"></span>
+        <span class="ctx-status-name" style="color:#888; font-style: italic;">${escapeHtml(t('tickets.context.clear_team'))}</span>
+        ${(currentTeamId === null) ? '<span class="ctx-status-check">&#10003;</span>' : ''}
+    </div>`;
+
+    sub.innerHTML = clearRow + ticketTeams.map(tm => {
+        const isCurrent = (currentTeamId != null && tm.id == currentTeamId);
+        const initial = (tm.name || '').charAt(0).toUpperCase() || '?';
+        const chip = `<span class="ctx-status-swatch" style="background:#e0e7ff; color:#3730a3; font-size:9px; font-weight:600; display:inline-flex; align-items:center; justify-content:center; border:none;">${escapeHtml(initial)}</span>`;
+        return `<div class="ticket-context-submenu-item" data-team-id="${tm.id}" onclick="setTeamFromContext(${tm.id})">
+            ${chip}<span class="ctx-status-name">${escapeHtml(tm.name)}</span>${isCurrent ? '<span class="ctx-status-check">&#10003;</span>' : ''}
+        </div>`;
+    }).join('');
+}
+
+/**
+ * Hand a ticket (or the whole selection) to a team. Empty string takes it out
+ * of every queue.
+ *
+ * 🔑 Sends assigned_team_id and NOTHING ELSE. The analyst is deliberately left
+ * where it is — team and analyst are separate facts, and the service enforces
+ * the same rule server-side.
+ */
+async function setTeamFromContext(teamId) {
+    closeTicketContextMenu();
+    if (ctxActsOnSelection) {
+        return bulkSetField({ assigned_team_id: teamId === '' ? null : teamId }, t('tickets.context.assign_team'));
+    }
+    if (!ctxTargetTicketId) return;
+    const targetId = ctxTargetTicketId;
+    const newRow   = teamId !== '' ? ticketTeams.find(tm => tm.id == teamId) : null;
+    const newLabel = newRow ? newRow.name : '';
+    // Only known when the target is the ticket in the reading pane; otherwise the
+    // audit "from" is left blank rather than guessed.
+    const oldLabel = (currentEmail && currentEmail.ticket_id == targetId)
+        ? ((ticketTeams.find(tm => tm.id == currentEmail.assigned_team_id) || {}).name || '')
+        : '';
+    try {
+        const response = await fetch(API_BASE + 'assign_ticket.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ticket_id: targetId,
+                assigned_team_id: teamId === '' ? null : teamId
+            })
+        });
+        const data = await response.json();
+        if (!data.success) {
+            showToast(data.error || 'Failed', 'error');
+            return;
+        }
+        await logAudit(targetId, 'Team', oldLabel, newLabel);
+        showToast(`${ctxTargetTicketRef} → ${newLabel || t('tickets.context.clear_team')}`, 'success');
+        if (currentEmail && currentEmail.ticket_id == targetId) {
+            currentEmail.assigned_team_id = teamId === '' ? null : teamId;
+            const sel = document.getElementById('teamSelect');
+            if (sel) sel.value = currentEmail.assigned_team_id || '';
+        }
+        // The queue a ticket sits in has changed, and in team grouping the
+        // folders ARE the queues.
+        loadFolderCounts();
+        loadEmails();
+    } catch (e) {
+        showToast('Failed', 'error');
+    }
 }
 
 // Set a ticket's assignee from the right-click menu. Empty string = unassign.
