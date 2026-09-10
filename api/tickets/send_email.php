@@ -165,8 +165,10 @@ try {
     }
     emailLogSent($conn, $mailbox, 'reply', $to, $subject, $ticketId ?: null);
 
-    // Save only the analyst's new content to DB (not the assembled thread)
-    saveSentEmail($conn, $ticketId, $mailbox, $to, $cc, $subject, $body);
+    // Save only the analyst's new content to DB (not the assembled thread).
+    // $attachments goes too: the same files buildEmailMessage() just sent, so
+    // the ticket shows what the requester actually received.
+    saveSentEmail($conn, $ticketId, $mailbox, $to, $cc, $subject, $body, $attachments);
 
     echo json_encode([
         'success' => true,
@@ -655,9 +657,19 @@ function stripQuotedContent($body) {
 }
 
 /**
- * Save sent email to database
+ * Save sent email to database, including whatever was attached to it.
+ *
+ * ⚠️ THE ATTACHMENTS HAVE ALREADY GONE. This runs after the send, so nothing
+ * here can refuse a file — it is recording what left the building, not deciding
+ * whether it may. That is why a file the upload policy dislikes is still noted
+ * on the message rather than silently dropped: the ticket has to show what the
+ * requester actually received.
+ *
+ * It still stores through includes/uploads.php like every other path, because
+ * these land in tickets/attachments/ inside the web root and a name chosen by
+ * somebody else must never become a file the server would execute.
  */
-function saveSentEmail($conn, $ticketId, $mailbox, $to, $cc, $subject, $body) {
+function saveSentEmail($conn, $ticketId, $mailbox, $to, $cc, $subject, $body, $attachments = []) {
     try {
         $sql = "INSERT INTO emails (
             subject, from_address, from_name, to_recipients, cc_recipients,
@@ -676,12 +688,102 @@ function saveSentEmail($conn, $ticketId, $mailbox, $to, $cc, $subject, $body) {
             $mailbox['id']
         ]);
 
+        $emailId = (int)$conn->lastInsertId();
+
+        if ($emailId > 0 && !empty($attachments)) {
+            saveSentAttachments($conn, $emailId, $attachments);
+        }
+
         // Update ticket's updated_datetime
         $updateSql = "UPDATE tickets SET updated_datetime = UTC_TIMESTAMP() WHERE id = ?";
         $updateStmt = $conn->prepare($updateSql);
         $updateStmt->execute([$ticketId]);
+
+        return $emailId;
     } catch (Exception $e) {
         // Log error but don't fail the send operation
         error_log('Failed to save sent email to database: ' . $e->getMessage());
+        return 0;
+    }
+}
+
+/**
+ * Put the files an analyst attached to a reply on the ticket.
+ *
+ * Same convention as inbound mail (check_mailbox_email.php) and the portal
+ * (self-service/reply_ticket.php): tickets/attachments/{floor(id/1000)}/{id}/,
+ * so get_attachment.php serves them with no changes and the reading pane shows
+ * them against the message they went with.
+ *
+ * Without this the file reached the requester and left NO trace on the ticket —
+ * so the next analyst to open it saw a reply referring to a document that,
+ * as far as FreeITSM was concerned, had never existed. Reported by Ed.
+ */
+function saveSentAttachments($conn, $emailId, $attachments) {
+    require_once '../../includes/uploads.php';
+
+    $attachDir = realpath(__DIR__ . '/../../tickets/attachments');
+    if ($attachDir === false) {
+        error_log('Sent attachments: tickets/attachments is missing');
+        return;
+    }
+
+    $subdir   = floor($emailId / 1000);
+    $emailDir = $attachDir . '/' . $subdir . '/' . $emailId;
+
+    if (!is_dir($emailDir) && !mkdir($emailDir, 0755, true) && !is_dir($emailDir)) {
+        error_log('Sent attachments: could not create ' . $emailDir);
+        return;
+    }
+
+    $attachStmt = $conn->prepare(
+        "INSERT INTO email_attachments (email_id, filename, content_type, file_path, file_size, is_inline, created_datetime)
+         VALUES (?, ?, ?, ?, ?, 0, UTC_TIMESTAMP())"
+    );
+
+    $policy    = attachmentRejectPolicy($conn);
+    $allowed   = attachmentAllowedTypes($conn);
+    $storedAny = false;
+    $notStored = [];
+
+    foreach ($attachments as $att) {
+        // The client sends these already base64-encoded, the same shape
+        // buildEmailMessage() posted to the mail provider a moment ago.
+        $bytes = base64_decode((string)($att['content'] ?? ''), true);
+        if ($bytes === false || $bytes === '') {
+            $notStored[] = (string)($att['name'] ?? 'file');
+            continue;
+        }
+
+        $stored = uploadStoreBytes($bytes, (string)($att['name'] ?? 'file'), $emailDir, $policy, $allowed);
+
+        if (!$stored['stored']) {
+            $notStored[] = $stored['original_name'];
+            continue;
+        }
+
+        $storedAny = true;
+        $relPath   = $subdir . '/' . $emailId . '/' . $stored['stored_name'];
+        $attachStmt->execute([
+            $emailId,
+            $stored['original_name'],
+            $stored['mime'],
+            $relPath,
+            $stored['size'],
+        ]);
+    }
+
+    if ($storedAny) {
+        $conn->prepare("UPDATE emails SET has_attachments = 1 WHERE id = ?")->execute([$emailId]);
+    }
+
+    // A file that went out but could not be kept is the one case worth writing
+    // on the message itself. Saying nothing would leave the ticket quietly
+    // disagreeing with what the requester has in their inbox.
+    if ($notStored) {
+        $note = '<p><em>Sent with ' . count($notStored) . ' attachment(s) that could not be stored on the ticket: '
+              . htmlspecialchars(implode(', ', $notStored), ENT_QUOTES, 'UTF-8') . '</em></p>';
+        $conn->prepare("UPDATE emails SET body_content = CONCAT(body_content, ?) WHERE id = ?")
+             ->execute([$note, $emailId]);
     }
 }
