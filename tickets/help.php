@@ -783,6 +783,34 @@ try {
                         </div>
                     </div>
 
+                    <!-- Categories, category at close, resolution codes (#1540-#1548) -->
+                    <p style="margin-top: 24px;"><?php echo t('tickets.help.settings.cat_heading'); ?></p>
+                    <p><?php echo t('tickets.help.settings.cat_body'); ?></p>
+                    <div class="help-cards cols-3">
+                        <div class="help-card">
+                            <strong><?php echo t('tickets.help.settings.cat_card_one_title'); ?></strong>
+                            <span><?php echo t('tickets.help.settings.cat_card_one_body'); ?></span>
+                        </div>
+                        <div class="help-card">
+                            <strong><?php echo t('tickets.help.settings.cat_card_close_title'); ?></strong>
+                            <span><?php echo t('tickets.help.settings.cat_card_close_body'); ?></span>
+                        </div>
+                        <div class="help-card">
+                            <strong><?php echo t('tickets.help.settings.cat_card_res_title'); ?></strong>
+                            <span><?php echo t('tickets.help.settings.cat_card_res_body'); ?></span>
+                        </div>
+                    </div>
+                    <div class="help-list">
+                        <div><?php echo t('tickets.help.settings.cat_rule_off'); ?></div>
+                        <div><?php echo t('tickets.help.settings.cat_rule_levels'); ?></div>
+                        <div><?php echo t('tickets.help.settings.cat_rule_type'); ?></div>
+                        <div><?php echo t('tickets.help.settings.cat_rule_typechange'); ?></div>
+                        <div><?php echo t('tickets.help.settings.cat_rule_portal'); ?></div>
+                        <div><?php echo t('tickets.help.settings.cat_rule_retire'); ?></div>
+                        <div><?php echo t('tickets.help.settings.cat_rule_report'); ?></div>
+                    </div>
+                    <p class="help-note"><?php echo t('tickets.help.settings.cat_tip'); ?></p>
+
                     <p class="help-note"><?php echo t('tickets.help.settings.tip'); ?></p>
                 </div>
 
@@ -944,6 +972,31 @@ try {
                             <span><?php echo t('tickets.help.companies.settings_global_body'); ?></span>
                         </div>
                     </div>
+                    <!-- One board across every company (#1554) -->
+                    <p style="margin-top: 20px;"><?php echo t('tickets.help.companies.allview_heading'); ?></p>
+                    <p><?php echo t('tickets.help.companies.allview_body'); ?></p>
+                    <div class="help-cards cols-3">
+                        <div class="help-card">
+                            <strong><?php echo t('tickets.help.companies.allview_card_scope_title'); ?></strong>
+                            <span><?php echo t('tickets.help.companies.allview_card_scope_body'); ?></span>
+                        </div>
+                        <div class="help-card">
+                            <strong><?php echo t('tickets.help.companies.allview_card_props_title'); ?></strong>
+                            <span><?php echo t('tickets.help.companies.allview_card_props_body'); ?></span>
+                        </div>
+                        <div class="help-card">
+                            <strong><?php echo t('tickets.help.companies.allview_card_new_title'); ?></strong>
+                            <span><?php echo t('tickets.help.companies.allview_card_new_body'); ?></span>
+                        </div>
+                    </div>
+                    <div class="help-list">
+                        <div><?php echo t('tickets.help.companies.allview_rule_chip'); ?></div>
+                        <div><?php echo t('tickets.help.companies.allview_rule_reply'); ?></div>
+                        <div><?php echo t('tickets.help.companies.allview_rule_knowledge'); ?></div>
+                        <div><?php echo t('tickets.help.companies.allview_rule_trash'); ?></div>
+                        <div><?php echo t('tickets.help.companies.allview_rule_other'); ?></div>
+                    </div>
+
 
                     <p class="help-note"><?php echo t('tickets.help.companies.tip'); ?></p>
                 </div>

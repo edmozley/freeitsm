@@ -315,6 +315,10 @@ return [
         's4_ct_title'    => 'Contracts',
         's4_ct_desc'     => 'Displays contracts expiring within 30 days, within 90 days, and notice periods approaching. Attention items warn about imminent expirations and upcoming notice deadlines.',
         's4_ct_triggers' => '<strong>Red:</strong> Contracts expiring within 30 days. <strong>Amber:</strong> Contracts expiring within 90 days or notice periods approaching. <strong>Green:</strong> No contracts requiring attention.',
+        // Software card (#1550). Same three windows as Contracts above, deliberately.
+        's4_sw_title'    => 'Software',
+        's4_sw_desc'     => 'Displays software licences renewing within 30 days, within 90 days, and notice periods running out. Licence renewal dates have always been on the record; this is what makes one visible before it lapses.',
+        's4_sw_triggers' => '<strong>Red:</strong> Licences renewing within 30 days. <strong>Amber:</strong> Licences renewing within 90 days or notice periods approaching. <strong>Green:</strong> No software renewals requiring attention. The card says so plainly when no renewal dates are recorded at all, rather than reporting all-clear on an empty list.',
         's4_kb_title'    => 'Knowledge',
         's4_kb_desc'     => 'Shows the number of articles overdue for review and lists recently published articles from this week. When no reviews are overdue and the knowledge base is current, the card shows an all-clear message.',
         's4_kb_triggers' => '<strong>Amber:</strong> Articles overdue for review. <strong>Green:</strong> Knowledge base up to date.',

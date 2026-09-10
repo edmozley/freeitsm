@@ -176,6 +176,18 @@ $translationNamespaces = ['common', 'software'];
                     </div>
 
                     <p class="help-note"><?php echo htmlspecialchars(t('software.help.inventory_tip')); ?></p>
+                    <!-- Manually added applications (#1549) -->
+                    <p style="margin-top: 22px;"><?php echo t('software.help.manual_heading'); ?></p>
+                    <p><?php echo t('software.help.manual_body'); ?></p>
+                    <div class="help-list">
+                        <div><?php echo t('software.help.manual_rule_why'); ?></div>
+                        <div><?php echo t('software.help.manual_rule_licence'); ?></div>
+                        <div><?php echo t('software.help.manual_rule_edit'); ?></div>
+                        <div><?php echo t('software.help.manual_rule_adopt'); ?></div>
+                        <div><?php echo t('software.help.manual_rule_seats'); ?></div>
+                    </div>
+                    <p class="help-note"><?php echo t('software.help.manual_tip'); ?></p>
+
                 </div>
 
                 <!-- Section 3: Dashboard -->
@@ -272,6 +284,26 @@ $translationNamespaces = ['common', 'software'];
                         <div><strong><?php echo htmlspecialchars(t('software.help.licences_field_approaching_b')); ?></strong> &mdash; <?php echo htmlspecialchars(t('software.help.licences_field_approaching_t')); ?></div>
                         <div><strong><?php echo htmlspecialchars(t('software.help.licences_field_over_b')); ?></strong> &mdash; <?php echo htmlspecialchars(t('software.help.licences_field_over_t')); ?></div>
                     </div>
+
+                    <!-- Renewals: Watchtower + calendar (#1550, #1551) -->
+                    <p style="margin-top: 22px;"><?php echo t('software.help.renewals_heading'); ?></p>
+                    <p><?php echo t('software.help.renewals_body'); ?></p>
+                    <div class="help-cards cols-2">
+                        <div class="help-card">
+                            <strong><?php echo t('software.help.renewals_card_wt_title'); ?></strong>
+                            <span><?php echo t('software.help.renewals_card_wt_body'); ?></span>
+                        </div>
+                        <div class="help-card">
+                            <strong><?php echo t('software.help.renewals_card_cal_title'); ?></strong>
+                            <span><?php echo t('software.help.renewals_card_cal_body'); ?></span>
+                        </div>
+                    </div>
+                    <div class="help-list">
+                        <div><?php echo t('software.help.renewals_rule_where'); ?></div>
+                        <div><?php echo t('software.help.renewals_rule_notice'); ?></div>
+                        <div><?php echo t('software.help.renewals_rule_active'); ?></div>
+                    </div>
+                    <p class="help-note"><?php echo t('software.help.renewals_tip'); ?></p>
 
                     <p class="help-note"><?php echo htmlspecialchars(t('software.help.licences_tip')); ?></p>
                 </div>

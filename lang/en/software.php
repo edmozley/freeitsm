@@ -368,6 +368,16 @@ return [
         'inventory_s5_t'    => 'the expanded view makes it easy to identify machines running outdated versions. If ten machines have version 5.2 but two are still on 4.8, you can see that immediately and take action.',
         'inventory_tip'     => 'The install count reflects how many unique machines currently have the software installed. When a machine reports in without a previously seen application, the old record is automatically cleaned up.',
 
+        // Manually added applications (#1549).
+        'manual_heading' => '<strong>Adding a cloud platform by hand</strong>',
+        'manual_body'    => 'The inventory agent finds what is installed on your machines, which is no help at all for Xero, Canva, Figma or anything else that lives in a browser. <strong>Add application</strong> lets you enter one yourself, with a publisher, the web address you administer it at, and notes.',
+        'manual_rule_why'     => 'Nothing installs a cloud platform, so nothing can discover it. This is the only way one gets into the list.',
+        'manual_rule_licence' => '<strong>It is worth more than it looks.</strong> A licence has to belong to an application, so until you add one there is nowhere to record what a cloud subscription costs, how many seats it has or when it renews.',
+        'manual_rule_edit'    => 'Manual entries are marked <em>Added by hand</em> and are the only ones you can edit. An agent-discovered application is a report of what is on somebody\'s machine, and any edit would be overwritten at the next inventory run.',
+        'manual_rule_adopt'   => 'If the agent later finds one of your manual entries genuinely installed somewhere, it attaches the machines <strong>without touching a word you wrote</strong>.',
+        'manual_rule_seats'   => '<strong>Seats and installs are separate columns.</strong> A cloud platform is installed nowhere, so a nought under Installed On says nothing about whether anyone uses it &mdash; the seats on its licences do.',
+        'manual_tip'          => 'Add the application first, then record a licence against it with the seat count, cost and renewal date. The renewal is what then shows up on Watchtower and in your calendar.',
+
         'dashboard_heading' => 'Dashboard',
         'dashboard_intro'   => 'The Software Dashboard lets you visualise your software landscape using customisable Chart.js widgets. Each analyst has their own dashboard layout, so you can focus on the charts and data points that matter most to your role.',
         'dashboard_s1_b'    => 'Open the Library',
@@ -404,6 +414,18 @@ return [
         'licences_field_over_b' => 'Over-licensed',
         'licences_field_over_t' => 'more installs detected than licences purchased. This is a compliance risk that should be addressed promptly.',
         'licences_tip'     => 'Licence compliance is calculated in real time against the live software inventory. As machines report in and software changes, the compliance status updates automatically.',
+
+        // Renewals on Watchtower and in the calendar (#1550, #1551).
+        'renewals_heading' => '<strong>Where renewals show up</strong>',
+        'renewals_body'    => 'A renewal date on a licence is only useful if somebody sees it in time. Choose under <strong>Settings &rarr; Renewals</strong> whether renewals appear on the Watchtower dashboard, in the calendar, in both, or nowhere.',
+        'renewals_card_wt_title' => 'On Watchtower',
+        'renewals_card_wt_body'  => 'A Software card counting renewals due in the next 30 and 90 days, plus notice periods running out. Deliberately the same three windows the Contracts card uses, so you can read the two against each other.',
+        'renewals_card_cal_title' => 'In the calendar',
+        'renewals_card_cal_body'  => 'All-day entries generated from your licences. They are rebuilt whenever a licence changes, so they cannot drift &mdash; and nothing you typed into the calendar yourself is ever touched.',
+        'renewals_rule_where'  => 'The licence is still the record. Calendar entries are generated from it, so editing the renewal date on the licence is what changes them.',
+        'renewals_rule_notice' => '<strong>Two entries per licence, not one.</strong> The renewal date is when the money goes out; the <em>notice deadline</em> &mdash; worked out from the notice period &mdash; is the last day you can still walk away, and it is the one that actually costs you if you miss it. A licence with no notice period gets no notice entry.',
+        'renewals_rule_active' => 'Only active licences appear. A cancelled one still has a renewal date on the record, but that is history rather than a commitment.',
+        'renewals_tip'         => 'If you record nothing else on a licence, record the renewal date and the notice period. Those two are what turn a list of software into a warning you get in time to act on.',
 
         'collection_heading' => 'How data gets collected',
         'collection_intro'   => 'The Software module does not collect data on its own. Instead, it relies on the Asset Management PowerShell script ({script}) which runs on each managed Windows machine and reports installed software as part of the broader hardware and software inventory.',

@@ -388,6 +388,9 @@ return [
         's3_li3'             => '<strong>Priority</strong> — <em>Low</em>, <em>Normal</em>, or <em>High</em>. The IT team may adjust this based on impact.',
         's3_li4'             => '<strong>Description</strong> — the full details. Include what you were trying to do, what happened instead, any error messages, and roughly when it started. More context = faster resolution.',
         's3_li5'             => '<strong>Attachments</strong> — screenshots, logs, documents. Drag and drop onto the dropzone, or click to browse.',
+        // The portal category picker (#1546). Optional and only shown when the
+        // organisation has switched the field on and has portal-visible categories.
+        's3_li_category'     => '<strong>What is this about?</strong> — a short list your IT team has set up ("Printing", "Access requests") to get the ticket to the right person faster. It only appears if they have chosen to offer it, it is always optional, and picking <em>Not sure</em> is a perfectly good answer — an analyst confirms the real category when the ticket is dealt with.',
         's3_p2'              => 'Click <strong>Submit</strong>. You\'ll see a confirmation with your ticket reference (something like <em>LVB-805-40499</em>) — quote that if you ever need to chase it up.',
         's3_tip'             => 'A picture is worth 1000 words. A screenshot or recording (see below) is worth 1000 pictures. Don\'t be shy — the more visual context you can attach, the quicker the IT team can identify the problem.',
 
