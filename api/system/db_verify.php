@@ -794,6 +794,15 @@ try {
         }
     }
 
+    // Manually added applications (#1549). SET NULL: deleting the analyst who
+    // typed an application in must not take the application with them.
+    if ($tableExists('software_inventory_apps') && $tableExists('analysts')
+        && !$fkExists('software_inventory_apps', 'fk_software_apps_created_by')) {
+        try {
+            $conn->exec("ALTER TABLE software_inventory_apps ADD CONSTRAINT fk_software_apps_created_by FOREIGN KEY (created_by) REFERENCES analysts (id) ON DELETE SET NULL");
+        } catch (Exception $e) {}
+    }
+
     // An asset type's icon (#1146). SET NULL, never CASCADE: retiring a glyph
     // from the library must not delete the asset type that was using it.
     if ($tableExists('asset_types') && $tableExists('cmdb_icons') && !$fkExists('asset_types', 'fk_asset_types_icon')) {

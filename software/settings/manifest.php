@@ -28,5 +28,19 @@ return [
             'grant'     => 'Create and revoke the API keys inventory agents use',
             'sensitive' => true,
         ],
+        [
+            // Where licence renewals show up (#1551). Deliberately NOT sensitive,
+            // and nothing like the tab above it: this decides where a date is
+            // DISPLAYED, not who may read it or feed the inventory. Mirrors the
+            // Assets "warranty" tab, which answers the same question about
+            // warranty expiries and holds the same shape of setting.
+            'id'           => 'renewals',
+            'cap'          => Cap::SOFTWARE_RENEWALS,
+            'label_key'    => 'software.settings.tab_renewals',
+            'grant'        => 'Configure where licence renewals are surfaced',
+            // Only the surface key — see the note in watchtower_queries.php for why
+            // there is no 'days ahead' twin of asset_warranty_days.
+            'setting_keys' => ['software_renewal_surface'],
+        ],
     ],
 ];

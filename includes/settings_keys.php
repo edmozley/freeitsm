@@ -136,9 +136,13 @@ function settingKeyOwners(): array
         // plain columns rather than a panel with its own endpoints, so a hidden
         // field simply never gets set and the REST API returns null on its own —
         // there is no endpoint to quietly empty out from under an integration.
-        'ticket_category_enabled'         => ['module' => 'tickets', 'cap' => Cap::TICKETS_CATEGORIES, 'tab' => 'categories'],
-        'ticket_closure_category_enabled' => ['module' => 'tickets', 'cap' => Cap::TICKETS_CATEGORIES, 'tab' => 'categories'],
-        'ticket_resolution_code_enabled'  => ['module' => 'tickets', 'cap' => Cap::TICKETS_CATEGORIES, 'tab' => 'categories'],
+        //
+        // ⚠️ NOT LISTED HERE. They are declared as `setting_keys` on the Categories
+        // tab in tickets/settings/manifest.php and derived by settingKeyOwners()
+        // above — which is the pattern this file's own header calls for, so that
+        // the tab showing a setting and the capability guarding it are one
+        // declaration that cannot disagree. `time_tracking_enabled` sitting in
+        // this block is the older arrangement, not the one to copy.
 
         // --- System: SSO area ---
         'sso_enabled'              => ['module' => 'system', 'cap' => null, 'tab' => 'sso'],

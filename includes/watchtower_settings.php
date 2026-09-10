@@ -34,7 +34,7 @@ const WT_INSTALL_SCOPE = 0;
 function wtCardKeys(): array
 {
     return ['morning_checks', 'tickets', 'changes', 'calendar', 'service_status',
-            'contracts', 'knowledge', 'assets', 'tasks', 'workflows'];
+            'contracts', 'software', 'knowledge', 'assets', 'tasks', 'workflows'];
 }
 
 // ─── Whose work am I looking at? (discussion #58) ───────────────────────────
@@ -86,6 +86,10 @@ function wtImpersonalCards(): array
         // would hide a renewal from everybody except one person.
         'contracts',
         'knowledge',
+        // Software licences have no owner column at all — nobody is the person a
+        // renewal belongs to. Same reasoning as contracts above, and the same
+        // consequence: scoping it would hide a £12k renewal from everybody.
+        'software',
     ];
 }
 

@@ -78,10 +78,24 @@ $translationNamespaces = ['common', 'software'];
             box-shadow: 0 0 0 2px rgba(92, 107, 192, 0.15);
         }
 
+        .software-toolbar h3 {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
         .software-count {
             font-size: 13px;
             color: var(--text-dim, #888);
             white-space: nowrap;
+            font-weight: 400;
+        }
+
+        /* The separator lives here rather than in the markup so it disappears
+           with the count itself — before the list loads the span is empty, and a
+           hardcoded dash would sit there on its own. */
+        .software-count:not(:empty)::before {
+            content: '\2014\00a0';
         }
 
         .filter-tabs {
@@ -188,6 +202,47 @@ $translationNamespaces = ['common', 'software'];
             font-size: 14px;
             color: var(--text, #333);
         }
+
+        /* Manually added applications (#1549). */
+        .sw-add-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            background: var(--sw-accent, #5c6bc0);
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .sw-add-btn:hover { background: var(--sw-accent-hover, #3f51b5); }
+
+        /* Marks a row somebody typed rather than one the agent found. Not a
+           warning — it says who is responsible for the fields, which is why the
+           edit buttons appear on these rows and nowhere else. */
+        .sw-manual-tag {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 1px 7px;
+            border-radius: 10px;
+            font-size: 11px;
+            background: var(--surface-hover, #eef0f5);
+            color: var(--text-muted, #666);
+            vertical-align: middle;
+        }
+        .sw-dim { color: var(--text-dim, #aab2bd); }
+        .sw-actions-col { width: 90px; white-space: nowrap; cursor: default; }
+        .sw-row-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px 5px;
+            color: var(--text-muted, #666);
+            display: inline-flex;
+            border-radius: 4px;
+        }
+        .sw-row-btn:hover { background: var(--surface-hover, #eee); color: var(--sw-accent, #5c6bc0); }
+        .sw-row-btn.danger:hover { color: var(--danger-text, #c62828); }
 
         .install-count-badge {
             display: inline-block;
@@ -387,12 +442,27 @@ $translationNamespaces = ['common', 'software'];
 
     <div class="main-container software-container">
         <div class="software-toolbar">
-            <h3><?php echo htmlspecialchars(t('software.inventory.heading')); ?></h3>
+            <h3>
+                <?php echo htmlspecialchars(t('software.inventory.heading')); ?>
+                <?php /* The count reads as part of the heading — "Software
+                         Inventory — 1,500 applications" — rather than floating at
+                         the far right of the toolbar away from the thing it counts.
+                         The dash is drawn by CSS on :not(:empty), so there is no
+                         dangling separator in the moment before the list loads. */ ?>
+                <span class="software-count" id="softwareCount"></span>
+            </h3>
             <div class="toolbar-right">
                 <input type="text" class="search-box" id="softwareSearch"
                        placeholder="<?php echo htmlspecialchars(t('software.inventory.search')); ?>"
                        oninput="searchSoftware()">
-                <span class="software-count" id="softwareCount"></span>
+                <?php /* Manually added applications (#1549). The inventory agent
+                         finds what is installed; nothing installs a cloud
+                         platform, so this is the only way Xero or Canva can be
+                         recorded — and the only way a licence can be attached to
+                         one, since software_licences.app_id is NOT NULL. */ ?>
+                <button type="button" class="sw-add-btn" onclick="openAppModal(null)">
+                    <?php echo htmlspecialchars(t('software.inventory.add_app')); ?>
+                </button>
             </div>
         </div>
         <div class="filter-tabs">
@@ -413,10 +483,21 @@ $translationNamespaces = ['common', 'software'];
                         <th onclick="sortBy('install_count')" id="thCount">
                             <?php echo htmlspecialchars(t('software.inventory.col_installed')); ?> <span class="sort-icon"></span>
                         </th>
+                        <?php /* Seats is a SEPARATE column from Installed, not a
+                                 fallback (#1549). A cloud platform is installed on
+                                 nothing, so 0 there is correct and says nothing
+                                 about whether anyone uses it — the seats on its
+                                 licences do. Two columns keeps "not installed
+                                 anywhere" distinguishable from "not licensed to
+                                 anyone". */ ?>
+                        <th onclick="sortBy('seats')" id="thSeats">
+                            <?php echo htmlspecialchars(t('software.inventory.col_seats')); ?> <span class="sort-icon"></span>
+                        </th>
+                        <th class="sw-actions-col"><?php echo htmlspecialchars(t('software.inventory.col_actions')); ?></th>
                     </tr>
                 </thead>
                 <tbody id="softwareTableBody">
-                    <tr><td colspan="3">
+                    <tr><td colspan="5">
                         <div class="loading-spinner"><div class="spinner"></div></div>
                     </td></tr>
                 </tbody>
@@ -425,6 +506,44 @@ $translationNamespaces = ['common', 'software'];
     </div>
 
     <!-- Machine Detail Modal -->
+    <?php /* Add / edit a manually added application (#1549). Reuses the module's
+             own overlay classes so it matches the machine-list dialog beside it. */ ?>
+    <div class="detail-overlay" id="appModal" onclick="if(event.target===this)closeAppModal()">
+        <div class="detail-box" style="max-width: 520px;">
+            <div class="detail-header">
+                <h3 id="appModalTitle"><?php echo htmlspecialchars(t('software.inventory.add_app')); ?></h3>
+                <button class="detail-close" onclick="closeAppModal()">&times;</button>
+            </div>
+            <form id="appForm" onsubmit="saveApp(event)" style="padding: 20px 24px; overflow-y: auto;">
+                <input type="hidden" id="appId">
+                <div class="form-group">
+                    <label class="form-label" for="appName"><?php echo htmlspecialchars(t('software.inventory.f_name')); ?></label>
+                    <input type="text" class="form-input" id="appName" maxlength="512" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="appPublisher"><?php echo htmlspecialchars(t('software.inventory.f_publisher')); ?></label>
+                    <input type="text" class="form-input" id="appPublisher" maxlength="512">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="appUrl"><?php echo htmlspecialchars(t('software.inventory.f_url')); ?></label>
+                    <input type="text" class="form-input" id="appUrl" maxlength="500" placeholder="https://">
+                    <div class="form-hint"><?php echo htmlspecialchars(t('software.inventory.f_url_hint')); ?></div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="appNotes"><?php echo htmlspecialchars(t('software.inventory.f_notes')); ?></label>
+                    <textarea class="form-input" id="appNotes" rows="3"></textarea>
+                </div>
+                <div class="form-hint" style="margin-bottom: 14px;">
+                    <?php echo htmlspecialchars(t('software.inventory.licence_hint')); ?>
+                </div>
+                <div class="form-actions" style="display:flex; gap:10px; justify-content:flex-end;">
+                    <button type="button" class="btn btn-secondary" onclick="closeAppModal()"><?php echo htmlspecialchars(t('common.cancel')); ?></button>
+                    <button type="submit" class="btn btn-primary" id="appSaveBtn"><?php echo htmlspecialchars(t('common.save')); ?></button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <div class="detail-overlay" id="detailOverlay" onclick="if(event.target===this)closeDetail()">
         <div class="detail-box">
             <div class="detail-header">
@@ -470,7 +589,7 @@ $translationNamespaces = ['common', 'software'];
                     applyFilters();
                 } else {
                     document.getElementById('softwareTableBody').innerHTML =
-                        '<tr><td colspan="3"><div class="empty-state">' + window.t('software.inventory.load_error', { message: escapeHtml(data.error) }) + '</div></td></tr>';
+                        '<tr><td colspan="5"><div class="empty-state">' + window.t('software.inventory.load_error', { message: escapeHtml(data.error) }) + '</div></td></tr>';
                 }
             } catch (error) {
                 console.error('Error loading software:', error);
@@ -564,17 +683,102 @@ $translationNamespaces = ['common', 'software'];
             }
 
             if (filteredApps.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3"><div class="empty-state">' + window.t('software.inventory.none') + '</div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5"><div class="empty-state">' + window.t('software.inventory.none') + '</div></td></tr>';
                 return;
             }
 
-            tbody.innerHTML = filteredApps.map(app => `
+            tbody.innerHTML = filteredApps.map(app => {
+                const manual = app.source === 'manual';
+                // Only a manual row is editable. An agent-discovered application is
+                // a REPORT of what is on somebody's machine \u2014 editing it here would
+                // make the record disagree with the thing it describes, and the
+                // next inventory run would overwrite the edit anyway.
+                const actions = manual
+                    ? `<button type="button" class="sw-row-btn" title="${escapeHtml(window.t('common.edit'))}"
+                               onclick="event.stopPropagation(); openAppModal(${app.id})">${ICON_EDIT}</button>
+                       <button type="button" class="sw-row-btn danger" title="${escapeHtml(window.t('common.delete'))}"
+                               onclick="event.stopPropagation(); deleteApp(${app.id}, '${escapeHtml(app.display_name).replace(/'/g, "\\'")}')">${ICON_TRASH}</button>`
+                    : '';
+                return `
                 <tr class="app-row" onclick="showDetail(${app.id}, '${escapeHtml(app.display_name).replace(/'/g, "\\'")}')">
-                    <td>${escapeHtml(app.display_name)}</td>
+                    <td>${escapeHtml(app.display_name)}${manual ? ` <span class="sw-manual-tag">${escapeHtml(window.t('software.inventory.added_by_hand'))}</span>` : ''}</td>
                     <td>${escapeHtml(app.publisher || '\u2014')}</td>
                     <td><span class="install-count-badge">${app.install_count}</span></td>
-                </tr>
-            `).join('');
+                    <td>${app.seats > 0 ? escapeHtml(String(app.seats)) : '<span class="sw-dim">\u2014</span>'}</td>
+                    <td class="sw-actions-col">${actions}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // \u2500\u2500 Manually added applications (#1549) \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
+        const ICON_EDIT  = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+        const ICON_TRASH = '<svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+
+        function openAppModal(appId) {
+            const app = appId ? allApps.find(a => a.id === appId) : null;
+            document.getElementById('appModalTitle').textContent = app
+                ? window.t('software.inventory.edit_app')
+                : window.t('software.inventory.add_app');
+            document.getElementById('appId').value        = app ? app.id : '';
+            document.getElementById('appName').value      = app ? app.display_name : '';
+            document.getElementById('appPublisher').value = app ? (app.publisher || '') : '';
+            document.getElementById('appUrl').value       = app ? (app.app_url || '') : '';
+            document.getElementById('appNotes').value     = app ? (app.notes || '') : '';
+            document.getElementById('appModal').classList.add('open');
+            document.getElementById('appName').focus();
+        }
+
+        function closeAppModal() {
+            document.getElementById('appModal').classList.remove('open');
+        }
+
+        async function saveApp(e) {
+            e.preventDefault();
+            const btn = document.getElementById('appSaveBtn');
+            btn.disabled = true;
+            try {
+                const res = await fetch(API_BASE + 'save_app.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id:           document.getElementById('appId').value || null,
+                        display_name: document.getElementById('appName').value.trim(),
+                        publisher:    document.getElementById('appPublisher').value.trim(),
+                        app_url:      document.getElementById('appUrl').value.trim(),
+                        notes:        document.getElementById('appNotes').value.trim()
+                    })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    closeAppModal();
+                    showToast(window.t('software.inventory.app_saved'), 'success');
+                    await loadSoftware();
+                } else {
+                    // The endpoint explains WHY it refused \u2014 a name clash with an
+                    // agent-discovered app reads very differently from a duplicate.
+                    showToast(data.error || 'Failed', 'error');
+                }
+            } catch (err) {
+                showToast('Failed', 'error');
+            }
+            btn.disabled = false;
+        }
+
+        async function deleteApp(appId, name) {
+            if (!confirm(window.t('software.inventory.confirm_delete_app', { name: name }))) return;
+            try {
+                const res = await fetch(API_BASE + 'delete_app.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: appId })
+                });
+                const data = await res.json();
+                showToast(data.success ? window.t('software.inventory.app_deleted') : (data.error || 'Failed'),
+                          data.success ? 'success' : 'error');
+                if (data.success) await loadSoftware();
+            } catch (err) {
+                showToast('Failed', 'error');
+            }
         }
 
         async function showDetail(appId, appName) {

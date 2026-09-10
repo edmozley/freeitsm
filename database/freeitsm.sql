@@ -4073,9 +4073,32 @@ CREATE TABLE IF NOT EXISTS `software_inventory_apps` (
     `display_name`      VARCHAR(512) NOT NULL,
     `publisher`         VARCHAR(512) NULL,
     `first_detected`    DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Manually added applications (#1549). Cloud platforms - Xero, Canva, Figma -
+    -- have nothing to install, so nothing discovers them and until now they could
+    -- not be recorded at all. That also made the whole of `software_licences`
+    -- unreachable for SaaS, because its app_id is NOT NULL: a renewal date, a
+    -- seat count and a cost had nowhere to hang.
+    --
+    -- 'agent'  = found by the inventory agent, system-info submit or Intune
+    -- 'manual' = typed in by a person
+    --
+    -- ⚠️ THE AGENT MAY ADOPT A MANUAL ROW, BUT MUST NEVER OVERWRITE IT.
+    -- Its lookup is `display_name = ? AND (publisher IS NULL OR publisher = ?)`,
+    -- so a hand-typed "Adobe Creative Cloud" with no publisher already matches
+    -- what an agent later reports - and that is CORRECT, the installs should
+    -- attach to the row somebody already curated. What must not happen is the
+    -- agent rewriting the name, publisher, URL or notes a person chose, or
+    -- flipping source back to 'agent'. See the guard in the submit endpoint.
+    `source`            VARCHAR(20) NOT NULL DEFAULT 'agent',
+    -- Where you go to administer it. A SaaS app's real "location".
+    `app_url`           VARCHAR(500) NULL,
+    `notes`             LONGTEXT NULL,
+    `created_by`        INT NULL,
     `is_demo`           TINYINT(1) NOT NULL DEFAULT 0,   -- set by the demo data importer (#1297)
     PRIMARY KEY (`id`),
-    UNIQUE KEY `ux_app_display_publisher` (`display_name`(400), `publisher`(360))
+    UNIQUE KEY `ux_app_display_publisher` (`display_name`(400), `publisher`(360)),
+    KEY `ix_software_apps_source` (`source`),
+    CONSTRAINT `fk_software_apps_created_by` FOREIGN KEY (`created_by`) REFERENCES `analysts` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `software_inventory_detail` (

@@ -79,6 +79,15 @@ return [
             'cap'       => Cap::TICKETS_CATEGORIES,
             'label_key' => 'tickets.settings.tabs.categories',
             'grant'     => 'Manage ticket categories and resolution codes, and whether those fields appear on a ticket',
+            // The install-wide defaults behind the three switches. Declared HERE
+            // rather than in includes/settings_keys.php so the tab that shows a
+            // setting and the capability that guards it are one declaration and
+            // cannot disagree — see settingKeyOwners().
+            'setting_keys' => [
+                'ticket_category_enabled',
+                'ticket_closure_category_enabled',
+                'ticket_resolution_code_enabled',
+            ],
         ],
         [
             'id'        => 'statuses',

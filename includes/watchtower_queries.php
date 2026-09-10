@@ -495,6 +495,83 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
         'notice_periods_30d' => $ctNotice
     ];
 
+    // -- Software (#1550) --
+    //
+    // ⚠️ THE GAP THIS CLOSES. `software_licences` has carried `renewal_date` and
+    // `notice_period_days` since it shipped, and both already drive a "due soon"
+    // colour — but only for somebody who happens to open the Licences page that
+    // week. A contract expiring the same day shouts from this dashboard; a
+    // £12k software renewal said nothing at all. Ed spotted it.
+    //
+    // Counted the same way Contracts is (30 and 90 days), plus notice periods
+    // falling due, so the two cards can be read against each other without
+    // translating between different windows.
+    //
+    // Defensive throughout: the software tables may be absent on a part-migrated
+    // install, and a card that fatals takes the whole dashboard with it.
+    $swExp30 = $swExp90 = $swNotice = $swTotal = 0;
+    $swShow  = false;
+
+    // Honour the surface setting, exactly as the Assets card honours
+    // asset_warranty_surface below: an install that chose "calendar only" does
+    // not want this card as well, and one that chose "nowhere" wants neither.
+    //
+    // ⚠️ There is deliberately NO `software_renewal_days` equivalent of
+    // `asset_warranty_days`. This card reports 30 days, 90 days and notice
+    // periods — the same three windows as Contracts, so the two can be read
+    // against each other — and a "warn me N days ahead" number that changed none
+    // of them would be a setting that visibly does nothing. Assets can afford one
+    // because its card has a single window for it to mean.
+    $swSurface = 'dashboard';
+    try {
+        $swSet = $conn->query("SELECT setting_value FROM system_settings WHERE setting_key = 'software_renewal_surface'")->fetchColumn();
+        if ($swSet !== false && $swSet !== null && $swSet !== '') $swSurface = (string)$swSet;
+    } catch (Exception $e) { /* default */ }
+
+    if (in_array($swSurface, ['dashboard', 'both'], true)) try {
+        $swTotal = (int)$conn->query(
+            "SELECT COUNT(*) FROM software_licences WHERE status = 'Active'"
+        )->fetchColumn();
+
+        $swExp30 = (int)$conn->query(
+            "SELECT COUNT(*) FROM software_licences
+             WHERE status = 'Active' AND renewal_date IS NOT NULL
+               AND renewal_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 30 DAY)"
+        )->fetchColumn();
+
+        $swExp90 = (int)$conn->query(
+            "SELECT COUNT(*) FROM software_licences
+             WHERE status = 'Active' AND renewal_date IS NOT NULL
+               AND renewal_date BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 90 DAY)"
+        )->fetchColumn();
+
+        // The notice date is not stored — unlike contracts, which carry their own
+        // `notice_date` column. It is renewal_date minus notice_period_days, so
+        // the window is expressed the other way round: a licence whose notice
+        // period STARTS within the next 30 days. A licence with no notice period
+        // has no deadline to miss and is deliberately excluded rather than
+        // defaulted to 30 — a made-up deadline is worse than none.
+        $swNotice = (int)$conn->query(
+            "SELECT COUNT(*) FROM software_licences
+             WHERE status = 'Active' AND renewal_date IS NOT NULL
+               AND notice_period_days IS NOT NULL AND notice_period_days > 0
+               AND DATE_SUB(renewal_date, INTERVAL notice_period_days DAY)
+                   BETWEEN {$todaySql} AND DATE_ADD({$todaySql}, INTERVAL 30 DAY)"
+        )->fetchColumn();
+
+        $swShow = true;
+    } catch (Exception $e) {
+        $swShow = false;   // tables not there yet — draw nothing rather than zeroes
+    }
+
+    $software = [
+        'total_licences'     => $swTotal,
+        'expiring_30d'       => $swExp30,
+        'expiring_90d'       => $swExp90,
+        'notice_periods_30d' => $swNotice,
+        'show'               => $swShow
+    ];
+
     // -- Knowledge --
 
     // Company scope. NOTE: Knowledge is currently the ONLY card here that scopes
@@ -718,6 +795,7 @@ function getWatchtowerData($conn, $analystId = 0, $scope = WT_SCOPE_ALL) {
         'calendar'       => $calendar,
         'service_status' => $serviceStatus,
         'contracts'      => $contracts,
+        'software'       => $software,
         'knowledge'      => $knowledge,
         'assets'         => $assets,
         'tasks'          => $tasksWt,

@@ -230,6 +230,7 @@ return [
     ['knowledge_gap_clusters', 'ix_kgc_status', 'key', '(`status`)'],
     ['knowledge_gap_clusters', 'ix_kgc_signature', 'key', '(`signature`)'],
     ['software_inventory_apps', 'ux_app_display_publisher', 'unique', '(`display_name`(400),`publisher`(360))'],
+    ['software_inventory_apps', 'ix_software_apps_source', 'key', '(`source`)'],
     ['software_inventory_detail', 'ux_software_detail_host_app', 'unique', '(`host_id`,`app_id`)'],
     ['software_inventory_log', 'ix_sil_host_id', 'key', '(`host_id`)'],
     ['api_rate_limits', 'uq_apikey_window', 'unique', '(`apikey_id`,`window_start`)'],

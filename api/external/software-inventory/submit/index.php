@@ -225,7 +225,7 @@ foreach ($softwareList as $item) {
         try {
             // Look up in DB
             $stmt = $conn->prepare("
-                SELECT id, display_name, publisher
+                SELECT id, display_name, publisher, source
                 FROM software_inventory_apps
                 WHERE display_name = ?
                   AND (publisher IS NULL OR publisher = ?)
@@ -240,25 +240,47 @@ foreach ($softwareList as $item) {
                 $currentName      = $appRow['display_name'] ?? null;
                 $currentPublisher = $appRow['publisher'] ?? null;
 
-                $needsUpdate = false;
-                $newName     = $currentName;
-                $newPub      = $currentPublisher;
+                // ⚠️ A MANUALLY ADDED APPLICATION IS NEVER REWRITTEN BY THE AGENT (#1549).
+                //
+                // ADOPTING one is right and deliberate: the lookup above matches on
+                // `display_name = ? AND (publisher IS NULL OR publisher = ?)`, so a
+                // hand-typed "Adobe Creative Cloud" with no publisher matches what an
+                // agent later reports, and the installs SHOULD attach to the row
+                // somebody already curated rather than starting a duplicate.
+                //
+                // What must not happen is the rest of this block running on it. The
+                // agent reports a registry DisplayName and Publisher; a person typed
+                // a name they chose, and possibly a URL and notes beside it. Letting
+                // the agent "normalise to the latest values" would silently replace
+                // curated text with whatever an installer wrote into the registry —
+                // and there would be nothing on screen to say it had happened.
+                //
+                // `source` stays 'manual' for the same reason: the row's origin is a
+                // fact about who is responsible for its fields, not about what has
+                // since been found installed. The install count tells the other story.
+                // The install rows below still attach to $appId either way — only
+                // the app row's own fields are protected.
+                if (($appRow['source'] ?? 'agent') !== 'manual') {
+                    $needsUpdate = false;
+                    $newName     = $currentName;
+                    $newPub      = $currentPublisher;
 
-                // If collation is case-insensitive, this is mostly cosmetic,
-                // but we can still normalise to the latest values.
-                if ($displayName && $displayName !== $currentName) {
-                    $newName = $displayName;
-                    $needsUpdate = true;
-                }
-                if ($publisher !== null && $publisher !== $currentPublisher) {
-                    $newPub = $publisher;
-                    $needsUpdate = true;
-                }
+                    // If collation is case-insensitive, this is mostly cosmetic,
+                    // but we can still normalise to the latest values.
+                    if ($displayName && $displayName !== $currentName) {
+                        $newName = $displayName;
+                        $needsUpdate = true;
+                    }
+                    if ($publisher !== null && $publisher !== $currentPublisher) {
+                        $newPub = $publisher;
+                        $needsUpdate = true;
+                    }
 
-                if ($needsUpdate) {
-                    $stmt = $conn->prepare("UPDATE software_inventory_apps SET display_name = ?, publisher = ? WHERE id = ?");
-                    $stmt->execute([$newName, $newPub, $appId]);
-                    $updatedApps++;
+                    if ($needsUpdate) {
+                        $stmt = $conn->prepare("UPDATE software_inventory_apps SET display_name = ?, publisher = ? WHERE id = ?");
+                        $stmt->execute([$newName, $newPub, $appId]);
+                        $updatedApps++;
+                    }
                 }
             } else {
                 // Insert new app

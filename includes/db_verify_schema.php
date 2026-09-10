@@ -3029,6 +3029,18 @@ return [
         'display_name'      => 'VARCHAR(512) NOT NULL',
         'publisher'         => 'VARCHAR(512) NULL',
         'first_detected'    => 'DATETIME NULL DEFAULT CURRENT_TIMESTAMP',
+        // Manually added applications (#1549). 'agent' = discovered by the
+        // inventory agent / system-info submit / Intune; 'manual' = typed in.
+        // Cloud platforms have nothing to install, so nothing discovers them —
+        // and that also made all of `software_licences` unreachable for SaaS,
+        // since its app_id is NOT NULL.
+        // ⚠️ The agent MAY adopt a manual row (its installs should attach to the
+        // row somebody already curated) but must NEVER overwrite the name,
+        // publisher, URL or notes a person chose, nor flip source back.
+        'source'            => "VARCHAR(20) NOT NULL DEFAULT 'agent'",
+        'app_url'           => 'VARCHAR(500) NULL',
+        'notes'             => 'LONGTEXT NULL',
+        'created_by'        => 'INT NULL',
         'is_demo'           => 'TINYINT(1) NOT NULL DEFAULT 0',   // set by the demo data importer (#1297)
     ],
 

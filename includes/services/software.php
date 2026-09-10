@@ -26,6 +26,7 @@
 
 require_once __DIR__ . '/../service_context.php';
 require_once dirname(__DIR__, 2) . '/workflow/includes/engine.php';
+require_once __DIR__ . '/../software_licence_calendar.php';   // renewals -> the calendar (#1551)
 
 class SoftwareService
 {
@@ -54,6 +55,7 @@ class SoftwareService
                 $f['vendor_contact'], $f['notes'], $f['status'], $id,
             ]);
             WorkflowEngine::emitCrud('software_licence', 'updated', $id, $f['licence_type']);
+            self::resyncRenewalCalendar($conn);
             return ['id' => $id, 'created' => false];
         }
 
@@ -71,6 +73,7 @@ class SoftwareService
         ]);
         $newId = (int)$conn->lastInsertId();
         WorkflowEngine::emitCrud('software_licence', 'created', $newId, $f['licence_type']);
+        self::resyncRenewalCalendar($conn);
         return ['id' => $newId, 'created' => true];
     }
 
@@ -80,12 +83,37 @@ class SoftwareService
         $row = self::loadLicenceRow($conn, $id);
         $conn->prepare("DELETE FROM software_licences WHERE id = ?")->execute([$id]);
         WorkflowEngine::emitCrud('software_licence', 'deleted', $id, $row['licence_type'] ?? null);
+        self::resyncRenewalCalendar($conn);
         return $id;
     }
 
     // ======================================================================
     //  Internals
     // ======================================================================
+
+    /**
+     * Push renewal dates back into the calendar after any licence write (#1551).
+     *
+     * ⚠️ NEVER ALLOWED TO FAIL THE WRITE. The licence is the record; its calendar
+     * entries are a convenience derived from it. A calendar table that is missing,
+     * mid-migration or momentarily locked must not turn "save this licence" into
+     * an error — the licence is already committed by the time this runs, so
+     * throwing here would report a failure for something that succeeded.
+     *
+     * A cheap full resync, exactly as the asset warranty generator does it:
+     * licence edits are rare and the event set is small, and regenerating the lot
+     * is the only version with no drift in it.
+     */
+    private static function resyncRenewalCalendar(PDO $conn): void
+    {
+        try {
+            if (function_exists('syncSoftwareLicenceCalendar')) {
+                syncSoftwareLicenceCalendar($conn);
+            }
+        } catch (Throwable $e) {
+            error_log('Software renewal calendar sync failed: ' . $e->getMessage());
+        }
+    }
 
     /** Load a licence row for update/delete, or throw 404. */
     private static function loadLicenceRow(PDO $conn, int $id): array

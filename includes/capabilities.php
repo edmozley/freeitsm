@@ -184,6 +184,9 @@ final class Cap
     // ---- Software ----------------------------------------------------------
     const SOFTWARE_MANAGE   = 'software.manage';     // umbrella
     const SOFTWARE_API_KEYS = 'software.api_keys';   // mints credentials
+    // Where licence renewals surface — the dashboard, the calendar, or both (#1551).
+    // NOT sensitive: it decides where a date is SHOWN, never who may see it.
+    const SOFTWARE_RENEWALS = 'software.renewals';
 
     // ---- Tickets -----------------------------------------------------------
     // The module the whole per-tab design was argued FOR. Fourteen tabs, and they are

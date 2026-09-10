@@ -159,6 +159,7 @@ const MODULE_COLOURS = <?php echo json_encode(array_map(fn($c) => $c[0], $wtModu
 const CARD_MODULE = {
     morning_checks: 'morning-checks', tickets: 'tickets', changes: 'changes',
     calendar: 'calendar', service_status: 'service-status', contracts: 'contracts',
+    software: 'software',
     knowledge: 'knowledge', assets: 'assets', tasks: 'tasks', workflows: 'workflow',
 };
 

@@ -533,6 +533,23 @@ try {
                 <div class="wt-card-body"><div class="wt-card-loading"><div class="wt-spinner"></div></div></div>
             </div>
 
+            <!-- Software (#1550). Licence renewals were the one expiry the
+                 dashboard never surfaced: contracts and asset warranties both
+                 had a card, software did not, so a large renewal was visible
+                 only to somebody who opened the Licences page that week. -->
+            <div class="wt-card" id="wtSoftware">
+                <div class="wt-card-header">
+                    <div class="wt-card-header-left">
+                        <div class="wt-card-icon" style="background:#0ea5e9;">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+                        </div>
+                        <div class="wt-card-name"><a href="../software/licences/"><?php echo htmlspecialchars(t('watchtower.cards.software')); ?></a></div>
+                    </div>
+                    <div class="wt-status-dot" id="wtSwDot"></div>
+                </div>
+                <div class="wt-card-body"><div class="wt-card-loading"><div class="wt-spinner"></div></div></div>
+            </div>
+
             <!-- Knowledge -->
             <div class="wt-card" id="wtKnowledge">
                 <div class="wt-card-header">
@@ -634,6 +651,7 @@ try {
     const WT_CARD_ELEMENTS = {
         morning_checks: 'wtMorningChecks', tickets: 'wtTickets', changes: 'wtChanges',
         calendar: 'wtCalendar', service_status: 'wtServiceStatus', contracts: 'wtContracts',
+        software: 'wtSoftware',
         knowledge: 'wtKnowledge', assets: 'wtAssets', tasks: 'wtTasks', workflows: 'wtWorkflows',
     };
 
@@ -889,6 +907,53 @@ try {
         setBody('wtContracts', html);
     }
 
+    // Software licence renewals (#1550). Same windows as Contracts on purpose —
+    // 30 days, 90 days, notice periods due — so the two cards can be read against
+    // each other without translating between different meanings of "soon".
+    function renderSoftware(d) {
+        const sw = d.software;
+        // The tables may not exist on a part-migrated install; the query says so
+        // rather than reporting zeroes, which would read as "nothing is expiring".
+        if (!sw || !sw.show) {
+            setDot('wtSwDot', 'green');
+            setBody('wtSoftware', '<div class="wt-attention">'
+                + attentionItem('green', window.t('watchtower.software.none')) + '</div>');
+            return;
+        }
+
+        if (sw.expiring_30d > 0) {
+            setDot('wtSwDot', 'red');
+        } else if (sw.expiring_90d > 0 || sw.notice_periods_30d > 0) {
+            setDot('wtSwDot', 'amber');
+        } else {
+            setDot('wtSwDot', 'green');
+        }
+
+        let html = '<div class="wt-metrics">';
+        html += metric(sw.expiring_30d, window.t('watchtower.software.metric_30d'), sw.expiring_30d > 0 ? '#ef4444' : '#94a3b8');
+        html += metric(sw.expiring_90d, window.t('watchtower.software.metric_90d'), sw.expiring_90d > 0 ? '#f59e0b' : '#94a3b8');
+        html += metric(sw.notice_periods_30d, window.t('watchtower.software.metric_notices'), sw.notice_periods_30d > 0 ? '#f59e0b' : '#94a3b8');
+        html += '</div>';
+
+        html += '<div class="wt-attention">';
+        if (sw.expiring_30d > 0) {
+            html += attentionItem('red', window.t('watchtower.software.expiring', { count: sw.expiring_30d }));
+        }
+        if (sw.notice_periods_30d > 0) {
+            html += attentionItem('amber', window.t('watchtower.software.notices', { count: sw.notice_periods_30d }));
+        }
+        if (sw.expiring_30d === 0 && sw.expiring_90d === 0 && sw.notice_periods_30d === 0) {
+            // Distinguishes "nothing due" from "no renewal dates recorded at all".
+            // Reporting all-clear on an empty list is how a dashboard lies quietly.
+            html += attentionItem('green', sw.total_licences > 0
+                ? window.t('watchtower.software.all_clear')
+                : window.t('watchtower.software.none'));
+        }
+        html += '</div>';
+
+        setBody('wtSoftware', html);
+    }
+
     function renderKnowledge(d) {
         const kb = d.knowledge;
 
@@ -1131,6 +1196,7 @@ try {
                 renderCalendar(d);
                 renderServiceStatus(d);
                 renderContracts(d);
+                renderSoftware(d);
                 renderKnowledge(d);
                 renderAssets(d);
                 renderTasks(d);

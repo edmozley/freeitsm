@@ -67,6 +67,8 @@ return [
         'card_service_status_desc' => 'Degraded services and open incidents.',
         'card_contracts'           => 'Contracts',
         'card_contracts_desc'      => 'Contracts expiring and notice periods running out.',
+        'card_software'            => 'Software',
+        'card_software_desc'       => 'Licence renewals coming up and notice periods running out.',
         'card_knowledge'           => 'Knowledge',
         'card_knowledge_desc'      => 'Recent articles and reviews now overdue.',
         'card_assets'              => 'Assets',
@@ -96,6 +98,7 @@ return [
         'calendar'       => 'Calendar',
         'service_status' => 'Service Status',
         'contracts'      => 'Contracts',
+        'software'       => 'Software',
         'knowledge'      => 'Knowledge',
         'assets'         => 'Assets',
         'tasks'          => 'Tasks',
@@ -181,6 +184,20 @@ return [
         'expiring'       => '<span class="wt-attention-bold">{count}</span> contract(s) expiring within 30 days',
         'notices'        => '<span class="wt-attention-bold">{count}</span> notice period(s) approaching',
         'all_clear'      => 'No contracts requiring attention',
+    ],
+
+    // Software card (#1550). Deliberately the same three windows as Contracts
+    // above, so the two can be read against each other.
+    'software' => [
+        'metric_30d'     => '30 days',
+        'metric_90d'     => '90 days',
+        'metric_notices' => 'Notices',
+        'expiring'       => '<span class="wt-attention-bold">{count}</span> software licence(s) renewing within 30 days',
+        'notices'        => '<span class="wt-attention-bold">{count}</span> notice period(s) approaching',
+        'all_clear'      => 'No software renewals requiring attention',
+        // Not the same as all_clear: nothing is due BECAUSE nothing is recorded.
+        // Reporting "all clear" on an empty list is how a dashboard lies quietly.
+        'none'           => 'No renewal dates recorded against your licences',
     ],
 
     // Knowledge card.

@@ -37,6 +37,25 @@ return [
         'col_name'        => 'Application Name',
         'col_publisher'   => 'Publisher',
         'col_installed'   => 'Installed On',
+        // Seats is a SEPARATE column from Installed On, never a fallback (#1549):
+        // a cloud platform is installed on nothing, so 0 there is correct and says
+        // nothing about whether anyone uses it.
+        'col_seats'       => 'Seats',
+        'col_actions'     => '',
+
+        // Manually added applications (#1549).
+        'add_app'         => 'Add application',
+        'edit_app'        => 'Edit application',
+        'added_by_hand'   => 'Added by hand',
+        'f_name'          => 'Name',
+        'f_publisher'     => 'Publisher or vendor',
+        'f_url'           => 'Web address',
+        'f_url_hint'      => 'Where you go to administer it. Optional.',
+        'f_notes'         => 'Notes',
+        'licence_hint'    => 'Once this is saved you can record a licence against it, with seats, cost and a renewal date - the same as any other application.',
+        'app_saved'       => 'Application saved',
+        'app_deleted'     => 'Application deleted',
+        'confirm_delete_app' => 'Delete "{name}"? Any licence recorded against it must be deleted first.',
         'count_app'       => '{count} application',
         'count_apps'      => '{count} applications',
         'count_component' => '{count} component',
@@ -260,6 +279,15 @@ return [
     'settings' => [
         'page_title'  => 'Service Desk - Software Settings',
         'tab_api_keys'=> 'API Keys',
+        // Where licence renewals surface (#1551). Twin of the Assets warranty tab.
+        'tab_renewals'             => 'Renewals',
+        'renewals_intro'           => 'Licence renewal dates can be shown on the Watchtower dashboard, written into the calendar as all-day entries, or both. Nothing is stored twice - the licence is still the record, and these are generated from it.',
+        'renewal_show_in'          => 'Show renewals in',
+        'renewal_off'             => 'Nowhere',
+        'renewal_dashboard_only'  => 'Watchtower dashboard only',
+        'renewal_calendar_only'   => 'Calendar only',
+        'renewal_both'            => 'Dashboard and calendar',
+        'renewal_saved'           => 'Renewal settings saved',
         'heading'     => 'API Keys',
         'label_input' => 'Label (optional)',
         'generate'    => 'Generate',
