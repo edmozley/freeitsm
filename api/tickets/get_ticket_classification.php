@@ -90,6 +90,33 @@ try {
         'settings'     => ticketClassificationSettings($conn, $activeId),
     ];
 
+    // The consolidated view (#1554) — see the fuller note in get_ticket_types.php.
+    // Categories are the same "global default + the company's own + the company
+    // may hide a global" model as types, so they are resolved per company too.
+    //
+    // ⚠️ The SWITCHES go with them. Whether the category field appears at all is
+    // a per-company answer, so a board holding three schools' tickets can have
+    // the field on for one and off for another — and the reading pane has to
+    // follow the ticket, not the page.
+    if (!$manage && isActiveTenantAll($conn)) {
+        $catsByCompany = [];
+        $codesByCompany = [];
+        $settingsByCompany = [];
+        foreach (getAccessibleTenantIds($conn, $analystId) as $tid) {
+            $tid = (int) $tid;
+            $catOpts = ['activeOnly' => true];
+            if (isset($opts['portalOnly'])) $catOpts['portalOnly'] = true;
+            $catsByCompany[$tid]     = array_values(ticketCategoriesResolved($conn, $tid, $catOpts));
+            // Resolution codes are per-company too — same model, same treatment.
+            $codesByCompany[$tid]    = ticketResolutionCodesResolved($conn, $tid, ['activeOnly' => true]);
+            $settingsByCompany[$tid] = ticketClassificationSettings($conn, $tid);
+        }
+        $resp['by_company']          = $catsByCompany;
+        $resp['codes_by_company']    = $codesByCompany;
+        $resp['settings_by_company'] = $settingsByCompany;
+        $resp['all_companies']       = true;
+    }
+
     if ($manage) {
         // The install-wide defaults, and every company that has said otherwise.
         $keys = [

@@ -279,6 +279,45 @@ let ticketStatuses = [];
 // single-company install, so the "Company" picker + wrong-company warning stay hidden.
 let moveCompanies = [];
 let isMultiCompany = false;
+// The consolidated view (#1554): true when the header switcher is set to "All
+// companies". Set from each get_emails.php response — see loadEmails().
+let allCompaniesView = false;
+
+/* ⚠️ THE LOOKUP LISTS STOP BEING A PROPERTY OF THE PAGE (#1554).
+   Ticket types, origins and categories are per-company ("global default + the
+   company's own + the company may hide a global"). Loaded once for the active
+   company — as they always were — they are correct in every view EXCEPT the
+   consolidated board, where the page holds several companies' tickets at once
+   and the reading pane would offer School A's type list on School B's ticket,
+   and let you save it.
+   So in that view the endpoints also send a map keyed by company id, and every
+   picker resolves against the TICKET's company instead.
+   Statuses, priorities and departments are install-wide and need none of this. */
+let ticketTypesByCompany      = null;   // {tenantId: [types]}
+let ticketOriginsByCompany    = null;
+let ticketCategoriesByCompany = null;
+let ticketCodesByCompany      = null;
+let classificationByCompany   = null;   // {tenantId: {category, closure_category, resolution_code}}
+
+/**
+ * The company a ticket's lookup lists should come from.
+ * NULL tenant_id = unrouted, which Default owns by convention.
+ */
+function ticketCompanyId(email) {
+    if (email && email.tenant_id != null) return Number(email.tenant_id);
+    const def = (moveCompanies || []).find(c => c.is_default);
+    return def ? Number(def.id) : null;
+}
+
+/** Per-company list if we have one for this ticket, else the page-wide list. */
+function listForTicket(byCompany, fallback, email) {
+    if (!allCompaniesView || !byCompany) return fallback;
+    const id = ticketCompanyId(email);
+    if (id == null) return fallback;
+    // A company we hold no map for falls back rather than rendering empty — an
+    // empty dropdown reads as "this ticket has no types", which is a lie.
+    return byCompany[id] || byCompany[String(id)] || fallback;
+}
 let ticketPriorities = [];   // loaded once at init from get_ticket_priorities.php
 // Classification (#1540): the category tree, the resolution codes, and whether
 // each of the three fields is switched on for this company at all.
@@ -596,6 +635,11 @@ async function loadTicketTypes() {
 
         if (data.success) {
             ticketTypes = data.ticket_types.filter(t => t.is_active);
+            // Present only in the consolidated view (#1554).
+            ticketTypesByCompany = data.by_company
+                ? Object.fromEntries(Object.entries(data.by_company)
+                    .map(([k, v]) => [k, (v || []).filter(t => t.is_active)]))
+                : null;
         }
     } catch (error) {
         console.error('Error loading ticket types:', error);
@@ -613,6 +657,11 @@ async function loadTicketClassification() {
             ticketCategories      = data.categories || [];
             ticketResolutionCodes = data.resolution_codes || [];
             ticketClassification  = data.settings || ticketClassification;
+            // Consolidated view (#1554): the categories AND the three switches
+            // are both per-company answers, so both travel per company.
+            ticketCategoriesByCompany = data.by_company || null;
+            ticketCodesByCompany      = data.codes_by_company || null;
+            classificationByCompany   = data.settings_by_company || null;
         }
     } catch (error) {
         console.error('Error loading ticket classification:', error);
@@ -623,20 +672,22 @@ async function loadTicketClassification() {
 // whatever the type is; one tied to a type is offered only on that type.
 // The tie lives on the ROOT, so `effective_type_id` is what to compare - a
 // sub-category has none of its own.
-function categoriesForType(typeId) {
+function categoriesForType(typeId, email) {
     const t = (typeId === '' || typeId === null || typeId === undefined) ? null : Number(typeId);
-    return ticketCategories.filter(c => c.effective_type_id === null || c.effective_type_id === t);
+    // The TICKET's company in the consolidated view (#1554), the page's otherwise.
+    const source = listForTicket(ticketCategoriesByCompany, ticketCategories, email);
+    return source.filter(c => c.effective_type_id === null || c.effective_type_id === t);
 }
 
 // Options for a category picker, indented so the tree reads as a tree.
 // `selectedId` is always included even when the type filter would drop it -
 // a ticket already carrying a category must never render as blank, or the next
 // save silently clears a value nobody chose to clear.
-function categoryOptionsFor(typeId, selectedId) {
+function categoryOptionsFor(typeId, selectedId, email) {
     const sel = selectedId === '' || selectedId === null || selectedId === undefined ? null : Number(selectedId);
-    const list = categoriesForType(typeId);
+    const list = categoriesForType(typeId, email);
     if (sel !== null && !list.some(c => c.id === sel)) {
-        const missing = ticketCategories.find(c => c.id === sel);
+        const missing = listForTicket(ticketCategoriesByCompany, ticketCategories, email).find(c => c.id === sel);
         if (missing) list.unshift(missing);
     }
     return list.map(c => {
@@ -654,6 +705,10 @@ async function loadTicketOrigins() {
 
         if (data.success) {
             ticketOrigins = data.origins.filter(o => o.is_active);
+            ticketOriginsByCompany = data.by_company
+                ? Object.fromEntries(Object.entries(data.by_company)
+                    .map(([k, v]) => [k, (v || []).filter(o => o.is_active)]))
+                : null;
         }
     } catch (error) {
         console.error('Error loading ticket origins:', error);
@@ -1459,6 +1514,11 @@ async function loadEmails() {
 
         if (data.success) {
             emails = data.emails;
+            // The consolidated view (#1554). Taken from the RESPONSE, not guessed
+            // from whether these particular rows span companies — a status folder
+            // can easily hold one company's tickets while the view is still "all",
+            // and the company chip must not disappear when it does.
+            allCompaniesView = !!data.all_companies;
             renderEmailList();
         } else {
             showToast('Error loading emails: ' + data.error, 'error');
@@ -1467,6 +1527,26 @@ async function loadEmails() {
         console.error('Error:', error);
         showToast('Failed to load emails', 'error');
     }
+}
+
+/**
+ * Which company a ticket belongs to, shown on the row in the consolidated view.
+ *
+ * ⚠️ ONLY in that view. In a single-company context every row would carry the
+ * same chip, which is noise rather than information — and on a single-company
+ * install there is nothing to say at all.
+ *
+ * A NULL tenant_id is an unrouted ticket (inbound email, the portal, a workflow)
+ * that Default owns by convention. It reads as "Unrouted" rather than silently
+ * wearing Default's name, because those are the ones somebody has to triage.
+ */
+function companyChip(email) {
+    if (!allCompaniesView) return '';
+    const name = email.company_name;
+    if (name) {
+        return `<span class="email-company-chip">${escapeHtml(name)}</span>`;
+    }
+    return `<span class="email-company-chip unrouted">${escapeHtml(t('tickets.list.company_unrouted'))}</span>`;
 }
 
 // Render email list
@@ -1502,6 +1582,7 @@ function renderEmailList() {
                 <div class="email-preview">${escapeHtml(email.body_preview || '')}</div>
                 <div class="email-footer-row">
                     <div class="email-time">${formatDateTime(email.received_datetime)}</div>
+                    ${companyChip(email)}
                     ${inboxRowChips(email)}
                     ${snoozePill}
                     <div class="email-sla-slot" data-sla-slot="${ticketId}"></div>
@@ -2390,8 +2471,10 @@ function displayEmail(email, recordings) {
         }
     }
 
-    // Build ticket type dropdown
-    const ticketTypeOptions = ticketTypes.map(type =>
+    // Build ticket type dropdown.
+    // ⚠️ From the TICKET's company, not the page's (#1554) — see listForTicket().
+    const typesForThis = listForTicket(ticketTypesByCompany, ticketTypes, email);
+    const ticketTypeOptions = typesForThis.map(type =>
         `<option value="${type.id}" ${email.ticket_type_id == type.id ? 'selected' : ''}>${escapeHtml(type.name)}</option>`
     ).join('');
 
@@ -2407,8 +2490,8 @@ function displayEmail(email, recordings) {
         `<option value="${p.id}" ${email.priority_id == p.id ? 'selected' : ''}>${escapeHtml(p.name)}</option>`
     ).join('');
 
-    // Build ticket origin dropdown
-    const originOptions = ticketOrigins.map(origin =>
+    // Build ticket origin dropdown — the TICKET's company (#1554).
+    const originOptions = listForTicket(ticketOriginsByCompany, ticketOrigins, email).map(origin =>
         `<option value="${origin.id}" ${email.origin_id == origin.id ? 'selected' : ''}>${escapeHtml(origin.name)}</option>`
     ).join('');
 
@@ -2418,29 +2501,39 @@ function displayEmail(email, recordings) {
     //
     // The two category pickers share one tree and are filtered by the ticket's
     // CURRENT type; changing the type re-filters both (see assignTicketType).
+    // ⚠️ Both the LISTS and the SWITCHES come from the ticket's company (#1554).
+    // Whether the category field appears at all is a per-company answer, so a
+    // consolidated board can legitimately show it on one school's ticket and not
+    // on the next one down the list.
+    const clsFor = (allCompaniesView && classificationByCompany)
+        ? (classificationByCompany[ticketCompanyId(email)]
+           || classificationByCompany[String(ticketCompanyId(email))]
+           || ticketClassification)
+        : ticketClassification;
+
     const classificationFields = [
-        ticketClassification.category ? `
+        clsFor.category ? `
                     <div class="toolbar-field">
                         <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_category'))}</label>
                         <select class="toolbar-select" id="categorySelect" onchange="assignCategory()">
                             <option value=""></option>
-                            ${categoryOptionsFor(email.ticket_type_id, email.category_id)}
+                            ${categoryOptionsFor(email.ticket_type_id, email.category_id, email)}
                         </select>
                     </div>` : '',
-        ticketClassification.closure_category ? `
+        clsFor.closure_category ? `
                     <div class="toolbar-field">
                         <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_closure_category'))}</label>
                         <select class="toolbar-select" id="closureCategorySelect" onchange="assignClosureCategory()">
                             <option value=""></option>
-                            ${categoryOptionsFor(email.ticket_type_id, email.closure_category_id)}
+                            ${categoryOptionsFor(email.ticket_type_id, email.closure_category_id, email)}
                         </select>
                     </div>` : '',
-        ticketClassification.resolution_code ? `
+        clsFor.resolution_code ? `
                     <div class="toolbar-field">
                         <label class="toolbar-label">${escapeHtml(t('tickets.reading_pane.field_resolution_code'))}</label>
                         <select class="toolbar-select" id="resolutionCodeSelect" onchange="assignResolutionCode()">
                             <option value=""></option>
-                            ${ticketResolutionCodes.map(c =>
+                            ${listForTicket(ticketCodesByCompany, ticketResolutionCodes, email).map(c =>
                                 `<option value="${c.id}" ${email.resolution_code_id == c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`
                             ).join('')}
                         </select>
@@ -4048,12 +4141,12 @@ function refilterCategoriesForType() {
         if (!sel) return;
         const currentId = currentEmail[field] ? Number(currentEmail[field]) : null;
         const stillOffered = currentId === null
-            || categoriesForType(typeId).some(c => c.id === currentId);
+            || categoriesForType(typeId, currentEmail).some(c => c.id === currentId);
         if (!stillOffered) {
             currentEmail[field] = null;
             cleared = true;
         }
-        sel.innerHTML = '<option value=""></option>' + categoryOptionsFor(typeId, currentEmail[field]);
+        sel.innerHTML = '<option value=""></option>' + categoryOptionsFor(typeId, currentEmail[field], currentEmail);
     });
 
     if (cleared) {
@@ -4086,10 +4179,10 @@ async function assignClassificationField(selectId, field, auditLabel) {
     const labelFor = id => {
         if (!id) return '';
         if (field === 'resolution_code_id') {
-            const c = ticketResolutionCodes.find(x => x.id === Number(id));
+            const c = listForTicket(ticketCodesByCompany, ticketResolutionCodes, currentEmail).find(x => x.id === Number(id));
             return c ? c.name : '';
         }
-        const c = ticketCategories.find(x => x.id === Number(id));
+        const c = listForTicket(ticketCategoriesByCompany, ticketCategories, currentEmail).find(x => x.id === Number(id));
         // The full path, not the leaf: "Printer" alone is ambiguous once two
         // roots both have one, and an audit line has to stand on its own.
         return c ? c.path_label : '';
@@ -6695,10 +6788,53 @@ function openNewTicketModal() {
         prioSelect.innerHTML = '<option value="Normal">Normal</option>';
     }
 
+    // The consolidated view (#1554): ask which company, because the board holds
+    // several and a new ticket has to land in exactly one of them.
+    const coRow = document.getElementById('newTicketCompanyRow');
+    const coSel = document.getElementById('newTicketCompany');
+    if (coRow && coSel) {
+        if (allCompaniesView && moveCompanies.length > 1) {
+            coSel.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_company')) + '</option>' +
+                moveCompanies.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+            coSel.value = '';
+            coRow.hidden = false;
+            // The type list depends on the company, so it cannot be filled in
+            // until one is chosen — see the change handler below.
+            typeSelect.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_company_first')) + '</option>';
+            typeSelect.disabled = true;
+        } else {
+            coRow.hidden = true;
+            typeSelect.disabled = false;
+        }
+    }
+
     // Populate the "Send replies from" mailbox dropdown for the active company.
     loadNewTicketMailboxes();
 
     document.getElementById('newTicketModal').classList.add('active');
+}
+
+/**
+ * Refill the New Ticket type list once a company is chosen (#1554).
+ *
+ * ⚠️ The types have to follow the CHOSEN company, not the active one. Offering
+ * the active company's list and then filing the ticket under a different one is
+ * how you end up with a type that company has hidden — or does not have at all.
+ */
+function onNewTicketCompanyChange() {
+    const coSel = document.getElementById('newTicketCompany');
+    const typeSelect = document.getElementById('newTicketType');
+    if (!coSel || !typeSelect) return;
+    const id = coSel.value ? Number(coSel.value) : null;
+    if (id == null) {
+        typeSelect.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_company_first')) + '</option>';
+        typeSelect.disabled = true;
+        return;
+    }
+    const list = (ticketTypesByCompany && (ticketTypesByCompany[id] || ticketTypesByCompany[String(id)])) || ticketTypes;
+    typeSelect.innerHTML = '<option value="">' + escapeHtml(t('tickets.new_ticket_modal.select_placeholder')) + '</option>' +
+        list.map(ty => `<option value="${ty.id}">${escapeHtml(ty.name)}</option>`).join('');
+    typeSelect.disabled = false;
 }
 
 // Load the mailboxes this ticket can be sent from (scoped to the active company)
@@ -6764,6 +6900,19 @@ async function createNewTicket() {
         return;
     }
 
+    // The consolidated view (#1554): a company is REQUIRED here and nowhere else.
+    // The board holds several, so there is no active one to fall back on that
+    // would not be a guess — and the company decides the ticket number, the
+    // mailbox and the SLA, none of which can be quietly re-decided afterwards.
+    const newTicketCompanyRow = document.getElementById('newTicketCompanyRow');
+    const newTicketCompanyEl  = document.getElementById('newTicketCompany');
+    const companyAsked = !!(newTicketCompanyRow && !newTicketCompanyRow.hidden);
+    const newTicketCompanyId = companyAsked && newTicketCompanyEl ? newTicketCompanyEl.value : '';
+    if (companyAsked && !newTicketCompanyId) {
+        showToast(t('tickets.new_ticket_modal.company_required'), 'error');
+        return;
+    }
+
     // Get the create button and show loading state
     const createBtn = document.querySelector('#newTicketModal .btn-primary');
     const originalText = createBtn.textContent;
@@ -6786,7 +6935,9 @@ async function createNewTicket() {
                 department_id: departmentId || null,
                 ticket_type_id: ticketTypeId || null,
                 priority: priority,
-                mailbox_id: mailboxId || null
+                mailbox_id: mailboxId || null,
+                // #1554: only sent from the consolidated view, where it was asked for.
+                tenant_id: newTicketCompanyId || null
             })
         });
 

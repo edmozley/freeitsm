@@ -51,6 +51,28 @@ try {
 
     $resp = ['success' => true, 'ticket_types' => $rows, 'multi_tenant' => $multi];
 
+    // The consolidated view (#1554). The list above is resolved for ONE company,
+    // which is the right answer everywhere except a board holding several
+    // companies' tickets at once — there the reading pane has to offer the list
+    // belonging to the TICKET's company, not the page's.
+    //
+    // ⚠️ Resolved per company rather than flattened into one list: a company can
+    // HIDE a global default, so the same type belongs in one company's list and
+    // not another's. A union would quietly re-offer what somebody hid.
+    if (!$manage && isActiveTenantAll($conn)) {
+        $byCompany = [];
+        foreach (getTenantConfigRowsByCompany(
+            $conn, $analystId, 'ticket_types', 'ticket_type',
+            'id, name, description, is_active, display_order, tenant_id', '', 'display_order, name'
+        ) as $tid => $tRows) {
+            foreach ($tRows as &$tr) { $tr['is_active'] = (bool)$tr['is_active']; }
+            unset($tr);
+            $byCompany[$tid] = $tRows;
+        }
+        $resp['by_company']    = $byCompany;
+        $resp['all_companies'] = true;
+    }
+
     // Settings management view, only meaningful inside a *client* company context.
     if ($manage && $multi && !$isDefaultCtx) {
         $company = getTenantById($conn, $activeId);

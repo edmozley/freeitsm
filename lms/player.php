@@ -86,7 +86,7 @@ $translationNamespaces = ['common', 'lms'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($course['title']); ?> - <?php echo htmlspecialchars(t('lms.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=67">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=68">
     <link rel="stylesheet" href="../assets/css/lms.css?v=10">
     <!-- Mobile layer: linked AFTER this page's own CSS so its @media rules win on ties. -->
     <link rel="stylesheet" href="../assets/css/mobile.css?v=138">

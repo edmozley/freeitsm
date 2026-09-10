@@ -31,7 +31,7 @@ $apiBaseUrl = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_UR
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - API</title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=67">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=68">
     <style>
         /* System module accent (blue-grey) — pin the generic --accent to it. */
         body {

@@ -152,6 +152,25 @@ final class KnowledgeViewer
      */
     public static function forAnalyst(PDO $conn, int $analystId): self
     {
+        // The consolidated view (#1554). An analyst looking at every company's
+        // tickets at once should be able to search every company's knowledge —
+        // otherwise Ask AI answers a question about School B's ticket out of
+        // School A's articles, and does it silently.
+        //
+        // ⚠️ Still an EXPLICIT id list, never "no filter". This reuses the shape
+        // forApiKey() has always had (companyScope is already an array), so it is
+        // not a new privilege — it is the same set the switcher would have given
+        // them one company at a time.
+        //
+        // 🔑 Articles with tenant_id NULL are SHARED WITH EVERY COMPANY in
+        // Knowledge (unlike tickets, where NULL means Default's) — see the big
+        // warning in tenancy.php. So an install that files all its knowledge
+        // globally is unaffected either way, which is the common case.
+        if ($analystId > 0 && function_exists('isActiveTenantAll') && isActiveTenantAll($conn)) {
+            $scope = self::scopeForAllAccessible($conn, $analystId);
+            return new self(Audience::INTERNAL, $analystId, null, $scope);
+        }
+
         $tenantId = ($analystId > 0) ? getActiveTenantId($conn, $analystId) : null;
         return new self(
             Audience::INTERNAL,
@@ -159,6 +178,20 @@ final class KnowledgeViewer
             null,
             self::scopeForOneCompany($conn, $tenantId)
         );
+    }
+
+    /**
+     * Every company this analyst may see, in the same set form as
+     * scopeForOneCompany(). Honours the same two "no filtering at all" cases.
+     */
+    private static function scopeForAllAccessible(PDO $conn, int $analystId): ?array
+    {
+        if (!function_exists('isMultiTenant') || !isMultiTenant($conn)) return null;
+        if (!tenancyColumnExists($conn, 'knowledge_articles', 'tenant_id')) return null;
+        $ids = array_values(array_unique(array_map('intval', getAccessibleTenantIds($conn, $analystId))));
+        // Empty means "shared articles only" here — the same thing an empty scope
+        // has always meant in this file. It is NOT "everything".
+        return $ids;
     }
 
     /**

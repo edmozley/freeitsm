@@ -40,7 +40,25 @@ if ($subject === '')   { echo json_encode(['success' => false, 'error' => 'Subje
 try {
     $conn = connectToDatabase();
     $ctx = ActorContext::fromSession($conn);
+
+    // Normally the acting company is simply the active one. In the consolidated
+    // view (#1554) there is no single active company the analyst is looking at,
+    // so the form asks — and this is where the answer lands.
+    //
+    // ⚠️ A DROPDOWN IS NOT A CHECK, exactly as the requester note below says.
+    // `tenant_id` arrives in a JSON body and can be any integer, so it is
+    // verified against what this analyst may actually reach. Without that, an
+    // analyst scoped to one school could file a ticket into another's queue —
+    // and it would look entirely legitimate once it landed.
     $tenantId = getActiveTenantId($conn, $analystId);
+    if (isActiveTenantAll($conn) && !empty($input['tenant_id'])) {
+        $wanted = (int) $input['tenant_id'];
+        if (!analystCanAccessTenant($conn, $analystId, $wanted)) {
+            echo json_encode(['success' => false, 'error' => 'You do not have access to that company']);
+            exit;
+        }
+        $tenantId = $wanted;
+    }
 
     // ⚠️ A SCOPED LIST IS NOT A CHECK.
     //

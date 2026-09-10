@@ -566,6 +566,73 @@ function getActiveTenantId(PDO $conn, ?int $analystId = null): int {
  */
 function setActiveTenantId(int $tenantId): void {
     $_SESSION['active_tenant_id'] = $tenantId;
+    // Picking a specific company always leaves the consolidated view. Without
+    // this, choosing a school from the switcher would appear to do nothing.
+    $_SESSION['active_tenant_all'] = false;
+}
+
+// ─── The consolidated view: "All companies" (#1554) ─────────────────────────
+//
+// 🔴 A SEPARATE FLAG, NEVER A MAGIC TENANT ID.
+//
+// The obvious shortcut is to put 0 or -1 in `active_tenant_id` to mean "all".
+// Do not. `getActiveTenantId()` is declared `: int` and is read by 28
+// ticketTenantFilter() call sites and ~61 files through activeTenantFilter() —
+// every one of which would silently change meaning at once, and the direction
+// they would fail in is SHOWING MORE THAN YOU SHOULD.
+//
+// So `getActiveTenantId()` is left exactly as it was: it still answers "which
+// ONE company am I working in", and in the consolidated view it answers with
+// the company a WRITE would land in. Only the readers that opt in — currently
+// ticketTenantFilter() — widen to the whole accessible set. Every other module
+// stays scoped to one company and needs no changes at all.
+
+/** Is the analyst looking at every company they may see, rather than just one? */
+function isActiveTenantAll(PDO $conn): bool {
+    if (!isMultiTenant($conn)) {
+        return false;   // meaningless at N=1, and never worth rendering there
+    }
+    return !empty($_SESSION['active_tenant_all']);
+}
+
+/** Turn the consolidated view on or off. Needs a writable session. */
+function setActiveTenantAll(bool $on): void {
+    $_SESSION['active_tenant_all'] = $on;
+}
+
+/**
+ * The same config list resolved SEPARATELY FOR EVERY COMPANY the analyst may see.
+ *
+ * ---------------------------------------------------------------------------
+ * WHY THIS IS NOT JUST "getTenantConfigRows WITHOUT THE FILTER"
+ * ---------------------------------------------------------------------------
+ * Ticket types, origins and categories are a "global default + the company's own
+ * + the company may HIDE a global" model. A union across companies therefore
+ * cannot be expressed as one flat list: School A may have hidden a global type
+ * that School B still uses, so the same row belongs in one company's list and
+ * not the other's. Flattening loses that and would offer a type on a ticket
+ * whose company had deliberately hidden it.
+ *
+ * So this resolves the list once per company and returns a map keyed by company
+ * id. The reading pane picks the entry for the TICKET's company — which is the
+ * whole point: in the consolidated view the lists cannot be a property of the
+ * page any more, because the page holds several companies' tickets at once.
+ *
+ * Only worth calling in the consolidated view. One query per company, once per
+ * page load; at the three or four companies this feature exists for, that is
+ * cheaper than the alternative of re-fetching every time a ticket is opened.
+ *
+ * @return array<int, array<int, array>> company id => rows
+ */
+function getTenantConfigRowsByCompany(
+    PDO $conn, int $analystId, string $table, string $entityType,
+    string $cols = '*', string $activeWhere = '', string $orderBy = 'display_order, name'
+): array {
+    $out = [];
+    foreach (getAccessibleTenantIds($conn, $analystId) as $tid) {
+        $out[(int) $tid] = getTenantConfigRows($conn, $table, $entityType, (int) $tid, $cols, $activeWhere, $orderBy);
+    }
+    return $out;
 }
 
 /**
@@ -582,13 +649,48 @@ function setActiveTenantId(int $tenantId): void {
  * @return array [sqlFragment, params] — append the fragment to a WHERE/ON clause
  *               and merge the params into the statement's bound values.
  */
-function ticketTenantFilter(PDO $conn, int $analystId, string $alias = 't'): array {
+/**
+ * @param bool $forceSingle ignore the consolidated view and scope to the ONE
+ *                          active company. For destructive endpoints — see the
+ *                          note in api/tickets/empty_trash.php. Reading wider is
+ *                          the point of the combined board; DELETING wider is not.
+ */
+function ticketTenantFilter(PDO $conn, int $analystId, string $alias = 't', bool $forceSingle = false): array {
     if (!isMultiTenant($conn)) {
         return ['', []];
     }
+    $col = $alias === '' ? 'tenant_id' : "$alias.tenant_id";
+
+    // The consolidated view (#1554).
+    //
+    // 🔴 "ALL" MEANS "EVERY COMPANY I MAY SEE", NEVER "NO FILTER".
+    // Returning ['', []] here would read as "multi-tenancy is dormant" and hand
+    // every company's tickets to everybody — a one-line change with the same
+    // shape as the requester-picker leak, where the COUNT was scoped and the
+    // LIST was not. The clause below always names an explicit id list.
+    if (!$forceSingle && isActiveTenantAll($conn)) {
+        $ids = array_values(array_unique(array_map('intval', getAccessibleTenantIds($conn, $analystId))));
+
+        // 🔴 FAIL CLOSED. An empty scope is not "everything" — it is an analyst
+        // with no companies at all, and `IN ()` is not even valid SQL. Match
+        // nothing rather than falling through to no filter.
+        if (!$ids) {
+            return [" AND 1 = 0", []];
+        }
+
+        $placeholders = implode(',', array_fill(0, count($ids), '?'));
+        // An unrouted ticket (tenant_id IS NULL — inbound email, the portal, a
+        // workflow) belongs to Default, so it is included only when Default is
+        // actually in scope. Same rule as the single-company branch below, not
+        // a relaxation of it.
+        if (in_array(getDefaultTenantId($conn), $ids, true)) {
+            return [" AND ($col IN ($placeholders) OR $col IS NULL)", $ids];
+        }
+        return [" AND $col IN ($placeholders)", $ids];
+    }
+
     $active  = getActiveTenantId($conn, $analystId);
     $default = getDefaultTenantId($conn);
-    $col = $alias === '' ? 'tenant_id' : "$alias.tenant_id";
     if ($active === $default) {
         return [" AND ($col = ? OR $col IS NULL)", [$active]];
     }

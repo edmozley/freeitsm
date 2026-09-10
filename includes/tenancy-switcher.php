@@ -40,6 +40,14 @@ function renderTenantSwitcher(PDO $conn, int $analystId): void {
         $activeId   = getActiveTenantId($conn, $analystId);
         $active     = getTenantById($conn, $activeId);
         $activeName = $active['name'] ?? '';
+        // The consolidated view (#1554). Offered only when there is genuinely
+        // more than one company to consolidate — at one company it would be a
+        // second name for the view you are already looking at.
+        $allOn      = isActiveTenantAll($conn);
+        $canShowAll = count($tenants) > 1;
+        if ($allOn && $canShowAll) {
+            $activeName = 'All companies';
+        }
         // Count of un-routed inbound email waiting in triage (tenant_id IS NULL).
         $triageCount = 0;
         try {
@@ -114,7 +122,20 @@ function renderTenantSwitcher(PDO $conn, int $analystId): void {
         </button>
         <div class="tenant-switcher-panel" id="tenantSwitcherPanel">
             <div class="tenant-switcher-head">Company</div>
-            <?php foreach ($tenants as $t): $isCurrent = ((int)$t['id'] === (int)$activeId); ?>
+            <?php if ($canShowAll): ?>
+            <?php /* The consolidated board (#1554). Grants nothing: "all" means
+                     every company this analyst could already reach one switch
+                     away. New tickets still ask which company they belong to. */ ?>
+            <button class="tenant-switcher-item <?php echo $allOn ? 'current' : ''; ?>"
+                    onclick="switchTenantAll()">
+                <span>All companies</span>
+                <?php if ($allOn): ?>
+                <svg class="ts-check" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <?php endif; ?>
+            </button>
+            <div class="tenant-switcher-sep"></div>
+            <?php endif; ?>
+            <?php foreach ($tenants as $t): $isCurrent = (!$allOn && (int)$t['id'] === (int)$activeId); ?>
             <button class="tenant-switcher-item <?php echo $isCurrent ? 'current' : ''; ?>"
                     onclick="switchTenant(<?php echo (int)$t['id']; ?>)">
                 <span><?php echo htmlspecialchars($t['name']); ?></span>
@@ -148,12 +169,20 @@ function renderTenantSwitcher(PDO $conn, int $analystId): void {
         document.getElementById('tenantSwitcherPanel').classList.remove('active');
         document.getElementById('tenantSwitcherOverlay').classList.remove('active');
     }
+    // The consolidated view. Sent as its own field, never as a reserved
+    // tenant_id value — see the note in set_active_tenant.php.
+    async function switchTenantAll() {
+        return switchTenantRequest({ all_companies: true });
+    }
     async function switchTenant(tenantId) {
+        return switchTenantRequest({ tenant_id: tenantId });
+    }
+    async function switchTenantRequest(payload) {
         try {
             var resp = await fetch('<?php echo BASE_URL; ?>api/system/set_active_tenant.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tenant_id: tenantId })
+                body: JSON.stringify(payload)
             });
             var data = await resp.json();
             if (data.success) {

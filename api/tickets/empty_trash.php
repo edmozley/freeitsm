@@ -21,8 +21,18 @@ $analystId = (int)$_SESSION['analyst_id'];
 try {
     $conn = connectToDatabase();
 
-    // Trashed tickets in the active company (no-op tenant filter at N=1).
-    list($ttSql, $ttParams) = ticketTenantFilter($conn, $analystId, 't');
+    // 🔴 NEVER EMPTIES THE TRASH ACROSS COMPANIES (#1554).
+    //
+    // This endpoint shares ticketTenantFilter() with every ticket LIST, and that
+    // filter widens to the whole accessible set in the consolidated view. For a
+    // list that is the point; here it would turn one button into a permanent
+    // deletion across all three schools at once, which is not what anybody
+    // clicking "empty trash" while looking at a combined board expects — and it
+    // cannot be undone.
+    //
+    // So this one deliberately does NOT follow the view. It always scopes to the
+    // single active company, and the UI tells the analyst which that is.
+    list($ttSql, $ttParams) = ticketTenantFilter($conn, $analystId, 't', true);   // true = one company only
     $idStmt = $conn->prepare("SELECT t.id FROM tickets t WHERE t.deleted_datetime IS NOT NULL" . $ttSql);
     $idStmt->execute($ttParams);
     $ids = array_map('intval', $idStmt->fetchAll(PDO::FETCH_COLUMN));

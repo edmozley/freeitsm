@@ -98,6 +98,11 @@ try {
                 tp.colour AS priority_colour,
                 ts.colour AS status_colour,
                 aa.full_name AS assignee_name,
+                -- The consolidated view (#1554). Always selected, rendered only
+                -- when the analyst is looking at more than one company — one
+                -- LEFT JOIN is cheaper than a second query shape to maintain.
+                t.tenant_id,
+                tn.name AS company_name,
                 (SELECT COUNT(*) FROM emails WHERE ticket_id = t.id) as email_count
             -- 🔴 DRIVEN FROM `tickets`, NOT FROM `emails`.
             --
@@ -116,6 +121,7 @@ try {
             LEFT JOIN ticket_priorities tp ON tp.id = t.priority_id
             LEFT JOIN analysts aa ON aa.id = t.assigned_analyst_id
             LEFT JOIN users u ON u.id = t.user_id
+            LEFT JOIN tenants tn ON tn.id = t.tenant_id
             -- A merged-away ticket has been absorbed into another. It is kept, and
             -- kept findable by number, but it is not sitting in a queue. The old
             -- query dropped it only by accident (the merge took its emails); now
@@ -192,7 +198,12 @@ try {
     echo json_encode([
         'success' => true,
         'emails' => $emails,
-        'count' => count($emails)
+        'count' => count($emails),
+        // The consolidated view (#1554). Told once per fetch rather than inferred
+        // by the front end from whether the rows happen to span companies — a
+        // filtered page can easily contain one company's tickets while the view
+        // is still "all", and the column must not vanish when it does.
+        'all_companies' => isActiveTenantAll($conn)
     ]);
 
 } catch (Exception $e) {

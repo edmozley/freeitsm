@@ -34,7 +34,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars(t('tickets.title')); ?> - <?php echo htmlspecialchars(t('tickets.nav.inbox')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=67">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=68">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=138">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
@@ -415,6 +415,23 @@ $translationNamespaces = ['common', 'tickets'];
                 <div class="form-group">
                     <label class="form-label"><?php echo htmlspecialchars(t('tickets.new_ticket_modal.subject')); ?> *</label>
                     <input type="text" class="form-input" id="newTicketSubject" placeholder="<?php echo htmlspecialchars(t('tickets.new_ticket_modal.subject_placeholder')); ?>" required>
+                </div>
+                <?php /* The consolidated view (#1554). Hidden unless the analyst
+                         is looking at every company at once — in a single-company
+                         context the answer is already known and asking again is
+                         a question with one possible answer. Shown there, it is
+                         REQUIRED: "which school is this for?" has no sensible
+                         default when the board holds three of them, and the
+                         company decides the ticket number, the mailbox and the
+                         SLA the ticket will live under. */ ?>
+                <div class="form-row" id="newTicketCompanyRow" hidden style="margin-bottom: 15px;">
+                    <div class="form-group">
+                        <label class="form-label"><?php echo htmlspecialchars(t('tickets.new_ticket_modal.company')); ?></label>
+                        <select class="form-select" id="newTicketCompany" required onchange="onNewTicketCompanyChange()">
+                            <option value=""><?php echo htmlspecialchars(t('tickets.new_ticket_modal.select_company')); ?></option>
+                        </select>
+                        <small style="color: var(--text-muted, #666);"><?php echo htmlspecialchars(t('tickets.new_ticket_modal.company_hint')); ?></small>
+                    </div>
                 </div>
                 <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
                     <div class="form-group">
@@ -914,7 +931,7 @@ $translationNamespaces = ['common', 'tickets'];
          three because this page was the one that never loaded tz.js. -->
     <script src="../assets/js/tz.js?v=5"></script>
     <script src="../assets/js/schedule.js?v=1"></script>
-    <script src="../assets/js/inbox.js?v=121"></script>
+    <script src="../assets/js/inbox.js?v=122"></script>
     <script src="../assets/js/mobile.js?v=57"></script>
     <script>
     // Auto-check mailboxes every 60 seconds

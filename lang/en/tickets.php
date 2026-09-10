@@ -122,6 +122,11 @@ return [
         'unassigned_tickets' => 'Unassigned Tickets',
         'snoozed'            => 'Snoozed',
         'trash'              => 'Trash',
+        // The consolidated view (#1554). A ticket with no company is one that
+        // arrived by email, the portal or a workflow and has not been routed yet -
+        // Default owns it by convention, but saying so would hide the fact that
+        // somebody still has to triage it.
+        'company_unrouted'   => 'Unrouted',
     ],
 
     'reading_pane' => [
@@ -555,6 +560,13 @@ return [
         'priority'                => 'Priority',
         'description'             => 'Description',
         'select_placeholder'      => '-- Select --',
+        // The consolidated view (#1554). Asked ONLY when the analyst is looking
+        // at every company at once - elsewhere the answer is already known.
+        'company'                 => 'Company',
+        'select_company'          => '-- Which company? --',
+        'select_company_first'    => '-- Choose a company first --',
+        'company_hint'            => 'You are viewing all companies, so this ticket needs to be filed against one. It decides the ticket number, the mailbox replies come from, and the SLA that applies.',
+        'company_required'        => 'Please choose which company this ticket is for.',
         'name_placeholder'        => 'e.g., John Smith',
         'email_placeholder'       => 'e.g., john.smith@company.com',
         'subject_placeholder'     => 'Brief description of the issue',

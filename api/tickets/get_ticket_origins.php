@@ -45,6 +45,23 @@ try {
 
     $resp = ['success' => true, 'origins' => $rows, 'multi_tenant' => $multi];
 
+    // The consolidated view (#1554) — see the fuller note in get_ticket_types.php.
+    // Resolved per company, never flattened: hiding a global default is a
+    // per-company decision and a union would undo it.
+    if (!$manage && isActiveTenantAll($conn)) {
+        $byCompany = [];
+        foreach (getTenantConfigRowsByCompany(
+            $conn, $analystId, 'ticket_origins', 'ticket_origin',
+            'id, name, description, is_active, display_order, tenant_id', '', 'display_order, name'
+        ) as $tid => $tRows) {
+            foreach ($tRows as &$tr) { $tr['is_active'] = (bool)$tr['is_active']; }
+            unset($tr);
+            $byCompany[$tid] = $tRows;
+        }
+        $resp['by_company']    = $byCompany;
+        $resp['all_companies'] = true;
+    }
+
     if ($manage && $multi && !$isDefaultCtx) {
         $company = getTenantById($conn, $activeId);
 

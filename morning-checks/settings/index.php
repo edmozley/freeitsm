@@ -37,7 +37,7 @@ $translationNamespaces = ['common', 'morning-checks'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('morning-checks.title') . ' ' . t('morning-checks.nav.settings')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=67">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=68">
     <link rel="stylesheet" href="../style.css?v=3">
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <?php echo Tz::scriptTag(); ?>
