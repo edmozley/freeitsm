@@ -145,12 +145,39 @@ $translationNamespaces = ['common', 'software'];
         .software-table-container {
             flex: 1;
             overflow-y: auto;
+            /* Hold the scrollbar's space open even when the list is short enough
+               not to need one. Without this, searching down to a handful of rows
+               removes the scrollbar and every column jumps 8px wider — a smaller
+               version of the same complaint the fixed layout above fixes, and the
+               only movement left once it is in place. */
+            scrollbar-gutter: stable;
         }
 
         .software-table {
             width: 100%;
             border-collapse: collapse;
+            /* ⚠️ FIXED, so the column boundaries are decided ONCE by the header
+               row rather than by whichever rows survive the current search.
+               With the default `auto` the browser re-measures every visible cell
+               on each keystroke, so the columns visibly jumped about while you
+               typed — the longest publisher in the filtered set was setting the
+               width of the whole table.
+               Only the widths below are needed: under `table-layout: fixed` the
+               first row decides everything and the body cells follow. */
+            table-layout: fixed;
         }
+
+        /* Application Name is deliberately left unsized — under a fixed layout the
+           one column without a width absorbs whatever is left, so the name gets
+           the room and the rest stay put. */
+        #thPublisher { width: 260px; }
+        #thCount     { width: 130px; }
+        #thSeats     { width: 100px; }
+
+        /* A fixed column cannot widen to fit, so a long unbroken string (registry
+           publishers are full of them) has to be allowed to wrap or it spills
+           across the cell beside it. */
+        .software-table tbody td { overflow-wrap: anywhere; }
 
         .software-table thead th {
             position: sticky;
