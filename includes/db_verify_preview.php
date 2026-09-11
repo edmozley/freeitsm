@@ -104,6 +104,51 @@ function dbPreviewIndexExists(PDO $conn, string $dbName, string $table, string $
  *   read_only: bool
  * }
  */
+/**
+ * Row repairs db_verify.php would carry out, counted against this database.
+ *
+ * ⚠️ MAINTAINED BY HAND, exactly like DB_VERIFY_DESTRUCTIVE above: a repair
+ * added to db_verify.php and not mirrored here makes this file quietly stop
+ * answering the question it exists to answer. Each entry must count the SAME
+ * rows its UPDATE would touch — copy the WHERE clause, do not paraphrase it.
+ *
+ * COUNTS ONLY. Nothing here writes, and nothing here may.
+ *
+ * @return array<int,array{key:string,table:string,rows:int,what:string}>
+ */
+function dbPreviewRepairs(PDO $conn, string $dbName): array
+{
+    $out = [];
+
+    // #1583/#1591: a hand-added asset was stamped with a last_seen no agent had
+    // set, so it reads as a machine that stopped reporting. The date itself is
+    // kept — first_seen holds the same value, which is the precondition.
+    if (dbPreviewTableExists($conn, $dbName, 'assets')
+        && dbPreviewTableExists($conn, $dbName, 'asset_history')) {
+        try {
+            $rows = (int)$conn->query(
+                "SELECT COUNT(*) FROM assets a
+                  WHERE a.last_seen IS NOT NULL
+                    AND a.first_seen <=> a.last_seen
+                    AND EXISTS (SELECT 1 FROM asset_history h
+                                 WHERE h.asset_id = a.id AND h.field_name = 'asset_created')"
+            )->fetchColumn();
+            $out[] = [
+                'key'   => 'assets_last_seen_manual',
+                'table' => 'assets',
+                'rows'  => $rows,
+                'what'  => 'Clear a last_seen that no inventory agent ever set, on assets added by hand. '
+                         . 'They currently look like machines that have stopped reporting. '
+                         . 'No date is lost - first_seen holds the same value.',
+            ];
+        } catch (Exception $e) {
+            // A count that cannot run must not break the preview.
+        }
+    }
+
+    return $out;
+}
+
 function dbVerifyPreview(PDO $conn, array $schema, string $dbName): array
 {
     $tablesToCreate = [];
@@ -141,14 +186,28 @@ function dbVerifyPreview(PDO $conn, array $schema, string $dbName): array
         }
     }
 
+    // Data repairs — rows a run would rewrite, as opposed to schema it would
+    // change. Reported because "what will this do to my database?" is a
+    // question about the data too, and a run that silently rewrites 600 rows
+    // is exactly the surprise this file exists to prevent. Each entry counts
+    // its own targets, so an up-to-date database reports none.
+    $repairs = [];
+    foreach (dbPreviewRepairs($conn, $dbName) as $repair) {
+        if ($repair['rows'] > 0) {
+            $repairs[] = $repair;
+        }
+    }
+
     return [
         'tables_to_create' => $tablesToCreate,
         'columns_to_add'   => $columnsToAdd,
         'destructive'      => $destructive,
+        'repairs'          => $repairs,
         'summary'          => [
             'creates' => count($tablesToCreate),
             'adds'    => count($columnsToAdd),
             'drops'   => count($destructive),
+            'repairs' => array_sum(array_column($repairs, 'rows')),
         ],
         // Stated in the payload so the UI can never imply anything was changed.
         'read_only'        => true,

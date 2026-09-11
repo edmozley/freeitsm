@@ -833,6 +833,59 @@ try {
         } catch (Exception $e) {}
     }
 
+    // ── A hand-added television is not a machine that stopped reporting ──────
+    //
+    // Until #1583, creating an asset by hand — the Add button, a CSV import, or
+    // POST /assets — stamped BOTH first_seen and last_seen with the moment it
+    // was typed in, as though something had reported it. That was invisible
+    // while nothing displayed last_seen, and wrong the moment #1578 put it on
+    // screen: a television reads "21 days ago" in amber as if its agent had
+    // gone quiet, and it has been inflating the Watchtower "not seen" count all
+    // along. Every install in the wild has these, not just the one you are
+    // reading this on, and nobody out there knows to go looking.
+    //
+    // 🔑 THIS DESTROYS NO INFORMATION. The precondition is first_seen = last_seen,
+    // so the timestamp survives in first_seen — all that is removed is a
+    // duplicate of it that was masquerading as an agent report.
+    //
+    // 🔑 EVIDENCE, NOT A HEURISTIC. Two facts together, both recorded rather
+    // than inferred:
+    //   1. an `asset_created` row in asset_history — written by
+    //      AssetsService::createAsset() and by nothing else, so a person or an
+    //      import made this record;
+    //   2. first_seen = last_seen — no agent has reported it since.
+    // Guessing from "it has no CPU or BIOS recorded" would have been close, and
+    // close is not the same: on the install this was developed against that
+    // guess caught two extra rows whose dates were seeded deliberately.
+    //
+    // ⚠️ Naturally idempotent, so it needs no run-once flag: after #1583 a
+    // manual asset has last_seen NULL, which fails `first_seen <=> last_seen`
+    // and is excluded. A second verification finds nothing.
+    //
+    // And if it ever did fire on a machine that genuinely reports, the next
+    // agent run puts last_seen straight back.
+    if ($tableExists('assets') && $tableExists('asset_history')) {
+        try {
+            $cleared = $conn->exec(
+                "UPDATE assets a
+                    SET a.last_seen = NULL
+                  WHERE a.last_seen IS NOT NULL
+                    AND a.first_seen <=> a.last_seen
+                    AND EXISTS (SELECT 1 FROM asset_history h
+                                 WHERE h.asset_id = a.id AND h.field_name = 'asset_created')"
+            );
+            if ($cleared > 0) {
+                $results[] = ['table' => 'assets', 'status' => 'updated', 'details' => [
+                    "Cleared a last_seen on $cleared hand-added asset(s) that no inventory agent had ever reported — "
+                    . "they were showing as machines that had stopped reporting. The date itself is unchanged in first_seen."
+                ]];
+            }
+        } catch (Exception $e) {
+            // A repair that cannot run must never fail a verification: the
+            // schema work around it is what an upgrade actually needs.
+        }
+    }
+
     // Disk hide rules (#97). CASCADE, unlike its neighbours above: an
     // asset-scoped rule is ABOUT that asset and means nothing once it is gone,
     // where a disk row is a record of what was in the machine. A rule with a
