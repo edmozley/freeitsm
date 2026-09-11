@@ -833,6 +833,17 @@ try {
         } catch (Exception $e) {}
     }
 
+    // Disk hide rules (#97). CASCADE, unlike its neighbours above: an
+    // asset-scoped rule is ABOUT that asset and means nothing once it is gone,
+    // where a disk row is a record of what was in the machine. A rule with a
+    // NULL asset_id is estate-wide and no asset's deletion touches it.
+    if ($tableExists('asset_disk_hide_rules') && $tableExists('assets')
+        && !$fkExists('asset_disk_hide_rules', 'fk_adhr_asset')) {
+        try {
+            $conn->exec("ALTER TABLE asset_disk_hide_rules ADD CONSTRAINT fk_adhr_asset FOREIGN KEY (asset_id) REFERENCES assets (id) ON DELETE CASCADE");
+        } catch (Exception $e) {}
+    }
+
     // Custom asset fields. Cascades everywhere EXCEPT asset_field_values.field_id,
     // which is deliberately RESTRICT: a field is retired by setting is_deleted,
     // never dropped, because dropping it would silently destroy every answer ever

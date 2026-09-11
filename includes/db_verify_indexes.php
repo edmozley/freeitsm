@@ -146,6 +146,11 @@ return [
     ['asset_checkout_log', 'idx_acl_asset', 'key', '(`asset_id`)'],
     ['asset_devices', 'idx_asset_devices_asset', 'key', '(`asset_id`)'],
     ['asset_physical_disks', 'idx_asset_physical_disks_asset', 'key', '(`asset_id`)'],
+    // The hide rules are read once per asset screen and matched on model; the
+    // "how many others like this" count scans by model across the estate.
+    ['asset_disk_hide_rules', 'idx_adhr_asset', 'key', '(`asset_id`)'],
+    ['asset_disk_hide_rules', 'idx_adhr_model', 'key', '(`model`(100))'],
+    ['asset_physical_disks', 'idx_asset_physical_disks_model', 'key', '(`model`(100))'],
     ['asset_fields', 'uq_asset_fields_tenant_key', 'unique', '(`tenant_id`,`field_key`)'],
     ['asset_field_options', 'ix_asset_field_options_field', 'key', '(`field_id`)'],
     ['asset_field_sets', 'ix_asset_field_sets_tenant', 'key', '(`tenant_id`)'],

@@ -324,6 +324,27 @@ return [
         'drives'     => 'Drives',
         'serial'     => 'Serial',
         'no_serial'  => 'No serial reported',
+
+        // Hiding drives nobody wants to look at (#97). Buttons stay one word.
+        'hide'              => 'Hide',
+        'show'              => 'Show',
+        'hidden_count'      => '{count} hidden',
+        'show_hidden'       => 'Show hidden',
+        'hide_hidden'       => 'Hide again',
+        'hidden_badge'      => 'Hidden',
+        'hide_title'        => 'Hide this drive?',
+        'hide_intro'        => 'It stays in the record and in the API. This only decides whether it is drawn here.',
+        // The "others like this" offer. Counted live, and said in full rather
+        // than as a bare number, because it is the difference between hiding
+        // one row and blanking six hundred.
+        'hide_others'       => 'Also hide the other {count} drives like this, across every asset',
+        'hide_others_one'   => 'Also hide the 1 other drive like this, on another asset',
+        'hide_others_none'  => 'No other drive in your estate looks like this one.',
+        'hide_counting'     => 'Counting…',
+        'show_title'        => 'Show this drive again?',
+        'show_scoped'       => 'It was hidden on this asset only, so nothing else changes.',
+        'show_everywhere'   => 'It is hidden across every asset, so the other {count} drives like it will come back too.',
+        'hide_failed'       => 'That did not work.',
     ],
 
     // Devices tab

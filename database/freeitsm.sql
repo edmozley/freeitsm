@@ -2431,6 +2431,25 @@ CREATE TABLE IF NOT EXISTS `asset_physical_disks` (
     CONSTRAINT `fk_asset_physical_disks_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- Drives you have told FreeITSM not to show (a 0 GB "Microsoft Virtual Disk",
+-- say). A RULE, never a flag on the disk row: asset_physical_disks is cleared
+-- and rewritten on every agent report, so a flag there would be gone by the
+-- next scheduled run. Matched exactly on model AND size, both NULL-safe.
+-- asset_id NULL = every asset; set = this one only.
+CREATE TABLE IF NOT EXISTS `asset_disk_hide_rules` (
+    `id`                    INT NOT NULL AUTO_INCREMENT,
+    `tenant_id`             INT NULL,
+    `asset_id`              INT NULL,
+    `model`                 VARCHAR(255) NULL,
+    `size_bytes`            BIGINT NULL,
+    `created_by_analyst_id` INT NULL,
+    `created_datetime`      DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (`id`),
+    KEY `idx_adhr_asset` (`asset_id`),
+    KEY `idx_adhr_model` (`model`(100)),
+    CONSTRAINT `fk_adhr_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `asset_network_adapters` (
     `id`            INT NOT NULL AUTO_INCREMENT,
     `asset_id`      INT NOT NULL,

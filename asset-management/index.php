@@ -877,6 +877,44 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .pdisk-serial.none { font-family: inherit; color: var(--text-dim, #888); font-style: italic; }
 
+        /* Hide / Show on a drive card (#97). Quiet until the card is hovered:
+           it is an occasional tidy-up, not something to compete with the serial
+           for attention. Kept visible on a touch device, where there is no
+           hover to reveal it with. */
+        .pdisk-hide {
+            flex-shrink: 0;
+            border: 1px solid var(--border, #e0e0e0);
+            background: transparent;
+            color: var(--text-muted, #666);
+            border-radius: 4px;
+            padding: 1px 8px;
+            font-size: 11px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.12s;
+        }
+        .disk-card:hover .pdisk-hide,
+        .pdisk-hide:focus-visible { opacity: 1; }
+        .pdisk-hide:hover { color: var(--text, #333); border-color: var(--text-dim, #999); }
+        @media (hover: none) { .pdisk-hide { opacity: 1; } }
+
+        /* A hidden drive, while "Show hidden" is on. Dimmed and dashed so it
+           reads as withheld rather than as another drive. */
+        .disk-card.pdisk-is-hidden { opacity: 0.62; border-style: dashed; }
+        .disk-card.pdisk-is-hidden .pdisk-hide { opacity: 1; }
+        .pdisk-hidden-badge {
+            display: inline-block;
+            margin-bottom: 8px;
+            padding: 1px 7px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            background: var(--surface-hover, #eee);
+            color: var(--text-muted, #666);
+        }
+
         .disk-bar-fill.usage-low { background: #4caf50; }
         .disk-bar-fill.usage-medium { background: #ff9800; }
         .disk-bar-fill.usage-high { background: #f44336; }
@@ -1520,6 +1558,31 @@ $translationNamespaces = ['common', 'asset-management'];
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeAssignModal()"><?php echo htmlspecialchars(t('asset-management.common.cancel')); ?></button>
                 <button class="btn btn-primary" onclick="confirmAssignUser()" id="assignBtn" disabled><?php echo htmlspecialchars(t('asset-management.detail.assign')); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <?php /* Hiding a physical drive (#97). One dialog for both directions: it
+             asks before hiding, and it warns before showing something back that
+             is hidden everywhere, because both decisions can reach past the
+             asset in front of you. The "others like this" count is fetched when
+             the dialog opens rather than for every drive on every asset. */ ?>
+    <div class="modal" id="diskHideModal">
+        <div class="modal-content" style="max-width: 480px;">
+            <div class="modal-header">
+                <span id="diskHideHeading"></span>
+            </div>
+            <div class="modal-body">
+                <div id="diskHideWhat" style="font-weight:600; margin-bottom:6px;"></div>
+                <div id="diskHideIntro" style="color: var(--text-muted, #666); font-size: 13px;"></div>
+                <label id="diskHideOthersRow" style="display:none; align-items:flex-start; gap:8px; margin-top:14px; cursor:pointer;">
+                    <input type="checkbox" id="diskHideOthers" style="margin-top:3px;">
+                    <span id="diskHideOthersLabel" style="font-size:13px;"></span>
+                </label>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDiskHideModal()"><?php echo htmlspecialchars(t('asset-management.common.cancel')); ?></button>
+                <button class="btn btn-primary" id="diskHideConfirm" onclick="confirmDiskVisibility()"></button>
             </div>
         </div>
     </div>
@@ -2216,6 +2279,11 @@ $translationNamespaces = ['common', 'asset-management'];
                         <div id="physicalDisksSection" style="display:none;">
                             <div class="section-header">
                                 <span class="section-title">${window.t('asset-management.disk.drives')}</span>
+                                <?php /* The way back. Only rendered when this
+                                         asset actually has something hidden —
+                                         a permanent "Show hidden (0)" would be
+                                         a control that never does anything. */ ?>
+                                <a href="#" id="diskHiddenToggle" style="display:none; font-size:12px;" onclick="toggleHiddenDrives(event)"></a>
                             </div>
                             <div class="disks-grid" id="physicalDisksGrid"></div>
                         </div>
@@ -3278,18 +3346,41 @@ $translationNamespaces = ['common', 'asset-management'];
          * "No drives" panel under every volume would be noise on every asset in
          * the estate on the day this ships.
          */
+        let allPhysicalDisks = [];
+        let showHiddenDrives = false;
+
         function renderPhysicalDisks(disks) {
             const section = document.getElementById('physicalDisksSection');
             const grid = document.getElementById('physicalDisksGrid');
             if (!section || !grid) return;
 
+            allPhysicalDisks = disks;
+            const hiddenCount = disks.filter(d => d.hidden).length;
+            const visible = showHiddenDrives ? disks : disks.filter(d => !d.hidden);
+
+            // Hidden when there is nothing to draw AND nothing being withheld.
+            // A machine whose only drive is hidden still shows the section, so
+            // the "Show hidden" way back is reachable — hiding the control that
+            // undoes the hiding is how you get a setting nobody can turn off.
             if (!disks.length) {
                 section.style.display = 'none';
                 grid.innerHTML = '';
                 return;
             }
 
-            grid.innerHTML = disks.map(d => {
+            const toggle = document.getElementById('diskHiddenToggle');
+            if (toggle) {
+                if (hiddenCount > 0) {
+                    toggle.style.display = '';
+                    toggle.textContent = showHiddenDrives
+                        ? window.t('asset-management.disk.hide_hidden')
+                        : window.t('asset-management.disk.show_hidden') + ' (' + hiddenCount + ')';
+                } else {
+                    toggle.style.display = 'none';
+                }
+            }
+
+            grid.innerHTML = visible.map(d => {
                 // ⚠️ MB under a gigabyte. Windows reports mounted virtual disks
                 // (a 31 MB "Microsoft Virtual Disk" is on most machines) through
                 // the same WMI class as real hardware, and rounding those to
@@ -3307,10 +3398,20 @@ $translationNamespaces = ['common', 'asset-management'];
                     .map(v => escapeHtml(String(v).trim()))
                     .join(' · ');
                 const serial = (d.serial || '').trim();
-                return `<div class="disk-card">
+                // 🔑 Identified by MODEL + SIZE, never by row id — the agent
+                // reissues those on every report. Passed through a data
+                // attribute rather than an inline onclick argument so a model
+                // containing a quote cannot break out into the handler.
+                return `<div class="disk-card${d.hidden ? ' pdisk-is-hidden' : ''}">
                     <div class="disk-card-header">
                         <span class="pdisk-model">${escapeHtml(d.model || '-')}</span>
+                        <button type="button" class="pdisk-hide" title="${d.hidden ? window.t('asset-management.disk.show') : window.t('asset-management.disk.hide')}"
+                                data-model="${escapeHtml(d.model || '')}"
+                                data-size="${d.size_bytes === null || d.size_bytes === undefined ? '' : escapeHtml(String(d.size_bytes))}"
+                                data-hidden="${d.hidden ? '1' : '0'}"
+                                onclick="openDiskHideModal(this)">${d.hidden ? window.t('asset-management.disk.show') : window.t('asset-management.disk.hide')}</button>
                     </div>
+                    ${d.hidden ? `<div class="pdisk-hidden-badge">${window.t('asset-management.disk.hidden_badge')}</div>` : ''}
                     <div class="disk-details" style="margin-bottom: 4px;">
                         <span>${window.t('asset-management.disk.serial')}</span>
                         <span class="pdisk-serial${serial ? '' : ' none'}">${serial ? escapeHtml(serial) : window.t('asset-management.disk.no_serial')}</span>
@@ -3319,6 +3420,118 @@ $translationNamespaces = ['common', 'asset-management'];
                 </div>`;
             }).join('');
             section.style.display = '';
+        }
+
+        function toggleHiddenDrives(e) {
+            e.preventDefault();
+            showHiddenDrives = !showHiddenDrives;
+            renderPhysicalDisks(allPhysicalDisks);
+        }
+
+        // ─── Hiding a drive (#97) ────────────────────────────────────────────
+        //
+        // One dialog both ways. Hiding offers to take the others like it with
+        // it; showing WARNS when the rule reaches past this asset, because
+        // "Show" that quietly un-hides six hundred drives elsewhere is not a
+        // thing anybody asked for. The count is fetched on open — it is the
+        // whole substance of the question, and worthless out of date.
+        let diskHideTarget = null;
+
+        function openDiskHideModal(btn) {
+            const model  = btn.dataset.model || null;
+            const size   = btn.dataset.size === '' ? null : btn.dataset.size;
+            const hidden = btn.dataset.hidden === '1';
+            diskHideTarget = { model: model, size: size, hidden: hidden };
+
+            const heading = document.getElementById('diskHideHeading');
+            const what    = document.getElementById('diskHideWhat');
+            const intro   = document.getElementById('diskHideIntro');
+            const row     = document.getElementById('diskHideOthersRow');
+            const label   = document.getElementById('diskHideOthersLabel');
+            const cb      = document.getElementById('diskHideOthers');
+            const confirm = document.getElementById('diskHideConfirm');
+
+            what.textContent = model || '-';
+            cb.checked = false;
+            row.style.display = 'none';
+            label.textContent = '';
+
+            if (hidden) {
+                heading.textContent = window.t('asset-management.disk.show_title');
+                intro.textContent   = window.t('asset-management.disk.hide_counting');
+                confirm.textContent = window.t('asset-management.disk.show');
+            } else {
+                heading.textContent = window.t('asset-management.disk.hide_title');
+                intro.textContent   = window.t('asset-management.disk.hide_intro');
+                confirm.textContent = window.t('asset-management.disk.hide');
+                row.style.display = 'flex';
+                label.textContent = window.t('asset-management.disk.hide_counting');
+            }
+            document.getElementById('diskHideModal').classList.add('active');
+
+            // The count. A failure leaves the dialog usable for the single
+            // drive in front of you rather than blocking on it — but the
+            // "others" offer stays hidden, because offering to hide an unknown
+            // number is worse than not offering at all.
+            const params = new URLSearchParams({ asset_id: selectedAsset.id });
+            if (model !== null) params.set('model', model);
+            if (size !== null) params.set('size_bytes', size);
+            fetch(`${API_BASE}count_matching_disks.php?${params.toString()}`)
+                .then(r => r.json())
+                .then(d => {
+                    if (!d.success) throw new Error(d.error || 'count failed');
+                    if (hidden) {
+                        intro.textContent = d.others > 0
+                            ? window.t('asset-management.disk.show_everywhere', { count: d.others })
+                            : window.t('asset-management.disk.show_scoped');
+                    } else if (d.others > 0) {
+                        label.textContent = d.others === 1
+                            ? window.t('asset-management.disk.hide_others_one')
+                            : window.t('asset-management.disk.hide_others', { count: d.others });
+                    } else {
+                        row.style.display = 'none';
+                        intro.textContent = window.t('asset-management.disk.hide_others_none');
+                    }
+                })
+                .catch(() => {
+                    row.style.display = 'none';
+                    if (hidden) intro.textContent = '';
+                });
+        }
+
+        function closeDiskHideModal() {
+            document.getElementById('diskHideModal').classList.remove('active');
+            diskHideTarget = null;
+        }
+
+        async function confirmDiskVisibility() {
+            if (!diskHideTarget || !selectedAsset) return;
+            const btn = document.getElementById('diskHideConfirm');
+            btn.disabled = true;
+            try {
+                const res = await fetch(`${API_BASE}save_disk_hide_rule.php`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        asset_id:   selectedAsset.id,
+                        model:      diskHideTarget.model,
+                        size_bytes: diskHideTarget.size,
+                        hidden:     !diskHideTarget.hidden,
+                        everywhere: document.getElementById('diskHideOthers').checked
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error || 'save failed');
+                closeDiskHideModal();
+                // Reloaded rather than patched in memory: a rule can change
+                // several rows at once, and the server is the only thing that
+                // knows which.
+                loadDisks(selectedAsset.id);
+            } catch (e) {
+                alert(window.t('asset-management.disk.hide_failed') + ' ' + e.message);
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         // Load devices for an asset

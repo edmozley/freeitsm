@@ -64,6 +64,17 @@ try {
         $physical = [];
     }
 
+    // Hidden drives are FLAGGED, not dropped (#97). The screen needs to know
+    // there are two hidden drives in order to offer to show them, and a list
+    // that has quietly lost rows is indistinguishable from a list that never
+    // had them — the same reasoning as the asset table's stale banner.
+    require_once '../../includes/asset_disk_visibility.php';
+    $rules = assetDiskHideRulesFor($conn, (int)$_SESSION['analyst_id'], (int)$asset_id);
+    foreach ($physical as &$pd) {
+        $pd['hidden'] = assetDiskIsHidden($rules, $pd['model'], $pd['size_bytes']);
+    }
+    unset($pd);
+
     echo json_encode([
         'success' => true,
         'disks' => $disks,
