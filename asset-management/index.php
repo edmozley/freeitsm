@@ -320,6 +320,24 @@ $translationNamespaces = ['common', 'asset-management'];
             color: var(--text, #333);
         }
 
+        /* First/last seen (discussion #97). The date is the fact and keeps the
+           normal weight; the relative phrase is a hint and steps back. */
+        .seen-ago {
+            font-size: 12px;
+            color: var(--text-dim, #888);
+        }
+        /* Amber, matching the Watchtower card that counts these machines — not
+           red: a laptop in a drawer for a fortnight is not a fault. */
+        .seen-ago.stale {
+            color: #b45309;
+            font-weight: 600;
+        }
+        [data-theme-mode="dark"] .seen-ago.stale { color: #fcd34d; }
+        .seen-never {
+            color: var(--text-dim, #888);
+            font-style: italic;
+        }
+
         .info-value-select {
             font-size: 14px;
             color: var(--text, #333);
@@ -836,6 +854,28 @@ $translationNamespaces = ['common', 'asset-management'];
             width: 0;
             transition: width 0.8s ease-out;
         }
+
+        /* The Drives band sits BETWEEN two grids, so it needs the rule above it
+           that .disks-section only draws for the first one. */
+        #physicalDisksSection .section-header { border-top: 1px solid var(--border, #e0e0e0); }
+
+        /* A drive's model is a sentence ("NVMe Samsung SSD 980 1TB"), not a
+           drive letter, so it wraps instead of being clipped like .disk-label. */
+        .pdisk-model {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text, #333);
+            word-break: break-word;
+        }
+        /* Monospace, because the only thing anyone does with a serial is compare
+           it character by character against a sticker or a supplier's portal. */
+        .pdisk-serial {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--text, #333);
+            word-break: break-all;
+        }
+        .pdisk-serial.none { font-family: inherit; color: var(--text-dim, #888); font-style: italic; }
 
         .disk-bar-fill.usage-low { background: #4caf50; }
         .disk-bar-fill.usage-medium { background: #ff9800; }
@@ -2105,6 +2145,22 @@ $translationNamespaces = ['common', 'asset-management'];
                             <span class="info-label">${window.t('asset-management.field.bios_version')}</span>
                             <span class="info-value">${escapeHtml(selectedAsset.bios_version) || '-'}</span>
                         </div>
+                        <?php /* When the agent last reported (discussion #97).
+                                 Last, and in that order, because they close the
+                                 agent-reported block above rather than opening
+                                 the purchase block below — and because the
+                                 question they answer is "is any of the above
+                                 still true?". Watchtower has counted machines
+                                 that stopped reporting for a long time; until
+                                 now the asset itself would not say when. */ ?>
+                        <div class="info-item">
+                            <span class="info-label">${window.t('asset-management.field.first_seen')}</span>
+                            <span class="info-value">${seenHtml(selectedAsset.first_seen, false)}</span>
+                        </div>
+                        <div class="info-item">
+                            <span class="info-label">${window.t('asset-management.field.last_seen')}</span>
+                            <span class="info-value">${seenHtml(selectedAsset.last_seen, true)}</span>
+                        </div>
                         <div class="info-item">
                             <span class="info-label">${window.t('asset-management.field.purchase_date')}</span>
                             <input type="date" class="info-value-input" value="${selectedAsset.purchase_date || ''}" onchange="updateAssetField('purchase_date', this.value)">
@@ -2147,6 +2203,21 @@ $translationNamespaces = ['common', 'asset-management'];
                         </div>
                         <div class="disks-grid" id="disksGrid">
                             <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                        <?php /* The physical drives (discussion #97). Cards in a
+                                 second grid rather than a table, deliberately:
+                                 they belong to the same question as the volumes
+                                 directly above, the grid already wraps on a
+                                 phone, and a table here would need its own
+                                 mobile card-feed rules to say the same thing.
+                                 Hidden outright when the agent has reported
+                                 none — a heading over an empty space reads as a
+                                 failure to load. */ ?>
+                        <div id="physicalDisksSection" style="display:none;">
+                            <div class="section-header">
+                                <span class="section-title">${window.t('asset-management.disk.drives')}</span>
+                            </div>
+                            <div class="disks-grid" id="physicalDisksGrid"></div>
                         </div>
                     </div>
                     </div>
@@ -3183,10 +3254,62 @@ $translationNamespaces = ['common', 'asset-management'];
                 } else if (data.success) {
                     container.innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.disk.no_data')}</div>`;
                 }
+
+                renderPhysicalDisks(data.success ? (data.physical_disks || []) : []);
             } catch (error) {
                 console.error('Error loading disks:', error);
+                renderPhysicalDisks([]);
                 document.getElementById('disksGrid').innerHTML = `<div class="empty-state" style="padding: 20px;">${window.t('asset-management.disk.load_error')}</div>`;
             }
+        }
+
+        /**
+         * The physical drives, under the volumes (discussion #97).
+         *
+         * 🔑 The SERIAL is the reason this list exists — it is what a warranty
+         * claim and a disposal certificate both ask for — so it gets its own
+         * labelled line rather than being tucked in with the size. A drive that
+         * reports no serial says so in words: a blank there would read as "not
+         * loaded yet" against the drive beside it that has one.
+         *
+         * Empty means hidden, not an empty-state: a machine whose agent predates
+         * this, or an install that has not run Database Verification, has no
+         * drives recorded and never will until it reports again. A permanent
+         * "No drives" panel under every volume would be noise on every asset in
+         * the estate on the day this ships.
+         */
+        function renderPhysicalDisks(disks) {
+            const section = document.getElementById('physicalDisksSection');
+            const grid = document.getElementById('physicalDisksGrid');
+            if (!section || !grid) return;
+
+            if (!disks.length) {
+                section.style.display = 'none';
+                grid.innerHTML = '';
+                return;
+            }
+
+            grid.innerHTML = disks.map(d => {
+                const sizeGB = d.size_bytes ? (d.size_bytes / 1073741824).toFixed(1) + ' GB' : '';
+                // Media type and interface are each a word, and often one is
+                // missing — joined rather than given a line apiece.
+                const spec = [sizeGB, d.media_type, d.interface_type]
+                    .filter(v => v !== null && v !== undefined && String(v).trim() !== '')
+                    .map(v => escapeHtml(String(v).trim()))
+                    .join(' · ');
+                const serial = (d.serial || '').trim();
+                return `<div class="disk-card">
+                    <div class="disk-card-header">
+                        <span class="pdisk-model">${escapeHtml(d.model || '-')}</span>
+                    </div>
+                    <div class="disk-details" style="margin-bottom: 4px;">
+                        <span>${window.t('asset-management.disk.serial')}</span>
+                        <span class="pdisk-serial${serial ? '' : ' none'}">${serial ? escapeHtml(serial) : window.t('asset-management.disk.no_serial')}</span>
+                    </div>
+                    ${spec ? `<div class="disk-details"><span>${spec}</span></div>` : ''}
+                </div>`;
+            }).join('');
+            section.style.display = '';
         }
 
         // Load devices for an asset
@@ -3678,6 +3801,40 @@ $translationNamespaces = ['common', 'asset-management'];
             if (!dateString) return '-';
             const date = parseUTCDate(dateString);
             return fmtDateTime(date);
+        }
+
+        /**
+         * "First seen" / "Last seen" for the Key info grid (discussion #97).
+         *
+         * 🔑 MIRRORS WATCHTOWER. Seven days is not chosen here — it is the same
+         * seven that includes/watchtower_queries.php counts as "not seen", and
+         * the two have to agree or the dashboard says nine machines are offline
+         * and none of the nine looks it when you open them.
+         *
+         * The relative phrase is ELAPSED, never calendar ("1 day ago", not
+         * "yesterday"): the value is a UTC instant and the analysts reading it
+         * span sixteen hours of timezone, so whose yesterday it was has no one
+         * answer. The absolute timestamp is still the headline — "3 days ago" is
+         * the reassurance, the date is the fact.
+         */
+        const SEEN_STALE_AFTER_DAYS = 7;
+
+        function seenHtml(value, flagStale) {
+            if (!value) {
+                return `<span class="seen-never">${escapeHtml(window.t('asset-management.field.never_seen'))}</span>`;
+            }
+            const date = parseUTCDate(value);
+            if (!date || isNaN(date.getTime())) return '-';
+
+            const days = Math.floor((Date.now() - date.getTime()) / 86400000);
+            const ago = days < 1 ? window.t('asset-management.field.seen_under_a_day')
+                      : days === 1 ? window.t('asset-management.field.seen_one_day')
+                      : window.t('asset-management.field.seen_days_ago', { count: days });
+            // Amber on the LAST seen only. A first_seen of two years ago is a
+            // long-serving machine, not a problem, and colouring it would make
+            // the whole estate look broken.
+            const stale = flagStale && days >= SEEN_STALE_AFTER_DAYS;
+            return `${escapeHtml(fmtDateTime(date))} <span class="seen-ago${stale ? ' stale' : ''}">${escapeHtml(ago)}</span>`;
         }
 
         function closeHistoryModal() {

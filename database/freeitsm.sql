@@ -2414,6 +2414,23 @@ CREATE TABLE IF NOT EXISTS `asset_disks` (
     CONSTRAINT `fk_asset_disks_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The physical drives, as opposed to the lettered volumes in asset_disks above.
+-- One NVMe stick can carry C: and D:, and one volume can span two disks, so the
+-- two are separate tables rather than half-NULL rows in one. The serial is the
+-- reason it exists: warranty claims and disposal audits (discussion #97).
+CREATE TABLE IF NOT EXISTS `asset_physical_disks` (
+    `id`             INT NOT NULL AUTO_INCREMENT,
+    `asset_id`       INT NOT NULL,
+    `model`          VARCHAR(255) NULL,
+    `serial`         VARCHAR(100) NULL,
+    `size_bytes`     BIGINT NULL,
+    `media_type`     VARCHAR(100) NULL,
+    `interface_type` VARCHAR(50) NULL,
+    PRIMARY KEY (`id`),
+    KEY `idx_asset_physical_disks_asset` (`asset_id`),
+    CONSTRAINT `fk_asset_physical_disks_asset` FOREIGN KEY (`asset_id`) REFERENCES `assets` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `asset_network_adapters` (
     `id`            INT NOT NULL AUTO_INCREMENT,
     `asset_id`      INT NOT NULL,

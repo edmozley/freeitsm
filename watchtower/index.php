@@ -1010,7 +1010,13 @@ try {
             html += attentionItem('red', window.t('watchtower.assets.warranty', { count: as.warranty_soon, days: as.warranty_days }));
         }
         if (as.not_seen_7d > 0) {
-            html += attentionItem('amber', window.t('watchtower.assets.offline', { count: as.not_seen_7d }));
+            // Clickable since #97. This count was a dead end: it told you nine
+            // machines had stopped reporting and gave you no way to find out
+            // which nine. ?stale=7 is the SAME seven days the count is built
+            // from — see includes/watchtower_queries.php — so the list that
+            // opens is exactly the machines behind the number.
+            html += attentionItem('amber', '<a href="../asset-management/table.php?stale=7" style="color:inherit;">'
+                + window.t('watchtower.assets.offline', { count: as.not_seen_7d }) + '</a>');
         } else if (!warrantyAlert) {
             html += attentionItem('green', window.t('watchtower.assets.all_active'));
         }

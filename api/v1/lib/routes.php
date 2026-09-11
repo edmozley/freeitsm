@@ -34,6 +34,7 @@ return [
     ['GET',    '#^/assets/(\d+)/history$#',                ['asset_history', 'read'],         'apiAssetHistoryList'],
     ['GET',    '#^/assets/(\d+)/custody$#',                ['asset_history', 'read'],         'apiAssetCustodyList'],
     ['GET',    '#^/assets/(\d+)/disks$#',                  ['asset_inventory', 'read'],       'apiAssetDisksList'],
+    ['GET',    '#^/assets/(\d+)/physical-disks$#',         ['asset_inventory', 'read'],       'apiAssetPhysicalDisksList'],
     ['GET',    '#^/assets/(\d+)/network-adapters$#',       ['asset_inventory', 'read'],       'apiAssetNetworkAdaptersList'],
     ['GET',    '#^/assets/(\d+)/devices$#',                ['asset_inventory', 'read'],       'apiAssetDevicesList'],
     ['GET',    '#^/assets/(\d+)/software$#',               ['asset_inventory', 'read'],       'apiAssetSoftwareList'],

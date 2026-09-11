@@ -476,6 +476,43 @@ function apiAssetDisksList(PDO $conn, array $apiKey, array $params, array $body)
     }, $stmt->fetchAll(PDO::FETCH_ASSOC)));
 }
 
+/**
+ * The physical drives, as opposed to the lettered volumes above (#97).
+ *
+ * Its own endpoint rather than extra fields on /disks: one drive carries
+ * several volumes and one volume can span several drives, so there is no
+ * honest way to fold them into the same row. Exposed at all because the
+ * serial is the point of the data — a disposal audit or a warranty claim is
+ * exactly the sort of thing somebody scripts, and a serial the screen shows
+ * but the API cannot reach would be a strange place to stop.
+ *
+ * The table only exists after Database Verification has run, so an install
+ * mid-upgrade gets an empty list rather than a 500.
+ */
+function apiAssetPhysicalDisksList(PDO $conn, array $apiKey, array $params, array $body): void {
+    apiLoadAsset($conn, $apiKey, $params[0]);
+    try {
+        $stmt = $conn->prepare(
+            "SELECT id, model, serial, size_bytes, media_type, interface_type
+             FROM asset_physical_disks WHERE asset_id = ? ORDER BY size_bytes DESC, model"
+        );
+        $stmt->execute([$params[0]]);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (Exception $e) {
+        $rows = [];
+    }
+    apiRespond(array_map(function ($d) {
+        return [
+            'id'             => (int)$d['id'],
+            'model'          => $d['model'],
+            'serial'         => $d['serial'],
+            'size_bytes'     => $d['size_bytes'] !== null ? (int)$d['size_bytes'] : null,
+            'media_type'     => $d['media_type'],
+            'interface_type' => $d['interface_type'],
+        ];
+    }, $rows));
+}
+
 function apiAssetNetworkAdaptersList(PDO $conn, array $apiKey, array $params, array $body): void {
     apiLoadAsset($conn, $apiKey, $params[0]);
     $stmt = $conn->prepare(

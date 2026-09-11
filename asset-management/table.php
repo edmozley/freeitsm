@@ -85,17 +85,52 @@ try {
     <?php /* Mobile-friendly opt-in (#937). Last stylesheet so its @media rules
              win on ties. Every rule inside is gated at 768px. */ ?>
     <link rel="stylesheet" href="../assets/css/mobile.css?v=138">
+    <style>
+        /* The "not seen in N days" banner (#97). Amber to match the Watchtower
+           card it is reached from, and shrink-proof so it cannot be squeezed to
+           nothing by the flex column it sits in. */
+        .asset-stale-notice {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin: 10px 14px 0;
+            padding: 9px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            background: #fffbeb;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+        /* ⚠️ MUST come after the display:flex above. The browser's own
+           [hidden]{display:none} is a plain element-level default and loses to
+           any class rule that sets display — so without this the banner renders
+           on every visit to the table, empty, saying nothing. */
+        .asset-stale-notice[hidden] { display: none; }
+        .asset-stale-notice a { color: inherit; font-weight: 600; }
+        [data-theme-mode="dark"] .asset-stale-notice {
+            background: #3a2e12;
+            color: #fcd34d;
+            border-color: #5c481c;
+        }
+    </style>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
 
     <div class="dt-page">
+        <?php /* Filled in by asset-table.js when the page is opened as
+                 ?stale=N from the Watchtower "not seen" count (#97). Empty and
+                 hidden otherwise — the table is unfiltered in every other case. */ ?>
+        <div id="assetStaleNotice" class="asset-stale-notice" hidden></div>
         <?php include '../includes/data-table-skeleton.php'; ?>
     </div>
 
     <script>window.assetCustomColumns = <?php echo json_encode($assetCustomColumns, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
     <script src="../assets/js/data-table.js?v=6"></script>
-    <script src="../assets/js/asset-table.js?v=7"></script>
+    <script src="../assets/js/asset-table.js?v=8"></script>
     <?php /* Loaded last so it can wrap this page's globals; inert on desktop. */ ?>
     <script src="../assets/js/mobile.js?v=57"></script>
 </body>

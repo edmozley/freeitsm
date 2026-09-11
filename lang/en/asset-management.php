@@ -160,6 +160,24 @@ return [
         'order_number'     => 'Order number',
         'warranty_expiry'  => 'Warranty expiry',
         'assigned_user'    => 'Assigned User',
+
+        // When the inventory agent last reported (discussion #97). "Seen" rather
+        // than "discovered": it is the same question every time the agent runs,
+        // not a one-off event, and "last discovered" would imply otherwise.
+        'first_seen'       => 'First seen',
+        'last_seen'        => 'Last seen',
+        // For an asset added by hand — a television, a SIM card — which no agent
+        // will ever report. Said in words, because a dash next to a machine that
+        // has a date reads as "failed to load".
+        'never_seen'       => 'Never reported',
+        // ⚠️ ELAPSED time, not calendar days — "1 day ago", never "yesterday".
+        // last_seen is a UTC instant, and working out whose yesterday it was
+        // means day boundaries in the reader's zone. Elapsed is true for every
+        // reader in every zone, which matters on an install whose analysts span
+        // sixteen hours of them.
+        'seen_under_a_day' => 'less than a day ago',
+        'seen_one_day'     => '1 day ago',
+        'seen_days_ago'    => '{count} days ago',
     ],
 
     'status' => [
@@ -302,6 +320,10 @@ return [
         'free'       => '{free} GB free',
         'no_data'    => 'No disk data available',
         'load_error' => 'Error loading disks',
+        // The physical drives, listed under the volumes (discussion #97).
+        'drives'     => 'Drives',
+        'serial'     => 'Serial',
+        'no_serial'  => 'No serial reported',
     ],
 
     // Devices tab
@@ -423,6 +445,13 @@ return [
         'col_bios'            => 'BIOS',
         'col_assigned_users'  => 'Assigned users',
         'col_cost'            => 'Cost',
+
+        // Arriving from the Watchtower "not seen" count (discussion #97). The
+        // banner is not decoration: a table silently showing a fraction of the
+        // estate looks exactly like a table showing all of it.
+        'stale_notice'        => 'Showing {count} assets that have not reported in {days} days.',
+        'stale_notice_one'    => 'Showing 1 asset that has not reported in {days} days.',
+        'stale_show_all'      => 'Show all',
     ],
 
     // Dashboard

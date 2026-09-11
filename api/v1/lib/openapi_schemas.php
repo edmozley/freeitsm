@@ -820,9 +820,45 @@ return array (
           'type' => 'integer',
           'nullable' => true,
         ),
-        'used_percent' => 
+        'used_percent' =>
         array (
           'type' => 'number',
+          'nullable' => true,
+        ),
+      ),
+    ),
+    'AssetPhysicalDisk' =>
+    array (
+      'type' => 'object',
+      'properties' =>
+      array (
+        'id' =>
+        array (
+          'type' => 'integer',
+        ),
+        'model' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'serial' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'size_bytes' =>
+        array (
+          'type' => 'integer',
+          'nullable' => true,
+        ),
+        'media_type' =>
+        array (
+          'type' => 'string',
+          'nullable' => true,
+        ),
+        'interface_type' =>
+        array (
+          'type' => 'string',
           'nullable' => true,
         ),
       ),
@@ -9805,7 +9841,15 @@ return array (
         '$ref' => '#/components/schemas/AssetHistoryEntry',
       ),
     ),
-    'GET /assets/{id}/network-adapters' => 
+    'GET /assets/{id}/physical-disks' =>
+    array (
+      'type' => 'array',
+      'items' =>
+      array (
+        '$ref' => '#/components/schemas/AssetPhysicalDisk',
+      ),
+    ),
+    'GET /assets/{id}/network-adapters' =>
     array (
       'type' => 'array',
       'items' => 

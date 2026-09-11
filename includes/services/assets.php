@@ -139,9 +139,22 @@ class AssetsService
         $columns[] = 'tenant_id';
         $values[]  = $storeTenant;
 
+        // 🔑 first_seen ONLY. `last_seen` means "when did an agent last report
+        // this machine", and nothing has ever reported a television, a SIM card
+        // or a meeting-room monitor — the very things this path exists to add.
+        //
+        // It used to stamp both, which was invisible while last_seen was shown
+        // nowhere. Now that the asset screen and the asset table both show it
+        // (#1578), a hand-added television would read "21 days ago" in amber, as
+        // though it had stopped reporting, and would sit in the Watchtower "not
+        // seen" count alongside machines that genuinely have. NULL is what makes
+        // the screen able to say **Never reported** instead, and it is the
+        // truthful answer rather than a convenient one.
+        //
+        // first_seen stays: when the record was made is a real fact about it.
         $placeholders = implode(', ', array_fill(0, count($columns), '?'));
-        $sql = "INSERT INTO assets (" . implode(', ', $columns) . ", first_seen, last_seen)
-                VALUES ($placeholders, UTC_TIMESTAMP(), UTC_TIMESTAMP())";
+        $sql = "INSERT INTO assets (" . implode(', ', $columns) . ", first_seen)
+                VALUES ($placeholders, UTC_TIMESTAMP())";
         $conn->prepare($sql)->execute($values);
         $assetId = (int)$conn->lastInsertId();
 

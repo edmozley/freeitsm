@@ -821,6 +821,18 @@ try {
         } catch (Exception $e) {}
     }
 
+    // Physical disks (discussion #97). Matched to its siblings asset_disks and
+    // asset_devices — a plain RESTRICT, no cascade — because that is what every
+    // other agent-reported child table on this install already has, and a table
+    // that deletes differently from the two beside it is a surprise waiting to
+    // happen. The agent clears and reinserts its own rows on every report.
+    if ($tableExists('asset_physical_disks') && $tableExists('assets')
+        && !$fkExists('asset_physical_disks', 'fk_asset_physical_disks_asset')) {
+        try {
+            $conn->exec("ALTER TABLE asset_physical_disks ADD CONSTRAINT fk_asset_physical_disks_asset FOREIGN KEY (asset_id) REFERENCES assets (id)");
+        } catch (Exception $e) {}
+    }
+
     // Custom asset fields. Cascades everywhere EXCEPT asset_field_values.field_id,
     // which is deliberately RESTRICT: a field is retired by setting is_deleted,
     // never dropped, because dropping it would silently destroy every answer ever

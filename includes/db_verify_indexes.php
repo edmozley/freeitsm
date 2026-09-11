@@ -145,6 +145,7 @@ return [
     ['users_assets', 'uq_user_asset', 'unique', '(`user_id`,`asset_id`)'],
     ['asset_checkout_log', 'idx_acl_asset', 'key', '(`asset_id`)'],
     ['asset_devices', 'idx_asset_devices_asset', 'key', '(`asset_id`)'],
+    ['asset_physical_disks', 'idx_asset_physical_disks_asset', 'key', '(`asset_id`)'],
     ['asset_fields', 'uq_asset_fields_tenant_key', 'unique', '(`tenant_id`,`field_key`)'],
     ['asset_field_options', 'ix_asset_field_options_field', 'key', '(`field_id`)'],
     ['asset_field_sets', 'ix_asset_field_sets_tenant', 'key', '(`tenant_id`)'],

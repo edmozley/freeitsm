@@ -281,6 +281,64 @@ try {
 }
 
 // --------------------------------------------------
+// 2b. Sync physical disks (delete + reinsert)
+// --------------------------------------------------
+//
+// The agent has sent `disks.physical` — model, serial, size, media type and
+// interface — since its first version, and until now this endpoint read only
+// `disks.logical` and dropped the rest on the floor (discussion #97). The
+// serial is the useful part: it is what a warranty claim and a disposal audit
+// both ask for, and nothing else in the product records it.
+//
+// ⚠️ ITS OWN try/catch, and it never fails the report. asset_physical_disks
+// only exists after Database Verification has run, so on an install that has
+// pulled this update but not yet verified, the INSERT throws — and letting
+// that 500 would stop every agent in the estate from reporting anything at
+// all over a table nobody has yet asked for. The machine's hardware, volumes,
+// adapters and software still land; the drives start appearing after the
+// next verification.
+$physicalDisksSynced = 0;
+
+try {
+    $conn->prepare("DELETE FROM asset_physical_disks WHERE asset_id = ?")->execute([$hostId]);
+
+    if (!empty($data['disks']['physical']) && is_array($data['disks']['physical'])) {
+        $stmt = $conn->prepare("
+            INSERT INTO asset_physical_disks (asset_id, model, serial, size_bytes, media_type, interface_type)
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+
+        foreach ($data['disks']['physical'] as $disk) {
+            // A model with no serial is still worth having — plenty of USB
+            // enclosures and virtual disks report one and not the other — but a
+            // row that is entirely empty is noise, and VMs produce them.
+            $trimmed = static function ($value, int $max) {
+                $v = trim((string)($value ?? ''));
+                return $v === '' ? null : mb_substr($v, 0, $max);
+            };
+            $model  = $trimmed($disk['model'] ?? null, 255);
+            $serial = $trimmed($disk['serial'] ?? null, 100);
+            $size   = isset($disk['size_bytes']) && is_numeric($disk['size_bytes']) ? (int)$disk['size_bytes'] : null;
+            if ($model === null && $serial === null && $size === null) {
+                continue;
+            }
+            $stmt->execute([
+                $hostId,
+                $model,
+                $serial,
+                $size,
+                $trimmed($disk['media_type'] ?? null, 100),
+                $trimmed($disk['interface'] ?? null, 50)
+            ]);
+            $physicalDisksSynced++;
+        }
+    }
+} catch (PDOException $e) {
+    // Deliberately swallowed — see above.
+    $physicalDisksSynced = 0;
+}
+
+// --------------------------------------------------
 // 3. Sync network adapters (delete + reinsert)
 // --------------------------------------------------
 $adaptersSynced = 0;
@@ -450,6 +508,7 @@ if (!empty($data['software']) && is_array($data['software'])) {
             'asset_id'  => $hostId,
             'is_new'    => $isNew,
             'disks_synced'     => $disksSynced,
+            'physical_disks_synced' => $physicalDisksSynced,
             'adapters_synced'  => $adaptersSynced,
             'error'     => 'Software processing failed: ' . $e->getMessage()
         ]);
@@ -466,6 +525,7 @@ echo json_encode([
     'asset_id'           => $hostId,
     'is_new'             => $isNew,
     'disks_synced'       => $disksSynced,
+    'physical_disks_synced' => $physicalDisksSynced,
     'adapters_synced'    => $adaptersSynced,
     'software_processed' => $softwareProcessed,
     'software_new_apps'  => $insertedApps,

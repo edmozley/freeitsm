@@ -32,6 +32,25 @@
         { key: 'purchase_cost',     label: tt('table.col_cost'),            type: 'number', defaultVisible: false, defaultOrder: 16 },
         { key: 'supplier_name',     label: tt('field.supplier'),            type: 'string', defaultVisible: false, defaultOrder: 17 },
         { key: 'warranty_expiry',   label: tt('field.warranty_expiry'),     type: 'date',   defaultVisible: false, defaultOrder: 18 },
+        // When the inventory agent last reported (discussion #97).
+        //
+        // 🔑 SORTED, not filtered, is the point. The per-column filter is a list
+        // of distinct values, which a timestamp defeats — but sorting this
+        // column ascending puts the machines that stopped reporting at the top,
+        // which is the question people actually bring to it.
+        //
+        // ⚠️ `display`, not the raw value: these are stored UTC and the reader
+        // may be twelve hours from it. `type: 'date'` still sorts on the raw
+        // string, which is correct precisely because it is UTC.
+        //
+        // Last seen ships VISIBLE and first seen hidden: staleness is worth
+        // putting in front of people, an install date is worth having available.
+        // A saved view or a column layout from before this update keeps its own
+        // arrangement and gains these on the end — see applyColumnConfig().
+        { key: 'last_seen',         label: tt('field.last_seen'),           type: 'date',   defaultVisible: true,  defaultOrder: 19,
+          display: r => r.last_seen ? fmtDateTime(parseUTCDate(r.last_seen)) : tt('field.never_seen') },
+        { key: 'first_seen',        label: tt('field.first_seen'),          type: 'date',   defaultVisible: false, defaultOrder: 20,
+          display: r => r.first_seen ? fmtDateTime(parseUTCDate(r.first_seen)) : tt('field.never_seen') },
     ];
 
     /**
@@ -56,6 +75,63 @@
         });
     });
 
+    /**
+     * "Not seen in N days", arrived at from the Watchtower assets card (#97).
+     *
+     * 🔑 THE SAME RULE THE COUNT USED. includes/watchtower_queries.php counts
+     * `last_seen IS NOT NULL AND last_seen < now - 7 days` — a machine that has
+     * NEVER reported is deliberately not in that number, because it is not a
+     * machine that stopped, it is a television somebody typed in. Filtering
+     * differently here would land you on a list longer than the badge you
+     * clicked, which is the fastest way to stop trusting a dashboard.
+     *
+     * ⚠️ The banner is required, not decoration. A table quietly showing nine of
+     * five hundred assets is indistinguishable from a table showing all of them,
+     * and the way out has to be on screen.
+     */
+    function staleDaysFromUrl() {
+        const raw = new URLSearchParams(location.search).get('stale');
+        if (raw === null) return null;
+        const n = parseInt(raw, 10);
+        return Number.isFinite(n) && n > 0 && n <= 3650 ? n : null;
+    }
+
+    function applyStaleFilter(rows) {
+        const days = staleDaysFromUrl();
+        if (days === null) return rows;
+
+        const cutoff = Date.now() - days * 86400000;
+        const kept = rows.filter(r => {
+            if (!r.last_seen) return false;          // never reported — see above
+            const d = parseUTCDate(r.last_seen);
+            return d && !isNaN(d.getTime()) && d.getTime() < cutoff;
+        });
+
+        const notice = document.getElementById('assetStaleNotice');
+        if (notice) {
+            const key = kept.length === 1 ? 'table.stale_notice_one' : 'table.stale_notice';
+            const text = tt(key, { count: kept.length, days: days });
+            const href = location.pathname;
+            notice.innerHTML = '<span></span><a></a>';
+            notice.firstChild.textContent = text;
+            const link = notice.lastChild;
+            link.textContent = tt('table.stale_show_all');
+            link.href = href;
+            notice.hidden = false;
+            // .dt-layout is height:100% against .dt-page, so a banner above it
+            // pushes the table's bottom off the screen. Adjusted here rather
+            // than in data-table.css because three other tables share that rule
+            // and none of them has a banner.
+            const layout = document.querySelector('.dt-layout');
+            if (layout) {
+                layout.style.height = 'auto';
+                layout.style.flex = '1';
+                layout.style.minHeight = '0';
+            }
+        }
+        return kept;
+    }
+
     createDataTable({
         accent: '#0078d4',
         prefApi: '../api/system/',
@@ -76,7 +152,7 @@
         load: async () => {
             const d = await fetch('../api/assets/get_assets.php').then(r => r.json());
             if (!d.success) { console.error('get_assets:', d.error); return []; }
-            return d.assets || [];
+            return applyStaleFilter(d.assets || []);
         },
     });
 })();

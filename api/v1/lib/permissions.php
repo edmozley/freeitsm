@@ -82,7 +82,7 @@ function apiV1PermissionCatalog(): array {
         'asset_inventory' => [
             'label'   => 'Asset inventory',
             'actions' => [
-                'read' => 'Read agent-collected inventory: disks, network adapters, devices, software',
+                'read' => 'Read agent-collected inventory: volumes, physical drives, network adapters, devices, software',
             ],
         ],
         'problems' => [
