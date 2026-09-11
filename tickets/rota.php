@@ -48,6 +48,15 @@ $translationNamespaces = ['common', 'tickets'];
                 <button class="btn btn-icon" onclick="changeWeek(1)" title="<?php echo htmlspecialchars(t('common.calendar.next')); ?>">&rsaquo;</button>
                 <h2 class="rota-title" id="rotaTitle"></h2>
             </div>
+            <?php /* Copy / paste a whole week (Ed). Paste stays hidden until
+                     something is on the clipboard, and then says WHICH week is
+                     on it — by the time you have navigated three weeks away, a
+                     bare "Paste week" is a guess about what is about to land on
+                     top of what you are looking at. */ ?>
+            <div class="rota-actions">
+                <button class="btn btn-secondary" id="rotaCopyWeekBtn" onclick="copyRotaWeek()"><?php echo htmlspecialchars(t('tickets.rota.copy.week_btn')); ?></button>
+                <button class="btn btn-primary" id="rotaPasteWeekBtn" onclick="pasteRotaWeek()" style="display:none;"></button>
+            </div>
         </div>
 
         <div class="rota-grid-wrapper">
@@ -93,6 +102,27 @@ $translationNamespaces = ['common', 'tickets'];
         </div>
     </div>
 
-    <script src="../assets/js/rota.js?v=3"></script>
+    <?php /* Right-click a cell to copy or paste one shift (Ed). Uses the shared
+             .ticket-context-menu component from inbox.css, which this page
+             already loads and which the ticket, asset, change and service
+             status lists all use — a fifth bespoke menu would look almost the
+             same and behave slightly differently. */ ?>
+    <div class="ticket-context-menu" id="rotaContextMenu">
+        <div class="ticket-context-menu-header" id="rotaCtxHeader"><?php echo htmlspecialchars(t('tickets.rota.ctx.heading')); ?></div>
+        <button class="ticket-context-menu-item" type="button" id="rotaCtxCopy" onclick="rotaCtxAction('copy')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            <span><?php echo htmlspecialchars(t('tickets.rota.ctx.copy_cell')); ?></span>
+        </button>
+        <button class="ticket-context-menu-item" type="button" id="rotaCtxPaste" onclick="rotaCtxAction('paste')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect></svg>
+            <span id="rotaCtxPasteLabel"><?php echo htmlspecialchars(t('tickets.rota.ctx.paste_cell')); ?></span>
+        </button>
+        <button class="ticket-context-menu-item" type="button" id="rotaCtxClear" onclick="rotaCtxAction('clear')">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+            <span><?php echo htmlspecialchars(t('tickets.rota.ctx.clear_cell')); ?></span>
+        </button>
+    </div>
+
+    <script src="../assets/js/rota.js?v=4"></script>
 </body>
 </html>

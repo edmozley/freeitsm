@@ -1715,6 +1715,48 @@ return [
             'error'         => 'Error: {error}',
         ],
         'delete_confirm'  => 'Delete this rota entry?',
+
+        // Copy and paste (Ed). One cell at a time from the right-click menu,
+        // or a whole week from the toolbar.
+        'ctx' => [
+            'heading'       => 'Rota',
+            'copy_cell'     => 'Copy',
+            'paste_cell'    => 'Paste',
+            'clear_cell'    => 'Clear',
+            // Shown in place of Paste when nothing has been copied yet, so the
+            // menu explains itself rather than offering a dead option.
+            'nothing_copied' => 'Nothing copied yet',
+        ],
+        'copy' => [
+            'week_btn'        => 'Copy week',
+            'paste_week_btn'  => 'Paste week',
+            // The toolbar button says WHICH week is on the clipboard. A bare
+            // "Paste week" a few screens later is a guess about what is about
+            // to land on top of the week in front of you.
+            'clipboard_week'  => 'Week of {date} copied',
+            'cell_copied'     => 'Copied {shift}',
+            'week_copied'     => 'Copied {count} entries from this week',
+            'week_empty'      => 'There is nothing in this week to copy',
+            'nothing_to_paste' => 'Copy a cell first',
+
+            // Overwrite confirmations. Both name what is about to be lost:
+            // a confirm that only says "are you sure?" is a dialog people learn
+            // to click through without reading.
+            'cell_confirm_title'  => 'Overwrite this entry?',
+            'cell_confirm'        => '{analyst} already has {existing} on {date}. Replace it with {incoming}?',
+            'week_confirm_title'  => 'Overwrite this week?',
+            'week_confirm'        => 'This week has {existing} entries already. Pasting replaces the whole week with the {incoming} you copied, so the {existing} currently here are removed.',
+            'week_confirm_empty'  => 'Paste {incoming} entries into this week?',
+            'week_same'           => 'That is the week you copied - nothing to do',
+
+            'pasted'          => 'Pasted',
+            'week_pasted'     => 'Week pasted - {written} entries in, {removed} replaced',
+            // Never silent. A shift or location deleted between the copy and
+            // the paste drops those rows, and a paste that quietly loses two
+            // people's shifts is the worst outcome here.
+            'week_skipped'    => '{count} entries could not be pasted - their shift no longer exists',
+            'paste_failed'    => 'Failed to paste',
+        ],
     ],
 
     // tickets/users.php — end-user directory with per-user ticket list
