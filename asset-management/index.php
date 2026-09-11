@@ -3290,7 +3290,16 @@ $translationNamespaces = ['common', 'asset-management'];
             }
 
             grid.innerHTML = disks.map(d => {
-                const sizeGB = d.size_bytes ? (d.size_bytes / 1073741824).toFixed(1) + ' GB' : '';
+                // ⚠️ MB under a gigabyte. Windows reports mounted virtual disks
+                // (a 31 MB "Microsoft Virtual Disk" is on most machines) through
+                // the same WMI class as real hardware, and rounding those to
+                // "0.0 GB" reads as a broken row rather than as a small one.
+                // They are not filtered out — the agent found them attached, and
+                // hiding reported hardware is a worse lie than listing it.
+                const bytes  = d.size_bytes ? Number(d.size_bytes) : 0;
+                const sizeGB = !bytes ? ''
+                    : bytes < 1073741824 ? (bytes / 1048576).toFixed(1) + ' MB'
+                    : (bytes / 1073741824).toFixed(1) + ' GB';
                 // Media type and interface are each a word, and often one is
                 // missing — joined rather than given a line apiece.
                 const spec = [sizeGB, d.media_type, d.interface_type]
