@@ -113,27 +113,30 @@ $translationNamespaces = ['common', 'asset-management'];
             box-shadow: inset 3px 0 0 var(--success-accent, #16a34a);
         }
 
+        /* Add / Scan / Assign tags (Ed). Was space-between with the count at
+           one end; the count now lives in the heading, so the row is just the
+           three actions. They WRAP rather than shrink — this panel is narrow and
+           resizable, and a squashed "Assign tags" over two cramped lines is
+           worse than a button on its own row. */
         .asset-count-row {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 8px;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 10px;
         }
 
-        .asset-count-actions {
-            flex: 0 0 auto;
-            display: flex;
+        /* An <a> styled as a button: Scan and Assign tags are navigations and
+           stay anchors, so they keep middle-click and "open in new tab". Only
+           the shared .btn padding needs re-stating, because <a> brings its own
+           line-height and underline. */
+        .asset-count-row .btn {
+            display: inline-flex;
             align-items: center;
-            gap: 12px;
-        }
-
-        .assets-tag-link {
-            flex: 0 0 auto;
-            font-size: 12px;
-            color: var(--accent, #0078d4);
             text-decoration: none;
+            white-space: nowrap;
+            line-height: 1.4;
         }
-        .assets-tag-link:hover { text-decoration: underline; }
 
         .asset-tag-chip {
             display: inline-block;
@@ -495,11 +498,10 @@ $translationNamespaces = ['common', 'asset-management'];
             100% { transform: rotate(360deg); }
         }
 
-        .asset-count {
-            font-size: 12px;
-            color: var(--text-dim, #888);
-            margin-top: 8px;
-        }
+        /* #assetCount is now the <h3> heading itself, styled by
+           .assets-list-header h3 — the separate count line it used to sit on is
+           gone (Ed). The old .asset-count rule went with it rather than being
+           left behind as a selector matching nothing. */
 
         /* Modal Styles
            ⚠️ These OVERRIDE the shared definitions in assets/css/inbox.css,
@@ -1398,7 +1400,7 @@ $translationNamespaces = ['common', 'asset-management'];
              <style> block so its @media rules win on ties — the ordering rule
              from the wiki's Mobile-Friendly-Techniques. Every rule inside it is
              gated at 768px, so the desktop layout is untouched. */ ?>
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=138">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=139">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -1407,33 +1409,30 @@ $translationNamespaces = ['common', 'asset-management'];
         <!-- Assets List -->
         <div class="assets-list-container">
             <div class="assets-list-header">
-                <h3><?php echo htmlspecialchars(t('asset-management.nav.assets')); ?></h3>
+                <?php /* The heading carries the count (Ed) — it used to say
+                         "Assets" and then repeat "597 assets" on its own line
+                         underneath, which is two lines to say one thing. It
+                         still names the module, because a bare "597 assets"
+                         loses where you are.
+
+                         ⚠️ The static label is the FALLBACK, not decoration:
+                         renderAssetsList() replaces the whole textContent once
+                         the list arrives, and an empty heading until then would
+                         read as a page that failed to load. */ ?>
+                <h3 id="assetCount"><?php echo htmlspecialchars(t('asset-management.nav.assets')); ?></h3>
                 <input type="text" class="search-box" id="assetSearch" placeholder="<?php echo htmlspecialchars(t('asset-management.list.search_placeholder')); ?>" oninput="searchAssets()" autocomplete="off">
-                <?php /* The count and the bulk-tagging link are SIBLINGS, not
-                         nested: renderAssetsList() sets #assetCount's textContent,
-                         which would wipe any child element on the first render. */ ?>
                 <div class="asset-count-row">
-                    <div class="asset-count" id="assetCount"></div>
-                    <?php /* Bulk tagging (#935) — an occasional job, so a quiet link
-                             beside the count rather than a nav item competing with
-                             the things people use every day. Scanning (#938) sits
-                             here for the same reason, and next to it because the
-                             two are the same kind of standing-up-with-a-phone job. */ ?>
-                    <?php /* Grouped in one span: the row is space-between, so two
-                             loose links would sit at opposite ends of it with the
-                             count stranded in the middle. */ ?>
-                    <span class="asset-count-actions">
-                        <?php /* Adding an asset by hand (#1132). Until now the only
-                                 ways in were the inventory agent, Intune, vCenter and
-                                 the REST API — every one of which assumes the thing
-                                 reports for itself. A television never will. It sits
-                                 with Scan and Assign tags because it is the same kind
-                                 of occasional job, and a promoted button here would
-                                 compete with the search box people use constantly. */ ?>
-                        <a class="assets-tag-link" href="#" onclick="openNewAssetModal(); return false;"><?php echo htmlspecialchars(t('asset-management.list.add_asset')); ?></a>
-                        <a class="assets-tag-link" href="scanner.php"><?php echo htmlspecialchars(t('asset-management.list.scan')); ?></a>
-                        <a class="assets-tag-link" href="assign-tags.php"><?php echo htmlspecialchars(t('asset-management.list.assign_tags')); ?></a>
-                    </span>
+                    <?php /* Adding by hand (#1132), bulk tagging (#935) and
+                             scanning (#938) — all occasional jobs done standing
+                             up with a phone, which is why they sit together and
+                             below the search box rather than competing with it.
+                             Buttons rather than links (Ed): they are actions,
+                             and three underlined words in a row read as a
+                             breadcrumb. Outline rather than filled, so they
+                             still do not outrank the search. */ ?>
+                    <button type="button" class="btn btn-outline btn-sm" onclick="openNewAssetModal()"><?php echo htmlspecialchars(t('asset-management.list.add_asset')); ?></button>
+                    <a class="btn btn-outline btn-sm" href="scanner.php"><?php echo htmlspecialchars(t('asset-management.list.scan')); ?></a>
+                    <a class="btn btn-outline btn-sm" href="assign-tags.php"><?php echo htmlspecialchars(t('asset-management.list.assign_tags')); ?></a>
                 </div>
                 <?php /* Appears only once more than one asset is picked with
                          Ctrl/Shift — see handleAssetRowClick(). Hidden by default
@@ -1910,11 +1909,11 @@ $translationNamespaces = ['common', 'asset-management'];
 
             if (assets.length === 0) {
                 container.innerHTML = `<div class="empty-state">${window.t('asset-management.list.no_assets')}</div>`;
-                countEl.textContent = window.t('asset-management.list.count', { count: 0 });
+                countEl.textContent = window.t('asset-management.list.count_heading', { count: 0 });
                 return;
             }
 
-            countEl.textContent = window.t('asset-management.list.count', { count: assets.length });
+            countEl.textContent = window.t('asset-management.list.count_heading', { count: assets.length });
 
             container.innerHTML = assets.map(asset => `
                 <div class="asset-item ${selectedAssetId == asset.id ? 'selected' : ''} ${assetSelection.has(asset.id) ? 'multi-selected' : ''}"

@@ -192,6 +192,10 @@ return [
         'search_placeholder' => 'Search name, serial, tag, location or contract...',
         'no_assets'          => 'No assets found',
         'count'              => '{count} assets',
+        // The panel heading, which used to be a bare "Assets" with the count
+        // repeated on its own line underneath (Ed). One line, and it still says
+        // which module you are in — the count alone loses that.
+        'count_heading'      => 'Assets - {count} found',
         // Picking several for a batch of labels (#935)
         'n_selected'         => '{count} selected',
         'clear_selection'    => 'Clear',

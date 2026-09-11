@@ -72,7 +72,7 @@ $translationNamespaces = ['common', 'workflow'];
         }
     </style>
     <!-- Mobile layer LAST (Techniques §9). -->
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=138">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=139">
 </head>
 <body data-mobile-module="workflow" data-mobile-page="settings">
     <?php include '../includes/header.php'; ?>

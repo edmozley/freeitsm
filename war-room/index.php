@@ -87,7 +87,7 @@ foreach ($channels as $ch) {
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
     <link rel="stylesheet" href="../assets/css/inbox.css?v=69">
     <link rel="stylesheet" href="../assets/css/war-room.css?v=6">
-    <link rel="stylesheet" href="../assets/css/mobile.css?v=138">
+    <link rel="stylesheet" href="../assets/css/mobile.css?v=139">
     <style>
         /* Pin the shared accent to the module's amber so buttons and focus
            rings are on-brand, the same way every other module does it. */

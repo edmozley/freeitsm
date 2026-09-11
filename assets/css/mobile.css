@@ -895,9 +895,12 @@
     .asset-item { padding: 14px 15px; }          /* a thumb, not a mouse */
     .asset-hostname { font-size: 15px; }
 
-    /* Count + Assign-tags sit on one row; give the link a real tap height
-       rather than leaving it a 12px text target. */
-    .assets-tag-link { padding: 6px 0; }
+    /* Add / Scan / Assign tags. These were 12px text links on one row with the
+       count; they are buttons now (Ed) and the count has moved into the
+       heading, so the job here changed from "give a text link a tap target" to
+       "make three real buttons thumb-sized". They already wrap on the desktop
+       layer, so a narrow phone gets rows rather than a squeeze. */
+    .asset-count-row .btn { min-height: 40px; padding-left: 14px; padding-right: 14px; }
 
     /* Batch-select bar: buttons get their own row so they stay tappable. */
     .asset-select-bar { flex-direction: column; align-items: stretch; }

@@ -76,7 +76,7 @@ $choices = [0, 7, 30, 90, 180, 365];
         .wr-set-actions { margin-top: 18px; }
     </style>
     <script>window.translations = <?php echo json_encode(I18n::exportForJs($translationNamespaces), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE); ?>;</script>
-    <link rel="stylesheet" href="../../assets/css/mobile.css?v=138">
+    <link rel="stylesheet" href="../../assets/css/mobile.css?v=139">
     <script src="../../assets/js/i18n.js?v=2"></script>
 </head>
 <body data-mobile-module="war-room" data-mobile-page="settings">
