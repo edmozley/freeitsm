@@ -1290,6 +1290,14 @@ $translationNamespaces = ['common', 'asset-management'];
         .detail-tab-panel--scroll.active {
             display: block;
             overflow-y: auto;
+            /* Breathing room under whatever happens to be last (Ed). The panel
+               ends on a full-bleed section, so its final card sat hard against
+               the bottom of the pane with only the grid's own 16px under it and
+               nothing after — it read as though the list had been cut off.
+               Here rather than on the Drives grid because "last" changes: Drives
+               on a reporting machine, Storage on one without, custom fields on a
+               television. Bottom only, so no section loses its full width. */
+            padding-bottom: 20px;
         }
 
         /* Devices Section */
