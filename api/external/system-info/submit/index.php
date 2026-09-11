@@ -249,13 +249,38 @@ try {
 // 2. Sync disks (delete + reinsert)
 // --------------------------------------------------
 $disksSynced = 0;
+$leftUnchanged = [];
+
+/**
+ * Is there anything in this part of the report?
+ *
+ * 🔴 AN EMPTY LIST IS "I DID NOT FIND OUT", NOT "THERE IS NOTHING THERE".
+ * Every block below wipes the asset's rows and reinserts, which is right when
+ * the agent has told us what the machine currently has. It was wrong when it
+ * had not: the DELETE ran unconditionally while the INSERT was guarded, so a
+ * report carrying no disks emptied the table and left it empty — a WMI blip
+ * taking 226 device rows with it, silently, until the next good run. Any
+ * client holding an API key could do the same with `{"disks":{}}`.
+ *
+ * Skipping the wipe is safe because the opposite case barely exists: a working
+ * machine that can reach this endpoint has at least one volume, one drive and
+ * one network adapter. Stale data outliving a removed disk by one run is a far
+ * smaller problem than an inventory that empties itself.
+ *
+ * Silence is the other half of the bug, so a skipped section is NAMED in the
+ * response rather than looking like a successful sync of nothing.
+ */
+function reportHas($value): bool {
+    return !empty($value) && is_array($value);
+}
 
 try {
-    // Wipe all rows for this asset (any source) — the agent has authoritative
-    // per-drive data, so it owns asset_disks for any host it reports for.
-    $conn->prepare("DELETE FROM asset_disks WHERE asset_id = ?")->execute([$hostId]);
-
-    if (!empty($data['disks']['logical']) && is_array($data['disks']['logical'])) {
+    // The agent has authoritative per-drive data, so it owns asset_disks for
+    // any host it reports for — but only when it actually reported some.
+    if (!reportHas($data['disks']['logical'] ?? null)) {
+        $leftUnchanged[] = 'disks';
+    } else {
+        $conn->prepare("DELETE FROM asset_disks WHERE asset_id = ?")->execute([$hostId]);
         $stmt = $conn->prepare("
             INSERT INTO asset_disks (asset_id, drive, label, file_system, size_bytes, free_bytes, used_percent, source)
             VALUES (?, ?, ?, ?, ?, ?, ?, 'agent')
@@ -300,9 +325,10 @@ try {
 $physicalDisksSynced = 0;
 
 try {
-    $conn->prepare("DELETE FROM asset_physical_disks WHERE asset_id = ?")->execute([$hostId]);
-
-    if (!empty($data['disks']['physical']) && is_array($data['disks']['physical'])) {
+    if (!reportHas($data['disks']['physical'] ?? null)) {
+        $leftUnchanged[] = 'physical_disks';
+    } else {
+        $conn->prepare("DELETE FROM asset_physical_disks WHERE asset_id = ?")->execute([$hostId]);
         $stmt = $conn->prepare("
             INSERT INTO asset_physical_disks (asset_id, model, serial, size_bytes, media_type, interface_type)
             VALUES (?, ?, ?, ?, ?, ?)
@@ -344,9 +370,10 @@ try {
 $adaptersSynced = 0;
 
 try {
-    $conn->prepare("DELETE FROM asset_network_adapters WHERE asset_id = ?")->execute([$hostId]);
-
-    if (!empty($data['network_adapters']) && is_array($data['network_adapters'])) {
+    if (!reportHas($data['network_adapters'] ?? null)) {
+        $leftUnchanged[] = 'network_adapters';
+    } else {
+        $conn->prepare("DELETE FROM asset_network_adapters WHERE asset_id = ?")->execute([$hostId]);
         $stmt = $conn->prepare("
             INSERT INTO asset_network_adapters (asset_id, name, mac_address, ip_address, subnet_mask, gateway, dhcp_enabled)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -509,6 +536,7 @@ if (!empty($data['software']) && is_array($data['software'])) {
             'is_new'    => $isNew,
             'disks_synced'     => $disksSynced,
             'physical_disks_synced' => $physicalDisksSynced,
+            'left_unchanged'   => $leftUnchanged,
             'adapters_synced'  => $adaptersSynced,
             'error'     => 'Software processing failed: ' . $e->getMessage()
         ]);
@@ -526,6 +554,7 @@ echo json_encode([
     'is_new'             => $isNew,
     'disks_synced'       => $disksSynced,
     'physical_disks_synced' => $physicalDisksSynced,
+    'left_unchanged'     => $leftUnchanged,
     'adapters_synced'    => $adaptersSynced,
     'software_processed' => $softwareProcessed,
     'software_new_apps'  => $insertedApps,

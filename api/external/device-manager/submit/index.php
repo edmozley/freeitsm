@@ -123,10 +123,24 @@ try {
 // --------------------------------------------------
 $devicesSynced = 0;
 
-try {
-    $conn->prepare("DELETE FROM asset_devices WHERE asset_id = ?")->execute([$assetId]);
+$devicesLeftUnchanged = false;
 
-    if (!empty($data['devices']) && is_array($data['devices'])) {
+try {
+    // 🔴 AN EMPTY LIST IS "I DID NOT FIND OUT", NOT "THERE ARE NO DEVICES".
+    // The wipe used to run unconditionally while the insert was guarded, so a
+    // report carrying no devices emptied the table and left it empty — 226 rows
+    // gone on a WMI blip, silently, until the next good run. The agent happens
+    // to guard its own side (it only posts when it collected something), but
+    // anything else holding an API key could empty this with `{"devices":[]}`.
+    //
+    // A machine that can reach this endpoint has devices, so skipping the wipe
+    // costs at most one run of slightly stale data and saves the whole list.
+    // Named in the response rather than passed over in silence, because looking
+    // like a successful sync of nothing is the other half of the bug.
+    if (!(!empty($data['devices']) && is_array($data['devices']))) {
+        $devicesLeftUnchanged = true;
+    } else {
+        $conn->prepare("DELETE FROM asset_devices WHERE asset_id = ?")->execute([$assetId]);
         $stmt = $conn->prepare("
             INSERT INTO asset_devices (asset_id, device_class, device_name, status, manufacturer, driver_version, driver_date)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -162,5 +176,10 @@ echo json_encode([
     'hostname'      => $hostname,
     'asset_id'      => $assetId,
     'devices_synced' => $devicesSynced,
-    'message'       => 'Device manager data synchronized'
+    // Said out loud, so "0 devices synced" cannot be mistaken for a machine
+    // that genuinely has none. The existing device list was kept.
+    'devices_left_unchanged' => $devicesLeftUnchanged,
+    'message'       => $devicesLeftUnchanged
+        ? 'No devices in the report - the existing device list was left unchanged'
+        : 'Device manager data synchronized'
 ]);
