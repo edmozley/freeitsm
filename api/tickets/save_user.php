@@ -144,9 +144,36 @@ try {
     if (array_key_exists('manager_id', $data)) {
         $mgr = userPersonFieldValue('manager_id', $data['manager_id']);
         if ($mgr !== null) {
+            // 🔴 The manager must be somebody THIS ANALYST CAN ALREADY REACH.
+            //
+            // This used to be a bare `SELECT id FROM users WHERE id = ?`, which
+            // proved existence across the whole install. Two problems, and the
+            // second is the one that bites:
+            //
+            //  - An analyst scoped to one company could set any person's manager
+            //    to anybody on the install, by id. The picker on the users
+            //    screen only ever offers people in scope, but a dropdown is a
+            //    convenience and never the guard.
+            //  - The manager's display name is then rendered on the Assets
+            //    people screen, so a write nobody could see turned into a read
+            //    across a company boundary. Both halves are closed in this
+            //    release; either alone would have left it exploitable.
+            //
+            // ⚠️ BOTH checks, not just the access one. analystCanAccessUser()
+            // short-circuits to `true` on a single-company install, so relying
+            // on it alone would drop the existence check for the majority of
+            // installs — a bogus id would reach the database and come back as a
+            // raw foreign-key error instead of a sentence.
+            //
+            // ⚠️ And both give the SAME answer. A distinct "that manager does
+            // not exist" would be an enumeration oracle: post ids until the
+            // message changes and you have learned which people exist in
+            // companies you cannot see.
             $exists = $conn->prepare("SELECT id FROM users WHERE id = ?");
             $exists->execute([$mgr]);
-            if (!$exists->fetch()) {
+            $mgrExists = (bool)$exists->fetch();
+            if (!$mgrExists
+                || !analystCanAccessUser($conn, (int)$_SESSION['analyst_id'], (int)$mgr)) {
                 echo json_encode(['success' => false, 'error' => 'That manager does not exist']);
                 exit;
             }

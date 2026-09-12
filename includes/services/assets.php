@@ -560,6 +560,21 @@ class AssetsService
     {
         [$tenantSql, $tenantArgs] = activeTenantFilter($conn, $ctx->actorId, 'u');
 
+        // 🔴 The manager's NAME needs its own scope, and it belongs in the JOIN.
+        //
+        // `manager_id` is not tenant-scoped — nothing stops a person in one
+        // company reporting to somebody in another, and until the same release
+        // as this comment `save_user.php` would accept exactly that from any
+        // analyst. So `LEFT JOIN users m` scoped only by `u` handed an analyst
+        // who can see company A the display name of somebody in company B.
+        //
+        // ⚠️ In the JOIN's ON clause, never the WHERE. A LEFT JOIN with the
+        // condition in WHERE stops being a LEFT JOIN: the row is dropped
+        // entirely, so a person whose manager is out of scope would vanish from
+        // the list rather than simply showing no manager. Same lesson as the
+        // Watchtower scoping fix.
+        [$mgrTenantSql, $mgrTenantArgs] = activeTenantFilter($conn, $ctx->actorId, 'm');
+
         $where = '';
         $args  = [];
         $search = trim($search);
@@ -584,13 +599,15 @@ class AssetsService
                        m.display_name AS manager_name,
                        (SELECT COUNT(*) FROM users_assets ua2 WHERE ua2.user_id = u.id) AS asset_count
                   FROM users u
-             LEFT JOIN users m ON m.id = u.manager_id
+             LEFT JOIN users m ON m.id = u.manager_id $mgrTenantSql
                  WHERE 1=1 $tenantSql $where
                  ORDER BY (u.display_name IS NULL OR u.display_name = ''), u.display_name, u.email
                  LIMIT $limit";
 
+        // ⚠️ Order matters: the manager scope sits in the JOIN, which precedes
+        // the WHERE, so its placeholders bind FIRST.
         $stmt = $conn->prepare($sql);
-        $stmt->execute(array_merge($tenantArgs, $args));
+        $stmt->execute(array_merge($mgrTenantArgs, $tenantArgs, $args));
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         foreach ($rows as &$r) {
@@ -620,6 +637,10 @@ class AssetsService
         // a search, or when following a link to somebody outside the current
         // filter. Reading them here means the panel is complete however you
         // arrived at it.
+        // Same scope on the manager's name as the list above, for the same
+        // reason — and in the ON clause, so a manager out of scope means "no
+        // manager shown" rather than "this person does not exist".
+        [$mgrTenantSql, $mgrTenantArgs] = activeTenantFilter($conn, $ctx->actorId, 'm');
         $u = $conn->prepare(
             "SELECT u.id, u.email, u.username, u.display_name, u.preferred_name,
                     u.job_title, u.department, u.office, u.phone, u.mobile,
@@ -627,10 +648,10 @@ class AssetsService
                     u.directory_username, u.deactivated_datetime,
                     m.display_name AS manager_name
                FROM users u
-          LEFT JOIN users m ON m.id = u.manager_id
+          LEFT JOIN users m ON m.id = u.manager_id $mgrTenantSql
               WHERE u.id = ?"
         );
-        $u->execute([$userId]);
+        $u->execute(array_merge($mgrTenantArgs, [$userId]));
         $user = $u->fetch(PDO::FETCH_ASSOC);
         if (!$user) {
             return null;
