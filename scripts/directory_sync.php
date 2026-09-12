@@ -32,8 +32,16 @@ $conn = connectToDatabase();
 
 $providers = [];
 if (isset($opts['all'])) {
+    // 🔴 `--all` has NO protocol filter, and once a third protocol existed that
+    // became a real bug rather than a tidiness point: an OIDC or CardDAV row
+    // with sync_enabled = 1 was selected here and handed to directorySyncRun(),
+    // which opens an LDAP connection to it. The fix is the protocol filter plus
+    // the routing in the loop below — a scheduled task must not depend on
+    // nobody having ticked the wrong box.
     $providers = $conn->query(
-        "SELECT * FROM auth_providers WHERE enabled = 1 AND sync_enabled = 1 ORDER BY id"
+        "SELECT * FROM auth_providers
+          WHERE enabled = 1 AND sync_enabled = 1 AND protocol IN ('ldap', 'carddav')
+       ORDER BY id"
     )->fetchAll(PDO::FETCH_ASSOC);
 } elseif (!empty($opts['provider'])) {
     $s = $conn->prepare("SELECT * FROM auth_providers WHERE id = ?");
@@ -62,11 +70,23 @@ foreach ($providers as $p) {
 
     if (!$quiet) {
         echo str_repeat('=', 70) . "\n";
-        echo ($preview ? 'PREVIEW' : 'SYNC') . ' — ' . ($p['display_name'] ?: ('provider ' . $p['id'])) . "\n";
+        echo ($preview ? 'PREVIEW' : 'SYNC') . ' — ' . ($p['display_name'] ?: ('provider ' . $p['id']))
+           . ' [' . $p['protocol'] . ']' . "\n";
         echo str_repeat('=', 70) . "\n";
     }
 
-    $run = directorySyncRun($conn, $p, $mode, null);
+    // The protocol picks the engine. A named --provider can be either kind, so
+    // this routes rather than assuming — and an OIDC id asked for explicitly is
+    // refused with a sentence instead of an LDAP connection error.
+    if ($p['protocol'] === 'carddav') {
+        require_once __DIR__ . '/../includes/carddav_sync.php';
+        $run = cardDavSyncRun($conn, $p, $mode, null);
+    } elseif ($p['protocol'] === 'ldap') {
+        $run = directorySyncRun($conn, $p, $mode, null);
+    } else {
+        if (!$quiet) echo "Skipped: an OIDC provider has no people to import.\n\n";
+        continue;
+    }
 
     if (!$quiet) {
         printf("  status       : %s\n", $run['status'] ?? '?');

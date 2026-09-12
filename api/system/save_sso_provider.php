@@ -122,6 +122,13 @@ if ($protocol === 'carddav') {
     $clientId  = '';
     $scopes    = 'openid email profile';   // column default; unused here
     $ldap      = $LDAP_EMPTY;
+    // 🔑 `enabled` IS the import switch for an address book. A directory has
+    // two separate ideas — appear on the login page, and import people — but an
+    // address book cannot do the first, so a second toggle would be a control
+    // with only one meaningful setting. Kept in step here so `--all` in the
+    // scheduled task picks the source up exactly when it is switched on, and
+    // never when it is not.
+    $ldap['sync_enabled'] = $enabled;
 
     $url = trim($data['carddav_url'] ?? '');
     if ($url === '') {

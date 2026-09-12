@@ -70,8 +70,9 @@ $scopeChosen = cardDavScopeList($p['carddav_scope_value'] ?? '');
 $tabs = [
     ['id' => 'connection', 'cap' => null, 'label' => t('system.sso.tab_connection')],
     ['id' => 'contacts',   'cap' => null, 'label' => t('system.sso.tab_contacts')],
+    ['id' => 'history',    'cap' => null, 'label' => t('system.sso.tab_history')],
 ];
-$activeTab = in_array($_GET['tab'] ?? '', ['connection', 'contacts'], true)
+$activeTab = in_array($_GET['tab'] ?? '', ['connection', 'contacts', 'history'], true)
     ? $_GET['tab'] : 'connection';
 
 /** Print a value into an input safely. */
@@ -185,6 +186,21 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
         .pick-actions button { background: none; border: none; padding: 0; cursor: pointer; color: var(--sys-accent, #546e7a); font-size: 12px; }
         .pick-actions button:hover { text-decoration: underline; }
         .pick-summary { margin-top: 8px; font-size: 12.5px; color: var(--text-dim, #888); }
+
+        /* The run history. Same table and the same pills as provider.php.
+           ⚠️ The pill colours are tokens here where provider.php hardcodes the
+           light ones — it has a matching dark block further down and this does
+           not, so tokens are the only way to get both without repeating
+           myself. `stopped` is AMBER on purpose: the safety brake refusing a
+           run is the feature working, not a failure, and red would teach
+           somebody to treat a refusal as something to fix. */
+        table.runs { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+        table.runs th { text-align: left; padding: 7px 9px; color: var(--text-dim, #888); font-weight: 600; border-bottom: 1px solid var(--border-soft, #eee); white-space: nowrap; }
+        table.runs td { padding: 7px 9px; border-bottom: 1px solid var(--border-soft, #f4f4f4); color: var(--text, #444); white-space: nowrap; }
+        .pill { display: inline-block; padding: 1px 9px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+        .pill.ok { background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); }
+        .pill.stopped { background: var(--warning-bg, #fff4ce); color: var(--warning-text, #6b5900); }
+        .pill.failed, .pill.running { background: var(--danger-bg, #ffebee); color: var(--danger-text, #c62828); }
         @media (max-width: 700px) { .prov-wrap { padding: 14px 12px 50px; } }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
@@ -280,6 +296,33 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
                 </div>
                 <div class="pick-summary" id="pickSummary"></div>
             </div>
+            <?php /* Running it lives on the Contacts tab, next to the choices it
+                     acts on — not on a tab of its own, and not next to Save,
+                     where it would read as part of saving. */ ?>
+            <div class="fld" style="border-top:1px solid var(--border-soft,#f0f0f0); padding-top:18px;">
+                <label><?php echo htmlspecialchars(t('system.sso.carddav_run_heading')); ?></label>
+                <div class="hint"><?php echo htmlspecialchars(t('system.sso.carddav_run_hint')); ?></div>
+                <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                    <?php /* 🔑 Preview FIRST and styled as the quieter button.
+                             It runs the identical code path and writes nothing,
+                             so it is the sensible thing to press against an
+                             address book you have not imported before — and
+                             "what would this do to my 600 contacts" is the
+                             question somebody actually has. */ ?>
+                    <button class="btn btn-test" id="previewBtn" type="button"><?php echo htmlspecialchars(t('system.sso.carddav_preview')); ?></button>
+                    <button class="btn btn-primary" id="runBtn" type="button"><?php echo htmlspecialchars(t('system.sso.carddav_run')); ?></button>
+                </div>
+                <div class="result" id="runResult"></div>
+            </div>
+        </div>
+
+        <!-- ================= History ================= -->
+        <div class="tab-pane<?php echo $activeTab === 'history' ? ' active' : ''; ?>" id="history-pane">
+            <div class="fld">
+                <label><?php echo htmlspecialchars(t('system.sso.tab_history')); ?></label>
+                <div class="hint"><?php echo htmlspecialchars(t('system.sso.carddav_history_hint')); ?></div>
+                <div id="runsBox" style="overflow-x:auto;"></div>
+            </div>
         </div>
     </div><!-- /.prov-card -->
 
@@ -307,6 +350,131 @@ function switchCardDavTab(id) {
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === id));
     document.querySelectorAll('.tab-pane').forEach(p => p.classList.toggle('active', p.id === id + '-pane'));
     history.replaceState(null, '', '?id=' + PROVIDER_ID + '&tab=' + id);
+    // Loaded on open rather than up front: most visits here are to change a
+    // setting, and the history is a query nobody asked for until they click it.
+    if (id === 'history') loadRuns();
+}
+
+/* ---- running the import ---- */
+
+async function runImport(mode, btn) {
+    const box = $('runResult');
+    // ⚠️ A live run creates and deactivates people wholesale, so it asks first
+    // and names what it is about to read. Preview writes nothing, so it does
+    // not — a confirmation on a harmless action teaches people to click through
+    // confirmations.
+    if (mode === 'live') {
+        const scope = $('fScope').value;
+        const ok = await showConfirm({
+            title:   window.t('system.sso.carddav_run'),
+            message: window.t(scope === 'all'
+                ? 'system.sso.carddav_run_confirm_all'
+                : 'system.sso.carddav_run_confirm_scoped'),
+            okLabel: window.t('system.sso.carddav_run'),
+            okClass: 'primary'
+        });
+        if (!ok) return;
+    }
+    btn.disabled = true;
+    box.className = 'result';
+    box.textContent = window.t(mode === 'live'
+        ? 'system.sso.carddav_running' : 'system.sso.carddav_previewing');
+    try {
+        const r = await fetch(API + 'system/run_directory_sync.php', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ provider_id: PROVIDER_ID, mode: mode })
+        });
+        const d = await r.json();
+        if (!d.success) {
+            box.className = 'result err';
+            box.textContent = d.error || window.t('system.sso.carddav_run_failed');
+            return;
+        }
+        const run = d.run || {};
+        // 🔑 'refused' is not a failure and must not be coloured as one — the
+        // safety brake stopping a run is the feature working. It gets the error
+        // styling only because there is nothing amber here; the WORD is what
+        // carries the meaning, and the message says nothing was changed.
+        box.className = 'result ' + (run.status === 'ok' ? 'ok' : 'err');
+        box.textContent = (mode === 'preview'
+            ? window.t('system.sso.carddav_preview_prefix') + ' ' : '') + (run.message || run.status);
+        // A live run changes the history, and somebody who just ran one is
+        // about to want to look at it.
+        if (mode === 'live') loadRuns();
+    } catch (e) {
+        box.className = 'result err';
+        box.textContent = window.t('system.sso.carddav_run_failed') + ' ' + e.message;
+    } finally {
+        btn.disabled = false;
+    }
+}
+$('previewBtn').addEventListener('click', function () { runImport('preview', this); });
+$('runBtn').addEventListener('click', function () { runImport('live', this); });
+
+async function loadRuns() {
+    const box = $('runsBox');
+    box.textContent = window.t('system.sso.loading');
+    try {
+        const d = await (await fetch(API + 'system/get_directory_sync_log.php?provider_id=' + PROVIDER_ID)).json();
+        if (!d.success || !(d.runs || []).length) {
+            box.innerHTML = '';
+            const p = document.createElement('div');
+            p.className = 'hint';
+            p.textContent = window.t('system.sso.history_none');
+            box.appendChild(p);
+            return;
+        }
+        const heads = ['when', 'mode', 'result', 'found', 'added', 'changed', 'left', 'issues', 'by'];
+        const table = document.createElement('table');
+        table.className = 'runs';
+        const thead = document.createElement('thead');
+        const hr = document.createElement('tr');
+        heads.forEach(h => {
+            const th = document.createElement('th');
+            th.textContent = window.t('system.sso.hist_' + h) || h;
+            hr.appendChild(th);
+        });
+        thead.appendChild(hr); table.appendChild(thead);
+        const tbody = document.createElement('tbody');
+        d.runs.forEach(r => {
+            const tr = document.createElement('tr');
+            // ⚠️ textContent throughout, not innerHTML with a template string.
+            // A run's message is built from server data including an operator's
+            // own address book and group names, and this table is the one place
+            // those are displayed back.
+            // mode and status are shown as the server records them, exactly as
+            // provider.php does — there are no i18n keys for them there, and
+            // inventing some here would make the two pages disagree about what
+            // a run is called.
+            [
+                fmtDateTime(r.started_datetime),
+                r.mode,
+                r.status,
+                r.seen_count, r.created_count, r.updated_count,
+                r.deactivated_count, r.error_count,
+                r.triggered_by || window.t('system.sso.hist_scheduled')
+            ].forEach((v, i) => {
+                const td = document.createElement('td');
+                if (i === 2) {
+                    // The status gets the same pill provider.php uses.
+                    const pill = document.createElement('span');
+                    pill.className = 'pill ' + (v === 'ok' ? 'ok' : (v === 'refused' ? 'stopped' : 'failed'));
+                    pill.textContent = String(v);
+                    td.appendChild(pill);
+                } else {
+                    td.textContent = (v === null || v === undefined) ? '—' : String(v);
+                }
+                tr.appendChild(td);
+            });
+            tr.title = r.message || '';
+            tbody.appendChild(tr);
+        });
+        table.appendChild(tbody);
+        box.innerHTML = '';
+        box.appendChild(table);
+    } catch (e) {
+        box.textContent = window.t('system.sso.request_failed');
+    }
 }
 
 /* Last scan of the chosen book. null means "not looked yet", which is a
@@ -491,6 +659,14 @@ $('saveBtn').addEventListener('click', async function () {
 });
 
 renderPicker();
+
+/* 🔴 And load the history if the page OPENED on that tab. loadRuns() was wired
+   only to switchCardDavTab(), so arriving by a link or a refresh with
+   ?tab=history showed the heading, the hint and an empty box — the tab looked
+   broken, and reloading did not help because reloading was what caused it.
+   Caught in a screenshot, not by the harness: the harness clicked the tab, and
+   so always took the path that worked. */
+if (<?php echo json_encode($activeTab); ?> === 'history') loadRuns();
 </script>
 </body>
 </html>
