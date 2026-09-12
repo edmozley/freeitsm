@@ -104,11 +104,23 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
 
         .info-note { background: #f5f7fa; border: 1px solid var(--border, #e0e0e0); border-radius: 6px; padding: 14px 16px; font-size: 12px; color: var(--text-muted, #666); line-height: 1.6; }
         .info-note strong { color: var(--text, #333); }
-        .redirect-uri-box { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
-        .redirect-uri-box code { flex: 1; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 4px; padding: 8px 10px; font-size: 12px; color: var(--text, #333); overflow-x: auto; white-space: nowrap; }
+        /* The URI on its own line with Copy underneath and on the left, so all
+           three cards on this page put their button in the same place. Side by
+           side, Copy was flung to the far right by the `flex: 1` on the code
+           box — which looked deliberate on a wide screen and arbitrary next to
+           the other two cards.
+           ⚠️ `min-width: 0` on the code element is load-bearing: it is a flex
+           item that scrolls its own overflow, and without it a long URI refuses
+           to shrink and pushes the card sideways. */
+        .redirect-uri-box { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-top: 10px; }
+        .redirect-uri-box code { align-self: stretch; min-width: 0; background: var(--surface, #fff); border: 1px solid var(--border, #ddd); border-radius: 4px; padding: 8px 10px; font-size: 12px; color: var(--text, #333); overflow-x: auto; white-space: nowrap; }
 
         /* Providers table */
-        .providers-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+        /* Stacked, not two-up: the button belongs under its own description and
+           left-aligned with every other button on the page. `align-items:
+           flex-start` keeps it hugging its text instead of stretching to the
+           card's full width. */
+        .providers-head { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-bottom: 16px; }
         .add-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
         .add-btn:hover { background: #455a64; }
         table.providers { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -263,11 +275,15 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
 
         <!-- Providers -->
         <div class="settings-card">
+            <?php /* Heading, description, then the button underneath and on the
+                     LEFT — the same order as the Global settings card above,
+                     whose Save sits under its own text. Previously this row was
+                     `justify-content: space-between`, which threw the button to
+                     the far right and left the three cards on this page with
+                     their buttons in three different places. */ ?>
             <div class="providers-head">
-                <div>
-                    <h3 style="margin:0;"><?php echo htmlspecialchars(t('system.sso.providers_heading')); ?></h3>
-                    <p class="card-desc" style="margin:4px 0 0;"><?php echo htmlspecialchars(t('system.sso.providers_desc')); ?></p>
-                </div>
+                <h3 style="margin:0;"><?php echo htmlspecialchars(t('system.sso.providers_heading')); ?></h3>
+                <p class="card-desc" style="margin:4px 0 0;"><?php echo htmlspecialchars(t('system.sso.providers_desc')); ?></p>
                 <button class="add-btn" id="addProviderBtn"><?php echo htmlspecialchars(t('system.sso.add')); ?></button>
             </div>
             <table class="providers">
@@ -499,7 +515,12 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                 </div><!-- /#oidcFields -->
                 <div class="checkbox-field">
                     <input type="checkbox" id="fEnabled" checked>
-                    <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_enabled')); ?></strong><span><?php echo htmlspecialchars(t('system.sso.cb_enabled_desc')); ?></span></div>
+                    <?php /* The description is swapped per protocol: "show this
+                             provider's button on the login page" describes
+                             nothing for an address book, which has no button —
+                             but the checkbox itself still means something real
+                             (whether the source is used at all), so it stays. */ ?>
+                    <div class="cb-label"><strong><?php echo htmlspecialchars(t('system.sso.cb_enabled')); ?></strong><span id="enabledDesc"><?php echo htmlspecialchars(t('system.sso.cb_enabled_desc')); ?></span></div>
                 </div>
                 <?php /* Given an id so it can be hidden for CardDAV, where
                          "create the person the first time they sign in" describes
@@ -731,10 +752,20 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         // sign anybody in, so offering the toggle would promise something that
         // can never happen.
         $('autoCreateField').style.display = isCardDav ? 'none' : '';
+        // "Default module access for auto-created users" describes the accounts
+        // JIT sign-in creates. Nothing signs in through an address book, so
+        // there are none — the field is meaningless rather than merely unused.
+        $('defaultModulesField').style.display = isCardDav ? 'none' : '';
         // "Shown on the login button" is false for an address book.
         $('displayNameHint').textContent = isCardDav
             ? window.t('system.sso.field_display_name_hint_carddav')
             : window.t('system.sso.field_display_name_hint');
+        // Nor is "show this provider's button on the login page" — but the
+        // checkbox still means "use this source at all", so it stays and only
+        // its description changes.
+        $('enabledDesc').textContent = isCardDav
+            ? window.t('system.sso.cb_enabled_desc_carddav')
+            : window.t('system.sso.cb_enabled_desc');
     }
     $('fProtocol').addEventListener('change', syncProtocolFields);
 
@@ -1100,7 +1131,24 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
     async function deleteProvider(id) {
         const p = providers.find(x => x.id == id);
         const msg = window.t('system.sso.delete_confirm', { name: p ? p.display_name : window.t('system.sso.delete_this') });
-        const ok = window.showConfirm ? await showConfirm(msg) : confirm(msg);
+        // 🔴 showConfirm() takes an OPTIONS OBJECT, not a string. Passed a
+        // string it read `opts.message` off it, got undefined, and rendered an
+        // EMPTY dialogue — a bare "Confirm" with Cancel and OK and no question.
+        // You were being asked to delete something and told nothing about what.
+        //
+        // ⚠️ The `: confirm(msg)` fallback DOES take a string, so the native
+        // path behaved correctly the whole time and only the real dialogue was
+        // broken — which is a good way for a bug to survive a long time.
+        //
+        // Pre-dates the icon change that made it visible: identical at v1.7.0.
+        const ok = window.showConfirm
+            ? await showConfirm({
+                  title:    window.t('system.sso.delete'),
+                  message:  msg,
+                  okLabel:  window.t('system.sso.delete'),
+                  okClass:  'danger'
+              })
+            : confirm(msg);
         if (!ok) return;
         try {
             const r = await fetch(API + 'system/delete_sso_provider.php', {

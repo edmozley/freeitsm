@@ -1035,7 +1035,10 @@ return [
 
         'providers_heading' => 'Sign-in methods',
         'providers_desc'    => 'Where your people come from. Most rows are a way to sign in — an identity provider (SSO) or a directory (LDAP) — and you can assign different users to different methods to run pilots in parallel. A CardDAV address book is the exception: it brings contacts in and nobody signs in through it.',
-        'add'               => '+ Add',
+        // One word, per the project's button rule. The "+" was also what made
+        // this wrap to two lines in a narrow head row — a double-height button
+        // beside a single-height one, which is what drew the eye to it.
+        'add'               => 'Add',
 
         'col_name'        => 'Name',
         'col_company'     => 'Company',
@@ -1076,6 +1079,7 @@ return [
         'field_scopes_hint'=> 'Space-separated OIDC scopes. Leave as default unless your provider needs more.',
         'cb_enabled'       => 'Enabled',
         'cb_enabled_desc'  => "Show this provider's button on the login page",
+        'cb_enabled_desc_carddav' => 'Use this address book. Turn it off to stop reading contacts from it without deleting the settings.',
         'cb_autocreate'    => 'Auto-create users on first login (JIT)',
         'cb_autocreate_desc' => 'Create an analyst automatically the first time someone signs in via this provider. Leave off for tightly controlled pilots where only pre-created users may enter.',
         'cb_verified'      => 'Require a verified-email claim',

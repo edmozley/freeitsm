@@ -5407,10 +5407,16 @@ async function sendAttachmentToTracker(btn) {
     const name  = btn.getAttribute('data-name');
     const issue = btn.getAttribute('data-issue');
 
-    const ok = await showConfirm(
-        t('tickets.tracker.attach_send_confirm').replace('{file}', name).replace('{issue}', issue),
-        t('tickets.tracker.attach_send_title')
-    );
+    // 🔴 Same bug as System → Authentication's delete, found in the same sweep:
+    // showConfirm() takes an OPTIONS OBJECT, and passing (message, title)
+    // positionally meant `opts.message` was undefined — so this dialogue asked
+    // you to send a file to an external tracker and told you neither which file
+    // nor which issue. Nobody reported it, which is what an empty dialogue with
+    // a working OK button gets you.
+    const ok = await showConfirm({
+        title:   t('tickets.tracker.attach_send_title'),
+        message: t('tickets.tracker.attach_send_confirm').replace('{file}', name).replace('{issue}', issue)
+    });
     if (!ok) return;
 
     btn.disabled = true;
