@@ -109,15 +109,21 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
             box-sizing: border-box; padding: 24px 32px 0;
             flex: 1 1 auto; min-height: 0; overflow-y: auto;
         }
-        .prov-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin: 10px 0 14px; }
-        .prov-title { font-size: 22px; font-weight: 600; margin: 0; color: var(--text, #263238); }
-        .prov-sub { font-size: 13px; color: var(--text-dim, #888); margin-top: 3px; }
-        .prov-card { background: var(--surface, #fff); border-radius: 8px; padding: 22px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+        /* ⚠️ These match provider.php's values deliberately, down to the
+           margins. The two pages are the same screen for two kinds of source,
+           and a 1px difference in a label's margin is exactly how "built by two
+           different people" happens. Recorded in TODO.local.md as T-8: the
+           right fix is one shared stylesheet, and the moment for it is when
+           this page grows the mapping and history tabs. */
+        .prov-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 6px; }
+        .prov-title { font-size: 22px; font-weight: 600; color: var(--text, #333); margin: 0; }
+        .prov-sub { font-size: 13px; color: var(--text-dim, #888); margin: 2px 0 18px; }
+        .prov-card { background: var(--surface, #fff); border-radius: 8px; padding: 22px; box-shadow: 0 1px 4px var(--shadow, rgba(0,0,0,0.08)); }
         .back-link { font-size: 13px; color: var(--sys-accent, #546e7a); text-decoration: none; }
         .back-link:hover { text-decoration: underline; }
 
         .fld { margin-bottom: 18px; }
-        .fld label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
+        .fld label { display: block; font-size: 13px; font-weight: 600; color: var(--text, #333); margin-bottom: 3px; }
         .fld .hint { font-size: 12px; color: var(--text-dim, #888); margin-bottom: 6px; line-height: 1.5; }
         .fld input[type=text], .fld input[type=password], .fld select {
             width: 100%; box-sizing: border-box; padding: 9px 11px; font-size: 13px;
@@ -125,15 +131,29 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
             background: var(--surface, #fff); color: var(--text, #333);
         }
         .result { margin-top: 8px; font-size: 12px; padding: 9px 11px; border-radius: 6px; display: none; white-space: pre-wrap; line-height: 1.5; }
+        /* 🔑 Tokens, where provider.php hardcodes the light colours and then
+           repeats itself in a `[data-theme-mode="dark"]` block. Same result,
+           one rule instead of two, and it cannot drift out of step with the
+           theme — so this is the one place the two pages deliberately differ. */
         .result.ok  { display: block; background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); }
         .result.err { display: block; background: var(--danger-bg, #ffebee); color: var(--danger-text, #c62828); }
-        .btn { padding: 10px 18px; border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; }
-        .btn-primary { background: var(--accent); color: var(--on-accent); }
-        .btn-test { background: var(--surface-3, #eceff1); color: var(--text, #37474f); border: 1px solid var(--border, #ddd); }
-        .btn:disabled { opacity: .55; cursor: not-allowed; }
+        .btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; }
+        .btn-primary { background: var(--sys-accent, #546e7a); color: var(--sys-on-accent, #fff); }
+        .btn-test { background: var(--surface, #fff); color: var(--sys-accent, #546e7a); border: 1px solid var(--border, #cfd8dc); }
+        .btn:disabled { opacity: .5; cursor: not-allowed; }
+        /* 🔴 The save bar is a FOOTER, and that needs two things this page had
+           wrong. It must sit OUTSIDE `.prov-card`, as a sibling — inside it, the
+           button just floats at the bottom of the panel with no separation, which
+           is exactly what Ed reported. And it needs the negative horizontal
+           margin to bleed back out to the wrapper's edges (`.prov-wrap` has
+           32px of side padding), so the dividing line runs the full width of the
+           page rather than stopping short like an underline. */
         .save-bar {
-            position: sticky; bottom: 0; background: var(--app-bg, #f5f5f5);
-            padding: 14px 0 18px; margin-top: 6px; display: flex; gap: 10px;
+            position: sticky; bottom: 0; z-index: 5;
+            margin: 20px -32px 0; padding: 14px 32px;
+            background: var(--app-bg, #f5f5f5);
+            border-top: 1px solid var(--border, #e0e0e0);
+            display: flex; gap: 10px; align-items: center;
         }
         .tab-pane { display: none; }
         .tab-pane.active { display: block; }
@@ -261,10 +281,15 @@ function v($row, string $k): string { return htmlspecialchars((string)($row[$k] 
                 <div class="pick-summary" id="pickSummary"></div>
             </div>
         </div>
+    </div><!-- /.prov-card -->
 
-        <div class="save-bar">
-            <button class="btn btn-primary" id="saveBtn" type="button"><?php echo htmlspecialchars(t('system.sso.save')); ?></button>
-        </div>
+    <?php /* A SIBLING of the card, not a child — same as provider.php. Inside
+             the card the button reads as just another field at the bottom of
+             the panel; outside it, with the border-top and the bleed, it reads
+             as the page's footer. */ ?>
+    <div class="save-bar">
+        <button class="btn btn-primary" id="saveBtn" type="button"><?php echo htmlspecialchars(t('system.sso.save')); ?></button>
+        <span id="saveMsg" style="font-size:13px;color:var(--text-dim,#888);"></span>
     </div>
 </div>
 
