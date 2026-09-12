@@ -29,7 +29,7 @@ $translationNamespaces = ['common', 'change-management'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('change-management.page.help')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=69">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=70">
     <link rel="stylesheet" href="../assets/css/change-management.css?v=7">
     <link rel="stylesheet" href="../assets/css/help.css?v=3">
     <style>

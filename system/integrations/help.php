@@ -101,7 +101,7 @@ $sections = $isSlack ? [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars($name); ?> setup</title>
     <link rel="stylesheet" href="<?php echo $assetBase; ?>assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="<?php echo $assetBase; ?>assets/css/inbox.css?v=69">
+    <link rel="stylesheet" href="<?php echo $assetBase; ?>assets/css/inbox.css?v=70">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/help.css?v=3">
     <style>
         /* The only thing a help page should need to say for itself: its colour. */

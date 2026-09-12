@@ -64,7 +64,7 @@ $companies    = $multiCompany ? getAllTenants($conn, true) : [];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars($meta['name']); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=69">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=70">
     <link rel="stylesheet" href="../../assets/css/integrations.css?v=1">
     <style>
         /* Only what this page alone draws. The container, cards, table, fields,

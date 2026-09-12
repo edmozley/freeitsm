@@ -85,7 +85,7 @@ foreach ($channels as $ch) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('war-room.title')); ?></title>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=69">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=70">
     <link rel="stylesheet" href="../assets/css/war-room.css?v=6">
     <link rel="stylesheet" href="../assets/css/mobile.css?v=139">
     <style>

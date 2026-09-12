@@ -2834,6 +2834,32 @@ body .tox-tinymce-aux {
     color: var(--text, #333);
 }
 
+/* 🔴 …and when the body/footer are wrapped in a FORM, the form has to be a
+   flex column too, or NOTHING SCROLLS AND THE BOTTOM OF THE MODAL IS
+   UNREACHABLE.
+
+   `.modal-content` is `display:flex; flex-direction:column; max-height:90vh`
+   and `.modal-body` carries `flex:1; min-height:0; overflow-y:auto` — which
+   works only while the body is a direct flex CHILD of the content. With a
+   `<form>` between them the form is the flex item and the body's `flex:1`
+   measures against a plain block that has no bounded height, so it grows to
+   fit its content and `overflow-y:auto` never engages. The two rules above
+   already anticipate this wrapper for padding and for suppressing
+   `.modal-content`'s own scroll — so the one thing that made the wrapper
+   safe was the thing missing, and the modal silently lost its scrollbar.
+
+   Measured on `tickets/users.php` at 1280x800 with 12 fields: content capped
+   at 720px, form 1046px, body clientHeight == scrollHeight (so
+   `scrollTop` stayed 0), and the Manager field sat 147px BELOW the footer
+   with no way to reach it. Latent until a form grew past 90vh — three modals
+   in the app use this shape and all three had it. */
+.modal-content:has(> form > .modal-body) > form {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
 /* Shared toggle switch (#453). Modules customise the on-state colour by
    setting --accent (or the legacy --toggle-accent) on a parent — the
    structural CSS lives here so every module looks identical. */

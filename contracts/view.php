@@ -43,7 +43,7 @@ entityVisit('contract', (int) $contract_id);
     <link rel="stylesheet" href="../assets/css/record-preview.css?v=1">
     <script src="../assets/js/record-preview.js?v=1"></script>
     <link rel="stylesheet" href="../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../assets/css/inbox.css?v=69">
+    <link rel="stylesheet" href="../assets/css/inbox.css?v=70">
     <style>
         body { --accent: var(--con-accent, #f59e0b); }
         /* Full-screen layout with sidebar - matches contracts dashboard */

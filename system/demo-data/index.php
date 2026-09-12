@@ -28,7 +28,7 @@ if (!isset($_SESSION['analyst_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('system.demo.heading')); ?></title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=69">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=70">
     <style>
         /* System module accent (blue-grey) */
         body {

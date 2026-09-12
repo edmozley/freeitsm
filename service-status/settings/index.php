@@ -42,7 +42,7 @@ $translationNamespaces = ['common', 'service-status'];
     <script src="../../assets/js/tz.js?v=5"></script>
     <script src="../../assets/js/i18n.js?v=2"></script>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=69">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=70">
     <style>
         /* Override the shared .container max-width so this page uses the full screen */
         .container { height: calc(100vh - 48px); overflow-y: auto; max-width: none; }

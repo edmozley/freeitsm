@@ -22,7 +22,7 @@ $translationNamespaces = ['common', 'tickets'];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - <?php echo htmlspecialchars(t('tickets.triage.title')); ?></title>
-    <link rel="stylesheet" href="../../assets/css/inbox.css?v=69">
+    <link rel="stylesheet" href="../../assets/css/inbox.css?v=70">
     <style>
         .triage-container { flex: 1; overflow-y: auto; padding: 30px 20px; }
         .page-title { font-size: 22px; font-weight: 600; color: #333; margin: 0 0 6px 0; }

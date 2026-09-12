@@ -26,7 +26,7 @@ $path_prefix = '../../';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Service Desk - Problem Management Settings</title>
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/theme.css?v=23">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=69">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>assets/css/inbox.css?v=70">
     <style>
         /* Pin the shared accent to the module red so the tabs, Add buttons,
            toggles, modal primary button and focus rings read on-brand. */
