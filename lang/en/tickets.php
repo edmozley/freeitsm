@@ -1783,6 +1783,7 @@ return [
             // The person, as opposed to the login. Blank ones are omitted from
             // the pane rather than shown empty, so these labels only ever appear
             // beside a real value.
+            'preferred_name'   => 'Prefers to be called',
             'job_title'        => 'Job title',
             'department'       => 'Department',
             'office'           => 'Office',

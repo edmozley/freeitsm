@@ -885,6 +885,15 @@ $translationNamespaces = ['common', 'tickets'];
                     </div>`);
             };
 
+            // Shown only when it differs from the display name, which is the
+            // only case where it tells an analyst anything. The point of
+            // recording a preferred name is that somebody about to write to
+            // this person knows to open with "Hi Edwardo" — and until now it
+            // was collected in the portal and displayed to an analyst NOWHERE,
+            // so the one job it has was the one thing it could not do.
+            if (user.preferred_name && user.preferred_name !== user.display_name) {
+                add('tickets.users.info.preferred_name', user.preferred_name);
+            }
             add('tickets.users.info.job_title',   user.job_title);
             add('tickets.users.info.department',  user.department);
             add('tickets.users.info.office',      user.office);
