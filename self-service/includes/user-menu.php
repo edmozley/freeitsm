@@ -47,7 +47,7 @@ if (count($_um_parts) > 1) {
         top: 100%;
         right: 0;
         margin-top: 8px;
-        background: #fff;
+        background: var(--surface, #fff);
         border-radius: 8px;
         box-shadow: 0 6px 30px rgba(0,0,0,0.25);
         min-width: 240px;
@@ -59,16 +59,20 @@ if (count($_um_parts) > 1) {
 
     .ss-menu-header {
         padding: 16px;
-        border-bottom: 1px solid #eee;
+        border-bottom: 1px solid var(--border-soft, #eee);
     }
+    /* 🔴 These three had to move WITH the surface above them, not after it.
+       Theming `.ss-user-menu`'s background and leaving the text at #333 is
+       dark-on-dark — a worse bug than the one being fixed, and invisible to
+       anyone testing in light mode. */
     .ss-menu-name {
         font-size: 14px;
         font-weight: 600;
-        color: #333;
+        color: var(--text, #333);
     }
     .ss-menu-email {
         font-size: 12px;
-        color: #999;
+        color: var(--text-dim, #999);
         margin-top: 2px;
     }
 
@@ -79,18 +83,18 @@ if (count($_um_parts) > 1) {
         padding: 11px 16px;
         cursor: pointer;
         font-size: 13px;
-        color: #333;
+        color: var(--text, #333);
         transition: background 0.15s;
         border: none;
         background: none;
         width: 100%;
         text-align: left;
     }
-    .ss-menu-item:hover { background: #f5f5f5; }
-    .ss-menu-item svg { width: 16px; height: 16px; color: #666; flex-shrink: 0; }
-    .ss-menu-divider { height: 1px; background: #eee; margin: 0; }
-    .ss-menu-item.logout-item { color: #d32f2f; }
-    .ss-menu-item.logout-item svg { color: #d32f2f; }
+    .ss-menu-item:hover { background: var(--surface-hover, #f5f5f5); }
+    .ss-menu-item svg { width: 16px; height: 16px; color: var(--text-muted, #666); flex-shrink: 0; }
+    .ss-menu-divider { height: 1px; background: var(--border-soft, #eee); margin: 0; }
+    .ss-menu-item.logout-item { color: var(--danger-accent, #d32f2f); }
+    .ss-menu-item.logout-item svg { color: var(--danger-accent, #d32f2f); }
 
     .ss-mfa-badge {
         margin-left: auto;
@@ -99,8 +103,8 @@ if (count($_um_parts) > 1) {
         padding: 2px 6px;
         border-radius: 3px;
     }
-    .ss-mfa-badge.enabled { background: #e8f5e9; color: #2e7d32; }
-    .ss-mfa-badge.disabled { background: #f5f5f5; color: #999; }
+    .ss-mfa-badge.enabled { background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); }
+    .ss-mfa-badge.disabled { background: var(--surface-hover, #f5f5f5); color: var(--text-dim, #999); }
 
     /* Account modals */
     .ss-modal {
@@ -114,7 +118,7 @@ if (count($_um_parts) > 1) {
     }
     .ss-modal.active { display: flex; }
     .ss-modal-box {
-        background: #fff;
+        background: var(--surface, #fff);
         border-radius: 8px;
         width: 90%;
         max-width: 460px;
@@ -124,10 +128,10 @@ if (count($_um_parts) > 1) {
     }
     .ss-modal-header {
         padding: 20px 24px;
-        border-bottom: 1px solid #e0e0e0;
+        border-bottom: 1px solid var(--border, #e0e0e0);
         font-size: 18px;
         font-weight: 600;
-        color: #333;
+        color: var(--text, #333);
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -137,11 +141,11 @@ if (count($_um_parts) > 1) {
         border: none;
         cursor: pointer;
         padding: 4px;
-        color: #999;
+        color: var(--text-dim, #999);
         font-size: 20px;
         line-height: 1;
     }
-    .ss-modal-close:hover { color: #333; }
+    .ss-modal-close:hover { color: var(--text, #333); }
     .ss-modal-body { padding: 24px; }
 
     /* Appearance picker — the portal's equivalent of the analyst waffle-menu
@@ -176,7 +180,7 @@ if (count($_um_parts) > 1) {
     .ss-theme-swatch-dark    { background: linear-gradient(135deg, #1f2937 50%, #111827 50%); }
     .ss-modal-footer {
         padding: 16px 24px;
-        border-top: 1px solid #e0e0e0;
+        border-top: 1px solid var(--border, #e0e0e0);
         display: flex;
         gap: 10px;
         justify-content: flex-end;
@@ -187,21 +191,23 @@ if (count($_um_parts) > 1) {
         display: block;
         margin-bottom: 6px;
         font-weight: 500;
-        color: #333;
+        color: var(--text, #333);
         font-size: 13px;
     }
     .ss-form-input {
         width: 100%;
         padding: 10px 12px;
-        border: 1px solid #ddd;
+        border: 1px solid var(--border, #ddd);
         border-radius: 4px;
         font-size: 13px;
         font-family: inherit;
+        background: var(--surface, #fff);
+        color: var(--text, #333);
     }
-    .ss-form-input:focus { outline: none; border-color: #0078d4; }
+    .ss-form-input:focus { outline: none; border-color: var(--accent, #0078d4); }
     .ss-form-hint {
         font-size: 11px;
-        color: #999;
+        color: var(--text-dim, #999);
         margin-top: 4px;
     }
 
@@ -216,10 +222,10 @@ if (count($_um_parts) > 1) {
     }
     .ss-btn-primary { background: #0078d4; color: #fff; }
     .ss-btn-primary:hover { background: #005a9e; }
-    .ss-btn-secondary { background: #e0e0e0; color: #333; }
-    .ss-btn-secondary:hover { background: #d0d0d0; }
-    .ss-btn-danger { background: #fff; color: #d32f2f; border: 1px solid #d32f2f; }
-    .ss-btn-danger:hover { background: #ffebee; }
+    .ss-btn-secondary { background: var(--surface-3, #e0e0e0); color: var(--text, #333); border: 1px solid var(--border, #d0d0d0); }
+    .ss-btn-secondary:hover { background: var(--surface-hover, #d0d0d0); }
+    .ss-btn-danger { background: var(--surface, #fff); color: var(--danger-accent, #d32f2f); border: 1px solid var(--danger-accent, #d32f2f); }
+    .ss-btn-danger:hover { background: var(--danger-bg, #ffebee); }
     .ss-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
     .ss-msg {
@@ -229,8 +235,24 @@ if (count($_um_parts) > 1) {
         margin-bottom: 16px;
         display: none;
     }
-    .ss-msg.success { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; }
-    .ss-msg.error { display: block; background: #ffebee; color: #c62828; border: 1px solid #ffcdd2; }
+    .ss-msg.success { display: block; background: var(--success-bg, #e8f5e9); color: var(--success-text, #2e7d32); border: 1px solid var(--success-border, #c8e6c9); }
+    .ss-msg.error { display: block; background: var(--danger-bg, #ffebee); color: var(--danger-text, #c62828); border: 1px solid var(--danger-border, #ffcdd2); }
+    /* 🔴 The base `.ss-msg` is `display: none`, so a message needs a VARIANT or
+       it is invisible with its text sitting in the DOM. The directory-managed
+       note had no variant: 135 characters of explanation, `offsetHeight: 0`,
+       and four greyed-out boxes with nothing saying why. Worse, the harness
+       that "proved" it visible checked `style.display !== 'none'` — the INLINE
+       style, which is true the instant you clear it, whatever the stylesheet
+       does next. 🔑 Assert the COMPUTED display and a real box height.
+       Tinted like its analyst twin, and not the amber warning palette: nothing
+       is wrong, the details simply belong to the directory. */
+    .ss-msg.info {
+        display: block;
+        background: var(--accent-soft, #e8f4fd);
+        color: var(--text, #333);
+        border: 1px solid var(--border, #e0e0e0);
+        border-left: 3px solid var(--accent, #0078d4);
+    }
 
     /* MFA specific */
     .ss-mfa-status-card {
@@ -238,23 +260,31 @@ if (count($_um_parts) > 1) {
         border-radius: 6px;
         margin-bottom: 16px;
     }
-    .ss-mfa-status-card.enabled { background: #e8f5e9; border: 1px solid #c8e6c9; }
-    .ss-mfa-status-card.not-enabled { background: #f5f5f5; border: 1px solid #e0e0e0; }
-    .ss-mfa-status-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
-    .ss-mfa-status-desc { font-size: 12px; color: #666; }
+    /* ⚠️ The MFA modal shares `.ss-modal-box` with the account modal, so
+       theming that box's background made every hardcoded dark colour in here
+       dark-on-dark. These had to be done in the same pass, not left for later. */
+    .ss-mfa-status-card.enabled { background: var(--success-bg, #e8f5e9); border: 1px solid var(--success-border, #c8e6c9); }
+    .ss-mfa-status-card.not-enabled { background: var(--surface-3, #f5f5f5); border: 1px solid var(--border, #e0e0e0); }
+    .ss-mfa-status-title { font-size: 14px; font-weight: 600; margin-bottom: 4px; color: var(--text, #333); }
+    .ss-mfa-status-desc { font-size: 12px; color: var(--text-muted, #666); }
 
+    /* 🔴 The QR code stays on a WHITE plate in both themes, deliberately. A QR
+       is read by a phone camera, and inverting it — or floating dark modules on
+       a dark surface — is how you get a code that will not scan. The white is
+       the quiet zone, not decoration. */
     .ss-qr-container {
         text-align: center;
         padding: 16px;
         background: #fff;
-        border: 1px solid #eee;
+        border: 1px solid var(--border, #eee);
         border-radius: 6px;
         margin-bottom: 16px;
     }
     .ss-qr-container img { image-rendering: pixelated; }
     .ss-secret-display { text-align: center; margin-bottom: 16px; }
     .ss-secret-display code {
-        background: #f5f5f5;
+        background: var(--surface-3, #f5f5f5);
+        color: var(--text, #333);
         padding: 8px 14px;
         border-radius: 4px;
         font-size: 14px;
@@ -262,7 +292,7 @@ if (count($_um_parts) > 1) {
         letter-spacing: 2px;
         user-select: all;
     }
-    .ss-secret-display p { font-size: 11px; color: #999; margin-top: 6px; }
+    .ss-secret-display p { font-size: 11px; color: var(--text-dim, #999); margin-top: 6px; }
     .ss-verify-row { display: flex; gap: 10px; align-items: flex-end; }
     .ss-verify-row .ss-form-group { flex: 1; margin-bottom: 0; }
     .ss-otp-input {
@@ -383,8 +413,8 @@ if (count($_um_parts) > 1) {
                 <div class="ss-form-hint"><?php echo htmlspecialchars(t('self-service.account.appearance_hint')); ?></div>
             </div>
 
-            <div style="border-top:1px solid #e0e0e0; padding-top:20px;">
-                <div style="font-size:15px;font-weight:600;color:#333;margin-bottom:16px;"><?php echo htmlspecialchars(t('self-service.account.change_password')); ?></div>
+            <div style="border-top:1px solid var(--border, #e0e0e0); padding-top:20px;">
+                <div style="font-size:15px;font-weight:600;color:var(--text,#333);margin-bottom:16px;"><?php echo htmlspecialchars(t('self-service.account.change_password')); ?></div>
                 <div id="ssPwMsg" class="ss-msg"></div>
                 <div class="ss-form-group">
                     <label class="ss-form-label"><?php echo htmlspecialchars(t('self-service.account.current_password')); ?></label>
@@ -535,8 +565,9 @@ async function ssLoadProfile() {
         ssProfileManaged = data.is_managed === true;
         ssSetContactEnabled(!ssProfileManaged);
         if (ssProfileManaged) {
+            // ⚠️ `.ss-msg info`, not `.ss-msg`. The base class is display:none.
+            note.className = 'ss-msg info';
             note.style.display = '';
-            note.className = 'ss-msg';
             note.textContent = window.t('self-service.account.managed_note');
         } else {
             note.style.display = 'none';
@@ -718,11 +749,11 @@ function ssRenderMfaContent() {
     if (_ssMfaEnabled) {
         container.innerHTML =
             '<div class="ss-mfa-status-card enabled">' +
-                '<div class="ss-mfa-status-title" style="color:#2e7d32;">' + _ssEsc(window.t('self-service.mfa.enabled_title')) + '</div>' +
+                '<div class="ss-mfa-status-title" style="color:var(--success-text,#2e7d32);">' + _ssEsc(window.t('self-service.mfa.enabled_title')) + '</div>' +
                 '<div class="ss-mfa-status-desc">' + _ssEsc(window.t('self-service.mfa.enabled_desc')) + '</div>' +
             '</div>' +
             '<div>' +
-                '<p style="font-size:13px;color:#666;margin:0 0 12px 0;">' + _ssEsc(window.t('self-service.mfa.disable_prompt')) + '</p>' +
+                '<p style="font-size:13px;color:var(--text-muted,#666);margin:0 0 12px 0;">' + _ssEsc(window.t('self-service.mfa.disable_prompt')) + '</p>' +
                 '<div class="ss-form-group">' +
                     '<input type="password" class="ss-form-input" id="ssMfaDisablePw" placeholder="' + _ssEsc(window.t('self-service.mfa.disable_placeholder')) + '">' +
                 '</div>' +
@@ -740,7 +771,7 @@ function ssRenderMfaContent() {
 
 async function ssStartMfaSetup() {
     const container = document.getElementById('ssMfaContent');
-    container.innerHTML = '<p style="color:#888;">' + _ssEsc(window.t('self-service.mfa.generating')) + '</p>';
+    container.innerHTML = '<p style="color:var(--text-dim,#888);">' + _ssEsc(window.t('self-service.mfa.generating')) + '</p>';
 
     try {
         const resp = await fetch(_mfaApi + 'setup_mfa.php?ctx=user', {
@@ -762,17 +793,17 @@ async function ssStartMfaSetup() {
             qr.make();
             qrHtml = qr.createImgTag(5, 0);
         } catch (e) {
-            qrHtml = '<p style="color:#c62828;">' + _ssEsc(window.t('self-service.mfa.qr_failed')) + '</p>';
+            qrHtml = '<p style="color:var(--danger-text,#c62828);">' + _ssEsc(window.t('self-service.mfa.qr_failed')) + '</p>';
         }
 
         container.innerHTML =
-            '<p style="font-size:13px;color:#333;margin:0 0 16px 0;">' + window.t('self-service.mfa.step1') + '</p>' +
+            '<p style="font-size:13px;color:var(--text,#333);margin:0 0 16px 0;">' + window.t('self-service.mfa.step1') + '</p>' +
             '<div class="ss-qr-container">' + qrHtml + '</div>' +
             '<div class="ss-secret-display">' +
                 '<code>' + _ssEsc(data.secret) + '</code>' +
                 '<p>' + _ssEsc(window.t('self-service.mfa.manual_key')) + '</p>' +
             '</div>' +
-            '<p style="font-size:13px;color:#333;margin:0 0 12px 0;">' + window.t('self-service.mfa.step2') + '</p>' +
+            '<p style="font-size:13px;color:var(--text,#333);margin:0 0 12px 0;">' + window.t('self-service.mfa.step2') + '</p>' +
             '<div class="ss-verify-row">' +
                 '<div class="ss-form-group">' +
                     '<input type="text" class="ss-form-input ss-otp-input" id="ssMfaVerifyCode" maxlength="6" placeholder="000000" inputmode="numeric" autocomplete="one-time-code">' +
