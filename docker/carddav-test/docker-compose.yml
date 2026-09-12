@@ -1,0 +1,36 @@
+# A throwaway CardDAV + CalDAV server for developing FreeITSM's contact sync.
+# DEVELOPMENT ONLY — never run this anywhere real. The passwords are public.
+#
+# WHY BAIKAL
+# ----------
+# The reporter in #133 described his setup as "based on SabreDav". sabre/dav is
+# a PHP *library*, not a server you can run, so there is nothing called
+# "SabreDAV" to install. Baikal is the thin, standard server built on it, with
+# an admin UI — so it is both the closest thing to what he actually runs and the
+# most honest target: pass against Baikal and you have passed against sabre/dav
+# itself, which is what Nextcloud and ownCloud use underneath too.
+#
+# ⚠️ There is no official Baikal image. `ckulka/baikal` is the community one
+# everyone uses, and it ships both an Apache and an nginx variant. Pinned to a
+# digest-less tag deliberately: this is a scratch fixture, and tracking upstream
+# is more useful here than reproducibility.
+services:
+  baikal:
+    image: ckulka/baikal:nginx
+    container_name: freeitsm-carddav
+    restart: unless-stopped
+    ports:
+      # 8092 because 8080 is the app's own Docker image and 8091 is
+      # phpldapadmin in docker/ldap-test — all three can run at once.
+      - "127.0.0.1:8092:80"
+    volumes:
+      # The two paths the image documents as persistent. `config` holds the
+      # install's own settings; `Specific` holds the SQLite database with the
+      # users, address books and every card in them — so deleting these two
+      # volumes is how you get back to a clean server.
+      - baikal-config:/var/www/baikal/config
+      - baikal-data:/var/www/baikal/Specific
+
+volumes:
+  baikal-config:
+  baikal-data:
