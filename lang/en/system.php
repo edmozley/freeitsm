@@ -1146,7 +1146,10 @@ return [
         'carddav_run_failed'         => 'The import could not be run.',
         'carddav_run_confirm_all'    => 'This will bring every contact in that address book into your service desk, and keep them up to date from it. People already here with the same email address will be linked to it. Nobody is ever deleted.',
         'carddav_run_confirm_scoped' => 'This will bring the contacts you have selected into your service desk, and keep them up to date from the address book. People already here with the same email address will be linked to it. Nobody is ever deleted.',
-        'carddav_history_hint'       => 'Every import, and what it did. A run that was stopped by the safety check is shown as refused — that means nothing was changed.',
+        // ⚠️ "stopped" is the word the database records and the word the LDAP
+        // history shows, so it is the word used here. An invented synonym would
+        // have the two histories describing the same outcome differently.
+        'carddav_history_hint'       => 'Every import, and what it did. A run shown as stopped was halted by the safety check, which means nothing was changed.',
         'hist_scheduled'             => 'Scheduled',
         'carddav_test_running'       => 'Connecting…',
         'carddav_test_failed'        => 'Could not test the connection.',

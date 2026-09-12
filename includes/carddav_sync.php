@@ -359,8 +359,10 @@ function cardDavSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int 
             'causes' => 'the wrong address book, or a group renamed on the server',
         ]);
         if ($brake !== null) {
-            dsyncFinishRun($conn, $runId, 'refused', $counts, $brake);
-            return ['run_id' => $runId, 'status' => 'refused', 'message' => $brake, 'counts' => $counts];
+            // ⚠️ 'stopped', not 'refused'. See the note on the return below:
+            // the CLI keys its EXIT CODE off these exact words.
+            dsyncFinishRun($conn, $runId, 'stopped', $counts, $brake);
+            return dsyncGetRun($conn, $runId);
         }
 
         // --- the policy layer, reused verbatim ---
@@ -449,10 +451,29 @@ function cardDavSyncRun(PDO $conn, array $provider, string $mode = 'live', ?int 
         if ($counts['conflict'] > 0) $message .= sprintf(' Left alone as a conflict: %d.', $counts['conflict']);
 
     } catch (Throwable $e) {
-        $status  = 'error';
+        $status  = 'failed';
         $message = $e->getMessage();
     }
 
     dsyncFinishRun($conn, $runId, $status, $counts, $message);
-    return ['run_id' => $runId, 'status' => $status, 'message' => $message, 'counts' => $counts];
+
+    // 🔴 RETURN THE RUN ROW, exactly as directorySyncRun() does, and use its
+    // status words — 'ok' | 'stopped' | 'failed'.
+    //
+    // Returning a hand-built ['status'=>…, 'counts'=>[…]] instead broke two
+    // things silently, and neither showed up until the documented scheduled-task
+    // command was actually run:
+    //
+    //  - `scripts/directory_sync.php` prints `$run['seen_count']` and the other
+    //    flat column names, so every number it reported was **0** while the
+    //    message beside it said "Contacts read: 2. Created: 2." A scheduled
+    //    task's own output contradicted itself.
+    //  - 🔴 Worse: the script sets its EXIT CODE from `'failed'` and `'stopped'`.
+    //    With 'error' and 'refused' it matched neither, so **a CardDAV import
+    //    that failed exited 0** — and anything monitoring that task would have
+    //    reported a healthy nightly import of nobody.
+    //
+    // One shape and one vocabulary means the CLI, the web endpoint, the page
+    // and the history all treat the two kinds of source identically for free.
+    return dsyncGetRun($conn, $runId);
 }

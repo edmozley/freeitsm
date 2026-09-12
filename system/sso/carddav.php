@@ -10,14 +10,15 @@
  * and people reasonably concluded it was not there."
  *
  * A CardDAV source went the same way within a day. It has a connection, a book
- * to choose, a test whose result is several lines, and a list of groups or tags
- * to tick — and the modal had already needed sticky chrome to stay usable,
- * which is the same symptom. Phase 4 adds field mapping and a run history,
- * which have nowhere to live in a dialog at all.
+ * to choose, a test whose result is several lines, a list of groups or tags to
+ * tick, Preview and Run, and a run history — and the modal had already needed
+ * sticky chrome to stay usable, which was the same symptom.
  *
- * ⚠️ TWO TABS, NOT FOUR. Field mapping and History are deliberately absent
- * rather than present and empty: a tab that opens onto nothing is worse than a
- * tab that is not there yet, because it reads as broken rather than unbuilt.
+ * ⚠️ THREE TABS, AND NO FIELD MAPPING TAB — deliberately, not yet. Directories
+ * need one because they disagree about attribute names; vCard is a
+ * specification, so `FN`, `EMAIL`, `TEL` and `TITLE` mean the same thing
+ * everywhere and the mapping has exactly one correct answer. See the docblock
+ * of `cdsyncMapCard()` for the ambiguous calls and why each was made.
  *
  * ⚠️ The page furniture CSS below duplicates provider.php's. That is a known
  * cost, recorded in TODO.local.md rather than pretended away: extracting it is
@@ -458,7 +459,7 @@ async function loadRuns() {
                 if (i === 2) {
                     // The status gets the same pill provider.php uses.
                     const pill = document.createElement('span');
-                    pill.className = 'pill ' + (v === 'ok' ? 'ok' : (v === 'refused' ? 'stopped' : 'failed'));
+                    pill.className = 'pill ' + (v === 'ok' ? 'ok' : (v === 'stopped' ? 'stopped' : 'failed'));
                     pill.textContent = String(v);
                     td.appendChild(pill);
                 } else {
