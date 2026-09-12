@@ -424,7 +424,7 @@ function dsyncFindExisting(PDO $conn, array $provider, array $p): array
  * A first run (no baseline) is never braked — there is nothing to compare with,
  * and refusing to import anybody the first time would make the feature unusable.
  */
-function syncBrakeTripped(array $provider, int $seen): ?string
+function syncBrakeTripped(array $provider, int $seen, ?array $words = null): ?string
 {
     $pct  = (int)($provider['sync_brake_percent'] ?? 20);
     $last = $provider['sync_last_count'] !== null ? (int)$provider['sync_last_count'] : null;
@@ -434,12 +434,21 @@ function syncBrakeTripped(array $provider, int $seen): ?string
     $drop = (int)round((($last - $seen) / $last) * 100);
     if ($drop < $pct) return null;
 
+    // The RULE is transport-agnostic; only the likely causes differ. An LDAP
+    // drop is usually a base DN or a filter; a CardDAV drop is usually the
+    // wrong address book or a group that has been renamed. Defaults preserve
+    // the LDAP wording exactly, so nothing about that path changes.
+    $source = $words['source'] ?? 'directory';
+    $causes = $words['causes'] ?? 'a base DN, a filter or the service account\'s read rights';
+
+    // ⚠️ "%d of them" rather than "%d people": at a drop of one this read
+    // "than 1 people actually leaving". There is no pluralisation here to lean
+    // on, and putting the count in front of a noun is how you get that.
     return sprintf(
-        'Stopped without changing anything: the directory returned %d people, down %d%% from %d '
-        . 'on the last run. That is far more often a base DN, a filter or the service account\'s '
-        . 'read rights than %d people actually leaving. Check the directory, then run again — '
-        . 'or raise the safety threshold if the drop is genuine.',
-        $seen, $drop, $last, $last - $seen
+        'Stopped without changing anything: the %s returned %d, down %d%% from %d '
+        . 'on the last run. That is far more often %s than %d of them actually leaving. '
+        . 'Check the %s, then run again — or raise the safety threshold if the drop is genuine.',
+        $source, $seen, $drop, $last, $causes, $last - $seen, $source
     );
 }
 
