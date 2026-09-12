@@ -120,8 +120,17 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         .status-badge.on { background: #e8f5e9; color: #2e7d32; }
         .status-badge.off { background: #f0f0f0; color: #999; }
         .badge-jit { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: #e3f2fd; color: #1565c0; }
-        .table-action-btn { background: none; border: none; cursor: pointer; color: #607d8b; padding: 4px 8px; font-size: 13px; border-radius: 4px; }
-        .table-action-btn:hover { background: var(--sys-accent-soft, #eceff1); }
+        /* Row actions are ICONS, matching System → Integrations and the rest of
+           the settings screens. Three words per row ("Configure Delete") read as
+           prose competing with the data; three small glyphs read as controls.
+           ⚠️ Icon-only means the accessible name has to come from somewhere, so
+           every one carries BOTH `title` (the hover tooltip) and `aria-label`
+           (what a screen reader announces) — an icon button with neither is a
+           button that says nothing at all. */
+        .table-action-btn { background: none; border: none; cursor: pointer; color: #607d8b; padding: 5px; font-size: 13px; border-radius: 4px;
+            display: inline-flex; align-items: center; justify-content: center; vertical-align: middle; }
+        .table-action-btn svg { width: 16px; height: 16px; display: block; }
+        .table-action-btn:hover { background: var(--sys-accent-soft, #eceff1); color: var(--accent, #0078d4); }
         .table-action-btn.danger:hover { background: #ffebee; color: #c62828; }
         .empty-row td { text-align: center; color: var(--text-faint, #aaa); padding: 24px; font-style: italic; }
 
@@ -129,10 +138,22 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
            framework, whose .modal rule sets opacity:0/visibility:hidden by default. */
         .sso-modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 2100; align-items: center; justify-content: center; }
         .sso-modal-overlay.open { display: flex; }
-        .sso-modal { background: var(--surface, #fff); border-radius: 10px; width: 560px; max-width: 92vw; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
-        .sso-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); }
-        .sso-modal-body { padding: 20px 24px; }
-        .sso-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; }
+        /* The title and the buttons stay put; only the middle scrolls.
+           `max-height: 90vh; overflow-y: auto` on the BOX scrolls the whole
+           thing, header and footer included — so on a long form (CardDAV, or
+           LDAP before it moved to provider.php) you lose both the title telling
+           you what you are editing and the Save button.
+
+           🔑 This is the same flex-column shape provider.php already uses one
+           file over, and the same fix as the app-wide `.modal-content` — the
+           header and footer are rigid flex items, and the body takes the slack
+           with `min-height: 0` so it is allowed to shrink below its content and
+           scroll. `overflow: hidden` on the box keeps the corners clean. */
+        .sso-modal { background: var(--surface, #fff); border-radius: 10px; width: 560px; max-width: 92vw; max-height: 90vh;
+            display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .sso-modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-soft, #eee); font-size: 16px; font-weight: 600; color: var(--text, #333); flex: 0 0 auto; }
+        .sso-modal-body { padding: 20px 24px; flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+        .sso-modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-soft, #eee); display: flex; justify-content: flex-end; gap: 10px; flex: 0 0 auto; }
         /* The four attribute mappings sit two-up; they collapse to one column on narrow screens. */
         /* Encryption + port share a row: the select flexes, the port stays narrow.
            Needed because .form-field select is width:100%, which would otherwise
@@ -598,6 +619,14 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
         renderProviders();
     }
 
+    /* Feather-style outline icons at 24px, sized down by CSS — the same set and
+       the same stroke weight as System → Integrations, so the two screens do
+       not look like they were built by different people. `currentColor` so the
+       hover and danger states tint the glyph without a second rule. */
+    const ICON_CONFIGURE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>';
+    const ICON_EDIT      = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+    const ICON_DELETE    = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>';
+
     function renderProviders() {
         const body = document.getElementById('providersBody');
         if (!providers.length) {
@@ -639,9 +668,9 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                            ended up below the fold in the modal and people reasonably
                            concluded it was not there. OIDC keeps the dialog: an issuer,
                            a client id and a secret genuinely is a dialog's worth. */
-                        ? `<a class="table-action-btn" href="provider.php?id=${p.id}">${window.t('system.sso.configure')}</a>`
-                        : `<button class="table-action-btn" data-edit="${p.id}">${window.t('system.sso.edit')}</button>`}
-                    <button class="table-action-btn danger" data-del="${p.id}">${window.t('system.sso.delete')}</button>
+                        ? `<a class="table-action-btn" href="provider.php?id=${p.id}" title="${esc(window.t('system.sso.configure'))}" aria-label="${esc(window.t('system.sso.configure'))}">${ICON_CONFIGURE}</a>`
+                        : `<button class="table-action-btn" data-edit="${p.id}" title="${esc(window.t('system.sso.edit'))}" aria-label="${esc(window.t('system.sso.edit'))}">${ICON_EDIT}</button>`}
+                    <button class="table-action-btn danger" data-del="${p.id}" title="${esc(window.t('system.sso.delete'))}" aria-label="${esc(window.t('system.sso.delete'))}">${ICON_DELETE}</button>
                 </td>
             </tr>`;
         }).join('');
@@ -805,10 +834,16 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
     modal.addEventListener('click', e => { if (e.target === modal) closeModal(); });
 
     document.getElementById('providersBody').addEventListener('click', function (e) {
-        const editId = e.target.getAttribute('data-edit');
-        const delId = e.target.getAttribute('data-del');
-        if (editId) openModal(providers.find(p => p.id == editId));
-        if (delId) deleteProvider(delId);
+        // 🔴 `closest()`, not `e.target`. The buttons now contain an <svg>, so a
+        // click lands on the svg — or on a <path> inside it — and never on the
+        // button itself. Reading the attribute off e.target therefore returned
+        // null for every click, and Edit and Delete would have stopped working
+        // silently the moment the labels became icons. Nothing throws; the row
+        // just ignores you.
+        const editBtn = e.target.closest('[data-edit]');
+        const delBtn  = e.target.closest('[data-del]');
+        if (editBtn) openModal(providers.find(p => p.id == editBtn.getAttribute('data-edit')));
+        if (delBtn)  deleteProvider(delBtn.getAttribute('data-del'));
     });
 
     // ---------- Test discovery ----------
