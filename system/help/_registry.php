@@ -146,7 +146,7 @@ function getHelpTopics() {
         ],
         'sso' => [
             'hero' => 'Authentication',
-            'sub'  => 'Choose how people sign in: single sign-on through an identity provider (Microsoft Entra, Google, Okta, Keycloak or any OpenID Connect provider), or against your LDAP / Active Directory. Local passwords keep working as a fallback.',
+            'sub'  => 'Choose how people sign in: single sign-on through an identity provider (Microsoft Entra, Google, Okta, Keycloak or any OpenID Connect provider), or against your LDAP / Active Directory. Local passwords keep working as a fallback. A CardDAV address book also lives here, as a source of contact details rather than a way to sign in.',
             'sections' => [
                 ['id' => 'overview',   'label' => 'Overview'],
                 ['id' => 'which',      'label' => 'Single or multi-company?'],
@@ -156,14 +156,27 @@ function getHelpTopics() {
                 ['id' => 'ldap-setup', 'label' => 'Setting up a directory'],
                 ['id' => 'ldap-groups','label' => 'Controlling access by group'],
                 ['id' => 'ldap-faq',   'label' => 'LDAP troubleshooting'],
+                ['id' => 'carddav',        'label' => 'CardDAV address books'],
+                ['id' => 'carddav-setup',  'label' => 'Connecting an address book'],
+                ['id' => 'carddav-scope',  'label' => 'Choosing which contacts'],
+                ['id' => 'carddav-fields', 'label' => 'What gets imported'],
+                ['id' => 'carddav-safety', 'label' => 'Safety, leavers & scheduling'],
+                ['id' => 'carddav-faq',    'label' => 'CardDAV troubleshooting'],
                 ['id' => 'experience', 'label' => 'What people see'],
                 ['id' => 'breakglass', 'label' => 'Break-glass & safety'],
                 ['id' => 'faq',        'label' => 'Troubleshooting'],
             ],
+            // ⚠️ TWO search haystacks reach this page and both need a new
+            // feature's words: this string, and the landing card's
+            // `sso_keywords` in lang/en/system.php. Fixing one leaves the
+            // feature half-findable — see #1645.
             'terms' => 'oidc openid connect saml entra azure ad google okta keycloak login federation'
                      . ' ldap active directory domain controller dc bind base dn service account samba openldap'
                      . ' freeipa 389 memberof samaccountname objectguid starttls ldaps nested groups'
-                     . " no such object cannot log in can't sign in invalid credentials directory",
+                     . " no such object cannot log in can't sign in invalid credentials directory"
+                     . ' carddav card dav addressbook address book vcard vcf contacts contact sync import people'
+                     . ' baikal sabredav sabre nextcloud owncloud radicale thunderbird apple contacts groups'
+                     . ' categories tags kind group member digest basic phone number job title department office',
         ],
         'api' => [
             'hero' => 'API',

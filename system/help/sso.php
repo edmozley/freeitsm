@@ -159,6 +159,113 @@ require __DIR__ . '/_top.php';
     </ul>
 </div>
 
+<!-- 4f. CardDAV -->
+<div class="syshelp-section" id="carddav">
+    <div class="syshelp-section-header"><h3>CardDAV address books</h3></div>
+    <p class="syshelp-lead">If the people who raise tickets with you already exist in a shared address book, FreeITSM can read it and keep their contact details up to date here. Change somebody's phone number or job title in the address book, and the next import changes it in your service desk too.</p>
+    <div class="syshelp-callout warn"><strong>Nobody signs in through this.</strong> It is the odd one out on this page: a CardDAV address book is not an identity provider and has no login button. It imports <em>contact details</em>, nothing more. It lives here because it is another source of people, and it shares the same safety rules as an LDAP import.</div>
+    <h4>Who it imports</h4>
+    <p>Contacts become <strong>self-service users</strong> — the people who raise tickets. They are not analysts, and an import can never create one. If you want your service-desk staff to come from a directory, that is the LDAP section above.</p>
+    <div class="syshelp-callout info"><strong>It reads. It never writes.</strong> FreeITSM does not change, add or delete anything in your address book, so it is safe to point at a book you rely on elsewhere. The connection only ever needs an account that can read.</div>
+    <p>Any CardDAV server works — it is a standard, and FreeITSM asks the server what it holds rather than assuming. Tested against <strong>Baïkal</strong>; the same setup applies to Nextcloud, ownCloud, Radicale, or anything else built on sabre/dav.</p>
+</div>
+
+<!-- 4g. CardDAV setup -->
+<div class="syshelp-section" id="carddav-setup">
+    <div class="syshelp-section-header"><h3>Connecting an address book</h3></div>
+    <p>Go to <strong>System &rarr; Authentication</strong>, click <strong>+ Add</strong>, and set <strong>Type</strong> to <em>CardDAV address book (contacts only, no sign-in)</em>. You then get a page with three tabs — Connection, Contacts and History.</p>
+
+    <div class="syshelp-steps">
+        <div class="syshelp-step"><div class="syshelp-step-num">1</div><div><strong>Server URL.</strong> The CardDAV path, not the web page you log into. On a sabre/dav server it usually looks like <code>https://dav.example.com/dav.php/addressbooks/jsmith/</code>. Point it at the level that <em>holds</em> your address books rather than at one book, and let FreeITSM list them.</div></div>
+        <div class="syshelp-step"><div class="syshelp-step-num">2</div><div><strong>Username and password.</strong> A read-only account if your server can make one. Leave <strong>Authentication</strong> on <em>Automatic</em> — it asks the server which scheme it wants and uses that. A standard Baïkal wants Digest rather than Basic, which is exactly the sort of thing you should not have to know.</div></div>
+        <div class="syshelp-step"><div class="syshelp-step-num">3</div><div><strong>Press Test connection.</strong> This is not just a reachability check — it is how the rest of the form gets filled in. FreeITSM signs in, asks the server which address books it can see, and lists them for you to choose from.</div></div>
+        <div class="syshelp-step"><div class="syshelp-step-num">4</div><div><strong>Pick the address book</strong>, then move to the <strong>Contacts</strong> tab to choose which of its contacts you want. Save, and use <strong>Preview</strong> before you import for real.</div></div>
+    </div>
+
+    <div class="syshelp-callout"><strong>Test connection before the pickers will work.</strong> The address book list and the contact groups both come from your server, so until a test has succeeded there is nothing to choose from and the form says so. If you change the URL or the password afterwards, test again — the lists belong to the old connection until you do.</div>
+</div>
+
+<!-- 4h. CardDAV scope -->
+<div class="syshelp-section highlight" id="carddav-scope">
+    <div class="syshelp-section-header"><h3>Choosing which contacts</h3></div>
+    <p>An address book usually holds more than you want in your service desk — suppliers, family, the plumber. <strong>Which contacts to bring in</strong> gives you three answers, and FreeITSM looks inside the book you chose to work out which of them it can offer:</p>
+    <table class="syshelp-table">
+        <thead><tr><th>Option</th><th>What you get</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Everyone in the book</strong></td><td>Every contact. Right when the book exists for this purpose.</td></tr>
+            <tr><td><strong>Chosen groups</strong></td><td>Only members of the contact groups you tick. Groups are what most address-book apps call a “list” or a “group”.</td></tr>
+            <tr><td><strong>Chosen categories</strong></td><td>Only contacts carrying the tags you tick. Categories are the per-contact labels your app may call “tags”.</td></tr>
+        </tbody>
+    </table>
+    <p>Both pickers are tick boxes, not a single choice — you can bring in three groups out of nine, and <strong>All</strong> / <strong>None</strong> links save you clicking through a long list. Whether your server offers groups, categories, both or neither depends on what the contacts in it actually use, so FreeITSM shows you what is really there instead of a fixed list.</p>
+    <div class="syshelp-callout ok"><strong>Not sure which you have?</strong> Press Test connection and look. If the groups list is empty, nothing in that book uses groups — try categories, or bring in everyone and narrow it later. Changing your mind is just a re-run.</div>
+    <div class="syshelp-callout info"><strong>Group cards are not people.</strong> An address book stores a group as a card of its own. FreeITSM skips those, so you never end up with a contact called “Acme Staff” sitting in your people list looking like somebody.</div>
+</div>
+
+<!-- 4i. CardDAV fields -->
+<div class="syshelp-section" id="carddav-fields">
+    <div class="syshelp-section-header"><h3>What gets imported</h3></div>
+    <p>Seven things, and each one maps to a field you can already see on a person in FreeITSM:</p>
+    <table class="syshelp-table">
+        <thead><tr><th>In FreeITSM</th><th>Comes from</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Name</strong></td><td>The contact's display name.</td></tr>
+            <tr><td><strong>Email</strong></td><td>Their first valid email address. This is also how a contact is matched to somebody who already exists here.</td></tr>
+            <tr><td><strong>Job title</strong></td><td>The contact's title.</td></tr>
+            <tr><td><strong>Department</strong></td><td>The second part of the organisation field, which is where address books keep the department.</td></tr>
+            <tr><td><strong>Office</strong></td><td>The town or city from their address — the work address if they have one.</td></tr>
+            <tr><td><strong>Phone</strong> and <strong>Mobile</strong></td><td>Their numbers, split by the type the contact card gives them.</td></tr>
+        </tbody>
+    </table>
+    <h4>What does not come across, and why</h4>
+    <ul>
+        <li><strong>Employee number.</strong> A contact card has nowhere to put one. Left empty rather than filled with something that merely looks like one.</li>
+        <li><strong>Manager.</strong> There is a way to record it in the standard, but almost nothing writes it, so the reporting line is left alone rather than half-imported.</li>
+        <li><strong>A sign-in.</strong> Contacts have no username and no password here. They can still use the self-service portal if you give them access to it the usual way.</li>
+    </ul>
+    <div class="syshelp-callout"><strong>A contact with no unique id is skipped.</strong> Every contact card carries one, and it is what lets FreeITSM recognise the same person on the next import even after a rename or a move between books. A card without one would be imported again as a second copy every single run, so it is skipped and counted instead.</div>
+    <div class="syshelp-callout info"><strong>Somebody already here?</strong> The <strong>When somebody is already here</strong> setting decides: link them to this address book, so the import keeps them up to date from now on, or leave them alone and flag it for you to look at. Matching is by email address.</div>
+</div>
+
+<!-- 4j. CardDAV safety and scheduling -->
+<div class="syshelp-section" id="carddav-safety">
+    <div class="syshelp-section-header"><h3>Safety, leavers and scheduling</h3></div>
+    <p>An import is the sort of job that is quietly destructive when it goes wrong, so it is built around three rules. They are the same rules as an LDAP import, and they are not optional.</p>
+    <table class="syshelp-table">
+        <thead><tr><th>Rule</th><th>What it means for you</th></tr></thead>
+        <tbody>
+            <tr><td><strong>Nobody is ever deleted</strong></td><td>The worst an import can do to a person is mark them as having left. Their tickets and history stay exactly where they are.</td></tr>
+            <tr><td><strong>A run that looks wrong changes nothing</strong></td><td>If an import finds far fewer contacts than last time — by default a fifth fewer — it stops before touching anything and tells you why. Pointing at the wrong address book looks identical to everybody leaving at once, and this is what keeps the two apart.</td></tr>
+            <tr><td><strong>Missing once is noise</strong></td><td>Somebody absent from one import is not treated as a leaver. They have to be missing three imports running (your setting) before they are marked as left. Set it to 0 and that never happens automatically.</td></tr>
+        </tbody>
+    </table>
+    <div class="syshelp-callout ok"><strong>Preview changes nothing, and runs the real thing.</strong> It is the same code as a live import with the writing switched off, so what it tells you is what would happen — not an estimate. Worth doing first, every time.</div>
+    <p>A scope that matches <em>nothing</em> also stops the run rather than importing nobody. A group renamed on your server is far likelier than your whole company leaving.</p>
+
+    <h4>Running it on a schedule</h4>
+    <p>Nothing imports on its own. You run it from the <strong>Run</strong> button here, or you set up a scheduled task — the same one that runs an LDAP import:</p>
+    <p><code>php scripts/directory_sync.php --all</code></p>
+    <p>That picks up every enabled source with importing switched on, address books and directories alike, and sends each through the right engine. Nightly is a sensible starting point. It reports a proper exit code, so a monitored task tells you when an import failed instead of quietly doing nothing for months.</p>
+
+    <h4>History</h4>
+    <p>The <strong>History</strong> tab lists every import and what it did — by hand or scheduled, how many contacts were read, created, updated and skipped. A run shown as <strong>stopped</strong> was halted by the safety check, which means nothing was changed and it is waiting on you rather than broken.</p>
+</div>
+
+<!-- 4k. CardDAV troubleshooting -->
+<div class="syshelp-section" id="carddav-faq">
+    <div class="syshelp-section-header"><h3>CardDAV troubleshooting</h3></div>
+    <ul>
+        <li><strong>Test connection says it connected but found no address books.</strong> The URL is a level too deep or too shallow, or it is the web interface rather than the CardDAV path. The error says which of the two it looks like. On a sabre/dav server the path contains <code>/dav.php/addressbooks/</code>.</li>
+        <li><strong>It connects in a browser but not here.</strong> Your browser had a session; this does not. Check the username and password on their own, and remember many servers want a dedicated app password rather than the account password.</li>
+        <li><strong>Wrong username or password, but they are definitely right.</strong> Set <strong>Authentication</strong> explicitly to Digest, then to Basic. Automatic asks the server what it offers and the error names the schemes it was given — if that list is empty, something in front of the server is stripping the challenge.</li>
+        <li><strong>The groups and categories lists are empty.</strong> Either nothing in that book uses them, or the test ran before you chose the book. Choose the address book, test again, and look at both lists.</li>
+        <li><strong>The import stopped and changed nothing.</strong> That is the safety check doing its job. Either the scope matched nothing — a renamed group is the usual reason — or the count dropped sharply. Preview, confirm the numbers look right, and run again.</li>
+        <li><strong>Fewer contacts imported than the book holds.</strong> Group cards are skipped, and so is any contact with no unique id. The run's summary counts them separately from the ones it brought in.</li>
+        <li><strong>Somebody's details are not updating.</strong> They are probably not linked to this address book — check the conflict setting, and whether they were created here by hand before the import existed. Only people the import manages are kept up to date by it.</li>
+        <li><strong>Nothing has imported for weeks.</strong> An import only runs when something runs it. Check your scheduled task exists and is firing; the History tab shows the last run and where it came from.</li>
+    </ul>
+</div>
+
 <!-- 5. Experience -->
 <div class="syshelp-section" id="experience">
     <div class="syshelp-section-header"><h3>What people see when they sign in</h3></div>
