@@ -184,3 +184,6 @@ docker-compose.override.yml
 
 # The Azure mock records the last request it received (tests/azure-openai).
 tests/azure-openai/last-request.json
+
+# Translation pipeline working state (chunks + worklist) - regenerate with scripts/i18n_chunk.php
+.i18n-work/
