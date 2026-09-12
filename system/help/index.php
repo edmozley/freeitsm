@@ -48,6 +48,7 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
     <title>System Help</title>
     <link rel="stylesheet" href="../../assets/css/theme.css?v=23">
     <link rel="stylesheet" href="../../assets/css/inbox.css?v=70">
+    <link rel="stylesheet" href="../../assets/css/help.css?v=3">
     <style>
         /* Pin the shared --accent (header/inbox.css primitives) to the System accent. */
         body {
@@ -56,20 +57,18 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
                color:var(--on-accent) — and the global --on-accent stays WHITE in dark.
                So pinning --accent alone would put white text on a light button. Pin
                --on-accent too: it flips to near-black in dark. */
-            --accent: var(--sys-accent, #546e7a);
+            --accent:       var(--sys-accent, #546e7a);
             --accent-hover: var(--sys-accent-hover, #37474f);
-            --on-accent: var(--sys-on-accent, #fff);
+            --accent-soft:  var(--sys-accent-soft, #eceff1);
+            --on-accent:    var(--sys-on-accent, #fff);
         }
 
         .syshelp-wrap { height: calc(100vh - 48px); overflow-y: auto; background: var(--app-bg, #f5f6fa); }
-        .syshelp-hero { background: linear-gradient(135deg, #4f46e5 0%, #4338ca 50%, #3730a3 100%); color: #fff; padding: 40px 48px 36px; }
-        .syshelp-hero h1 { margin: 0 0 8px; font-size: 26px; font-weight: 700; }
-        .syshelp-hero p { margin: 0; font-size: 14.5px; opacity: 0.9; max-width: 720px; line-height: 1.5; }
 
         /* Search. The icon and clear button are centred against the INPUT, so the
            hint line must live outside .syshelp-search — inside it, the wrapper
            would be as tall as input+hint and `top: 50%` would sit them low. */
-        .syshelp-searchbar { margin: 20px 0 0; max-width: 520px; }
+        .syshelp-searchbar { margin: 20px auto 0; max-width: 520px; text-align: left; }
         .syshelp-search { position: relative; }
         .syshelp-search svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 17px; height: 17px; color: rgba(255,255,255,0.75); pointer-events: none; }
         .syshelp-search input { width: 100%; box-sizing: border-box; padding: 11px 40px 11px 40px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.28); background: rgba(255,255,255,0.14); color: #fff; font-size: 14px; }
@@ -82,12 +81,19 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
         .syshelp-search.has-value .syshelp-search-clear { display: block; }
         .syshelp-search-hint { margin-top: 8px; font-size: 12.5px; opacity: 0.75; min-height: 16px; }
 
-        .syshelp-grid { max-width: 1100px; margin: 0 auto; padding: 28px 48px 56px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+        /* Edge to edge — no content cap. A "tasteful" 1100px column is still a
+           cap, and these pages follow the same full-width rule as the settings
+           screens. The tiles are auto-fill so a wider window gets more columns
+           rather than wider tiles. */
+        .syshelp-grid { padding: 28px 32px 56px; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
         .syshelp-tile { display: flex; flex-direction: column; background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; transition: transform 0.12s, box-shadow 0.12s; }
         .syshelp-tile:hover { transform: translateY(-2px); box-shadow: 0 6px 18px var(--shadow, rgba(0,0,0,0.08)); }
         .syshelp-tile[hidden] { display: none; }
         .syshelp-tile-main { display: flex; gap: 14px; padding: 18px; text-decoration: none; }
-        .syshelp-tile-icon { flex-shrink: 0; width: 44px; height: 44px; border-radius: 10px; background: #eef2ff; color: #6366f1; display: flex; align-items: center; justify-content: center; }
+        /* Tinted from the accent tokens, like .help-card-icon in help.css —
+           NOT a hardcoded indigo. The tokens flip for dark, so there is no
+           dark-mode override to keep in step. */
+        .syshelp-tile-icon { flex-shrink: 0; width: 44px; height: 44px; border-radius: 10px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; }
         .syshelp-tile-icon svg { width: 24px; height: 24px; }
         .syshelp-tile h3 { margin: 0 0 4px; font-size: 15px; color: var(--text, #1f2330); }
         .syshelp-tile p { margin: 0; font-size: 12.5px; color: var(--text-muted, #6b7280); line-height: 1.5; }
@@ -95,21 +101,16 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
         /* Section deep-links: hidden until a search matches a heading inside the page. */
         .syshelp-hits { display: none; padding: 0 18px 14px 76px; flex-wrap: wrap; gap: 6px; }
         .syshelp-tile.has-hits .syshelp-hits { display: flex; }
-        .syshelp-hit { font-size: 12px; padding: 3px 9px; border-radius: 20px; background: #eef2ff; color: #3730a3; text-decoration: none; }
-        .syshelp-hit:hover { background: #e0e7ff; }
+        .syshelp-hit { font-size: 12px; padding: 3px 9px; border-radius: 20px; background: var(--accent-soft); color: var(--accent); text-decoration: none; }
+        .syshelp-hit:hover { filter: brightness(0.95); }
         .syshelp-hit[hidden] { display: none; }
 
-        .syshelp-empty { display: none; max-width: 1100px; margin: 0 auto; padding: 10px 48px 40px; }
+        .syshelp-empty { display: none; padding: 10px 32px 40px; }
         .syshelp-empty p { font-size: 14px; color: var(--text-muted, #6b7280); line-height: 1.6; }
-        .syshelp-gaps { max-width: 1100px; margin: 0 auto; padding: 0 48px 48px; font-size: 12.5px; color: var(--text-dim, #9ca3af); }
+        .syshelp-gaps { padding: 0 32px 48px; font-size: 12.5px; color: var(--text-dim, #9ca3af); }
 
-        @media (max-width: 700px) { .syshelp-grid { padding: 22px; } .syshelp-hero { padding: 30px 22px; } .syshelp-hits { padding-left: 18px; } }
+        @media (max-width: 700px) { .syshelp-grid { padding: 22px; } .syshelp-gaps { padding: 0 22px 32px; }  .syshelp-hits { padding-left: 18px; } }
 
-        /* ---- Dark mode: indigo hero + pale indigo icon tiles ---- */
-        [data-theme-mode="dark"] .syshelp-hero { filter: brightness(0.82); }
-        [data-theme-mode="dark"] .syshelp-tile-icon { background: #2b2f4a; color: #a5b4fc; }
-        [data-theme-mode="dark"] .syshelp-hit { background: #2b2f4a; color: #c7d2fe; }
-        [data-theme-mode="dark"] .syshelp-hit:hover { background: #363b5e; }
     </style>
     <!-- Mobile layer LAST, after this page's own <style> (Techniques §9). -->
     <link rel="stylesheet" href="../../assets/css/mobile.css?v=139">
@@ -120,7 +121,7 @@ $query   = trim($_GET['q'] ?? '');   // lets you link someone straight to a sear
     <?php include '../includes/header.php'; ?>
 
     <div class="syshelp-wrap">
-        <div class="syshelp-hero">
+        <div class="help-hero">
             <h1>System help</h1>
             <p>Guides for every area of the System admin. Start with whichever you're setting up — each page is written to be followed top to bottom.</p>
             <div class="syshelp-searchbar">

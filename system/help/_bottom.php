@@ -11,21 +11,19 @@
     <script>
         (function () {
             var main = document.getElementById('helpMain');
-            var links = Array.prototype.slice.call(document.querySelectorAll('.syshelp-nav-link'));
+            var links = Array.prototype.slice.call(document.querySelectorAll('.help-nav-link'));
             var sections = links.map(function (l) {
                 return { id: l.dataset.section, el: document.getElementById(l.dataset.section) };
             }).filter(function (s) { return s.el; });
 
-            // Stamp a number badge before each section heading to match the sidebar.
-            document.querySelectorAll('.syshelp-section').forEach(function (sec, i) {
-                var hdr = sec.querySelector('.syshelp-section-header');
-                if (hdr && !hdr.querySelector('.syshelp-section-num')) {
-                    var num = document.createElement('span');
-                    num.className = 'syshelp-section-num';
-                    num.textContent = (i + 1);
-                    hdr.insertBefore(num, hdr.firstChild);
-                }
-            });
+            // 🔑 The number badges are NOT stamped here any more. This used to
+            // count `.help-section` nodes and insert a badge into each one,
+            // which numbered whatever was in the DOM rather than what the
+            // sidebar lists — so a section on the page but missing from
+            // _registry.php silently shifted every number after it, and no
+            // number appeared at all without JavaScript. `helpSectionNum()` in
+            // _init.php now resolves it from the same array that builds the
+            // sidebar, server-side. See Help Page House Style §5.
 
             if (main) main.addEventListener('scroll', function () {
                 var top = main.scrollTop, current = sections.length ? sections[0].id : null;
