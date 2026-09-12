@@ -170,6 +170,15 @@ CREATE TABLE IF NOT EXISTS `auth_providers` (
     -- Digest, and Basic against it is a flat 401 that reads as a wrong
     -- password; the override is for a server that mis-advertises.
     `carddav_auth`           VARCHAR(10) NOT NULL DEFAULT 'auto',
+    -- WHICH records to bring in, within the chosen address book. 'all' |
+    -- 'group' | 'category'. "A specific contact group" means three different
+    -- things in CardDAV and only the operator knows which their server uses:
+    --   all       every ordinary card in the book
+    --   group     the MEMBERs of a KIND:group card (how Apple Contacts does it)
+    --   category  cards carrying a CATEGORIES value (Thunderbird, Android)
+    `carddav_scope`          VARCHAR(10) NOT NULL DEFAULT 'all',
+    -- The group's UID, or the category name. NULL when scope = 'all'.
+    `carddav_scope_value`    VARCHAR(255) NULL,
 
     `sync_last_run_datetime` DATETIME NULL,
     -- People found by the last SUCCESSFUL run. The number the brake compares

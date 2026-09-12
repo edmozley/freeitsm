@@ -109,7 +109,8 @@ $LDAP_EMPTY = [
     'attr_job_title' => null, 'attr_department' => null, 'attr_office' => null,
     'attr_phone' => null, 'attr_mobile' => null, 'attr_employee_id' => null, 'attr_manager' => null,
 ];
-$CARDDAV_EMPTY = ['url' => null, 'username' => null, 'addressbook' => null, 'auth' => 'auto'];
+$CARDDAV_EMPTY = ['url' => null, 'username' => null, 'addressbook' => null, 'auth' => 'auto',
+                  'scope' => 'all', 'scope_value' => null];
 
 $carddav          = $CARDDAV_EMPTY;
 $cardDavSecretIn  = '';
@@ -138,6 +139,13 @@ if ($protocol === 'carddav') {
         // legal, and refusing it would be inventing a rule the protocol has not.
         'addressbook' => trim($data['carddav_addressbook'] ?? '') ?: null,
         'auth'        => in_array($authIn, ['auto', 'digest', 'basic'], true) ? $authIn : 'auto',
+        // Which records, within that book. Validated against the list so an
+        // unexpected value degrades to 'all' rather than being stored and later
+        // matching nothing — a scope nothing matches is an import that silently
+        // brings in zero people.
+        'scope'       => in_array(($data['carddav_scope'] ?? 'all'), ['all', 'group', 'category'], true)
+                       ? $data['carddav_scope'] : 'all',
+        'scope_value' => trim($data['carddav_scope_value'] ?? '') ?: null,
     ];
     $cardDavSecretIn = $data['carddav_password'] ?? '';
     // ⚠️ Both of these MUST be set, even though a CardDAV provider has neither
@@ -271,7 +279,8 @@ try {
              'sync_deactivate_after', 'sync_brake_percent',
              'ldap_attr_job_title', 'ldap_attr_department', 'ldap_attr_office',
              'ldap_attr_phone', 'ldap_attr_mobile', 'ldap_attr_employee_id', 'ldap_attr_manager',
-             'carddav_url', 'carddav_username', 'carddav_addressbook', 'carddav_auth'];
+             'carddav_url', 'carddav_username', 'carddav_addressbook', 'carddav_auth',
+             'carddav_scope', 'carddav_scope_value'];
     $vals = [$displayName, $protocol, $issuerUrl, $clientId, $scopes,
              $enabled, $autoCreate, $requireVerified,
              $defaultModules, $sortOrder, $tenantId,
@@ -283,7 +292,8 @@ try {
              $ldap['sync_deactivate_after'], $ldap['sync_brake_percent'],
              $ldap['attr_job_title'], $ldap['attr_department'], $ldap['attr_office'],
              $ldap['attr_phone'], $ldap['attr_mobile'], $ldap['attr_employee_id'], $ldap['attr_manager'],
-             $carddav['url'], $carddav['username'], $carddav['addressbook'], $carddav['auth']];
+             $carddav['url'], $carddav['username'], $carddav['addressbook'], $carddav['auth'],
+             $carddav['scope'], $carddav['scope_value']];
 
     // A blank/masked secret on update = keep what is stored.
     $writeSecret        = !isMaskedNoChangeValue($secretInput);

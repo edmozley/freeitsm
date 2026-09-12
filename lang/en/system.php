@@ -1128,6 +1128,40 @@ return [
         'carddav_test_failed'        => 'Could not test the connection.',
         'carddav_test_auth'          => 'The server is using {scheme} authentication.',
         'carddav_test_pick'          => 'Choose one in Address book above, then Save.',
+
+        // --- Which records to bring in ---
+        // "A specific contact group" means three different things in CardDAV, so
+        // rather than guess, FreeITSM reads the chosen book and offers what is
+        // genuinely in it.
+        'field_carddav_scope'        => 'Which contacts to bring in',
+        'field_carddav_scope_hint'   => 'Address books often hold more than you want in your service desk. Press Test connection and FreeITSM will look inside the book you chose and offer whatever it finds — groups, tags, or just everything.',
+        'carddav_scope_all'          => 'Everything in this address book',
+        'carddav_scope_group'        => 'Only the members of one group',
+        'carddav_scope_category'     => 'Only contacts with a particular tag',
+        // ⚠️ Shown INSTEAD of the above when the book has none of that kind, so
+        // "your server has no groups" never looks like "FreeITSM cannot do groups".
+        'carddav_scope_group_none'   => 'Only the members of one group (this address book has none)',
+        'carddav_scope_category_none'=> 'Only contacts with a particular tag (this address book has none)',
+        'field_carddav_scope_value'  => 'Which one',
+        'field_carddav_group'        => 'Group',
+        'field_carddav_category'     => 'Tag',
+        // ⚠️ Count in brackets rather than "{n} members", and "Groups found: 1"
+        // rather than "1 groups", because `I18n::t()` does simple substitution
+        // with NO pluralisation — so "{n} members" renders "1 members", and it
+        // would do worse than that in the languages with more than two plural
+        // forms. Putting the number last, after a label or in brackets, is
+        // grammatical whatever the value and needs no plural machinery. The
+        // noun is already on the field's own label.
+        'carddav_group_option'       => '{name}  ({n})',
+        'carddav_category_option'    => '{name}  ({n})',
+        'carddav_scope_untested'     => 'Press Test connection to see what is in this address book',
+        'carddav_scope_untested_hint'=> 'FreeITSM reads the address book to find out what is in it, so this fills in after you test.',
+        'carddav_scope_none'         => 'This address book does not have any',
+        'carddav_scope_none_hint'    => 'FreeITSM read the address book and found none of these, so there is nothing to pick. Choose "Everything in this address book" instead, or set the grouping up on your address book server first.',
+        'carddav_scope_required'     => 'Choose which group or tag to bring in, or switch back to everything in the address book.',
+        'carddav_book_changed'       => 'Address book changed — press Test connection again to see what is inside it.',
+        'carddav_test_scan'          => 'Looked inside that address book — contacts: {contacts}, groups: {groups}, tags: {categories}.',
+        'carddav_scan_failed'        => 'Connected, but could not read the contents of that address book: {error}',
         'col_type'             => 'Type',
         'ldap_badge'           => 'LDAP',
         'oidc_badge'           => 'OIDC',

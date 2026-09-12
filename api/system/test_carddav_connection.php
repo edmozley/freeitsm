@@ -115,7 +115,7 @@ try {
         exit;
     }
 
-    echo json_encode([
+    $out = [
         'success'      => true,
         'books'        => $res['books'],
         'auth_offered' => $res['auth'],
@@ -124,7 +124,36 @@ try {
         'message'      => count($res['books']) === 1
             ? 'Connected, and found one address book.'
             : 'Connected, and found ' . count($res['books']) . ' address books.',
-    ]);
+    ];
+
+    // If a book is already chosen, look INSIDE it and report what it can be
+    // scoped by — the groups and the categories it actually contains.
+    //
+    // ⭐ This is the point of doing it here rather than asking the operator to
+    // type a group name: "a specific contact group" means three different
+    // things in CardDAV, and rather than guessing which one their server uses,
+    // FreeITSM reads the book and offers whatever is really in it. If the
+    // answer is "no groups and no categories", that is a useful answer too —
+    // it means the whole book is the only sensible scope.
+    $book = trim($data['carddav_addressbook'] ?? '');
+    if ($book !== '') {
+        $scan = cardDavScanBook($cfg, $book);
+        if ($scan['ok']) {
+            $out['scan'] = [
+                'contacts'   => $scan['contacts'],
+                'groups'     => $scan['groups'],
+                'categories' => $scan['categories'],
+            ];
+        } else {
+            // ⚠️ A failed scan must not fail the whole test. The connection is
+            // proven by this point; not being able to read one book's contents
+            // is a smaller, separate problem, and reporting it as "connection
+            // failed" would send somebody back to their password again.
+            $out['scan_error'] = $scan['error'];
+        }
+    }
+
+    echo json_encode($out);
 
 } catch (Exception $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);

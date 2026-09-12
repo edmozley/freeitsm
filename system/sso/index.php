@@ -484,6 +484,31 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                         </div>
                         <div class="test-result" id="cardDavTestResult"></div>
                     </div>
+
+                    <?php /* WHICH records to bring in.
+                             🔑 "A specific contact group" means three different
+                             things in CardDAV — a separate address book, a
+                             KIND:group card, or a CATEGORIES tag — and rather
+                             than guess which one an operator's server uses, or
+                             ask them to type a name they cannot verify,
+                             FreeITSM reads the chosen book and offers whatever
+                             is genuinely in it. Test connection fills both
+                             lists; an option with nothing behind it is disabled
+                             and says so, rather than being silently absent. */ ?>
+                    <div class="form-field">
+                        <label for="fCardDavScope"><?php echo htmlspecialchars(t('system.sso.field_carddav_scope')); ?></label>
+                        <div class="hint"><?php echo htmlspecialchars(t('system.sso.field_carddav_scope_hint')); ?></div>
+                        <select id="fCardDavScope">
+                            <option value="all"><?php echo htmlspecialchars(t('system.sso.carddav_scope_all')); ?></option>
+                            <option value="group"><?php echo htmlspecialchars(t('system.sso.carddav_scope_group')); ?></option>
+                            <option value="category"><?php echo htmlspecialchars(t('system.sso.carddav_scope_category')); ?></option>
+                        </select>
+                    </div>
+                    <div class="form-field" id="cardDavScopeValueField" style="display:none;">
+                        <label for="fCardDavScopeValue" id="cardDavScopeValueLabel"><?php echo htmlspecialchars(t('system.sso.field_carddav_scope_value')); ?></label>
+                        <div class="hint" id="cardDavScopeValueHint"></div>
+                        <select id="fCardDavScopeValue"></select>
+                    </div>
                 </div><!-- /#carddavFields -->
 
                 <!-- ===== OpenID Connect ===== -->
@@ -821,6 +846,20 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             book.appendChild(new Option(window.t('system.sso.carddav_book_untested'), ''));
         }
 
+        // Scope. Same reasoning as the book: seed from what is SAVED so editing
+        // a working provider and saving without re-testing keeps its scope.
+        // ⚠️ cardDavScan is cleared, because what is inside the book is not
+        // stored — it is read live, and a stale list from the last provider
+        // edited would offer groups belonging to somebody else's server.
+        cardDavScan = null;
+        $('fCardDavScope').value = (p && p.carddav_scope) ? p.carddav_scope : 'all';
+        const scopeVal = $('fCardDavScopeValue');
+        scopeVal.innerHTML = '';
+        if (p && p.carddav_scope_value) {
+            scopeVal.appendChild(new Option(p.carddav_scope_value, p.carddav_scope_value, true, true));
+        }
+        syncCardDavScope();
+
         // Directory sync fields live on provider.php, not in this dialog.
         $('fLdapTestUser').value = '';
         $('fLdapTestPass').value = '';
@@ -935,6 +974,87 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
      * typo they have no way to debug — the server knows the real list, so it
      * gets asked and the answer becomes the dropdown.
      */
+    /* What Test connection last found inside the chosen book. Held so changing
+       the scope dropdown can refill the value list without another round trip. */
+    let cardDavScan = null;
+
+    /**
+     * Show the right second dropdown for the chosen scope, and fill it.
+     *
+     * ⚠️ An option whose list is empty is DISABLED with the reason in the
+     * label, not hidden. Hiding it makes "this server has no groups" look
+     * identical to "FreeITSM does not support groups", and the operator cannot
+     * tell which — so they go looking for a feature that is right there.
+     */
+    function syncCardDavScope() {
+        const scope = $('fCardDavScope').value;
+        const field = $('cardDavScopeValueField');
+        const sel   = $('fCardDavScopeValue');
+        const hint  = $('cardDavScopeValueHint');
+        const label = $('cardDavScopeValueLabel');
+        const opts  = $('fCardDavScope').options;
+
+        // Label the two scoped options with what is actually available.
+        if (cardDavScan) {
+            opts[1].disabled = cardDavScan.groups.length === 0;
+            opts[2].disabled = cardDavScan.categories.length === 0;
+            opts[1].textContent = cardDavScan.groups.length
+                ? window.t('system.sso.carddav_scope_group')
+                : window.t('system.sso.carddav_scope_group_none');
+            opts[2].textContent = cardDavScan.categories.length
+                ? window.t('system.sso.carddav_scope_category')
+                : window.t('system.sso.carddav_scope_category_none');
+        }
+
+        if (scope === 'all') { field.style.display = 'none'; return; }
+
+        const list = scope === 'group'
+            ? (cardDavScan ? cardDavScan.groups : [])
+            : (cardDavScan ? cardDavScan.categories : []);
+
+        label.textContent = scope === 'group'
+            ? window.t('system.sso.field_carddav_group')
+            : window.t('system.sso.field_carddav_category');
+
+        const previous = sel.value;
+        sel.innerHTML = '';
+        if (!list.length) {
+            // ⚠️ "Not tested yet" and "tested, and there are none" are different
+            // facts and must not share a message — the same distinction as the
+            // DAV parse failure versus an empty account. Telling somebody to
+            // press Test connection when they just did reads as the button not
+            // working.
+            const tested = cardDavScan !== null;
+            sel.appendChild(new Option(window.t(tested
+                ? 'system.sso.carddav_scope_none'
+                : 'system.sso.carddav_scope_untested'), ''));
+            hint.textContent = window.t(tested
+                ? 'system.sso.carddav_scope_none_hint'
+                : 'system.sso.carddav_scope_untested_hint');
+        } else {
+            list.forEach(item => {
+                // Count alongside the name: "itsm (2 contacts)" is the only way
+                // to tell the real group from a stray tag on one card.
+                const label2 = scope === 'group'
+                    ? window.t('system.sso.carddav_group_option', { name: item.name, n: item.members })
+                    : window.t('system.sso.carddav_category_option', { name: item.name, n: item.contacts });
+                sel.appendChild(new Option(label2, scope === 'group' ? (item.uid || item.name) : item.name));
+            });
+            if (previous && [...sel.options].some(o => o.value === previous)) sel.value = previous;
+            hint.textContent = '';
+        }
+        field.style.display = '';
+    }
+    $('fCardDavScope').addEventListener('change', syncCardDavScope);
+    // Choosing a different book invalidates what we know about its contents —
+    // the groups in one book say nothing about another.
+    $('fCardDavBook').addEventListener('change', function () {
+        cardDavScan = null;
+        syncCardDavScope();
+        $('cardDavTestResult').className = 'test-result';
+        $('cardDavTestResult').textContent = window.t('system.sso.carddav_book_changed');
+    });
+
     $('testCardDavBtn').addEventListener('click', async function () {
         const box  = $('cardDavTestResult');
         const book = $('fCardDavBook');
@@ -955,7 +1075,10 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                     carddav_url:      url,
                     carddav_username: $('fCardDavUsername').value.trim(),
                     carddav_password: $('fCardDavPassword').value,
-                    carddav_auth:     $('fCardDavAuth').value
+                    carddav_auth:     $('fCardDavAuth').value,
+                    // Sending the chosen book asks the server what is INSIDE it
+                    // as well, in the same round trip.
+                    carddav_addressbook: $('fCardDavBook').value || ''
                 })
             });
             const d = await r.json();
@@ -988,7 +1111,23 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             if (d.auth_offered) {
                 txt += '\n' + window.t('system.sso.carddav_test_auth', { scheme: d.auth_offered });
             }
-            txt += '\n' + window.t('system.sso.carddav_test_pick');
+
+            // What is inside the chosen book, if one was chosen.
+            cardDavScan = d.scan || null;
+            if (d.scan) {
+                txt += '\n' + window.t('system.sso.carddav_test_scan', {
+                    contacts:   d.scan.contacts,
+                    groups:     d.scan.groups.length,
+                    categories: d.scan.categories.length
+                });
+            } else if (d.scan_error) {
+                // Read the book but not its contents: say so without claiming
+                // the connection failed, because it plainly did not.
+                txt += '\n' + window.t('system.sso.carddav_scan_failed', { error: d.scan_error });
+            } else {
+                txt += '\n' + window.t('system.sso.carddav_test_pick');
+            }
+            syncCardDavScope();
             box.textContent = txt;
         } catch (e) {
             box.className = 'test-result err';
@@ -1076,7 +1215,9 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
                 carddav_username:    $('fCardDavUsername').value.trim(),
                 carddav_password:    $('fCardDavPassword').value,
                 carddav_auth:        $('fCardDavAuth').value,
-                carddav_addressbook: $('fCardDavBook').value
+                carddav_addressbook: $('fCardDavBook').value,
+                carddav_scope:       $('fCardDavScope').value,
+                carddav_scope_value: $('fCardDavScope').value === 'all' ? '' : $('fCardDavScopeValue').value
             });
         }
 
@@ -1103,6 +1244,13 @@ $redirectUri = $scheme . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . BASE_U
             // changing a setting afterwards.
             if (!payload.carddav_addressbook) {
                 showToast(window.t('system.sso.carddav_book_required'), 'error');
+                return;
+            }
+            // 🔑 Choosing "only this group" and then leaving the group blank
+            // would fall back to importing everything — the exact outcome the
+            // operator was trying to avoid by choosing a scope at all. Block it.
+            if (payload.carddav_scope !== 'all' && !payload.carddav_scope_value) {
+                showToast(window.t('system.sso.carddav_scope_required'), 'error');
                 return;
             }
         } else if (!payload.issuer_url || !payload.client_id) {

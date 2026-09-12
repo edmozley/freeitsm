@@ -278,6 +278,200 @@ function cardDavParseAddressBooks(string $xml): ?array
 }
 
 /**
+ * Fetch every vCard in one address book, in a single request.
+ *
+ * An `addressbook-query` REPORT with `address-data` returns the cards inline,
+ * so this is one round trip rather than a PROPFIND followed by a GET per card —
+ * which on an address book of a few thousand contacts is the difference between
+ * one request and a few thousand.
+ *
+ * @return array ['ok'=>bool, 'cards'=>[['href'=>…,'etag'=>…,'vcard'=>…]], 'error'=>…, 'status'=>int]
+ */
+function cardDavFetchCards(array $cfg, string $bookHref): array
+{
+    $url = cardDavAbsoluteUrl($cfg['url'] ?? '', $bookHref);
+
+    $body = '<?xml version="1.0" encoding="utf-8"?>' .
+            '<card:addressbook-query xmlns:d="DAV:" xmlns:card="urn:ietf:params:xml:ns:carddav">' .
+            '<d:prop><d:getetag/><card:address-data/></d:prop>' .
+            '</card:addressbook-query>';
+
+    $res = cardDavRequest($cfg, 'REPORT', $url, $body, [
+        // Depth: 1 — the cards inside this collection, not the collection tree.
+        'Depth: 1',
+        'Content-Type: application/xml; charset=utf-8',
+    ]);
+
+    $out = ['ok' => false, 'cards' => [], 'error' => $res['error'], 'status' => $res['status']];
+    if (!$res['ok']) return $out;
+
+    $prev = libxml_use_internal_errors(true);
+    $doc = new DOMDocument();
+    $loaded = $doc->loadXML($res['body']);
+    libxml_clear_errors();
+    libxml_use_internal_errors($prev);
+    if (!$loaded) {
+        $out['error'] = 'The server answered the contact request with something FreeITSM could not read as a DAV response.';
+        return $out;
+    }
+
+    $xp = new DOMXPath($doc);
+    $xp->registerNamespace('d', 'DAV:');
+    $xp->registerNamespace('card', 'urn:ietf:params:xml:ns:carddav');
+
+    foreach ($xp->query('//d:response') as $resp) {
+        $hrefN = $xp->query('./d:href', $resp);
+        $dataN = $xp->query('.//card:address-data', $resp);
+        if (!$dataN || $dataN->length === 0) continue;   // e.g. the collection itself
+        $etagN = $xp->query('.//d:getetag', $resp);
+        $out['cards'][] = [
+            'href'  => ($hrefN && $hrefN->length) ? trim($hrefN->item(0)->textContent) : '',
+            'etag'  => ($etagN && $etagN->length) ? trim($etagN->item(0)->textContent) : '',
+            'vcard' => $dataN->item(0)->textContent,
+        ];
+    }
+    $out['ok'] = true;
+    return $out;
+}
+
+/**
+ * Resolve an href from a DAV response against the configured base URL.
+ *
+ * ⚠️ A server may answer with an absolute URL, a root-relative path, or a bare
+ * segment, and all three are legal. Concatenating blindly produces
+ * `https://host/dav.php/addressbooks/jsmith//dav.php/addressbooks/jsmith/itsm/`
+ * — a 404 that looks like a missing address book rather than a client bug.
+ */
+function cardDavAbsoluteUrl(string $baseUrl, string $href): string
+{
+    if ($href === '') return $baseUrl;
+    if (preg_match('#^https?://#i', $href)) return $href;
+
+    $parts = parse_url($baseUrl);
+    if ($parts === false || empty($parts['host'])) return $href;
+    $origin = ($parts['scheme'] ?? 'http') . '://' . $parts['host']
+            . (isset($parts['port']) ? ':' . $parts['port'] : '');
+
+    if ($href[0] === '/') return $origin . $href;
+    return rtrim($baseUrl, '/') . '/' . $href;
+}
+
+/**
+ * Unfold a vCard into logical lines.
+ *
+ * 🔴 NOT OPTIONAL. RFC 6350 says a line longer than 75 octets is folded by
+ * inserting CRLF followed by a single space or tab, and servers do it — a long
+ * `CATEGORIES` list is exactly the kind of property that gets folded. Parsing
+ * the raw text line by line therefore reads `CATEGORIES:customer,supplier,pa`
+ * and then a separate line ` rtner`, so the last value in a long list silently
+ * goes missing and everything still looks like it worked.
+ */
+function cardDavUnfold(string $vcard): array
+{
+    $norm = str_replace(["\r\n", "\r"], "\n", $vcard);
+    // A continuation is a newline followed by exactly one space or tab.
+    $norm = preg_replace("/\n[ \t]/", '', $norm);
+    return array_values(array_filter(array_map('trim', explode("\n", $norm)), function ($l) {
+        return $l !== '';
+    }));
+}
+
+/**
+ * Read one property's values out of an unfolded vCard.
+ *
+ * ⚠️ Matches on the property NAME before any parameters: `CATEGORIES:a,b` and
+ * `CATEGORIES;TYPE=x:a,b` are the same property, and an implementation that
+ * looks for `CATEGORIES:` misses the second. Comparison is case-insensitive
+ * because the spec says property names are.
+ */
+function cardDavProperty(array $lines, string $name): array
+{
+    $found = [];
+    $needle = strtoupper($name);
+    foreach ($lines as $line) {
+        $colon = strpos($line, ':');
+        if ($colon === false) continue;
+        $left = substr($line, 0, $colon);
+        // Strip parameters, then compare.
+        $semi = strpos($left, ';');
+        $prop = strtoupper(trim($semi === false ? $left : substr($left, 0, $semi)));
+        if ($prop !== $needle) continue;
+        $found[] = trim(substr($line, $colon + 1));
+    }
+    return $found;
+}
+
+/**
+ * What can this address book be scoped BY?
+ *
+ * Reads every card once and reports the two things somebody might want to
+ * filter on, so the settings screen can offer a list instead of a text box:
+ *
+ *   - groups     — `KIND:group` cards (how Apple Contacts stores a group), each
+ *                  with how many MEMBERs it names
+ *   - categories — every distinct `CATEGORIES` value across the cards, with a
+ *                  count (how Thunderbird and many Android clients do it)
+ *
+ * 🔑 Both are reported, always, because a server can use either or both and the
+ * operator is the only one who knows which of their groups is the real one.
+ * `contacts` is the count of ordinary (non-group) cards, which is what "bring
+ * in everything" would import.
+ */
+function cardDavScanBook(array $cfg, string $bookHref): array
+{
+    $res = cardDavFetchCards($cfg, $bookHref);
+    $out = [
+        'ok'         => false,
+        'contacts'   => 0,
+        'groups'     => [],
+        'categories' => [],
+        'error'      => $res['error'],
+        'status'     => $res['status'],
+    ];
+    if (!$res['ok']) return $out;
+
+    $catCounts = [];
+    foreach ($res['cards'] as $card) {
+        $lines = cardDavUnfold($card['vcard']);
+
+        $kind = strtolower(trim(cardDavProperty($lines, 'KIND')[0] ?? ''));
+        if ($kind === 'group') {
+            $uid  = cardDavProperty($lines, 'UID')[0] ?? '';
+            $name = cardDavProperty($lines, 'FN')[0] ?? '';
+            $out['groups'][] = [
+                'uid'     => $uid,
+                'name'    => $name !== '' ? $name : ($uid !== '' ? $uid : '(unnamed group)'),
+                'members' => count(cardDavProperty($lines, 'MEMBER')),
+            ];
+            // ⚠️ A group card is not a person and must not be counted as one,
+            // nor imported as one — "ITSM" is not a contact called ITSM.
+            continue;
+        }
+
+        $out['contacts']++;
+
+        foreach (cardDavProperty($lines, 'CATEGORIES') as $raw) {
+            // Comma-separated, and a value may legally contain an escaped comma.
+            foreach (preg_split('/(?<!\\\\),/', $raw) as $cat) {
+                $cat = trim(str_replace('\\,', ',', $cat));
+                if ($cat === '') continue;
+                $catCounts[$cat] = ($catCounts[$cat] ?? 0) + 1;
+            }
+        }
+    }
+
+    // Most-used first: the group somebody wants is far more likely to be the
+    // one on eighty cards than the one on a stray two.
+    arsort($catCounts);
+    foreach ($catCounts as $name => $n) {
+        $out['categories'][] = ['name' => $name, 'contacts' => $n];
+    }
+
+    $out['ok'] = true;
+    return $out;
+}
+
+/**
  * Build the config array a request needs from an `auth_providers` row.
  *
  * ⚠️ Decrypts here and nowhere earlier: the row travels around as stored, and

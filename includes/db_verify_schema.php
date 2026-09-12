@@ -162,6 +162,16 @@ return [
         // 401 that reads to an operator as a wrong password. The override
         // exists for a server that mis-advertises, not for normal use.
         'carddav_auth'           => "VARCHAR(10) NOT NULL DEFAULT 'auto'",
+        // WHICH records to bring in, within the chosen address book.
+        // 'all' | 'group' | 'category' — the three things "a specific contact
+        // group" can mean in CardDAV, because it means three different things
+        // and only the operator knows which one their server uses:
+        //   all       every ordinary card in the book
+        //   group     the MEMBERs of a KIND:group card (how Apple stores one)
+        //   category  cards carrying a CATEGORIES value (Thunderbird, Android)
+        // `carddav_scope_value` holds the group's UID or the category name.
+        'carddav_scope'          => "VARCHAR(10) NOT NULL DEFAULT 'all'",
+        'carddav_scope_value'    => 'VARCHAR(255) NULL',
 
         'sync_last_run_datetime' => 'DATETIME NULL',
         'sync_last_count'        => 'INT NULL',
