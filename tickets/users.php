@@ -172,17 +172,30 @@ $translationNamespaces = ['common', 'tickets'];
             background-color: var(--surface-3, #f8f8f8);
         }
 
-        /* Shown above the person fields when a directory owns them. Deliberately
-           neutral rather than the amber warning palette: nothing is wrong, and an
-           alarm colour for "somebody else maintains this" reads as a fault. */
+        /* Shown above the person fields when a directory owns them.
+           Tinted and bar-marked so the eye lands on it BEFORE the reader tries
+           to type into a locked field and wonders what is broken — the first
+           version was neutral grey and simply disappeared.
+
+           🔑 Accent blue, NOT the amber warning palette, and that is a
+           consistency point rather than taste: `asset-management/users.php`
+           already spends amber (#fff4ce) on the note that says a LEAVER IS
+           STILL HOLDING EQUIPMENT — a thing you must act on. This note says
+           the opposite: nothing is wrong, these details simply belong to the
+           directory. Giving it the same colour would make "somebody else
+           maintains this" shout as loudly as "you have kit to recover".
+
+           `--accent-soft` is a real token in both themes (#e8f4fd / #1d3346).
+           ⚠️ `--info-bg` is NOT — it does not exist in theme.css. */
         .user-managed-note {
-            background-color: var(--surface-3, #f8f8f8);
+            background-color: var(--accent-soft, #e8f4fd);
             border: 1px solid var(--border, #e0e0e0);
+            border-left: 3px solid var(--accent, #0078d4);
             border-radius: 4px;
             padding: 10px 12px;
             margin-bottom: 16px;
             font-size: 13px;
-            color: var(--text-muted, #666);
+            color: var(--text, #333);
         }
 
         .info-label {

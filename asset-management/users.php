@@ -161,9 +161,21 @@ $translationNamespaces = ['common', 'asset-management'];
         }
         .au-report:hover { background: var(--accent, #0078d4); color: #fff; }
         .au-report.inactive { opacity: .65; }
+        /* ⚠️ `var(--surface-hover, #eef4ff)` never rendered the blue it looks
+           like it asks for: the token exists (#f0f0f0 light / #2a3039 dark) so
+           it always won, and only the FALLBACK was tinted. The note was grey,
+           and grey on a form is easy to read straight past — which matters here
+           because it is the only thing explaining why the fields below will not
+           accept typing. Now the same accent tint and left bar as
+           `.user-managed-note` on tickets/users.php, so the two people editors
+           present an identical record identically.
+           🔴 Shared with the leaver note below, which overrides background and
+           colour inline — it overrides `border-left-color` too, or it would be
+           an amber box wearing a blue bar. */
         .au-managed-note {
             margin: 0 20px 14px; padding: 8px 12px; border-radius: 6px; font-size: 12px;
-            background: var(--surface-hover, #eef4ff); color: var(--text-muted, #555);
+            background: var(--accent-soft, #e8f4fd); color: var(--text, #333);
+            border-left: 3px solid var(--accent, #0078d4);
         }
         /* Person editor */
         .au-form { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
@@ -414,7 +426,7 @@ function renderDetail(user, assets) {
         ${reportsBlock}
         ${p.is_managed ? '<div class="au-managed-note">' + esc(window.t('asset-management.users.managed_note')) + '</div>' : ''}
         ${(p.is_active === false && assets.length)
-            ? '<div class="au-managed-note" style="background:#fff4ce;color:#6b5900;">'
+            ? '<div class="au-managed-note" style="background:#fff4ce;color:#6b5900;border-left-color:#b45309;">'
               + esc(window.t('asset-management.users.leaver_holding', { n: assets.length })) + '</div>'
             : ''}
         <table class="au-table">
