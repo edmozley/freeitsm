@@ -254,6 +254,91 @@ function getHelpTopics() {
             ],
             'terms' => 'tenant msp client customer multi-tenancy separate organisation domain',
         ],
+        'status-portal' => [
+            'hero' => 'Service status on the portal',
+            'sub'  => 'Whether the people who raise tickets also see the incidents behind an outage, and the updates your team has marked as external — and how much history to show them.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'What this adds'],
+                ['id' => 'before',   'label' => 'Read before switching on'],
+                ['id' => 'history',  'label' => 'How much history'],
+                ['id' => 'using',    'label' => 'Living with it'],
+            ],
+            'terms' => 'status page outage incident public transparency customers end users deflection'
+                     . ' external update resolved uptime downtime service health portal'
+                     . ' customers can see incidents should i turn this on',
+        ],
+        'search' => [
+            'hero' => 'Search',
+            'sub'  => 'What the search index holds, why a particular document or short word is not being found, and when a rebuild is actually needed.',
+            'sections' => [
+                ['id' => 'overview',    'label' => 'What this page is for'],
+                ['id' => 'index',       'label' => 'What the index holds'],
+                ['id' => 'min-word',    'label' => 'Short words'],
+                ['id' => 'attachments', 'label' => 'Attachments'],
+                ['id' => 'rebuild',     'label' => 'Rebuilding'],
+            ],
+            'terms' => 'search index fulltext full text rebuild reindex not found cannot find missing'
+                     . ' attachment pdf scanned ocr tika extract ft_min_word_len innodb_ft_min_token_size'
+                     . ' three letter acronym vpn dns sql short words ignored stale drifted'
+                     . " search returns nothing can't find a ticket search not working",
+        ],
+        'calendar-sync' => [
+            'hero' => 'Calendar sync',
+            'sub'  => 'Put analysts\' scheduled tickets into the Outlook calendars they already use, optionally let changes made there come back, and decide whether they may publish a subscription link.',
+            'sections' => [
+                ['id' => 'overview',   'label' => 'Two different things'],
+                ['id' => 'permission', 'label' => 'The permission'],
+                ['id' => 'connection', 'label' => 'The connection'],
+                ['id' => 'people',     'label' => 'Who syncs where'],
+                ['id' => 'inbound',    'label' => 'Changes in the calendar'],
+                ['id' => 'feeds',      'label' => 'Subscription links'],
+            ],
+            'terms' => 'calendar sync outlook exchange graph microsoft 365 m365 azure app registration'
+                     . ' calendars.readwrite application permission admin consent application access policy'
+                     . ' ical ics subscribe feed secret link google apple thunderbird two way'
+                     . ' cron calendar_sync_pull webhook notification url graph_notify client secret expired'
+                     . ' appointments scheduled work tasks unschedule deleted appointment',
+        ],
+        'ai' => [
+            'hero' => 'AI thinking',
+            'sub'  => 'Whether each AI feature may use a model\'s extended thinking. It is off by default because, measured on this install, off was eight times faster and the better answer.',
+            'sections' => [
+                ['id' => 'overview',    'label' => 'What it is'],
+                ['id' => 'evidence',    'label' => 'Why off is the default'],
+                ['id' => 'per-feature', 'label' => 'One switch per feature'],
+                ['id' => 'providers',   'label' => 'Which providers'],
+            ],
+            'terms' => 'ai thinking extended thinking reasoning model openrouter anthropic openai claude gpt'
+                     . ' slow expensive tokens budget cost summarise summarize draft extract'
+                     . ' no effect no api key why is the ai slow ai answers are bad',
+        ],
+        'integrations' => [
+            'hero' => 'Integrations',
+            'sub'  => 'Connections to the systems FreeITSM talks to — Jira and Azure DevOps for bugs, Slack for intake, and Apache Tika for reading documents.',
+            'sections' => [
+                ['id' => 'overview', 'label' => 'What lives here'],
+                ['id' => 'trackers', 'label' => 'Jira & Azure DevOps'],
+                ['id' => 'slack',    'label' => 'Slack'],
+                ['id' => 'tika',     'label' => 'Apache Tika'],
+            ],
+            'terms' => 'integration jira azure devops ado work item issue tracker bug escalate developer'
+                     . ' api token personal access token pat project key mapping resolved status'
+                     . ' slack channel thread message to ticket intake'
+                     . ' tika document reading pdf ocr scanned searchable attachment text extraction',
+        ],
+        'date-formats' => [
+            'hero' => 'Date and time formats',
+            'sub'  => 'How dates and times are written across FreeITSM. This is the default for everyone; any analyst can choose a different one for themselves in Preferences.',
+            'sections' => [
+                ['id' => 'overview',   'label' => 'What this sets'],
+                ['id' => 'choices',    'label' => 'The choices'],
+                ['id' => 'scope',      'label' => 'What it does not change'],
+                ['id' => 'per-person', 'label' => 'When somebody wants their own'],
+            ],
+            'terms' => 'date format time format 24 hour 12 hour am pm ddmmyyyy mmddyyyy iso 8601'
+                     . ' dd/mm/yyyy mm/dd/yyyy yyyy-mm-dd european american british locale regional'
+                     . ' month name timezone preferences per analyst default',
+        ],
         'topology' => [
             'hero' => 'Topology',
             'sub'  => 'A read-only map of how your install actually fits together — every company with its mailboxes, domains, sign-in providers and analysts underneath it. The fastest way to answer "is this set up the way I think it is?"',

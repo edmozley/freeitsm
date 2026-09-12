@@ -22,7 +22,8 @@
  * history.
  *
  * Asked for in https://github.com/edmozley/freeitsm/issues/133.
- * Wiki: CardDAV Contact Sync — Developer Guide.
+ * Wiki: CardDAV Import Internals — scope resolution, the run lifecycle and the
+ * test rig. (The transport half is CardDAV Contact Sync — Developer Guide.)
  */
 
 require_once __DIR__ . '/carddav.php';
